@@ -137,14 +137,20 @@ foreach ($url_params as $field => $value_id)
 
     if (trackers_data_is_date_field ($field))
       {
-        $co_field = $field . ($advsrch? '_end': '_op');
-        $names = ['strings' => [[$co_field, ['>', '=', '<']]]];
         if ($advsrch)
-          $names = ['preg' => [[$co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
+          {
+            $co_field = "${field}_end";
+            $names = ['preg' => [[$co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
+          }
+        else
+          {
+            $co_field = "${field}_op";
+            $names = ['strings' => [[$co_field, trackers_date_op_list ()]]];
+          }
         $in = sane_import ('request', $names);
         $url_params[$co_field] = $in[$co_field];
         if (!$advsrch && !$url_params[$co_field])
-          $url_params[$co_field] = ['='];
+          $url_params[$co_field] = ['*'];
       }
   }
 
@@ -406,6 +412,7 @@ foreach ($url_params as $field => $value_id)
         list ($time, $ok) = utils_date_to_unixtime ($param);
         preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $param, $match_arr);
         list (, $year, $month, $day) = $match_arr;
+        $field_defined = " AND $art.$field <> 0 ";
 
         if ($advsrch)
           {
@@ -425,9 +432,11 @@ foreach ($url_params as $field => $value_id)
         else
           {
             $operator = $url_params["${field}_op"][0];
-            # '=' means that day between 00:00 and 23:59.
-            if ($operator == '=')
+            if ($operator == '*')
+              $field_defined = ''; # Allow undefined dates in this case.
+            elseif ($operator == '=')
               {
+                # '=' means that day between 00:00 and 23:59.
                 $time_end = mktime (23, 59, 59, $month, $day, $year);
                 $where .= " AND $art.$field >= ? AND $art.$field <= ? ";
                 $where_params[] = $time;
@@ -435,13 +444,12 @@ foreach ($url_params as $field => $value_id)
               }
             else
               {
-                $time = mktime (0, 0, 0, $month, ($day+1), $year);
+                $time = mktime (0, 0, 0, $month, $day + 1, $year);
                 $where .= " AND $art.$field $operator= ? ";
                 $where_params[] = $time;
               }
           }
-        # Always exclude undefined dates (0).
-        $where .= " AND $art.$field <> 0 ";
+        $where .= $field_defined;
       }
     elseif ((trackers_data_is_text_field ($field)
              || trackers_data_is_text_area ($field))

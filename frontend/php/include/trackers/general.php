@@ -323,17 +323,20 @@ function trackers_multiple_field_date (
   return "<table><tr><td>$html</td></tr></table>\n";
 }
 
+function trackers_date_op_list ()
+{
+  return ['*', '>', '=', '<'];
+}
+
 function trackers_field_date_operator ($field_name, $value = '', $ro = false)
 {
   if ($ro)
     return htmlspecialchars ($value);
-  $sel = ' selected="selected"';
+  $options = '';
+  foreach (trackers_date_op_list () as $v)
+    $options .= form_option ($v, $value, htmlspecialchars ($v));
   return '<select title="' . _("comparison operator")
-    . "\" name=\"${field_name}_op\">"
-    . '<option value=">"' . (($value == '>')? $sel: '') . ">&gt;</option>\n"
-    . '<option value="="' . (($value == '=')? $sel: '') . ">=</option>\n"
-    . '<option value="<"' . (($value == '<')? $sel: '') . ">&lt;</option>\n"
-    . "</select>\n";
+    . "\" name=\"${field_name}_op\">$options</select>\n";
 }
 
 function trackers_field_text (

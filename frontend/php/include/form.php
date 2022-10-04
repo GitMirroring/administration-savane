@@ -82,6 +82,16 @@ function form_checkbox ($name, $is_checked = 0, $attr = [])
   return form_input ('checkbox', $name, $val, $extra);
 }
 
+function form_option ($value, $selected_value = NULL, $label = NULL)
+{
+  if ($label === NULL)
+    $label = $value;
+  $ret = "<option value=\"$value\"";
+  if ($selected_value !== NULL && $value == $selected_value)
+    $ret .= ' selected="selected"';
+  return "$ret>$label</option>\n";
+}
+
 function form_hidden ($name_val)
 {
   $ret = '';
@@ -96,8 +106,7 @@ function form_textarea ($name, $value="", $extra=false)
   if ($extra)
     $extra = " $extra";
 
-  return '
-    <textarea id="'.$name.'" name="'.$name.'"'.$extra.'>'.$value.'</textarea>';
+  return "\n<textarea id=\"$name\" name=\"$name\"$extra>$value</textarea>";
 }
 
 # Add submit button.

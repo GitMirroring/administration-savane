@@ -1175,14 +1175,16 @@ $reference = 'include/trackers_run/browse.php';
       print_reference ();
       print 'intval(null) != 0' . "\n";
     }
-  $co_field = 'status_op';
-  $names = ['strings' => [[$co_field, ['>', '=', '<']]]];
+  $field = 'status';
+  $co_field = $field . '_op';
+  $names = ['strings' => [[$co_field, ['>', '=', '<', '*']]]];
   $in = [$co_field => '='];
   $out = $in;
   test_sane_import ($in, $names, $out);
-  $co_field = 'category_end';
-  $names = ['preg' => [[$co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
-  $in = [$co_field => '1983-09-27'];
+  $field = 'category';
+  $co_field = $field . '_end';
+  $names = ['preg' => [[$field, $co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
+  $in = [$co_field => '1983-09-27', $field => '9999-99-99'];
   $out = $in;
   test_sane_import ($in, $names, $out);
 }
