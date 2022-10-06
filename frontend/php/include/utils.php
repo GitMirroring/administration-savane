@@ -415,7 +415,7 @@ function utils_user_link ($username, $realname = false, $noneisanonymous = false
     $re .= $username;
   return "$re</a>";
 }
- 
+
 function utils_registration_history ($unix_group_name)
 {
   # Meaningless with chrooted system; all www system should be chrooted.
@@ -839,13 +839,15 @@ function is_broken_msie ()
 
 function utils_setcookie ($name, $value, $expire, $secure = false)
 {
+  global $sys_home, $sys_default_domain;
+  $domain = preg_replace ('/:\d*$/', '', $sys_default_domain);
+
   # The domain argument is used in order to pass cookies to sys_file_domain,
   # which is assumed to be a subdomain of sys_default_domain.
   # When the session cookies don't come to sys_file_domain, attachments
   # to private items are inaccessible.
   setcookie (
-    $name, $value, $expire, $GLOBALS['sys_home'],
-    $GLOBALS['sys_default_domain'], $secure, true
+    $name, $value, $expire, $sys_home, $domain, $secure, true
   );
 }
 
