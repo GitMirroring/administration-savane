@@ -140,7 +140,8 @@ foreach ($url_params as $field => $value_id)
         if ($advsrch)
           {
             $co_field = "${field}_end";
-            $names = ['preg' => [[$co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
+            $names =
+              ['preg' => [[$field, $co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
           }
         else
           {
@@ -149,6 +150,8 @@ foreach ($url_params as $field => $value_id)
           }
         $in = sane_import ('request', $names);
         $url_params[$co_field] = $in[$co_field];
+        if ($advsrch && empty($in[$field]))
+          unset ($url_params[$field]);
         if (!$advsrch && !$url_params[$co_field])
           $url_params[$co_field] = ['*'];
       }
@@ -409,15 +412,17 @@ foreach ($url_params as $field => $value_id)
       {
         # Transform a date field into a unix time and use <, > or =.
         $param = $url_params[$field][0];
+        $ok = false;
         list ($time, $ok) = utils_date_to_unixtime ($param);
-        preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $param, $match_arr);
-        list (, $year, $month, $day) = $match_arr;
+        $ok |= preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $param, $match_arr);
+        if ($ok)
+          list (, $year, $month, $day) = $match_arr;
         $field_defined = " AND $art.$field <> 0 ";
 
         if ($advsrch)
           {
             list ($time_end, $ok_end) =
-              utils_date_to_unixtime ($url_params["${field}_end"][0]);
+              utils_date_to_unixtime ($url_params["${field}_end"]);
             if ($ok)
               {
                 $where .= " AND $art.$field >= ?";
@@ -428,6 +433,8 @@ foreach ($url_params as $field => $value_id)
                 $where .= " AND $art.$field <= ?";
                 $where_params[] = $time_end;
               }
+            if (!$ok && !$ok_end) # No limits, allow undefined dates.
+              $field_defined = '';
           }
         else
           {
@@ -577,14 +584,13 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
     elseif (trackers_data_is_date_field ($field))
       {
         $end_value = '';
-        if (isset ($url_params[$field . '_end'])
-            && isset ($url_params[$field . '_end'][0]))
-          $end_value = $url_params[$field . '_end'][0];
+        if (isset ($url_params["${field}_end"]))
+          $end_value = $url_params["${field}_end"];
 
         $op_value = '';
-        if (isset ($url_params[$field . '_op'])
-            && isset ($url_params[$field . '_op'][0]))
-          $op_value = $url_params[$field . '_op'][0];
+        if (isset ($url_params["${field}_op"])
+            && isset ($url_params["${field}_op"][0]))
+          $op_value = $url_params["${field}_op"][0];
 
         $value = '';
         if (isset ($url_params[$field]) && isset ($url_params[$field][0]))

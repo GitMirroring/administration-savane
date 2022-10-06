@@ -299,8 +299,6 @@ function trackers_multiple_field_date (
   $ro = false
 )
 {
-  # FIXME: this is broken, should be made as trackers_field_date.
-
   if ($ro)
     {
       if ($date_begin || $date_end)
