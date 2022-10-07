@@ -251,7 +251,7 @@ function show_item_history ($item_id, $group_id, $no_limit = false)
       $new_value_id =  db_result ($result, $i, 'new_value');
 
       $date = db_result ($result, $i, 'date');
-      $user = db_result ($result, $i, 'user_name');
+      $user = user_getname (db_result ($result, $i, 'mod_by'));
 
       # If the previous date and user are equal, do not print user
       # and date.

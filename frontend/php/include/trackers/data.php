@@ -1249,9 +1249,9 @@ function trackers_data_get_valid_bugs ($group_id = false, $item_id = '')
   );
 }
 
-function trackers_data_get_followups ($item_id = false, $rorder = false)
+function trackers_data_get_followups ($item_id, $rorder = false)
 {
-  if ($rorder == true)
+  if ($rorder)
     $rorder = "DESC";
   else
     $rorder = "ASC";
@@ -1262,17 +1262,15 @@ function trackers_data_get_followups ($item_id = false, $rorder = false)
     db_execute ("
       SELECT DISTINCT
         bug_history_id, field_name, old_value, spamscore, new_value, date,
-        user_name, realname, user_id, value AS comment_type
+        mod_by AS user_id, value AS comment_type
       FROM
         (
           SELECT
             b.bug_history_id, b.field_name, b.old_value, b.spamscore,
-            b.new_value, b.date, b.mod_by, b.type, t.group_id AS grp,
-            u.user_name, u.realname, u.user_id
-          FROM ${tracker}_history b, ${tracker} t, user u
+            b.new_value, b.date, b.mod_by, b.type, t.group_id AS grp
+          FROM ${tracker}_history b, $tracker t
           WHERE
-            t.bug_id = ? AND b.bug_id = t.bug_id
-            AND b.field_name = 'details' AND b.mod_by = u.user_id
+            t.bug_id = ? AND b.bug_id = t.bug_id AND b.field_name = 'details'
         ) bhi
         LEFT JOIN
         (
@@ -1297,16 +1295,13 @@ function trackers_data_get_commenters ($item_id)
   );
 }
 
-function trackers_data_get_history ($item_id = false)
+function trackers_data_get_history ($item_id)
 {
   return db_execute ("
-    SELECT
-      h.field_name, h.old_value, h.date, h.type, user.user_name, h.new_value
-     FROM " . ARTIFACT . "_history h, user
-     WHERE
-       h.mod_by = user.user_id AND h.field_name <> 'details' AND bug_id = ?
-     ORDER BY h.date DESC",
-     [$item_id]
+    SELECT field_name, old_value, date, type, mod_by, new_value
+    FROM " . ARTIFACT . "_history
+    WHERE field_name <> 'details' AND bug_id = ?  ORDER BY date DESC",
+    [$item_id]
   );
 }
 
@@ -1328,13 +1323,11 @@ function trackers_data_get_attached_files ($item_id = false, $order = 'DESC')
   );
 }
 
-function trackers_data_get_cc_list ($item_id = false)
+function trackers_data_get_cc_list ($item_id)
 {
   return db_execute ("
-    SELECT bug_cc_id, cc.email, cc.added_by, cc.comment, cc.date, u.user_name
-    FROM " . ARTIFACT . "_cc cc, user u
-    WHERE added_by = u.user_id AND bug_id = ?
-    ORDER BY date DESC",
+    SELECT bug_cc_id, email, added_by, comment, date
+    FROM " . ARTIFACT . "_cc WHERE bug_id = ?  ORDER BY date DESC",
     [$item_id]
   );
 }
@@ -2582,25 +2575,22 @@ function trackers_data_count_field_value_usage (
 
 function trackers_data_quote_comment ($item_id, $quote_no)
 {
-  $entry = false;
-  if ($quote_no == 0)
+  if ($quote_no)
     {
-      $result = db_execute ("
-        SELECT
-          u.user_id, u.user_name, u.realname, a.date, a.details, a.spamscore
-        FROM " . ARTIFACT . " a, user u
-        WHERE a.submitted_by = u.user_id AND a.bug_id = ? LIMIT 1",
-        [$item_id]
-      );
-      $entry = db_fetch_array ($result)['details'];
-      $label = _("original submission:");
-    }
-  else
-    {
+      $entry = false;
       $result = trackers_data_get_followups ($item_id);
       if ($quote_no <= db_numrows ($result))
         $entry = db_result ($result, $quote_no - 1, 'old_value');
       $label = sprintf (_("comment #%s:"), $quote_no);
+    }
+  else
+    {
+      $result = db_execute (
+        "SELECT details FROM " . ARTIFACT . " WHERE bug_id = ? LIMIT 1",
+        [$item_id]
+      );
+      $entry = db_fetch_array ($result)['details'];
+      $label = _("original submission:");
     }
   if ($entry === false)
     return $entry;

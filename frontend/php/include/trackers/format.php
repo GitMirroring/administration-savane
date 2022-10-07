@@ -39,9 +39,10 @@ function format_item_details (
   {
     $i++;
     $max_entries++;
+    $user_id = $entry['user_id'];
     $data[$i]['user_id'] = $entry['user_id'];
-    $data[$i]['user_name'] = $entry['user_name'];
-    $data[$i]['realname'] = $entry['realname'];
+    $data[$i]['user_name'] = user_getname ($user_id);
+    $data[$i]['realname'] = user_getname ($user_id, true);
     $data[$i]['date'] = $entry['date'];
     $data[$i]['comment_type'] = $entry['comment_type'];
     $data[$i]['text'] = trackers_decode_value ($entry['old_value']);
@@ -57,16 +58,14 @@ function format_item_details (
 
   # Get original submission.
   $result = db_execute ("
-    SELECT u.user_id, u.user_name, u.realname, a.date, a.details, a.spamscore
-    FROM " . ARTIFACT . " a, user u
-    WHERE a.submitted_by = u.user_id AND a.bug_id = ? AND a.group_id = ?
-    LIMIT 1",
-    [$item_id, $group_id]
+    SELECT submitted_by, date, details, spamscore
+    FROM " . ARTIFACT . " WHERE bug_id = ?  LIMIT 1", [$item_id]
   );
   $entry = db_fetch_array ($result);
-  $data[$i]['user_id'] = $entry['user_id'];
-  $data[$i]['user_name'] = $entry['user_name'];
-  $data[$i]['realname'] = $entry['realname'];
+  $user_id = $entry['submitted_by'];
+  $data[$i]['user_id'] = $user_id;
+  $data[$i]['user_name'] = user_getname ($user_id);
+  $data[$i]['realname'] = user_getname ($user_id, true);
   $data[$i]['date'] = $entry['date'];
   $data[$i]['text'] = $entry['details'];
   $data[$i]['comment_internal_id'] = '0';
@@ -664,7 +663,8 @@ function format_item_cc_list ($item_id, $group_id, $ascii = false)
       $u_id = user_getid ();
       $u_name = user_getname ($u_id);
       $u_mail = user_getemail ($u_id);
-      $res_name = db_result ($result, $i, 'user_name');
+      $user_name = user_getname (db_result ($result, $i, 'added_by'));
+      $res_name = $user_name;
       $mem_ck = member_check (
         0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
       );
@@ -680,7 +680,7 @@ function format_item_cc_list ($item_id, $group_id, $ascii = false)
           . '</a></span>';
 
       $out .= '<li class="' . utils_altrow ($i) . '">' . $html_delete;
-      $u_link = utils_user_link (db_result ($result, $i, 'user_name'));
+      $u_link = utils_user_link ($user_name);
       # TRANSLATORS: the first argument is email, the second is user's name.
       $out .=
         sprintf (_('<!-- email --> %1$s added by %2$s'), $email, $u_link);
