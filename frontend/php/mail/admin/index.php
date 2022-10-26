@@ -4,7 +4,7 @@
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2006  BBN Technologies Corp
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2018  Ineiev
+# Copyright (C) 2017, 2018, 2022 Ineiev
 #
 # This file is part of Savane.
 #
@@ -57,18 +57,19 @@ $key_func = ['preg', '/^(\d+|new)$/'];
 extract (sane_import ('post',
   [
     'true' => 'post_changes',
+    'digits' => 'newlist_format_index',
     'array' =>
       [
         [
           'list_name',
           [
             $key_func,
-            ['name', ['max_len' => 80, 'allow_dots' => true]]
+            ['name', ['min_len' => 0, 'max_len' => 80, 'allow_dots' => true]]
           ]
         ],
         ['description', [$key_func, 'specialchars']],
         ['reset_password', [$key_func, 'true']],
-        ['is_public', 'newlist_format_index', [$key_func, 'digits']],
+        ['is_public', [$key_func, 'digits']],
       ],
   ]
 ));

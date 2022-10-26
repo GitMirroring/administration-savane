@@ -1427,7 +1427,7 @@ $reference = 'mail/admin/index.php';
           'list_name',
           [
             $key_func,
-            ['name', ['max_len' => 80, 'allow_dots' => true]]
+            ['name', ['min_len' => 0, 'max_len' => 80, 'allow_dots' => true]]
           ]
         ],
         ['description', [$key_func, 'specialchars']],
@@ -1439,8 +1439,9 @@ $reference = 'mail/admin/index.php';
     'post_changes' => true,
     'list_name' =>
       [
-        'new' => 'list.test',
+        'new' => '',
         '123' => 'tes9-t.list',
+        '456' => 'list.test'
       ],
     'description' =>
       [

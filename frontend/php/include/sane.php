@@ -118,6 +118,7 @@ $sane_sanitizers['name'] = function ($in, &$out, $i, $arg)
   if (!is_scalar ($n))
     return 1;
 
+  $min_len = 1;
   $max_len = 34;
   $allow_dots = false;
 
@@ -126,6 +127,8 @@ $sane_sanitizers['name'] = function ($in, &$out, $i, $arg)
 
   if (is_array ($arg))
     {
+      if (isset ($arg['min_len']))
+        $min_len = $arg['min_len'];
       if (isset ($arg['max_len']))
         $max_len = $arg['max_len'];
       if (isset ($arg['allow_dots']))
@@ -138,7 +141,15 @@ $sane_sanitizers['name'] = function ($in, &$out, $i, $arg)
     $reg_exp .= '.';
   $reg_exp .= "_[:alnum:]-]*$/";
 
-  if (strlen ($n) > $max_len)
+  $len = strlen ($n);
+  if (!$min_len && !$len)
+    {
+      $out[$i] = $n;
+      return 0;
+    }
+  if ($len > $max_len)
+    return 1;
+  if ($len < $min_len)
     return 1;
 
   if (!preg_match ($reg_exp, $n))
