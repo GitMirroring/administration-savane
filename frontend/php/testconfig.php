@@ -264,17 +264,20 @@ if ($unset)
 
 print "\n<h2>PHP functions</h2>\n\n";
 
-$phpfunctions = array (
-        'mysqli_connect' =>
-          'You must install/configure php-mysqli ! [REQUIRED]',
-        'gettext' => 'You should install/configure php with gettext support '
-                         . '! [RECOMMENDED]',
-        'ctype_digit' => 'You must have a PHP version supporting ctype '
-                         . '(--enable-ctype) ! [REQUIRED]',
-        'pam_auth' => 'You must have a PHP version supporting pam_auth '
-                      . 'only if you set up authentification via '
-                      . 'PAM (kerberos, AFS, etc)');
-
+$phpfunctions =
+  [
+    'mysqli_connect' =>
+      'You must install/configure php-mysqli ! [REQUIRED]',
+    'gettext' => 'You should install/configure php with gettext support '
+      . '! [RECOMMENDED]',
+    'strftime' => 'When this function is dropped from PHP '
+      . '(deprecated in 8.1), date output is expected to slow down '
+      . '! [RECOMMENDED]',
+    'ctype_digit' => 'You must have a PHP version supporting ctype '
+      . '(--enable-ctype) ! [REQUIRED]',
+    'pam_auth' => 'You must have a PHP version supporting pam_auth '
+      . 'only if you set up authentification via PAM (kerberos, AFS, etc)'
+ ];
 print "<p>";
 foreach ($phpfunctions as $func => $comment)
   {

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2007  Cliss XXI
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2018 Ineiev
+# Copyright (C) 2017, 2018, 2022 Ineiev
 #
 # This file is part of Savane.
 #
@@ -35,7 +35,6 @@ class GPLQuickForm_Element
   private $title = '';
 
   private $select_options = array();
-
   public function __construct($type, $name, $params)
   {
     $this->type = $type;
@@ -44,7 +43,6 @@ class GPLQuickForm_Element
     switch($this->type)
       {
       case "header":
-      case "date":
       case "password":
       case "submit":
       case "text":
@@ -95,20 +93,14 @@ class GPLQuickForm_Element
   }
   public function setValue($value)
   {
-    if ($this->type == 'date' and is_string($value))
-      $value = $this->dateConvert($value);
     $this->value = $value;
   }
   public function setDefault($default)
   {
-    if ($this->type == 'date' and is_string($default))
-      $default = $this->dateConvert($default);
     $this->default = $default;
   }
   public function setConstant($constant)
   {
-    if ($this->type == 'date' and is_string($constant))
-      $constant = $this->dateConvert($constant);
     $this->constant = $constant;
   }
   public function freeze()
@@ -163,59 +155,6 @@ class GPLQuickForm_Element
           print "<span class='error'>$this->error</span><br />";
         switch($this->type)
           {
-
-          case 'date':
-            if ($this->frozen)
-              {
-                print $value['d'];
-                print "<input type='hidden' name='{$this->name}[d]' "
-                      ."value='{$value['d']}' /> ";
-                $month = mktime(0, 0, 0, $value['M'], 1, 2001);
-                print strftime('%b', $month);
-                print "<input type='hidden' name='{$this->name}[M]' "
-                      ."value='{$value['M']}' /> ";
-                print $value['Y'];
-                print "<input type='hidden' name='{$this->name}[Y]' "
-                      ."value='{$value['Y']}' />\n";
-              }
-            else
-              {
-                print "<select title=\""._('day of month')
-                      ."\" name='{$this->name}[d]'>";
-                for ($i = 1; $i <= 31; $i++)
-                  {
-                    $label = $i;
-                    if ($i < 10)
-                      $label = "0$label";
-                    $selected = '';
-                    if ($i == $value['d'])
-                      $selected = 'selected="selected"';
-                    print "<option value='$i' $selected>$label</option>\n";
-                  }
-                print "</select>\n";
-                print "<select title=\"".('month')
-                      ."\" name='{$this->name}[M]'>";
-                for ($i = 1; $i <= 12; $i++)
-                  {
-                    $month = mktime(0, 0, 0, $i, 1, 2001);
-                    $selected = '';
-                    if ($i == $value['M'])
-                      $selected = 'selected="selected"';
-                    print "<option value='$i' $selected>"
-                          .strftime('%b', $month)."</option>\n";
-                  }
-                print "</select>\n";
-                print "<select title=\"".('year')."\" name='{$this->name}[Y]'>";
-                for ($i = 2001; $i <= intval(date('Y')) + 3; $i++)
-                  {
-                    $selected = '';
-                    if ($i == $value['Y'])
-                      $selected = 'selected="selected"';
-                    print "<option value='$i' $selected>$i</option>\n";
-                  }
-                print "</select>\n";
-              }
-            break;
 
           case 'password':
             if ($this->frozen)

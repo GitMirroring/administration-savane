@@ -1,5 +1,5 @@
 <?php
-# Configure locale using browser preferences, via gettext and strftime.
+# Configure locale using browser preferences, via gettext and date(1).
 #
 # Copyright (C) 2016 Karl Berry (disable languages)
 # Copyright (C) 2003-2006 Stéphane Urbanovski <s.urbanovski--ac-nancy-metz.fr>

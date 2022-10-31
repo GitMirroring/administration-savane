@@ -215,15 +215,47 @@ function utils_cutstring ($string, $length = 35)
   return $string;
 }
 
+if (function_exists ("strftime"))
+  {
+    # Used until strftime is dropped from PHP.
+    function utils_strftime ($timestamp, $format)
+    {
+      $old_level = error_reporting (E_ALL & ~E_DEPRECATED);
+      $ret = strftime ($format, $timestamp);
+      error_reporting ($old_level);
+      return $ret;
+    }
+  }
+else # !function_exists ("strftime")
+  {
+    # Fallback for the PHP versions (> 8.1) when no strftime is provided.
+    function utils_strftime ($timestamp, $format)
+    {
+      $env = $_ENV;
+      $env['LC_ALL'] = setlocale (LC_TIME, 0);
+      $d_spec = [
+        0 => array ("pipe", "r"), 1 => array ("pipe", "w"),
+        2 => array ("pipe", "w")
+      ];
+      $cmd = "date +$format -d @$timestamp";
+      $date_proc = proc_open ($cmd, $d_spec, $pipes, NULL, $env);
+      $output = stream_get_contents ($pipes[1]);
+      fclose ($pipes[1]); fclose ($pipes[2]);
+      proc_close ($date_proc);
+      $output = substr ($output, 0, strlen ($output) - 1); # Drop trailing "\n".
+      return $output;
+    }
+  } # !function_exists ("strftime")
+
 # Return a formatted date for a unix timestamp.
 #
 # The given unix timestamp will be formatted according to
 # the $format parameter. Note that this parameter is not one
 # of the format strings supported by functions such as
-# strftime(), but a description instead.
+# date (), but a description instead.
 #
 # Currently, you can use the following values for $format:
-#   - default => localized Fri 18 November 2005 at 18:51
+#   - default => localized Fri Nov 18 18:51 GMT 2005
 #   - natural => 2005-11-18 or (for recent events) 18:51.
 #   - minimal => 2005-11-18
 #
@@ -237,39 +269,30 @@ function utils_format_date ($timestamp, $format = "default")
   # The installation configured a specific date format. This is not nice
   # this will prevent locales from being used.
   if ($sys_datefmt)
-    return strftime ($sys_datefmt, $timestamp);
+    return date ($sys_datefmt, $timestamp);
 
-  # Go at task #2614 to discuss this.
-  # Used by default.
+  if ($timestamp == 0)
+    return '-';
+
+  $tm = localtime ($timestamp, true);
   switch ($format)
     {
-    case 'minimal':
-      {
-        # To be used where place is really lacking, like in feature boxes.
-        # (Nowhere else, it is too uninformative.)
-        # Let's use a non-ambiguous format, such as ISO 8601's YYYY-MM-DD
-        # extended calendar format.
-        # Previously we used %x, where MM and DD can be swapped
-        # depending on locale, and users reported confusion.
-        return strftime ('%Y-%m-%d', $timestamp);
-      }
     case 'natural':
-      {
-        if (time () < 12 * 60 * 60 + $timestamp && time () > $timestamp)
+      if (time () < 12 * 60 * 60 + $timestamp && time () > $timestamp)
         # Nearest past events are shown as time.
-          $date_fmt = '%H:%M';
-        else
-          $date_fmt = '%Y-%m-%d';
-        return strftime ($date_fmt, $timestamp);
-      }
-    default:
-      {
-        # %c  The preferred date and time representation for the current locale.
-        # Cf. strftime(3)
-        return strftime ('%c', $timestamp);
-      }
+        return sprintf ("%02d:%02d", $tm['tm_hour'], $tm['tm_min']);
+      # Fall through.
+    case 'minimal':
+      # To be used where place is really lacking, like in feature boxes.
+      # Let's use a non-ambiguous format, such as ISO 8601's YYYY-MM-DD
+      # extended calendar format.
+      return sprintf (
+        "%04d-%02d-%02d", $tm['tm_year'] + 1900, $tm['tm_mon'] + 1,
+        $tm['tm_mday']
+      );
     }
-  return false;
+  # The preferred date and time representation for the current locale.
+  return utils_strftime ($timestamp, '%c');
 }
 
 # Convert a date as used in the bug tracking system and other services (YYYY-MM-DD)
