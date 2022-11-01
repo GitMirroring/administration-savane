@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2004-2005 Mathieu Roy <yeupou--gnu.org>.
-# Copyright (C) 2017, 2018 Ineiev
+# Copyright (C) 2017, 2018, 2022 Ineiev
 #
 # This file is part of Savane.
 #
@@ -25,8 +25,6 @@
 # second param is which row in that result set to use
 function forum_show_a_nested_message ($result,$row=0)
 {
-  global $sys_datefmt;
-
   $g_id =  db_result($result,$row,'group_id');
 
   # if the forum is a piece of news then get the real group_id from the
@@ -68,7 +66,7 @@ function forum_show_a_nested_message ($result,$row=0)
 
 function forum_show_nested_messages ($thread_id, $msg_id)
 {
-  global $total_rows,$sys_datefmt;
+  global $total_rows;
 
   $result = db_execute("SELECT user.user_name,forum.has_followups,"
                        ."user.realname,user.user_id,forum.msg_id,"
@@ -113,8 +111,8 @@ function forum_show_nested_messages ($thread_id, $msg_id)
 # FIXME: site_project_header function should be used instead
 function forum_header($params)
 {
-  global $DOCUMENT_ROOT,$HTML,$group_id,$forum_name,$thread_id,$msg_id;
-  global $forum_id,$REQUEST_URI,$sys_datefmt,$et,$et_cookie;
+  global $DOCUMENT_ROOT, $HTML, $group_id, $forum_name, $thread_id, $msg_id;
+  global $forum_id, $REQUEST_URI, $et, $et_cookie;
 
   $params['group']=$group_id;
   $params['toptab']='forum';
@@ -224,76 +222,70 @@ function forum_create_forum($group_id,$forum_name,$is_public=1,
 # $et is whether or not the forum is "expanded" or in flat mode
 function show_thread($thread_id,$et=0)
 {
-  global $total_rows,$sys_datefmt,$is_followup_to,$subject;
-  global $forum_id,$current_message;
+  global $total_rows, $is_followup_to, $subject, $forum_id, $current_message;
 
-  $result = db_execute("SELECT user.user_name,forum.has_followups,forum.msg_id,
-                        forum.subject,forum.thread_id,forum.body,forum.date,
-                        forum.is_followup_to "
-                      ."FROM forum,user WHERE forum.thread_id=?
-                        AND user.user_id=forum.posted_by
-                        AND forum.is_followup_to=0 "
-                      ."ORDER BY forum.msg_id DESC", array($thread_id));
-  $total_rows=0;
+  $result = db_execute ("
+    SELECT
+      user.user_name, forum.has_followups, forum.msg_id, forum.subject,
+      forum.thread_id, forum.body, forum.date, forum.is_followup_to
+    FROM forum, user
+    WHERE
+      forum.thread_id = ?  AND user.user_id = forum.posted_by
+      AND forum.is_followup_to = 0
+    ORDER BY forum.msg_id DESC", [$thread_id]
+  );
+  $total_rows = 0;
   $ret_val = '';
   if (!$result || db_numrows($result) < 1)
-    {
-      return 'Broken Thread';
-    }
-  else
-    {
-      $title_arr=array();
-      $title_arr[]=_('Thread');
-      $title_arr[]=_('Author');
-      $title_arr[]=_('Date');
+    return 'Broken Thread';
+  $title_arr = [_('Thread'), _('Author'), _('Date')];
+  $ret_val .= html_build_list_table_top ($title_arr);
 
-      $ret_val .= html_build_list_table_top ($title_arr);
+  $rows=db_numrows($result);
+  $is_followup_to=db_result($result, ($rows-1), 'msg_id');
+  $subject=db_result($result, ($rows-1), 'subject');
+  # Short - term compatibility fix. Leaving the iteration in for now -
+  # will remove in the future. If we remove now, some messages will become
+  # hidden.
+  #
+  # No longer iterating here. There should only be one root message per thread
+  # now.  Messages posted at the thread level are shown as followups
+  # to the first message.
+  for ($i = 0; $i < $rows; $i++)
+    {
+      $total_rows++;
+      $ret_val .= '<tr class="'. utils_altrow($total_rows)
+          .'"><td>'
+          .(($current_message != db_result($result, $i, 'msg_id'))?'<a href="'
+          .$GLOBALS['sys_home'].'forum/message.php?msg_id='
+          .db_result($result, $i, 'msg_id').'">':'')
+          .'<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
+          .'.theme/contexts/mail.png" border=0 height=12 width=12 /> ';
+      # See if this message is new or not.
+      if (get_forum_saved_date($forum_id) < db_result($result,$i,'date'))
+        { $ret_val .= '<strong>'; }
 
-      $rows=db_numrows($result);
-      $is_followup_to=db_result($result, ($rows-1), 'msg_id');
-      $subject=db_result($result, ($rows-1), 'subject');
-# Short - term compatibility fix. Leaving the iteration in for now -
-# will remove in the future. If we remove now, some messages will become hidden
-#
-# No longer iterating here. There should only be one root message per thread now.
-# Messages posted at the thread level are shown as followups to the first message
-      for ($i=0; $i<$rows; $i++)
+      $ret_val .= db_result($result, $i, 'subject') ."</a></td>\n"
+          .'<td>'.db_result($result, $i, 'user_name')."</td>\n"
+          .'<td>'.utils_format_date(db_result($result,$i,'date'))
+          ."</td></tr>\n";
+      # Show the body/message if requested.
+      if ($et == 1)
         {
-          $total_rows++;
-          $ret_val .= '<tr class="'. utils_altrow($total_rows)
-              .'"><td>'
-              .(($current_message != db_result($result, $i, 'msg_id'))?'<a href="'
-              .$GLOBALS['sys_home'].'forum/message.php?msg_id='
-              .db_result($result, $i, 'msg_id').'">':'')
-              .'<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-              .'.theme/contexts/mail.png" border=0 height=12 width=12 /> ';
-          # See if this message is new or not
-          if (get_forum_saved_date($forum_id) < db_result($result,$i,'date'))
-            { $ret_val .= '<strong>'; }
-
-          $ret_val .= db_result($result, $i, 'subject') ."</a></td>\n"
-              .'<td>'.db_result($result, $i, 'user_name')."</td>\n"
-              .'<td>'.utils_format_date(db_result($result,$i,'date'))
-              ."</td></tr>\n";
-          # Show the body/message if requested
-          if ($et == 1)
-            {
-              $ret_val .= '
-                  <tr class="'. utils_altrow($total_rows)
-                  .'"><td>&nbsp;</td><td colspan=2>'.
-                  nl2br(db_result($result, $i, 'body')).'</td><tr>';
-            }
-
-          if (db_result($result,$i,'has_followups') > 0)
-            {
-              $ret_val .= show_submessages($thread_id,
-                                           db_result($result, $i, 'msg_id'),
-                                           1,$et);
-            }
+          $ret_val .= '
+              <tr class="'. utils_altrow($total_rows)
+              .'"><td>&nbsp;</td><td colspan=2>'.
+              nl2br(db_result($result, $i, 'body')).'</td><tr>';
         }
-      $ret_val .= "</table>\n";
+
+      if (db_result($result,$i,'has_followups') > 0)
+        {
+          $ret_val .= show_submessages($thread_id,
+                                       db_result($result, $i, 'msg_id'),
+                                       1,$et);
+        }
     }
-  return $ret_val;
+  return "$ret_val</table>\n";
 }
 
 # Recursive. Selects this message's id in this thread,
@@ -302,15 +294,22 @@ function show_thread($thread_id,$et=0)
 # $level is used for indentation of the threads.
 function show_submessages($thread_id, $msg_id, $level,$et=0)
 {
-  global $total_rows,$sys_datefmt,$forum_id,$current_message;
+  global $total_rows, $forum_id, $current_message;
 
-  $result = db_execute("SELECT user.user_name,forum.has_followups,forum.msg_id,"
-          ."forum.subject,forum.thread_id,forum.body,forum.date,"
-          ."forum.is_followup_to "
-          ."FROM forum,user WHERE forum.thread_id = ? "
-          ."AND user.user_id=forum.posted_by AND forum.is_followup_to = ? "
-          ."ORDER BY forum.msg_id ASC", array($thread_id, $msg_id));
-  $rows=db_numrows($result);
+  $result = db_execute ("
+    SELECT
+      user.user_name, forum.has_followups, forum.msg_id,
+      forum.subject, forum.thread_id, forum.body, forum.date,
+      forum.is_followup_to
+    FROM forum, user
+    WHERE
+      forum.thread_id = ? AND user.user_id=forum.posted_by
+      AND forum.is_followup_to = ?
+    ORDER BY forum.msg_id ASC",
+    [$thread_id, $msg_id]
+  );
+
+  $rows = db_numrows($result);
 
   $ret_val = '';
   if ($result && $rows > 0)

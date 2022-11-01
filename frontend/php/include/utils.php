@@ -262,19 +262,11 @@ else # !function_exists ("strftime")
 # @see utils_date_to_unixtime()
 function utils_format_date ($timestamp, $format = "default")
 {
-  global $sys_datefmt;
-  if ($timestamp == 0)
-    return '-';
-
-  # The installation configured a specific date format. This is not nice
-  # this will prevent locales from being used.
-  if ($sys_datefmt)
-    return date ($sys_datefmt, $timestamp);
-
   if ($timestamp == 0)
     return '-';
 
   $tm = localtime ($timestamp, true);
+
   switch ($format)
     {
     case 'natural':

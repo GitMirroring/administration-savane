@@ -27,10 +27,7 @@ function format_item_details (
   $preview = [], $allow_quote = true
 )
 {
-  # ASCII must not be translated.
   # Format the details rows from trackers_history.
-  global $sys_datefmt;
-
   $data = [];
   $i = $max_entries = $hist_id = 0;
 
@@ -377,9 +374,6 @@ function format_item_details (
 
 function format_item_changes ($changes, $item_id, $group_id)
 {
-  # ASCII must not be translated.
-  global $sys_datefmt;
-
   # FIXME: strange, with %25s it does not behave exactly like
   # trackers_field_label_display.
   $fmt = "%24s: %23s => %-23s\n";
@@ -472,8 +466,7 @@ function format_item_changes ($changes, $item_id, $group_id)
 
 function format_item_attached_files ($item_id, $group_id, $ascii = false)
 {
-  # ASCII must not be translated.
-  global $sys_datefmt, $HTML, $sys_home;
+  global $HTML, $sys_home;
   $out = '';
   $order = 'DESC';
 
@@ -572,8 +565,7 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
 # Show the files attached to this bug.
 function format_item_cc_list ($item_id, $group_id, $ascii = false)
 {
-  # ASCII must not be translated.
-  global $sys_datefmt, $HTML;
+  global $HTML;
   if ($ascii)
     $ascii = 1;
   else

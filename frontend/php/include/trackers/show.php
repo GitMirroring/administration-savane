@@ -196,7 +196,6 @@ function show_item_list (
 # excluding details.
 function show_item_history ($item_id, $group_id, $no_limit = false)
 {
-  global $sys_datefmt;
   $result = trackers_data_get_history ($item_id);
   $rows = db_numrows ($result);
 

@@ -169,7 +169,6 @@ function trackers_field_display (
   $show_unknown = false, $tab = 25
 )
 {
-  global $sys_datefmt;
   $output = '';
 
   if ($label)
@@ -879,7 +878,7 @@ function trackers_mail_followup (
   $artifact = 0
 )
 {
-  global $sys_datefmt, $int_probablyspam, $sys_home, $sys_default_domain;
+  global $int_probablyspam, $sys_home, $sys_default_domain;
   global $sys_mail_replyto, $sys_mail_domain;
 
   # If presumed to be a spam, no notifications.
