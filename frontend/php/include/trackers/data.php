@@ -804,7 +804,7 @@ function trackers_data_get_col_width ($field, $by_field_id = false)
 function trackers_data_get_display_size ($field, $by_field_id = false)
 {
   $var_name = trackers_data_by_field_var ($by_field_id);
-  $val = "17/51";
+  $val = "0/0";
   if (isset ($GLOBALS[$var_name][$field]['custom_display_size']))
     $val = $GLOBALS[$var_name][$field]['custom_display_size'];
   elseif (isset ($GLOBALS[$var_name][$field]['display_size']))
