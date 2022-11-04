@@ -804,7 +804,7 @@ function trackers_data_get_col_width ($field, $by_field_id = false)
 function trackers_data_get_display_size ($field, $by_field_id = false)
 {
   $var_name = trackers_data_by_field_var ($by_field_id);
-  $val = null;
+  $val = "17/51";
   if (isset ($GLOBALS[$var_name][$field]['custom_display_size']))
     $val = $GLOBALS[$var_name][$field]['custom_display_size'];
   elseif (isset ($GLOBALS[$var_name][$field]['display_size']))
@@ -1205,47 +1205,6 @@ function trackers_data_get_submitters ($group_id = false)
     FROM user, $art a
     WHERE user.user_id = a.submitted_by AND a.group_id = ?
     ORDER BY user.user_name", [$group_id]
-  );
-}
-
-# Get the items for this project.
-function trackers_data_get_items ($group_id = false, $artifact)
-{
-  return db_execute ("
-    SELECT bug_id, summary FROM $artifact
-    WHERE group_id = ?  AND status_id <> 3
-    ORDER BY bug_id DESC LIMIT 100",
-    [$group_id]
-  );
-}
-
-# Get the list of ids this is dependent on.
-function trackers_data_get_dependent_items (
-  $item_id = false, $artifact, $notin = false
-)
-{
-  $sql = "
-    SELECT is_dependent_on_item_id FROM " . ARTIFACT . "_dependencies
-    WHERE item_id = ? AND is_dependent_on_item_id_artifact = ?";
-  $sql_params = [$item_id, $artifact];
-  if ($notin)
-    {
-      $sql .= ' AND is_dependent_on_item_id NOT IN ('
-        . utils_str_join (',', '?', count ($dict))
-        . ')';
-      $sql_params = array_merge ($sql_params, $notin);
-    }
-  return db_execute ($sql, $sql_params);
-}
-
-function trackers_data_get_valid_bugs ($group_id = false, $item_id = '')
-{
-  return db_execute ("
-    SELECT bug_id, summary
-    FROM " . ARTIFACT . " a
-    WHERE group_id = ? AND bug_id <> ? AND a.resolution_id <> 2
-    ORDER BY bug_id DESC LIMIT 200",
-    [$group_id, $item_id]
   );
 }
 

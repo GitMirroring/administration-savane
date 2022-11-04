@@ -2,7 +2,7 @@
 # Membership functions.
 #
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017 Ineiev
+# Copyright (C) 2017, 2022 Ineiev
 #
 # This file is part of Savane.
 #
@@ -195,7 +195,7 @@ function member_getpermissions ($group_id, $flags, $user_id=0)
 # found is exactly equal to the flag asked. For instance, if you are
 # looking for someone who is only technician, and not techn. and manager,
 # you can use that flag.
-function member_check ($user_id=0, $group_id, $flag=0, $strict=0)
+function member_check ($user_id, $group_id, $flag = 0, $strict = 0)
 {
   if (!$user_id)
     {
@@ -283,7 +283,7 @@ function member_check ($user_id=0, $group_id, $flag=0, $strict=0)
 }
 # Additional function to check whether a member is pending for a group
 # (partly member, so).
-function member_check_pending ($user_id=0, $group_id)
+function member_check_pending ($user_id, $group_id)
 {
   if (!$user_id)
     $user_id = user_getid();
@@ -299,7 +299,7 @@ function member_check_pending ($user_id=0, $group_id)
 }
 
 # Find out if the member is a squad or a normal uiser.
-function member_check_squad ($user_id=0, $group_id)
+function member_check_squad ($user_id, $group_id)
 {
   if (!$user_id)
     $user_id = user_getid();
@@ -318,7 +318,7 @@ function member_check_squad ($user_id=0, $group_id)
 # to read private content.
 # This stuff was not included in member_check() to ease development, nothing
 # else.
-function member_check_private ($user_id=0, $group_id)
+function member_check_private ($user_id, $group_id)
 {
   if (!$user_id)
     {

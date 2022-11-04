@@ -484,7 +484,7 @@ function _full_markup($line, $allow_headings, &$context_stack, &$quoted_text)
 
   # The code below marks up recognized special characters,
   # without starting a new context (e.g. <strong> and <em>).
-  $line = _markup_inline($line);
+  $line = _markup_inline ($line);
 
   # Paragraph formatting.
 
@@ -519,13 +519,11 @@ function _full_markup($line, $allow_headings, &$context_stack, &$quoted_text)
     }
   # Don't start a new paragraph again, if we already did that.
   if (isset ($context_stack[0]) && substr ($context_stack[0], 0, 4) == '</p>')
-    {
-      $start_paragraph = false;
-    }
+    $start_paragraph = false;
   # Add proper closing tags when we encounter an empty line.
   # note that there might be no closing tags, in this case
   # the line will remain emtpy.
-  if (preg_match('/^(|\s*)$/', $line))
+  if (preg_match ('/^(|\s*)$/', $line))
     {
       $line = join("\n", $context_stack)."$line";
       # Empty the stack.
@@ -543,9 +541,7 @@ function _full_markup($line, $allow_headings, &$context_stack, &$quoted_text)
     }
   # Append a linebreak while in paragraph mode.
   if (isset ($context_stack[0]) && substr ($context_stack[0], 0, 4) == '</p>')
-    {
-      $line .= '<br />';
-    }
+    $line .= '<br />';
   return $line;
 }
 
@@ -699,8 +695,8 @@ function _markup_inline($line)
   if ($group_id)
     $comingfrom = "&amp;comingfrom=$group_id";
 
-  if (strlen($line) == 0)
-    return;
+  if (strlen ($line) == 0)
+    return "";
   # Replace references to image files with <img>.
   preg_match_all ('/\(?((files? ))#(?P<file_id>\d+)'
                   . '(?P<comment>[^),]*)((\)|, )?)/',

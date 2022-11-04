@@ -260,7 +260,7 @@ function trackers_field_display (
 }
 
 function trackers_field_date (
-  $field, $value = '', $size = 0, $maxlength = 0, $ro = false
+  $field, $value, $size = 0, $maxlength = 0, $ro = false
 )
 {
   # Value is formatted as Y-m-d.
@@ -377,7 +377,7 @@ function trackers_field_textarea (
 # If box_name is given, then impose this name in the select box
 # of the  HTML form otherwise use the field_name.
 function trackers_field_box (
-  $field_name, $box_name = '', $group_id, $checked = false, $show_none = false,
+  $field_name, $box_name, $group_id, $checked = false, $show_none = false,
   $text_none = 'None', $show_any = false, $text_any = 'Any',
   $allowed_transition_only = false, $show_unknown = false
 )
@@ -471,7 +471,7 @@ function trackers_field_box (
 # If box_name is given then impose this name in the select box
 # of the  HTML form otherwise use the field_name.
 function trackers_multiple_field_box (
-  $field_name, $box_name = '', $group_id, $checked = false, $show_none = false,
+  $field_name, $box_name, $group_id, $checked = false, $show_none = false,
   $text_none = 'None', $show_any = false, $text_any = 'Any',
   $show_value = false
 )
