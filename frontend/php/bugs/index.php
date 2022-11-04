@@ -487,7 +487,7 @@ switch ($func)
         # Currently votes does not influence notifications
         # (that could harass developers).
         if (trackers_data_is_used ("vote"))
-          trackers_votes_update ($item_id, $group_id, $new_vote);
+          trackers_votes_update ($item_id, $new_vote);
       } # !$process_comment
     else
       warn_about_uploads ();

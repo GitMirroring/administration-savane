@@ -2,7 +2,7 @@
 # Handle votes.
 #
 # Copyright (C) 2005-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2020 Ineiev
+# Copyright (C) 2017, 2020, 2022 Ineiev
 #
 # This file is part of Savane.
 #
@@ -24,7 +24,7 @@ register_globals_off();
 
 extract (sane_import ('post',
   [
-    'true' => 'submit', 
+    'true' => 'submit',
     'array' => [['new_votes', ['digits', 'digits']]],
   ]
 ));
@@ -70,7 +70,6 @@ if ($submit)
         foreach ($new_votes_list as $vote_id => $new_vote)
           {
             trackers_votes_update ($new_votes_list_item_id[$vote_id],
-                                   0,
                                    $new_vote,
                                    $new_votes_list_tracker[$vote_id]);
           }
