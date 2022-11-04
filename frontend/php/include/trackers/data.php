@@ -1661,9 +1661,7 @@ function trackers_data_handle_update (
 
       # Add poster in CC.
       if (user_isloggedin () && !user_get_preference ("skipcc_postcomment"))
-        trackers_add_cc (
-          $item_id, $group_id, user_getid (), "-COM-", $changes
-        );
+        trackers_add_cc ($item_id, user_getid (), "-COM-", $changes);
     }
 
   # If we are on the cookbook, the original submission have been details.
@@ -1761,7 +1759,7 @@ function trackers_data_handle_update (
       # Add CC (CC in case of comment would have been already entered,
       # if there is only a comment, we should not end up here).
       if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
-        trackers_add_cc ($item_id, $group_id, user_getid (), "-UPD-");
+        trackers_add_cc ($item_id, user_getid (), "-UPD-");
     }
   else
     {
@@ -2264,7 +2262,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   # (currently, no option to avoid this, but we could make this a notif
   # configuration option, if wanted).
   if (user_isloggedin ())
-    trackers_add_cc ($item_id, $group_id, user_getid (), "-SUB-");
+    trackers_add_cc ($item_id, user_getid (), "-SUB-");
   return $item_id;
 }
 

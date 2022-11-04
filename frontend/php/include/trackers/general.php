@@ -1026,7 +1026,7 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
         continue;
 
       $file_id = trackers_attach_file (
-        $item_id, $group_id, $file['tmp_name'], $file['name'], $file['type'],
+        $item_id, $file['tmp_name'], $file['name'], $file['type'],
         $file['size'], $file_description, $changes
       );
       if (!$file_id)
@@ -1049,7 +1049,7 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
 }
 
 function trackers_attach_file (
-  $item_id, $group_id, $input_file, $input_file_name, $input_file_type,
+  $item_id, $input_file, $input_file_name, $input_file_type,
   $input_file_size, $file_description, &$changes
 )
 {
@@ -1185,7 +1185,7 @@ function trackers_attach_file (
   );
   # Add the guy in CC.
   if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
-    trackers_add_cc ($item_id, $group_id, user_getid (), "-UPD-");
+    trackers_add_cc ($item_id, user_getid (), "-UPD-");
   return $file_id;
 }
 
@@ -1218,7 +1218,7 @@ function trackers_insert_cc ($item_id, $cc, $added_by, $comment, $date)
   return $res;
 }
 
-function trackers_add_cc ($item_id, $group_id, $email, $comment)
+function trackers_add_cc ($item_id, $email, $comment)
 {
   $user_id = (user_isloggedin ()? user_getid (): 100);
 

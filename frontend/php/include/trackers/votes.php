@@ -127,7 +127,7 @@ function trackers_votes_update ($item_id, $new_vote, $tracker = null)
       ], DB_AUTOQUERY_INSERT
     );
 
-  trackers_add_cc ($item_id, null, user_getname (), "-VOT-");
+  trackers_add_cc ($item_id, user_getname (), "-VOT-");
 
   if (db_affected_rows($res_insert) < 1)
     {
