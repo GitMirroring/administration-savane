@@ -27,7 +27,7 @@ require_once ('../include/trackers/general.php');
 require_once ('../include/trackers/votes.php');
 
 if (!$group_id)
-  exit_no_group();
+  exit_no_group ();
 
 $is_trackeradmin =
   member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '2');
@@ -41,7 +41,9 @@ function warn_about_uploads ()
   $files = sane_import ('files',  ['pass' => $filenames]);
   foreach ($files as $file)
     {
-      if ($file['error'] != UPLOAD_ERR_OK)
+      if (!is_array ($file) || !isset ($file['error']))
+        continue;
+      if ($file['error'] != UPLOAD_ERR_OK || !isset ($file['name']))
         continue;
       $msg = sprintf (
         _("Warning: do not forget to re-attach your file '%s'"),
