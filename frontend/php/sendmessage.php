@@ -62,7 +62,7 @@ foreach (['subject', 'body', 'fromuser'] as $p)
   if (empty ($$p))
     $missing_params[] = $p;
 if (!empty ($missing_params))
-  exit_missing_param ([$missing_params]);
+  exit_missing_param ($missing_params);
 
 if ($cc_me)
   $touser .= ", $fromuser";
