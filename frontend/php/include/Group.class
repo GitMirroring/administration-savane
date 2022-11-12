@@ -23,9 +23,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once(dirname(__FILE__).'/savane_error.class');
+require_once(dirname (__FILE__) . '/savane_error.class');
 
-$PROJECT_OBJ = array();
+$PROJECT_OBJ = [];
 
 function project_get_object ($group_id)
 {
@@ -41,24 +41,24 @@ function project_get_object ($group_id)
 
 class Group extends savane_error
 {
-  var $data_array; # Associative array of data from db.
+  var $data_array; # Data from db.
   var $type_data_array;
   var $group_id;
   var $db_result; # Database result set handle.
   var $perm_data_array; # Permissions data row from db.
-  var $is_admin; # Whether the use is an admin/super user of this project.
+  var $is_admin; # Whether the user is an admin/super user of this project.
 
-  function __construct($id)
+  function __construct ($id)
   {
-    parent::__construct();
+    parent::__construct ();
     $this->group_id = $id;
     $this->db_result =
-      db_execute ("SELECT * FROM groups WHERE group_id=?", [$id]);
-    if (db_numrows($this->db_result) < 1)
+      db_execute ("SELECT * FROM groups WHERE group_id = ?", [$id]);
+    $this->type_data_array = $this->data_array = [];
+    if (db_numrows ($this->db_result) < 1)
       {
         # Function in class we extended.
         $this->setError ('Group Not Found');
-        $this->data_array = array();
         return;
       }
    # Set up an associative array for use by other functions.
@@ -67,15 +67,14 @@ class Group extends savane_error
    $type = $this->data_array['type'];
    $this->type_id = $type;
    $this->db_type_result =
-     db_execute ( "SELECT * FROM group_type WHERE type_id=?", array($type));
-   $this->type_data_array = array();
+     db_execute ("SELECT * FROM group_type WHERE type_id = ?", [$type]);
    if (db_numrows ($this->db_type_result) >= 1)
      $this->type_data_array = db_fetch_array ($this->db_type_result);
   }
 
   # Return database result handle for direct access.
   # Generally should NOT be used - here for supporting deprecated group.php.
-  function getData()
+  function getData ()
   {
     return $this->db_result;
   }
@@ -501,10 +500,10 @@ function group_getgnu ($group_id)
   return $grp->getGNU ();
 }
 
-function group_get_result($group_id=0)
+function group_get_result ($group_id = 0)
 {
-  $grp = project_get_object($group_id);
-  return $grp->getData();
+  $grp = project_get_object ($group_id);
+  return $grp->getData ();
 }
 
 function group_getid ($group_name)
