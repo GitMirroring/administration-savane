@@ -129,62 +129,39 @@ if ($update)
                    array(user_getid()));
         $row_pw = db_fetch_array();
 
-      # CERN_SPECIFIC: sys_use_pamauth have to be included in the
-      # configuration file and sv_update_conf.
-        if ($GLOBALS['sys_use_pamauth']=='yes' && $row_pw[user_pw] == 'PAM')
-          {
-            # Use pam authentication.
-            unset($pam_error);
-            if (!pam_auth(user_getname(), $oldvalue, $pam_error))
-              {
-                ' '._("Old password is incorrect.").' '
-                   . $pam_error;
-                $success = 0;
-              }
-          }
-        elseif (!account_validpw($row_pw['user_pw'], $oldvalue))
+        if (!account_validpw($row_pw['user_pw'], $oldvalue))
           {
             # Use basic authentication via user table.
             fb(_("Old password is incorrect."), 1);
             $success = 0;
           }
 
-        if($GLOBALS['sys_use_pamauth'])
+        # Do standard password sanity checks and update table.
+        if (!$newvalue)
           {
-            # Allow user to set authentication to be PAM based.
-            $success = db_autoexecute('user', array('user_pw' => 'PAM'),
+            fb(_("You must supply a password."), 1);
+            $success = 0;
+          }
+        if ($newvalue != $newvaluecheck)
+          {
+            fb(_("New Passwords do not match."), 1);
+            $success = 0;
+          }
+        if (!account_pwvalid($newvalue))
+          $success = 0;
+
+        # Update only if everything was ok before.
+        if ($success)
+          {
+            $success = db_autoexecute('user',
+                                      array('user_pw' =>
+                                            account_encryptpw($newvalue)),
                                       DB_AUTOQUERY_UPDATE,
                                       "user_id=?", array(user_getid()));
-          }
-        else
-          {
-            # Do standard password sanity checks and update table.
-            if (!$newvalue)
-              {
-                fb(_("You must supply a password."), 1);
-                $success = 0;
-              }
-            if ($newvalue != $newvaluecheck)
-              {
-                fb(_("New Passwords do not match."), 1);
-                $success = 0;
-              }
-            if (!account_pwvalid($newvalue))
-              $success = 0;
-
-            # Update only if everything was ok before.
             if ($success)
-              {
-                $success = db_autoexecute('user',
-                                          array('user_pw' =>
-                                                account_encryptpw($newvalue)),
-                                          DB_AUTOQUERY_UPDATE,
-                                          "user_id=?", array(user_getid()));
-                if ($success)
-                  fb(_("Password updated."));
-                else
-                  fb(_("Failed to update the database."), 1);
-              }
+              fb(_("Password updated."));
+            else
+              fb(_("Failed to update the database."), 1);
           }
       }
     elseif ($item == "gpgkey")
@@ -524,24 +501,6 @@ elseif ($item == "password")
 
     $form_item_names = ["oldvalue", "newvalue", "newvaluecheck"];
     $input_types = ["password", "password", "password"];
-
-  # AFS CERN Stuff
-    if ($sys_use_pamauth == "yes")
-      {
-        $input_titles[] = "<br />Instead of providing a new Savannah password you
-may choose to authenticate via an <strong>AFS</strong> account you own
-at this site (this requires your Savannah login name to be the
-same as the AFS account name). In this case, you don't need to fill the
-two &ldquo;New Password&rdquo; fields. Instead, check the following box:";
-
-        db_execute("SELECT user_pw FROM user WHERE user_id=?",
-                   array(user_getid()));
-        $row_pw = db_fetch_array();
-        $uses_pam_auth = 0;
-        $pam_idx = count ($form_item_names);
-        $form_item_names[$pam_idx] = "usepam";
-        $input_types[$pam_idx] = $row_pw['user_pw'] == 'PAM';
-      }
   }
 elseif ($item == "gpgkey")
   {
@@ -673,15 +632,6 @@ for ($i = 0; $i < 3; $i++)
     else
       print $input_spec[$i];
     print "<br />\n";
-  }
-
-if (isset ($pam_idx))
-  {
-    $n = $form_item_names[$pam_idx];
-    $checked = $input_types[$pam_idx];
-    print "<br />\n<span class='preinput'>"
-      . "<label for=\"$n\">{$input_titles[$pam_idx]}</label></span>";
-    print "<br />\n&nbsp;&nbsp;&nbsp;" . form_checkbox ($n, $checked) . "\n";
   }
 
 print "<input type='hidden' name='item' value=\"$item\" />\n";

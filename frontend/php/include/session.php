@@ -1,10 +1,10 @@
 <?php
-# Session functions
+# Session functions.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Derek Feichtinger <derek.feichtinger--cern.ch>
-# Copyright (C) 2017, 2018 Ineiev
+# Copyright (C) 2017, 2018, 2022 Ineiev
 #
 # This file is part of Savane.
 #
@@ -129,22 +129,7 @@ function session_login_valid($form_loginname,
         }
     }
 
-  # TODO: Brother site login mechanism should be implemented later for
-  #       all authentication methods:
-
-  # Authentication method: PAM based
-  # this requires the 'pam_auth' php extension from
-  # http://www.math.ohio-state.edu/~ccunning/pam_auth.html.
-  if($usr['user_pw'] == 'PAM')
-    {
-      $pam_error='';
-      if(! pam_auth($form_loginname, $form_pw, $pam_error))
-        {
-          fb(_('Invalid Password (AFS)'), 1);
-          return false;
-        }
-    }
-  else if ($usr['user_pw'] == '')
+  if ($usr['user_pw'] == '')
     {
       # Authentication method: Kerberos
       # If both user_pw and unix_pw are empty the user might

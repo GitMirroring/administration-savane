@@ -274,9 +274,7 @@ $phpfunctions =
       . '(deprecated in 8.1), date output is expected to slow down '
       . '! [RECOMMENDED]',
     'ctype_digit' => 'You must have a PHP version supporting ctype '
-      . '(--enable-ctype) ! [REQUIRED]',
-    'pam_auth' => 'You must have a PHP version supporting pam_auth '
-      . 'only if you set up authentification via PAM (kerberos, AFS, etc)'
+      . '(--enable-ctype) ! [REQUIRED]'
  ];
 print "<p>";
 foreach ($phpfunctions as $func => $comment)
