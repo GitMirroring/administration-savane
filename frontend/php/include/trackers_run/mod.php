@@ -411,6 +411,9 @@ if ($depends_search || $canned_response == "!multiple!"
 
 $canned_text = trackers_data_append_canned_response ('', $canned_response);
 
+if ($comment === null)
+  $comment = '';
+
 if (isset ($quote_no))
   {
     $quote = trackers_data_quote_comment ($item_id, $quote_no);
