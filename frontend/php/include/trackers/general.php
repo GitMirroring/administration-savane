@@ -233,7 +233,7 @@ function trackers_field_display (
             $output .= utils_format_date ($value);
         else
           $output .= trackers_field_date (
-            $field_name, ($value == 0)? '': strftime ("%Y-%m-%d", $value)
+            $field_name, ($value == 0)? null: strftime ("%Y-%m-%d", $value)
           );
         }
       break;
@@ -263,8 +263,9 @@ function trackers_field_date (
   $field, $value, $size = 0, $maxlength = 0, $ro = false
 )
 {
-  # Value is formatted as Y-m-d.
-  $t = explode ('-', $value);
+  if ($value !== null)
+    # Value is formatted as Y-m-d.
+    $t = explode ('-', $value);
   $year = isset ($t[0])? $t[0]: null;
   $month = isset ($t[1])? $t[1]: null;
   $day = isset ($t[2])? $t[2]: null;
