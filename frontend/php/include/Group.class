@@ -154,17 +154,21 @@ class Group extends savane_error
      return $this->type_data_array["is_configurable_$artifact"];
   }
 
-  function getTypePermissions ($flags)
+  function get_flags ($idx)
   {
-    $idx = "${flags}_flags";
     if (isset ($this->type_data_array[$idx]))
       return $this->type_data_array[$idx];
     return null;
   }
 
+  function getTypePermissions ($flags)
+  {
+    return $this->get_flags ("${flags}_flags");
+  }
+
   function getTypeRestrictions ($flags)
   {
-    return $this->type_data_array[$flags . '_rflags'];
+    return $this->get_flags ("${flags}_rflags");
   }
 
   function getTypeMailingListHost ()
@@ -600,9 +604,8 @@ function group_getrestrictions_explained ($group_id, $artifact, $event = 1)
       return _("Project Membership is required to post on this tracker.");
     case '3':
       return _("Being logged-in is required to post on this tracker.");
-    default: # Should be '6'.
-      return _("Posting on this tracker is disabled.");
     }
+  return _("Posting on this tracker is disabled.");
 }
 
 function group_gettypepermissions ($group_id, $flags)
