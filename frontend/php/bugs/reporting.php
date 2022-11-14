@@ -80,7 +80,7 @@ else
   $artifact = ARTIFACT;
 
 # Specific function that list possible report.
-function specific_reports_list ($thisfield = 0, $group_id)
+function specific_reports_list ($thisfield, $group_id)
 {
   if ($thisfield)
     print "<p>&nbsp;</p>\n<h2>" . _("Other statistics:") . "</h2>\n";
