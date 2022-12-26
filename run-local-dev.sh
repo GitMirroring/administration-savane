@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /bin/sh
 
 # Copyright (C) 2017 Assaf Gordon (assafgordon@gmail.com)
 # This file is part of Savane.
@@ -16,10 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 # This script can be used to run savannah's webserver locally.
-# It requires PHP>=5.4 and php-mysql.
+# It requires PHP >= 5.4 and php-mysqli.
 #
 # It also requires having access to a demo savane MySQL database.
 # The first time the server is run locally, a messsage with
@@ -35,12 +33,11 @@ die()
     exit 1
 }
 
-
 # Default host/port to run the local PHP code.
 SVHOST=${SVHOST:-127.0.0.1}
 SVPORT=${SVPORT:-7890}
 
-# Find the location of the development configuration file
+# Find the location of the development configuration file.
 dir=$(dirname "$0")
 dir=$(cd "$dir" ; pwd)
 confdir="$dir/local2/etc-savane"
@@ -50,10 +47,10 @@ test -e "$conffile" \
 
 
 # The PHP code expects to find the directory in the environment
-# (on savannah's servers it is set in Apache's configuration SetEnv)
+# (on Savannah servers it is set in Apache's configuration SetEnv).
 export SAVANE_CONF="$confdir"
 
-# Find the location of the PHP code
+# Find the location of the PHP code.
 phpdir="$dir/frontend/php"
 test -d "$phpdir" \
     || die "can't find PHP code (expecting: $phpdir)"
@@ -61,7 +58,4 @@ test -d "$phpdir" \
 # Ugly hack used in ./local2/local.php.
 export SAVANE_PHPROOT="$phpdir"
 
-
 php -S "$SVHOST:$SVPORT" -t "$phpdir" local2/local.php
-
-

@@ -4,7 +4,7 @@
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2001-2002 Laurent Julliard, CodeX Team, Xerox
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017 Ineiev
+# Copyright (C) 2017, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -20,19 +20,18 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-require_once('../include/init.php');
-require_once('../include/my/general.php');
-require_directory("trackers");
-register_globals_off();
+require_once ('../include/init.php');
+require_once ('../include/my/general.php');
+require_directory ("trackers");
+register_globals_off ();
 
 global $item_data, $group_data;
-$item_data = array();
-$group_data = array();
+$item_data = $group_data = [];
 
-if (!user_isloggedin())
-  exit_not_logged_in();
+if (!user_isloggedin ())
+  exit_not_logged_in ();
 
-extract(sane_import('get',
+extract (sane_import ('get',
   [
     'digits' => [['form_threshold', [1, 9]]],
     'strings' => [['form_open', ['open', 'closed']]],
@@ -40,48 +39,43 @@ extract(sane_import('get',
   ]
 ));
 
+$user_arr = [user_getid ()];
+
 # Get the list of projects the user is member of.
-$result = db_execute("SELECT groups.group_name,"
-  . "groups.group_id,"
-  . "groups.unix_group_name,"
-  . "groups.status "
-  . "FROM groups,user_group "
-  . "WHERE groups.group_id=user_group.group_id "
-  . "AND user_group.user_id = ? "
-  . "AND groups.status='A' "
-  . "GROUP BY groups.unix_group_name "
-  . "ORDER BY groups.unix_group_name", array(user_getid()));
-$rows = db_numrows($result);
-$usergroups = array();
-$usergroups_groupid = array();
+$result = db_execute ("
+  SELECT
+    g.group_name, g.group_id, g.unix_group_name, g.status
+  FROM groups g, user_group u
+  WHERE g.group_id = u.group_id AND u.user_id = ?  AND g.status = 'A'
+  GROUP BY g.unix_group_name ORDER BY g.unix_group_name", $user_arr
+);
+$rows = db_numrows ($result);
+$usergroups = $usergroups_groupid = [];
+$nogroups = 1;
 if ($result && $rows > 0)
   {
-    for ($j=0; $j<$rows; $j++)
-        {
-          unset($nogroups);
-          $unixname = db_result($result,$j,'unix_group_name');
-          $usergroups[$unixname] = db_result($result,$j,'group_name');
-          $usergroups_groupid[$unixname] = db_result($result,$j,'group_id');
-        }
+    for ($j = 0; $j < $rows; $j++)
+      {
+        unset ($nogroups);
+        $unixname = db_result ($result, $j, 'unix_group_name');
+        $usergroups[$unixname] = db_result ($result, $j, 'group_name');
+        $usergroups_groupid[$unixname] = db_result ($result, $j, 'group_id');
+      }
   }
-else
-  $nogroups = 1;
 
 # Get the list of squads the user is member of.
-$result = db_execute("SELECT squad_id FROM user_squad WHERE user_id=?",
-                     array(user_getid()));
-$rows = db_numrows($result);
-$usersquads = array();
+$result = db_execute (
+  "SELECT squad_id FROM user_squad WHERE user_id = ?", $user_arr
+);
+$rows = db_numrows ($result);
+$usersquads = [];
+$nosquads = 1;
 if ($result && $rows > 0)
   {
-    unset($nosquads);
-    for ($j=0; $j<$rows; $j++)
-        {
-          $usersquads[] = db_result($result,$j,'squad_id');
-        }
+    unset ($nosquads);
+    for ($j = 0; $j < $rows; $j++)
+      $usersquads[] = db_result ($result, $j, 'squad_id');
   }
-else
-  $nosquads = 1;
 
 $threshold = $form_threshold;
 if ($threshold)
@@ -93,9 +87,9 @@ if ($open)
 
 # Extract configuration if needed.
 if (!$threshold)
-  $threshold = user_get_preference("my_items_threshold");
+  $threshold = user_get_preference ("my_items_threshold");
 if (!$open)
-  $open = user_get_preference("my_items_open");
+  $open = user_get_preference ("my_items_open");
 
 # Still nothing? Set the default settings.
 if (!$threshold)
@@ -103,77 +97,62 @@ if (!$threshold)
 if (!$open)
   $open = "open";
 
-site_user_header(array('context'=>'myitems'));
+site_user_header (['context' => 'myitems']);
 print '<p>'
-  ._("This page contains lists of items assigned to or submitted by you.")
-  .'</p>';
-utils_get_content("my/items");
+  . _("This page contains lists of items assigned to or submitted by you.")
+  . "</p>\n";
+utils_get_content ("my/items");
 
-$fopen = '<select title="'._("open or closed").'" name="form_open">
-<option value="open" '
-         .($open == "open" ? 'selected="selected"':'').'>'
-# TRANSLATORS: This is used later as argument of "Show [%s] new items..."
-         ._("Open<!-- items -->");
-$fopen .= '</option>
-<option value="closed" '
-          .($open == "closed" ? 'selected="selected"':'').'>'
-# TRANSLATORS: This is used later as argument of "Show [%s] new items..."
-          ._("Closed<!-- items -->")
-          .'</option></select>
-';
+function sel_if ($a)
+{
+  if ($a)
+    return 'selected="selected"';
+  return '';
+}
 
-$fthreshold = '<select title="'.("priority").'" name="form_threshold">
-<option value="1" '
-             .($threshold == 1 ? 'selected="selected"':'').'>'
-# TRANSLATORS: This is used later as argument of "...new items or of [%s] priority"
-             ._("Lowest").'</option>
-<option value="3" ';
-$fthreshold .= ($threshold == 3 ? 'selected="selected"':'').'>'
-# TRANSLATORS: This is used later as argument of "...new items or of [%s] priority"
-               ._("Low")
-               .'</option>
-<option value="5" '
-               .($threshold == 5 ? 'selected="selected"':'')
-               .'>'
-# TRANSLATORS: This is used later as argument of "...new items or of [%s] priority"
-               ._("Normal").'</option>
-<option value="7" ';
-$fthreshold .= ($threshold == 7 ? 'selected="selected"':'').'>'
-# TRANSLATORS: This is used later as argument of "...new items or of [%s] priority"
-               ._("High")
-               .'</option>
-<option value="9" ';
-$fthreshold .= ($threshold == 9 ? 'selected="selected"':'')
-               .'>'
-# TRANSLATORS: This is used later as argument of "...new items or of [%s] priority"
-               ._("Immediate").'</option></select>
-';
+$fopen = '<select title="' . _("open or closed")
+  . "\" name='form_open'>\n<option value='open' "
+  . sel_if ($open == "open") . '>'
+  # TRANSLATORS: This is used later as argument of "Show [%s] new items..."
+  . _("Open<!-- items -->") . "</option>\n";
+$fopen .= "<option value='closed' " . sel_if ($open == "closed") . '>'
+  # TRANSLATORS: This is used later as argument of "Show [%s] new items..."
+  . _("Closed<!-- items -->") . "</option></select>\n";
+
+$fthreshold = '<select title="' . ("priority")
+  . "\" name='form_threshold'>\n";
+$priorities = [
+# TRANSLATORS: This is used later as argument of
+# "...new items or of [%s] priority"
+ 1 => _("Lowest"), 3 => _("Low"), 5 => _("Normal"), 7 => _("High"),
+ 9 => _("Immediate")
+];
+foreach ($priorities as $k => $v)
+  $fthreshold .= "<option value='$k'>" . sel_if ($threshold == $k) . $v
+    . "</option>\n";
+$fthreshold .= "</select>\n";
 
 $form_opening = '<form action="'.htmlentities($_SERVER['PHP_SELF'])
                 .'#options" method="get">';
 $form_submit = '<input class="bold"  type="submit" value="'._("Apply").'" />';
 # TRANSLATORS: the first argument is either 'Open' or 'Closed',
 # the second argument is priority ('Lowest', 'Normal' &c.).
-$msg_text = sprintf(_('Show %1$s new items of %2$s priority at least.'),
-                    $fopen, $fthreshold);
-print html_show_displayoptions($msg_text, $form_opening, $form_submit);
+$msg_text = sprintf (_('Show %1$s new items of %2$s priority at least.'),
+  $fopen, $fthreshold
+);
+print html_show_displayoptions ($msg_text, $form_opening, $form_submit);
 
-# Right part.
-print html_splitpage(1);
-
-print '<br /><div class="box"><div class="boxtitle">'._("Assigned to me")
-      .'</div>'."\n";
-print my_item_list("assignee", $threshold, $open);
-print '</div>'."\n";
-
-# Left part.
-print html_splitpage(2);
-
-print '<br /><div class="box"><div class="boxtitle">'._("Submitted by me")
-      .'</div>'."\n";
-print my_item_list("submitter", $threshold, $open);
-print '</div>'."\n";
-print html_splitpage(3);
-print "\n\n".show_priority_colors_key();
-$HTML->footer(array());
+foreach (
+ [[1, 'assignee', _("Assigned to me")], [2, 'submitter', _("Submitted by me")]]
+ as $v
+)
+ {
+   print html_splitpage ($v[0]);
+   print "<br />\n<div class='box'><div class='boxtitle'>{$v[2]}</div>\n";
+   print my_item_list ($v[1], $threshold, $open);
+   print "</div>\n";
+ }
+print html_splitpage (3);
+print "\n\n". show_priority_colors_key ();
+$HTML->footer ([]);
 ?>

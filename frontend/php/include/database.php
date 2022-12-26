@@ -7,7 +7,7 @@
 # Copyright (C) 2000-2006  John Lim (ADOdb)
 # Copyright (C) 2007  Cliss XXI (GCourrier)
 # Copyright (C) 2006, 2007  Sylvain Beucler
-# Copyright (C) 2017, 2019, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2019, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -24,34 +24,39 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-define('DB_AUTOQUERY_INSERT', 1);
-define('DB_AUTOQUERY_UPDATE', 2);
+define ('DB_AUTOQUERY_INSERT', 1);
+define ('DB_AUTOQUERY_UPDATE', 2);
 
-function db_connect()
+require_once (dirname (__FILE__) . '/utils.php');
+
+# Test the presence of php-mysqli - you get a puzzling blank page
+# when it's not installed.
+function db_check_mysqli ()
+{
+  if (extension_loaded ('mysqli'))
+    return;
+  print "<p>Please install the mysqli extension for PHP:
+    <code>aptitude install php-mysqli</code> (Debian-based)</p>
+    <p>Check the <a href='{$GLOBALS['sys_url_topdir']}/testconfig.php'>
+    configuration page</a> and the <a href='https://www.php.net'>PHP
+    website</a> for more information.</p>
+    <p>Once the extension is installed, restart Apache.</p>\n";
+  exit;
+}
+
+function db_connect ()
 {
   global $sys_dbhost, $sys_dbuser, $sys_dbpasswd, $conn, $sys_dbname;
   global $mysql_conn;
 
   $mysql_conn = NULL;
-
-  # Test the presence of php-mysqli - you get a puzzling blank page
-  # when it's not installed.
-  if (!extension_loaded ('mysqli'))
-    {
-      print "<p>Please install the mysqli extension for PHP:
-        <code>aptitude install php-mysqli</code> (Debian-based)</p>
-        <p>Check the <a href='{$GLOBALS['sys_url_topdir']}/testconfig.php'>
-        configuration page</a> and the <a href='https://www.php.net'>PHP
-        website</a> for more information.</p>
-        <p>Once the extension is installed, restart Apache.</p>\n";
-      exit;
-    }
+  db_check_mysqli ();
 
   $conn = mysqli_connect ($sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname);
   if (!$conn)
     {
       print "<p>Failed to connect to database: ";
-      print mysqli_connect_error() . "</p>\n";
+      print mysqli_connect_error () . "</p>\n";
       print "<p>Contact server administrators "
         . "{$GLOBALS['sys_email_adress']}</p>\n";
       exit;
@@ -63,25 +68,43 @@ function db_connect()
 
 function db_real_escape_string ($string)
 {
-  global $mysql_conn;
-  return mysqli_real_escape_string ($mysql_conn, $string);
+  return mysqli_real_escape_string ($GLOBALS['mysql_conn'], $string);
 }
 
-# sprinf-like function to auto-escape SQL strings.
+# sprintf-like function to auto-escape SQL strings.
 # db_query_escape("SELECT * FROM user WHERE user_name='%s'", $_GET['myuser']);
-function db_query_escape()
+function db_query_escape ()
 {
-  $num_args = func_num_args();
+  $num_args = func_num_args ();
   if ($num_args < 1)
-    util_die(_("db_query_escape: Missing parameter"));
-  $args = func_get_args();
+    util_die (_("db_query_escape: Missing parameter"));
+  $args = func_get_args ();
 
   # Escape all params except the query itself.
   for ($i = 1; $i < $num_args; $i++)
-    $args[$i] = db_real_escape_string($args[$i]);
+    $args[$i] = db_real_escape_string ($args[$i]);
 
-  $query = call_user_func_array('sprintf', $args);
-  return db_query($query);
+  $query = call_user_func_array ('sprintf', $args);
+  return db_query ($query);
+}
+
+function db_val_to_arg ($v)
+{
+  # From Ron Baldwin <ron.baldwin#sourceprose.com>.
+  # Only quote string types.
+  $typ = gettype ($v);
+  if ($typ == 'string')
+    return "'" . db_real_escape_string ($v) . "'";
+  if ($typ == 'double')
+    # Locale fix so 1.1 doesn't get converted to 1,1.
+    return str_replace (',', '.', $v);
+  if ($typ == 'boolean')
+    return $v ? '1' : '0';
+  if ($typ == 'object')
+    util_die ("Don't use db_execute with objects.");
+  if ($v === null)
+    return 'NULL';
+  return $v;
 }
 
 # Substitute '?' with one of the values in the $inputarr array,
@@ -107,60 +130,39 @@ function db_variable_binding ($sql, $inputarr = null)
 
   foreach ($inputarr as $v)
     {
-      $sql_expanded .= $sql_exploded[$i];
-      # From Ron Baldwin <ron.baldwin#sourceprose.com>.
-      # Only quote string types.
-      $typ = gettype ($v);
-      if ($typ == 'string')
-        $sql_expanded .= "'" . db_real_escape_string ($v) . "'";
-      elseif ($typ == 'double')
-        # Locale fix so 1.1 doesn't get converted to 1,1.
-        $sql_expanded .= str_replace (',', '.', $v);
-      elseif ($typ == 'boolean')
-        $sql_expanded .= $v ? '1' : '0';
-      elseif ($typ == 'object')
-        util_die ("Don't use db_execute with objects.");
-      elseif ($v === null)
-        $sql_expanded .= 'NULL';
-      else
-        $sql_expanded .= $v;
+      $sql_expanded .= $sql_exploded[$i] . db_val_to_arg ($v);
       $i += 1;
     }
 
-  $match_arr = true;
   if (isset ($sql_exploded[$i]))
     {
       $sql_expanded .= $sql_exploded[$i];
-      if ($i + 1 != sizeof ($sql_exploded))
-        $match_arr = false;
+      if ($i + 1 == sizeof ($sql_exploded))
+        return $sql_expanded;
     }
-  else
-    $match_arr = false;
-  if (!$match_arr)
-    util_die(
-      "db_variable_binding: input array does not match query: <pre>"
-      . htmlspecialchars ($sql) . "<br />" . print_r ($inputarr, true)
-    );
-  return $sql_expanded;
+  util_die (
+    "db_variable_binding: input array does not match query: <pre>"
+    . htmlspecialchars ($sql) . "<br />" . print_r ($inputarr, true)
+  );
 }
 
-/* Like ADOConnection->AutoExecute, without ignoring non-existing
- fields (you'll get a nice mysql_error() instead) and with a modified
- argument list to allow variable binding in the where clause.
-
-This allows hopefully more reable lengthy INSERT and UPDATE queries.
-
-Check http://phplens.com/adodb/reference.functions.getupdatesql.html ,
-http://phplens.com/adodb/tutorial.generating.update.and.insert.sql.html
-and adodb.inc.php.
-
-E.g.:
-
-$success = db_autoexecute('user', array('realname' => $newvalue),
-                          DB_AUTOQUERY_UPDATE,
-                          "user_id=?", array(user_getid())); */
-function db_autoexecute($table, $dict, $mode = DB_AUTOQUERY_INSERT,
-                        $where_condition = false, $where_inputarr = null)
+# Like ADOConnection->AutoExecute, without ignoring non-existing
+# fields (you'll get a nice mysql_error() instead) and with a modified
+# argument list to allow variable binding in the where clause.
+#
+# This allows hopefully more reable lengthy INSERT and UPDATE queries.
+#
+# Check http://phplens.com/adodb/reference.functions.getupdatesql.html ,
+# http://phplens.com/adodb/tutorial.generating.update.and.insert.sql.html
+# and adodb.inc.php.
+#
+# E.g.
+# $success = db_autoexecute ('user', array('realname' => $newvalue),
+#   DB_AUTOQUERY_UPDATE, "user_id=?", array(user_getid())
+# );
+function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
+  $where_condition = false, $where_inputarr = null
+)
 {
   # Table name validation and quoting.
   $tables = preg_split('/[\s,]+/', $table);
@@ -169,20 +171,19 @@ function db_autoexecute($table, $dict, $mode = DB_AUTOQUERY_INSERT,
   foreach ($tables as $table)
     {
       if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]+$/', $table))
-        util_die("db_autoexecute: invalid table name: "
-                 .htmlspecialchars($table));
+        util_die (
+          "db_autoexecute: invalid table name: " . htmlspecialchars($table)
+        );
       if ($first)
         {
           $tables_string = "`$table`";
           $first = false;
         }
       else
-        {
-          $tables_string .= ",`$table`";
-        }
+        $tables_string .= ",`$table`";
     }
 
-  switch((string) $mode)
+  switch ((string) $mode)
     {
     case 'INSERT':
     case '1':
@@ -190,7 +191,7 @@ function db_autoexecute($table, $dict, $mode = DB_AUTOQUERY_INSERT,
     # TODO: do connections with ANSI_QUOTES mode and use the standard
     # "'" field delimiter.
       $first = true;
-      foreach (array_keys($dict) as $field)
+      foreach (array_keys ($dict) as $field)
         {
           if ($first)
             {
@@ -200,10 +201,11 @@ function db_autoexecute($table, $dict, $mode = DB_AUTOQUERY_INSERT,
           else
             $fields .= ",`$field`";
         }
-      # $fields = `date`,`summary`,...
-      $question_marks = implode(',', array_fill(0, count($dict), '?')); // ?,?,...
-      return db_execute("INSERT INTO $tables_string ($fields) "
-                         ."VALUES ($question_marks)", array_values($dict));
+      $question_marks = utils_placeholders ($dict);
+      return db_execute ("
+        INSERT INTO $tables_string ($fields) VALUES ($question_marks)",
+        array_values ($dict)
+      );
       break;
     case 'UPDATE':
     case '2':
@@ -218,29 +220,31 @@ function db_autoexecute($table, $dict, $mode = DB_AUTOQUERY_INSERT,
       $sql_fields = rtrim($sql_fields, ',');
       $values = array_merge($values, $where_inputarr);
       $where_sql = $where_condition ? "WHERE $where_condition" : '';
-      return db_execute("UPDATE $tables_string SET $sql_fields $where_sql",
-                        $values);
+      return db_execute ("
+        UPDATE $tables_string SET $sql_fields $where_sql",
+        $values
+      );
       break;
     default:
     }
-  util_die("db_autoexecute: unknown mode=$mode");
+  util_die ("db_autoexecute: unknown mode=$mode");
 }
 
-/* Like ADOConnection->Execute, with variables binding emulation for
-MySQL, but simpler (not 2D-array, namely). Example:
-
-db_execute("SELECT * FROM utilisateur WHERE name=?", array("Gogol d'Algol"));
-
-'db_autoexecute' replaces '?' with the matching parameter, taking its
-type into account (int -> int, string -> quoted string, float ->
-canonical representation, etc.)
-
-Check http://phplens.com/adodb/reference.functions.execute.html and
-adodb.inc.php. */
-function db_execute($sql, $inputarr = null, $multi_query = 0)
+# Like ADOConnection->Execute, with variables binding emulation for
+# MySQL, but simpler (not 2D-array, namely). Example:
+#
+# db_execute("SELECT * FROM utilisateur WHERE name=?", array("Gogol d'Algol"));
+#
+# 'db_autoexecute' replaces '?' with the matching parameter, taking its
+# type into account (int -> int, string -> quoted string, float ->
+# canonical representation, etc.)
+#
+# Check http://phplens.com/adodb/reference.functions.execute.html and
+# adodb.inc.php.
+function db_execute ($sql, $inputarr = null, $multi_query = 0)
 {
-  $expanded_sql = db_variable_binding($sql, $inputarr);
-  return db_query($expanded_sql, 0, $multi_query);
+  $expanded_sql = db_variable_binding ($sql, $inputarr);
+  return db_query ($expanded_sql, 0, $multi_query);
 }
 
 function db_query_die ($qstring, $errors = null)
@@ -250,9 +254,7 @@ function db_query_die ($qstring, $errors = null)
     $str .= ' <i>' . db_error () . '</i>';
   else
     foreach ($errors as $idx => $err)
-      {
-        $str .= "<br />\n<b>query $idx:</b> <i>$err</i>";
-      }
+      $str .= "<br />\n<b>query $idx:</b> <i>$err</i>";
   util_die ($str);
 }
 
@@ -275,15 +277,16 @@ function db_query ($qstring, $print = 0, $multi_query = 0)
             }
         }
       # Strip installation prefix.
-      $relative_path = str_replace($GLOBALS['sys_www_topdir'].'/',
-                                   '', $outside['file']);
+      $relative_path = str_replace (
+        $GLOBALS['sys_www_topdir'] . '/', '', $outside['file']
+      );
       $location = "$relative_path:{$outside['line']}";
-      array_push($GLOBALS['debug_queries'], array($qstring, $location));
+      array_push ($GLOBALS['debug_queries'], [$qstring, $location]);
     }
 
   if ($GLOBALS['sys_debug_sqlprofiler'] && extension_loaded('XCache'))
     {
-      $backtrace = debug_backtrace();
+      $backtrace = debug_backtrace ();
       $outside = null;
       foreach ($backtrace as $step)
         {
@@ -294,10 +297,11 @@ function db_query ($qstring, $print = 0, $multi_query = 0)
             }
         }
       # Strip installation prefix.
-      $relative_path = str_replace($GLOBALS['sys_www_topdir'].'/', '',
-                                   $outside['file']);
+      $relative_path = str_replace (
+        $GLOBALS['sys_www_topdir'] . '/', '', $outside['file']
+      );
       $location = "$relative_path:{$outside['line']}";
-      xcache_inc($location);
+      xcache_inc ($location);
     }
 
   if ($print)
@@ -337,7 +341,7 @@ function db_query ($qstring, $print = 0, $multi_query = 0)
   return $db_qhandle;
 }
 
-function db_numrows($qhandle)
+function db_numrows ($qhandle)
 {
   if (!$qhandle)
     return 0;
@@ -345,12 +349,12 @@ function db_numrows($qhandle)
   return mysqli_num_rows ($qhandle);
 }
 
-function db_free_result($qhandle)
+function db_free_result ($qhandle)
 {
   return mysqli_free_result ($qhandle);
 }
 
-function db_result($qhandle, $row, $field)
+function db_result ($qhandle, $row, $field)
 {
   if (!mysqli_data_seek ($qhandle, $row))
     return NULL;
@@ -377,23 +381,22 @@ function db_result($qhandle, $row, $field)
   return NULL;
 }
 
-function db_numfields($lhandle)
+function db_numfields ($lhandle)
 {
   return mysqli_num_fields ($lhandle);
 }
 
-function db_fieldname($lhandle, $fnumber)
+function db_fieldname ($lhandle, $fnumber)
 {
   return mysqli_fetch_field_direct ($lhandle, $fnumber)->name;
 }
 
-function db_affected_rows($qhandle)
+function db_affected_rows ($qhandle)
 {
-  global $mysql_conn;
-  return mysqli_affected_rows ($mysql_conn);
+  return mysqli_affected_rows ($GLOBALS['mysql_conn']);
 }
 
-function db_fetch_array($qhandle = 0)
+function db_fetch_array ($qhandle = 0)
 {
   if ($qhandle)
     return mysqli_fetch_array ($qhandle);
@@ -402,13 +405,12 @@ function db_fetch_array($qhandle = 0)
   return [];
 }
 
-function db_insertid($qhandle)
+function db_insertid ($qhandle)
 {
-  global $mysql_conn;
-  return mysqli_insert_id ($mysql_conn);
+  return mysqli_insert_id ($GLOBALS['mysql_conn']);
 }
 
-function db_error()
+function db_error ()
 {
   global $mysql_conn;
   return mysqli_error ($mysql_conn);
@@ -417,34 +419,29 @@ function db_error()
 # Return an sql insert command taking in input a qhandle:
 # it is supposed to ease copy a a row into another, ignoring the autoincrement
 # field + replacing another field value (like group_id).
-function db_createinsertinto ($result, $table, $row, $autoincrement_fieldname,
-                              $replace_fieldname='zxry', $replace_value='axa')
+function db_createinsertinto (
+  $result, $table, $row, $autoincrement_fieldname, $replace_fieldname = 'zxry',
+  $replace_value = 'axa'
+)
 {
-  $fields = array();
-  for ($i = 0; $i < db_numfields($result); $i++)
+  $fields = [];
+  for ($i = 0; $i < db_numfields ($result); $i++)
     {
-      $fieldname = db_fieldname($result, $i);
-      # Create the sql by ignoring the autoincremental id.
-      if ($fieldname != $autoincrement_fieldname)
-        {
-          // If the value is empty
-          if (db_result($result, $row, $fieldname) != NULL)
-            {
-              // Replace another field
-              if ($fieldname == $replace_fieldname)
-                {
-                  $fields[$fieldname] = $replace_value;
-                }
-              else
-                {
-                  $fields[$fieldname] = db_result($result, $row, $fieldname);
-                }
-            }
-        }
+      $fieldname = db_fieldname ($result, $i);
+      # Create the SQL by ignoring the autoincremental id.
+      if ($fieldname == $autoincrement_fieldname)
+        continue;
+      if (db_result ($result, $row, $fieldname) == NULL)
+        continue;
+      # Replace another field.
+      if ($fieldname == $replace_fieldname)
+        $fields[$fieldname] = $replace_value;
+      else
+        $fields[$fieldname] = db_result ($result, $row, $fieldname);
     }
   # No fields? Ignore.
-  if (count($fields) == 0)
+  if (count ($fields) == 0)
     return 0;
-  return db_autoexecute($table, $fields, DB_AUTOQUERY_INSERT);
+  return db_autoexecute ($table, $fields, DB_AUTOQUERY_INSERT);
 }
 ?>

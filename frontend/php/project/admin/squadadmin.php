@@ -131,7 +131,7 @@ if ($squad_id)
     if ($add_to_squad && !empty ($user_ids))
       foreach ($user_ids as $user)
         {
-          $ok = member_squad_add ($user, $squad_id, $group_id);
+          $ok = member_add_to_squad ($user, $squad_id, $group_id);
           if ($ok)
             # TRANSLATORS: the argument is user's name.
             $str = _("User %s added to the squad.");
@@ -144,7 +144,7 @@ if ($squad_id)
     if ($remove_from_squad && !empty ($user_ids))
       foreach ($user_ids as $user)
         {
-          $ok = member_squad_remove($user, $squad_id, $group_id);
+          $ok = member_remove_from_squad ($user, $squad_id, $group_id);
           if ($ok)
             # TRANSLATORS: the argument is user's name.
             $str = _("User %s removed from the squad.");

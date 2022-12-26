@@ -119,7 +119,7 @@ function &trackers_data_get_notification_settings ($group_id, $tracker)
     SELECT fv.bug_fv_id, fv.value, fv.email_ad, fv.send_all_flag
     FROM {$tracker}_field f, {$tracker}_field_value fv
     WHERE
-      fv.group_id = ?  AND f.field_name = ?
+      fv.group_id = ? AND f.field_name = ?
       AND fv.bug_field_id = f.bug_field_id AND fv.status != 'H'",
     [$group_id, $cat_field_name]
   );
@@ -211,8 +211,8 @@ function trackers_data_show_notification_settings (
             . "email addresses (comma-separated list).")
          . "</p>\n";
 
-$cb_name = "{$tracker}_send_all_changes";
-$txt_name = "{$tracker}_new_item_address";
+  $cb_name = "{$tracker}_send_all_changes";
+  $txt_name = "{$tracker}_new_item_address";
   print "<span class='preinput'><label for=\"$txt_name\">"
     . _("Global List:") . "</label></span><br />\n&nbsp;&nbsp;"
     . "<input type='text' id=\"$txt_name\" name=\"$txt_name\""
@@ -226,8 +226,8 @@ $txt_name = "{$tracker}_new_item_address";
   print '<h2>' . _("Private items exclude list") . "</h2>\n";
   if ($show_intro_msg != 0)
     print '<p>'
-      . _("Addresses registered in this list will be excluded from default mail
-notification for private items.")
+      . _("Addresses registered in this list will be excluded from default "
+          . "mail\nnotification for private items.")
       . "</p>\n";
 
   $txt_name = "${tracker}_private_exclude_address";
@@ -457,8 +457,7 @@ function trackers_data_get_all_report_fields ($report_id = 100)
         {
           $have_bug_id = true;
           # bug_id should always show up.
-          if (!$arr['show_on_result'])
-            $arr['show_on_result'] = 1;
+          $arr['show_on_result'] = 1;
         }
       $field_id = trackers_data_get_field_id ($field);
       $BF_USAGE_BY_NAME[$field]['show_on_query'] =
@@ -526,14 +525,14 @@ function trackers_data_get_field_predefined_values (
 
   if ($active_only)
     {
-      if ($checked and !is_array ($checked))
+      if ($checked && !is_array ($checked))
         {
-          $status_cond = "AND  (status IN ('A','P') OR value_id=?) ";
+          $status_cond = "AND (status IN ('A', 'P') OR value_id = ?) ";
           $status_cond_params = [$checked];
         }
       else
         {
-          $status_cond = "AND  status IN ('A','P') ";
+          $status_cond = "AND status IN ('A', 'P') ";
           $status_cond_params = [];
         }
     }
@@ -1123,7 +1122,7 @@ function trackers_data_update_usage (
         'custom_empty_ok' => $emp_ok, 'custom_keep_history' => $keep_hist,
         'transition_default_auth' => $transition_default_auth
       ],
-      DB_AUTOQUERY_UPDATE, "bug_field_id=? AND group_id=?",
+      DB_AUTOQUERY_UPDATE, "bug_field_id = ? AND group_id = ?",
       [$field_id, $group_id]
     );
   else
@@ -1161,30 +1160,27 @@ function trackers_data_get_technicians ($group_id)
 
   # Get list of members.
   $members_res = db_execute ("
-    SELECT user.user_id FROM user,user_group
-    WHERE user.user_id=user_group.user_id AND user_group.group_id = ?",
+    SELECT user.user_id FROM user, user_group
+    WHERE user.user_id = user_group.user_id AND user_group.group_id = ?",
     [$group_id]
   );
-  $sql = "SELECT user_id,user_name FROM user WHERE ";
-  $params = array();
-  $notfirst = false;
+  $sql = "SELECT user_id, user_name FROM user WHERE ";
+  $params = [];
+  $joiner = "";
   while ($member = db_fetch_array ($members_res))
     {
       $mem_ck = member_check (
         $member['user_id'], $group_id,
         member_create_tracker_flag (ARTIFACT) . '1'
       );
-      if ($mem_ck)
-        {
-          if ($notfirst)
-            $sql .= " OR ";
-          $sql .= " user_id = ?";
-          $params[] = $member['user_id'];
-          $notfirst = true;
-        }
+      if (!$mem_ck)
+        continue;
+      $sql .= "{$joiner}user_id = ?";
+      $joiner = " OR ";
+      $params[] = $member['user_id'];
     }
   if (empty ($params))
-    # Return a valid (but empty) resultset.
+    # Return a valid (but empty) result set.
     $sql .= 'NULL';
   $sql .= " ORDER BY user_name";
   return db_execute ($sql, $params);
@@ -1266,7 +1262,7 @@ function trackers_data_get_history ($item_id)
 
 function trackers_data_get_attached_files ($item_id = false, $order = 'DESC')
 {
-  if ($order != 'DESC' and $order != 'ASC')
+  if ($order != 'DESC' && $order != 'ASC')
     die (
       "trackers_data_get_attached_files: invalid \$order '"
       . htmlescape ($order) . "')"
