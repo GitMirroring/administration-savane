@@ -32,10 +32,12 @@ dnsbl_check ();
 
 extract (sane_import ('get', ['name' => 'form_user']));
 $res_user = db_execute ("SELECT * FROM user WHERE user_name = ?", [$form_user]);
-$row_user = db_fetch_array ($res_user);
+$row_user = NULL;
+if (db_numrows ($res_user) > 0)
+  $row_user = db_fetch_array ($res_user);
 
 # Only mail if pending.
-if ($row_user['status'] != 'P')
+if (empty ($row_user) || $row_user['status'] != 'P')
   exit_error (_("Error"), _("This account is not pending verification."));
 
 $message =
