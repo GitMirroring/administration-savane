@@ -92,5 +92,11 @@ foreach (
         return true;
       }
 
+if ($path === '/file')
+  {
+    include "$phpdir$path";
+    return true;
+  }
+
 return false;
 ?>
