@@ -81,16 +81,16 @@ if (!is_dir ($phpdir))
     "savannah-dev-error: SAVANE_PHPROOT points to a non-directory '$phpdir'"
   );
 
-if (substr ($path, 0, 10) === "/projects/")
-  {
-    include "$phpdir/projects";
-    return true;
-  }
-if (substr ($path, 0, 10) === "/users/")
-  {
-    include "$phpdir/users";
-    return true;
-  }
+foreach (
+  ['projects' => ['p', 'pr', 'projects'], 'users' => ['u', 'us', 'users']]
+  as $file => $aliases
+)
+  foreach ($aliases as $a)
+    if (preg_match (".^/$a/.", $path))
+      {
+        include "$phpdir/$file";
+        return true;
+      }
 
 return false;
 ?>
