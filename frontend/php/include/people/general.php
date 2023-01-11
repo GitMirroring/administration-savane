@@ -532,7 +532,7 @@ function people_skill_level_box ($name = 'skill_level_id', $checked = 'xyxy')
 function people_skill_year_box ($name = 'skill_year_id', $checked = 'xyxy')
 {
   global $PEOPLE_SKILL_YEAR;
-  $skill_years_as_of_2017_06 = [
+  $skill_years_as_of_2023_01 = [
     # TRANSLATORS: this string is an experience level.
     _('< 6 Months'),
     # TRANSLATORS: this string is an experience level.
@@ -542,7 +542,15 @@ function people_skill_year_box ($name = 'skill_year_id', $checked = 'xyxy')
     # TRANSLATORS: this string is an experience level.
     _('5 yr - 10 yr'),
     # TRANSLATORS: this string is an experience level.
-    _('> 10 years')
+    _('> 10 years'),
+    # TRANSLATORS: this string is an experience level.
+    _('10 yr - 20 yr'),
+    # TRANSLATORS: this string is an experience level.
+    _('20 yr - 40 yr'),
+    # TRANSLATORS: this string is an experience level.
+    _('40 yr - 80 yr'),
+    # TRANSLATORS: this string is an experience level.
+    _('> 80 years')
   ];
   if (!$PEOPLE_SKILL_YEAR)
     $PEOPLE_SKILL_YEAR = db_query ("SELECT * FROM people_skill_year");
