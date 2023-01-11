@@ -7,7 +7,7 @@
 # Copyright (C) 2001-2002 Laurent Julliard, CodeX Team, Xerox
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2018, 2019, 2020, 2022 Ineiev
+# Copyright (C) 2018, 2019, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -574,24 +574,40 @@ function trackers_data_use_field_predefined_values ($field, $group_id)
   return db_numrows ($result);
 }
 
-function trackers_data_by_field_var ($by_field_id)
+function trackers_data_field_val ($field, $idx, $by_field_id = false)
 {
   $var_name = "BF_USAGE_BY_";
   if ($by_field_id)
-    return $var_name . 'ID';
-  return $var_name . 'NAME';
+    $var_name .= 'ID';
+  else
+    $var_name .= 'NAME';
+
+  if (!isset ($GLOBALS[$var_name][$field][$idx]))
+    return null;
+  return $GLOBALS[$var_name][$field][$idx];
 }
 
 function trackers_data_is_custom ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return $GLOBALS[$var_name][$field]['custom'];
+  return trackers_data_field_val ($field, 'custom', $by_field_id);
+}
+
+function trackers_data_nonempty ($field, $idx, $by_field_id = false)
+{
+  return !empty (trackers_data_field_val ($field, $idx, $by_field_id));
 }
 
 function trackers_data_is_special ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return !empty ($GLOBALS[$var_name][$field]['special']);
+  return trackers_data_nonempty ($field, 'special', $by_field_id);
+}
+
+function trackers_data_custom_val ($field, $idx, $by_field_id)
+{
+  $ret = trackers_data_field_val ($field, "custom_$idx", $by_field_id);
+  if ($ret !== null)
+    return $ret;
+  return trackers_data_field_val ($field, $idx, $by_field_id);
 }
 
 # 1 = not mandatory
@@ -599,49 +615,27 @@ function trackers_data_is_special ($field, $by_field_id = false)
 # 3 = mandatory whenever possible
 function trackers_data_mandatory_flag ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['custom_empty_ok']))
-    return $GLOBALS[$var_name][$field]['custom_empty_ok'];
-  if (isset ($GLOBALS[$var_name][$field]['empty_ok']))
-    return $GLOBALS[$var_name][$field]['empty_ok'];
-  return null;
-}
-
-function trackers_data_do_keep_history ($field, $by_field_id = false)
-{
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['custom_keep_history']))
-    return $GLOBALS[$var_name][$field]['custom_keep_history'];
-  if (isset ($GLOBALS[$var_name][$field]['keep_history']))
-    return $GLOBALS[$var_name][$field]['keep_history'];
-  return null;
+  return trackers_data_custom_val ($field, 'empty_ok', $by_field_id);
 }
 
 function trackers_data_is_required ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['required']))
-    return $GLOBALS[$var_name][$field]['required'];
-  return null;
+  return trackers_data_field_val ($field, 'required', $by_field_id);
 }
 
 function trackers_data_is_used ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return $GLOBALS[$var_name][$field]['use_it'];
+  return trackers_data_field_val ($field, 'use_it', $by_field_id);
 }
 
 function trackers_data_is_showed_on_query ($field)
 {
-  global $BF_USAGE_BY_NAME;
-  # show_on_query can be unset if not in the DB.
-  return !empty ($BF_USAGE_BY_NAME[$field]['show_on_query']);
+  return trackers_data_nonempty ($field, 'show_on_query');
 }
 
 function trackers_data_is_showed_on_result ($field)
 {
-  global $BF_USAGE_BY_NAME;
-  return !empty ($BF_USAGE_BY_NAME[$field]['show_on_result']);
+  return trackers_data_nonempty ($field, 'show_on_result');
 }
 
 # Return a TRUE value if non project members who still are
@@ -649,9 +643,9 @@ function trackers_data_is_showed_on_result ($field)
 # (first bit of show_on_add set).
 function trackers_data_is_showed_on_add ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['show_on_add']))
-    return $GLOBALS[$var_name][$field]['show_on_add'] & 1;
+  $val = trackers_data_field_val ($field, 'show_on_add', $by_field_id);
+  if (!empty ($val))
+    return $val & 1;
   return 0;
 }
 
@@ -659,9 +653,9 @@ function trackers_data_is_showed_on_add ($field, $by_field_id = false)
 # access this field (second bit of show_on_add set).
 function trackers_data_is_showed_on_add_nologin ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['show_on_add']))
-    return $GLOBALS[$var_name][$field]['show_on_add'] & 2;
+  $val = trackers_data_field_val ($field, 'show_on_add', $by_field_id);
+  if (!empty ($val))
+    return $val & 2;
   return 0;
 }
 
@@ -669,10 +663,7 @@ function trackers_data_is_showed_on_add_nologin ($field, $by_field_id = false)
 # access this field.
 function trackers_data_is_showed_on_add_members ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['show_on_add_members']))
-    return $GLOBALS[$var_name][$field]['show_on_add_members'];
-  return null;
+  return trackers_data_field_val ($field, 'show_on_add_members', $by_field_id);
 }
 
 function trackers_data_is_date_field ($field, $by_field_id = false)
@@ -705,8 +696,7 @@ function trackers_data_is_username_field ($field, $by_field_id = false)
 
 function trackers_data_is_project_scope ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return $GLOBALS[$var_name][$field]['scope'] == 'P';
+  return 'P' == trackers_data_field_val ($field, 'scope', $by_field_id);
 }
 
 function trackers_data_is_status_closed ($status)
@@ -716,49 +706,32 @@ function trackers_data_is_status_closed ($status)
 
 function trackers_data_get_field_name ($field_id)
 {
-  global $BF_USAGE_BY_ID;
-  return $BF_USAGE_BY_ID[$field_id]['field_name'];
+  return trackers_data_field_val ($field_id, 'field_name', true);
 }
 
 function trackers_data_get_field_id ($field_name)
 {
-  global $BF_USAGE_BY_NAME;
-  if (isset ($BF_USAGE_BY_NAME[$field_name]['bug_field_id']))
-    return $BF_USAGE_BY_NAME[$field_name]['bug_field_id'];
-  return null;
+  return trackers_data_field_val ($field_name, 'bug_field_id');
 }
 
 function trackers_data_get_group_id ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return $GLOBALS[$var_name][$field]['group_id'];
+  return trackers_data_field_val ($field, 'group_id', $by_field_id);
 }
 
 function trackers_data_get_label ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['custom_label']))
-    return $GLOBALS[$var_name][$field]['custom_label'];
-  if (isset ($GLOBALS[$var_name][$field]['label']))
-    return $GLOBALS[$var_name][$field]['label'];
-  return null;
+  return trackers_data_custom_val ($field, 'label', $by_field_id);
 }
 
 function trackers_data_get_description ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  $desc = $GLOBALS[$var_name][$field]['custom_description'];
-  if (!isset ($desc))
-    $desc = $GLOBALS[$var_name][$field]['description'];
-  return $desc;
+  return trackers_data_custom_val ($field, 'description', $by_field_id);
 }
 
 function trackers_data_get_display_type ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($GLOBALS[$var_name][$field]['display_type']))
-    return $GLOBALS[$var_name][$field]['display_type'];
-  return null;
+  return trackers_data_field_val ($field, 'display_type', $by_field_id);
 }
 
 function trackers_data_get_display_type_in_clear ($field, $by_field_id = false)
@@ -776,38 +749,30 @@ function trackers_data_get_display_type_in_clear ($field, $by_field_id = false)
 
 function trackers_data_get_keep_history ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  if (isset ($BF_USAGE_BY_ID[$field]['custom_keep_history']))
-    return $GLOBALS[$var_name][$field]['custom_keep_history'];
-  return $GLOBALS[$var_name][$field]['keep_history'];
+  return trackers_data_custom_val ($field, 'keep_history', $by_field_id);
 }
 
 function trackers_data_get_place ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return $GLOBALS[$var_name][$field]['place'];
+  return trackers_data_field_val ($field, 'place', $by_field_id);
 }
 
 function trackers_data_get_scope ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return  $GLOBALS[$var_name][$field]['scope'];
+  return trackers_data_field_val ($field, 'scope', $by_field_id);
 }
 
 function trackers_data_get_col_width ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
-  return $GLOBALS[$var_name][$field]['col_width'];
+  return trackers_data_field_val ($field, 'col_width', $by_field_id);
 }
 
 function trackers_data_get_display_size ($field, $by_field_id = false)
 {
-  $var_name = trackers_data_by_field_var ($by_field_id);
   $val = "0/0";
-  if (isset ($GLOBALS[$var_name][$field]['custom_display_size']))
-    $val = $GLOBALS[$var_name][$field]['custom_display_size'];
-  elseif (isset ($GLOBALS[$var_name][$field]['display_size']))
-    $val = $GLOBALS[$var_name][$field]['display_size'];
+  $v = trackers_data_custom_val ($field, 'display_size', $by_field_id);
+  if ($v !== null)
+    $val = $v;
   return explode ('/', $val);
 }
 
