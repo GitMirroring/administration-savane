@@ -69,6 +69,8 @@ $default_chunksz = 50;
 if (empty ($chunksz))
   $chunksz = $default_chunksz;
 $chunksz = intval ($chunksz);
+if ($chunksz <= 0) # Catch values like "00" (non-empty, but intval is zero).
+  $chunksz = $default_chunksz;
 
 # Digest mode? Set the digest variable to one.
 $digest = $func == 'digest';
