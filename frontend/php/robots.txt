@@ -1,5 +1,24 @@
-# Search engine crawlers restrictions
-
+# Search engine crawlers restrictions.
+#
+# Copyright (C) 2006, 2007, 2009 Sylvain Beucler <beuc@beuc.net>
+# Copyright (C) 2017 Bob Proulx <bob@proulx.com>
+# Copyright (C) 2021, 2023 Ineiev <ineiev@gnu.org>
+#
+# This file is part of Savane.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 # This file is checked by crawlers only if installed at the root "/"
 # of the website (it won't be read if you installed Savane in a
 # subdirectory such as http://yoursite.tld/savane/), so paths in this
@@ -7,14 +26,14 @@
 
 User-agent: *
 
-# Disallow pages without indexable content
+# Disallow pages without indexable content.
 Disallow: /include/
 Disallow: /images/
 Disallow: /siteadmin/
 
 # Disallow login.php because everypage links to it with a 'uri='
 # parameter - this generates lots of useless pages to index, and lots
-# of traffic for nothing
+# of traffic for nothing.
 Disallow: /account/login.php
 
 # There's one page per user and it doesn't contain any indexable
@@ -31,13 +50,15 @@ Disallow: /task/?func=search&group=
 # Disallow dynamically generated gpg key pages.
 Disallow: /project/memberlist-gpgkeys.php
 Disallow: /project/release-gpgkeys.php
+Disallow: /people/viewgpg.php
 
-## Extended syntax ('*' wildcard)
+# Disallow identical pages - less crawler traffic.
+Disallow: /*reload=1
+Disallow: /*printer=1
 
-# Disallow identical pages - less crawler traffic
-Disallow: /*?reload=1
-Disallow: /*?printer=1
-
-# Disallow multi-fields sorts which exhibit thousands of URLs
+# Disallow multi-fields sorts which exhibit thousands of URLs.
 Disallow: /*func=browse
 Disallow: /*func=digest
+
+# Don't index spam.
+Disallow: /*func=viewspam
