@@ -154,61 +154,65 @@ function member_remove_from_squad ($user_id, $squad_id, $group_id)
   return $result;
 }
 
-# Get all permissions for a given user.
+# Get all permissions for given users.
+function member_array_getpermissions ($group_id, $flags, $user_ids)
+{
+  $ret = [];
+  if (!$flags)
+    {
+      foreach ($user_ids as $u)
+        $ret[$u] = 0;
+      return $ret;
+    }
+  if (!preg_match ('/^[a-z]+$/', $flags))
+    die ('group_getpermissions: unvalid argument flags');
+  if (!count ($user_ids))
+    return [];
+  $flags .= '_flags';
+  $sql =
+    "SELECT user_id, $flags AS flags FROM user_group WHERE group_id = ?";
+  $arg = utils_str_join (', ',  '?', count ($user_ids));
+  $sql .= "AND user_id IN ($arg)";
+  $res = db_execute ($sql, array_merge ([$group_id], $user_ids));
+  while ($u = db_fetch_array ($res))
+    $ret[$u['user_id']] = $u['flags'];
+  return $ret;
+}
+
 function member_getpermissions ($group_id, $flags, $user_id = 0)
 {
   if (!$user_id)
     $user_id = user_getid ();
-  if (!$flags)
-    return 0;
-  if (!preg_match ('/^[a-z]+$/', $flags))
-    die ('group_getpermissions: unvalid argument flags');
-  $res = db_execute ("
-    SELECT {$flags}_flags FROM user_group WHERE group_id = ? AND user_id = ?",
-    [$group_id, $user_id]
-  );
-  return db_result ($res, 0, $flags . "_flags");
+  $ret = member_array_getpermissions ($group_id, $flags, [$user_id]);
+  return $ret[$user_id];
 }
 
-# Check membership: by default, check only if someone is member of a project.
-#
-# With the flag option, you can check for specific right:
-#    - the first letter of the flag should designate the tracker
-#       (B = bugs, P = patch...
-#        please use member_create_tracker_flag(ARTIFACT))
-#    - the second letter, if specified, designate a role
-#       1 = technician
-#       2 = technican AND manager
-#       3 = manager
-#
-# The strict variable permit to have a return "true" only if the flag
-# found is exactly equal to the flag asked. For instance, if you are
-# looking for someone who is only technician, and not techn. and manager,
-# you can use that flag.
-function member_check ($user_id, $group_id, $flag = 0, $strict = 0)
+function member_check_propagate_uids ($user_id)
 {
-  if (!$user_id)
+  $ret = $uids = [];
+  foreach ($user_id as $u)
     {
+      if ($u)
+        {
+          $uids[] = $u;
+          continue;
+        }
       if (!user_isloggedin ())
-        return false;
+        continue;
       if (user_is_super_user ())
-        return true;
-      $user_id = user_getid ();
+        {
+          $ret[] = $u;
+          continue;
+        }
+      $u = user_getid ();
+      $uids[] = $u;
     }
-  # Determine whether someone is member of a project or not.
-  $result = db_execute ("
-    SELECT user_id FROM user_group
-    WHERE user_id = ? AND group_id = ? AND admin_flags <> 'P'",
-    [$user_id, $group_id]
-  );
+  return [$uids, $ret];
+}
 
-  if (!$result || db_numrows ($result) < 1)
-    return false; # Not a member of the project.
-  if (!$flag)
-    # Member of a project, not looking for specific permission.
-    return true;
+function member_check_split_flags ($flag)
+{
   $flag = strtoupper ($flag);
-
   # When looking for permissions, first we look at the user permission,
   # if NULL at the group def permission, if NULL at the group type def
   # permission.
@@ -226,35 +230,99 @@ function member_check ($user_id, $group_id, $flag = 0, $strict = 0)
   $ft = member_create_tracker_flag ($flag_tracker, true);
   if ($ft !== null)
     $flag_tracker = $ft;
+  return [$flag_tracker, $flag_level];
+}
 
-  $value = member_getpermissions ($group_id, $flag_tracker, $user_id);
-  if (!$value)
-    $value = group_getpermissions ($group_id, $flag_tracker);
-  if (!$value)
-    $value = group_gettypepermissions ($group_id, $flag_tracker);
-  if (!$value)
-    $value = "ERROR";
+function member_check_array_perms ($group_id, $flag, $uids, $strict)
+{
+  list ($flag_tracker, $flag_level) = member_check_split_flags ($flag);
+  $ret = [];
+  foreach ($uids as $u)
+    {
+      $value = member_getpermissions ($group_id, $flag_tracker, $u);
+      if (!$value)
+        {
+          if (!isset ($group_perms))
+            $group_perms = group_getpermissions ($group_id, $flag_tracker);
+          $value = $group_perms;
+        }
+      if (!$value)
+        {
+          if (!isset ($type_perms))
+            $type_perms = group_gettypepermissions ($group_id, $flag_tracker);
+          $value = $type_perms;
+        }
+      if (!$value)
+        $value = "ERROR";
 
-  # Compare the value and what is asked.
-  if ($value == $flag_level)
-    {
-      # If the value is equal to the flag, we are obviously in a "true" case.
-      return true;
+      # Compare the value and what is asked.
+      if ($value == $flag_level)
+        {
+          # If the value is equal to the flag, $u is obviously included.
+          $ret[] = $u;
+          continue;
+        }
+      if ($strict)
+        continue;
+      if (2 == $value && (1 == $flag_level || 3 == $flag_level))
+        {
+          # The value is equal to 2 (manager and tech) if tech (1)
+          # or manager (3) is asked.
+          $ret[] = $u;
+          continue;
+        }
+      if (2 == $flag_level  && (1 == $value || 3 == $value))
+        {
+          # If the value is equal to 3 (manager) or 1 (techn) if tech
+          # and manager (2) is asked, it is "true".
+          $ret[] = $u;
+        }
     }
-  if (!$strict && (2 == $value && (1 == $flag_level || 3 == $flag_level)))
-    {
-      # If the value is equal to 2 (manager and tech) if tech (1)
-      # or manager (3) is asked, it is "true".
-      return true;
-    }
-  if (!$strict && (2 == $flag_level  && (1 == $value || 3 == $value)))
-    {
-      # If the value is equal to 3 (manager) or 1 (techn) if tech
-      # and manager (2) is asked, it is "true".
-      return true;
-    }
-  # Any other case, false.
-  return false;
+  return $ret;
+}
+
+# Check membership: by default, check only if someone is member of a project.
+#
+# With the flag option, you can check for specific right:
+#    - the first letter of the flag should designate the tracker
+#       (B = bugs, P = patch...
+#        please use member_create_tracker_flag(ARTIFACT))
+#    - the second letter, if specified, designate a role
+#       1 = technician
+#       2 = technican AND manager
+#       3 = manager
+#
+# The strict variable permit to have a return "true" only if the flag
+# found is exactly equal to the flag asked. For instance, if you are
+# looking for someone who is only technician, and not techn. and manager,
+# you can use that flag.
+function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
+{
+  list ($uids, $ret) = member_check_propagate_uids ($user_id);
+  if (empty ($uids))
+    return $ret;
+  $arg = utils_str_join (', ', '?', count ($uids));
+  $result = db_execute ("
+    SELECT user_id FROM user_group
+    WHERE user_id IN ($arg) AND group_id = ? AND admin_flags <> 'P'",
+    array_merge ($uids, [$group_id])
+  );
+
+  if (!$result)
+    return $ret;
+  $uids = [];
+  while ($member = db_fetch_array ($result))
+    $uids[] = $member[0];
+  if (!$flag)
+    # Member of a project, not looking for specific permission.
+    return array_merge ($ret, $uids);
+
+  $vals = member_check_array_perms ($group_id, $flag, $uids, $strict);
+  return array_merge ($ret, $vals);
+}
+function member_check ($user_id, $group_id, $flag = 0, $strict = 0)
+{
+  return !empty (member_check_array ([$user_id], $group_id, $flag, $strict));
 }
 
 function member_check_admin_flags ($user_id, $group_id, $flags)

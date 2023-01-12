@@ -1113,16 +1113,6 @@ function trackers_data_update_usage (
 # Get a list of technicians for a tracker.
 function trackers_data_get_technicians ($group_id)
 {
-  # FIXME: The cleanest thing would be to issue one SQL command.
-  # But we have to handle the fact that "no setting" = get back
-  # to the group, or even group type, setting.
-
-  # In fact, this is terrible, we cannot return something else than
-  # a mysql result if we do not want to rewrite 25 functions.
-  # So we get the appropriate list of users... and finally issue
-  # a mysql command only to be able to return a mysql result.
-  # Please, propose something better at savannah-dev@gnu.org.
-
   # Get list of members.
   $members_res = db_execute ("
     SELECT user.user_id FROM user, user_group
@@ -1130,25 +1120,18 @@ function trackers_data_get_technicians ($group_id)
     [$group_id]
   );
   $sql = "SELECT user_id, user_name FROM user WHERE ";
-  $params = [];
-  $joiner = "";
+  $uids = [];
   while ($member = db_fetch_array ($members_res))
-    {
-      $mem_ck = member_check (
-        $member['user_id'], $group_id,
-        member_create_tracker_flag (ARTIFACT) . '1'
-      );
-      if (!$mem_ck)
-        continue;
-      $sql .= "{$joiner}user_id = ?";
-      $joiner = " OR ";
-      $params[] = $member['user_id'];
-    }
-  if (empty ($params))
-    # Return a valid (but empty) result set.
-    $sql .= 'NULL';
+    $uids[] = $member['user_id'];
+  $uids = member_check_array (
+    $uids, $group_id, member_create_tracker_flag (ARTIFACT) . '1'
+  );
+  if (empty ($uids))
+    $sql .= 'NULL'; # Return a valid (but empty) result set.
+  else
+    $sql .= 'user_id IN (' . utils_str_join (', ', '?', count ($uids)) . ')';
   $sql .= " ORDER BY user_name";
-  return db_execute ($sql, $params);
+  return db_execute ($sql, $uids);
 }
 
 # Get transitions valid for a given tracker as an array.
