@@ -937,4 +937,9 @@ function utils_str_join ($separator, $str, $n)
 {
   return str_repeat ("$str$separator", $n - 1) . $str;
 }
+
+function utils_placeholders ($array)
+{
+  return utils_str_join (', ', '?', count ($array));
+}
 ?>

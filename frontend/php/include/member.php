@@ -171,7 +171,7 @@ function member_array_getpermissions ($group_id, $flags, $user_ids)
   $flags .= '_flags';
   $sql =
     "SELECT user_id, $flags AS flags FROM user_group WHERE group_id = ?";
-  $arg = utils_str_join (', ',  '?', count ($user_ids));
+  $arg = utils_placeholders ($user_ids);
   $sql .= "AND user_id IN ($arg)";
   $res = db_execute ($sql, array_merge ([$group_id], $user_ids));
   while ($u = db_fetch_array ($res))
@@ -301,7 +301,7 @@ function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
   list ($uids, $ret) = member_check_propagate_uids ($user_id);
   if (empty ($uids))
     return $ret;
-  $arg = utils_str_join (', ', '?', count ($uids));
+  $arg = utils_placeholders ($uids);
   $result = db_execute ("
     SELECT user_id FROM user_group
     WHERE user_id IN ($arg) AND group_id = ? AND admin_flags <> 'P'",

@@ -1129,7 +1129,7 @@ function trackers_data_get_technicians ($group_id)
   if (empty ($uids))
     $sql .= 'NULL'; # Return a valid (but empty) result set.
   else
-    $sql .= 'user_id IN (' . utils_str_join (', ', '?', count ($uids)) . ')';
+    $sql .= 'user_id IN (' . utils_placeholders ($uids) . ')';
   $sql .= " ORDER BY user_name";
   return db_execute ($sql, $uids);
 }

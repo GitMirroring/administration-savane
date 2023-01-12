@@ -758,7 +758,7 @@ function group_get_preference ($group_id, $preference_names)
       $val_arr[$name] = null;
     }
 
-  $arg_list = utils_str_join (", ", "?", count ($pref_arr));
+  $arg_list = utils_placeholders ($pref_arr);
   $result =
     db_execute ("
       SELECT preference_name,preference_value FROM group_preferences
