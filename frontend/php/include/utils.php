@@ -942,4 +942,11 @@ function utils_placeholders ($array)
 {
   return utils_str_join (', ', '?', count ($array));
 }
+function utils_update_decimal_separator ()
+{
+  global $decimal_separator;
+  $loc = localeconv ();
+  $decimal_separator = $loc['decimal_point'];
+  return $decimal_separator;
+}
 ?>

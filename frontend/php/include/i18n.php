@@ -4,7 +4,7 @@
 # Copyright (C) 2016 Karl Berry (disable languages)
 # Copyright (C) 2003-2006 Stéphane Urbanovski <s.urbanovski--ac-nancy-metz.fr>
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2018, 2019, 2020 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2020, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -21,12 +21,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . '/utils.php');
 # Table of supported languages :
 # "language variant" => "associated preferred locale"
-$locale_list = array();
+$locale_list = [];
 
 # Locale names offered for selection in /i18n.php.
-$locale_names = array();
+$locale_names = [];
 
 # Add language to arrays:
 # $code - language code
@@ -116,8 +117,8 @@ if (isset($_COOKIE['LANGUAGE']) && isset($locale_list[$_COOKIE['LANGUAGE']]))
 $locale = $locale_list[$best_lang];
 define('SV_LANG', $best_lang);
 
-setlocale(LC_ALL, $locale);
-
+setlocale (LC_ALL, $locale);
+utils_update_decimal_separator ();
 # Specify the .mo path; defaults to gettext's compile-time $datadir/locale otherwise
 if (!empty($sys_localedir))
   bindtextdomain('savane', $sys_localedir);

@@ -137,6 +137,7 @@ else
 # Security issues apply even during fundrasing periods.  Please don't disable
 # this, make the banner work with the headers instead.
 utils_set_csp_headers ();
+utils_update_decimal_separator ();
 
 # Debug initialization.
 if ($sys_debug_on == true)

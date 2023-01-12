@@ -88,23 +88,31 @@ function db_query_escape ()
   return db_query ($query);
 }
 
-function db_val_to_arg ($v)
+function db_arg_float ($v)
+{
+  global $decimal_separator;
+
+  if (isset ($decimal_separator))
+    $v = str_replace ($decimal_separator, '.', $v);
+  return $v;
+}
+
+function db_argval ($v)
 {
   # From Ron Baldwin <ron.baldwin#sourceprose.com>.
   # Only quote string types.
   $typ = gettype ($v);
   if ($typ == 'string')
     return "'" . db_real_escape_string ($v) . "'";
-  if ($typ == 'double')
-    # Locale fix so 1.1 doesn't get converted to 1,1.
-    return str_replace (',', '.', $v);
   if ($typ == 'boolean')
     return $v ? '1' : '0';
-  if ($typ == 'object')
-    util_die ("Don't use db_execute with objects.");
+  if ($typ == 'integer')
+    return $v;
   if ($v === null)
     return 'NULL';
-  return $v;
+  if ($typ == 'double') # Do we actually use floating point in queries?
+    return db_arg_float ($v);
+  util_die ("Don't use db_execute with type $typ.");
 }
 
 # Substitute '?' with one of the values in the $inputarr array,
@@ -130,7 +138,7 @@ function db_variable_binding ($sql, $inputarr = null)
 
   foreach ($inputarr as $v)
     {
-      $sql_expanded .= $sql_exploded[$i] . db_val_to_arg ($v);
+      $sql_expanded .= $sql_exploded[$i] . db_argval ($v);
       $i += 1;
     }
 
