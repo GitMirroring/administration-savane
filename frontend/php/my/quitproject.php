@@ -23,6 +23,7 @@
 require_once ('../include/init.php');
 require_once ('../include/session.php');
 require_once ('../include/sane.php');
+require_once ('../include/form.php');
 require_once ('../include/sendmail.php');
 
 session_require (['isloggedin'=>'1']);
@@ -95,10 +96,8 @@ if ($confirm || $pending)
 else
   {
     site_user_header (['title' => _("Quit a group"), 'context' => 'mygroups']);
-    print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-      . '" method="post">';
-    print '<input type="hidden" name="quitting_group_id" value="'
-      . $quitting_group_id . '" />';
+    print form_tag ();
+    print form_hidden (["quitting_group_id" => $quitting_group_id]);
     print '<span class="preinput">';
     printf (_("You are about to leave the group %s, please confirm:"),
       group_getname ($quitting_group_id)

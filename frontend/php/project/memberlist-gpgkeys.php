@@ -2,7 +2,7 @@
 # Get group keyrings.
 #
 # Copyright (C) 2005 Mathieu Roy <yeupou--at--gnu.org>
-# Copyright (C) 2017, 2021, 2022 Ineiev
+# Copyright (C) 2017, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -24,23 +24,23 @@ require_once('../include/init.php');
 extract (sane_import ('get', ['true' => 'download']));
 $project = project_get_object ($group_id);
 
-if (basename($_SERVER['PHP_SELF']) === 'memberlist-gpgkeys.php')
+if (basename ($php_self) === 'memberlist-gpgkeys.php')
   {
     $keyring = $project->getGPGKeyring();
     $error_no_keyring = _("Member Keyring is empty, no keys were registered");
     $title = _("Group Member GPG Keyring");
-    $filename = $group . '-members.gpg';
+    $filename = "$group-members.gpg";
     $description = sprintf(_('Member GPG keyring of %s group.'), $group);
     $note = "\n\n"
-. _('Note that this keyring is not intended for checking releases of that group.
-Use Group Release Keyring instead.');
+      . _("Note that this keyring is not intended for checking releases of "
+          . "that group.\nUse Group Release Keyring instead.");
   }
 else
   {
     $keyring = group_get_preference ($group_id, 'gpg_keyring');
     $error_no_keyring = _("Group Keyring is empty, no keys were registered");
     $title = _("Group Release GPG Keyring");
-    $filename = $group . '-keyring.gpg';
+    $filename = "$group-keyring.gpg";
     $description = sprintf(_('Release GPG keyring of %s group.'), $group);
     $note = '';
   }
@@ -63,9 +63,9 @@ site_project_header (
 
 print '<p>';
 printf (
-  _("You can <a href=\"%s\">download the keyring</a> and import it with
-the command %s."),
-  htmlentities ($_SERVER['PHP_SELF']) . "?group=$group&amp;download=1",
+  _("You can <a href=\"%s\">download the keyring</a> and import it with\n"
+    . "the command %s."),
+  "$php_self?group=$group&amp;download=1",
   '<em>gpg --import &lt;file&gt;</em>'
 );
 print "</p>\n";

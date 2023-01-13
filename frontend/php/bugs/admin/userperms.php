@@ -83,8 +83,7 @@ if ($update)
 trackers_header_admin (['title' => _("Set Permissions")]);
 
 print '<h2>' . _("Posting Restrictions") . "</h2>\n";
-print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post'>\n" . form_hidden (["group" => $group]);
+print form_tag () . form_hidden (["group" => $group]);
 
 print '<span class="preinput">'
   . _("Authentication level required to be able to post new items on this "

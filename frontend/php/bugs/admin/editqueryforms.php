@@ -210,8 +210,7 @@ if ($new_report)
   {
     trackers_header_admin (['title' => _("Create a New Query Form")]);
 
-    print "\n<form action=\"" . htmlentities ($_SERVER['PHP_SELF'])
-      . "\" method='post'>\n";
+    print form_tag ();
     print form_hidden (
       ["create_report" => "y", "group_id" => $group_id, "post_changes" => "y"]
     );
@@ -339,8 +338,7 @@ if ($show_report)
     while ($arr = db_fetch_array ($res_fld))
       $fld[$arr['field_name']] = $arr;
 
-    print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-      . "\" method='post'>\n"
+    print form_tag ()
       . form_hidden ([
           "update_report" => "y", "group_id" => $group_id,
           "report_id" => $report_id, "post_changes" => "y"
@@ -440,8 +438,7 @@ if ($show_report)
 
 trackers_header_admin (['title' => _("Edit Query Forms")]);
 
-print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post' name='default_query'>\n"
+print form_tag (["name" => 'default_query'])
   . form_hidden (["group_id" => $group_id, "set_default" => "y"]);
 
 $res_report = trackers_data_get_reports ($group_id, user_getid ());
@@ -486,7 +483,7 @@ if ($rows)
           }
         else
           {
-            $url = htmlentities ($_SERVER['PHP_SELF'])
+            $url = $php_self
               . "?group=$group&show_report=1&report_id={$arr['report_id']}";
             print "<a href=\"$url\">{$arr['report_id']}</a></td>\n";
             print "<td><a href=\"$url\">{$arr['name']}</a></td>\n";
@@ -501,8 +498,8 @@ if ($rows)
           print '-';
         else
           {
-            print '<a href="' . htmlentities ($_SERVER['PHP_SELF'])
-              . "?group=$group"
+            print '<a href="'
+              . "$php_self?group=$group"
               . '&amp;delete_report=1&amp;report_id='.$arr['report_id']
               . '&amp;rep_name=' . urlencode ($arr['name']) . '">'
               .  html_image_trash (['alt' => _("Delete")]) . '</a>';
@@ -518,7 +515,7 @@ else
 print '<p>';
 printf (
   _("You can <a href=\"%s\"> create a new query form</a>."),
-   htmlentities ($_SERVER["PHP_SELF"]) . "?group=$group&new_report=1"
+   "$php_self?group=$group&new_report=1"
 );
 print "</p>\n";
 trackers_footer ([]);

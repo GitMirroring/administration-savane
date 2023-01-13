@@ -891,8 +891,8 @@ trackers_header (['title' => $hdr]);
 if ($browse_preamble)
   print $browse_preamble;
 
-$form_opening = '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . '#options" method="get" name="bug_form">';
+$form_opening =
+  form_tag (['method' => 'get', 'name' => 'bug_form'], '#options');
 $form = form_hidden (
   ['group' => $group, "func" => $func, "set" => "custom", "msort" => $msort]
 );
@@ -1228,8 +1228,7 @@ if ($totalrows > 0)
 print html_show_displayoptions ($form, $form_opening, $form_submit);
 
 if ($digest)
-  print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-    . "\" method='get'>\n"
+  print form_tag (['method' => 'get'])
     . form_hidden (['group' => $group, 'func' => "digestselectfield"]);
 
 if ($totalrows > 0)

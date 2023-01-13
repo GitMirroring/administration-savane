@@ -516,4 +516,5 @@ $check_group = function ($group_id)
 };
 $check_group ($group_id);
 unset ($check_grp);
+$php_self = htmlentities ($_SERVER['PHP_SELF']);
 ?>

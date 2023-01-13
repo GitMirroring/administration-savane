@@ -2,7 +2,7 @@
 # Temporary download area for project registration.
 #
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2022  Ineiev
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -20,6 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('../include/init.php');
+require_once ('../include/form.php');
 extract (sane_import ('files', ['pass' => 'tarball']));
 session_require (['isloggedin' => '1']);
 $title = ['title' => _("Temporary upload")];
@@ -27,8 +28,7 @@ $title = ['title' => _("Temporary upload")];
 if (!isset ($tarball))
  {
    $HTML->header ($title);
-   print "<form enctype='multipart/form-data' "
-     . " action=\"" . htmlentities ($_SERVER['PHP_SELF']) . "\" method='post'>"
+   print form_tag (['enctype' => 'multipart/form-data'])
      . "<p>" . _("Select file to upload:") . "<br />\n"
      . "<input type='file' name='tarball'/>\n"
      . "<input type='submit' value='" . _('Upload file') . "' />"

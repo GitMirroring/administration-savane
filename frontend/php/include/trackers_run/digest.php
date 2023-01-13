@@ -71,10 +71,8 @@ if ($func == "digestselectfield")
       exit_error (_("No items selected for digest"));
 
     trackers_header (['title' => _("Digest Items: Fields Selection")]);
-    print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-      . "\" method='get'>\n"
-      . "<input type='hidden' name='group' value=\"$group\" />\n"
-      . "<input type='hidden' name='func' value='digestget' />\n";
+    print form_tag (['method' => 'get'])
+      . form_hidden (['group' => $group, 'func' => 'digestget']);
 
     # Keep track of the selected items.
     $count = 0;

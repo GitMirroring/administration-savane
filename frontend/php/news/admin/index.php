@@ -2,7 +2,7 @@
 # Edit news CC list.
 #
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2018 Ineiev
+# Copyright (C) 2017, 2018, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -19,8 +19,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-require_once('../../include/sane.php');
+require_once ('../../include/init.php');
+require_once ('../../include/sane.php');
+require_once ('../../include/form.php');
 
 extract (sane_import ('post',
   [
@@ -29,22 +30,24 @@ extract (sane_import ('post',
   ]
 ));
 
-if(!$group_id)
-  exit_no_group();
+if (!$group_id)
+  exit_no_group ();
 
-if (!user_ismember($group_id,'A'))
-  exit_permission_denied();
+if (!user_ismember ($group_id, 'A'))
+  exit_permission_denied ();
 
-$grp=project_get_object($group_id);
+$grp = project_get_object ($group_id);
 
-if (!$grp->Uses("news"))
-  exit_error(_("Error"),_("This Project Has Turned Off News Tracker"));
+if (!$grp->Uses ("news"))
+  exit_error (_("Error"), _("This Project Has Turned Off News Tracker"));
 
 if ($update)
   {
-    db_execute("UPDATE groups SET new_news_address=? WHERE group_id=?",
-         array($form_news_address, $group_id));
-    fb(_("Updated"));
+    db_execute (
+      "UPDATE groups SET new_news_address = ? WHERE group_id = ?",
+      [$form_news_address, $group_id]
+    );
+    fb (_("Updated"));
   }
 site_project_header (['group' => $group_id, 'context' => 'anews']);
 
@@ -52,14 +55,13 @@ print '<p>'
   . _("You can change all of this tracker configuration from this page.")
   . "</p>\n";
 
-$res_grp = db_execute("SELECT new_news_address FROM groups WHERE group_id=?",
-                      array($group_id));
-$row_grp = db_fetch_array($res_grp);
+$res_grp = db_execute (
+ "SELECT new_news_address FROM groups WHERE group_id = ?", [$group_id]
+);
+$row_grp = db_fetch_array ($res_grp);
 
 print '<h2>' . _("News Tracker Email Notification Settings") . "</h2>\n"
-  . '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method=\"post\">\n"
-  .  "<input type=\"hidden\" name=\"group_id\" value=\"$group_id\" />\n"
+  . form_tag () . form_hidden (['group_id' => $group_id])
   . '<span class="preinput"><label for="form_news_address">'
   . _("Carbon-Copy List:") . "</label></span>\n<br />\n"
   . "&nbsp;&nbsp;<input type=\"text\" name=\"form_news_address\" "
@@ -68,5 +70,5 @@ print '<h2>' . _("News Tracker Email Notification Settings") . "</h2>\n"
   . '<p align="center"><input type="submit" name="update" value="'
   . _("Update") . "\" />\n</form>\n";
 
-site_project_footer(array());
+site_project_footer ();
 ?>

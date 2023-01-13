@@ -145,8 +145,7 @@ print "</p>\n<p>"
   . "disregarded.")
   . "</p>\n";
 
-print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post'>\n"
+print form_tag ()
   . form_hidden (["group" => $group, "transition_id" => $transition_id]);
 
 $title_arr = [_("Field Label"), _("New Value")];

@@ -56,11 +56,10 @@ if ($confirm)
 $hdr = sprintf (_("Reset Values of '%s'"), trackers_data_get_label ($field));
 trackers_header_admin (['title' => $hdr]);
 
-print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post'>\n";
+print form_tag ();
 print form_hidden (["group_id" => $group_id, "field" => $field]);
 print '<span class="preinput">';
-printf(
+printf (
   _("You are about to reset values of the field %s.\n"
     . "This action will not be undoable, please confirm:"),
   trackers_data_get_label ($field)

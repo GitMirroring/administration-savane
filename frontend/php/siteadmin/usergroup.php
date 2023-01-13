@@ -28,10 +28,11 @@ function no_i18n($string)
   return $string;
 }
 
-require_once('../include/init.php');
-require_once('../include/account.php');
-require_once('../include/markup.php');
-require_once('../include/trackers/data.php');
+require_once ('../include/init.php');
+require_once ('../include/form.php');
+require_once ('../include/account.php');
+require_once ('../include/markup.php');
+require_once ('../include/trackers/data.php');
 
 session_require(array('group'=>'1','admin_flags'=>'A'));
 
@@ -69,7 +70,7 @@ $offset = intval ($comment_offset);
 
 function list_user_contributions ($user_id, $user_name)
 {
-  global $offset, $max_rows;
+  global $offset, $max_rows, $php_self;
 
   print "\n<h2>";
   if ($user_id != 100)
@@ -112,13 +113,12 @@ function list_user_contributions ($user_id, $user_name)
             AND group_history.field_name = "User Requested Membership"
     ORDER BY date DESC LIMIT ' . $offset . ',' . ($max_rows + 1);
   $result = db_execute ($query);
-  if (!db_numrows($result))
+  if (!db_numrows ($result))
     {
       print '<p>' . no_i18n ('No contributions found.') . "</p>\n";
       return;
     }
-  html_nextprev (
-    htmlentities ($_SERVER['PHP_SELF']) . "?user_id=$user_id",
+  html_nextprev ("$php_self?user_id=$user_id",
     $max_rows, db_numrows ($result), 'comment'
   );
   print "<dl id=\"comment_results\">\n";
@@ -153,8 +153,7 @@ function list_user_contributions ($user_id, $user_name)
       print "    <dd>" . $entry['details'] . "</dd>\n";
     }
   print "</dl>\n";
-  html_nextprev (
-    htmlentities ($_SERVER['PHP_SELF']) . "?user_id=$user_id",
+  html_nextprev ("$php_self?user_id=$user_id",
     $max_rows, db_numrows ($result), 'comment'
   );
 }
@@ -238,48 +237,34 @@ if ($row_user['status'] == 'SQD')
   print '<p>' . no_i18n('Account info: this is a squad.') . '</p>';
 else
   {
-   print
-'<p>
-' . no_i18n('Account Info:') . '</p>
-<form method="post" action="' . htmlentities ($_SERVER['PHP_SELF']) . '">
-<input type="hidden" name="action" value="update_user">
-<input type="hidden" name="user_id" value="' . $user_id . '">
-</p>
-<p>Email:
-<input type="text" title="' . no_i18n("Email") . '" name="email" value="'
-. $row_user['email'] . '" size="25" maxlength="55">
-</p>
-<p>
-<input type="submit" name="Update_Unix" value="' . no_i18n('Update') . '">
-</p>
-</form>
-<form method="post" action="' . htmlentities ($_SERVER['PHP_SELF']) . '">
-<input type="hidden" name="action" value="rename">
-<input type="hidden" name="user_id" value="' . $user_id . '">
-<p>Account name:
-<input type="text" title="' . no_i18n("New name") . '" name="new_name" value="'
-. $row_user['user_name'] . '" size="25" maxlength="55">
-</p>
-<p>
-<input type="submit" name="' . no_i18n('Update_Name') . '" value="'
- . no_i18n('Rename') . '">
-</p>
-</form>
-<hr />';
+    print "<p>" . no_i18n('Account Info:') . "</p>\n" . form_tag ()
+      . form_hidden (['action' => 'update_user', 'user_id' => $user_id])
+      . "</p>\n<p>Email:\n<input type='text' title=\""
+      . no_i18n ("Email") . '" name="email" value="'
+      . $row_user['email'] . '" size="25" maxlength="55">' . "</p>\n<p>\n"
+      . '<input type="submit" name="Update_Unix" value="'
+      . no_i18n('Update') . "\"></p>\n</form>\n";
+    print form_tag ()
+      . form_hidden (['action' => 'rename', 'user_id' => $user_id])
+      . "<p>Account name:\n"
+      . '<input type="text" title="' . no_i18n("New name")
+      . '" name="new_name" value="'
+      . $row_user['user_name'] . '" size="25" maxlength="55">' . "</p>\n<p>\n"
+      . '<input type="submit" name="' . no_i18n('Update_Name') . '" value="'
+      . no_i18n('Rename') . "\"></p>\n</form>\n<hr />\n";
   } #  $row_user['status'] != 'SQD'
-print '<p><a href="/siteadmin/userlist.php?action=delete&amp;user_id=' . $user_id
-      . '">'. no_i18n ('[Delete User]') . "</a></p>\n";
-print '
-<h2>' . no_i18n('Current Groups') . "</h2>\n";
+print '<p><a href="/siteadmin/userlist.php?action=delete&amp;user_id='
+  . $user_id . '">'. no_i18n ('[Delete User]') . "</a></p>\n\n";
+print '<h2>' . no_i18n('Current Groups') . "</h2>\n";
 
 # Iterate and show groups this user is in.
-$res_cat = db_execute("SELECT groups.group_name AS group_name, "
-           . "groups.group_id AS group_id, "
-           . "user_group.admin_flags AS admin_flags FROM "
-           . "groups,user_group WHERE user_group.user_id=? AND "
-           . "groups.group_id=user_group.group_id", array($user_id));
+$res_cat = db_execute ("
+  SELECT g.group_name, g.group_id, u.admin_flags
+  FROM groups g, user_group u
+  WHERE u.user_id = ? AND g.group_id = u.group_id", [$user_id]
+);
 
-while ($row_cat = db_fetch_array($res_cat))
+while ($row_cat = db_fetch_array ($res_cat))
   {
     if ($row_user['status'] == 'SQD')
       {
@@ -292,49 +277,42 @@ while ($row_cat = db_fetch_array($res_cat))
     print ("<br /><hr /><strong>"
          . group_getname($row_cat['group_id']) . "</strong> "
          . "<a href=\"usergroup.php?user_id="
-         . $user_id."&amp;action=remove_user_from_group&amp;group_id="
+         . "$user_id&amp;action=remove_user_from_group&amp;group_id="
          . $row_cat['group_id'] . "\">"
          . "[" . no_i18n('Remove User from Group') . "]</a>");
-    print '
-<form action="' . htmlentities ($_SERVER['PHP_SELF']) . '" method="post">
-<input type="hidden" name="action" value="update_user_group">
-<input name="user_id" type="hidden" value="' . $user_id . '">
-<input name="group_id" type="hidden" value="'
-       .$row_cat['group_id'].'">
-<br /><label for="admin_flags">
-'.no_i18n('Admin Flags:').'</label>
-<br />
-<input type="text" name="admin_flags" id="admin_flags" value="'
-. $row_cat['admin_flags'] . '">
-<br />
-<input type="submit" name="Update_Group" value="' . no_i18n('Update') . '" />
-</form>
-';
+    print form_tag ()
+      . form_hidden (
+          [ 'action' => 'update_user_group', 'user_id' => $user_id,
+            'group_id' => $row_cat['group_id']
+          ]
+        )
+      . "<br />\n<label for='admin_flags'>" . no_i18n('Admin Flags:')
+      . "</label>\n<br />\n"
+      . '<input type="text" name="admin_flags" id="admin_flags" value="'
+      . $row_cat['admin_flags'] . "\">\n<br />\n"
+      . '<input type="submit" name="Update_Group" value="'
+      . no_i18n('Update') . "\" />\n</form>\n";
   }
 if ($row_user['status'] != 'SQD')
   {
-# Show a form so a user can be added to a group.
-    print '
-<hr />
-<p>
-<form action="' . htmlentities ($_SERVER['PHP_SELF']) . '" method="post">
-<input type="hidden" name="action" value="add_user_to_group">
-<input name="user_id" type="hidden" value="' . $user_id . '">
-<p><label for="group_id">
-' . no_i18n('Add User to Group (group_id):') . '</label>
-<br />
-<input type="text" name="group_id" id="group_id" length="4" maxlength="5" />
-</p>
-<p>
-<input type="submit" name="Submit" value="' . no_i18n('Submit') . '" />
-</form>
-
-<p><a href="user_changepw.php?user_id='
-    . $user_id . '">[' . no_i18n('Change User\'s Password')
-    . "]</a>\n</p>\n";
+    # Show a form so a user can be added to a group.
+    print "<hr />\n<p>\n";
+    print form_tag ()
+      . form_hidden (
+          ["action" => "add_user_to_group", "user_id" => $user_id]
+        )
+      . "<p><label for='group_id'>\n"
+      . no_i18n ('Add User to Group (group_id):')
+      . "</label>\n<br />\n"
+      . '<input type="text" name="group_id" id="group_id" length="4" '
+      . "maxlength='5' />\n</p>\n<p>\n"
+      . '<input type="submit" name="Submit" value="'
+      . no_i18n ('Submit') . "\" />\n</form>\n\n"
+      . '<p><a href="user_changepw.php?user_id='
+      . $user_id . '">[' . no_i18n ('Change User\'s Password')
+      . "]</a>\n</p>\n";
     list_user_contributions ($user_id, $row_user['user_name']);
   }
-
-html_feedback_bottom();
-$HTML->footer(array());
+html_feedback_bottom ();
+$HTML->footer ([]);
 ?>

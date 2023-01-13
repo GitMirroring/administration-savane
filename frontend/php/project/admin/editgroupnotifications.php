@@ -19,10 +19,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-require_once('../../include/init.php');
-require_once('../../include/vars.php');
+require_once ('../../include/init.php');
+require_once ('../../include/form.php');
+require_once ('../../include/vars.php');
 
 require_directory("trackers");
 
@@ -78,13 +77,11 @@ $row_grp = db_fetch_array($res_grp);
 site_project_header (
   ['title' => _("Set Notifications"),'group' => $group_id, 'context' => 'ahome']
 );
-print "<form action=\"" . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post'>\n<input type='hidden' name='group_id' "
-  . "value=\"$group_id\" />\n";
+print form_tag () . form_hidden (['group_id' => $group_id]);
 
 function print_h2 ($x)
 {
-  print '<h2>' . $x . "</h2>\n";
+  print "<h2>$x</h2>\n";
 }
 
 $show_intro = 1;

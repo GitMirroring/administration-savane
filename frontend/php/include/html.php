@@ -739,9 +739,9 @@ function html_select_typedir_box ($input_name, $current_value)
       print "<option value='$dir'$sel>$title</option>\n";
     }
   print "</select> [BACKEND SPECIFIC]\n";
-  print "<p><span class='smaller'>Basic directory will make the backend"
-    . "using DownloadMakeArea(), defined in Savannah::Download; <br />\n"
-    . "CVS directory will make the backend using CvsMakeArea(), defined "
+  print "<p><span class='smaller'>Basic directory will make the backend\n"
+    . "using DownloadMakeArea(), defined in Savannah::Download;<br />\n"
+    . "CVS directory will make the backend using CvsMakeArea(), defined\n"
     . "in Savannah::Cvs.\n</span><p>";
 }
 
@@ -850,7 +850,7 @@ function site_project_header ($params)
 # rather than a direct call to site_footer() or theme_footer().
 # Params array() empty.
 # Result - print HTML directly.
-function site_project_footer ($params)
+function site_project_footer ($params = [])
 {
   html_footer ($params);
 }

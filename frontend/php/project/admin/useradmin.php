@@ -20,9 +20,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-require_once('../../include/init.php');
-require_once('../../include/sendmail.php');
+require_once ('../../include/init.php');
+require_once ('../../include/form.php');
+require_once ('../../include/sendmail.php');
 
 extract (sane_import ('post',
   [
@@ -49,15 +49,15 @@ if (!$group_id)
 function show_pending_users_list ($result, $group_id)
 {
   print "<h2>" . _("Users Pending for Group") . "</h2>\n<p>"
-    . _("Users that have requested to be member of the group are listed
-here. To approve their requests, select their names and push the button
-below. To discard requests, go to the next section called &ldquo;Removing users
-from group.&rdquo;") . "</p>\n<form action=\"";
+    . _("Users that have requested to be member of the group are listed\n"
+        . "here. To approve their requests, select their names and push "
+        . "the button\nbelow. To discard requests, go to the next section "
+        . "called &ldquo;Removing users\nfrom group.&rdquo;")
+    . "</p>\n";
 
-  print htmlentities ($_SERVER['PHP_SELF']) . "\" method=\"post\">
-        <input type=\"hidden\" name=\"action\" value=\"approve_for_group\" />
-  <select title=\"" . _("Users")
-  . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
+  print form_tag () . form_hidden (['action' => "approve_for_group"])
+    . "<select title=\"" . _("Users")
+    . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
 
   $exists = false;
   while ($usr = db_fetch_array ($result))
@@ -80,11 +80,11 @@ function show_all_users_remove_list ($result, $result2, $group_id)
 {
   $exists = false;
   print "<h2>" . _("Removing users from group") . "</h2>\n<p>"
-    . _("To remove users, select their names and push the button
-below. The administrators of a project cannot be removed unless they quit.
-Pending users are at the bottom of the list.") . "</p>\n<form action=\"";
-  print htmlentities ($_SERVER['PHP_SELF']) . "\" method=\"post\">\n"
-    . "<input type=\"hidden\" name=\"action\" value=\"remove_from_group\" />\n"
+    . _("To remove users, select their names and push the button\nbelow. "
+        . "The administrators of a project cannot be removed unless they "
+        . "quit.\nPending users are at the bottom of the list.")
+    . "</p>\n";
+  print form_tag () . form_hidden (['action' => "remove_from_group"])
     . "<select title=\"" . _("Users")
     . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
 
@@ -118,12 +118,12 @@ Pending users are at the bottom of the list.") . "</p>\n<form action=\"";
 function show_all_users_add_searchbox ($group_id, $previous_search)
 {
   print '<h2 id="searchuser">' . _("Adding users to group") . "</h2>\n<p>"
-    . _("You can search one or several users to add in the whole users
-database with the following search tool. A list of users, depending on the
-names you'll type in this form, will be generated.")
-    . "</p>\n<form action=\""
-    . htmlentities ($_SERVER['PHP_SELF']) . "#searchuser\" method='post'>\n"
-    . "<input type='hidden' name='action' value='add_to_group_list' />\n"
+    . _("You can search one or several users to add in the whole users\n"
+        . "database with the following search tool. A list of users, "
+        . "depending on the\nnames you'll type in this form, will be "
+        . "generated.")
+    . "</p>\n" . form_tag ([], "#searchuser")
+    . form_hidden (['action' => 'add_to_group_list'])
     . "<input type='text' size='35' title=\"" . _("Search users")
     . '" name="words" value="' . htmlspecialchars ($previous_search)
     . "\" /><br />\n<p>\n<input type='hidden' name='group_id' value='"
@@ -134,9 +134,8 @@ names you'll type in this form, will be generated.")
 function show_all_users_add_list ($result, $group_id)
 {
   print _("Below is the result of your search in the users database.")
-    . "\n<form action=\"";
-  print htmlentities ($_SERVER['PHP_SELF']) . "\" method=\"post\">\n"
-    . "<input type=\"hidden\" name=\"action\" value=\"add_to_group\" />\n"
+    . "\n";
+  print form_tag () . form_hidden (['action' => 'add_to_group'])
     . "<select title=\"" . _("Users")
     . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
   $exists = false;

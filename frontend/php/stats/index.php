@@ -25,6 +25,7 @@ require_once ('../include/sane.php');
 require_once ('../include/stats/general.php');
 require_once ('../include/calendar.php');
 require_once ('../include/graphs.php');
+require_once ('../include/form.php');
 
 register_globals_off();
 
@@ -42,7 +43,7 @@ $page = '';
 
 if ($update)
   {
-    # If the user selected date, assume he speaks of completed days.
+    # If the user selected date, assume complete days.
     $hour = 0;
     $min = 0;
   }
@@ -64,8 +65,7 @@ else
 $since = mktime ($hour, $min, 0, $since_month, $since_day, $since_year);
 $until = mktime ($hour, $min, 0, $until_month, $until_day, $until_year);
 
-$form_opening = '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . '#options" method="GET">';
+$form_opening = form_tag (['method' => 'get'], "#options");
 $form_submit = '<input class="bold" value="' . _("Apply")
   . '" name="update" type="submit" />';
 $page .= html_show_displayoptions (

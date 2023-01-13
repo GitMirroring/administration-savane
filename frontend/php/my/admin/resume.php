@@ -20,14 +20,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-require_directory("people");
-register_globals_off();
+require_once ('../../include/init.php');
+require_once ('../../include/form.php');
+require_directory ("people");
+register_globals_off ();
 
-if (!user_isloggedin())
-  exit_not_logged_in();
+if (!user_isloggedin ())
+  exit_not_logged_in ();
 
-extract(sane_import('post',
+extract (sane_import ('post',
   [
     'true' =>
       [
@@ -128,44 +129,40 @@ elseif ($delete_from_skill_inventory)
 site_user_header(array('title'=>_("Edit Your Resume & Skills"),
                        'context'=>'account'));
 print '<p>'
-._("Details about your experience and skills may be of interest to other users
-or visitors.").'</p>
-';
+  . _("Details about your experience and skills may be of interest to other "
+      . "users\nor visitors.")
+  . "</p>\n";
 
 $result = db_execute("SELECT * FROM user WHERE user_id=?", array(user_getid()));
 if (!$result || db_numrows($result) < 1)
   exit_error(_("No such user"));
 utils_get_content("people/editresume");
 
-$viewableoptions = array("0" => _("No"),
-                         "1" => _("Yes"));
+$viewableoptions = ["0" => _("No"), "1" => _("Yes")];
 
-print '<form action="'.htmlentities ($_SERVER['PHP_SELF']).'" method="post">'
-.'<h2>'._("Publicly Viewable").'</h2>
-'
-.'<span class="preinput">'._("Do you want your resume to be activated?")
-.'</span>&nbsp;&nbsp;'
-.html_build_select_box_from_array(array("0" => _("No"),"1" => _("Yes")),
-                                  'people_view_skills',
-                                  db_result($result,0,'people_view_skills'), 0,
-                                  _("Activate resume"));
+print form_tag ()
+  . '<h2>' . _("Publicly Viewable") . "</h2>\n"
+  . '<span class="preinput">' . _("Do you want your resume to be activated?")
+  . '</span>&nbsp;&nbsp;'
+  . html_build_select_box_from_array (
+      $viewableoptions, 'people_view_skills',
+      db_result ($result, 0, 'people_view_skills'), 0, _("Activate resume")
+    );
 
 if ($allow_resume)
-  {
-    print '<h2><label for="people_resume">'
-          ._("Resume - Description of Experience")
-          ."</label></h2>\n<p>".markup_info("full")."</p>\n"
-          .'<textarea id="people_resume" name="people_resume" rows="15" '
-          .'cols="60" wrap="soft">'.db_result($result, 0, 'people_resume')
-          ."</textarea>\n<br /><br />\n";
-  }
+  print '<h2><label for="people_resume">'
+    . _("Resume - Description of Experience")
+    . "</label></h2>\n<p>" . markup_info ("full") . "</p>\n"
+    . '<textarea id="people_resume" name="people_resume" rows="15" '
+    . 'cols="60" wrap="soft">'. db_result ($result, 0, 'people_resume')
+    . "</textarea>\n<br /><br />\n";
 
 print '<div class="center"><input type="submit" name="update_profile" '
   . 'value="' . _("Update Profile") . '" /></div></form>' . "\n";
 
-print '<h2>'._("Skills").'</h2>';
+print '<h2>' . _("Skills") . "</h2>\n";
 # Now show the list of desired skills.
-people_edit_skill_inventory(user_getid());
+people_edit_skill_inventory (user_getid ());
 
-site_user_footer(array());
+site_user_footer ([]);
 ?>

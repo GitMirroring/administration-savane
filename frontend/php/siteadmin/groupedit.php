@@ -5,7 +5,7 @@
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007, 2008  Sylvain Beucler
 # Copyright (C) 2008  Aleix Conchillo Flaque
-# Copyright (C) 2017, 2018, 2020 Ineiev
+# Copyright (C) 2017, 2018, 2020, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -22,16 +22,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/vars.php');
+require_once ('../include/init.php');
+require_once ('../include/init.php');
+require_once ('../include/form.php');
+require_once ('../include/html.php');
 # Needed for group history.
-require_directory("project");
+require_directory ("project");
 
-session_require(array('group'=>$sys_group_id,'admin_flags'=>'A'));
+session_require (['group' => $sys_group_id, 'admin_flags' => 'A']);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n($string)
+function no_i18n ($string)
 {
   return $string;
 }
@@ -61,45 +63,47 @@ if ($update || $updatefast)
     # Full details update.
     if ($update)
       {
-        $res_grp = db_execute("SELECT * FROM groups WHERE group_id=?",
-                              array($group_id));
-        $res_type = db_execute("SELECT * FROM group_type WHERE type_id=?",
-                               array($group_type));
+        $res_grp = db_execute (
+          "SELECT * FROM groups WHERE group_id = ?", [$group_id]
+        );
+        $res_type = db_execute (
+          "SELECT * FROM group_type WHERE type_id = ?", [$group_type]
+        );
 
-        if (db_result($res_grp,0,'status') != $form_status)
-          group_add_history ('status',db_result($res_grp,0,'status'),$group_id);
-        if (db_result($res_grp,0,'is_public') != $form_public)
-          group_add_history ('is_public',db_result($res_grp,0,'is_public'),
-                             $group_id);
-        if (db_result($res_grp,0,'type') != $group_type)
-          group_add_history ('type',db_result($res_grp,0,'type'),$group_id);
-        if (db_result($res_grp,0,'unix_group_name') != $form_name)
-          group_add_history ('unix_group_name',
-                             db_result($res_grp,0,'unix_group_name'),
-                             $group_id);
-        db_autoexecute('groups',
-                       array(
-                             'is_public' => $form_public,
-                             'status' => $form_status,
-                             'license' => $form_license,
-                             'license_other' => $form_license_other,
-                             'type' => $group_type,
-                             'unix_group_name' => $form_name,
-                             'dir_cvs' => $form_dir_cvs,
-                             'dir_arch' => $form_dir_arch,
-                             'dir_svn' => $form_dir_svn,
-                             'dir_git' => $form_dir_git,
-                             'dir_hg' => $form_dir_hg,
-                             'dir_bzr' => $form_dir_bzr,
-                             'dir_homepage' => $form_dir_homepage,
-                             'dir_download' => $form_dir_download,
-                             ), DB_AUTOQUERY_UPDATE,
-                       "group_id=?", array($group_id));
-      }
+        if (db_result ($res_grp, 0, 'status') != $form_status)
+          group_add_history (
+           'status', db_result ($res_grp, 0, 'status'), $group_id
+          );
+        if (db_result ($res_grp, 0, 'is_public') != $form_public)
+          group_add_history (
+            'is_public', db_result ($res_grp, 0, 'is_public'), $group_id
+          );
+        if (db_result ($res_grp, 0, 'type') != $group_type)
+          group_add_history (
+            'type', db_result ($res_grp, 0, 'type'), $group_id
+          );
+        if (db_result ($res_grp, 0, 'unix_group_name') != $form_name)
+          group_add_history (
+            'unix_group_name', db_result ($res_grp, 0, 'unix_group_name'),
+            $group_id
+          );
+        db_autoexecute ('groups',
+          [ 'is_public' => $form_public, 'status' => $form_status,
+            'license' => $form_license, 'license_other' => $form_license_other,
+            'type' => $group_type, 'unix_group_name' => $form_name,
+            'dir_cvs' => $form_dir_cvs, 'dir_arch' => $form_dir_arch,
+            'dir_svn' => $form_dir_svn, 'dir_git' => $form_dir_git,
+            'dir_hg' => $form_dir_hg, 'dir_bzr' => $form_dir_bzr,
+            'dir_homepage' => $form_dir_homepage,
+            'dir_download' => $form_dir_download],
+          DB_AUTOQUERY_UPDATE, "group_id=?", [$group_id]
+        );
+      } # $update
     if ($updatefast)
-      db_execute("UPDATE groups SET status=? WHERE group_id=?",
-                 array($status, $group_id));
-    fb(no_i18n("Updating Project Info"));
+      db_execute ("UPDATE groups SET status = ? WHERE group_id = ?",
+        [$status, $group_id]
+      );
+    fb (no_i18n ("Updating group info"));
   }
 # Get current information.
 $res_grp = db_execute("SELECT * FROM groups WHERE group_id=?", array($group_id));
@@ -119,113 +123,116 @@ utils_get_content("admin/groupedit_intro");
 
 print '<p>';
 print "<a href='../projects/{$row_grp['unix_group_name']}'>"
-.no_i18n("Project public page")."</a>";
+  . no_i18n ("Group public page") . "</a>";
 print '</p>
 ';
 
-print '<h2>'.no_i18n("Registration Management Shortcuts").'</h2>
-';
-print '<a href="'.htmlentities ($_SERVER['PHP_SELF'])
-.'?status=A&amp;updatefast=1&amp;group_id='
-. $group_id . '"><img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-.'.theme/bool/ok.orig.png" alt="'.no_i18n("Approve").'" /></a>&nbsp;&nbsp;&nbsp;';
-print '<a href="'.htmlentities ($_SERVER['PHP_SELF'])
-.'?status=D&amp;updatefast=1&amp;group_id='
-. $group_id . '"><img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-.'.theme/bool/wrong.orig.png" alt="'.no_i18n("Discard").'" /></a>&nbsp;&nbsp;&nbsp;';
-print '<a href="triggercreation.php?group_id=' . $group_id
-.'"><img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-.'.theme/contexts/preferences.orig.png" alt="'
-.no_i18n("Send New Project Instruction Email and Trigger Project Creation (should be
-done only once)").'" /></a>';
+print '<h2>' . no_i18n("Registration Management Shortcuts") . "</h2>\n";
+print "<a href=\"$php_self?status=A&amp;updatefast=1&amp;group_id=$group_id\">"
+  . html_image ("bool/ok.orig.png", ['alt' => no_i18n ("Approve")])
+  . '</a>&nbsp;&nbsp;&nbsp;';
+print "<a href=\"$php_self?status=D&amp;updatefast=1&amp;group_id=$group_id\">"
+  . html_image ("bool/wrong.orig.png", ['alt' => no_i18n ("Discard")])
+  . '</a>&nbsp;&nbsp;&nbsp;';
+print "<a href=\"triggercreation.php?group_id=$group_id\">"
+  . html_image (
+      "contexts/preferences.orig.png",
+      ['alt' => no_i18n ("Send new group instruction email and trigger "
+                         . "group creation (should be done only once)")]
+    )
+  . '</a>';
 
-print '<form action="'.htmlentities ($_SERVER['PHP_SELF'])
-.'" method="POST">';
-print '<h2>'.no_i18n("Detailed Interface").'</h2>
-';
-$HTML->box1_top(no_i18n("General Settings"));
+print form_tag ();
+print '<h2>' . no_i18n ("Detailed Interface") . "</h2>\n";
+$HTML->box1_top (no_i18n ("General Settings"));
 
-print '<p><span class="preinput">'.no_i18n("Group Type:").' </span><br />
-';
+print '<p><span class="preinput">' . no_i18n ("Group Type:")
+ .  " </span><br />\n";
 print '<em>';
-utils_get_content("admin/groupedit_grouptype");
-print '</em><br />
-';
-print show_group_type_box('group_type',$row_grp['type']);
+utils_get_content ("admin/groupedit_grouptype");
+print "</em><br />\n";
+print show_group_type_box ('group_type', $row_grp['type']);
 
-$i=0;
-print '</td>
-</tr>
-<tr><td class="'.utils_altrow($i).'">';
-
+function next_altrow ()
+{
+  global $i;
+  print "</td>\n</tr>\n<tr><td class=\"" . utils_altrow ($i++) . '">';
+}
+$i = 0;
+next_altrow ();
 print '<p><span class="preinput"><label for="form_name">'
-.no_i18n("System Name:").'</label></span><br />
-';
+  . no_i18n("System Name:") . "</label></span><br />\n";
 print '<input type="text" name="form_name" id="form_name" value="'
-      .$row_grp['unix_group_name'].'" />';
+  . $row_grp['unix_group_name'] . '" />';
 
-$i++;
-print '</td>
-</tr>
-<tr><td class="'.utils_altrow($i).'">';
+next_altrow ();
 
-print '<p><span class="preinput"><label for="form_status">'.no_i18n("Status:")
-.'</label></span><br />
-';
+print '<p><span class="preinput"><label for="form_status">'
+  . no_i18n ("Status:") . "</label></span><br />\n";
 
-print '<select status" name="form_status" id="form_status">
-<option '.(($row_grp['status'] == "A")?'selected ':'').'value="A">'
-       .no_i18n("Active").'</option>
-<option '.(($row_grp['status'] == "P")?'selected ':'').'value="P">'
-       .no_i18n("Pending").'</option>
-<option '.(($row_grp['status'] == "D")?'selected ':'').'value="D">'
-       .no_i18n("Deleted").'</option>
-<option '.(($row_grp['status'] == "M")?'selected ':'').'value="M">'
-       .no_i18n("Maintenance (accessible only to superuser)").'</option>
-<option '.(($row_grp['status'] == "I")?'selected ':'').'value="I">'
-       .no_i18n("Incomplete (failure during registration)").'</option>
-</select>
-';
+print "<select name='form_status' id='form_status'> ";
+foreach (
+  [
+    'A' => no_i18n ("Active"), 'P' => no_i18n ("Pending"),
+    'D' => no_i18n ("Deleted"),
+    'M' => no_i18n ("Maintenance (accessible only to superuser)"),
+    'I' => no_i18n ("Incomplete (failure during registration)"),
+  ] as $k => $v
+)
+  {
+    $sel = '';
+    if ( $row_grp['status'] == $k)
+      $sel = ' selected';
+    print "<option$sel value='$k'>$v</option>\n";
+  }
+print "</select>\n";
 print '<p class="warn">'
-.no_i18n("On project approval, do not forget to run the script &ldquo;Trigger Project
-Creation&rdquo; at the end of this page, otherwise this project could end up
-partly misconfigured.").'</p>
-';
+  . no_i18n (
+     "On group approval, do not forget to run the script &ldquo;Trigger group "
+     . "creation&rdquo; at the end of this page, otherwise this group could "
+     . "end up partly misconfigured."
+    )
+  . "</p>\n";
 print '<p>'
-.no_i18n("Project marked as deleted will be removed from the database by a
-cronjob.").'</p>
-';
+  . no_i18n (
+      "Group marked as deleted will be removed from the database "
+      . "by a cronjob.")
+  . "</p>\n";
 
+next_altrow ();
+print '<p><span class="preinput"><label for="form_public">'
+  . no_i18n ("Public?") . "</label></span><br />\n"
+  . no_i18n (
+      "A private group will be completely invisible from the web interface."
+   )
+  . "\n"
+  . no_i18n (
+      "You must clear the HTML repository field below when setting the "
+      . "private flag otherwise unpredictable result will occur.")
+  . "<br />\n<select name='form_public' id='form_public'>\n";
+$sel = '';
+if ($row_grp['is_public'] == 1)
+$sel = ' selected';
+print "<option$sel value='1'>" . no_i18n ("Yes") . "</option>\n";
+if ($sel == '')
+  $sel = ' selected';
+else
+  $sel = '';
+print "<option$sel value='0'>" . no_i18n ("No") . "</option>\n";
+print "</select>\n";
 
-$i++;
-print '</td>
-</tr>
-<tr><td class="'.utils_altrow($i).'">';
-
-print '<p><span class="preinput"><label for="form_public">'.no_i18n("Public?")
-.'</label></span><br />
-'.no_i18n("A private project will be completely invisible from the web interface.").'
-'.no_i18n("You must clear the HTML repository field below when setting the private
-flag otherwise unpredictable result will occur.").'<br />
-<select name="form_public" id="form_public">
-<option '.(($row_grp['is_public'] == 1)?'selected ':'').'value="1">'.no_i18n("Yes").'</option>
-<option '.(($row_grp['is_public'] == 0)?'selected ':'').'value="0">'.no_i18n("No").'</option>
-</select>
-';
-
-$i++;
-print '</td>
-</tr>
-<tr><td class="'.utils_altrow($i).'">';
+next_altrow ();
 
 print '<p><span class="preinput"><label for="form_license">'
-.no_i18n("License:").'</label></span><br />
-';
-print no_i18n("Note: this has influence only if the group type of which this group
-belongs to accepts this information.").'<br />';
-print '<select name="form_license" id="form_license">';
-print '<option value="none">'.no_i18n("N/A").'</option>';
-print '<option value="other">'.no_i18n("Other license").'</option>';
+  . no_i18n("License:") . "</label></span><br />\n";
+print no_i18n (
+  "Note: this has influence only if the group type of which this group "
+  . "belongs to accepts this information."
+);
+print "<br />\n";
+print "<select name='form_license' id='form_license'>\n";
+print '<option value="none">' . no_i18n ("N/A") . "</option>\n";
+print '<option value="other">' . no_i18n ("Other license") . "</option>\n";
 
 foreach ($LICENSE_EN as $k => $v)
   {
@@ -236,98 +243,77 @@ foreach ($LICENSE_EN as $k => $v)
 print '</select>
 <br />
 <label for="form_license_other">';
-print no_i18n("If other:").'</label><br />
-<input type="text" name="form_license_other" id="form_license_other" value="'
-.$row_grp['license_other'].'" />';
-print '</p>
-';
-print '<input type="hidden" name="group_id" value="' . $group_id
-              .'" />';
+print no_i18n ("If other:") . "</label><br />\n";
+print '<input type="text" name="form_license_other" id="form_license_other" '
+  . 'value="' . $row_grp['license_other'] . '" />';
+print "</p>\n";
+print form_hidden (['group_id' => $group_id]);
 
-$i++;
-print '</td>
-</tr>
-<tr><td class="'.utils_altrow($i).'">';
+next_altrow ();
+print '<p><input type="submit" name="update" value="' . no_i18n ("Update")
+  . '">';
 
-print '
-<p><input type="submit" name="update" value="'.no_i18n("Update").'">';
+$HTML->box1_bottom ();
 
-$HTML->box1_bottom();
+print "<p><a href='triggercreation.php?group_id=$group_id'>"
+  . no_i18n (
+      "Send new group instruction email and trigger group creation "
+      . "(should be done only once)"
+    )
+  . "</a></p>\n";
 
-print '<p><a href="triggercreation.php?group_id=' . $group_id . '">'
-.no_i18n("Send New Project Instruction Email and Trigger Project Creation (should be
-done only once)").'</a>';
-print '</p>
-';
-
-$HTML->box1_top(no_i18n("Submitted Information"));
-
-project_admin_registration_info($row_grp);
-
-$HTML->box1_bottom();
+$HTML->box1_top (no_i18n ("Submitted Information"));
+project_admin_registration_info ($row_grp);
+$HTML->box1_bottom ();
 
 print '<p>';
-$HTML->box1_top(no_i18n("Specific Backend Settings"));
-print no_i18n('[BACKEND SPECIFIC] If this group must have specific directories for
-homepage, sourcecode, download, which are not the default of the group type it
-belongs to, you can fill in the following fields. You may need to also edit the
-urls in &ldquo;This Project Active Features.&rdquo; If possible, you should
-avoid using these fields and consider creating new group types. Exceptions are
-a pain to handle in the long run.');
-$i=0;
-print '</td>
-</tr>
-<tr><td class="'.utils_altrow($i).'">';
+$HTML->box1_top  (no_i18n("Specific Backend Settings"));
+print no_i18n (
+  "[BACKEND SPECIFIC] If this group must have specific directories\n"
+  . "for homepage, sourcecode, download, which are not the default\n"
+  . "of the group type it belongs to, you can fill in the following\n"
+  . "fields.  You may need to also edit the urls in &ldquo;This group\n"
+  . "active features.&rdquo; If possible, you should avoid using these\n"
+  . "fields and consider creating new group types.  Exceptions are a pain\n"
+  . "to handle in the long run."
+);
+
+$i = 0;
+next_altrow ();
 
 function vcs_directory ($vcs, $label, $row_grp)
 {
-  print '<p><span class="preinput"><label for="form_dir_'.$vcs.'">'
-  .$label.'</label></span><br />
-';
-print '<input type="text" name="form_dir_'.$vcs.'" id="form_dir_'.$vcs
-      .'" value="'.$row_grp['dir_'.$vcs.''].'" size="50" />';
+  print "<p><span class='preinput'><label for='form_dir_$vcs'>"
+    . "$label</label></span><br />\n";
+  print '<input type="text" name="form_dir_' . $vcs . '" id="form_dir_' . $vcs
+    .'" value="' . $row_grp["dir_$vcs"] . '" size="50" />';
+  next_altrow ();
 }
 
-vcs_directory ('cvs', no_i18n("CVS directory:"), $row_grp);
-$i++;
-print '</td></tr>
-<tr><td class="'.utils_altrow($i).'">';
+$titles = ['cvs' => no_i18n ("CVS directory:"),
+  'arch' => no_i18n ("GNU Arch directory:"),
+  'svn' => no_i18n ("Subversion directory:"),
+  'git' => no_i18n ("Git directory:"),
+  'hg' => no_i18n ("Mercurial directory:"),
+  'bzr' => no_i18n ("Bazaar directory:"),
+];
 
-vcs_directory ('arch', no_i18n("GNU Arch directory:"), $row_grp);
-$i++;
-print '</td></tr>
-<tr><td class="'.utils_altrow($i).'">';
-
-vcs_directory ('svn', no_i18n("Subversion directory:"), $row_grp);
-$i++;
-print '</td></tr><tr><td class="'.utils_altrow($i).'">';
-
-vcs_directory ('git', no_i18n("Git directory:"), $row_grp);
-$i++;
-print '</td></tr><tr><td class="'.utils_altrow($i).'">';
-
-vcs_directory ('hg', no_i18n("Mercurial directory:"), $row_grp);
-$i++;
-print '</td></tr><tr><td class="'.utils_altrow($i).'">';
-
-vcs_directory ('bzr', no_i18n("Bazaar directory:"), $row_grp);
-$i++;
-print '</td></tr><tr><td class="'.utils_altrow($i).'">';
+foreach ($titles as $k => $v)
+  vcs_directory ($k, $v, $row_grp);
 
 print '<p><span class="preinput"><label for="form_dir_homepage">'
-.no_i18n("Homepage directory:").'</label></span><br />
-<input type="text" name="form_dir_homepage" id="form_dir_homepage" value="'
-      .$row_grp['dir_homepage'].'" size="50" />';
-$i++;
-print '</td></tr><tr><td class="'.utils_altrow($i).'">';
+  . no_i18n("Homepage directory:") . "</label></span><br />\n"
+  . '<input type="text" name="form_dir_homepage" id="form_dir_homepage" '
+  . 'value="' . $row_grp['dir_homepage'] . '" size="50" />';
+next_altrow ();
 
 print '<p><span class="preinput"><label for="form_dir_download">'
-.no_i18n("Download directory:").'</label></span><br />
-<input type="text" name="form_dir_download" id="form_dir_download" value="'
-      .$row_grp['dir_download'].'" size="50" />';
-print '
-<p><input type="submit" name="update" value="'.no_i18n("Update").'">';
+  . no_i18n ("Download directory:") . "</label></span><br />\n"
+  . '<input type="text" name="form_dir_download" id="form_dir_download" '
+  . 'value="' . $row_grp['dir_download'] . "\" size='50' /></p>\n";
+print '<p><input type="submit" name="update" value="' . no_i18n("Update")
+  . "\" /></p>\n";
 
-$HTML->box1_bottom();
-site_admin_footer(array());
+$HTML->box1_bottom ();
+site_admin_footer ([]);
 ?>

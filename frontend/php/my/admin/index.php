@@ -21,6 +21,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('../../include/sane.php');
+require_once ('../../include/utils.php');
+require_once ('../../include/form.php');
 extract (sane_import ('post',
   [
     'true' =>
@@ -108,8 +110,7 @@ $row_user = db_fetch_array ($res_user);
 print '<p>' . _("You can change all of your account features from here.")
   . "</p>\n";
 utils_get_content ("account/index_intro");
-print '<form action="' . htmlentities ($_SERVER["PHP_SELF"])
-  . '" method="post">';
+print form_tag ();
 print '<h2>' . _("Significant Arrangements") . "</h2>\n";
 
 print $HTML->box_top (_('Authentication Setup'));

@@ -351,10 +351,8 @@ currently membership record)."),
     $art_name);
   print"</p>\n<p class='warn'>"
     . _("Beware, your current configuration will be irremediably lost.")
-    . "</p>\n\n<form action=\""
-    . htmlentities ($_SERVER['PHP_SELF']) . "\" method='post'>\n"
-    . "<input type='hidden' name='group_id' value='$group_id)' />\n"
-    . "<input type='hidden' name='artifact' value='$artifact' />\n"
+    . "</p>\n" . form_tag ()
+    . form_hidden (['group_id' => $group_id, 'artifact' => $artifact])
     . '<span class="preinput"><label for="from_group_id">' . _("Projects:")
     . "</label></span>&nbsp;&nbsp;&nbsp;\n";
   print html_build_select_box_from_arrays ($vals, $texts, 'from_group_id');

@@ -135,8 +135,7 @@ if ($submit && ($changed || $pref_changed))
 trackers_header_admin (['title' => _("Other Settings")]);
 
 print '<h2>' . _("Item Post Form Preamble") . "</h2>\n";
-print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . '" method="post">' . form_hidden (['group_id' => $group_id]);
+print form_tag () . form_hidden (['group_id' => $group_id]);
 print '<span class="preinput"><label for="form_preamble">';
 print _("Introductory message showing at the top of the item submission form");
 print '</label> ' . markup_info ("rich")

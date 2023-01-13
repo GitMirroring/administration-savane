@@ -510,7 +510,7 @@ function utils_show_result_set (
   $result, $title = "Untitled", $linkify = false, $level = false
 )
 {
-  global $group_id,$HTML;
+  global $group_id, $HTML, $php_self;
 
   if ($level === false)
     $level = '3';
@@ -520,7 +520,7 @@ function utils_show_result_set (
 
   if  (!$result)
     {
-      print db_error();
+      print db_error ();
       return;
     }
   $rows = db_numrows ($result);
@@ -534,8 +534,7 @@ function utils_show_result_set (
     print '<th>' . db_fieldname ($result,  $i) . "</th>\n";
   print "</tr>\n";
 
-  $lhead = '<a href="' . htmlentities ($_SERVER['PHP_SELF'])
-    . "?group_id=$group_id&";
+  $lhead = "<a href=\"$php_self?group_id=$group_id&";
   for ($j = 0; $j < $rows; $j++)
     {
       switch ($linkify)

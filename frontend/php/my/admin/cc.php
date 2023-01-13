@@ -116,32 +116,31 @@ foreach ($groups_with_cc as $thisunixname => $thisname)
       print $HTML->box_nextitem(utils_altrow($i));
 
     print '<span class="trash">';
-    print utils_link(htmlentities ($_SERVER['PHP_SELF']).'?cancel='
-                     .$groups_with_cc_gid[$thisunixname],
-                     '<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-                     .'.theme/misc/trash.png" border="0" alt="'
-                     ._("Cancel CC for this group").'" />');
+    print utils_link (
+      "$php_self?cancel=" . $groups_with_cc_gid[$thisunixname],
+      html_image_trash (['alt' => _("Cancel CC for this group")])
+    );
     print '</span>';
-    print  '<a href="'.$GLOBALS['sys_home'].'projects/'.$thisunixname
-         .'/">'.$thisname.'</a><br />'."\n";
+    print
+      "<a href=\"{$sys_home}projects/$thisunixname/\">$thisname</a><br />\n";
   }
 
 # Allow to kill sessions apart the current one,
 # if more than 3 sessions were counted
-# (otherwise, it looks overkill)
+# (otherwise, it looks overkill).
 if ($i > 3)
   {
     $i++;
     print $HTML->box_nextitem(utils_altrow($i));
     print '<span class="trash">';
-    print utils_link(htmlentities ($_SERVER['PHP_SELF']).'?cancel=any',
-                     '<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-                     .'.theme/misc/trash.png" border="0" alt="'
-                     ._("Cancel All CC").'" />');
-    print '</span>';
-# TRANSLATORS: the argument is site name (like Savannah).
-    print '<em>'.sprintf(_("All Carbon-Copies over %s"), $GLOBALS['sys_name'])
-                .'</em><br />&nbsp;';
+    print utils_link (
+      "$php_self?cancel=any",
+      html_image_trash (['alt' => _("Cancel All CC")])
+    );
+    print '</span><em>';
+    # TRANSLATORS: the argument is site name (like Savannah).
+    printf (_("All Carbon-Copies over %s"), $sys_name);
+    print "</em><br />&nbsp;\n";
   }
 print $HTML->box_bottom();
 site_user_footer(array());

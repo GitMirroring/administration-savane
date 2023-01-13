@@ -24,6 +24,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('../include/init.php');
+require_once ('../include/form.php');
 require_directory ("trackers");
 
 function is_squad ($m)
@@ -160,9 +161,8 @@ site_project_header (
 $checked = '';
 if ($detailed)
   $checked = " selected='selected'";
-$form_opening = '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . '#options" method="get">';
-$form_submit = '<input class="bold"  type="submit" value="'
+$form_opening = form_tag (['method' => 'get'], "#options");
+$form_submit = '<input class="bold" type="submit" value="'
   . _("Apply") . '" />';
 $selector = '<select title="' . _("basic or detailed")
   . '" name="detailed"><option value="0">'

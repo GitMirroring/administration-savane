@@ -2,7 +2,7 @@
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017  Ineiev
+# Copyright (C) 2017, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -18,29 +18,27 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-require_once('../include/init.php');
-require_once('../include/news/general.php');
+require_once ('../include/init.php');
+require_once ('../include/form.php');
+require_once ('../include/news/general.php');
 
 if (!$group_id)
   $group_id = $GLOBALS['sys_group_id'];
 
-extract(sane_import('request', ['pass' => 'feedback', 'digits' => 'limit']));
+extract (sane_import ('request', ['pass' => 'feedback', 'digits' => 'limit']));
 
 if (empty ($limit))
   $limit = 10;
 else
   $limit = intval ($limit);
 
-$project=project_get_object($group_id);
-if (!$project->Uses("news"))
-  exit_error(_("This project doesn't use this tool."));
+$project = project_get_object ($group_id);
+if (!$project->Uses ("news"))
+  exit_error (_("This project doesn't use this tool."));
 
 site_project_header (['group' => $group_id, 'context' => 'news']);
 
-$form_opening = "<form action='" . htmlentities ($_SERVER['PHP_SELF'])
-  . "#options' method='get'>\n";
-
+$form_opening = form_tag (['method' => 'get'], "#options");
 $format_string =
   ngettext (
     "Show summaries for the %s latest news.",
@@ -52,25 +50,25 @@ $news_no_input =
   . "' name='limit' size='4' value='$limit' />\n";
 
 $form = sprintf ($format_string, $news_no_input);
-if (isset($group))
-  $form .= '<input type="hidden" name="group" value=\'' . "$group' />\n";
+if (isset ($group))
+  $form .= form_hidden (['group' => $group]);
 
 $form_submit = '<input class="bold" type="submit" value="'
   . _("Apply") . "\"  />\n";
 
-print html_show_displayoptions($form, $form_opening, $form_submit);
+print html_show_displayoptions ($form, $form_opening, $form_submit);
 print "<br />\n";
-print $HTML->box_top(_("Latest News Approved - With Summaries"));
-print news_show_latest($group_id, $limit, "true", $start_from="nolinks");
-print $HTML->box_bottom();
+print $HTML->box_top (_("Latest News Approved - With Summaries"));
+print news_show_latest ($group_id, $limit, "true", "nolinks");
+print $HTML->box_bottom ();
 
 # A box with no summaries, if they are not all already shown.
-if ($limit < news_total_number($group_id))
+if ($limit < news_total_number ($group_id))
   {
     print "<br />\n";
-    print $HTML->box_top(_("Older News Approved"));
-    print news_show_latest($group_id, 0, "false", $start_from=$limit);
-    print $HTML->box_bottom();
+    print $HTML->box_top (_("Older News Approved"));
+    print news_show_latest ($group_id, 0, "false", $limit);
+    print $HTML->box_bottom ();
   }
-site_project_footer(array());
+site_project_footer ([]);
 ?>

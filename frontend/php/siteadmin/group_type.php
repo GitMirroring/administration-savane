@@ -1,10 +1,10 @@
 <?php
-# Edit group types configuration
+# Edit group types configuration.
 #
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007, 2008  Sylvain Beucler
 # Copyright (C) 2008  Aleix Conchillo Flaque
-# Copyright (C) 2017, 2022 Ineiev
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -21,31 +21,38 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once ('../include/init.php');
+require_once ('../include/vars.php');
+require_once ('../include/form.php');
+require_directory ("project");
 
-require_once('../include/init.php');
-require_once('../include/vars.php');
-require_directory("project");
-
-session_require(array('group'=>'1','admin_flags'=>'A'));
+session_require (['group' => '1','admin_flags' => 'A']);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n($string)
+function no_i18n ($string)
 {
   return $string;
 }
 
 function specific_showinput ($title, $form, $id = false)
 {
-  if ($id === false)
-    $head = $tail = '';
-  else
+  $head = $tail = '';
+  if ($id !== false)
     {
       $head = "<label for=\"$id\">";
       $tail = '</label>';
     }
    print "\n<span class='preinput'>$head$title$tail</span><br />\n"
      . "&nbsp;&nbsp; $form<br />\n";
+}
+function specific_input ($title, $row, $idx, $sz)
+{
+  specific_showinput (
+    $title,
+    "<input type='text' name='$idx' id='$idx'\n  value=\"$row\" size='$sz' />",
+    $idx
+  );
 }
 function show_checkbox ($title, $field, $row)
 {
@@ -61,9 +68,9 @@ extract (sane_import ('get', ['true' => 'create']));
 extract (sane_import ('post', ['true' => ['delete', 'update']]));
 
 $tracker_labels = [
-  no_i18n("Cookbook Manager"), no_i18n("Bug Tracking"),
-  no_i18n("News Manager"), no_i18n("Task Tracking"),
-  no_i18n("Support Tracking"), no_i18n("Patch Tracking"),
+  no_i18n ("Cookbook Manager"), no_i18n ("Bug Tracking"),
+  no_i18n ("News Manager"), no_i18n ("Task Tracking"),
+  no_i18n ("Support Tracking"), no_i18n ("Patch Tracking"),
 ];
 
 $trackers = ['cookbook', 'bugs', 'news', 'task', 'support', 'patch'];
@@ -74,19 +81,19 @@ $vcs_list = [
   no_i18n ("Mercurial") => 'hg', no_i18n ("Bazaar") => 'bzr',
 ];
 
-# group public choice
 if ($delete)
 {
-  $result = db_execute("DELETE FROM group_type WHERE type_id=?", array($type_id));
+  $result = db_execute ("DELETE FROM group_type WHERE type_id = ?", [$type_id]);
 
   if (!$result)
-    { fb(no_i18n("Unable to delete group type"),0); }
+    fb (no_i18n ("Unable to delete group type"), 0);
   else
-    { fb(no_i18n("group type deleted")); }
+    fb (no_i18n ("group type deleted"));
 
-  site_admin_header(array('title'=>no_i18n('Group Type Management'),
-                          'context'=>'admgrptype'));
-  site_admin_footer(array());
+  site_admin_header (
+    ['title' => no_i18n ('Group Type Management'), 'context' => 'admgrptype']
+  );
+  site_admin_footer ();
   exit;
 }
 
@@ -157,8 +164,8 @@ if ($update)
       fb (
         sprintf (
           # TRANSLATORS: the argument is error message.
-          no_i18n("Unable to update group type settings: %s"),
-          db_error()),
+          no_i18n ("Unable to update group type settings: %s"),
+          db_error ()),
         1
       );
 
@@ -187,19 +194,17 @@ if ($update)
 
 if (empty ($type_id))
 {
-  site_admin_header(array('title'=>no_i18n('Group Type Management'),
-                    'context'=>'admgrptype'));
+  site_admin_header (
+    ['title' => no_i18n ('Group Type Management'), 'context' => 'admgrptype']
+  );
 
-  $result = db_query("SELECT type_id,name FROM group_type ORDER BY type_id");
-
+  $result = db_query ("SELECT type_id, name FROM group_type ORDER BY type_id");
   print "<br />\n";
-  while ($usr = db_fetch_array($result))
+  while ($usr = db_fetch_array ($result))
     {
       $last = $usr['type_id'];
-# TRANSLATORS: the first argument is type No, the second is group name.
-      print '<a href="' . htmlentities ($_SERVER['PHP_SELF'])
-        . "?type_id=$last\">";
-      printf ('Type #%1$s: %2$s', $last, gettext($usr['name']));
+      print "<a href=\"$php_self?type_id=$last\">";
+      printf (no_i18n ('Type #%1$s: %2$s'), $last, gettext ($usr['name']));
       print "</a><br />\n";
     }
   # Find an appropriate unused group type ID (skip value 100).
@@ -207,34 +212,35 @@ if (empty ($type_id))
   if ($type == 100)
     $type = 101;
 
-  print '<a href="'.htmlentities ($_SERVER['PHP_SELF']).'?type_id='.$type
-        .'&amp;create=1">'.no_i18n('Create new group type').'</a>';
-  site_admin_footer(array());
+  print "<a href=\"$php_self?type_id=$type&amp;create=1\">"
+    . no_i18n ('Create new group type') . '</a>';
+  site_admin_footer ([]);
   exit (0);
 }
 
-$update_button_text = no_i18n("Update");
+$update_button_text = no_i18n ("Update");
 if ($create == "1")
   {
-    db_execute("INSERT INTO group_type (type_id,name) VALUES (?,'New type')",
-               array($type_id));
-    $update_button_text = no_i18n("Create");
+    db_execute (
+      "INSERT INTO group_type (type_id, name) VALUES (?, 'New type')",
+      [$type_id]
+    );
+    $update_button_text = no_i18n ("Create");
   }
 
-$result = db_execute("SELECT * FROM group_type WHERE type_id=?", array($type_id));
-$row_grp = db_fetch_array($result);
+$result = db_execute ("SELECT * FROM group_type WHERE type_id = ?", [$type_id]);
+$row_grp = db_fetch_array ($result);
 
-site_admin_header(array('title'=>no_i18n("Edition/Creation of Group Type"),
-                  'context'=>'admgrptype'));
+site_admin_header (
+  [ 'title' => no_i18n ("Edit group types"), 'context' => 'admgrptype']
+);
 
 
 print "<h1>{$row_grp['name']} (#{$row_grp['type_id']})</h1>\n";
-
-print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post'>\n"
+print form_tag ()
   . "<input type='hidden' name='type_id' value=\"$type_id\" />\n";
 
-print '<h2>' . no_i18n("General Default Settings for Groups of this Type")
+print '<h2>' . no_i18n ("General default settings for groups of this type")
   . "</h2>\n";
 $textfield_size = '65';
 print '<p>'
@@ -244,10 +250,10 @@ print '<p>'
     )
   . "</p>\n<p class='warn'>"
   . no_i18n (
-      'Everytime a project\'s unix_group_name should appear, use the '
+      'Everytime group unix_group_name should appear, use the '
       . 'special string %PROJECT.')
   . "</p>\n<p>"
-  . no_i18n(
+  . no_i18n (
       'Fields marked with [BACKEND SPECIFIC] are only useful is you use '
       . 'the savannah backend.')
   ."</p>\n<p>"
@@ -256,35 +262,31 @@ print '<p>'
       . 'from the whole installation settings.')
   . "</p>\n";
 
-print $HTML->box_top(no_i18n("General Settings"));
+print $HTML->box_top (no_i18n ("General Settings"));
 
-specific_showinput (
-  no_i18n ("Name:"),
-  "<input type='text' name='name' id='name' value=\"{$row_grp['name']}\" "
-  . "size='$textfield_size\" />",
-  "name"
+$idx = 'name';
+specific_input (
+  no_i18n ("Name:"), $row_grp[$idx], $idx, $textfield_size
+);
+$idx = 'base_host';
+specific_input (
+  no_i18n ("Base Host:"), $row_grp[$idx], $idx, $textfield_size
 );
 specific_showinput (
-  no_i18n ("Base Host:"),
-  '<input type="text" id="base_host" name="base_host" '
-  . "value=\"{$row_grp['base_host']}\" size=\"$textfield_size\" />",
-  'base_host'
-);
-specific_showinput (
-  no_i18n ("Description (will be added on each project main page):"),
+  no_i18n ("Description (will be added on each group main page):"),
   "<textarea cols=\"$textfield_size\" rows='6' wrap='virtual' "
   . "name='description' id='description'>{$row_grp['description']}</textarea>",
   'description'
 );
 specific_showinput (
   no_i18n ("Admin Email Address:"),
-  '<input type="text" name="admin_email_adress"'
-  . "id='admin_email_adress' value=\"{$row_grp['admin_email_adress']}\""
+  '<input type="text" name="admin_email_adress" '
+  . "id='admin_email_adress'\n  value=\"{$row_grp['admin_email_adress']}\""
   . " size=\"$textfield_size\" />",
   'admin_email_adress'
 );
 
-print $HTML->box_bottom();
+print $HTML->box_bottom ();
 print "<br /><br />\n";
 
 # FIXME: the following more or less assuming that WWW homepage will be
@@ -292,12 +294,15 @@ print "<br /><br />\n";
 # For instance, there will be no viewcvs possibility for Arch managed
 # repository. But this is non-blocker so we let as it is.
 
-print $HTML->box_top(no_i18n("Project WWW Homepage"));
+print $HTML->box_top (no_i18n ("Group WWW homepage"));
 print '<p>'
-  . no_i18n('This is useful if you provide directly web homepages (created by
-the backend) or if you want to allow projects to configure the related menu
-entry (see below). The SCM selection will only affect the content shown by the
-frontend related to the homepage management.') . "</p>\n";
+  . no_i18n (
+      "This is useful if you provide directly web homepages (created by\n"
+      . "the backend) or if you want to allow groups to configure\n"
+      . "the related menu entry (see below).  The SCM selection will only\n"
+      . "affect the content shown by the frontend related to the homepage\n"
+      . "management.")
+  . "</p>\n";
 
 show_checkbox (no_i18n ("Can use homepage"), 'can_use_homepage', $row_grp);
 
@@ -313,277 +318,302 @@ $vals = array_keys ($vcs_list);
 $select_box =
    html_build_select_box_from_array ($vals, no_i18n ("VCS"), $sel_val);
 print "<br />\n";
-specific_showinput (no_i18n("Selected SCM:"), $select_box);
+specific_showinput (no_i18n ("Selected SCM:"), $select_box);
 
-html_select_typedir_box("dir_type_homepage", $row_grp['dir_type_homepage']);
-specific_showinput (
+html_select_typedir_box ("dir_type_homepage", $row_grp['dir_type_homepage']);
+$idx = 'dir_homepage';
+specific_input (
   no_i18n ("Homepage Dir (path on the filesystem) [BACKEND SPECIFIC]:"),
- '<input type="text" name="dir_homepage" id="dir_homepage" '
- . "value=\"{$row_grp['dir_homepage']}\" size=\"$textfield_size\" />",
- 'dir_homepage'
+  $row_grp[$idx], $idx, $textfield_size
 );
-specific_showinput (
-  no_i18n("Homepage URL:"),
-  '<input type="text" name="url_homepage" id="url_homepage" '
-  . "value=\"{$row_grp['url_homepage']}\" size=\"{$textfield_size}\" />",
-  'url_homepage'
+$idx = 'url_homepage';
+specific_input (
+  no_i18n ("Homepage URL:"), $row_grp[$idx], $idx, $textfield_size
 );
-$field = 'url_cvs_viewcvs_homepage';
-specific_showinput (
-  no_i18n("Homepage CVS view URL (webcvs, viewcvs):"),
-  "<input type='text' name='$field' id='$field' value=\""
-  . "{$row_grp[$field]}\" size='$textfield_size' />",
-  $field
+$idx = 'url_cvs_viewcvs_homepage';
+specific_input (
+  no_i18n ("Homepage CVS view URL (webcvs, viewcvs):"),
+  $row_grp[$idx], $idx, $textfield_size
 );
 
-print $HTML->box_bottom();
+print $HTML->box_bottom ();
 print "<br /><br />\n";
 
 function source_code_manager ($HTML, $row_grp, $textfield_size,
-                              $vcs_name, $vcs_offix)
+  $vcs_name, $vcs_offix)
 {
-# TRANSLATORS: the argument is VCS name (like Subversion).
-  print $HTML->box_top(sprintf(no_i18n("Source Code Manager: %s"), $vcs_name));
+  # TRANSLATORS: the argument is VCS name (like Subversion).
+  print $HTML->box_top (
+    sprintf (no_i18n ("Source Code Manager: %s"), $vcs_name)
+  );
   print '<p>';
-# TRANSLATORS: the argument is VCS name (like Subversion).
-printf (no_i18n('This is useful if you provide directly %s repositories (created by the
-backend) or if you want to allow projects to configure the related menu entry
-(see below).'), $vcs_name);
-  print '</p>
-';
+  printf (
+    no_i18n ("This is useful if you provide directly %s repositories\n"
+      . "(created by the backend) or if you want to allow groups\n"
+      . "to configure the related menu entry (see below)."),
+    $vcs_name
+  );
+  print "</p>\n";
   show_checkbox (
     # TRANSLATORS: the argument is VCS name (like Subversion).
-    sprintf (no_i18n("Can use %s"), $vcs_name),
+    sprintf (no_i18n ("Can use %s"), $vcs_name),
     "can_use_$vcs_offix", $row_grp
   );
-  html_select_typedir_box("dir_type_".$vcs_offix,
-			  $row_grp['dir_type_'.$vcs_offix]);
-  specific_showinput(
-no_i18n("Repository Dir (path on the filesystem) [BACKEND SPECIFIC]:"),
- '<input type="text" name="dir_'.$vcs_offix.'" id="dir_'.$vcs_offix.'" value="'
- .$row_grp['dir_'.$vcs_offix].'" size="' .$textfield_size.'" />',
-  "dir_".$vcs_offix);
-  specific_showinput(
-no_i18n("Repository view URL (cvsweb, viewcvs, archzoom...):"),
- '<input type="text" name="url_'.$vcs_offix.'_viewcvs"
-   id="url_'.$vcs_offix.'_viewcvs" value="'
- .$row_grp['url_'.$vcs_offix.'_viewcvs']
- .'" size="'.$textfield_size.'" />', "url_".$vcs_offix."_viewcvs");
+  html_select_typedir_box (
+    "dir_type_$vcs_offix", $row_grp['dir_type_'.$vcs_offix]
+  );
+  $idx = "dir_$vcs_offix";
+  specific_input (
+    no_i18n ("Repository Dir (path on the filesystem) [BACKEND SPECIFIC]:"),
+    $row_grp[$idx], $idx, $textfield_size
+  );
+  $idx = "url_{$vcs_offix}_viewcvs";
+  specific_input (
+    no_i18n ("Repository view URL (cvsweb, viewcvs, archzoom...):"),
+    $row_grp[$idx], $idx, $textfield_size
+  );
 
-  print $HTML->box_bottom();
+  print $HTML->box_bottom ();
   print "<br /><br />\n";
 }
 
 foreach ($vcs_list as $title => $name)
   source_code_manager ($HTML, $row_grp, $textfield_size, $title, $name);
 
-print $HTML->box_top(no_i18n("Download Area"));
-print '<p>'.no_i18n('This is useful if you provide directly download areas
-(created by the backend) or if you want to allow projects to configure the
-related menu entry (see below).').'</p>
-';
-  show_checkbox (
-    no_i18n("Can use Download Area"), "can_use_download", $row_grp
-  );
-  html_select_typedir_box("dir_type_download",
-			  $row_grp['dir_type_download']);
-  specific_showinput(
-no_i18n("Repository Dir (path on the filesystem) [BACKEND SPECIFIC]:"),
-  '<input type="text" name="dir_download" id="dir_download"
-   value="'.$row_grp['dir_download']
-  .'" size="'.$textfield_size.'" />', "dir_download");
-  specific_showinput(no_i18n("Repository URL:"),
- '<input type="text" name="url_download" id="url_download"
-       value="'.$row_grp['url_download']
- .'" size="'.$textfield_size.'" />', 'url_download');
-
-print $HTML->box_bottom();
-print "<br /><br />\n";
-
-# License
-print $HTML->box_top(no_i18n("Licenses"));
-print '<p>'.no_i18n('This is useful if you want project to select a license on
-submission. Edit site-specific-content/hashes.txt to define the list of
-accepted licenses.').'</p>';
-show_checkbox (no_i18n("Can use licenses"), 'can_use_license', $row_grp);
-
-print $HTML->box_bottom();
-print "<br /><br />\n";
-
-print $HTML->box_top(no_i18n("Development Status"));
-print '<p>'.no_i18n('This is useful if you want project to be able to defines
-their development status that will be shown on their main page. This is purely
-a matter of cosmetics. This option is mainly here just to remove this content
-in case it is useless (it does not makes sense for organizational projects).
-Edit site-specific-content/hashes.txt to define the list of possible
-development status.').'</p>';
-  show_checkbox (
-    no_i18n("Can use development status"), "can_use_devel_status", $row_grp
-  );
-
-print $HTML->box_bottom();
-print "<br /><br />\n";
-
-print $HTML->box_top(no_i18n("Mailing List"));
-print '<p class="warn">'
-  . no_i18n ('Important: Everytime a mailing list name should appear,
-use the special string %LIST.') . "</p>\n<p>"
-  . no_i18n ('Do not configure Mailing list Host, this is a deprecated
-feature left for backward compatibility.') . "</p>\n<p>"
-  . no_i18n ('Mailing list virtual host only need to be set if you use mailman
-list, set up via the backend, and have several mailman virtual hosts
-set.') . "</p>\n";
+print $HTML->box_top (no_i18n ("Download Area"));
+print '<p>'
+  . no_i18n (
+      "This is useful if you provide directly download areas\n"
+      . "(created by the backend) or if you want to allow groups\n"
+      . "to configure the related menu entry (see below).")
+  . "</p>\n";
 
 show_checkbox (
-  no_i18n("Can use mailing lists"), "can_use_mailing_list", $row_grp
+  no_i18n ("Can use Download Area"), "can_use_download", $row_grp
+);
+html_select_typedir_box ("dir_type_download", $row_grp['dir_type_download']);
+$idx = 'dir_download';
+specific_input (
+  no_i18n ("Repository Dir (path on the filesystem) [BACKEND SPECIFIC]:"),
+  $row_grp[$idx], $idx, $textfield_size
+);
+$idx = 'url_download';
+specific_input (
+  no_i18n ("Repository URL:"), $row_grp[$idx], $idx, $textfield_size
+);
+print $HTML->box_bottom ();
+print "<br /><br />\n";
+
+print $HTML->box_top (no_i18n ("Licenses"));
+print '<p>'
+  . no_i18n (
+      "This is useful if you want group to select a license on\n"
+      . "submission.  Edit site-specific/hashes.txt\n"
+      . "to define the list of accepted licenses.")
+  . "</p>\n";
+show_checkbox (no_i18n ("Can use licenses"), 'can_use_license', $row_grp);
+
+print $HTML->box_bottom ();
+print "<br /><br />\n";
+
+print $HTML->box_top (no_i18n ("Development Status"));
+print '<p>'
+  . no_i18n (
+      "This is useful if you want group to be able to defines\n"
+      . "their development status that will be shown on their main page.\n"
+      . "This is purely a matter of cosmetics.  This option is mainly here\n"
+      . "just to remove this content in case it is useless (it does not make\n"
+      . " sense for organizational groups).  Edit site-specific/hashes.txt \n"
+      . "to define the list of possible development status."
+    )
+  . "</p>\n";
+show_checkbox (
+  no_i18n ("Can use development status"), "can_use_devel_status", $row_grp
+);
+
+print $HTML->box_bottom ();
+print "<br /><br />\n";
+
+print $HTML->box_top (no_i18n ("Mailing List"));
+print '<p class="warn">'
+  . no_i18n (
+      "Important: Everytime a mailing list name should appear,\n"
+      . "use the special string %LIST."
+    )
+  . "</p>\n<p>"
+  . no_i18n (
+      "Do not configure Mailing list Host, this is a deprecated\n"
+      . "feature left for backward compatibility."
+    )
+  . "</p>\n<p>"
+  . no_i18n (
+      "Mailing list virtual host only need to be set if you use mailman\n"
+      . "list, set up via the backend, and have several mailman virtual\n"
+      . "hosts set."
+    )
+  . "</p>\n";
+
+show_checkbox (
+  no_i18n ("Can use mailing lists"), "can_use_mailing_list", $row_grp
 );
 
 print "<br /><br />\n";
 
-specific_showinput(no_i18n("Mailing list Host (DEPRECATED):"),
- '<input type="text" name="mailing_list_host" id="mailing_list_host" value="'
- .$row_grp['mailing_list_host'].'" size="'.$textfield_size.'" />',
- 'mailing_list_host');
-specific_showinput (
-  no_i18n ("Mailing list address (would be %LIST@gnu.org for GNU projects
-at sv.gnu.org):"),
- '<input type="text" name="mailing_list_address" id="mailing_list_address" value="'
- .$row_grp['mailing_list_address'].'" size="'.$textfield_size.'" />',
-  'mailing_list_address');
-  specific_showinput(
-no_i18n("Mailing list virtual host (would be lists.gnu.org or lists.nongnu.org at
-sv.gnu.org) [BACKEND SPECIFIC]:"),
- '<input type="text" name="mailing_list_virtual_host"
-       id="mailing_list_virtual_host" value="'
- .$row_grp['mailing_list_virtual_host'].'" size="'.$textfield_size.'">',
-   "mailing_list_virtual_host");
+$idx = 'mailing_list_host';
+specific_input (no_i18n ("Mailing list Host (DEPRECATED):"),
+  $row_grp[$idx], $idx, $textfield_size
+);
+$idx = 'mailing_list_address';
+specific_input (
+  no_i18n (
+    "Mailing list address (would be %LIST@gnu.org for GNU groups\n"
+    . "at sv.gnu.org):"
+  ),
+  $row_grp[$idx], $idx, $textfield_size
+);
+$idx = "mailing_list_virtual_host";
+specific_input (
+  no_i18n (
+    "Mailing list virtual host (would be lists.gnu.org or lists.nongnu.org at "
+    . "sv.gnu.org) [BACKEND SPECIFIC]:"
+  ),
+  $row_grp[$idx], $idx, $textfield_size
+);
 
 print "<br /><br />\n";
-print '<p>'.no_i18n('With the following, you can force projects to follow a specific
-policy for the name of the %LIST. Here you should use the special wildcard
-%NAME, which is the part the of the mailing list name that the project admin
-can define (would be %PROJECT-%NAME for non-GNU projects at sv.gnu.org).').'</p>
-<p class="warn">'.no_i18n('Do no add any @hostname here!').'</p>';
-specific_showinput(no_i18n("Mailing list name format:"),
-  '<input type="text" name="mailing_list_format" id="mailing_list_format" value="'
-  .$row_grp['mailing_list_format'].'" size="'.$textfield_size.'" />',
-  "mailing_list_format");
-specific_showinput(no_i18n("Listinfo URL:"),
-  '<input type="text" name="url_mailing_list_listinfo"
-  id="url_mailing_list_listinfo" value="'
-  .$row_grp['url_mailing_list_listinfo'].'" size="'.$textfield_size.'" />',
-  "url_mailing_list_listinfo");
+print '<p>'
+  . no_i18n (
+      "With the following, you can force groups to follow a specific\n"
+      . "policy for the name of the %LIST. Here you should use the special\n"
+      . "wildcard %NAME, which is the part the of the mailing list name that\n"
+      . "the group admin can define (would be %PROJECT-%NAME for non-GNU\n"
+      . "groups at sv.gnu.org)."
+    )
+  . "</p>\n<p class='warn'>"
+  . no_i18n ('Do no add any @hostname here!') . "</p>\n";
+
+$idx = "mailing_list_format";
+specific_input (no_i18n ("Mailing list name format:"),
+  $row_grp[$idx], $idx, $textfield_size
+);
+$idx = "url_mailing_list_listinfo";
+specific_input (no_i18n ("Listinfo URL:"),
+  $row_grp[$idx], $idx, $textfield_size
+);
 $cern_fmt =
   "majordomo_interface.php?func=%s&amp;list=%%LIST&amp;"
   . "mailserver=listbox.server@cern.ch):";
 $cern_url = sprintf ($cern_fmt, 'subscribe');
-specific_showinput (
+$idx = "url_mailing_list_subscribe";
+specific_input (
   sprintf (
     no_i18n ("Subscribe URL (for majordomo at CERN, it is %s"),
     $cern_url
   ),
-  '<input type="text" name="url_mailing_list_subscribe"
-        id="url_mailing_list_subscribe" value="'
- .$row_grp['url_mailing_list_subscribe'].'" size="'
- .$textfield_size.'" />', "url_mailing_list_subscribe"
+  $row_grp[$idx], $idx, $textfield_size
 );
 $cern_url = sprintf ($cern_fmt, 'unsubscribe');
-specific_showinput (
+$idx = "url_mailing_list_unsubscribe";
+specific_input (
   sprintf (
     no_i18n ("Unsubscribe URL (for majordomo at CERN, it is %s"),
     $cern_url
   ),
-  '<input type="text" name="url_mailing_list_unsubscribe"
-     id="url_mailing_list_unsubscribe" value="'
-  .$row_grp['url_mailing_list_unsubscribe'].'" size="'.$textfield_size.'" />',
-  "url_mailing_list_unsubscribe"
+  $row_grp[$idx], $idx, $textfield_size
 );
-$field = "url_mailing_list_archives";
-specific_showinput (
-  no_i18n("Archives URL:"),
-  "<input type='text' name='$field' id='$field' value=\""
-  . "{$row_grp[$field]}\" size=\"$textfield_size\" />",
-  $field
+$idx = "url_mailing_list_archives";
+specific_input (no_i18n ("Archives URL:"),
+  $row_grp[$idx], $idx, $textfield_size
 );
-$field = "url_mailing_list_archives_private";
-specific_showinput(no_i18n("Private Archives URL:"),
-  "<input type='text' name='$field' id='$field' value=\""
- . "{$row_grp[$field]}\" size=\"$textfield_size\" />",
- $field
+$idx = "url_mailing_list_archives_private";
+specific_input (no_i18n ("Private Archives URL:"),
+  $row_grp[$idx], $idx, $textfield_size
 );
-$field = "url_mailing_list_admin";
-specific_showinput(no_i18n("Administrative Interface URL:"),
-  "<input type='text' name='$field' id='$field' value=\""
-  . "{$row_grp[$field]}\" size=\"$textfield_size\" />",
-  $field
+$idx = "url_mailing_list_admin";
+specific_input (no_i18n ("Administrative Interface URL:"),
+  $row_grp[$idx], $idx, $textfield_size
 );
 
-print $HTML->box_bottom();
+print $HTML->box_bottom ();
 print "<br /><br />\n";
 
-function artifact_checkbox($HTML, $title, $description, $label, $artifact)
+function artifact_checkbox ($HTML, $title, $description, $label, $artifact)
 {
   global $row_grp;
 
-  print $HTML->box_top($title);
+  print $HTML->box_top ($title);
   if ($description != '')
-    print '<p>'.$description."</p>\n";
+    print "<p>$description</p>\n";
   show_checkbox ($label, "can_use_$artifact", $row_grp);
 
-  print $HTML->box_bottom();
-  print "<br /><br />\n";
+  print $HTML->box_bottom () . "<br /><br />\n";
 }
 
-artifact_checkbox($HTML, no_i18n("Forum"),
-no_i18n('Forum is a deprecated feature of Savane. We do not recommend using
-it and we do not maintain this code any longer.'),
-                    no_i18n("Can use forum"), 'forum');
+artifact_checkbox ($HTML, no_i18n ("Forum"),
+  no_i18n (
+    "Forum is a deprecated feature of Savane. We do not recommend using\n"
+    . "it and we do not maintain this code any longer."
+  ),
+  no_i18n ("Can use forum"), 'forum'
+);
 
-artifact_checkbox($HTML, no_i18n("Support Request Manager"),
-no_i18n('This is one of the main issue tracker of Savane. Project are
-supposed to use it as primary interface with end user.'),
-                    no_i18n("Can use support request tracker"), 'support');
+artifact_checkbox ($HTML, no_i18n ("Support Request Manager"),
+  no_i18n (
+    "This is one of the main issue tracker of Savane.  Groups are\n"
+    . "supposed to use it as primary interface with end user."
+  ),
+ no_i18n ("Can use support request tracker"), 'support'
+);
+artifact_checkbox ($HTML, no_i18n ("Bug Tracker"),
+  no_i18n (
+    "This is one of the main issue tracker of Savane. Unlike the\n"
+    . "support tracker, it is supposed to be used mainly to organize\n"
+    . "the workflow amongs group members related to bugs.  Groups\n"
+    . "with large audience should probably not accept item posting\n"
+    . "by people that are not member of the group on this tracker,\n"
+    . "and instead redirect end user to the support tracker (and only\n"
+    . "real bugs would be reassigned to this tracker). But that's only\n"
+    . "a suggestion."
+  ),
+  no_i18n ("Can use bug tracker"), 'bug'
+);
 
-artifact_checkbox($HTML, no_i18n("Bug Tracker"),
-no_i18n('This is one of the main issue tracker of Savane. Unlike the
-support tracker, it is supposed to be used mainly to organize the workflow
-amongs project members related to bugs. Projects with large audience should
-probably not accept item posting by people that are not member of the project
-on this tracker, and instead redirect end user to the support tracker (and only
-real bugs would be reassigned to this tracker). But that\'s only a
-suggestion.'), no_i18n("Can use bug tracker"), 'bug');
+artifact_checkbox ($HTML, no_i18n ("Task Manager"),
+  no_i18n (
+    "This is one of the main issue tracker of Savane.  Unlike the\n"
+    . "support tracker, it is supposed to be used mainly to organize\n"
+    . "the workflow amongs group members related to planned tasks.  It's\n"
+    . "the counterpart of the bug tracker for regular and planned activities."
+  ),
+  no_i18n ("Can use task manager"), 'task'
+);
 
-artifact_checkbox($HTML, no_i18n("Task Manager"),
-no_i18n('This is one of the main issue tracker of Savane. Unlike the
-support tracker, it is supposed to be used mainly to organize the workflow
-amongs project members related to planned tasks. It\'s the counterpart of the
-bug tracker for regular and planned activities.'),
-                    no_i18n("Can use task manager"), 'task');
+artifact_checkbox ($HTML, no_i18n ("Patch Manager"),
+  no_i18n (
+    "This is a deprecated issue tracker. It was originally designed\n"
+    . "to get all the submitted patches; but it seems to us more sensible\n"
+    . "that patch get attached to the relevant item (task, bug...)."
+  ),
+  no_i18n ("Can use patch manager (deprecated)"), 'patch'
+);
 
-artifact_checkbox($HTML, no_i18n("Patch Manager"),
-no_i18n('This is a deprecated issue tracker. It was originally designed
-to get all the submitted patches; but it seems to us more sensible that patch
-get attached to the relevant item (task, bug...). We may deleted this tracker
-in the future or "anonymize it". The later option would mean that this tracker
-would no longer be name the patch tracker but the name would be up to you, as
-site administrator. This would be an additionnal tracker, with no purpose
-defined out of the box.'), no_i18n("Can use patch manager (deprecated)"),
-                   'patch');
+artifact_checkbox (
+  $HTML, no_i18n ("News Manager"), '', no_i18n ("Can use news manager"), 'news'
+);
 
-artifact_checkbox ($HTML, no_i18n("News Manager"), '',
-                     no_i18n("Can use news manager"), 'news');
-
-$update_delete_buttons =
-  "\n<p align='center'>\n"
+$update_delete_buttons = "\n<p align='center'>\n"
   . form_submit ($update_button_text) . "&nbsp;\n"
-  . form_submit (no_i18n("Delete this Group Type"), 'delete') . "\n</p>\n";
+  . form_submit (no_i18n ("Delete this Group Type"), 'delete')
+  . "\n</p>\n";
 print $update_delete_buttons;
 
-print $HTML->box_top(no_i18n("Project Menu Settings"),'',1);
+print $HTML->box_top (no_i18n ("Group Menu Settings"), '', 1);
 $i = 1;
 print '<p class="' . utils_altrow ($i) . '">'
-.no_i18n('This form allows you to choose which menu entries are configurable by the
-projects administrators.').'</p>';
+  . no_i18n (
+      "This form allows you to choose which menu entries are configurable\n"
+      . "by group administrators.")
+  . "</p>\n";
 function specific_checkbox ($val, $explanation, $row_grp, $class)
   {
     # Just a little function to clean that part of the code, no
@@ -597,42 +627,45 @@ function specific_checkbox ($val, $explanation, $row_grp, $class)
 $row_grp["is_menu_configurable_download_dir"] =
   $row_grp["is_configurable_download_dir"];
 $checkboxes = [
-  "homepage" => no_i18n("the homepage link can be modified"),
+  "homepage" => no_i18n ("the homepage link can be modified"),
   "extralink_documentation" =>
-     no_i18n("the documentation &ldquo;extra&rdquo; link can be modified"),
+     no_i18n ("the documentation &ldquo;extra&rdquo; link can be modified"),
 
-  "download" => no_i18n("the download area link can be modified"),
-  "download_dir" =>
-     [no_i18n("the download _directory_ can be modified -- beware, if
-the backend is running and creating download dir, it can be used maliciously.
-don't activate this feature unless you truly know what you're doing")],
+  "download" => no_i18n ("the download area link can be modified"),
+  "download_dir" => [
+    no_i18n (
+      "The download <i>directory</i> can be modified&mdash;beware, if\n"
+      . "the backend is running and creating download dir, it can be used\n"
+      . "maliciously.  Don't activate this feature unless you truly know\n"
+      . "what you're doing."
+    )
+  ],
+  "support" => no_i18n ("the support link can be modified"),
+  "bugs" => no_i18n ("the bug tracker link can be modified"),
+  "task" => no_i18n ("the task tracker link can be modified"),
+  "patch" => no_i18n ("the patch tracker link can be modified"),
+  "forum" => no_i18n ("the forum link can be modified"),
+  "mail" => no_i18n ("the mailing list link can be modified"),
 
-  "support" => no_i18n("the support link can be modified"),
-  "bugs" => no_i18n("the bug tracker link can be modified"),
-  "task" => no_i18n("the task tracker link can be modified"),
-  "patch" => no_i18n("the patch tracker link can be modified"),
-  "forum" => no_i18n("the forum link can be modified"),
-  "mail" => no_i18n("the mailing list link can be modified"),
-
-  "cvs" => no_i18n("the cvs link can be modified"),
-  "cvs_viewcvs" => [no_i18n("the viewcvs link can be modified")],
+  "cvs" => no_i18n ("the cvs link can be modified"),
+  "cvs_viewcvs" => [no_i18n ("the viewcvs link can be modified")],
   "cvs_viewcvs_homepage" =>
-     [no_i18n("the viewcvs link for homepage code can be modified")],
+     [no_i18n ("the viewcvs link for homepage code can be modified")],
 
-  "arch" => no_i18n("the GNU Arch link can be modified"),
-  "arch_viewcvs" => [no_i18n("the GNU Arch viewcvs link can be modified")],
+  "arch" => no_i18n ("the GNU Arch link can be modified"),
+  "arch_viewcvs" => [no_i18n ("the GNU Arch viewcvs link can be modified")],
 
-  "svn" => no_i18n("the Subversion link can be modified"),
-  "svn_viewcvs" => [no_i18n("the Subversion viewcvs link can be modified")],
+  "svn" => no_i18n ("the Subversion link can be modified"),
+  "svn_viewcvs" => [no_i18n ("the Subversion viewcvs link can be modified")],
 
-  "git" => no_i18n("the Git link can be modified"),
-  "git_viewcvs" => [no_i18n("the Git viewcvs link can be modified")],
+  "git" => no_i18n ("the Git link can be modified"),
+  "git_viewcvs" => [no_i18n ("the Git viewcvs link can be modified")],
 
-  "hg" => no_i18n("the Mercurial link can be modified"),
-  "hg_viewcvs" => [no_i18n("the Mercurial viewcvs link can be modified")],
+  "hg" => no_i18n ("the Mercurial link can be modified"),
+  "hg_viewcvs" => [no_i18n ("the Mercurial viewcvs link can be modified")],
 
-  "bzr" => no_i18n("the Bazaar link can be modified"),
-  "bzr_viewcvs" => [no_i18n("the Bazaar viewcvs link can be modified")],
+  "bzr" => no_i18n ("the Bazaar link can be modified"),
+  "bzr_viewcvs" => [no_i18n ("the Bazaar viewcvs link can be modified")],
 ];
 foreach ($checkboxes as $k => $v)
   {
@@ -643,14 +676,17 @@ foreach ($checkboxes as $k => $v)
     specific_checkbox ($k, $v, $row_grp, utils_altrow ($i));
   }
 
-print $HTML->box_bottom(1);
+print $HTML->box_bottom (1);
 print $update_delete_buttons . "<br /><br />\n";
 
-$HTML->box1_top(no_i18n("Project Default Member Permissions"));
+$HTML->box1_top (no_i18n ("Group default member permissions"));
 
-print '<p>'.no_i18n("This form allows you to define the default permissions for
-users added to a group of this type, unless this group defined its own
-configuration.").'</p>';
+print '<p>'
+  . no_i18n (
+      "This form allows you to define the default permissions for users\n"
+      . "added to a group of this type, unless this group defined its own\n"
+      . "configuration.")
+  . "</p>\n";
 
 $list_head = html_build_list_table_top ($tracker_labels) . "<tr>\n";
 print $list_head;
@@ -659,22 +695,25 @@ foreach ($trackers as $art)
 
 print "</tr>\n</table>\n";
 
-$HTML->box1_bottom();
+$HTML->box1_bottom ();
 print $update_delete_buttons . "<br /><br />\n";
 
-$HTML->box1_top(no_i18n("Project Default Posting Restrictions"));
+$HTML->box1_top (no_i18n ("Group default posting restrictions"));
 
-print '<p>'.no_i18n("This form allows you to define the default posting restriction
-on this group trackers.").'</p>';
+print '<p>'
+  . no_i18n (
+    "This form allows you to define the default posting restriction\n"
+    . "on this group trackers.")
+  . "</p>\n";
 
 print $list_head;
 foreach ($trackers as $art)
   html_select_restriction_box ($art, $row_grp["${art}_rflags"], "type");
 print "</tr>\n</table>\n";
 
-$HTML->box1_bottom();
+$HTML->box1_bottom ();
 
 print $update_delete_buttons;
 print "</form>\n";
-site_admin_footer(array());
+site_admin_footer ([]);
 ?>

@@ -168,21 +168,18 @@ shown on the front page), you must end the superuser session.").'</p>
     print '<p>' . _("Submitter:") . ' '
      . utils_user_link ($submitted_by, user_getrealname ($s_by_res))
      . "</p>\n";
-    print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-      . "\" method=\"post\">\n"
-      . '<input type="hidden" name="id" value="'
-      . db_result ($result, 0, 'id') . "\" />\n";
-
-    print "<input type='hidden' name='approve' value='y' />\n";
-    print "<input type='hidden' name='post_changes' value='y' />\n";
+    print form_tag ()
+      . form_hidden (["id" =>  db_result ($result, 0, 'id'),
+          'approve' => 'y', 'post_changes' => 'y']
+        );
 
     if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
       {
         print "<input type='radio' name='status' id='status_admin' "
           . "value='1'\n/>&nbsp;&nbsp;";
         print '<span class="preinput"><label for="status_admin">';
+        # TRANSLATORS: the argument is site name (like Savannah).
         printf (
-# TRANSLATORS: the argument is site name (like Savannah).
           _("Approve For %s' Front Page"), $GLOBALS['sys_name']
         );
         print "</label></span><br />\n";
@@ -286,8 +283,8 @@ shown on the front page), you must end the superuser session.") . "</p>\n";
             print '<li';
             if (db_result($result,$i,'group_id') == $GLOBALS['sys_group_id'])
               print ' class="boxhighlight"';
-            print '><a href="'.htmlentities ($_SERVER['PHP_SELF'])
-                  .'?approve=1&amp;id='.db_result($result,$i,'id');
+            print "><a href=\"$php_self?approve=1&amp;id="
+              . db_result ($result, $i, 'id');
 
             if ($group_id == $GLOBALS['sys_group_id'])
               {
@@ -342,8 +339,7 @@ shown on the front page), you must end the superuser session.") . "</p>\n";
             print '<li';
             if (db_result($result,$i,'group_id') == $GLOBALS['sys_group_id'])
               print ' class="boxhighlight"';
-            print '><a href="' . htmlentities ($_SERVER['PHP_SELF'])
-              . "?approve=1&amp;group=$group&amp;id="
+            print "><a href=\"$php_self?approve=1&amp;group=$group&amp;id="
               . db_result($result,$i,'id') . '">';
 
             if ($group_id == $GLOBALS['sys_group_id'])
@@ -381,8 +377,7 @@ shown on the front page), you must end the superuser session.") . "</p>\n";
             print '<li';
             if (db_result($result,$i,'group_id') == $GLOBALS['sys_group_id'])
               print ' class="boxhighlight"';
-            print '><a href="' . htmlentities ($_SERVER['PHP_SELF'])
-              . "?approve=1&amp;group=$group&amp;id="
+            print "><a href=$php_self?approve=1&amp;group=$group&amp;id="
               . db_result ($result, $i, 'id') . '">';
 
               if ($group_id == $GLOBALS['sys_group_id'])

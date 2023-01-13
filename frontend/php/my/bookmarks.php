@@ -19,10 +19,11 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-require_once('../include/init.php');
-require_once('../include/sane.php');
-require_once('../include/html.php');
-require_once('../include/my/bookmarks.php');
+require_once ('../include/init.php');
+require_once ('../include/sane.php');
+require_once ('../include/html.php');
+require_once ('../include/form.php');
+require_once ('../include/my/bookmarks.php');
 
 site_user_header(array('context'=>'bookmark'));
 extract(sane_import('get', ['true' => 'add', 'digits' => 'delete']));
@@ -55,8 +56,7 @@ if ($edit)
                db_result ($result, 0, 'bookmark_url')
             );
 
-            print "\n" . '<form action="'
-              . htmlentities ($_SERVER['PHP_SELF']) . '" method="post">';
+            print form_tag ();
             print '<span class="preinput">' . _("Title:") . "</span><br />\n";
             print '&nbsp;&nbsp;&nbsp;<input type="text" '
               . 'name="title" value="' . $title . '" size="50" />';

@@ -2,7 +2,7 @@
 # Display forum.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2017, 2018 Ineiev
+# Copyright (C) 2017, 2018, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -18,12 +18,12 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-require_once('../include/init.php');
-require_once('../include/sane.php');
-require_once('../include/database.php');
-require_once('../include/news/forum.php');
-require_once('../include/news/general.php');
+require_once ('../include/init.php');
+require_once ('../include/sane.php');
+require_once ('../include/form.php');
+require_once ('../include/database.php');
+require_once ('../include/news/forum.php');
+require_once ('../include/news/general.php');
 require_directory("trackers");
 
 extract(sane_import('request', ['digits' => 'forum_id']));
@@ -57,16 +57,16 @@ if ($forum_id)
       $offset=0;
 
     if (!$style)
-      $style='nested';
+      $style = 'nested';
 
     if (!$max_rows || $max_rows < 5)
-      $max_rows=25;
+      $max_rows = 25;
 
-/* Take care of setting up/saving prefs.
-
-If they're logged in and a "custom set" was NOT just POSTed,
-see if they have a pref set if so, use it
-if it was a custom set just posted && logged in, set pref if it's changed.  */
+    # Take care of setting up/saving prefs.
+    #
+    # If they're logged in and a "custom set" was NOT just POSTed,
+    # see if they have a pref set if so, use it if it was a custom set
+    # just posted && logged in, set pref if it's changed.
     if (user_isloggedin())
       {
         $_pref=$style.'|'.$max_rows;
@@ -121,8 +121,7 @@ if it was a custom set just posted && logged in, set pref if it's changed.  */
         if (!user_isloggedin() || !user_ismember($group_id))
           {
             # If this is a private forum, kick them out.
-            print '<h1>Forum is restricted</h1>
-';
+            print "<h1>Forum is restricted</h1>\n";
             forum_footer(array());
             exit;
           }
@@ -171,21 +170,22 @@ if it was a custom set just posted && logged in, set pref if it's changed.  */
       # Create a pop-up select box showing options for viewing threads.
 
         $vals=array('nested','flat','threaded','nocomments');
-        $texts=array(
-# TRANSLATORS: this is forum style to select.
-                     _('Nested'),
-# TRANSLATORS: this is forum style to select.
-                     _('Flat'),
-# TRANSLATORS: this is forum style to select.
-                     _('Threaded'),
-# TRANSLATORS: this is forum style to select.
-                     _('No Comments'));
-        $options_popup=html_build_select_box_from_arrays ($vals, $texts, 'style',
-                                                          $style, false, 'None',
-                                                          false, 'Any', false,
-                                                          _("forum style"));
+        $texts = [
+          # TRANSLATORS: this is forum style to select.
+          _('Nested'),
+          # TRANSLATORS: this is forum style to select.
+          _('Flat'),
+          # TRANSLATORS: this is forum style to select.
+          _('Threaded'),
+          # TRANSLATORS: this is forum style to select.
+          _('No Comments')
+        ];
+        $options_popup = html_build_select_box_from_arrays (
+          $vals, $texts, 'style', $style, false, 'None', false, 'Any', false,
+          _("forum style")
+        );
 
-      # Create a pop-up select box showing options for max_row count.
+        # Create a pop-up select box showing options for max_row count.
         $vals=array(25,50,75,100);
         $texts=array(_('Show 25'),_('Show 50'),_('Show 75'),_('Show 100'));
         $max_row_popup=html_build_select_box_from_arrays ($vals,$texts,
@@ -194,31 +194,26 @@ if it was a custom set just posted && logged in, set pref if it's changed.  */
                                                           'None', false, 'Any',
                                                           false,
                                                           _("rows per page"));
-      # Now show the popup boxes in a form.
-        $ret_val .= '<table border="0" width="50%">
-<form action="'. htmlentities ($_SERVER['PHP_SELF'] ).'" METHOD="get">
-<input type="hidden" name="set" value="custom">
-<input type="hidden" name="forum_id" value="'.htmlspecialchars($forum_id).'">
-<tr>
-<td><span class="smaller">'. $options_popup . '</span></td>
-<td><span class="smaller">'. $max_row_popup . '</span></td>
-<td><span class="smaller"><input type="submit" name="submit" value="'
-._('Change View').'"></span></td>
-</tr>
-</form></table>
-';
+        # Now show the popup boxes in a form.
+        $ret_val .= "<table border='0' width='50%'>\n"
+          . form_action (['method' => 'get'])
+          . form_hidden (
+              ['set' => 'custom', 'forum_id' => htmlspecialchars ($forum_id)]
+            )
+          . "\n<tr>\n<td><span class='smaller'>$options_popup</span></td>\n"
+          . "<td><span class='smaller'>$max_row_popup</span></td>\n"
+          . "<td><span class='smaller'><input type='submit' value=\""
+          . _('Change View') . "\" name='submit'></span></td>\n"
+          . "</tr>\n</form></table>\n";
         if ($style == 'nested')
           {
-          # No top table row for nested threads.
+            # No top table row for nested threads.
           }
         else
           {
-           # Threaded, no comments, or flat; display
-           # different header for default threading and flat now.
-            $title_arr=array();
-            $title_arr[]=_('Thread');
-            $title_arr[]=_('Author');
-            $title_arr[]=_('Date');
+            # Threaded, no comments, or flat; display
+            # different header for default threading and flat now.
+            $title_arr = [_('Thread'), _('Author'), _('Date')];
             $ret_val .= html_build_list_table_top ($title_arr);
           }
 

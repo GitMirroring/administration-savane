@@ -2,7 +2,7 @@
 # Handle open sessions.
 #
 # Copyright (C) 2004 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017 Ineiev
+# Copyright (C) 2017, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -96,15 +96,11 @@ while ($row = db_fetch_array($res))
     # Do not incitate users to kill their own session.
     print '<span class="trash">';
     if ($session_hash != $row['session_hash'])
-      {
-        print utils_link(htmlentities ($_SERVER['PHP_SELF'])
-                         .'?func=del&amp;dsession_hash='
-                         .$dsession_hash.'&amp;dip_addr='.$row['ip_addr']
-                         .'&amp;dtime='.$row['time'],
-                         '<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-                         .'.theme/misc/trash.png" border="0" alt="'
-                         ._("Kill this session").'" />');
-      }
+      print utils_link (
+        "$php_self?func=del&amp;dsession_hash=$dsession_hash&amp;dip_addr="
+        . $row['ip_addr'] . '&amp;dtime=' . $row['time'],
+        html_image_trash (['alt' => _("Kill this session")])
+      );
     else
       print _("Current session").' ';
     print '</span>';
@@ -123,13 +119,12 @@ if ($i > 3)
     $i++;
     print $HTML->box_nextitem(utils_altrow($i));
     print '<span class="trash">';
-    print utils_link(htmlentities ($_SERVER['PHP_SELF'])
-                     .'?func=del&amp;dkeep_one=1',
-                     '<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-                     .'.theme/misc/trash.png" border="0" alt="'
-                     ._("Kill all sessions").'" />');
-    print '</span>';
-    print '<em>'._("All sessions apart from the current one").'</em><br />&nbsp;';
+    print utils_link (
+      "$php_self?func=del&amp;dkeep_one=1",
+      html_image_trash (['alt' => _("Kill all sessions")])
+    );
+    print '</span><em>';
+    print _("All sessions apart from the current one") . "</em><br />&nbsp;\n";
   }
 print $HTML->box_bottom();
 site_user_footer(array());

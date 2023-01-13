@@ -417,7 +417,7 @@ function show_dependent_item ($item_id, $dependson = 0)
     }
 
   # Give back the HTML output, if we have some data.
-  global $HTML;
+  global $HTML, $php_self;
   print $HTML->box_top ($title, '', 1);
 
   # Create a hash to avoid looking several times for the same info.
@@ -463,8 +463,7 @@ function show_dependent_item ($item_id, $dependson = 0)
       # level members of a project.
       if ($dependson && $is_manager)
         print '<span class="trash"><a href="'
-          . htmlentities ($_SERVER['PHP_SELF'])
-          . "?func=delete_dependency&amp;item_id=$item_id"
+          . "$php_self?func=delete_dependency&amp;item_id=$item_id"
           . "&amp;item_depends_on=$current_item_id"
           . "&amp;item_depends_on_artifact=$tracker\">"
           . html_image_trash (
@@ -476,7 +475,7 @@ function show_dependent_item ($item_id, $dependson = 0)
 
       print html_image (
         'contexts/' . utils_get_tracker_icon ($tracker) . '.png',
-         ['class' => 'icon', 'alt' => $tracker]); 
+         ['class' => 'icon', 'alt' => $tracker]);
 
       # Print summary only if the item is not private.
       # Check privacy right (dont care about the tracker specific

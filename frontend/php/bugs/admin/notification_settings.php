@@ -55,8 +55,7 @@ $num_events = db_numrows ($res_events);
 for ($i = 0; $arr = db_fetch_array ($res_events); $i++)
   $arr_events[$i] = $arr;
 
-# Build the default notif settings in case the user has not yet defined her own.
-# By default it's all 'yes'.
+# Build the default notif settings: all 'yes'.
 for ($i = 0; $i < $num_roles; $i++)
   {
     $role_id = $arr_roles[$i]['role_id'];
@@ -90,8 +89,7 @@ if ($submit)
 
 trackers_header_admin (['title' => _("Set Notifications")]);
 
-print "\n<form action=\"" . htmlentities ($_SERVER['PHP_SELF'])
-  . "\" method='post'>\n" . form_hidden (["group_id" => $group_id]);
+print form_tag () . form_hidden (["group_id" => $group_id]);
 
 if (user_ismember ($group_id, 'A'))
   trackers_data_show_notification_settings ($group_id, ARTIFACT, 1);

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2004-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2018, 2019, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -22,14 +22,14 @@
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
+require_once('../include/init.php');
+require_once('../include/form.php');
 function no_i18n($string)
 {
   return $string;
 }
 
-require_once('../include/init.php');
-
-site_admin_header(array('title'=>no_i18n("User List"),'context'=>'admuser'));
+site_admin_header (['title' => no_i18n("User List"), 'context' => 'admuser']);
 
 extract (sane_import ('get',
   [
@@ -72,35 +72,32 @@ if ($action)
     print db_error();
   }
 
-# Search users.
-$abc_array = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N',
-                   'O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1',
-                   '2','3','4','5','6','7','8','9', '_');
+$abc_array = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+  'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1',
+  '2', '3', '4', '5', '6', '7', '8', '9', '_'
+];
 
 print '<h2>' . no_i18n ("User Search") . "</h2>\n<p>"
   . no_i18n ("Display users beginning with:") . ' ';
 
-for ($i=0; $i < count($abc_array); $i++)
-  print '<a href="' . htmlentities ($_SERVER["PHP_SELF"])
-    . "?user_name_search=$user_name_search{$abc_array[$i]}\">"
+for ($i = 0; $i < count ($abc_array); $i++)
+  print '<a href="'
+    . "$php_self?user_name_search=$user_name_search{$abc_array[$i]}\">"
     . "$user_name_search{$abc_array[$i]}</a>\n";
 
 print "<br />\n"
   . no_i18n ("Search by email, username, realname or userid:") . "\n";
-print "<form name='usersrch' action=\"" . htmlentities ($_SERVER["PHP_SELF"])
-  . "\" method='GET'>\n"
+print form_tag (['method' => 'get', 'name' => 'usersrch'])
   . "<input type='text' name='text_search' value=\"$text_search\" />\n"
   . form_input ('hidden', 'usersearch', '1')
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
-# Show list of users.
-
-$MAX_ROW=100;
+$MAX_ROW = 100;
 $offset = intval($offset);
 
 $sql_fields =
   "user.user_id, user.user_name, user.status, user.people_view_skills";
-$sql_order = 'ORDER BY user.user_name LIMIT ?,?';
+$sql_order = 'ORDER BY user.user_name LIMIT ?, ?';
 
 if ($group_id)
   {
@@ -151,29 +148,31 @@ else
       }
   }
 
-print '<h2>'.sprintf(no_i18n("User List for %s"),
-                     '<strong>'.$group_listed.'</strong>')."</h2>\n";
+print '<h2>';
+printf (no_i18n ("User List for %s"), "<strong>$group_listed</strong>");
+print "</h2>\n";
 
-$rows = $rows_returned = db_numrows($result);
+$rows = $rows_returned = db_numrows ($result);
 
 print html_build_list_table_top (
   [
-    no_i18n("Id"), no_i18n("User"), no_i18n("Status"),
-    no_i18n("Member Profile"), no_i18n("Action")
+    no_i18n ("Id"), no_i18n ("User"), no_i18n ("Status"),
+    no_i18n ("Member Profile"), no_i18n ("Action")
   ]
 );
 
 function finish_page ()
 {
-  global $user_name_search, $search, $text_search, $rows, $rows_returned, $HTML;
+  global $user_name_search, $search, $text_search, $rows, $rows_returned;
+  global $HTML, $php_self;
   print "</table>\n";
-  html_nextprev(
-    htmlentities ($_SERVER['PHP_SELF']) . "?user_name_search=$user_name_search"
+  html_nextprev (
+    "$php_self?user_name_search=$user_name_search"
     . '&amp;usersearch=1&amp;search=' . urlencode($search)
     . "&amp;text_search=$text_search",
     $rows, $rows_returned
   );
-  $HTML->footer(array());
+  $HTML->footer ([]);
   exit (0);
 }
 
@@ -190,7 +189,7 @@ if ($rows_returned > $MAX_ROW)
 
 for ($i = 0; $i < $rows; $i++)
   {
-    $usr = db_fetch_array($result);
+    $usr = db_fetch_array ($result);
     $stat = $usr['status'];
     $usr_id = $usr['user_id'];
     print '<tr class="' . utils_altrow ($inc++)
@@ -200,12 +199,12 @@ for ($i = 0; $i < $rows; $i++)
 
     switch ($stat)
       {
-      case 'A': print no_i18n("Active"); break;
+      case 'A': print no_i18n ("Active"); break;
       case 'D': # Fall through.
-      case 'S': print no_i18n("Deleted"); break;
-      case 'SQD': print no_i18n("Active (Squad)"); break;
-      case 'P': print no_i18n("Pending"); break;
-      default: print no_i18n("Unknown status") . ": $stat"; break;
+      case 'S': print no_i18n ("Deleted"); break;
+      case 'SQD': print no_i18n ("Active (Squad)"); break;
+      case 'P': print no_i18n ("Pending"); break;
+      default: print no_i18n ("Unknown status") . ": $stat"; break;
       }
     if ($usr['people_view_skills'] == 1)
       print '<td><a href="' . $GLOBALS['sys_home']
@@ -216,10 +215,10 @@ for ($i = 0; $i < $rows; $i++)
     print '<td>';
     if ($stat != 'D' && $stat != 'S' && $stat != 'SQD')
       print "<a href='?action=delete&user_id=$usr_id'>["
-        . no_i18n("Delete") . "]</a>\n";
+        . no_i18n ("Delete") . "]</a>\n";
     if ($stat != 'A' && $stat != 'SQD')
       print "<a href='?action=activate&user_id=$usr_id'>["
-        . no_i18n("Activate") . "]</a>\n";
+        . no_i18n ("Activate") . "]</a>\n";
     print "</td>\n</tr>\n";
   }
 finish_page ()

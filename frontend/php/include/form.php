@@ -2,7 +2,7 @@
 # Form functions.
 #
 # Copyright (C) 2004-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2022 Ineiev
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -27,7 +27,6 @@ require_once ("$dir_name/spam.php");
 #    - form_header must be used on the form
 #    - form_check must be used before any insert in the db after submission
 #    - form_clean must be used after succesful item submission
-#
 
 # Start the form with unique ID, store it in the database.
 function form_header ($action, $form_id=false, $method="post", $extra=false)
@@ -52,6 +51,23 @@ function form_header ($action, $form_id=false, $method="post", $extra=false)
   return '
   <form action="'.htmlentities($action).'" method="'.$method.'"'.$extra.'>'
        .form_input("hidden","form_id",$form_id);
+}
+
+# Similar to form_header, but without generating new $form_id.
+function form_tag ($args = [], $action_suffix = '')
+{
+  $def_args = ['action' => $GLOBALS['php_self'], 'method' => 'post'];
+
+  foreach ($def_args as $k => $v)
+    if (empty ($args[$k]))
+      $args[$k] = $def_args[$k];
+
+  $args['action'] .= $action_suffix;
+  $arg_string = '';
+  foreach ($args as $k => $v)
+    $arg_string .= " $k=\"$v\"";
+
+  return "\n<form $arg_string>\n";
 }
 
 # Usual input.

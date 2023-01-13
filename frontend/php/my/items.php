@@ -128,12 +128,11 @@ $priorities = [
  9 => _("Immediate")
 ];
 foreach ($priorities as $k => $v)
-  $fthreshold .= "<option value='$k'>" . sel_if ($threshold == $k) . $v
+  $fthreshold .= "<option value='$k'" . sel_if ($threshold == $k) . ">$v"
     . "</option>\n";
 $fthreshold .= "</select>\n";
 
-$form_opening = '<form action="'.htmlentities($_SERVER['PHP_SELF'])
-                .'#options" method="get">';
+$form_opening = form_tag (['method' => 'get'], "#options");
 $form_submit = '<input class="bold"  type="submit" value="'._("Apply").'" />';
 # TRANSLATORS: the first argument is either 'Open' or 'Closed',
 # the second argument is priority ('Lowest', 'Normal' &c.).

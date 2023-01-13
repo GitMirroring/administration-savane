@@ -61,7 +61,6 @@ if (!user_ismember ($group_id, 'A'))
 if (empty ($order_id))
   $order_id = 0;
 
-$server_self = htmlentities ($_SERVER['PHP_SELF']);
 $delete_canned = $func === 'delcanned';
 
 trackers_init ($group_id);
@@ -299,7 +298,7 @@ if ($list_value)
                 # The permanent values cant be modified (No link).
                 $txt_val = $value;
                 if ($status != 'P')
-                  $txt_val = "<a href=\"$server_self?update_value=1"
+                  $txt_val = "<a href=\"$php_self?update_value=1"
                     . "&fv_id=$item_fv_id&field=$field&group_id=$group_id"
                     . "\">$value</a>";
                 $html .= "<td>$txt_val</td>\n";
@@ -350,7 +349,7 @@ if ($list_value)
                 . "in the hidden list\nthat suits your needs.")
                 . "</p>\n";
 
-            print "<form action=\"$server_self\" method='post'>";
+            print form_tag ();
             print form_hidden (
                 [
                   'post_changes' => 'y', 'create_value' => 'y',
@@ -553,7 +552,7 @@ if ($list_value)
                     .  "<td align='center'>--------</td>\n";
                 print '<td align="center">';
                 print utils_link (
-                  "$server_self?group=$group&amp;transition_id="
+                  "$php_self?group=$group&amp;transition_id="
                   . $transition['transition_id'] . '&amp;list_value=1&amp;'
                   . "func=deltransition&amp;field=$field",
                   html_image_trash (['alt' => _("Delete this transition")])
@@ -573,7 +572,7 @@ if ($list_value)
             );
           }
 
-        print "<form action=\"$server_self#registered\" method='post'>";
+        print form_tag ([], "#registered");
         print form_hidden (
           [
             "post_transition_changes" => "y", "list_value" => "y",
@@ -655,7 +654,7 @@ if ($update_value)
     # Get all attributes of this value.
     $res = trackers_data_get_field_value ($fv_id);
 
-    print "<form action=\"$server_self\" method='post'>\n"
+    print form_tag ()
       . form_hidden (
           [
             "post_changes" => "y", "update_value" => "y", "list_value" => "y",
@@ -745,14 +744,14 @@ if ($create_canned || $delete_canned)
           {
             $s_body = substr (db_result ($result, $i, 'body'), 0, 360);
             print '<tr class="' . utils_altrow ($i) . '">'
-              . "<td><a href=\"$server_self"
+              . "<td><a href=\"$php_self"
               . '?update_canned=1&amp;item_canned_id='
               . db_result ($result, $i, 'bug_canned_id')
               . "&amp;group_id=$group_id\">"
               . db_result ($result, $i, 'title') . "</a></td>\n"
               . "<td>$s_body...</td>\n"
               . '<td>' . db_result ($result, $i, 'order_id') . "</td>\n"
-              . "<td class='center'><a href=\"$server_self"
+              . "<td class='center'><a href=\"$php_self"
               . '?func=delcanned&amp;item_canned_id='
               . db_result ($result, $i, 'bug_canned_id')
               . "&amp;group_id=$group_id\">"
@@ -766,7 +765,7 @@ if ($create_canned || $delete_canned)
     print '<h2>' . _("Create a new response") . "</h2>\n<p>"
       . _("Creating generic quick responses can save a lot of time when "
           . "giving common\nresponses.")
-      . "</p>\n<form action=\"$server_self\" method='post'>\n"
+      . "</p>\n" . form_tag ()
       . form_hidden (
           [
             "create_canned" => "y", "group_id" => $group_id,
@@ -809,7 +808,7 @@ if ($update_canned)
         print '<p>'
 	  . _("Creating generic messages can save you a lot of time when giving\n"
               . "common responses.");
-        print "</p>\n<p>\n<form action=\"$server_self\" method='post'>\n"
+        print "</p>\n<p>" . form_tag ()
           . form_hidden (
               [
                 "update_canned" => "y", "group_id" => $group_id,
@@ -857,7 +856,7 @@ while ($field_name = trackers_list_all_fields ())
       $scope_label  = _("Project");
     $desc = trackers_data_get_description ($field_name);
     print '<tr class="' . utils_altrow ($i) . '">'
-      . "<td><a href=\"$server_self?group_id=$group_id"
+      . "<td><a href=\"$php_self?group_id=$group_id"
       . "&list_value=1&field=$field_name\">"
       . trackers_data_get_label ($field_name) . "</a></td>\n"
       . "<td>$desc</td>\n<td>$scope_label</td>\n</tr>\n";
@@ -865,7 +864,7 @@ while ($field_name = trackers_list_all_fields ())
   }
 
 print '<tr class="' . utils_altrow ($i) . '"><td>';
-print "<a href=\"$server_self?group_id=$group_id&amp;create_canned=1\">"
+print "<a href=\"$php_self?group_id=$group_id&amp;create_canned=1\">"
   . _("Canned Responses") . "</a></td>\n";
 print "\n<td>"
   . _("Create or change generic quick response messages for this issue "

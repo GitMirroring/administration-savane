@@ -150,7 +150,7 @@ function format_item_details (
       $score = "title=\"$score\"";
       $int_id = $entry['comment_internal_id'];
       $comment_ids = "&amp;item_id=$item_id&amp;comment_internal_id=$int_id";
-      $url_start = htmlentities ($_SERVER['PHP_SELF']) . '?func=';
+      $url_start = "{$GLOBALS['php_self']}?func=";
       $class = utils_altrow (++$j);
 
       # Find out what would be this comment number.
@@ -351,8 +351,8 @@ function format_item_details (
 
       # If not a member of the project, allow to mark as spam.
       # For performance reason, do not check here if the user already
-      # flagged the comment as spam, it will be done only if he tries to
-      # do it twice.
+      # flagged the comment as spam, it will be done only if the user tries
+      # to do it twice.
       if (user_isloggedin() && !$icon
           && $poster_id != user_getid () && empty ($_REQUEST['printer']))
         {
@@ -466,7 +466,7 @@ function format_item_changes ($changes, $item_id, $group_id)
 
 function format_item_attached_files ($item_id, $group_id, $ascii = false)
 {
-  global $HTML, $sys_home;
+  global $HTML, $sys_home, $php_self;
   $out = '';
   $order = 'DESC';
 
@@ -520,8 +520,7 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
           if ($mem_ck)
             {
               $html_delete = '<span class="trash"><a href="'
-                . htmlentities ($_SERVER['PHP_SELF'])
-                . "?func=delete_file&amp;item_id=$item_id"
+                . "$php_self?func=delete_file&amp;item_id=$item_id"
                 . "&amp;item_file_id=$item_file_id\">"
                 . html_image_trash (['alt' => _("Delete"), 'class' => 'icon'])
                 . '</a></span>';
@@ -565,7 +564,7 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
 # Show the files attached to this bug.
 function format_item_cc_list ($item_id, $group_id, $ascii = false)
 {
-  global $HTML;
+  global $HTML, $php_self;
   if ($ascii)
     $ascii = 1;
   else
@@ -665,8 +664,7 @@ function format_item_cc_list ($item_id, $group_id, $ascii = false)
         || $u_name == $res_name
       )
         $html_delete = '<span class="trash"><a href="'
-          . htmlentities ($_SERVER['PHP_SELF'])
-          . "?func=delete_cc&amp;item_id=$item_id"
+          . "$php_self?func=delete_cc&amp;item_id=$item_id"
           . "&amp;item_cc_id=$item_cc_id\">"
           . html_image_trash (['alt' => _("Delete"), 'class' => 'icon'])
           . '</a></span>';

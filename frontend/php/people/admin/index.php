@@ -1,9 +1,9 @@
 <?php
 # Edit job categories and skills.
 #
-# Copyright 1999-2000 (c) The SourceForge Crew
-# Copyright 2006, 2007, 2008 Sylvain Beucler
-# Copyright 2017, 2018 Ineiev
+# Copyright (C) 1999-2000 The SourceForge Crew
+# Copyright (C) 2006, 2007, 2008 Sylvain Beucler
+# Copyright (C) 2017, 2018, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once('../../include/init.php');
+require_once('../../include/form.php');
 
 extract (sane_import ('request', ['true' => ['people_cat', 'people_skills']]));
 extract (sane_import ('post',
@@ -32,7 +33,7 @@ extract (sane_import ('post',
 
 # This page is for site admins only.
 if (!user_ismember (1, 'A'))
-  exit_permission_denied();
+  exit_permission_denied ();
 
 if ($post_changes)
   {
@@ -40,26 +41,26 @@ if ($post_changes)
     if ($people_cat)
       {
         $result = db_execute (
-          "INSERT INTO people_job_category (name) VALUES (?)",
-          array($cat_name)
+          "INSERT INTO people_job_category (name) VALUES (?)", [$cat_name]
         );
         if (!$result)
           {
             print db_error();
-            fb(_("Error inserting value"));
+            fb (_("Error inserting value"));
           }
-        fb(_("Category Inserted"));
+        fb (_("Category Inserted"));
       }
     elseif ($people_skills)
       {
         $result = db_execute ("INSERT INTO people_skill (name) VALUES (?)",
-           array($skill_name));
+           [$skill_name]
+        );
         if (!$result)
           {
-            print db_error();
-            fb(_("Error inserting value"));
+            print db_error ();
+            fb (_("Error inserting value"));
           }
-        fb(_("Skill Inserted"));
+        fb (_("Skill Inserted"));
       }
   }
 
@@ -68,72 +69,63 @@ if ($people_cat)
     # Show categories and blank row.
     site_header (['title' => _('Change Categories')]);
     # List of possible categories for this group.
-    $result = db_query("SELECT category_id,name FROM people_job_category");
-    if ($result && db_numrows($result) > 0)
-      utils_show_result_set($result,_("Existing Categories"),'people_cat', '2');
+    $result = db_query ("SELECT category_id, name FROM people_job_category");
+    if ($result && db_numrows ($result) > 0)
+      utils_show_result_set (
+        $result, _("Existing Categories"), 'people_cat', '2'
+      );
     else
-      {
-        print '<p>'._("No job categories")."</p>\n";
-        print db_error();
-      }
-    print '<h2>'._("Add a new job category:").'</h2>
-<form action="'.htmlentities ($_SERVER['PHP_SELF']).'" method="post">
-<p><input type="hidden" name="people_cat" value="y" />
-<input type="hidden" name="post_changes" value="y" /></p>
-<p><label for="cat_name">'._("New Category Name:").'</label></p>
-<input type="text" name="cat_name" id="cat_name" value="" size="15"
-       maxlength="30" /><br />
-<p>
-<strong><span class="warn">'
-._("Once you add a category, it cannot be deleted")
-.'</span></strong></p>
-<p>
-<input type="submit" name="submit" value="'._("Add").'" /></p>
-</form>
-';
-
-    site_project_footer(array());
+      print '<p>' . _("No job categories"). "</p>\n". db_error ();
+    print '<h2>'. _("Add a new job category:"). "</h2>\n"
+      . form_tag ()
+      . form_hidden (['people_cat' => 'y', 'post_changes' => 'y'])
+      . "</p>\n<p><label for='cat_name'>"
+      . _("New Category Name:") . "</label></p>\n"
+      . "<input type='text' name='cat_name' id='cat_name' value='' size='15' "
+      . "maxlength='30' /><br />\n<p><strong><span class='warn'>"
+      . _("Once you add a category, it cannot be deleted")
+      . "</span></strong></p>\n<p>\n"
+      . '<input type="submit" name="submit" value="' . _("Add") . "\" /></p>\n"
+      . "</form>\n";
   } # $people_cat
-else if ($people_skills)
+elseif ($people_skills)
   {
     # Show people_groups and blank row.
     site_header (['title' => _('Change People Skills')]);
     # List of possible people_groups for this group.
-    $result = db_query("SELECT skill_id,name FROM people_skill");
+    $result = db_query ("SELECT skill_id, name FROM people_skill");
     print "<p>";
-    if ($result && db_numrows($result) > 0)
-      utils_show_result_set($result,_("Existing Skills"),"people_skills", '2');
+    if ($result && db_numrows ($result) > 0)
+      utils_show_result_set (
+        $result, _("Existing Skills"), "people_skills", '2'
+      );
     else
       {
-        print db_error();
-        print "<p>"._("No Skills Found").'</p>
-';
+        print db_error ();
+        print "<p>" . _("No Skills Found") . "</p>\n";
       }
-    print '<h2>'._("Add a new skill:").'</h2>
-';
-    print '<p>
-<form action="'.htmlentities ($_SERVER['PHP_SELF']).'" method="post">
-<input type="hidden" name="people_skills" value="y" />
-<input type="hidden" name="post_changes" value="y" /></p>
-<p><label for="skill_name">'._("New Skill Name:").'</label></p>
-<input type="text" name="skill_name" id="skill_name" value="" size="15"
-       maxlength="30" /><br />
-<p><strong><span class="warn">'._("Once you add a skill, it cannot be deleted")
-.'</span></strong></p>
-<p><input type="submit" name="submit" value="'._("Add").'" /></p>
-</form>';
-    site_project_footer(array());
+    print '<h2>' . _("Add a new skill:") . "</h2>\n";
+    print "<p>" . form_tag ()
+      . form_hidden (['people_skills' => 'y', 'post_changes' => 'y'])
+      . "</p>\n<p><label for='skill_name'>"
+      . _("New Skill Name:") . "</label></p>\n"
+      . "<input type='text' name='skill_name' id='skill_name' value=''\n"
+      . "size='15' maxlength='30' /><br />\n"
+      . '<p><strong><span class="warn">'
+      . _("Once you add a skill, it cannot be deleted")
+      . "</span></strong></p>\n"
+      . '<p><input type="submit" name="submit" value="' . _("Add")
+      . "\" /></p>\n</form>\n";
   }
 else # ! $people_skills
   {
     # Show main page.
     site_header (['title' => _('People Administration')]);
-    print '<h1>'._("Help Wanted Administration").'</h1>';
-    print '<p><a href="'.htmlentities ($_SERVER['PHP_SELF'])
-          .'?people_cat=1">'._("Add Job Categories").'</a><br />';
-    print "\n<a href=\"";
-    print htmlentities ($_SERVER['PHP_SELF'])."?people_skills=1\">"
-          ._("Add Job Skills").'</a><br />';
-    site_project_footer(array());
+    print '<h1>' . _("Help Wanted Administration") . '</h1>';
+    print "<p><a href=\"$php_self?people_cat=1\">"
+      . _("Add Job Categories") . "</a><br />\n";
+    print "\n<a href=\"$php_self?people_skills=1\">"
+      . _("Add Job Skills") ."</a><br />\n";
   }
+site_project_footer ();
 ?>

@@ -113,8 +113,7 @@ if ($update_field)
     # - "special" means the field is not entered by the user but by the system
     trackers_header_admin (['title' => _("Modify Field Usage")]);
 
-    print '<form action="' . htmlentities ($_SERVER['PHP_SELF'])
-      . '" method="post">';
+    print form_tag ();
     print form_hidden (
       ['post_changes' => 'y', 'field' => $field, 'group_id' => $group_id]
     );
@@ -410,8 +409,7 @@ while ($field_name = trackers_list_all_fields ())
       _("System"): _("Project");
     $place_label = $is_used? trackers_data_get_place ($field_name): '-';
 
-    $html = '<td><a href="' . htmlentities ($_SERVER['PHP_SELF'])
-      . "?group_id=$group_id"
+    $html = "<td><a href=\"$php_self?group_id=$group_id"
       . '&update_field=1&field=' . urlencode ($field_name) . '">'
       . trackers_data_get_label ($field_name) . "</a></td>\n"
       . "\n<td>" . trackers_data_get_display_type_in_clear ($field_name)

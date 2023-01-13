@@ -52,7 +52,7 @@ if (!$result || db_numrows ($result) < 1)
 if (!$send_mail)
   {
     $HTML->header (['title' => _('Send a message')]);
-    sendmail_form_message (htmlentities ($_SERVER["PHP_SELF"]), $touser, $cc_me);
+    sendmail_form_message ($php_self, $touser, $cc_me);
     $HTML->footer ([]);
     exit;
   }

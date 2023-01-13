@@ -43,12 +43,13 @@ function people_get_category_name ($category_id)
 
 function people_list_categories ()
 {
+  global $php_self;
+
   $result = db_query ("SELECT * FROM people_job_category ORDER BY category_id");
   $rows = db_numrows ($result);
   if (!$result || $rows < 1)
     return false;
   $return = "";
-  $php_self = htmlentities ($_SERVER["PHP_SELF"]);
   for ($i = 0; $i < $rows; $i++)
     {
       $count_res = db_execute ("
@@ -75,6 +76,8 @@ function people_list_categories ()
 
 function people_list_project_type ()
 {
+  global $php_self;
+
   $result = db_query ("
     SELECT
       group_type.type_id, group_type.name, COUNT(people_job.job_id) AS count
@@ -89,7 +92,6 @@ function people_list_project_type ()
   if (!$result || $rows < 1)
     return false;
   $return = "";
-  $php_self = htmlentities ($_SERVER["PHP_SELF"]);
   for ($i = 0; $i < $rows; $i++)
     $return .=
       form_checkbox (
@@ -128,8 +130,7 @@ function people_show_table ()
   );
   if ($form_is_empty)
     return $return;
-  return '<form action="'
-    . htmlentities ($_SERVER["PHP_SELF"]) . "\" method='get'>\n$return<hr />\n"
+  return form_tag (['method' => 'get']) . "$return<hr />\n"
     . "<input type='submit' name='submit' value=\"" . _("Search")
     . "\" />\n</form>\n";
 }
@@ -326,8 +327,7 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
     }
   for ($i = 0; $i < $rows; $i++)
     {
-      print "<form action='"
-        . htmlentities ($_SERVER['PHP_SELF']) . "' method='POST'>\n";
+      print form_tag ();
       print html_build_list_table_top ($title_arr);
       print "<tr class='" . utils_altrow ($i)
         . "'>\n<td><input type='hidden' name='{$infix}_inventory_id' "
@@ -355,8 +355,7 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
 
   print "\n<h3>" . _("Add a New Skill") . "</h3>\n";
 
-  print "\n<form action='" . htmlentities ($_SERVER['PHP_SELF'])
-    . "' method='POST'>\n";
+  print form_tag ();
   print html_build_list_table_top ($title_arr);
   print "\n<tr class='" . utils_altrow (0) . "'>\n<td>";
 
