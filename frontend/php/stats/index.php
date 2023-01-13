@@ -73,9 +73,9 @@ $page .= html_show_displayoptions (
   # Example: "From 12. September 2005 till 14. September 2005"
   sprintf (_('From %1$s till %2$s.'),
     calendar_select_date ($since_day, $since_month,
-      htmlentities ($since_year), ["since_day", "since_month", "since_year"]
+      $since_year, ["since_day", "since_month", "since_year"]
     ),
-    calendar_select_date ($until_day, $until_month, htmlentities ($until_year),
+    calendar_select_date ($until_day, $until_month, $until_year,
       ["until_day", "until_month", "until_year"]
     )
   ), $form_opening, $form_submit
@@ -193,7 +193,7 @@ $trackers = [
 foreach ($trackers as $tr)
   {
     $art = $tr['art'];
-    $total_art = ${"total_$art}"};
+    $total_art = ${"total_$art"};
     if ($total_art <= 0)
       continue;
     $count = stats_getitems ($art, 0, "date >= $since AND date <= $until");
@@ -209,7 +209,7 @@ foreach ($trackers as $tr)
     $page .= sprintf (ngettext ($tr['cls'][0], $tr['cls'][1], $count_open),
       $count_open);
     $page .= "</li>\n";
-    $key = $tr[$key];
+    $key = $tr['key'];
     $content[$key] = $count;
     $content_total[$key] = $total_art;
   }

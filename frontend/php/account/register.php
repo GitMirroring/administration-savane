@@ -4,7 +4,7 @@
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gna.org>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2019, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2019, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -40,6 +40,9 @@ extract (sane_import ('post',
     'true' => ['update', 'form_usepam']
   ]
 ));
+foreach (['form_id', 'form_realname', 'form_email', 'form_year'] as $v)
+  if (!isset ($$v))
+    $$v = '';
 
 $form_email = preg_replace ('/\s/', '', $form_email);
 

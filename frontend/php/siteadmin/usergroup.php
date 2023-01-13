@@ -147,8 +147,8 @@ function list_user_contributions ($user_id, $user_name)
                               . markup_rich ($decoded) . "</div>\n";
         }
       elseif ($entry['spamscore'] < 0)
-          $entry['details'] = markup_rich ($decoded);
-      else
+        $entry['details'] = markup_rich ($decoded);
+      elseif ($entry['details'] !== null)
         $entry['details'] = htmlentities ($entry['details']);
       print "    <dd>" . $entry['details'] . "</dd>\n";
     }
