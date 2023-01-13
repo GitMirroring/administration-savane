@@ -6,7 +6,7 @@
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2000-2006 Lorenzo Hernandez Garcia-Hierro
 #                                      <lorenzohgh--tuxedo-es.org>
-# Copyright (C) 2017, 2018, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -70,14 +70,18 @@ print html_show_displayoptions (
   $form_opening, $form_submit
 );
 
+$this_user = user_getid ();
+$approved_member = member_check ($this_user, $group_id);
 print '<p>';
-if (member_check (0, $group_id))
+if ($approved_member)
   print
     _("Note that you can &ldquo;watch&rdquo; a member of your\nproject. "
       . "It allows you, for instance, to be the backup of someone when "
       . "they are\naway from the office, or to review all their activities "
       . "on this project: you\nwill receive a copy of their mail "
       . "notifications related to this\nproject.");
+elseif (member_check_pending ($this_user, $group_id))
+  printf (_("Your request for inclusion in this group is pending."));
 else
   printf (
     _("If you would like to contribute to this project by\nbecoming a member, "
@@ -141,10 +145,10 @@ foreach ($activeness as $active)
     # is accessible elsewhere, via links. It saves us extra tests on whether
     # users want to hide their email or not.
     $title_arr[] = _("Resume and Skills");
-    if (user_ismember ($group_id))
+    if ($approved_member)
       $title_arr[] = _("Watch");
 
-    if  (db_numrows($res_memb) == 0)
+    if  (db_numrows ($res_memb) == 0)
       continue;
 
     if ($active)
@@ -226,14 +230,13 @@ foreach ($activeness as $active)
               print _("Set to private");
             print "</td>\n";
           # Watch
-           if (user_ismember($group_id))
+           if ($approved_member)
              {
-               $thisuser = user_getid ();
                $is_watched = trackers_data_is_watched (
-                 $thisuser, $row_memb['user_id'], $group_id
+                 $this_user, $row_memb['user_id'], $group_id
                );
                print "\t\t<td align='middle'>";
-               if ($row_memb['user_id'] != $thisuser && !$is_watched)
+               if ($row_memb['user_id'] != $this_user && !$is_watched)
                   # Permit to add a watchee only if not already in the watched
                   # list.
                   print "<a href=\"${sys_home}my/groups.php?"
