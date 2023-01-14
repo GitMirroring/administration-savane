@@ -2,7 +2,7 @@
 # User's start page.
 #
 # Copyright (C) 2005-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2020 Ineiev
+# Copyright (C) 2017, 2020, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -18,146 +18,139 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-require_once('../include/init.php');
-require_once('../include/my/general.php');
-require_directory("trackers");
-
-register_globals_off();
+require_once ('../include/init.php');
+require_once ('../include/my/general.php');
+require_directory ("trackers");
+register_globals_off ();
 
 global $item_data, $group_data;
-$item_data = array();
-$group_data = array();
+$item_data = $group_data = [];
 
-if (!user_isloggedin())
-  exit_not_logged_in();
+if (!user_isloggedin ())
+  exit_not_logged_in ();
 
-site_user_header(array('context'=>'my'));
+site_user_header (['context' => 'my']);
 
 print '<p>'
-        ._("Here's a list of recent items (< 16 days) we think you should have
-a look at. These are items recently posted on trackers you manage that are
-still unassigned or assigned to you and news posted on a project you are member
-of.").'</p>';
+  . _("Here's a list of recent items (less than 16 days) we think you should\n"
+      . "have a look at.  These are items recently posted on trackers you\n"
+      . "manage that are still unassigned or assigned to you and news posted\n"
+      . "in groups you are a member of.")
+  . "</p>\n";
 
 # Get the list of projects the user is member of.
-$result = db_execute("SELECT groups.group_name,"
-  . "groups.group_id,"
-  . "groups.unix_group_name,"
-  . "groups.status "
-  . "FROM groups,user_group "
-  . "WHERE groups.group_id=user_group.group_id "
-  . "AND user_group.user_id = ? "
-  . "AND groups.status='A' "
-  . "GROUP BY groups.unix_group_name "
-  . "ORDER BY groups.unix_group_name", array(user_getid()));
-$rows = db_numrows($result);
-$usergroups = array();
-$usergroups_groupid = array();
+$result = db_execute ("
+  SELECT g.group_name, g.group_id, g.unix_group_name, g.status
+  FROM groups g, user_group u
+  WHERE g.group_id = u.group_id AND u.user_id = ? AND g.status = 'A'
+  GROUP BY g.unix_group_name ORDER BY g.unix_group_name", [user_getid ()]
+);
+$rows = db_numrows ($result);
+$usergroups = $usergroups_groupid = [];
 if ($result && $rows > 0)
   {
-    unset($nogroups);
-    for ($j=0; $j<$rows; $j++)
+    unset ($nogroups);
+    for ($j = 0; $j < $rows; $j++)
       {
-        $unixname = db_result($result,$j,'unix_group_name');
-        $usergroups[$unixname] = db_result($result,$j,'group_name');
-        $usergroups_groupid[$unixname] = db_result($result,$j,'group_id');
+        $unixname = db_result ($result, $j, 'unix_group_name');
+        $usergroups[$unixname] = db_result ($result, $j, 'group_name');
+        $usergroups_groupid[$unixname] = db_result ($result, $j, 'group_id');
       }
   }
 else
   $nogroups = 1;
 
 # Get the list of squads the user is member of.
-$result = db_execute("SELECT squad_id FROM user_squad WHERE user_id=?",
-                     array(user_getid()));
-$rows = db_numrows($result);
-$usersquads = array();
+$result = db_execute (
+  "SELECT squad_id FROM user_squad WHERE user_id = ?", [user_getid ()]
+);
+$rows = db_numrows ($result);
+$usersquads = [];
 if ($result && $rows > 0)
   {
-    unset($nosquads);
-    for ($j=0; $j<$rows; $j++)
+    unset ($nosquads);
+    for ($j = 0; $j < $rows; $j++)
       {
-        $usersquads[] = db_result($result,$j,'squad_id');
+        $usersquads[] = db_result ($result, $j, 'squad_id');
       }
   }
 else
   $nosquads = 1;
 
 # Get a timestamp to get new items (15 days).
-$new_date_limit = mktime(date("H"),
-                         date("i"),
-                         0,
-                         date("m"),
-                         date("d")-15,
-                         date("Y"));
+$new_date_limit = mktime (
+  date ("H"), date ("i"), 0, date ("m"), date ("d") - 15, date ("Y")
+);
 
 # Right part.
-print html_splitpage(1);
+print html_splitpage (1);
 
 # News to approve.
 # Shown only if the user is news manager somewhere and if any item found.
-reset($usergroups);
-reset($usergroups_groupid);
-unset($result);
-unset($rows);
+reset ($usergroups);
+reset ($usergroups_groupid);
+unset ($result);
+unset ($rows);
 # Build an sql request that will fetch any relevant news.
-$sql = "SELECT group_id,date,id,summary FROM news_bytes ".
-  "WHERE date > ? AND is_approved='5' AND (";
-$params = array($new_date_limit);
-$previous = 0;
+$sql = "
+  SELECT group_id,date,id,summary FROM news_bytes
+  WHERE date > ? AND is_approved = '5' AND (";
+$params = [$new_date_limit];
+$link = '';
 
 foreach ($usergroups as $group => $groupname)
   {
-    if (member_check(0, $usergroups_groupid[$group],'N3'))
-      {
-        if ($previous) { $sql .= "OR "; }
-        $sql .= "group_id=? ";
-        $params[] = $usergroups_groupid[$group];
-        $previous = 1;
-      }
+    if (!member_check (0, $usergroups_groupid[$group], 'N3'))
+      continue;
+    $sql .= "{$link}group_id = ? ";
+    $link = "OR ";
+    $params[] = $usergroups_groupid[$group];
   }
 $sql .= ") ORDER BY date DESC";
 
-# If there is no relevant group (previous not set), it is not even necessary
+# If there is no relevant group, it is not even necessary
 # to run the sql command.
 $result = NULL;
-if ($previous)
+if ($link !== '')
   {
-    $result = db_execute($sql, $params);
-    $rows = db_numrows($result);
+    $result = db_execute ($sql, $params);
+    $rows = db_numrows ($result);
   }
 
 if ($result && $rows > 0)
   {
-    print '
-<br /><div class="box"><div class="boxtitle">'
-          ._("News Waiting for Approval").'</div>'."\n";
-    for ($j=0; $j<$rows; $j++)
+    print "<br />\n<div class='box'><div class='boxtitle'>"
+      . _("News Waiting for Approval") . "</div>\n";
+    for ($j = 0; $j < $rows; $j++)
       {
-        print '<div class="'.utils_altrow($j).'">';
-        print '<a href="'.$GLOBALS['sys_home'].'news/approve.php?approve=1&amp;id='
-              .db_result($result, $j, 'id').'&amp;group='
-              .group_getunixname(db_result($result, $j, 'group_id')).'">'
-              .db_result($result, $j, 'summary').'</a><br />'."\n";
-          # FIXME: num. of new comments?
-        print '<span class="smaller">'
-         .sprintf(
-# TRANSLATORS: the first argument is project name, the second is date.
-                  _('Project %1$s, %2$s'),
-                  group_getname(db_result($result, $j, 'group_id')),
-                  utils_format_date(db_result($result,$j,'date'))).'</span>';
-        print "\n".'</div>'."\n";
+        print '<div class="' . utils_altrow ($j) . '">';
+        print '<a href="' . $sys_home . 'news/approve.php?approve=1&amp;id='
+          . db_result ($result, $j, 'id') . '&amp;group='
+          . group_getunixname (db_result ($result, $j, 'group_id')) . '">'
+          . db_result($result, $j, 'summary') . "</a><br />\n";
+        print '<span class="smaller">';
+        # TRANSLATORS: the first argument is project name, the second is date.
+        printf (_('Project %1$s, %2$s'),
+          group_getname (db_result ($result, $j, 'group_id')),
+          utils_format_date (db_result ($result, $j, 'date'))
+        );
+        print "</span>\n</div>\n";
       }
-    print '</div>'."\n";
+    print "</div>\n";
   }
 
 # Latest Approved News.
-print '<br /><div class="box"><div class="boxtitle">'._("News").'</div>'."\n";
-reset($usergroups);
-reset($usergroups_groupid);
+print "<br />\n<div class='box'><div class='boxtitle'>"
+  . _("News") . "</div>\n";
+reset ($usergroups);
+reset ($usergroups_groupid);
 # Build an sql request that will fetch any relevant news.
-$sql = "SELECT group_id,date,forum_id,summary FROM news_bytes ".
-  "WHERE date > ? AND (is_approved='0' OR is_approved='1') AND (group_id=? ";
-$params = array($new_date_limit, $GLOBALS['sys_group_id']);
+$sql = "
+SELECT group_id, date, forum_id, summary FROM news_bytes
+WHERE
+  date > ? AND (is_approved = '0' OR is_approved = '1')
+  AND (group_id = ? ";
+$params = [$new_date_limit, $sys_group_id];
 
 foreach ($usergroups as $group => $groupname)
   {
@@ -166,51 +159,48 @@ foreach ($usergroups as $group => $groupname)
   }
 $sql .= ") ORDER BY date DESC";
 
-$result = db_execute($sql, $params);
-$rows = db_numrows($result);
+$result = db_execute ($sql, $params);
+$rows = db_numrows ($result);
 if ($result && $rows > 0)
-  {
-    for ($j=0; $j<$rows; $j++)
-      {
-        print '<div class="'.utils_altrow($j).'">';
-        print '<a href="'.$GLOBALS['sys_home'].'forum/forum.php?forum_id='
-              .db_result($result, $j, 'forum_id').'">'
-              .db_result($result, $j, 'summary').'</a><br />';
-        # FIXME: num. of new comments?
-        print '<span class="smaller">'
-              .sprintf(
-# TRANSLATORS: the first argument is project name, the second is date.
-                       _('Project %1$s, %2$s'),
-                       group_getname(db_result($result, $j, 'group_id')),
-                       utils_format_date(db_result($result,$j,'date'))).'</span>';
-        print '</div>'."\n";
-      }
-  }
+  for ($j = 0; $j < $rows; $j++)
+    {
+      print '<div class="' . utils_altrow ($j) . '">';
+      print '<a href="' . $sys_home . 'forum/forum.php?forum_id='
+        . db_result ($result, $j, 'forum_id') . '">'
+        . db_result ($result, $j, 'summary') . "</a><br />\n";
+      print '<span class="smaller">';
+      # TRANSLATORS: the first argument is project name, the second is date.
+      printf (_('Project %1$s, %2$s'),
+        group_getname (db_result ($result, $j, 'group_id')),
+        utils_format_date (db_result ($result, $j, 'date'))
+      );
+      print "</span></div>\n";
+    }
 else
   {
     # TRANSLATORS: it means, no approved news.
     print _("None found");
   }
-print '</div>';
+print "</div>\n";
 
 # Left part.
-print html_splitpage(2);
+print html_splitpage (2);
 
 # New items to assign.
 # Shown only if the user is tracker manager somewhere and if any item found
 # (so the title is included in the function called).
 
 print '<br /><div class="box"><div class="boxtitle">'
-      ._("New and Unassigned Items").'</div>'."\n";
-print my_item_list("unassigned");
-print '</div>'."\n";
+  . _("New and Unassigned Items") . "</div>\n";
+print my_item_list ("unassigned");
+print "</div>\n";
 
 # Items newly assigned (not necessarily new items).
 print '<br /><div class="box"><div class="boxtitle">'
-      ._("New and Assigned Items").'</div>'."\n";
-print my_item_list("newlyassigned");
-print '</div>'."\n";
-print html_splitpage(3);
-print "\n\n".show_priority_colors_key();
-$HTML->footer(array());
+  . _("New and Assigned Items") . "</div>\n";
+print my_item_list ("newlyassigned");
+print "</div>\n";
+print html_splitpage (3);
+print "\n\n" . show_priority_colors_key ();
+$HTML->footer ([]);
 ?>
