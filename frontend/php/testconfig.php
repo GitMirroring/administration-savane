@@ -376,7 +376,8 @@ else
     print "\n<h2>MySQL configuration</h2>\n\n";
     require_once ("include/utils.php");
     require_once ("include/database.php");
-    utils_set_csp_headers ();
+    if (empty ($inside_siteadmin))
+      utils_set_csp_headers ();
     if (!db_connect ())
       print "<blockquote>Can't connect to database.</blockquote>\n";
     else
