@@ -78,9 +78,7 @@ else
   $nosquads = 1;
 
 # Get a timestamp to get new items (15 days).
-$new_date_limit = mktime (
-  date ("H"), date ("i"), 0, date ("m"), date ("d") - 15, date ("Y")
-);
+$new_date_limit = time () - 15 * 24 * 3600;
 
 # Right part.
 print html_splitpage (1);
