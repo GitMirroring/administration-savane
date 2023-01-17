@@ -1,9 +1,8 @@
 <?php
-
-# Instructions about mailing lists.
+# Instructions about removing groups.
 #
 # Copyright (C) 2006, 2009 Sylvain Beucler
-# Copyright (C) 2017 Ineiev <ineiev@gnu.org>
+# Copyright (C) 2017, 2023 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #
@@ -20,11 +19,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-printf (_('To remove a project, please contact the
-<a href="%s">Savannah Hackers</a>
-indicating the new project location&mdash;we
-only remove projects if they are available at another place&mdash;and
-optionally the reason why you leave :)'),
-'//savannah.gnu.org/support/?group=administration');
+global $sys_unix_group_name, $sys_default_domain;
+print "<p>";
+printf (
+  _("To remove a group you administer, please contact\n"
+    . "<a href=\"%s\">Savannah hackers</a> indicating the new group\n"
+    . "location&mdash;we generally keep programs unless they are\n"
+    . "available at other places&mdash;and\n"
+    . "optionally the reason why you leave."),
+  "//$sys_default_domain/support/?group=$sys_unix_group_name"
+);
+print "</p>\n";
 
 ?>
