@@ -21,7 +21,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once(dirname(__FILE__).'/Group.class');
+require_once(dirname(__FILE__).'/group.php');
 
 # Guess the context of the current page.
 function context_guess ()

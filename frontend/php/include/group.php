@@ -23,7 +23,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once(dirname (__FILE__) . '/savane_error.class');
+require_once(dirname (__FILE__) . '/savane_error.php');
 
 $PROJECT_OBJ = [];
 

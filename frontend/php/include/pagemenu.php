@@ -1,7 +1,7 @@
 <?php
 # Page-specific menu (Bugs/Tasks/Admin/Source Code/...)
 #
-# Copyright (C) 1999-2000 The SourceForge Crew (was in Layout.class)
+# Copyright (C) 1999-2000 The SourceForge Crew (was in layout.php)
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2007, 2008  Sylvain Beucler

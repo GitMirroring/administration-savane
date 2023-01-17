@@ -152,7 +152,7 @@ $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	      --copyright-holder='$(COPYRIGHT_HOLDER)' \
 	      --msgid-bugs-address="$$msgid_bugs_address" \
 	      $(POTFILES) \
-	      `cd .. && find frontend/ -iname "*.php" -or -iname "*.class"` \
+	      `cd .. && find frontend/ -iname "*.php"` \
 	    ;; \
 	  *) \
 	    $(XGETTEXT) --default-domain=$(DOMAIN) --directory=$(top_srcdir) \
@@ -163,7 +163,7 @@ $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	      --package-version='$(VERSION)' \
 	      --msgid-bugs-address="$$msgid_bugs_address" \
 	      $(POTFILES) \
-	      `cd .. && find frontend/ -iname "*.php" -or -iname "*.class"` \
+	      `cd .. && find frontend/ -iname "*.php"` \
 	    ;; \
 	esac
 	test ! -f $(DOMAIN).po || { \

@@ -319,7 +319,7 @@ if (!isset ($sys_group_id))
 session_set ();
 
 # HTML layout class.
-require_once ("$file_dir/Layout.class");
+require_once ("$file_dir/layout.php");
 
 $HTML = new Layout ();
 theme_select ();

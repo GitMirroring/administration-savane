@@ -28,7 +28,7 @@
 
 
 # base error library for new objects
-require_once(dirname(__FILE__).'/savane_error.class');
+require_once(dirname(__FILE__).'/savane_error.php');
 # left-hand and top menu nav library (requires context to be set)
 require_once(dirname(__FILE__).'/sitemenu.php');
 require_once(dirname(__FILE__).'/pagemenu.php');

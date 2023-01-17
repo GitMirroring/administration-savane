@@ -26,13 +26,13 @@ define('ARTIFACT', 'task');
 $no_redirection = 1;
 
 # Initial db and session library, opens session.
-require_once('../include/GPLQuickForm.class');
+require_once('../include/gpl-quick-form.php');
 require_once('../include/init.php');
 require_once('../include/database.php');
 require_once('../include/vars.php'); # $LICENSE
 require_once('../include/account.php'); # account_groupnamevalid
 
-require_once('../include/Group.class'); # getTypeBaseHost()
+require_once('../include/group.php'); # getTypeBaseHost()
 require_once('../include/sendmail.php');
 
 # GPLQuickForm validation callback.

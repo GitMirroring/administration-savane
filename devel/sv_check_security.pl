@@ -40,7 +40,7 @@ eval {
 
 
 my @files = File::Find::Rule->file()
-    ->name("*.php", "*.class")
+    ->name("*.php")
     ->in("$path");
 
 print "The following PHP files do not have mysql_is_safe:\n";
