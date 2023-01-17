@@ -808,49 +808,6 @@ function help ($text, $explanation_array)
   return $text;
 }
 
-# Analyse if we do need MSIE dirtyhacks.
-# Put the result in cache so we shan't over and over analyse user agent.
-# (This function will indeed think a browser that claims to be MSIE that it is
-# MSIE. Users of browsers like Opera that pretend to be MSIE should configure
-# properly their User Agent. There is nothing else to do about it).
-function utils_is_broken_msie ()
-{
-  # If already set, return what we found.
-  if (isset($GLOBALS['are_we_using_broken_msie']))
-    {
-      return $GLOBALS['are_we_using_broken_msie'];
-    }
-
-  # Otherwise, find out, assuming that by default we dont use broken MSIE.
-  $is_broken = false;
-
-  # Try to find the string MSIE.
-  if (isset ($_SERVER['HTTP_USER_AGENT']))
-    {
-      $msie = strpos ($_SERVER['HTTP_USER_AGENT'], "MSIE");
-      if ($msie !== false)
-        {
-          # Avoid MSIE > 6: look for the first integer after the MSIE
-          # string, in the next characters.
-          $msie = substr ($_SERVER['HTTP_USER_AGENT'], $msie, 10);
-          preg_match ("/MSIE (\d*)/", $msie, $msie_version);
-          if ((!isset ($msie_version[1]) || $msie_version[1] < 7))
-            {
-              $is_broken = true;
-            }
-        }
-    }
-
-  # Save globally.
-  $GLOBALS['are_we_using_broken_msie'] = $is_broken;
-  return $is_broken;
-}
-
-function is_broken_msie ()
-{
-  return utils_is_broken_msie ();
-}
-
 function utils_setcookie ($name, $value, $expire, $secure = false)
 {
   global $sys_home, $sys_default_domain;

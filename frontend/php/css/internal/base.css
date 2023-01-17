@@ -523,7 +523,6 @@ li.topmenuitemmainitem a {
         padding-right: 0.5em;
 }
 
-/* not supported by MSIE, that is why we need extra javascript */
 li.topmenuitemmainitem:hover > ul {
         visibility: visible;
 }

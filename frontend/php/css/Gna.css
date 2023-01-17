@@ -24,11 +24,7 @@
 
 @import "internal/base.css";
 
-/**********************************************************************
- *
- * Very basic (mostly text) items:
- *
- **********************************************************************/
+/* Very basic (mostly text) items: */
 
 body {
 	margin: 0;
@@ -123,13 +119,7 @@ hr {
 	color: #01559e;
 }
 
-
-/**********************************************************************
- *
- * Alignement, main tables
- *
- **********************************************************************/
-
+/* Alignement, main tables */
 
 .realbody {
 	padding-right: 0;
@@ -142,11 +132,7 @@ hr {
 	margin-left: 160px;
 }
 
-/**********************************************************************
- *
- * Menus
- *
- **********************************************************************/
+/* Menus */
 
 .menu {
 	background: #cef0f0;
@@ -181,15 +167,6 @@ hr {
 .relatedrecipesitem {
 	border-top: thin solid #c0dede;
 }
-
-
-/*
-cannot be used with item links as blocks
-.menuitem:before {
-	content: url("../images/Gna.theme/point.png");
-}
-
-*/
 
 .menu a {
 	color: #303030;
@@ -250,7 +227,6 @@ li.topmenuitemsubmenu:hover {
 
 li.topmenuitemsubmenu a:hover {
 	color: black;
-	/* all this is in theory redundant but necessary for MSIE */
 	background-color: #b3e2e3;
 	text-decoration: none;
 }
@@ -267,11 +243,7 @@ li.topmenuitemsubmenuseparator {
 .tabselect:hover {  background-color: #b7e7e8; color: black;  text-decoration: none; }
 
 
-/**********************************************************************
- *
- * Boxes
- *
- **********************************************************************/
+/* Boxes */
 
 .box {
 	border-spacing: 0;

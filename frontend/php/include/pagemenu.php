@@ -42,13 +42,6 @@ function pagemenu ($params)
     $GLOBALS['stone_age_menu_lastcontext']);
   $GLOBALS['submenucount'] = 0;
 
-  # Print topmenu title.
-  # We use JavaScript for browsers that does not support CSS correctly.
-  if (
-    is_broken_msie () && empty ($_GET['printer']) && !$GLOBALS['stone_age_menu']
-  )
-    print "<!-- begin pagemenu -->\n\n";
-
   print '<h1 class="toptitle">'
     . html_image ('contexts/' . context_icon () . '.orig.png',
         [ 'width' => '48', 'height' => '48', 'alt' => context_alt (),
@@ -154,18 +147,6 @@ function pagemenu_submenu_title (
   if  (!empty ($stone_age_menu))
     $stone_age_menu_lastcontext = context_guess_from_url ($url, true);
 
-  # yeupou--gnu.org 2006-09-08:
-  # Dirty hack to get rid of serious issue in MSIE handling of CSS.
-  # Please, do never add such an hack in savane somewhere else without
-  # talking about it on savane-dev.
-  # DON'T CHANGE width, margin and padding size, or you'll be very sorry
-  # for MSIE users.
-  if (is_broken_msie () && empty ($_GET['printer']))
-    {
-      # Normally we should have white-space: nowrap; but then MSIE make
-      # the text disappear on mouse out.
-      $title = preg_replace("/\s/", "&nbsp;", $title);
-    }
   # We make appear the submenu with both CSS and JavaScript.  That is because
   # some browsers (MSIE) have poor CSS support and cannot do it otherwise.
   # (When it gains focus, the submenu appears.)

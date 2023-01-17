@@ -86,22 +86,14 @@ h4 {
 }
 
 
-/**********************************************************************
- *
- * Alignement, main tables
- *
- **********************************************************************/
+/* Alignement, main tables */
 
 .realbody {  border-spacing: 4; border: 0; }
 .main { vertical-align: top;
 	margin-left: 160px; border-spacing: 0; border: 0; }
 
 
-/**********************************************************************
- *
- * Menus
- *
- **********************************************************************/
+/* Menus */
 
 .menu {
 	vertical-align: top;
@@ -195,7 +187,6 @@ li.topmenuitemsubmenu:hover {
 
 li.topmenuitemsubmenu a:hover {
         color: black;
-        /* all this is in theory redundant but necessary for MSIE */
         background-color: #b3e2e3;
         text-decoration: none;
 }
@@ -218,11 +209,7 @@ li.topmenuitemsubmenuseparator {
 }
 
 
-/**********************************************************************
- *
- * Boxes
- *
- **********************************************************************/
+/* Boxes */
 
 .box {
 	background-color: #F2F5FE;

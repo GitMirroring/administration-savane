@@ -24,8 +24,6 @@
 /* Very basic (mostly text) items: */
 
 body {
-  /* DONT CHANGE width, margin and padding size, or you ll be very sorry for
-	MSIE users */
   margin-top: 0;
   margin-left: 0;
   margin-right: 0;
@@ -110,8 +108,6 @@ img.bigicon {
 
 
 .main {
-  /* DONT CHANGE width, margin and padding size, or you ll be very sorry for
-	MSIE users */
   margin-top: 2px;
   background-color: #fffdf7;
   vertical-align: top;
@@ -121,8 +117,6 @@ img.bigicon {
   padding-left: 3px;
   padding-right: 3px;
   width: 83%;
-  /* DONT CHANGE width, margin and padding size, or you ll be very sorry for
-	MSIE users */
 }
 
 
@@ -185,8 +179,6 @@ li.topmenuitemsubmenuseparator {
 .topmenuitemmainitem:hover { background-color: #FFF8D6; }
 
 .menu {
-  /* DONT CHANGE width, margin and padding size, or you ll be very sorry for
-	MSIE users */
   background-color: bisque;
   border: 1px solid tan;
   margin-top: 2px;
@@ -195,8 +187,6 @@ li.topmenuitemsubmenuseparator {
   padding-right: 5px;
   padding-bottom: 5px;
   width: 14%;
-  /* DONT CHANGE width, margin and padding size, or you ll be very sorry for
-	MSIE users */
 }
 
 

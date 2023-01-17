@@ -58,8 +58,7 @@ function theme_list ()
       # base.css and printer.css are always ignored
       # (as of nov 2006, there are in the subdirectory internal, so this
       # is only here for backward compat).
-      if ($matches[1] == "base" || $matches[1] == "printer"
-          || $matches[1] == "msie-dirtyhacks")
+      if ($matches[1] == "base" || $matches[1] == "printer")
         continue;
 
       # Forbidden themes are also ignored.

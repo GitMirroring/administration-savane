@@ -25,11 +25,7 @@
 
 @import "internal/base.css";
 
-/**********************************************************************
- *
- * Very basic (mostly text) items:
- *
- **********************************************************************/
+/* Very basic (mostly text) items: */
 
 body {
 	margin: 0;
@@ -123,11 +119,7 @@ hr {
 }
 
 
-/**********************************************************************
- *
- * Alignement, main tables
- *
- **********************************************************************/
+/* Alignement, main tables */
 
 
 .realbody {
@@ -141,11 +133,7 @@ hr {
 	margin-left: 162px;
 }
 
-/**********************************************************************
- *
- * Menus
- *
- **********************************************************************/
+/* Menus */
 
 .menu {
 	background: #EEEEE6;
@@ -235,7 +223,6 @@ li.topmenuitemsubmenu:hover {
 }
 
 li.topmenuitemsubmenu a:hover {
-	/* redundant with the previous but necessary for MSIE */
 	background: #EEEEE6;
 	color: #000000;
 	text-decoration: none;
@@ -246,37 +233,9 @@ li.topmenuitemsubmenuseparator  {
 	background-color: #D7D7CF;
 }
 
-/*
-
-ul.topmenuitemsubmenu li {
-	background: #fdfdf4;
-	border-left: 0.6em solid #8BB9EA;
-}
-
-
-li.topmenuitemsubmenu a {
-	color: #535353;
-}
-
-li.topmenuitemsubmenu:hover {
-	border-left: 0.6em solid #006699;
-}
-
-li.topmenuitemsubmenu a:hover {
-	background: #EEEAD2;
-	color: #535353;
-}
-*/
-
-
 .tabselect { color: #000000; background-color: #f9f9f2; text-decoration: underline; }
 
-
-/**********************************************************************
- *
- * Boxes
- *
- **********************************************************************/
+/* Boxes */
 
 .box {
 	border-spacing: 0;

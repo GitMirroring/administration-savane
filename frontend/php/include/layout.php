@@ -36,7 +36,6 @@ require_once(dirname(__FILE__).'/pagemenu.php');
 require_once(dirname(__FILE__).'/i18n.php');
 # theme - color scheme informations
 require_once(dirname(__FILE__).'/theme.php');
-# various utilities - broken_msie...
 require_once(dirname(__FILE__).'/utils.php');
 
 class Layout extends savane_error
@@ -220,20 +219,6 @@ class Layout extends savane_error
   <link rel="stylesheet" type="text/css" href="'.$GLOBALS['sys_home']
           .'css/'.$theme.'.css" />
 ';
-    # We unfortunately have to maintain some browser-specifics hacks, since
-    # MSIE is total crap in regards to standards. This should be an exception.
-    # We should not implement non-standard things, we can only correct things
-    # for the mosted widely deployed web browser that does not understand
-    # W3C standards.
-    # (ignore in printer mode, as we have no left and top menu and that menus
-    # actually do not matter).
-    if (utils_is_broken_msie() && empty($_GET['printer']))
-      {
-        print '  <link rel="stylesheet" type="text/css" href="'
-              .$GLOBALS['sys_home'].'css/internal/msie-dirtyhacks.css" />
-';
-      }
-
     # If the user want the stone age menu, we must add the appropriate
     # additional CSS.
     if (!empty($GLOBALS['stone_age_menu']))
@@ -259,89 +244,52 @@ class Layout extends savane_error
 
   function generic_footer ($params)
   {
+    global $savane_url, $savane_version;
     print '<p class="footer">';
-    utils_get_content("page_footer");
-# TRANSLATORS: the argument is version of Savane (like 3.2).
-    print ' </p>
- <div align="right"><p>'.utils_link($GLOBALS['savane_url'],
-  sprintf(_("Powered by Savane %s"), $GLOBALS['savane_version'])).'</p></div>';
-
-# yeupou--gnu.org 2005-09-16:
-# Dirty hack to get rid of serious issue in MSIE handling of
-# CSS.
-# If we are using MSIE, we havent closed main and realbody yet,
-# because the footer wouldnt be visible otherwise.
-    if (is_broken_msie() && empty($_GET['printer']))
-      {
-        print '
-<!-- closing now main and realbody MSIE DIRTY HACK --></div></div>';
-      }
-    print '
-</body>
-</html>';
+    utils_get_content ("page_footer");
+    print "</p>\n<div align='right'><p>"
+      . utils_link ($savane_url,
+          # TRANSLATORS: the argument is version of Savane (like 3.2).
+          sprintf (_("Powered by Savane %s"), $savane_version)
+        )
+      . "</p></div>\n";
+    print "\n</body>\n</html>\n";
   }
 
   function header ($params)
   {
-    $this->generic_header_start($params);
-    $this->generic_header_end($params);
+    $this->generic_header_start ($params);
+    $this->generic_header_end ($params);
 
-    print '
-<body>
-<div class="realbody">
-';
-    sitemenu($params);
-
-
-    print '<div id="top" class="main">
-';
-    pagemenu($params);
-
+    print "\n<body>\n<div class='realbody'>\n";
+    sitemenu ($params);
+    print "<div id='top' class='main'>\n";
+    pagemenu ($params);
   }
 
   function footer ($params)
   {
-    print '
-  <p class="backtotop">
-  '.utils_link("#top", '<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-   .'.theme/arrows/top.orig.png" border="0" alt="'._("Back to the top").'" />').'
-  </p>';
+    print "\n<p class='backtotop'>\n"
+      . utils_link ("#top",
+          html_image ('arrows/top.orig.png', ['alt' => _("Back to the top")])
+        )
+      . "\n</p>\n";
 
-# yeupou--gnu.org 2005-09-16:
-# Dirty hack to get rid of serious issue in MSIE handling of
-# CSS.
-# If we are using MSIE, we cannot close main, because the footer
-# will never be visible otherwise.
-    if (!is_broken_msie() || !empty($_GET['printer']))
-      {
-        print '
-</div><!-- end main -->
-<br class="clear" />
-</div><!-- end realbody -->
-';
-      }
+    if (empty ($_GET['printer']))
+      print "\n<!-- not closing yet main and realbody -->\n";
     else
-      {
-        print '
-<!-- not closing yet main and realbody MSIE DIRTY HACK -->
-';
-      }
-
+      print "\n</div><!-- end main -->\n<br class='clear' />\n"
+        . "</div><!-- end realbody -->\n";
     $this->generic_footer ($params);
-
   }
 
-# ######################################### LEFT MENU
+# Left menu
+# Most of it is in sitemenu.php.
 
-# Most of it is in sitemenu.php
-
-# title of left menu part
+# Title of left menu part.
   function menuhtml_top ($title)
   {
-    print '
-        <li class="menutitle">
-           '.$title.'
-        </li><!-- end menutitle -->';
+    print "<li class='menutitle'>$title</li><!-- end menutitle -->\n";
   }
 
 # left menu entry
