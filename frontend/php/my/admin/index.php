@@ -379,13 +379,12 @@ print_box_next_item ();
 
 pref_cbox ("stone_age_menu", _("Use the Stone Age menu"));
 print '<p class="smaller">'
-  . _("By default, the top menu includes links, via dropdown submenus, to "
-      . "all\nrelevant pages in the current context (project area, personal "
-      . "area). However,\nthe dropdown submenu mechanism may not work with "
-      . "a few old or lightweight\nbrowsers, for instance very old Konqueror "
-      . "versions (< 3.1, before 2003).\nSelecting this option enables "
-      . "an old-fashioned submenu like the one shipped\nin older Savane "
-      . "releases (< 2.0).")
+  . _("By default, the top menu includes links to all relevant pages\n"
+      . "context (group area, personal area) in dropdown submenus. However,\n"
+      . "the dropdown submenus may not work with a few lightweight browsers,\n"
+      . "for instance, NetSurf (as of 3.10, released in 2020).\n"
+      . "Selecting this option enables an old-fashioned submenu like the one\n"
+      . "shipped in older Savane releases (< 2.0).")
   . "</p>\n";
 
 $i++;
