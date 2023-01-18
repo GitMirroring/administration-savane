@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 BBN Technologies Corp
-# Copyright (C) 2019, 2022 Ineiev
+# Copyright (C) 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -41,14 +41,17 @@ our $dbd;
 
 our $sys_cron_cleaner;
 our $sys_dry_remove_idle_accounts;
+our $sys_banned_email_domains;
 
 my $script = "sv_cleaner";
 my $logfile = "/var/log/sv_cleaner.log";
 my $help;
 my $debug;
 my $big_cleanup;
+my $dry_run_option;
 my $cron;
 my $version = GetVersion ();
+my $dry_run_str;
 
 my @trackers = ("bugs", "support", "task", "patch", "cookbook");
 
@@ -70,21 +73,38 @@ itself.
                                    you should first backup your database,
                                    just in case.
       --cron                   Option used when including this script
-                               in a crontab.";
-PrintVersionOrHelp ($help);
+                               in a crontab.
+      --dry-run                Skip removing idle accounts\n";
+
+sub help_message
+{
+  print STDERR $help;
+  exit 0;
+}
+sub version_message
+{
+  print STDERR "$version\n";
+  exit 0;
+}
 
 GetOptions (
-  "cron" => \$cron, "big-cleanup" => \$big_cleanup, "debug" => \$debug
-);
+  "cron" => \$cron, "big-cleanup" => \$big_cleanup, "debug" => \$debug,
+  "dry-run" => \$dry_run_option,
+  "help" => \&help_message, "version" => \&version_message
+) or die ("Wrong command line.");
 
+$sys_dry_remove_idle_accounts = 1 if ($dry_run_option);
+
+$dry_run_str = $sys_dry_remove_idle_accounts? " (dry run)": "";
+
+exit if ($cron && ! $sys_cron_cleaner);
+
+open (LOG, ">>$logfile");
 sub add_to_log
 {
   print LOG strftime "[$script] %c $_[0]\n", localtime;
 }
 
-exit if ($cron && ! $sys_cron_cleaner);
-
-open (LOG, ">>$logfile");
 add_to_log ("- starting");
 
 AcquireReplicationLock ();
@@ -134,55 +154,143 @@ sub send_notification
   my ($name, $email) = @_;
   my $input;
   open ($input, '|-', 'sendmail -t');
-  print $input <<~"EOF";
-    From: <INVALID.NOREPLY\@gnu.org>
-    To: <$email>
-    Subject: Your Savannah account <$name>
-
-    Your Savannah account <$name> is automatically
-    removed due to inactivity.
-
-    For criteria of removing idle accounts, please check
-    https://savannah.gnu.org/maintenance/IdleAccounts/ .
-    EOF
+  print $input
+    "From: <INVALID.NOREPLY\@gnu.org>\n"
+    . "To: <$email>\n"
+    . "Subject: Your Savannah account <$name>\n"
+    . "\n"
+    . "Your Savannah account <$name> is automatically\n"
+    . "removed due to inactivity.\n"
+    . "\n"
+    . "For criteria of removing idle accounts, please check\n"
+    . "https://savannah.gnu.org/maintenance/IdleAccounts/ .\n";
   close ($input);
+}
+
+sub purge_account
+{
+  my ($id, $name) = @_;
+  $dbd->do ("DELETE FROM user WHERE user_id = $id")
+    unless $sys_dry_remove_idle_accounts;
+  add_to_log ("----- purged account #$id <$name>$dry_run_str");
+}
+
+sub suspend_account
+{
+  my ($id, $name, $email) = @_;
+  add_to_log ("----- suspended account #$id <$name>$dry_run_str");
+  return if $sys_dry_remove_idle_accounts;
+  $dbd->do ("UPDATE group_history"
+    . " SET old_value = '_$id' WHERE old_value = '$name'"
+  );
+  $dbd->do (<<"  EOF");
+    UPDATE user
+    SET
+      user_name = '_$id', user_pw = '!', realname = '-*-', status = 'S',
+      email = 'idontexist\@example.net', confirm_hash = '',
+      authorized_keys = '', people_view_skills = 0, people_resume = '',
+      timezone = 'GMT', theme = '', gpg_key = '', email_new = ''
+    WHERE user_id = $id
+  EOF
+}
+
+sub domain_is_banned
+{
+  my ($email) = @_;
+  return 0 if $sys_banned_email_domains eq "";
+  return $email =~ /$sys_banned_email_domains/;
 }
 
 sub remove_account
 {
-  my ($id, $name, $email, $purge) = @_;
+  my ($id, $name, $email, $active) = @_;
 
-  if ($purge)
+  if ($active < 1)
     {
-      $dbd->do ("DELETE FROM user WHERE user_id=$id")
-        unless ($sys_dry_remove_idle_accounts);
-      add_to_log ("----- purged account #$id <$name>"
-                  . ($sys_dry_remove_idle_accounts? " (dry run)": ""));
+      purge_account ($id, $name);
     }
   else
     {
-      unless ($sys_dry_remove_idle_accounts)
-        {
-          $dbd->do (
-            "UPDATE group_history SET old_value = '_$id'"
-            . " WHERE old_value = '$name'"
-          );
-          $dbd->do (<<~"EOF");
-            UPDATE user
-            SET
-              user_name = '_$id', user_pw = '!', realname = '-*-',
-              status = 'S', email = 'idontexist\@example.net',
-              confirm_hash = '', authorized_keys = '',
-              people_view_skills = 0, people_resume = '',
-              timezone = 'GMT', theme = '',
-              gpg_key = '', email_new = ''
-            WHERE user_id = $id
-            EOF
-        }
-      add_to_log ("----- suspended account #$id <$name>"
-                  . ($sys_dry_remove_idle_accounts? " (dry run)": ""));
+      suspend_account ($id, $name, $email);
     }
-  send_notification ($name, $email) unless ($sys_dry_remove_idle_accounts);
+  return if $sys_dry_remove_idle_accounts;
+  send_notification ($name, $email) unless domain_is_banned ($email);
+}
+
+sub account_has_tracker_history
+{
+  my ($id) = @_;
+
+  foreach my $tracker (@trackers)
+    {
+      foreach my $line (GetDB ($tracker, "submitted_by = $id limit 1"))
+        {
+          return 1;
+        }
+      foreach my $line (GetDB ($tracker . "_history", "mod_by = $id limit 1"))
+        {
+          return 1;
+        }
+    }
+  return 0;
+}
+
+sub account_has_group_history
+{
+  my ($name) = @_;
+  my $active = 0;
+  foreach my $line (
+    GetDB ("group_history", "old_value = '$name'", "field_name")
+  )
+    {
+      chomp ($line);
+      if ($line eq 'User Requested Membership')
+        {
+          $active = 1;
+        }
+      return 2;
+    }
+  return $active;
+}
+
+sub account_belongs_groups
+{
+  my ($id) = @_;
+  foreach my $line (
+    GetDB ("user_group", "user_id = '$id' AND admin_flags != 'P' limit 1")
+  )
+    {
+      return 1;
+    }
+  return 0;
+}
+
+sub account_is_active
+{
+  my ($id, $name) = @_;
+  my $has_history;
+  $has_history = account_has_tracker_history ($id);
+  if ($has_history)
+    {
+      return 2;
+    }
+  $has_history = account_has_group_history ($name);
+  return 2 if ($has_history > 1);
+  return 2 if (account_belongs_groups ($id));
+  return $has_history;
+}
+
+sub clean_account
+{
+  my ($user, $t0, $t1) = @_;
+  my $active = 0;
+  my ($id, $name, $realname, $email, $status, $da, $ut) = split (",", $user);
+
+  return if ($ut > $t1 && !domain_is_banned ($email));
+  $active = account_is_active ($id, $name);
+  return if $active > 1;
+  add_to_log ("---- removing $user: $active");
+  remove_account ($id, $name, $email, $active);
 }
 
 sub clean_idle_accounts
@@ -190,147 +298,131 @@ sub clean_idle_accounts
   my $t1 = `date +%s` - 17 * 24 * 3600;
   my $t0 = $t1 - 24 * 3600;
 
-  foreach my $user
-    (
-      GetDB (
-        "user", "status = 'A' AND add_date > $t0 AND add_date < $t1",
-        "user_id, user_name, realname, email, status, from_unixtime(add_date)"
-      )
+  add_to_log ("---- clean idle; banned domains $sys_banned_email_domains");
+  foreach my $user (
+    GetDB (
+      "user", "status = 'A' AND add_date > $t0",
+      "user_id, user_name, realname, email, status, "
+      . "from_unixtime(add_date), add_date"
     )
+  )
     {
-      my $active = 0;
       chomp ($user);
-      my ($id, $name, $realname, $email, $status, $from_unixtime) =
-          split (",", $user);
-      foreach my $tracker (@trackers)
-        {
-          foreach my $line (GetDB ($tracker, "submitted_by = $id limit 1"))
-            {
-              $active = 2;
-            }
-          last if $active;
-          foreach my $line
-            (
-              GetDB ($tracker."_history", "mod_by = $id limit 1")
-            )
-            {
-              $active = 2;
-            }
-          last if $active;
-        }
-      next if $active;
-      foreach my $line (GetDB ("group_history",
-                              "old_value = '$name'", "field_name"))
-        {
-          chomp ($line);
-          if ($line eq 'User Requested Membership' and $active < 1)
-            {
-              $active = 1;
-            }
-           else
-            {
-              $active = 2;
-              last;
-            }
-        }
-      next if $active > 1;
-      foreach my $line
-        (
-          GetDB (
-            "user_group", "user_id = '$id' AND admin_flags != 'P' limit 1"
-          )
-        )
-        {
-          $active = 2;
-        }
-      next if $active > 1;
-      add_to_log ("---- removing $user: $active");
-      remove_account ($id, $name, $email, $active < 1);
-    } # foreach my $user...
+      clean_account ($user, $t0, $t1);
+    }
 }
 clean_idle_accounts ();
 
-if ($big_cleanup)
-  {
-    # Remove items from groups that no longer exists in the database.
-    # When a group is deleted, its items no longer make sense.
-    #
-    # It will also make sure that no configuration remains, or user associated
-    # with the group.
+sub finish_work
+{
+  add_to_log ("- work finished");
+  print LOG "[$script] ------------------------------------------------------\n";
+}
 
-    # First build an hash of valid group_id. We take as valid any group_id
-    # actually in the database. We want to remove items only if the group
-    # no longer exists in the database.
-    my @group_ids = GetGroupList ("1", "group_id");
-    my %group_exists;
-    for (@group_ids)
+if (!$big_cleanup)
+  {
+    finish_work ();
+    exit 0;
+  }
+
+# Remove items from groups that no longer exists in the database.
+# When a group is deleted, its items no longer make sense.
+#
+# It will also make sure that no configuration remains, or user associated
+# with the group.
+
+# First build an hash of valid group_id. We take as valid any group_id
+# actually in the database. We want to remove items only if the group
+# no longer exists in the database.
+my @group_ids = GetGroupList ("1", "group_id");
+my %group_exists;
+for (@group_ids)
+  {
+    $group_exists{$_} = 1;
+  }
+
+# Browse each tracker item to found out if there are items to trash.
+foreach my $tracker (@trackers)
+  {
+    my @items_to_delete;
+
+    # Find items to delete in tracker-specific tables.
+    foreach my $line (GetDB ($tracker, "1", "bug_id,group_id"))
       {
-        $group_exists{$_} = 1;
+        chomp ($line);
+        my ($item_id, $group_id) = split (",", $line);
+
+        unless ($group_exists{$group_id})
+          {
+            push (@items_to_delete, $item_id);
+            print "DBG: item to delete $item_id, "
+                  ."because group $group_id is dead\n"
+              if $debug;
+            # That information is important, we log it (before doing the
+            # actual removal).
+            add_to_log ("---- deleted $tracker #$item_id, "
+                        ."from dead group #$group_id")
+              unless $debug;
+         }
       }
 
-    # Browse each tracker item to found out if there are items to trash.
-    foreach my $tracker (@trackers)
+    # Now do the cleanup on trackers.
+    unless ($debug)
       {
-        my @items_to_delete;
-
-        # Find items to delete in tracker-specific tables.
-        foreach my $line (GetDB ($tracker, "1", "bug_id,group_id"))
+        foreach my $item (@items_to_delete)
           {
-            chomp ($line);
-            my ($item_id, $group_id) = split (",", $line);
+            # Clean tables that are tracker-specific.
+            DeleteDB ($tracker, "bug_id='$item'");
+            DeleteDB ($tracker."_cc", "bug_id='$item'");
+            DeleteDB ($tracker."_history", "bug_id='$item'");
+            DeleteDB ($tracker."_dependencies",
+              "item_id = '$item' OR (is_dependent_on_item_id = '$item' "
+              . "AND is_dependent_on_item_id_artifact = '$tracker')");
 
-            unless ($group_exists{$group_id})
-              {
-                push (@items_to_delete, $item_id);
-                print "DBG: item to delete $item_id, "
-                      ."because group $group_id is dead\n"
-                  if $debug;
-                # That information is important, we log it (before doing the
-                # actual removal).
-                add_to_log ("---- deleted $tracker #$item_id, "
-                            ."from dead group #$group_id")
-                  unless $debug;
-             }
+            # Clean tables that are common to all trackers.
+            DeleteDB ("trackers_file",
+              "artifact = '$tracker' AND item_id = '$item'");
           }
+      }
+  } # foreach my $tracker (@trackers)
 
-        # Now do the cleanup on trackers.
-        unless ($debug)
-          {
-            foreach my $item (@items_to_delete)
-              {
-                # Clean tables that are tracker-specific.
-                DeleteDB ($tracker, "bug_id='$item'");
-                DeleteDB ($tracker."_cc", "bug_id='$item'");
-                DeleteDB ($tracker."_history", "bug_id='$item'");
-                DeleteDB ($tracker."_dependencies",
-                         "item_id='$item' OR (is_dependent_on_item_id='$item' "
-                         ."AND is_dependent_on_item_id_artifact='$tracker')");
+# Now look in others tables to find if there was entries of deleted
+# groups. To keep it simple and not too much rendudant, we first get
+# all the dead group_id, and then we run simple delete on all table
+# where these groups id exists.
+my @dead_group_id;
+my %dead_group_id_already_found;
 
-                # Clean tables that are common to all trackers.
-                DeleteDB ("trackers_file",
-                         "artifact='$tracker' AND item_id='$item'");
-              }
-          }
-      } # foreach my $tracker (@trackers)
+my @tables_to_check = ("user_group", "groups_default_permissions",
+  "group_preferences", "group_history", "news_bytes", "forum_group_list",
+  "trackers_watcher", "mail_group_list");
 
-    # Now look in others tables to find if there was entries of deleted
-    # groups. To keep it simple and not too much rendudant, we first get
-    # all the dead group_id, and then we run simple delete on all table
-    # where these groups id exists.
-    my @dead_group_id;
-    my %dead_group_id_already_found;
-
-    my @tables_to_check = ("user_group",
-                           "groups_default_permissions",
-                           "group_preferences",
-                           "group_history",
-                           "news_bytes",
-                           "forum_group_list",
-                           "trackers_watcher",
-                           "mail_group_list");
-
-    foreach my $table (@tables_to_check)
+foreach my $table (@tables_to_check)
+  {
+    foreach my $line (GetDB ($table, "1", "group_id"))
       {
+        chomp ($line);
+        my ($group_id) = split (",", $line);
+
+        next if $group_exists{$group_id};
+        next if $dead_group_id_already_found{$group_id};
+
+        push (@dead_group_id, $group_id);
+        $dead_group_id_already_found{$group_id} = 1;
+        print "DBG: $table found dead group $group_id\n" if $debug;
+      }
+  }
+
+my @suffices = ("_report", "_field_usage", "_field_value");
+# Find entries to delete in trackers query forms (dont bother removing
+# the query forms in depth values, they wont be visible anyway
+# since they refer to an query id that will be made bogus.
+# Do exactly the same for project field values.
+foreach my $tracker (@trackers)
+  {
+    foreach my $suf (@suffices)
+      {
+        my $table = "$tracker$suf";
         foreach my $line (GetDB ($table, "1", "group_id"))
           {
             chomp ($line);
@@ -344,71 +436,45 @@ if ($big_cleanup)
             print "DBG: $table found dead group $group_id\n" if $debug;
           }
       }
+  }
 
-    my @suffices = ("_report", "_field_usage", "_field_value");
-    # Find entries to delete in trackers query forms (dont bother removing
-    # the query forms in depth values, they wont be visible anyway
-    # since they refer to an query id that will be made bogus.
-    # Do exactly the same for project field values.
-    foreach my $tracker (@trackers)
+# Now remove anything that belong to a group that is dead.
+unless ($debug)
+  {
+    foreach my $group_id (@dead_group_id)
       {
-        foreach my $suf (@suffices)
+        # Die if the current group_id is not something valid.
+        die "Strange wrong id found for dead group, exiting"
+          if $group_id eq "";
+        add_to_log ("---- delete anything else "
+                    ."that belong to dead group #$group_id");
+
+        DeleteDB ("user_group", "group_id='$group_id'");
+        DeleteDB ("groups_default_permissions", "group_id='$group_id'");
+        DeleteDB ("group_preferences", "group_id='$group_id'");
+        DeleteDB ("group_history", "group_id='$group_id'");
+        DeleteDB ("user_group", "group_id='$group_id'");
+        DeleteDB ("news_bytes", "group_id='$group_id'");
+        DeleteDB ("forum_group_list", "group_id='$group_id'");
+        DeleteDB ("trackers_watcher", "group_id='$group_id'");
+
+        # For mailing-list, we mark the lists as deleted, so sv_mailman
+        # will finish the job, unless their status is equal to 0,
+        # which means they no longer exists already
+        # (backward compat case).
+        SetDBSettings ("mail_group_list",
+                      "group_id='$group_id'",
+                      "is_public='9'");
+        DeleteDB ("mail_group_list", "group_id='$group_id' AND status='0'");
+
+        foreach my $tracker (@trackers)
           {
-            my $table = "$tracker$suf";
-            foreach my $line (GetDB ($table, "1", "group_id"))
+            foreach my $suf (@suffices)
               {
-                chomp ($line);
-                my ($group_id) = split (",", $line);
-
-                next if $group_exists{$group_id};
-                next if $dead_group_id_already_found{$group_id};
-
-                push (@dead_group_id, $group_id);
-                $dead_group_id_already_found{$group_id} = 1;
-                print "DBG: ".$table." found dead group $group_id\n" if $debug;
+                DeleteDB ("$tracker$suf", "group_id='$group_id'");
               }
           }
-      }
+      } # foreach my $group_id (@dead_group_id)
+  } # unless ($debug)
 
-    # Now remove anything that belong to a group that is dead.
-    unless ($debug)
-      {
-        foreach my $group_id (@dead_group_id)
-          {
-            # Die if the current group_id is not something valid.
-            die "Strange wrong id found for dead group, exiting"
-              if $group_id eq "";
-            add_to_log ("---- delete anything else "
-                        ."that belong to dead group #$group_id");
-
-            DeleteDB ("user_group", "group_id='$group_id'");
-            DeleteDB ("groups_default_permissions", "group_id='$group_id'");
-            DeleteDB ("group_preferences", "group_id='$group_id'");
-            DeleteDB ("group_history", "group_id='$group_id'");
-            DeleteDB ("user_group", "group_id='$group_id'");
-            DeleteDB ("news_bytes", "group_id='$group_id'");
-            DeleteDB ("forum_group_list", "group_id='$group_id'");
-            DeleteDB ("trackers_watcher", "group_id='$group_id'");
-
-            # For mailing-list, we mark the lists as deleted, so sv_mailman
-            # will finish the job, unless their status is equal to 0,
-            # which means they no longer exists already
-            # (backward compat case).
-            SetDBSettings ("mail_group_list",
-                          "group_id='$group_id'",
-                          "is_public='9'");
-            DeleteDB ("mail_group_list", "group_id='$group_id' AND status='0'");
-
-            foreach my $tracker (@trackers)
-              {
-                foreach my $suf (@suffices)
-                  {
-                    DeleteDB ("$tracker$suf", "group_id='$group_id'");
-                  }
-              }
-          } # foreach my $group_id (@dead_group_id)
-      } # unless ($debug)
-  } # if ($big_cleanup)
-
-add_to_log ("- work finished");
-print LOG "[$script] ------------------------------------------------------\n";
+finish_work ();
