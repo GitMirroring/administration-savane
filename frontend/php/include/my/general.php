@@ -435,6 +435,7 @@ function my_item_list_print (
 )
 {
   global $item_data, $group_data, $items_per_groups, $maybe_missed_rows;
+  global $sys_home;
 
   if ($openclosed == "closed")
     $openclosed = 3;
@@ -451,13 +452,12 @@ function my_item_list_print (
   if ($maybe_missed_rows)
     {
       print '<div class="boxitem"><span class="xsmall"><span class="warn">'
-._("We found many items that match the current criteria. We had to set a limit
-at some point, some items that match the criteria may be missing for this
-list.")."</span></span></div>\n";
+        . _("We found many items that match the current criteria. We had "
+            . "to set a limit\nat some point, some items that match "
+            . "the criteria may be missing for this\nlist.")
+        . "</span></span></div>\n";
       if (!$condensed)
-	{
-	  print "<br />\n";
-	}
+        print "<br />\n";
     }
 
   # Go through the group list.
@@ -467,89 +467,77 @@ list.")."</span></span></div>\n";
   reset ($items_per_groups);
   foreach ($items_per_groups as $current_group_id => $current_group_items)
     {
+      $idx = "group$current_group_id";
       # Obtain the group fullname.
-      if (!array_key_exists("group".$current_group_id, $group_data))
-	{
-	  $group_data["group".$current_group_id] =
-	    group_getname($current_group_id);
-	}
+      if (!isset ($group_data[$idx]))
+        $group_data[$idx] = group_getname ($current_group_id);
 
       # Print subtitle.
-      if (!$condensed)
-	{
-	  $count = count($current_group_items);
-	  list($hide_now,$count_diff,$hide_url) =
-	    my_hide_url($role,
-			$current_group_id,
-			$count,
-			'<strong>'.$group_data["group".$current_group_id]
-                        .'</strong>');
-	  print '<div class="'.utils_altrow(1).'"> '.$hide_url
-                .' <span class="smaller">'
-                .my_item_count($count,max(0, $count_diff))."</span></div>\n";
-	}
+      print '<div class="' . utils_altrow (1) . '"> ';
+      if ($condensed)
+        # In condensed mode, there is no hide URL.
+        print $group_data[$idx] . ": ";
       else
-	{
-	  # In condensed mode, there is no hide URL.
-	  print '<div class="'.utils_altrow(1).'"> '
-                .sprintf(("%s: "), $group_data["group".$current_group_id])
-                ."</div>\n";
-	}
+        {
+          $count = count ($current_group_items);
+          list ($hide_now, $count_diff, $hide_url) =
+            my_hide_url ($role, $current_group_id, $count,
+              '<strong>' . $group_data[$idx] . '</strong>'
+            );
+          print $hide_url . ' <span class="smaller">'
+            . my_item_count ($count, max (0, $count_diff)) . "</span>";
+        }
+      print "</div>\n";
 
       # Go through the item list, unless asked to hide.
       if (!$hide_now)
-	{
-	  krsort($current_group_items);
+        {
+          krsort ($current_group_items);
           reset ($current_group_items);
-	  foreach ($current_group_items as $thisitem => $thisvalue)
-	    {
-	      $current_item_id = $item_data['item_id'][$thisitem];
+          foreach ($current_group_items as $thisitem => $thisvalue)
+            {
+              if (!isset ($item_data['item_id'][$thisitem]))
+                continue;
 
-# FIXME: if we're on /users/myuser and the user marked a tracker as hidden in /my/,
-# then we don't have the values we should display
-# (we just have an empty array t where count(t) is valid, but with an empty keys).
-# This is because $condensed from my_items_list is not passed to buildsql.
-	      if (empty($current_item_id))
-		continue;
-	      $tracker = $item_data['tracker'][$thisitem];
-	      $prefix = utils_get_tracker_prefix($tracker);
-	      $icon = utils_get_tracker_icon($tracker);
+              $cur_item_id = $item_data['item_id'][$thisitem];
+              $tracker = $item_data['tracker'][$thisitem];
+              $prefix = utils_get_tracker_prefix ($tracker);
+              $icon = utils_get_tracker_icon ($tracker);
 
-	      # Found out the status full text name:
-   	      # this is project specific. If there is no project setup for this
-	      # then go to the default for the site
-	      if (!array_key_exists($current_group_id.
-				    $tracker.
-				    $item_data['status'][$thisitem],
-				    $group_data))
-		{
-		  $group_data[$current_group_id.$tracker
-                              .$item_data['status'][$thisitem]] =
-		    db_result(db_execute("SELECT value FROM ".$tracker."_field_value
-                        WHERE bug_field_id='108' AND (group_id = ? OR group_id='100')
+              # Found out the status full text name:
+              # this is project specific. If there is no project setup for this
+              # then go to the default for the site
+              $item_status = $item_data['status'][$thisitem];
+              $idx = "$current_group_id$tracker$item_status";
+              if (!array_key_exists ($idx, $group_data))
+                {
+                  $res = db_execute ("
+                      SELECT value FROM {$tracker}_field_value
+                      WHERE
+                        bug_field_id = '108' AND (group_id = ? OR group_id = '100')
                         AND value_id = ? ORDER BY bug_fv_id DESC LIMIT 1",
-                        array($current_group_id, $item_data['status'][$thisitem])),
-                      0, 'value');
-		}
-	      $status = $group_data[$current_group_id.$tracker
-                                    .$item_data['status'][$thisitem]];
+                        [$current_group_id, $item_status]
+                  );
+                  $group_data[$idx] = db_result ($res, 0, 'value');
+                }
+              $status = $group_data[$idx];
 
               # Print directly, to avoid putting too much things in memory
-	      print '<div class="'
-                .utils_get_priority_color($item_data['priority'][$thisitem],
-                                          $openclosed)
-                .'">'
-		.'<a href="'.$GLOBALS['sys_home'].$tracker.'/?'.$current_item_id
-                .'" class="block">'
-		.'<img src="'.$GLOBALS['sys_home'].'images/'.SV_THEME
-                .'.theme/contexts/'.$icon.'.png" class="icon" alt="'.$tracker
-                .'" /> '
-		.$item_data['summary'][$thisitem]
-		.'&nbsp;<span class="xsmall">('.$prefix .' #'.$current_item_id
-                .', '.$status.")</span></a></div>\n";
-	    }
-	}
-      # Add extra space to make the page easier to read
+              print '<div class="'
+                . utils_get_priority_color (
+                    $item_data['priority'][$thisitem], $openclosed
+                  )
+                . '">'
+                . "<a href=\"$sys_home$tracker/?$cur_item_id\" class='block'>"
+                . html_image ("contexts/$icon.png",
+                    ['class' => 'icon', 'alt' => $tracker]
+                  )
+                . $item_data['summary'][$thisitem]
+                . "&nbsp;<span class='xsmall'>($prefix #$cur_item_id"
+                . ", $status)</span></a></div>\n";
+            }
+        }
+      # Add extra space to make the page easier to read.
       if (!$condensed)
         print "<br />\n";
     }

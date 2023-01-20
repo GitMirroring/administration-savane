@@ -25,17 +25,17 @@ require_once ('../include/html.php');
 require_once ('../include/form.php');
 require_once ('../include/my/bookmarks.php');
 
-site_user_header(array('context'=>'bookmark'));
-extract(sane_import('get', ['true' => 'add', 'digits' => 'delete']));
-extract(sane_import('request',
+site_user_header (['context' => 'bookmark']);
+extract (sane_import ('get', ['true' => 'add', 'digits' => 'delete']));
+extract (sane_import ('request',
   [
     'digits' => 'edit', 'pass' => ['url', 'title']
   ]));
 
 if ($add && $url)
-  bookmark_add($url, $title);
+  bookmark_add ($url, $title);
 if ($delete)
-  bookmark_delete($delete);
+  bookmark_delete ($delete);
 if ($edit)
   {
     if ($url && $title)
@@ -44,9 +44,10 @@ if ($edit)
     else
       {
         # No url and title? Print the form.
-        $result = db_execute("SELECT * from user_bookmarks "
-                             ."WHERE bookmark_id=? AND user_id=?",
-                             array($edit, user_getid()));
+        $result = db_execute ("
+          SELECT * from user_bookmarks WHERE bookmark_id = ? AND user_id = ?",
+          [$edit, user_getid ()]
+        );
         if ($result)
           {
             $title = htmlspecialchars (
@@ -69,26 +70,25 @@ if ($edit)
             print '<p><input type="submit" name="update" value="'
               . _("Update") . '" /></p>' . "\n";
             print "</form>\n";
-        }
+          }
         else
           # No result? Gives feedback and print the usual page.
-          fb(_("Item not found"),1);
+          fb (_("Item not found"), 1);
       }
   }
-$result = db_execute("SELECT bookmark_url, bookmark_title,
-                      bookmark_id from user_bookmarks
-                      WHERE user_id=? ORDER BY bookmark_title",
-                     array(user_getid()));
-$rows=db_numrows($result);
+$result = db_execute ("
+  SELECT bookmark_url, bookmark_title, bookmark_id FROM user_bookmarks
+  WHERE user_id = ? ORDER BY bookmark_title",
+  [user_getid ()]
+);
+$rows = db_numrows ($result);
 if (!$result || $rows < 1)
   print _("There is no bookmark saved");
 else
   {
     print "<br />\n";
-    print $HTML->box_top(_("Saved Bookmarks"),'',1);
-    print '
-<ul>
-';
+    print $HTML->box_top (_("Saved Bookmarks"), '', 1);
+    print "\n<ul>\n";
     for ($i = 0; $i < $rows; $i++)
       {
         $url = htmlspecialchars (db_result ($result, $i, 'bookmark_url'));
@@ -96,18 +96,15 @@ else
         $bm_id = db_result ($result, $i, 'bookmark_id');
         print '<li class="' . utils_altrow($i) . '">';
         print '<span class="trash"><a href="?edit=' . $bm_id . '">'
-          . '<img src="' . $GLOBALS['sys_home'] . 'images/' . SV_THEME
-          . '.theme/misc/edit.png" alt="' . _("Edit this bookmark")
-          . '" /></a>' . "\n"
-          . '<a href="?delete=' . $bm_id . '">'
-          . '<img src="' . $GLOBALS['sys_home'] . 'images/' . SV_THEME
-          . '.theme/misc/trash.png" alt="' . _("Delete this bookmark")
-          . '" /></a></span>'."\n";
-        print '<a href="' . $url . '">' . $title . "</a><br />\n";
-        print '<span class="smaller">' . $url . "</span></li>\n";
+          . html_image ('misc/edit.png', ['alt' => _("Edit this bookmark")])
+          . '</a>' . '<a href="?delete=' . $bm_id . '">'
+          . html_image_trash (['alt' => _("Delete this bookmark")])
+          . "</a></span>\n";
+        print "<a href=\"$url\">$title</a><br />\n";
+        print "<span class='smaller'>$url</span></li>\n";
       }
     print "</ul>\n";
-    print $HTML->box_bottom(1);
+    print $HTML->box_bottom (1);
   }
-site_user_footer(array());
+site_user_footer ([]);
 ?>
