@@ -59,9 +59,9 @@ print '<p>';
 print _("<em>Hint:</em> When you update your working copy from within the
 module's directory (with <code>cvs update</code>) you do not need the
 <code>-d</code> option anymore.  Simply use");
-print "</p>\n\n<blockquote>\n<pre>";
+print "</p>\n\n<pre>";
 print "cvs update\ncvs -qn update\n";
-print "</pre>\n</blockquote>\n\n";
+print "</pre>\n\n";
 
 print "<p>" . _('to preview and status check.') . "</p>\n";
 
