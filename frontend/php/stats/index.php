@@ -102,7 +102,7 @@ $count_groups = stats_getprojects ();
 
 $content = $total = [];
 
-$count = stats_getusers ("add_date >= '$since' AND add_date <= '$until'");
+$count = stats_getusers ("add_date >= $since AND add_date <= $until");
 $key = _("New users");
 $content[$key] = $count;
 $total[$key] = $count_users;
@@ -111,7 +111,7 @@ $page .= sprintf (ngettext ("%s new user", "%s new users", $count), $count);
 $page .= "</li>\n";
 
 $count = stats_getprojects (
-  "", "", "register_time >= '$since' AND register_time <= '$until'"
+  "", "", "register_time >= $since AND register_time <= $until"
 );
 $key = _("New groups");
 $content[$key] = $count;
@@ -196,10 +196,10 @@ foreach ($trackers as $tr)
     $total_art = ${"total_$art}"};
     if ($total_art <= 0)
       continue;
-    $count = stats_getitems ($art, 0, "date >= '$since' AND date <= '$until'");
+    $count = stats_getitems ($art, 0, "date >= $since AND date <= $until");
     $total = $count;
     $count_open = stats_getitems (
-      $art, 3, "date >= '$since' AND date <= '$until'"
+      $art, 3, "date >= $since AND date <= $until"
     );
     $total_open += $count_open;
 
