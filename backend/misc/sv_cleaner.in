@@ -76,21 +76,11 @@ itself.
                                in a crontab.
       --dry-run                Skip removing idle accounts\n";
 
-sub help_message
-{
-  print STDERR $help;
-  exit 0;
-}
-sub version_message
-{
-  print STDERR "$version\n";
-  exit 0;
-}
+PrintVersionOrHelp ($help);
 
 GetOptions (
   "cron" => \$cron, "big-cleanup" => \$big_cleanup, "debug" => \$debug,
-  "dry-run" => \$dry_run_option,
-  "help" => \&help_message, "version" => \&version_message
+  "dry-run" => \$dry_run_option
 ) or die ("Wrong command line.");
 
 $sys_dry_remove_idle_accounts = 1 if ($dry_run_option);

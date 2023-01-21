@@ -14,7 +14,7 @@
 
 # List of files which contain translatable strings.
 # Empty because we use some `find` in $(DOMAIN).opt-update
-POTFILES = 
+POTFILES =
 
 # Usually the message domain is the same as the package name.
 DOMAIN = savane
@@ -91,8 +91,11 @@ SUFFIXES = .po .gmo .mo .sed .sin .nop .po-create .po-update
 .po_utf-8.gmo:
 	@lang=`echo $* | sed -e 's,.*/,,'`; \
 	test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
-	echo "$${cdcmd}rm -f $${lang}.gmo && $(GMSGFMT) -c --statistics -o $${lang}.gmo $${lang}.po"; \
-	cd $(srcdir) && rm -f $${lang}.gmo && $(GMSGFMT) -c --statistics -o t-$${lang}.gmo $${lang}.po && mv t-$${lang}.gmo $${lang}.gmo
+	echo "$${cdcmd}rm -f $${lang}.gmo \
+	  && $(GMSGFMT) -c --statistics -o $${lang}.gmo $${lang}.po"; \
+	cd $(srcdir) && rm -f $${lang}.gmo \
+	  && $(GMSGFMT) -c --statistics -o t-$${lang}.gmo $${lang}.po \
+	  && mv t-$${lang}.gmo $${lang}.gmo
 
 .sin.sed:
 	sed -e '/^#/d' $< > t-$@
@@ -134,7 +137,8 @@ stamp-po: $(srcdir)/$(DOMAIN).pot
 # This target rebuilds $(DOMAIN).pot; it is an expensive operation.
 # Note that $(DOMAIN).pot is not touched if it doesn't need to be changed.
 $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
-	if LC_ALL=C grep 'GNU $(PACKAGE)' $(top_srcdir)/* 2>/dev/null | grep -v 'libtool:' >/dev/null; then \
+	if LC_ALL=C grep 'GNU $(PACKAGE)' $(top_srcdir)/* 2>/dev/null \
+	  | grep -v 'libtool:' >/dev/null; then \
 	  package_gnu='GNU '; \
 	else \
 	  package_gnu=''; \
@@ -144,37 +148,31 @@ $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	else \
 	  msgid_bugs_address='$(PACKAGE_BUGREPORT)'; \
 	fi; \
+	pkg_version=--package-name="$${package_gnu}$(PACKAGE)"; \
+	pkg_name=--package-version='$(VERSION)'; \
 	case `$(XGETTEXT) --version | sed 1q | sed -e 's,^[^0-9]*,,'` in \
-	  '' | 0.[0-9] | 0.[0-9].* | 0.1[0-5] | 0.1[0-5].* | 0.16 | 0.16.[0-1]*) \
-	    $(XGETTEXT) --default-domain=$(DOMAIN) --directory=$(top_srcdir) \
-	      --language=PHP \
-	      --add-comments=TRANSLATORS: $(XGETTEXT_OPTIONS) \
-	      --copyright-holder='$(COPYRIGHT_HOLDER)' \
-	      --msgid-bugs-address="$$msgid_bugs_address" \
-	      $(POTFILES) \
-	      `cd .. && find frontend/ -iname "*.php"` \
+	  '' | 0.[0-9] | 0.[0-9].* | 0.1[0-5] | 0.1[0-5].* \
+	    | 0.16 | 0.16.[0-1]*) \
+	    pkg_name=''; pkg_version=''; \
 	    ;; \
-	  *) \
-	    $(XGETTEXT) --default-domain=$(DOMAIN) --directory=$(top_srcdir) \
-	      --language=PHP \
-	      --add-comments=TRANSLATORS: $(XGETTEXT_OPTIONS) \
-	      --copyright-holder='$(COPYRIGHT_HOLDER)' \
-	      --package-name="$${package_gnu}$(PACKAGE)" \
-	      --package-version='$(VERSION)' \
-	      --msgid-bugs-address="$$msgid_bugs_address" \
-	      $(POTFILES) \
-	      `cd .. && find frontend/ -iname "*.php"` \
-	    ;; \
-	esac
+	esac; \
+	$(XGETTEXT) --default-domain=$(DOMAIN) --directory=$(top_srcdir) \
+	  --language=PHP \
+	  --add-comments=TRANSLATORS: $(XGETTEXT_OPTIONS) \
+	  --copyright-holder='$(COPYRIGHT_HOLDER)' "$$pkg_name" "$$pkg_version" \
+	  --msgid-bugs-address="$$msgid_bugs_address" \
+	  $(POTFILES) \
+	  `cd .. && find frontend/ -name "*.php" ! -name ac_config.php`; \
 	test ! -f $(DOMAIN).po || { \
 	  if test -f $(srcdir)/$(DOMAIN).pot; then \
-	    sed -f remove-potcdate.sed < $(srcdir)/$(DOMAIN).pot > $(DOMAIN).1po && \
-	    sed -f remove-potcdate.sed < $(DOMAIN).po > $(DOMAIN).2po && \
-	    if cmp $(DOMAIN).1po $(DOMAIN).2po >/dev/null 2>&1; then \
-	      rm -f $(DOMAIN).1po $(DOMAIN).2po $(DOMAIN).po; \
-	    else \
-	      rm -f $(DOMAIN).1po $(DOMAIN).2po $(srcdir)/$(DOMAIN).pot && \
-	      mv $(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
+	    sed -f remove-potcdate.sed < $(srcdir)/$(DOMAIN).pot \
+		> $(DOMAIN).1po \
+	    && sed -f remove-potcdate.sed < $(DOMAIN).po > $(DOMAIN).2po \
+	    && if cmp $(DOMAIN).1po $(DOMAIN).2po >/dev/null 2>&1; then \
+	          rm -f $(DOMAIN).1po $(DOMAIN).2po $(DOMAIN).po; \
+	       else \
+	          rm -f $(DOMAIN).1po $(DOMAIN).2po $(srcdir)/$(DOMAIN).pot \
+	            && mv $(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
 	    fi; \
 	  else \
 	    mv $(DOMAIN).po $(srcdir)/$(DOMAIN).pot; \
@@ -210,14 +208,22 @@ install-data-local-yes: all-local
 	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(mkdir_p) $(DESTDIR)$$dir; \
-	  if test -r $$cat; then realcat=$$cat; else realcat=$(srcdir)/$$cat; fi; \
+	  if test -r $$cat; then \
+	    realcat=$$cat; \
+	  else \
+	    realcat=$(srcdir)/$$cat; \
+	  fi; \
 	  $(INSTALL_DATA) $$realcat $(DESTDIR)$$dir/$(DOMAIN).mo; \
 	  echo "installing $$realcat as $(DESTDIR)$$dir/$(DOMAIN).mo"; \
 	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
 	    if test -n "$$lc"; then \
-	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
-	        link=`cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
-	        mv $(DESTDIR)$(localedir)/$$lang/$$lc $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
+	      if ( cd $(DESTDIR)$(localedir)/$$lang \
+		     && LC_ALL=C ls -l -d $$lc 2>/dev/null) \
+			| grep ' -> ' >/dev/null; then \
+	        link=`cd $(DESTDIR)$(localedir)/$$lang \
+			&& LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
+	        mv $(DESTDIR)$(localedir)/$$lang/$$lc \
+		  $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
 	        mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
 	        (cd $(DESTDIR)$(localedir)/$$lang/$$lc.old && \
 	         for file in *; do \
@@ -235,10 +241,14 @@ install-data-local-yes: all-local
 	        fi; \
 	      fi; \
 	      rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
-	      ln -s ../LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null || \
-	      ln $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null || \
-	      cp -p $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
-	      echo "installing $$realcat link as $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo"; \
+	      ln -s ../LC_MESSAGES/$(DOMAIN).mo \
+		$(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null \
+	      || ln $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo \
+		   $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null \
+	      || cp -p $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo \
+			$(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
+	      echo "installing $$realcat link as \
+		$(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo"; \
 	    fi; \
 	  done; \
 	done
@@ -255,9 +265,13 @@ installdirs-local-yes:
 	  $(mkdir_p) $(DESTDIR)$$dir; \
 	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
 	    if test -n "$$lc"; then \
-	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
-	        link=`cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
-	        mv $(DESTDIR)$(localedir)/$$lang/$$lc $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
+	      if ( cd $(DESTDIR)$(localedir)/$$lang \
+		    && LC_ALL=C ls -l -d $$lc 2>/dev/null) \
+			| grep ' -> ' >/dev/null; then \
+	        link=`cd $(DESTDIR)$(localedir)/$$lang \
+			&& LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
+	        mv $(DESTDIR)$(localedir)/$$lang/$$lc \
+		  $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
 	        mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
 	        (cd $(DESTDIR)$(localedir)/$$lang/$$lc.old && \
 	         for file in *; do \
@@ -294,8 +308,8 @@ html ID:
 
 MOSTLYCLEANFILES =
 MOSTLYCLEANFILES += remove-potcdate.sed
-MOSTLYCLEANFILES += stamp-poT
-MOSTLYCLEANFILES += core core.* *.stackdump $(DOMAIN).po $(DOMAIN).1po $(DOMAIN).2po *.new.po
+MOSTLYCLEANFILES += stamp-poT core core.* *.stackdump
+MOSTLYCLEANFILES += $(DOMAIN).po $(DOMAIN).1po $(DOMAIN).2po *.new.po
 MOSTLYCLEANFILES += *.o
 
 DISTCLEANFILES = *.mo stamp-po
@@ -324,7 +338,8 @@ update-po: Makefile
 
 .nop.po-create:
 	@lang=`echo $@ | sed -e 's/\.po-create$$//'`; \
-	echo "File $$lang.po does not exist. If you are a translator, you can create it through 'msginit'." 1>&2; \
+	echo "File $$lang.po does not exist." 1>&2; \
+	echo "If you are a translator, create it through 'msginit'." 1>&2; \
 	exit 1
 
 # General rule for updating PO files.
@@ -343,7 +358,8 @@ update-po: Makefile
 	    if mv -f $$tmpdir/$$lang.new.po $$lang.po; then \
 	      :; \
 	    else \
-	      echo "msgmerge for $$lang.po failed: cannot move $$tmpdir/$$lang.new.po to $$lang.po" 1>&2; \
+	      echo "msgmerge for $$lang.po failed: \
+		cannot move $$tmpdir/$$lang.new.po to $$lang.po" 1>&2; \
 	      exit 1; \
 	    fi; \
 	  fi; \
@@ -370,6 +386,3 @@ report:
 
 potfile: $(DOMAIN).pot-update
 refresh-po: potfile
-
-ask-update:
-	if [ -e /usr/bin/podebconf-report-po ]; then /usr/bin/podebconf-report-po --package=savane --podir=. --from="savane-dev-i18n@gna.org" --package="Savane" --template=../devel/updatepo-template.txt ; else echo " " && echo "podebconf-report-po not found, not able to ask to translators to update"; fi
