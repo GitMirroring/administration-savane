@@ -1,3 +1,136 @@
+????-??-?? 3.10
+
+[FRONTEND]
+
+* Securimage is replaced with Text_CAPTCHA.
+
+* When exiting due to missing parameters, the list of the missing
+  parameters is displayed.
+
+* New page, /bugs/item.php, to extract tracker items encrypted
+  to user's GPG key non-interactively (without having to log in).
+
+* When sending message from /sendmessage.php, a checkbox
+  'Send me a copy' is added.
+
+* Canned responses are quoted when quoting preview in order to
+  make it possible to customize them.
+
+* Newest supported PHP version is promoted to 8.1; multiple
+  updates are committed.
+
+* When looking for "site-specific" files, source tree is tried first;
+  the old location (via $sys_inc_dir) isn't supported any more.
+
+* Posts marked as spam are only shown their authors and tracker
+  admins.
+
+* New special field, 'updated' is added, Savannah sr #109372.
+
+* In trackers, controls for adding comments aren't offered unless
+  commenting is allowed.
+
+* In trackers, date selections are made optional.
+
+* In robots.txt, spam and users' GPG keys are "disallowed."
+
+* Running locally:
+
+** Configuration is updated.
+
+** Support shortcuts /u/ => /users/, /p/ => /projects/.
+
+** Support paths in /file.
+
+* New skill levels: "10 yr - 20 yr", "20 yr - 40 yr",
+  "40 yr - 80 yr", "> 80 years".
+
+* $sys_datefmt setting isn't supported any more.
+
+* "Stone age menu" description is updated.
+
+* On "Use CVS" pages, markup is improved.
+
+* Support for "broken MSIE" arrangements is dropped.
+
+* Bug fixes:
+
+** SQL query error when sending email notifications, Savannah
+   sr #110647.
+
+** Fix PHP warning when changing posting restrictions.
+
+** Fix exit_permission_denied status code.
+
+** When formatting in ASCII mode, commentless items were skipped.
+
+** Adding originator email and adding users to item notification
+   lists were broken for anonymous posts; Savannah sr #110658.
+
+** On Field Usage pages, in some cases unapplicable labels were shown.
+
+** In tracker item list, selection based on dates was broken.
+
+** In tracker item list, user preference weren't applied correctly.
+
+** In a few cases, special character decodig was wrong.
+
+** In tracker item list table head, "Submitted by" is shortened
+   to "Submitter", "Submitted on" to "Submitted", Savannah sr #109372.
+
+** In php/images/, a few missing links are added; execution permission
+   is cleared from files.
+
+** New item preview is fixed, Savannah sr #110700.
+
+** Cookies are passed to subdomains in order to make attachments
+   to private items accessible.
+
+** In tracker item lists, "multiple" date selections were broken.
+
+** Posts from non-existing users were handled incorrectly,
+   e.g. Savannah patch #2240.
+
+** Mailing list creation was broken since 3f27e1bb.
+
+** Fix PHP warnings when attaching files in trackers.
+
+** Fix multiple PHP notices.
+
+** In /stats/index.php, statistics for periods didn't work.
+
+** In tracker item lists, chunk sizes like "00" resulted
+   in modulo zero.
+
+** When displaying member list, superusers were treated as members,
+   pending members were still invited in the group; resume and "watch"
+   links for squads where offered; roles were explained twice
+   on the page.
+
+** /siteadmin/retestconfig.php didn't work
+
+** In item history, a few kinds of user-supplied values weren't
+   escaped properly.
+
+[BACKEND]
+
+* Add $sys_banned_email_domains and --dry_ryn in misc/sv_cleaner.in
+
+[I18N]
+
+* Update French, Hebrew, Russian.
+
+* In "detailed" member list, compound strings like
+  "task tracker" . " " . "technician" weren't localized correctly.
+
+[BUILD]
+
+* Bug fixes:
+
+** autoreconf wasn't invoked correctly.
+
+** The 'distcheck' rule is fixed in po/.
+
 2022-04-29 3.9
 
 [FRONTEND]
