@@ -283,23 +283,23 @@ function pagemenu_test_url ($group, $artifact)
   return $group->Uses ($artifact) && pagemenu_url_is_set ($group, $artifact);
 }
 
-function pagemenu_vcs_entry ($group, &$count, &$ret, $vcs, $vcs_name)
+function pagemenu_vcs_entry ($group, &$count, $vcs, $vcs_name)
 {
   $count++;
   $url = $group->getArtifactUrl ($vcs);
-  $ret .= pagemenu_submenu_entry (
+  $ret = pagemenu_submenu_entry (
     # TRANSLATORS: the argument is VCS name (like Git or Bazaar).
     sprintf (_("Use %s"), $vcs_name), $url, 1,
     # TRANSLATORS: the argument is VCS name (like Git or Bazaar).
     sprintf (_("%s Repository"), $vcs_name)
   );
   # Do we need links to browse repositories?
-  $v_idx = $vcs . '_viewcvs';
-  if (pagemenu_test_url ($group, $vcs))
+  $a_idx = $vcs . '_viewcvs';
+  if ($group->Uses ($vcs) && pagemenu_url_is_set ($group, $a_idx))
     {
       $count++;
       $ret .= pagemenu_submenu_entry (
-        _("Browse Sources Repository"), $group->getUrl ($v_idx)
+        _("Browse Sources Repository"), $group->getUrl ($a_idx)
       );
     }
 
@@ -312,6 +312,7 @@ function pagemenu_vcs_entry ($group, &$count, &$ret, $vcs, $vcs_name)
         $group->getUrl ("cvs_viewcvs_homepage")
       );
     }
+  return $ret;
 }
 
 # Menu specific to Group pages.
@@ -415,7 +416,6 @@ function pagemenu_group ()
     }
 
   $count = 0;
-  $vcses = ['cvs', 'svn', 'arch', 'git', 'hg', 'bzr'];
   # TRANSLATORS: this string is used as argument in messages 'Use %s'
   # and '%s Repository'.
   $vcses = ['cvs' => _('CVS'), 'svn' => _('Subversion'),
@@ -450,7 +450,7 @@ function pagemenu_group ()
 
       foreach ($vcses as $v => $t)
         if ($have_vcs[$v])
-          pagemenu_vcs_entry ($project, $count, $ret, $v, $t);
+          $ret .= pagemenu_vcs_entry ($project, $count, $v, $t);
 
       # Add a submenu only if there is more than one item.
       if ($ret && $count > 1)
@@ -642,7 +642,7 @@ function pagemenu_siteadmin ()
   );
   $titles = [
     "$root/retestconfig.php" => "Test System Configuration",
-    "$root/group_type.php" => "Configure Group Types", 
+    "$root/group_type.php" => "Configure Group Types",
     "{$sys_home}people/admin/" => "Configure People Area"];
   $txt = "";
   foreach ($titles as $u => $t)
