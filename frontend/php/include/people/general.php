@@ -638,7 +638,7 @@ function people_edit_skill_inventory ($user_id)
   $result = db_execute ("
     SELECT *, s.name AS skill_name
     FROM people_skill_inventory i, people_skill s
-    WHERE user_id = ? AND s.skill_id = s.skill_id",
+    WHERE user_id = ? AND s.skill_id = i.skill_id",
     [$user_id]
   );
   people_draw_skill_box ($result);
