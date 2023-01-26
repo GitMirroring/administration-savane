@@ -431,10 +431,10 @@ function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
       print form_tag (['action' => "{$sys_home}account/impersonate.php"])
         . '<label for="user_name">' . _("Become this user:")
         . "</label><br/>\n";
-      print html_hidden (["uri" => urlencode ($_SERVER['REQUEST_URI'])]);
+      print form_hidden (["uri" => urlencode ($_SERVER['REQUEST_URI'])]);
       print '<input type="text" id="user_name" name="user_name" size=10 '
         . '/>&nbsp;';
-      print '<input type="submit" name="impersonate" value="' 
+      print '<input type="submit" name="impersonate" value="'
         . _("Impersonate") . '" />';
       print "</form>\n";
     }
