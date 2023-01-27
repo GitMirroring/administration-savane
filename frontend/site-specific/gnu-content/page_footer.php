@@ -1,9 +1,8 @@
 <?php
-
 # Copyright (C) 2002, 2003 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2005, 2006, 2007, 2008, 2009 Sylvain Beucler
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 Karl Berry
-# Copyright (C) 2013, 2017, 2018 Ineiev <ineiev@gnu.org>
+# Copyright (C) 2013, 2017, 2018, 2023 Ineiev <ineiev@gnu.org>
 # Copyright (C) 2022 Bob Proulx
 #
 # This file is part of Savane.
@@ -21,28 +20,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-print '
-'._('Copyright &copy; 2022 &nbsp;Free Software Foundation, Inc.').'
+print "\n"
+  . 'Copyright &copy; 2023 &nbsp;Free Software Foundation, Inc.'
+  . "\n<br />\n"
+  . _("Verbatim copying and distribution of this entire article\n"
+      . "is permitted in any medium, provided this notice is preserved.")
+  . "\n<br />\n";
+printf (
+  _("The <a href=\"%s\">Levitating,\nMeditating, Flute-playing Gnu</a> "
+    . "logo is a GNU GPL'ed image provided\nby the Nevrax Design Team."),
+  '//www.gnu.org/graphics/meditate.html'
+);
 
-<br />
-
-'._('Verbatim copying and distribution of this entire article
-is permitted in any medium, provided this notice is preserved.').'
-
-<br />
-
-';
-printf (_('The <a href="%s">Levitating,
-Meditating, Flute-playing Gnu</a> logo is a GNU GPL\'ed image provided
-by the Nevrax Design Team.'), '//www.gnu.org/graphics/meditate.html');
-
-print '<br />
-<a href="';
-
-echo '//git.savannah.gnu.org/cgit/administration/savane.git/plain/'
-  . preg_replace(':/opt/savannah/savane/:', '', realpath($_SERVER['SCRIPT_FILENAME']));
-
-print'">'._('Source Code').'</a>
-';
+print "<br />\n<a href=\"";
+print '//git.savannah.gnu.org/cgit/administration/savane.git/plain/'
+  . preg_replace (
+      ':/opt/savannah/savane/:', '', realpath ($_SERVER['SCRIPT_FILENAME'])
+    );
+print '">' . _('Source Code') . "</a>\n";
 
 ?>
