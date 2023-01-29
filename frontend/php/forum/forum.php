@@ -192,7 +192,7 @@ if ($forum_id)
         );
         # Now show the popup boxes in a form.
         $ret_val .= "<table border='0' width='50%'>\n"
-          . form_action (['method' => 'get'])
+          . form_tag (['method' => 'get'])
           . form_hidden (
               ['set' => 'custom', 'forum_id' => htmlspecialchars ($forum_id)]
             )
