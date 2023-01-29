@@ -135,7 +135,7 @@ if ($forum_id)
         # messages out of the forum.
         # The other views just want the top message in a thread so they
         # can recurse.
-        $threading_sql = 'AND forum.is_followup_to = 0';
+        $threading_sql = 'AND f.is_followup_to = 0';
       }
     $result = db_execute ("
       SELECT
@@ -144,9 +144,9 @@ if ($forum_id)
         f.is_followup_to, g.group_id
       FROM forum f, user u, forum_group_list g
       WHERE
-        f.group_forum_id = ?  AND user.user_id = forum.posted_by $threading_sql
+        f.group_forum_id = ?  AND u.user_id = f.posted_by $threading_sql
         AND g.group_forum_id = f.group_forum_id
-      ORDER BY forum.date DESC LIMIT ?, ?",
+      ORDER BY f.date DESC LIMIT ?, ?",
       [$forum_id, $offset, $max_rows + 1]
     );
     $rows = db_numrows ($result);
