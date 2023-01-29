@@ -66,7 +66,7 @@ function forum_show_nested_messages ($thread_id, $msg_id)
       u.user_name, f.has_followups, u.realname, u.user_id, f.msg_id,
       f.group_forum_id, f.subject, f.thread_id, f.body, f.date,
       f.is_followup_to, g.group_id
-    FROM forum f, user u, g g
+    FROM forum f, user u, forum_group_list g
     WHERE
       f.thread_id = ? AND u.user_id = f.posted_by AND f.is_followup_to = ?
       AND g.group_forum_id = f.group_forum_id
