@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2007  Sylvain Beucler
 # Copyright (C) 2014  Assaf Gordon
-# Copyright (C) 2022  Ineiev
+# Copyright (C) 2022, 2023  Ineiev
 #
 # This file is part of Savane.
 #
@@ -23,7 +23,7 @@
 # (public domain)
 
 AC_INIT([GNU Savannah],
-	[3.9],
+	[3.10],
 	[savannah-hackers-public@gnu.org], [savane],
 	[https://savannah.gnu.org/projects/administration])
 
