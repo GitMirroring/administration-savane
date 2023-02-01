@@ -162,12 +162,13 @@ $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	  --copyright-holder='$(COPYRIGHT_HOLDER)' "$$pkg_name" "$$pkg_version" \
 	  --msgid-bugs-address="$$msgid_bugs_address" \
 	  $(POTFILES) \
-	  `cd .. && find frontend/ -name "*.php" ! -name ac_config.php`; \
+	  `cd $(top_srcdir) && find frontend/ -name "*.php" ! -name ac_config.php`; \
 	test ! -f $(DOMAIN).po || { \
 	  if test -f $(srcdir)/$(DOMAIN).pot; then \
 	    sed -f remove-potcdate.sed < $(srcdir)/$(DOMAIN).pot \
-		> $(DOMAIN).1po \
-	    && sed -f remove-potcdate.sed < $(DOMAIN).po > $(DOMAIN).2po \
+	      | grep -v '^#: ' > $(DOMAIN).1po \
+	    && sed -f remove-potcdate.sed < $(DOMAIN).po  \
+	         | grep -v '^#: ' > $(DOMAIN).2po \
 	    && if cmp $(DOMAIN).1po $(DOMAIN).2po >/dev/null 2>&1; then \
 	          rm -f $(DOMAIN).1po $(DOMAIN).2po $(DOMAIN).po; \
 	       else \
