@@ -240,6 +240,9 @@ $message = confirmation_gen_email ($type_base_host, $user_realname,
 
 $message_user = "$message";
 
+$group_admin_url =
+  "$sys_https_url{$sys_home}siteadmin/groupedit.php?group_id=$group_id";
+
 $message_admin = "A new project has been registered at {$GLOBALS['sys_name']}.
 This project account will remain inactive until a site admin approves
 or discards the registration.
@@ -247,16 +250,9 @@ or discards the registration.
 
 = Registration Administration =
 
-While this item will be useful to track the registration process, "
-. "*approving or discarding the registration must be done using the "
-. "specific [{$GLOBALS['sys_https_url']}{$GLOBALS['sys_home']}"
-. "siteadmin/groupedit.php?group_id=$group_id"
-. " Group Administration] page*, accessible only to site administrators,
-effectively *logged as site administrators* (superuser):
-
-* [{$GLOBALS['sys_https_url']}{$GLOBALS['sys_home']}"
-. "siteadmin/groupedit.php?group_id=$group_id Group Administration]
-
+Approving or discarding the registration must be done using the specific
+[$group_admin_url Group administration] page, accessible only to site
+administrators logged in as superusers.
 
 = Registration Details =
 
