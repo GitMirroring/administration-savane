@@ -44,6 +44,9 @@ if (db_numrows ($res_grp) < 1)
 
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 $key_func = ['preg', '/^(([\d]+)|(new))$/'];
+$email_regex =
+   '([a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+,)*'
+   . '([a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+)';
 extract (sane_import ('post',
   [
     'true' => 'log_accum',
@@ -66,16 +69,8 @@ extract (sane_import ('post',
           ['preg', '/^(([a-zA-Z0-9_.+\/-]+,)*([a-zA-Z0-9_.+\/-]+))$/']
         ]
       ],
-      ['arr_emails_notif', 'arr_emails_diff',
-        [
-          $key_func,
-          [
-            'preg',
-            '/^([a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+,)*'
-            . '([a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+)$/'
-          ]
-        ]
-      ],
+      ['arr_emails_notif', [$key_func, ['preg', "/^$email_regex" . '$/']]],
+      ['arr_emails_diff', [$key_func, ['preg', "/^($email_regex)|$/"]]],
       ['arr_enable_diff', [$key_func, ['digits', [1, 1]]]]
     ]
   ]));
@@ -103,29 +98,25 @@ if (isset ($log_accum))
             continue;
           if (!isset ($arr_match_type[$hook_id]))
             continue;
+          if (empty ($arr_emails_notif[$hook_id]))
+            continue;
           $repo_name = $arr_repo_name[$hook_id];
           $match_type = $arr_match_type[$hook_id];
           $dir_list = null;
-          if (isset ($arr_dir_list[$hook_id]) && $match_type == 'dir_list')
+          if (isset ($arr_dir_list[$hook_id]))
             $dir_list = $arr_dir_list[$hook_id];
           $branches = null;
           if (isset ($arr_branches[$hook_id])
-              && $arr_branches[$hook_id] != '')
+              && $arr_branches[$hook_id] !== '')
             $branches = $arr_branches[$hook_id];
           $enable_diff = '0';
-          if (isset($arr_enable_diff[$hook_id]))
+          if (!empty ($arr_enable_diff[$hook_id]))
             $enable_diff = $arr_enable_diff[$hook_id];
-          $emails_notif = null;
-          if (isset ($arr_emails_notif[$hook_id]))
-            $emails_notif = $arr_emails_notif[$hook_id];
-          if ($emails_notif === null)
-            continue;
+          $emails_notif = $arr_emails_notif[$hook_id];
           $emails_diff = null;
           if (isset ($arr_emails_diff[$hook_id])
-              && $arr_emails_diff[$hook_id])
+              && $arr_emails_diff[$hook_id] !== '')
             $emails_diff = $arr_emails_diff[$hook_id];
-          if ($enable_diff && $emails_diff === null)
-            continue;
 
           if ($hook_id == 'new')
             {
@@ -186,6 +177,10 @@ print html_build_list_table_top (
   ]
 );
 
+$repo_keys =  ['sources', 'web'];
+# TRANSLATORS: this is the type of repository (sources  or web).
+$repo_vals = [_('sources'), _('web')];
+
 while ($row = db_fetch_array ($result))
   {
     $cur= $row['hook_id'];
@@ -193,8 +188,8 @@ while ($row = db_fetch_array ($result))
     print form_hidden (["arr_id[$cur]" => "$cur"]);
     print form_checkbox ("arr_remove[$cur]", 0);
     print "</td>\n<td>";
-    print html_build_select_box_from_array (
-      ['sources', 'web'], "arr_repo_name[$cur]", $row['repo_name'], 1
+    print html_build_select_box_from_arrays (
+      $repo_keys, $repo_vals, "arr_repo_name[$cur]", $row['repo_name'], false
     );
     print "</td>\n<td>";
     print match_type_box ("arr_match_type[$cur]", $row['match_type']);
@@ -222,14 +217,8 @@ print "<h2>" . _("New notification") . "</h2>\n";
 print form_tag ([], "?group=$group");
 print "<ol>\n";
 print "<li>" . _("Repository:") . " ";
-print html_build_select_box_from_array (
-  [
-    # TRANSLATORS: this is the type of repository (sources  or web).
-    _('sources'),
-    # TRANSLATORS: this is the type of repository (sources  or web).
-    _('web')
-  ],
-  "arr_repo_name[new]"
+print html_build_select_box_from_arrays (
+  $repo_keys, $repo_vals, "arr_repo_name[new]", 'xzxz', false
 );
 print "</li>\n<li>";
 print _("Matching type:") . " ";
