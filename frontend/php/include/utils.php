@@ -6,7 +6,7 @@
 # Copyright (C) 2002-2006 Tobias Toedter <t.toedter--gmx.net>
 # Copyright (C) 2004-2007 Aidan Lister <aidan@php.net>, Arpad Ray <arpad@php.net>
 # Copyright (C) 2006, 2007, 2008, 2010 Sylvain Beucler
-# Copyright (C) 2017, 2018, 2019, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -500,7 +500,10 @@ function utils_get_priority_color ($index, $closed = "")
   if ($closed == 3)
     $index = $index + 10;
 
-  return $bgpri[$index];
+  if (isset ($bgpri[$index]))
+    return $bgpri[$index];
+
+  return 'unknown-priority';
 }
 
 # Very simple, plain way to show a generic result set.

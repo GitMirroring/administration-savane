@@ -6,7 +6,7 @@
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2014, 2017-2022  Ineiev
+# Copyright (C) 2014, 2017-2023  Ineiev
 #
 # This file is part of Savane.
 #
@@ -110,9 +110,25 @@ unset ($url_params['group_id']);
 unset ($url_params['history_date']);
 
 # Make safe for inclusion in an URL (replace quotes with dots).
+function sanitize_val ($x)
+{
+  if (is_string ($x))
+    {
+      $x = strtr ($x, '"\'', '..');
+      return $x;
+    }
+  if (is_numeric ($x)) # Numbers are sane.
+    return $x;
+  return 'xxx'; # Some queer type fed.
+}
+
 function sanitize_field (&$x)
 {
-  $x = strtr ($x, '"\'', '..');
+  if (is_array ($x))
+    foreach ($x as $key => $val)
+      $x[$key] = sanitize_val ($val);
+  else
+    $x = sanitize_val ($x);
   return $x;
 }
 

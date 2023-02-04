@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2004-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2004-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -152,11 +152,10 @@ foreach ($items_for_digest as $item)
   {
     $i++;
     $result =
-      db_execute (
-        "SELECT * FROM " . ARTIFACT . " WHERE bug_id = ? AND group_id = ?",
-        [$item, $group_id]
-      );
+      db_execute ("SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?", [$item]);
 
+    if (!$result || db_numrows ($result) < 1)
+      continue;
     $res_arr = db_fetch_array ($result);
     # Skip it is it is private but the user got no privilege.
     # Normally, the user should not even been able to select this item.
