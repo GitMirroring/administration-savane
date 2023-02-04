@@ -181,8 +181,8 @@ print "<table>\n";
 print html_build_list_table_top (
   [
     html_image_trash (['alt' => _("Delete")]),
-    _('Repository'), _('Match type'), _('Module list'), _('Branch filter'),
-    _('Notification to'), _('Diff?'), _('Separate diffs to')
+    _('Repo'), _('Match'), _('Modules'), _('Branches'),
+    _('Send to'), _('Diff?'), _('Diffs to')
   ]
 );
 
@@ -200,16 +200,16 @@ while ($row = db_fetch_array ($result))
     print match_type_box ("arr_match_type[$cur]", $row['match_type']);
     print "</td>\n";
     print "<td><input type='text' name='arr_dir_list[$cur]' "
-      . "value='{$row['dir_list']}' /></td>\n";
+      . "value='{$row['dir_list']}' size='10' /></td>\n";
     print "<td><input type='text' name='arr_branches[$cur]' "
-      . "value='{$row['branches']}' /></td>\n";
+      . "value='{$row['branches']}' size='10' /></td>\n";
     print "<td><input type='text' name='arr_emails_notif[$cur]' "
-      . "value='{$row['emails_notif']}' /></td>\n";
+      . "value='{$row['emails_notif']}' size='13' /></td>\n";
     print "<td>";
     print form_checkbox ("arr_enable_diff[$cur]", $row['enable_diff']);
     print "</td>\n";
     print "<td><input type='text' name='arr_emails_diff[$cur]' "
-      . "value='{$row['emails_diff']}' /></td>\n";
+      . "value='{$row['emails_diff']}' size='13' /></td>\n";
     print "</tr>\n";
   }
 
