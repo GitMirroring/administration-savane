@@ -229,11 +229,11 @@ print html_build_select_box_from_array (
     # TRANSLATORS: this is the type of repository (sources  or web).
     _('web')
   ],
-  "arr_repo_name[new]", $row['repo_name'], 1
+  "arr_repo_name[new]"
 );
 print "</li>\n<li>";
 print _("Matching type:") . " ";
-print match_type_box ("arr_match_type[new]", $row['match_type']);
+print match_type_box ("arr_match_type[new]", 'xzxz');
 print "<ul>
   <li>" . _("<i>Always</i> is always performed (even in addition to Fallback)")
   . "</li>
@@ -250,29 +250,29 @@ print _("Filter by directory: if match is <i>Module list</i>, enter a list of
   directories.<br />
   Leave blank if you want to get notifications for all the repository:")
   . "<br />";
-print "<input type='text' name='arr_dir_list[new]' value='{$row['dir_list']}' />";
+print "<input type='text' name='arr_dir_list[new]' value='' />";
 print "</li>\n<li>";
 print _("List of comma-separated emails to send notifications to, e.g.
   winnie@the-pooh.mil, yu@guan.edu):") . "<br />";
 print "<input type='text' name='arr_emails_notif[new]' "
-  . "value='{$row['emails_notif']}' />";
+  . "value='' />";
 print "</li>\n<li>";
 print _("Send diffs?") . " ";
-print form_checkbox ("arr_enable_diff[new]", $row['enable_diff']);
+print form_checkbox ("arr_enable_diff[new]", 0);
 print "</li>\n<li>";
 print _("Optional alternate list of emails to send diffs separately to, e.g.
   winnie@the-pooh.mil, yu@guan.edu.<br />
   If empty, the diffs will be included in commit notifications:")
   . "<br />";
 print "<input type='text' name='arr_emails_diff[new]' "
-  . "value='{$row['emails_diff']}' />\n";
+  . "value='' />\n";
 print "</li>\n<li>";
 print _("Filter by branch: you will be notified only commits in these branches,
   separated by commas.<br />
   Enter <i>HEAD</i> if you only want trunk commits.<br />
   Leave blank to get notifications for all commits:")
   . "<br />";
-print "<input type='text' name='arr_branches[new]' value='{$row['branches']}' />";
+print "<input type='text' name='arr_branches[new]' value='' />";
 print "</li>\n</ol>\n";
 print "<input type='hidden' name='arr_id[new]' value='new' />\n";
 $caption = _('Add');
