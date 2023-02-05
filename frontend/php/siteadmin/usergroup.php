@@ -4,7 +4,7 @@
 # This file is part of the Savane project
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2017, 2018, 2019, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -129,11 +129,12 @@ function list_user_contributions ($user_id, $user_name)
         break;
       $spam = $entry['spamscore'];
       $date = utils_format_date ($entry['date'], 'natural');
-      if ($spam > 0)
-        $spam = "<b>$spam</b>";
       $spam = no_i18n ('Spam score') . " $spam; ";
-      print "  <dt><b>" . ($i + $offset)
-        . "</b>: $spam$date {$entry['summary']}</dt>\n";
+      $line = "$spam$date {$entry['summary']}";
+      if ($spam > 4)
+        $line = "<b>$line</b>";
+      $entry_num = $i + $offset;
+      print "  <dt><b>$entry_num</b>: $line</dt>\n";
       if (isset ($entry['details']))
         $decoded = trackers_decode_value ($entry['details']);
       if (preg_match ('/\'>New Item in/', $entry['summary']))
