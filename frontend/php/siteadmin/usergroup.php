@@ -23,7 +23,7 @@
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n($string)
+function no_i18n ($string)
 {
   return $string;
 }
@@ -34,9 +34,9 @@ require_once ('../include/account.php');
 require_once ('../include/markup.php');
 require_once ('../include/trackers/data.php');
 
-session_require(array('group'=>'1','admin_flags'=>'A'));
+session_require (['group' => '1','admin_flags' => 'A']);
 
-$HTML->header(array('title'=>no_i18n('Admin: User Info')));
+$HTML->header (['title' => no_i18n ('Admin: User Info')]);
 
 extract (sane_import ('request',
   [
@@ -68,9 +68,10 @@ if (empty ($comment_max_rows))
 $max_rows = intval ($comment_max_rows);
 $offset = intval ($comment_offset);
 
-function list_user_contributions ($user_id, $user_name)
+function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
 {
-  global $offset, $max_rows, $php_self;
+  global $php_self;
+  $max_plus = $max_rows + 1;
 
   print "\n<h2>";
   if ($user_id != 100)
@@ -79,7 +80,7 @@ function list_user_contributions ($user_id, $user_name)
     print no_i18n ("Anonymous Posts");
   print "</h2>\n";
 
-  $trackers = array ('cookbook', 'bugs', 'task', 'support', 'patch');
+  $trackers = ['cookbook', 'bugs', 'task', 'support', 'patch'];
   $query = '';
   foreach ($trackers as $tracker)
     {
@@ -101,17 +102,20 @@ function list_user_contributions ($user_id, $user_name)
         WHERE mod_by = $user_id
         UNION";
     }
-  $query .= '
-    SELECT CONCAT("<a href=\"/project/admin/history.php?group=",
-                  groups.unix_group_name,
-                  "\">Request for inclusion in ", groups.group_name, "</a>")
-             as summary, " " as details, -1 as spamscore,
-             group_history_id as comment_id, group_history.date as date
-      FROM group_history,groups
-      WHERE group_history.old_value = "' . $user_name . '"
-            AND groups.group_id = group_history.group_id
-            AND group_history.field_name = "User Requested Membership"
-    ORDER BY date DESC LIMIT ' . $offset . ',' . ($max_rows + 1);
+  $query .= "
+    SELECT
+      CONCAT(\"<a href=\\\"/project/admin/history.php?group=\",
+        g.unix_group_name, \"\\\">Request for inclusion in \",
+        g.group_name, \"</a>\"
+        )
+      as summary,
+      \" \" as details, -1 as spamscore, group_history_id as comment_id,
+      h.date as date
+      FROM group_history h, groups g
+      WHERE h.old_value = \"$user_name\"
+            AND g.group_id = h.group_id
+            AND h.field_name = \"User Requested Membership\"
+    ORDER BY date DESC LIMIT $offset, $max_plus";
   $result = db_execute ($query);
   if (!db_numrows ($result))
     {
@@ -138,156 +142,148 @@ function list_user_contributions ($user_id, $user_name)
       if (isset ($entry['details']))
         $decoded = trackers_decode_value ($entry['details']);
       if (preg_match ('/\'>New Item in/', $entry['summary']))
-        {
-          $entry['details'] = '<div class="tracker_comment">'
-                              . markup_full ($decoded) . "</div>\n";
-        }
+        $entry['details'] = '<div class="tracker_comment">'
+          . markup_full ($decoded) . "</div>\n";
       elseif (preg_match ('/ \(details\)<\/a>$/', $entry['summary']))
-        {
-          $entry['details'] = '<div class="tracker_comment">'
-                              . markup_rich ($decoded) . "</div>\n";
-        }
+        $entry['details'] = '<div class="tracker_comment">'
+          . markup_rich ($decoded) . "</div>\n";
       elseif ($entry['spamscore'] < 0)
         $entry['details'] = markup_rich ($decoded);
       elseif ($entry['details'] !== null)
         $entry['details'] = htmlentities ($entry['details']);
-      print "    <dd>" . $entry['details'] . "</dd>\n";
+      print "<dd>{$entry['details']}</dd>\n";
     }
   print "</dl>\n";
   html_nextprev ("$php_self?user_id=$user_id",
     $max_rows, db_numrows ($result), 'comment'
   );
-}
+} # list_user_contributions
 
 if ($user_id == 100)
   {
-    list_user_contributions ($user_id, '_');
-    html_feedback_bottom();
-    $HTML->footer(array());
+    list_user_contributions ($user_id, '_', $offset, $max_rows);
+    html_feedback_bottom ();
+    $HTML->footer ([]);
     exit;
   }
 
-if ($action=='remove_user_from_group')
+if ($action == 'remove_user_from_group')
   {
-    $result = db_execute("DELETE FROM user_group "
-                         ."WHERE user_id=? AND group_id=?",
-                         array($user_id, $group_id));
-    if (!$result || db_affected_rows($result) < 1)
-      fb(no_i18n('Error Removing User:').' '.db_error(), 1);
+    $result = db_execute (
+      "DELETE FROM user_group WHERE user_id = ? AND group_id = ?",
+      [$user_id, $group_id]
+    );
+    if (!$result || db_affected_rows ($result) < 1)
+      fb (no_i18n ('Error Removing User:') . ' ' . db_error (), 1);
     else
-      fb (no_i18n('Successfully removed user'));
+      fb (no_i18n ('Successfully removed user'));
   }
-elseif ($action=='update_user_group')
+elseif ($action == 'update_user_group')
   {
-    $result = db_execute("UPDATE user_group SET admin_flags=? "
-                         . "WHERE user_id=? AND group_id=?",
-                         array($admin_flags, $user_id, $group_id));
-    if (!$result || db_affected_rows($result) < 1)
-      fb(no_i18n('Error Updating User Group:').' '.db_error(), 1);
+    $result = db_execute ("
+      UPDATE user_group SET admin_flags = ?
+      WHERE user_id = ? AND group_id = ?",
+      [$admin_flags, $user_id, $group_id]
+    );
+    if (!$result || db_affected_rows ($result) < 1)
+      fb (no_i18n ('Error Updating User Group:') . ' ' . db_error (), 1);
     else
-      fb(no_i18n('Successfully updated user group'));
+      fb (no_i18n ('Successfully updated user group'));
   }
-elseif ($action=='update_user')
+elseif ($action == 'update_user')
   {
-    $result=db_execute("UPDATE user SET email=? WHERE user_id=?",
-                       array(preg_replace ('/\s/', "", $email), $user_id));
-    if (!$result || db_affected_rows($result) < 1)
-      fb(no_i18n('Error Updating User:').$result.' '.db_error(), 1);
+    $result = db_execute (
+      "UPDATE user SET email = ? WHERE user_id = ?",
+      [preg_replace ('/\s/', "", $email), $user_id]
+    );
+    if (!$result || db_affected_rows ($result) < 1)
+      fb (no_i18n ('Error Updating User:') . ' ' . db_error (), 1);
     else
-      fb(no_i18n('Successfully updated user'));
+      fb (no_i18n ('Successfully updated user'));
   }
-elseif ($action=='add_user_to_group')
+elseif ($action == 'add_user_to_group')
   {
-    $result=db_execute("INSERT INTO user_group (user_id, group_id) "
-                           ."VALUES (?, ?)",
-                       array($user_id, $group_id));
-    if (!$result || db_affected_rows($result) < 1)
-      fb(no_i18n('Error Adding User to Group:').' '.db_error(), 1);
+    $result = db_execute (
+      "INSERT INTO user_group (user_id, group_id) VALUES (?, ?)",
+      [$user_id, $group_id]
+    );
+    if (!$result || db_affected_rows ($result) < 1)
+      fb (no_i18n ('Error Adding User to Group:') . ' ' . db_error (), 1);
     else
-      fb(no_i18n('Successfully added user to group'));
+      fb (no_i18n ('Successfully added user to group'));
   }
 elseif ($action == 'rename')
   {
-    if (!account_namevalid ($new_name))
-      {
-        fb(no_i18n(sprintf('New account name <%s> is invalid', $new_name), 1));
-      }
-    else
+    if (account_namevalid ($new_name))
       {
         $res = user_rename ($user_id, $new_name);
         if ('' == $res)
-          {
-            fb(no_i18n('Successfully renamed account to '). $new_name);
-          }
+          fb (no_i18n ('Successfully renamed account to ') . $new_name);
         else
-          {
-            fb(no_i18n('Error renaming account to <'. $new_name . '>:' . $res),
-                       1);
-          }
+          fb (no_i18n ("Error renaming account to <$new_name>: $res"), 1);
       }
+    else
+      fb (no_i18n (sprintf ('New account name <%s> is invalid', $new_name), 1));
   }
 
 # Get user info.
-$res_user = db_execute("SELECT * FROM user WHERE user_id=?", array($user_id));
-$row_user = db_fetch_array($res_user);
+$res_user = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
+$row_user = db_fetch_array ($res_user);
 
-print '
-<p>' . no_i18n('Savannah User Group Edit for user:') . ' <strong>'
-. $user_id .  ' ' . user_getname($user_id) . "</strong></p>\n";
+print '<p>' . no_i18n ('Savannah User Group Edit for user:')
+  . " <b>$user_id " . user_getname ($user_id) . "</b></p>\n";
 if ($row_user['status'] == 'SQD')
-  print '<p>' . no_i18n('Account info: this is a squad.') . '</p>';
+  print '<p>' . no_i18n ('Account info: this is a squad.') . '</p>';
 else
   {
-    print "<p>" . no_i18n('Account Info:') . "</p>\n" . form_tag ()
+    print "<p>" . no_i18n ('Account Info:') . "</p>\n" . form_tag ()
       . form_hidden (['action' => 'update_user', 'user_id' => $user_id])
       . "</p>\n<p>Email:\n<input type='text' title=\""
       . no_i18n ("Email") . '" name="email" value="'
       . $row_user['email'] . '" size="25" maxlength="55">' . "</p>\n<p>\n"
       . '<input type="submit" name="Update_Unix" value="'
-      . no_i18n('Update') . "\"></p>\n</form>\n";
+      . no_i18n ('Update') . "\"></p>\n</form>\n";
     print form_tag ()
       . form_hidden (['action' => 'rename', 'user_id' => $user_id])
       . "<p>Account name:\n"
-      . '<input type="text" title="' . no_i18n("New name")
+      . '<input type="text" title="' . no_i18n ("New name")
       . '" name="new_name" value="'
       . $row_user['user_name'] . '" size="25" maxlength="55">' . "</p>\n<p>\n"
-      . '<input type="submit" name="' . no_i18n('Update_Name') . '" value="'
-      . no_i18n('Rename') . "\"></p>\n</form>\n<hr />\n";
+      . '<input type="submit" name="' . no_i18n ('Update_Name') . '" value="'
+      . no_i18n ('Rename') . "\"></p>\n</form>\n<hr />\n";
   } #  $row_user['status'] != 'SQD'
 print '<p><a href="/siteadmin/userlist.php?action=delete&amp;user_id='
-  . $user_id . '">'. no_i18n ('[Delete User]') . "</a></p>\n\n";
-print '<h2>' . no_i18n('Current Groups') . "</h2>\n";
+  . $user_id . '">' . no_i18n ('[Delete User]') . "</a></p>\n\n";
+print '<h2>' . no_i18n ('Current Groups') . "</h2>\n";
 
 # Iterate and show groups this user is in.
 $res_cat = db_execute ("
-  SELECT g.group_name, g.group_id, u.admin_flags
-  FROM groups g, user_group u
+  SELECT g.group_name, g.group_id, u.admin_flags FROM groups g, user_group u
   WHERE u.user_id = ? AND g.group_id = u.group_id", [$user_id]
 );
 
 while ($row_cat = db_fetch_array ($res_cat))
   {
+    $grp_id = $row_cat['group_id'];
+    $grp_name = group_getname ($grp_id);
     if ($row_user['status'] == 'SQD')
       {
         print "<br />\n"
-         . '<a href="/project/admin/squadadmin.php?squad_id='
-         . $user_id . '&amp;group_id=' . $row_cat['group_id']
-         . '">' . group_getname($row_cat['group_id']) . "</a>\n";
+          . '<a href="/project/admin/squadadmin.php?squad_id='
+          . "$user_id&amp;group_id=$grp_id\">$grp_name</a>\n";
         continue;
       }
-    print ("<br /><hr /><strong>"
-         . group_getname($row_cat['group_id']) . "</strong> "
-         . "<a href=\"usergroup.php?user_id="
-         . "$user_id&amp;action=remove_user_from_group&amp;group_id="
-         . $row_cat['group_id'] . "\">"
-         . "[" . no_i18n('Remove User from Group') . "]</a>");
+    print ("<br /><hr /><b>$grp_name</b> "
+      . "<a href=\"usergroup.php?user_id=$user_id"
+      . "&amp;action=remove_user_from_group&amp;group_id=$grp_id\">"
+      . "[" . no_i18n ('Remove User from Group') . "]</a>");
     print form_tag ()
       . form_hidden (
           [ 'action' => 'update_user_group', 'user_id' => $user_id,
-            'group_id' => $row_cat['group_id']
+            'group_id' => $grp_id
           ]
         )
-      . "<br />\n<label for='admin_flags'>" . no_i18n('Admin Flags:')
+      . "<br />\n<label for='admin_flags'>" . no_i18n ('Admin Flags:')
       . "</label>\n<br />\n"
       . '<input type="text" name="admin_flags" id="admin_flags" value="'
       . $row_cat['admin_flags'] . "\">\n<br />\n"
@@ -312,7 +308,9 @@ if ($row_user['status'] != 'SQD')
       . '<p><a href="user_changepw.php?user_id='
       . $user_id . '">[' . no_i18n ('Change User\'s Password')
       . "]</a>\n</p>\n";
-    list_user_contributions ($user_id, $row_user['user_name']);
+    list_user_contributions (
+      $user_id, $row_user['user_name'], $offset, $max_rows
+    );
   }
 html_feedback_bottom ();
 $HTML->footer ([]);
