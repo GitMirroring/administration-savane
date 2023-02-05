@@ -368,6 +368,13 @@ class Group extends savane_error
     return $this->data_array["url_$artifact"];
   }
 
+  function get_vcs_admin_url ($vcs)
+  {
+    if ($vcs != 'cvs')
+      return null;
+    return preg_replace (',.*/,', '$0admin/', $this->getArtifactUrl ($vcs));
+  }
+
   function url_is_default ($artifact)
   {
     return

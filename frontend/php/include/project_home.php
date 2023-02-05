@@ -7,7 +7,7 @@
 # Copyright (C) 2007, 2008  Sylvain Beucler
 # Copyright (C) 2008  Aleix Conchillo Flaque
 # Copyright (C) 2016  Karl Berry (#devtools anchor for "Source code")
-# Copyright (C) 2017, 2022 Ineiev
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -461,6 +461,51 @@ if ($sys_unix_group_name == $group
     print "<br />\n";
   }
 
+function print_scm_entry ($group, &$i, $scm, $scm_name)
+{
+  if (!($group->Uses ($scm) || $group->UsesForHomepage ($scm)))
+    return;
+
+  $group_id = $group->getGroupId ();
+
+  specific_makesep ();
+  $url = $group->getArtifactUrl ($scm);
+
+  print proj_home_img ("contexts/cvs.png") . "<a href=\"$url\">";
+  # TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
+  printf (_("%s Repository"), $scm_name);
+  print "</a>\n";
+  $brk = "<br />\n&nbsp; - "; 
+  $admin_url = pagemenu_vcs_admin_url ($group, $scm);
+  if ($admin_url != '')
+    print "$brk<a href=\"$admin_url\">" . _("Administer") . "</a>";
+
+  $scm_url = $group->getUrl ("${scm}_viewcvs");
+  if (
+    $group->Uses ($scm) && $scm_url != 'http://' && $scm_url != ''
+  )
+    {
+      $repos = vcs_get_repos ($scm, $group_id);
+      $n = count ($repos);
+      if ($n < 2)
+        print "$brk<a href=\"$scm_url\">"
+          . _("Browse Sources Repository") . "</a>\n";
+      else
+        {
+          $u = preg_replace(':/[^/]*$:', '/', $scm_url);
+          print '<p>' . _("Browse Sources Repository") . "</p>\n";
+          print "<ul>\n";
+          foreach ($repos as $r)
+            print "<li><a href=\"$u{$r['url']}\">{$r['desc']}</a></li>\n";
+          print "</ul>\n";
+        }
+    }
+  $view_url = pagemenu_vcs_web_browse_url ($group, $scm);
+  if ($view_url != '')
+    print "<br />\n&nbsp; - <a href=\"$view_url\">"
+      . _("Browse Web Pages Repository") . '</a>';
+  $i++;
+} # print_scm_entry
 # Development.
 $uses_dev = false;
 foreach (['patch', 'cvs', 'homepage', 'bugs', 'task', 'patch'] as $art)
@@ -477,51 +522,6 @@ if ($uses_dev)
     );
     $i = 1;
 
-    function print_scm_entry ($project, &$i, $scm, $scm_name)
-    {
-      if (!($project->Uses ($scm) || $project->UsesForHomepage ($scm)))
-        return;
-
-      $group_id = $project->getGroupId ();
-
-      specific_makesep ();
-      $url = $project->getArtifactUrl ($scm);
-
-      print proj_home_img ("contexts/cvs.png") . "<a href=\"$url\">";
-      # TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
-      printf (_("%s Repository"), $scm_name);
-      print "</a>\n";
-
-      $scm_url = $project->getUrl ("${scm}_viewcvs");
-      if (
-        $project->Uses ($scm) && $scm_url != 'http://' && $scm_url != ''
-      )
-        {
-          $repos = vcs_get_repos ($scm, $group_id);
-          $n = count ($repos);
-          if ($n < 2)
-            print "<br />\n&nbsp; - <a href=\"$scm_url\">"
-              . _("Browse Sources Repository") . "</a>\n";
-          else
-            {
-              $u = preg_replace(':/[^/]*$:', '/', $scm_url);
-              print '<p>' . _("Browse Sources Repository") . "</p>\n";
-              print "<ul>\n";
-              foreach ($repos as $r)
-                print "<li><a href=\"$u{$r['url']}\">{$r['desc']}</a></li>\n";
-              print "</ul>\n";
-            }
-        }
-      $view_url = $project->getUrl ("cvs_viewcvs_homepage");
-      if ((($scm != 'cvs' && $project->UsesForHomepage ($scm))
-           || ($scm == 'cvs' && $project->Uses ("homepage")))
-          && $view_url != 'http://' && $view_url != '')
-        {
-          print "<br />\n&nbsp; - <a href=\"$view_url\">"
-            . _("Browse Web Pages Repository") . '</a>';
-        }
-      $i++;
-    } # print_scm_entry
 
     $vcses = [
       # TRANSLATORS: the string is used as the argument of "%s Repository".

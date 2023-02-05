@@ -283,34 +283,81 @@ function pagemenu_test_url ($group, $artifact)
   return $group->Uses ($artifact) && pagemenu_url_is_set ($group, $artifact);
 }
 
-function pagemenu_vcs_entry ($group, &$count, $vcs, $vcs_name)
+function pagemenu_vcs_use_entry ($group, $vcs, $vcs_name)
 {
-  $count++;
   $url = $group->getArtifactUrl ($vcs);
-  $ret = pagemenu_submenu_entry (
+  return pagemenu_submenu_entry (
     # TRANSLATORS: the argument is VCS name (like Git or Bazaar).
     sprintf (_("Use %s"), $vcs_name), $url, 1,
     # TRANSLATORS: the argument is VCS name (like Git or Bazaar).
     sprintf (_("%s Repository"), $vcs_name)
   );
-  # Do we need links to browse repositories?
-  $a_idx = $vcs . '_viewcvs';
-  if ($group->Uses ($vcs) && pagemenu_url_is_set ($group, $a_idx))
-    {
-      $count++;
-      $ret .= pagemenu_submenu_entry (
-        _("Browse Sources Repository"), $group->getUrl ($a_idx)
-      );
-    }
+}
 
-  if ((($vcs != 'cvs' && $group->UsesForHomepage ($vcs))
-       || ($vcs == 'cvs' && $group->Uses ("homepage")))
-      && pagemenu_url_is_set ($group, "cvs_viewcvs_homepage"))
+function pagemenu_vcs_browse_entry ($group, $vcs, $name)
+{
+  $a_idx = $vcs . '_viewcvs';
+  if (!($group->Uses ($vcs) && pagemenu_url_is_set ($group, $a_idx)))
+  return '';
+  return pagemenu_submenu_entry (
+    _("Browse Sources Repository"), $group->getUrl ($a_idx)
+  );
+}
+
+function pagemenu_vcs_web_browse_url ($group, $vcs)
+{
+  if (!pagemenu_url_is_set ($group, "cvs_viewcvs_homepage"))
+    return '';
+  if ($vcs == 'cvs')
+    $have_entry = $group->Uses ('homepage');
+  else
+    $have_entry = $group->UsesForHomepage ($vcs);
+  if (!$have_entry)
+    return '';
+  return $group->getUrl ("cvs_viewcvs_homepage");
+}
+
+function pagemenu_vcs_web_browse_entry ($group, $vcs, $name)
+{
+  $url = pagemenu_vcs_web_browse_url ($group, $vcs);
+  if ($url == '')
+    return '';
+  return pagemenu_submenu_entry (_("Browse Web Pages Repository"), $url);
+}
+
+function pagemenu_vcs_admin_url ($group, $vcs)
+{
+  if (!member_check (0, $group->getGroupId (), 'A'))
+    return '';
+  $url = $group->get_vcs_admin_url ($vcs);
+  if ($url === null)
+    return '';
+  return $url;
+}
+
+function pagemenu_vcs_admin_entry ($group, $vcs, $name)
+{
+  $url = pagemenu_vcs_admin_url ($group, $vcs);
+  if ($url == '')
+    return $url;
+  return pagemenu_submenu_entry (_("Administer"), $url);
+}
+
+function pagemenu_vcs_append_entry ($func, $group, $vcs, $name, &$count)
+{
+  $ent = $func ($group, $vcs, $name);
+  if ($ent != '')
+    $count++;
+  return $ent;
+}
+
+function pagemenu_vcs_entry ($group, &$count, $vcs, $name)
+{
+  $ret = '';
+  foreach (['admin', 'use', 'browse', 'web_browse'] as $f)
     {
-      $count++;
-      $ret .= pagemenu_submenu_entry (_("Browse Web Pages Repository"),
-        $group->getUrl ("cvs_viewcvs_homepage")
-      );
+      $func = "pagemenu_vcs_{$f}_entry";
+      $ret .= pagemenu_vcs_append_entry ($func, $group, $vcs, $name, $count);
     }
   return $ret;
 }
