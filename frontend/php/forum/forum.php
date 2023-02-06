@@ -154,10 +154,7 @@ if ($forum_id)
       $rows = $max_rows;
     $total_rows = 0;
 
-    if (!$result || $rows < 1)
-        $ret_val .= '<p>No messages in <em>' . $forum_name
-          . "</em></p>\n<p>" . db_error () . "</p>\n";
-    else
+    if ($result && $rows >= 1)
       {
         # Build table header.
         # Create a pop-up select box listing the forums for this project.
