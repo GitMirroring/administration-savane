@@ -542,7 +542,7 @@ $reference = 'include/init.php';
   unset($out['forim_id']);
   $out['forum_id'] = null;
 
-  $in['printer'] = 1;
+  $in['print-me'] = 1;
 
   test_sane_import ($in, $names, $out);
 
@@ -553,42 +553,6 @@ $reference = 'include/init.php';
   $out['group'] = null;
 
   test_sane_import ($in, $names, $out);
-}
-
-# The test is the same the next two files.
-$reference = 'include/markup.php';
-$reference = 'include/theme.php';
-{
-  $names = ['true' => 'printer'];
-  $in = [
-    'printer' => 1,
-    'group' => 'administration'
-  ];
-
-  $out = ['printer' => true];
-
-  test_sane_import ($in, $names, $out);
-
-  extract($out);
-
-  if (empty ($printer))
-    print "empty\n";
-
-  if ($printer == 1)
-    ; # OK.
-  else
-    print "printer != 1\n";
-
-  $in = ['group' => 'administration'];
-  $out = ['printer' => null];
-
-  test_sane_import ($in, $names, $out);
-
-  extract($out);
-  if ($printer)
-    print '$printer' . "\n";
-
-  unset($printer);
 }
 
 $reference = 'include/my/general.php';
@@ -1139,7 +1103,6 @@ $reference = 'include/trackers_run/browse.php';
         ['order', '/^([_a-zA-Z-][_[:alnum:]-]*)?$/'],
         ['morder', '/^[,<>_[:alnum:]-]*$/']
       ],
-    'true' => 'printer'
   ];
   $in = [
     'chunksz' => 40,
@@ -1160,7 +1123,6 @@ $reference = 'include/trackers_run/browse.php';
     'history_event' => 'modified',
     'history_date' => '1983-09-27',
     'morder' => 'bug_id<,status>',
-    'printer' => 'printer'
   ];
   $out = $in;
   $out['func'] = 'browse';
@@ -1232,7 +1194,6 @@ $reference = 'include/trackers_run/index.php';
 {
   $names = [
     'funcs' => 'func',
-    'true' => 'printer',
     'digits' => ['item_file_id', 'item_cc_id']
   ];
   $in = [
@@ -1241,7 +1202,6 @@ $reference = 'include/trackers_run/index.php';
     'item_cc_id' => 289
   ];
   $out = $in;
-  $out['printer'] = null;
   test_sane_import ($in, $names, $out);
   $names = [
     'hash' => 'form_id',

@@ -67,7 +67,6 @@ function fb_anon_check_failed ($check)
 extract (sane_import ('request',
   [
     'funcs' => 'func',
-    'true' => 'printer',
     'digits' => ['item_file_id', 'item_cc_id']
   ]
 ));

@@ -54,7 +54,6 @@ Disallow: /people/viewgpg.php
 
 # Disallow identical pages - less crawler traffic.
 Disallow: /*reload=1
-Disallow: /*printer=1
 
 # Disallow multi-fields sorts which exhibit thousands of URLs.
 Disallow: /*func=browse

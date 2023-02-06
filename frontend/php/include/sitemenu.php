@@ -99,7 +99,6 @@ function sitemenu_extraurl ($only_with_post = false)
     }
   $extraurl = htmlspecialchars ($_SERVER['QUERY_STRING']);
   $extraurl = str_replace ("reload=1&amp;", "", $extraurl);
-  $extraurl = str_replace ("printer=1&amp;", "", $extraurl);
   $extraurl = "&amp;$extraurl";
   return $extraurl;
 }
@@ -216,10 +215,6 @@ function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
   $HTML->menu_entry ("$script_extra?reload=1" . $extraurl,
     _("Clean Reload"), 1,
     _("Reload the page without risk of reposting data")
-  );
-  $HTML->menu_entry ("$script_extra?printer=1" . $extraurl,
-    _("Printer Version"), 1,
-    _("Show this page with a style adapted to printers")
   );
   $HTML->menuhtml_bottom ();
 

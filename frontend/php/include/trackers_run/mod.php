@@ -31,7 +31,7 @@ require_directory ("search"); # Need search functions.
 
 $fields_per_line = 2;
 $max_size = 40;
-$ro_fields = $printer || !$is_trackeradmin;
+$ro_fields = !$is_trackeradmin;
 
 $result = db_execute ("
   SELECT * FROM " . ARTIFACT . " WHERE bug_id = ? AND group_id = ?",
@@ -384,12 +384,6 @@ $is_deployed["dependencies"] = true;
 $is_deployed["cc"] = false;
 $is_deployed["votes"] = false;
 $is_deployed["reassign"] = false;
-
-# In printer mode, deploy everything by default: assume that people default
-# printout should contain all necessary info (note that history is excluded).
-if ($printer)
-  foreach ($is_deployed as $key => $value)
-    $is_deployed[$key] = true;
 
 # If at the second step of any two-step activity (add deps, reassign,
 # multiple canned answer), deploy only the relevant:

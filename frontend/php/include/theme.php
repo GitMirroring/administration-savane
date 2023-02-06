@@ -55,10 +55,10 @@ function theme_list ()
       if (!preg_match("/^(.*)\.css$/", $file, $matches))
         continue;
 
-      # base.css and printer.css are always ignored
+      # base.css is always ignored
       # (as of nov 2006, there are in the subdirectory internal, so this
       # is only here for backward compat).
-      if ($matches[1] == "base" || $matches[1] == "printer")
+      if ($matches[1] == "base")
         continue;
 
       # Forbidden themes are also ignored.
@@ -281,16 +281,6 @@ function theme_select ()
   # before selecting the theme.
   if (function_exists ('update_theme'))
     update_theme ();
-
-  # Check if the printer mode is asked. If not, proceed to the usual
-  # theme selection.
-  extract(sane_import('request', ['true' => 'printer']));
-  if ($printer == 1)
-    {
-      define('SV_THEME', 'printer');
-      define('PRINTER', 1);
-      return;
-    }
 
   if (!user_isloggedin ())
     {

@@ -112,8 +112,7 @@ function format_item_details (
 
   # Provide a shortcut to the original submission, if more than 5 comments
   # and not in reversed order.
-  if (!$ascii && empty($_REQUEST['printer'])
-      && $max_entries > 5 && !$user_pref_fromoldertonewer)
+  if (!$ascii && $max_entries > 5 && !$user_pref_fromoldertonewer)
     {
       $jumpto_text = _("Jump to the original submission");
       if (ARTIFACT == "cookbook")
@@ -191,9 +190,6 @@ function format_item_details (
           else
             $spammer_user_name = _("anonymous");
 
-          # If we are in printer mode, simply skip if.
-          if (!empty ($_REQUEST['printer']))
-            continue;
           $own_post = user_isloggedin () && user_getid () == $entry['user_id'];
 
           # The admin may actually want to see the incriminated item.
@@ -353,8 +349,7 @@ function format_item_details (
       # For performance reason, do not check here if the user already
       # flagged the comment as spam, it will be done only if the user tries
       # to do it twice.
-      if (user_isloggedin() && !$icon
-          && $poster_id != user_getid () && empty ($_REQUEST['printer']))
+      if (user_isloggedin() && !$icon && $poster_id != user_getid ())
         {
           # Surround by two line breaks, to keep that link clearly
           # separated from anything else, to avoid clicks by error.

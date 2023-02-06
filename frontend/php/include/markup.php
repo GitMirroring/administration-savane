@@ -295,7 +295,6 @@ function markup_full($text, $allow_headings = true)
 
   $quoted_text = false;
   $verbatim = 0;
-  extract(sane_import('request', [true => 'printer']));
   $verbatim_buffer = '';
   foreach ($lines as $index => $line)
     {
@@ -307,11 +306,7 @@ function markup_full($text, $allow_headings = true)
       if ($verbatim == 1 && $found)
         {
           $line = join("\n", $context_stack);
-
-          if (empty ($printer))
-            array_unshift ($context_stack, '</textarea>');
-          else
-            array_unshift ($context_stack, '</pre>');
+          array_unshift ($context_stack, '</textarea>');
 
           # Jump to the next line, ignoring the rest of the line.
           continue;

@@ -202,9 +202,6 @@ class Layout extends savane_error
       }
     $params['title'] = sprintf("%s [%s]", $params['title'], $GLOBALS['sys_name']);
     $theme = SV_THEME;
-    # Path of printer.css changed to internal/printer.css.
-    if ($theme == "printer")
-      $theme = "internal/printer";
 
     print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -275,11 +272,7 @@ class Layout extends savane_error
         )
       . "\n</p>\n";
 
-    if (empty ($_GET['printer']))
-      print "\n<!-- not closing yet main and realbody -->\n";
-    else
-      print "\n</div><!-- end main -->\n<br class='clear' />\n"
-        . "</div><!-- end realbody -->\n";
+    print "\n<!-- not closing yet main and realbody -->\n";
     $this->generic_footer ($params);
   }
 
@@ -307,7 +300,6 @@ class Layout extends savane_error
 
   }
 
-# ######################################### TOP MENU
-# It is in pagemenu.php
+  # Top menu is in pagemenu.php
 }
 ?>
