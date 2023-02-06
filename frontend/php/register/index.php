@@ -160,7 +160,7 @@ $form->addRule('group_type', _("Invalid group type"),
 # <savannah-specific>
 for ($i = 1; $i <= 7; $i++)
   $form->addRule("cl$i", _("Please recheck your project"), 'required');
-# </savannah-specific>
+ # </savannah-specific>
 $form->addRule("cl_foolproof", _(":)"), 'maxlength', 0);
 $form->addRule("cl_requirements", _("Please accept the hosting requirements"),
                'required');
@@ -243,7 +243,7 @@ $message_user = "$message";
 $group_admin_url =
   "$sys_https_url{$sys_home}siteadmin/groupedit.php?group_id=$group_id";
 
-$message_admin = "A new project has been registered at {$GLOBALS['sys_name']}.
+$message_admin = "A new project has been registered at $sys_name.
 This project account will remain inactive until a site admin approves
 or discards the registration.
 
@@ -271,14 +271,18 @@ if ($form_required_sw)
                     . $form_required_sw . "\n\n";
 
 if ($form_comments)
-  $message_admin .= "\n== Other Comments: ==\n" . $form_comments . "\n\n";
+  $message_admin .= "\n== Other Comments: ==\n$form_comments\n\n";
 
 $message_admin .= "\n== Tarball URL: ==\n" . $form_values['tarball_url']
-                  . "\n\n";
+  . "\n\n";
 
-sendmail_mail($type_admin_email_address, $user_email,
-              "submission of $form_full_name - $type_base_host",
-              $message_user, 0, 0, 0, $type_admin_email_address);
+sendmail_mail (
+  [ 'from' => $type_admin_email_address, 'to' => $user_email],
+  [ 'subject' => "submission of $form_full_name - $type_base_host",
+    'body' => $message_user,
+    'headers' => ['Reply-To' => $type_admin_email_address]
+  ]
+);
 
 {
   require_directory("trackers");

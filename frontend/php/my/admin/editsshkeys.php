@@ -126,8 +126,10 @@ if ($update)
         $message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
 
         sendmail_mail (
-          "$sys_mail_replyto@$sys_mail_domain", user_get_email ($user_id),
-          $sys_name . ' ' . _("SSH key changed on your account"), $message
+          [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
+            'to' => user_get_email ($user_id)],
+          [ 'subject' => "$sys_name " . _("SSH key changed on your account"),
+            'body' => $message]
         );
       }
     $success =

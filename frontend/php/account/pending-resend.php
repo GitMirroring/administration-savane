@@ -41,22 +41,17 @@ if (empty ($row_user) || $row_user['status'] != 'P')
   exit_error (_("Error"), _("This account is not pending verification."));
 
 $message =
-  sprintf (
-    _("Thank you for registering on the %s web site."),
-    $GLOBALS['sys_name']
-  )
+  sprintf (_("Thank you for registering on the %s web site."), $sys_name)
   . "\n"
   . _("In order to complete your registration, visit the following URL:")
-  . "\n\n" . $GLOBALS['sys_https_url'] . $GLOBALS['sys_home']
+  . "\n\n$sys_https_url$sys_home"
   . "account/verify.php?confirm_hash=$row_user[confirm_hash]\n\n"
   . _("Enjoy the site.") . "\n\n";
 # TRANSLATORS: the argument is the name of the system (like "Savannah").
-$message .= sprintf(_("-- the %s team."), $GLOBALS['sys_name']) . "\n";
+$message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
 sendmail_mail (
-  $GLOBALS['sys_mail_replyto'] . "@" . $GLOBALS['sys_mail_domain'],
-  $row_user['email'],
-  $GLOBALS['sys_name'] . " " . _("Account Registration"),
-  $message
+  ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $row_user['email']],
+  ['subject' => "$sys_name " . _("Account Registration"), 'body' => $message]
 );
 
 $HTML->header (['title' => _("Account Pending Verification")]);

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2004-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2019, 2020 Ineiev
+# Copyright (C) 2017, 2019, 2020, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -100,57 +100,54 @@ function user_get_email($uid)
   return $val['email'];
 }
 
-function user_getname($user_id=0, $getrealname=0)
+function user_getname ($user_id = 0, $getrealname = 0)
 {
   global $G_USER,$USER_NAMES;
 
-  if (!$user_id && $getrealname != 0)
-    {
-      $user_id = user_getid();
-    }
+  if (!$user_id && $getrealname)
+    $user_id = user_getid ();
 
   $prefix = 'realname';
   $column = 'realname';
-  if ($getrealname == 0)
+  if (!$getrealname)
     {
       $prefix = 'user';
       $column = 'user_name';
     }
   # Use current user if one is not passed in.
-  if (!$user_id && $getrealname == 0)
-    return ($G_USER?$G_USER['user_name']:
-            # TRANSLATORS: "Not applicable".
-                                         _("NA"));
+  if (!$user_id && !$getrealname)
+   {
+      if ($G_USER)
+        return $G_USER['user_name'];
+      # TRANSLATORS: "Not applicable".
+      return _("NA");
+   }
 
-  if ($user_id == 0)
+  if (!$user_id)
     {
-      if ($getrealname == 0)
+      if (!$getrealname)
         return _("NA");
       return _("anonymous");
     }
   # Lookup name.
-  if (!empty($USER_NAMES[$prefix."_$user_id"]))
-    {
-      # User name was fetched previously.
-      return $USER_NAMES[$prefix."_$user_id"];
-    }
+  if (!empty($USER_NAMES["{$prefix}_$user_id"]))
+    return $USER_NAMES["{$prefix}_$user_id"];
   # Fetch the user name and store it for future reference.
-  $result = db_execute("SELECT user_id,user_name,realname "
-                       ."FROM user WHERE user_id=?",
-                       array($user_id));
-  if ($result && db_numrows($result) > 0)
+  $result = db_execute ("
+    SELECT user_id, user_name, realname FROM user WHERE user_id = ?",
+    [$user_id]
+  );
+  if ($result && db_numrows ($result) > 0)
     {
       # Valid user - store and return.
-      $USER_NAMES[$prefix."_$user_id"] = db_result($result,0,$column);
-      return $USER_NAMES[$prefix."_$user_id"];
+      $USER_NAMES["{$prefix}_$user_id"] = db_result ($result, 0, $column);
+      return $USER_NAMES["{$prefix}_$user_id"];
     }
-  # Invalid user - store and return.
+  $uid = "#$user_id";
   if ($getrealname)
-    $USER_NAMES[$prefix."_$user_id"]="<strong>"._("Invalid User ID")
-                                     ."</strong>";
-  else
-    $USER_NAMES[$prefix."_$user_id"]="<strong>#$user_id</strong>";
-  return $USER_NAMES[$prefix."_$user_id"];
+    $uid = _("Invalid User ID");
+  $USER_NAMES["{$prefix}_$user_id"] = "<strong>$uid</strong>";
+  return $USER_NAMES["{$prefix}_$user_id"];
 }
 
 function user_getid  ($username = 0)
@@ -163,63 +160,46 @@ function user_getid  ($username = 0)
         return $G_USER['user_id'];
       return 0;
     }
-  $result = db_execute("SELECT user_id FROM user WHERE user_name=?",
-                       array($username));
-  if ($result and db_numrows($result) > 0)
-    return db_result($result,0,"user_id");
+  $result = db_execute ("SELECT user_id FROM user WHERE user_name = ?",
+    [$username]
+  );
+  if ($result && db_numrows ($result) > 0)
+    return db_result ($result, 0, "user_id");
   return 0;
 }
 
-function user_exists($user_id, $squad_only=false)
+function user_squad_exists ($user_id)
 {
-  $result = user_get_result_set($user_id);
-  if ($result && db_numrows($result) > 0)
-    {
-      if (!$squad_only)
-        return true;
-      if (db_result($result, 0, 'status') == 'SQD')
-        return true;
-    }
-  return false;
+  return $user_id && user_get_field ($user_id, 'status') == 'SQD';
+}
+
+function user_exists ($user_id)
+{
+  return $user_id && !empty (user_get_field ($user_id, 'user_id'));
 }
 
 function user_is_active ($user_id)
 {
-  $result = user_get_result_set ($user_id);
-  if ($result && db_numrows($result) > 0)
-    return db_result ($result, 0, "status") == 'A';
-  return false;
+  return user_get_field ($user_id, 'status') == 'A';
 }
 
 function user_fetch_name ($user_id)
 {
   $name = user_get_field ($user_id, 'user_name');
-  return ($name === false)? '': $name;
+  return ($name === null)? '': $name;
 }
 
-function user_getrealname($user_id=0, $rfc822_compliant=0)
+function user_getrealname ($user_id = 0, $rfc822_compliant = 0)
 {
   $ret = user_getname($user_id, 1);
-  # rfc822 requires some characters to be escaped. We usually care about this
-  # compliance only in email headers.
-  if ($rfc822_compliant && preg_match ("#\.|\,|\@|\/|\\|\||\;|\!#", $ret))
-    $ret = "\"$ret\"";
+  if ($rfc822_compliant)
+    return utils_comply_with_rfc822 ($ret);
   return $ret;
 }
 
 function user_getemail($user_id=0)
 {
   return user_get_field ($user_id, 'email');
-}
-
-function user_get_field ($user_id, $field)
-{
-  if (!$user_id)
-    $user_id = user_getid ();
-  $result = user_get_result_set ($user_id);
-  if ($result && db_numrows ($result) > 0)
-    return db_result ($result, 0, $field);
-  return false;
 }
 
 # Fetch a row from user table by user_id unless already cached,
@@ -235,6 +215,16 @@ function user_get_result_set ($user_id)
   return $USER_RES[$user_id];
 }
 
+function user_get_field ($user_id, $field)
+{
+  if (!$user_id)
+    $user_id = user_getid ();
+  $result = user_get_result_set ($user_id);
+  if ($result && db_numrows ($result) > 0)
+    return db_result ($result, 0, $field);
+  return null;
+}
+
 # Fetch a row from user table by user_name, put it to $USER_RES[$user_id].
 function user_get_result_set_from_user_name ($user_name)
 {
@@ -246,14 +236,11 @@ function user_get_result_set_from_user_name ($user_name)
   return $res;
 }
 
-function user_get_timezone()
+function user_get_timezone ()
 {
-  if (user_isloggedin())
-    {
-      $result=user_get_result_set(user_getid());
-      return db_result($result,0,'timezone');
-    }
-  return '';
+  if (!user_isloggedin ())
+    return '';
+  return user_get_field (user_getid (), 'timezone');
 }
 
 function user_set_preference ($preference_name,$value)

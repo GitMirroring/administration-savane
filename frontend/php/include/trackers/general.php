@@ -6,7 +6,7 @@
 #
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2018, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -705,303 +705,271 @@ function trackers_canned_response_box (
     . _("No canned response available");
 }
 
-function trackers_build_notification_list (
-  $item_id, $group_id, $changes, $artifact = null
-)
+function trackers_artifact_is_sane (&$artifact)
 {
-  # Any person in the CC list and the assignee should be notified.
-  #
-  #   - unless this person is the one that made the update and does not
-  #   want to be get notifications for his own work
-  #   - unless this person wants to know only if the item is closed and the
-  #   item is getting closed
-  #   - unless this person wants to know only if the item status changed and
-  #   the item status changed
-
-  if ($artifact == null)
+  if (!$artifact)
     $artifact = ARTIFACT;
-  if (!ctype_alnum ($artifact))
-    # TRANSLATORS: the argument is name of artifact (like bugs or patches).
-    util_die (
-      sprintf (_('Invalid artifact %s'),
-                     '<em>' . htmlspecialchars ($artifact) . '</em>'
-      )
-    );
 
+  if (ctype_alnum ($artifact))
+    return true;
+
+  $arg = '<em>' . htmlspecialchars ($artifact) . '</em>';
+  # TRANSLATORS: the argument is name of artifact (like bugs or patches).
+  util_die (sprintf (_('Invalid artifact %s'), $arg));
+  return false; # Just in case.
+}
+
+function trackers_trim_email ($email)
+{
+  $email = trim ($email);
+
+  # The CC may have been added in the form like:
+  #    THIS NAME <this@address.net>
+  # So the validation check must be made only on the part in < >, if
+  # it exists.
+  if (preg_match ("/\<([\w\d\-\@\.]*)\>/", $email, $realaddress))
+    $email = $realaddress[1];
+  return $email;
+}
+
+function trackers_get_cc_list ($artifact, $item_id)
+{
+  return db_execute ("
+    SELECT email, added_by FROM {$artifact}_cc
+    WHERE bug_id = ? GROUP BY email LIMIT 150",
+    [$item_id]
+  );
+}
+
+function trackers_cc_is_to_be_ignored ($email, $added_by)
+{
+  if ($email != $added_by || !ctype_digit ($email))
+    return false;
+  # Here we have an integer as email address, it is likely to be
+  # a CC automatically added.
+  # (if an integer is passed by is not conform to added_by, we let
+  # sendmail_mail() determine what to do with it).
+
+  # Check if the users exists.
+  if (!user_exists ($email))
+    return true;
+
+  # Always ignore anonymous.
+  return $email == "100";
+}
+function trackers_convert_user_name_to_uid ($email, &$addresses_to_skip)
+{
+  # If we have a valid username, convert it to an uid.
+  if (ctype_digit ($email) || !user_getid ($email))
+    return $email;
+  # Since is is will be registered, we can ignore it in further check.
+  $addresses_to_skip[$email] = true;
+  return user_getid ($email);
+}
+
+function trackers_convert_email_to_uid ($email, &$addresses_to_skip)
+{
+  # If we have a string that contains @, try to find it in the database
+  # and convert it to an uid if found.
+  if (!strpos ($email, "@"))
+    return $email;
+  $res = db_execute ("
+    SELECT user_id FROM user WHERE email = ? AND user_id > 0 LIMIT 1", [$email]
+  );
+  if (!$res || db_numrows ($res) < 1)
+    return $email;
+  $user_id = db_result ($res, 0, 'user_id');
+  $addresses_to_skip[$email] = true;
+  return $user_id;
+}
+
+function trackers_initial_notification_list ($tracker, $item)
+{
   $addresses = $addresses_to_skip = [];
-
-  # The current user may not want receive CC for his own doings. Find if
-  # if it is the case.
   $current_uid = user_getid ();
   if (user_get_preference ("notify_unless_im_author"))
     $addresses_to_skip[$current_uid] = true;
 
-  # The current assignee will always be included (unless indeed if it is the
-  # current user that does not want CC) no matter what: why would be
-  # assignee if he is not interested in the item updates, for god sakes!
-  # As this function is called after updated was handled, if the update
-  # changed the assignee, the new assignee is the current assignee.
-  # The previous assignee may or may not receive updates, if he update the
-  # item (if so, he is in CC).
-  $assignee_uid = db_result (
-    db_execute ("
-      SELECT assigned_to from $artifact WHERE bug_id = ?",
-      [$item_id]
-    ), 0, 'assigned_to'
-  );
+  $res =
+    db_execute ("SELECT assigned_to from $tracker WHERE bug_id = ?", [$item]);
+  $assignee_uid = db_result ($res , 0, 'assigned_to');
   # Assigned to 100 == unassigned.
-  if ($assignee_uid != "100"
-      && !array_key_exists ($assignee_uid, $addresses_to_skip))
+  if ($assignee_uid != "100" && empty ($addresses_to_skip[$assignee_uid]))
     $addresses[$assignee_uid] = true;
+  return [$addresses, $addresses_to_skip];
+}
 
-  # Now go through the CC list:
-  # (automatically added CC will be in numerical
-  # form and email = added_by).
-  $result = db_execute ("
-    SELECT email,added_by FROM {$artifact}_cc
-    WHERE bug_id = ? GROUP BY email LIMIT 150",
-    [$item_id]
-  );
-  $rows = db_numrows ($result);
-  for ($i=0; $i < $rows; $i++)
+function trackers_enforce_notif_per_user_prefs ($changes, $email)
+{
+  if (!ctype_digit ($email))
+    return true;
+
+  # We have a user ID: check specific user's prefs.
+
+  $unless_closed = user_get_preference ("notify_item_closed", $email);
+  $unless_status_changed =
+     user_get_preference ("notify_item_statuschanged", $email);
+
+  if (!$unless_closed && !$unless_status_changed)
+    return true;
+
+  if ($unless_closed && isset ($changes['status_id'])
+      && $changes['status_id']['add-val'] == '3'
+  )
+    return true;
+
+  return $unless_status_changed && isset ($changes['resolution_id']);
+}
+
+function trackers_filter_notif_address (
+  $added_by, $email, $changes, &$addresses, &$addresses_to_skip
+)
+{
+  if (!empty ($addresses[$email]) || !empty ($addresses_to_skip[$email]))
+    return true;
+
+  if (trackers_cc_is_to_be_ignored ($email, $added_by))
+    return true;
+
+  $email = trackers_convert_user_name_to_uid ($email, $addresses_to_skip);
+  $email = trackers_convert_email_to_uid ($email, $addresses_to_skip);
+
+  if (!empty ($addresses[$email]) || !empty ($addresses_to_skip[$email]))
+    return true;
+
+  if (trackers_enforce_notif_per_user_prefs ($changes, $email))
+    return false;
+
+  $addresses_to_skip[$email] = true;
+  return true;
+}
+
+# Any person in the CC list and the assignee should be notified,
+#
+# - unless this person is the one that made the update and does not
+# want to be get notifications for his own work,
+# - unless this person wants to know only if the item is closed and the
+# item is getting closed,
+# - unless this person wants to know only if the item status changed and
+# the item status changed.
+function trackers_build_notification_list (
+  $item_id, $group_id, $changes, $artifact
+)
+{
+  list ($addresses, $addresses_to_skip) =
+    trackers_initial_notification_list ($artifact, $item_id);
+
+  $result = trackers_get_cc_list ($artifact, $item_id);
+  while ($row = db_fetch_array ($result))
     {
-      $email = db_result ($result, $i, 'email');
-      $added_by = db_result ($result, $i, 'added_by');
-
-      # Remove extra white spaces.
-      $email = trim ($email);
-
-      # The CC may have been added in the form like:
-      #    THIS NAME <this@address.net>
-      # So the validation check must be made only on the part in < >, if
-      # it exists.
-      if (preg_match ("/\<([\w\d\-\@\.]*)\>/", $email, $realaddress))
-        $email = $realaddress[1];
-
-      # Ignore if in the to be ignored list or already caught
-      # (do that now and later, here to
-      # save time, later to makre sure we do not make dupes.
-      # Ignore if already registered.
-      if (array_key_exists ($email, $addresses))
-        continue;
-      # Ignore if in the to be ignored list.
-      if (array_key_exists ($email, $addresses_to_skip))
-        continue;
-
-      if ($email == $added_by && ctype_digit ($email))
-        {
-          # Here we have an integer as email address, it is likely to be a
-          # CC automatically added.
-          # (if an integer is passed by is not conform to added_by, we let
-          # sendmail_mail() determine what to do with it).
-
-          # Check if the users exists.
-          if (!user_exists ($email))
-            continue;
-
-          # Always ignore anonymous.
-          if ($email == "100")
-            continue;
-        }
-
-      # If we have a valid username, convert it to an uid.
-      if (!ctype_digit ($email) && user_getid ($email))
-        {
-          # Since is is will be registered, we can ignore it in further check.
-          $addresses_to_skip[$email] = true;
-          $email = user_getid ($email);
-        }
-
-      # If we have a string that contains @, try to find it in the database
-      # and convert it to an uid if found.
-      if (!ctype_digit ($email) && strpos ($email, "@"))
-        {
-          $res = db_execute("SELECT user_id FROM user
-                             WHERE email=? LIMIT 1", array($email));
-          if ($res && db_numrows ($res) > 0)
-            {
-              $email_search = db_result ($res, 0, 'user_id');
-
-              if ($email_search)
-                {
-                  $addresses_to_skip[$email] = true;
-                  $email = $email_search;
-                }
-            }
-        }
-
-      if (array_key_exists ($email, $addresses))
-        continue;
-      if (array_key_exists ($email, $addresses_to_skip))
-        continue;
-
-      # Check specific users prefs, if we have a UID.
-      if (ctype_digit ($email))
-         {
-           $should_not_skip = false;
-
-           # Do not want to be notified unless the item is closed
-           # (first check values, then check prefs, as it requires an
-           # an extra SQL select).
-
-           $unless_closed = user_get_preference ("notify_item_closed", $email);
-           $unless_status_changed = user_get_preference (
-             "notify_item_statuschanged", $email
-           );
-
-           if (!$unless_closed && !$unless_status_changed)
-             $should_not_skip = true;
-
-           if ($unless_closed && isset($changes['status_id'])
-               && $changes['status_id']['add-val'] == '3')
-             $should_not_skip = true;
-
-           if ($unless_status_changed && isset($changes['resolution_id']))
-             $should_not_skip = true;
-
-           if (!$should_not_skip)
-             {
-               $addresses_to_skip[$email] = true;
-               continue;
-             }
-         }
-
-      # If we get here, the address seem valid enough to let sendmail_mail()
-      # deal with it.
-      $addresses[$email] = true;
+      $added_by = $row['added_by'];
+      $email = trackers_trim_email ($row['email']);
+      $skip_it = trackers_filter_notif_address (
+        $added_by,  $email, $changes, $addreses, $addresses_to_skip
+      );
+      if (!$skip_it)
+        $addresses[$email] = true;
     }
-  return (array_keys ($addresses));
+  return array_keys ($addresses);
+}
+
+function trackers_probably_spam ()
+{
+  if (!$GLOBALS['int_probablyspam'])
+    return false;
+  fb (_("Presumed spam: no mail will be sent"), 1);
+  return true;
+}
+
+function trackers_mail_fetch_followup (&$artifact, $item_id)
+{
+  if (trackers_probably_spam () || !trackers_artifact_is_sane ($artifact))
+    return false;
+  $res = db_execute ("SELECT * from $artifact WHERE bug_id = ?", [$item_id]);
+
+  if ($res && db_numrows ($res) > 0)
+    return db_fetch_array ($res);
+
+  fb (_("Could not send item update."), 0);
+  return false;
+}
+
+function trackers_mail_bug_ref ($artifact, $item_id)
+{
+  global $sys_home, $sys_default_domain;
+  return "https://$sys_default_domain$sys_home$artifact/?$item_id";
+}
+
+function trackers_build_mail ($artifact, $res, $item_id, $changes)
+{
+  global $int_delayspamcheck_comment_id;
+  # Text of the mail must not be localized.
+  $bug_ref = trackers_mail_bug_ref ($artifact, $item_id);
+  if ($changes)
+    $body = format_item_changes ($changes, $item_id, $res['group_id']) . "\n";
+  else
+    $body = format_item_summary ($res, $bug_ref, $artifact);
+  $body .= format_message_trailer ($bug_ref);
+  $subject = htmlspecialchars_decode ($res['summary'], ENT_QUOTES);
+  # Necessary to mention the comment id (for delayed mails).
+  if ($int_delayspamcheck_comment_id)
+    $item_id .= ":$int_delayspamcheck_comment_id";
+  return [$body, $subject, $item_id];
+}
+
+function trackers_exclude_list ($artifact, $group_id, $force_exclude, $privacy)
+{
+  $exclude = '';
+  if ($privacy == '2')
+    {
+      $result = db_execute ("
+        SELECT ${artifact}_private_exclude_address
+        FROM groups WHERE group_id = ?", [$group_id]
+      );
+      $exclude = db_result ($result, 0, "${artifact}_private_exclude_address");
+    }
+  return trim ("$exclude,$force_exclude", ',');
+}
+
+function trackers_followup_mail_addresses (
+  $res, $more_addresses, $exclude, $tracker, $changes
+)
+{
+  global $sys_mail_replyto, $sys_mail_domain;
+  foreach (['group_id', 'bug_id', 'privacy'] as $var)
+    $$var = $res[$var];
+  # See who is going to receive the notification.
+  # Plus append any other email given at the end of the list.
+  $addresses =
+    trackers_build_notification_list ($bug_id, $group_id, $changes, $tracker);
+  $to = join (',', $addresses);
+  $to = trim ("$to,$more_addresses", ',');
+  $from = user_getrealname (0, 1) . " <$sys_mail_replyto@$sys_mail_domain>";
+
+  $exclude = trackers_exclude_list ($tracker, $group_id, $exclude, $privacy);
+  return [$from, $to, $exclude];
 }
 
 function trackers_mail_followup (
-  $item_id, $more_addresses = false, $changes = false, $force_exclude_list = false,
-  $artifact = 0
+  $item_id, $more_addresses = '', $changes = false,
+  $exclude_list = false, $artifact = null
 )
 {
-  global $int_probablyspam, $sys_home, $sys_default_domain;
-  global $sys_mail_replyto, $sys_mail_domain;
+  $res = trackers_mail_fetch_followup ($artifact, $item_id);
+  if ($res === false)
+    return;
 
-  # If presumed to be a spam, no notifications.
-  if ($int_probablyspam)
-    {
-      fb(_("Presumed spam: no mail will be sent"), 1);
-      return false;
-    }
-
-  if (!$artifact)
-    $artifact = ARTIFACT;
-
-  if (!ctype_alnum ($artifact))
-    # TRANSLATORS: the argument is name of artifact (like bugs or patches).
-    util_die (sprintf (
-      _('Invalid artifact %s'), '<em>' . htmlspecialchars ($artifact) . '</em>'
-    ));
-
-  $result = db_execute (
-    "SELECT * from $artifact WHERE bug_id = ?", [$item_id]
-  );
-  $bug_href = "https://$sys_default_domain$sys_home$artifact/?$item_id";
-
-  if ($result && db_numrows ($result) <= 0)
-    {
-      fb (_("Could not send item update."), 0);
-      return false;
-    }
-  $group_id = db_result ($result, 0, 'group_id');
-
-  unset ($content_type);
-  # Content of the mail must not be translated.
-  $body = '';
-
-  if ($changes)
-    $body = format_item_changes ($changes, $item_id, $group_id) . "\n";
-  else
-    {
-      $body .= "URL:\n  <$bug_href>\n\n";
-      $body .= trackers_field_display (
-        'summary', $group_id, db_result ($result, 0, 'summary'), false, true,
-        true, true
-      );
-      $body .= "\n";
-      $body .= sprintf ("%25s", "Project:") . ' ' . group_getname ($group_id)
-        . "\n";
-      $body .= trackers_field_display (
-        'submitted_by', $group_id, db_result ($result, 0, 'submitted_by'),
-        false, true, true, true
-      );
-      $body .= "\n";
-      $body .= trackers_field_display (
-        'date', $group_id, db_result ($result, 0, 'date'), false, true,
-        true, true
-      );
-      $body .= "\n";
-      # All other regular fields now.
-      while ($field_name = trackers_list_all_fields ())
-        {
-          # If the field is a special field or if not used by his project
-          # then skip it. Otherwise print it in ASCII format.
-          if (
-            !(!trackers_data_is_special ($field_name)
-              && trackers_data_is_used ($field_name))
-          )
-            continue;
-          $body .= trackers_field_display (
-            $field_name, $group_id, db_result ($result, 0, $field_name),
-            false, true, true, true
-          );
-          $body .= "\n";
-        }
-      if (ARTIFACT === $artifact)
-        $body .= "\n\n" . format_item_details ($item_id, $group_id, true)
-          . "\n\n" . format_item_attached_files ($item_id, $group_id, true);
-    }
-
-  # Finally output the message trailer.
-  $body .= "\n    _______________________________________________________\n\n";
-  $body .= "Reply to this item at:";
-  $body .= "\n\n  <$bug_href>";
-
-  # See who is going to receive the notification.
-  # Plus append any other email given at the end of the list.
-  $arr_addresses = trackers_build_notification_list (
-    $item_id, $group_id, $changes, $artifact
-  );
-  $to = join(',', $arr_addresses);
-  $from = user_getrealname (0, 1) . " <$sys_mail_replyto@$sys_mail_domain>";
-  $subject = htmlspecialchars_decode (
-    db_result ($result, 0, 'summary'), ENT_QUOTES
-  );
-
-  if ($more_addresses)
-    $to .= ($to? ',': '') . $more_addresses;
-
-  # If the item is private, take into account the exclude-list.
-  $exclude_list = '';
-  if (db_result ($result, 0, 'privacy') == '2')
-    $exclude_list = db_result (
-      db_execute ("
-        SELECT ${artifact}_private_exclude_address
-        FROM groups WHERE group_id = ?",
-        [$group_id]),
-      0, "${artifact}_private_exclude_address"
+  list ($body, $subject, $item_id) =
+    trackers_build_mail ($artifact, $res, $item_id, $changes);
+  list ($from, $to, $exclude) =
+    trackers_followup_mail_addresses (
+      $res, $more_addresses, $exclude_list, $artifact, $changes
     );
-
-  # Disallow mail notification for an address, private or not.
-  if ($force_exclude_list)
-    {
-      if ($exclude_list)
-        $exclude_list .= ",$force_exclude_list";
-      else
-        $exclude_list = $force_exclude_list;
-    }
-
-  # Necessary to mention the comment id (for delayed mails).
-  if ($GLOBALS['int_delayspamcheck_comment_id'])
-    $item_id .= ":" . $GLOBALS['int_delayspamcheck_comment_id'];
-
+  $group = group_getunixname ($res['group_id']);
   sendmail_mail (
-    $from, $to, $subject, $body, group_getunixname ($group_id),
-    $artifact, $item_id, 0, 0, $exclude_list
+    ['from' => $from, 'to' => $to, 'exclude' => $exclude],
+    ['subject' => $subject, 'body' => $body],
+    ['group' => $group, 'tracker' => $artifact, 'item' => $item_id]
   );
 }
 

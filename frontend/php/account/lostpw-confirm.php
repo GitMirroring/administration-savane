@@ -162,13 +162,16 @@ if($encrypted_message != "")
   $message = $encrypted_message;
 
 sendmail_mail (
-  "$sys_mail_replyto@$sys_mail_domain", $row_user['email'],
-  "$sys_default_domain Verification", $message
+  ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $row_user['email']],
+  ['subject' => "$sys_default_domain Verification", 'body' => $message]
 );
 
 sendmail_mail (
-  "$sys_mail_replyto@$sys_mail_domain", "$sys_mail_admin@$sys_mail_domain",
-  "password change - $sys_default_domain", $message_for_admin, "lostpw"
+  [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
+    'to' =>  "$sys_mail_admin@$sys_mail_domain"],
+  [ 'subject' => "password change - $sys_default_domain",
+    'body' => $message_for_admin],
+  ['tracker' => "lostpw"]
 );
 
 fb (_("Confirmation mailed"));

@@ -2,7 +2,7 @@
 # Every mails sent should be using functions listed here.
 #
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2018, 2019, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -19,314 +19,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# The function that finally send the mail.
-# Every mail sent by Savannah should be using that function which
-# works like mail ().
-# Note: $to can be a coma-separated list.
-#       $from and $to can contain user names
-function sendmail_mail (
-  $from, $to, $subject, $message, $savane_project = 0, $savane_tracker = 0,
-  $savane_item_id = 0, $reply_to = 0, $additional_headers = 0,
-  $exclude_list = 0
-)
+function sendmail_signature ()
 {
-  global $int_delayspamcheck;
+  global $int_delayspamcheck, $sys_default_domain, $sys_home, $sys_name;
 
-  # Check if $delayspamcheck makes sense.
-  if (!$savane_project || !$savane_tracker || !$savane_item_id)
-    unset ($int_delayspamcheck);
+  if (!empty ($int_delayspamcheck))
+    return '';
+  return "\n\n_______________________________________________\n"
+    # TRANSLATORS: the argument is site name (like Savannah).
+    . sprintf (_("Message sent via %s"), $sys_name)
+    . "\nhttps://$sys_default_domain$sys_home\n";
 
-  # Clean the markup.
-  $message = markup_textoutput ($message);
+}
 
-  # Make sure the message respect the 78chars max width.
-  # Make also sure we havent got excessive slashes escaping.
-  $message = wordwrap ($message, 78);
-
-  $to = str_replace (";", ",", $to);
-
-  # Transform $to in an ordered list, without duplicates
-  # (remove blankspaces).
-  # FIXME: this is questionable, as it disallow stuff like
-  #    "Dupont Lajoie" <dupont@devnull.net>
-  # and we should allow that.
-  # (Check on $to necessary because explode returns a one element array in case
-  # iet has to explode an empty string and this screws the code later on).
-  if ($to != "")
-    $to = array_unique (explode (",", str_replace (" ", "", $to)));
-  else
-    $to = [];
-
-  # If $from is a login name, write nice From: field.
-  $fromuid = user_getid ($from);
-  if (user_exists ($fromuid))
-    $from =
-      user_getrealname ($fromuid, 1) . " <" . user_getemail ($fromuid) . ">";
-
-  # Write the add. headers
-  # Note: RFC-821 recommends to use \r\n as line break in headers but \n
-  # works and there are report of failures with \r\n so we let \n for now.
-  $more_headers = "From: " . sendmail_encode_header_content ($from) . "\n";
-  if ($reply_to)
-    $more_headers .= "Reply-To: $reply_to\n";
-
-  # Add a signature for the server (not if delayed, because it will be added
-  # we the mail will be actually sent).
-  if (empty ($int_delayspamcheck))
-    $more_headers .= "X-Savane-Server: {$_SERVER['SERVER_NAME']}:"
-       . "{$_SERVER['SERVER_PORT']} [{$_SERVER['SERVER_ADDR']}]\n";
-
-  # Necessary for proper utf-8 support.
-  $more_headers .= "MIME-Version: 1.0\n";
-  $more_headers .= "Content-Type: text/plain;charset=UTF-8\n";
-
-  # Savane details.
-  if ($savane_project)
-    $more_headers .= "X-Savane-Project: $savane_project\n";
-  if ($savane_tracker)
-    $more_headers .= "X-Savane-Tracker: $savane_tracker\n";
-  $savane_comment_id = 0;
-  if ($savane_item_id)
-    {
-      # Look if there is a (internal) comment id set.
-      if (strpos ($savane_item_id, ":"))
-        list ($savane_item_id, $savane_comment_id) =
-          explode (":", $savane_item_id);
-      $more_headers .= "X-Savane-Item-ID: $savane_item_id\n";
-    }
-  if ($additional_headers)
-    $more_headers .= "$additional_headers\n";
-
-  # User details: user agent and REMOTE_ADDR are not included
-  # per Savannah sr #110592.
-
-  if (user_isloggedin ())
-    {
-      $more_headers .= "X-Apparently-From: "
-        . "Savane authenticated user " . user_getname (user_getid ()) . "\n";
-    }
-
-  $msg_id = sendmail_create_msgid ();
-  $more_headers .= "Message-Id: <$msg_id>\n";
-  if ($savane_tracker && $savane_item_id)
-    {
-      $more_headers .= "References: "
-        . trackers_get_msgid ($savane_tracker, $savane_item_id) . "\n";
-      $more_headers .= "In-Reply-To: "
-        . trackers_get_msgid ($savane_tracker, $savane_item_id, true) . "\n";
-    }
-
-  # Add a signature for the server (not if delayed, because it will be added
-  # we the mail will be actually sent).
-  if (empty ($int_delayspamcheck))
-    $message .= "\n\n_______________________________________________\n"
-      # TRANSLATORS: the argument is site name (like Savannah).
-      . sprintf (_("Message sent via %s"), $GLOBALS['sys_name'])
-      . "\nhttps://{$GLOBALS['sys_default_domain']}{$GLOBALS['sys_home']}\n";
-
-  # Register the message id for future references.
-  if ($savane_tracker && $savane_item_id)
-    trackers_register_msgid ($msg_id, $savane_tracker, $savane_item_id);
-
-  # If there is an exclude list, create an array.
-  $exclude = [];
-  if ($exclude_list)
-    {
-      $exclude_list = str_replace (";", ",", $exclude_list);
-      $exclude = array_unique (
-        explode (",", str_replace (" ", "", $exclude_list))
-      );
-    }
-  foreach ($exclude as $v)
-    {
-      if ($v)
-        $exclude[$v] = 1;
-    }
-
-  # Forge the real to list, by parsing every item of the $to list.
-  $recipients = [];
-
-  # Do a first run to convert squads by users.
-  $to2 = $squad_seen_before = [];
-  foreach ($to as $v)
-    {
-      if (ctype_digit ($v))
-        $touid = $v;
-      else
-        $touid = user_getid ($v);
-
-      # Squad exists in the exclude array? Skip it.
-      if (!empty ($exclude[$v]))
-        continue;
-
-      # Already handled?
-      if (!empty ($squad_seen_before[$v]))
-        continue;
-
-      # Record that we handled this already.
-      $squad_seen_before[$v] = true;
-
-      # If an address is a squad username, push in all the relevant users
-      # uid.
-      if (!strpos ($v, "@"))
-        {
-          if (user_exists ($touid, true))
-            {
-              if (
-                is_array ($exclude)
-                && array_key_exists (user_getname ($touid), $exclude)
-              )
-                continue;
-
-              # If we get here, we have a squad and we will store all the
-              # squad members uid.
-              $result_squad = db_execute ("
-                SELECT user_id FROM user_squad WHERE squad_id = ?", [$touid]
-              );
-              if ($result_squad && db_numrows ($result_squad) > 0)
-                {
-                  while ($thisuser = db_fetch_array ($result_squad))
-                    $to2[] = $thisuser['user_id'];
-                }
-              # No need to go further, this squad was handled.
-              continue;
-            }
-        }
-      # If we get here, it means that we have an address that is not squad
-      # related have we keep it for the next run.
-      $to2[] = $v;
-    }
-
-  # Second run, we should have only real users here, no squads.
-  $list = $user_subject = $user_name  = $seen_before = [];
-  $i = 0;
-  foreach ($to2 as $v)
-    {
-      if (is_numeric ($v))
-        $touid = $v;
-      else
-        $touid = user_getid ($v);
-
-      # User exists in the exclude array? Skip it.
-      if (!empty ($exclude[$v]))
-        continue;
-
-      # Already handled?
-      if (!empty ($seen_before[$v]))
-        continue;
-
-      # Record that we handled this already.
-      $seen_before[$v] = true;
-
-      $i++;
-      # If an address is a username, get the email address from
-      # the database.
-      # If nothing is found, just let the username - there is maybe a
-      # local alias.
-      if (!strpos ($v, "@"))
-        {
-          if (user_exists ($touid))
-            {
-              # Exists in the exclude array? Skip it
-              if (
-                is_array ($exclude)
-                && array_key_exists (user_getname ($touid), $exclude)
-              )
-                continue;
-
-              $thisuser_email = user_getemail ($touid);
-
-              # Does the user have a specific subject line?
-              # FIXME: in the rare case where the user got a specific subject
-              # line and was added in CC manually, he may receive twice
-              # the notification, if he is added in realto because his
-              # email was plenty entered before the entry referring to his
-              # login is handled.
-              # If we do check %seen_before just before this, we would
-              # avoid duplicates but we may loose the notification with
-              # the user defined subject, which would be worse.
-              # The only way to handle this would be to cross-check the
-              # $realto (for instance by using only $seen_before and building
-              # $realto at the last step) but that would probably be
-              # overkill.
-              if (user_get_preference ("subject_line", $touid) != "")
-                {
-                  $list[$i] = $v;
-                  $subjl = sendmail_format_subject_line (
-                     user_get_preference ("subject_line", $touid),
-                     $savane_project, $savane_tracker, $savane_item_id
-                  );
-                  $user_subject[$v] = "$subjl $subject";
-                  $user_name[$v] = user_getrealname ($touid, 1)
-                    . " <$thisuser_email>";
-
-                  $seen_before[$thisuser_email] = true;
-                  continue;
-                }
-
-              # Already handled?
-              if (!empty ($seen_before[$thisuser_email]))
-                continue;
-
-              # Record that we handled this already.
-              $seen_before[$thisuser_email] = true;
-
-              # Finally, format nicely the entry
-              $v = user_getrealname ($touid, 1) . " <$thisuser_email>";
-            }
-          else
-            {
-              # We have a string without @ that is not a user login?
-              # We assume it could be valid in the mail domain (like a mailing
-              # list).
-              # Usually, this is useless, as functions calling
-              # sendmail_mail () should have already made checks
-              # (exception: global notifications of trackers).
-              $seen_before[$v] = true;
-              $v = utils_normalize_email ($v);
-
-              # Already handled?
-              if (isset ($seen_before[$v]) && $seen_before[$v])
-                continue;
-            }
-        }
-
-      # FIXME: if at some point we will accept entries like
-      #  "Dupont Lajoie" <dupont@devnull.net>
-      #  we will have to extract "dupont@devnull.net" part and put it
-      # in %seen_before.
-
-      # Add addresses arrived so far to the list.
-      $recipients[] = $v;
-
-      # Always record the full string. We may have already saved such info
-      # before, but we maybe saved strictly the email address, while the
-      # full string may show up once more. If the full string reappears, we
-      # shan't have to parse it to find the correct email.
-      $seen_before[$v] = true;
-    } # foreach ($to2 as $v)
-
-  # Add eventually info on the subject.
-  if ($savane_tracker && $savane_item_id)
-    $subject = "[" . utils_get_tracker_prefix ($savane_tracker)
-      . " #$savane_item_id] $subject";
-
-  # agn,28-sep-2016
-  # If email debugging is on - ignore the recipient list,
-  # and send to the specified email address.
-  # This variable should be set in `.savane.conf.php`.
-  if (isset ($GLOBALS['sys_debug_email_override_address']))
-    {
-      $adr = $GLOBALS['sys_debug_email_override_address'];
-      $message = "Savannah Debug: email override is turned on\n"
-         . "Original recipient list:\n"
-         . sendmail_encode_recipients ($recipients)
-         . "\n------------\n\n$message";
-      $recipients = [$adr];
-      $list = []; # No recipients with custom subject lines.
-    }
-
+function sendmail_format_body (&$message)
+{
+  $body = $message['body'];
+  $body = markup_textoutput ($body);
+  $body = wordwrap ($body, 78) . sendmail_signature ();
   # Beuc - 20050316
   # That is what I intended to do:
 
@@ -334,82 +44,440 @@ function sendmail_mail (
   # RFC821-compliant.
   # $message = preg_replace("/(?<!\r)\n/", "\r\n", $message);
 
-  # However the opposite is certainly more Mailman-compliant; a bug
-  # report has been posted to the Mailman team - wait&see [bug #1980].
-  $message = str_replace ("\r\n", "\n", $message);
+  # However the opposite is certainly more Mailman-compliant.
+  $message['body'] = str_replace ("\r\n", "\n", $body);
+}
 
-  # Send the mail in UTF-8.
-  # Normally, nothing non-ASCII should be contained in To: field, apart the
-  # real names.
+function sendmail_savane_headers ($context)
+{
+  global $int_delayspamcheck;
 
-  # Send the final mail.
   $ret = '';
-  if (count ($recipients) > 0)
-    {
-      $real_to = sendmail_encode_recipients ($recipients);
+  # Add a signature for the server (not if delayed, because it will be added
+  # we the mail will be actually sent).
+  if (empty ($int_delayspamcheck))
+    $ret .= "X-Savane-Server: {$_SERVER['SERVER_NAME']}:"
+       . "{$_SERVER['SERVER_PORT']} [{$_SERVER['SERVER_ADDR']}]\n";
 
-      # Normally, $real_to should not contain duplicates
+  # Necessary for proper utf-8 support.
+  $ret .= "MIME-Version: 1.0\nContent-Type: text/plain;charset=UTF-8\n";
+
+  foreach (['group' => 'X-Savane-Project', 'tracker' => 'X-Savane-Tracker',
+    'item' => 'X-Savane-Item-ID'] as $k => $h
+  )
+  if (!empty ($context[$k]))
+    $ret .= "$h: {$context[$k]}\n";
+  return $ret;
+}
+
+function sendmail_extract_comment_id (&$context)
+{
+  $context['comment_id'] = 0;
+  if (empty ($context['item']))
+    return;
+
+  # Look if there is a (internal) comment id set.
+  if (strpos ($context['item'], ":"))
+    list ($context['item'], $context['comment_id']) =
+      explode (":", $context['item']);
+}
+
+function sendmail_create_msgid ()
+{
+  mt_srand ((double)microtime () * 1000000);
+  return
+    date ("Ymd-His", time ()) . ".sv" . user_getid () . "."
+    . mt_rand (0,100000) . "@" . $_SERVER["HTTP_HOST"];
+}
+
+function sendmail_msgid_headers ($context)
+{
+  $msg_id = sendmail_create_msgid ();
+  $headers = "Message-Id: <$msg_id>\n";
+  if (empty ($context['tracker']) || empty ($context['item']))
+    return $headers;
+  $tracker = $context['tracker']; $item_id = $context['item'];
+  $headers .= "References: " . trackers_get_msgid ($tracker, $item_id) . "\n";
+  $headers .= "In-Reply-To: "
+    . trackers_get_msgid ($tracker, $item_id, true) . "\n";
+  trackers_register_msgid ($msg_id, $tracker, $item_id);
+
+  return $headers;
+}
+
+function sendmail_logged_in_header ()
+{
+  if (!user_isloggedin ())
+    return '';
+  # User details: user agent and REMOTE_ADDR are not included
+  # per Savannah sr #110592.
+  return
+    "X-Apparently-From: Savane authenticated user " . user_getname () . "\n";
+}
+
+function sendmail_build_headers ($from, &$context, &$message)
+{
+  sendmail_extract_comment_id ($context);
+  # RFC-821 recommends to use \r\n as line break in headers but \n
+  # works and there are report of failures with \r\n so we let \n for now.
+  $headers = "From: " . sendmail_encode_header ($from) . "\n";
+
+  $headers .= sendmail_logged_in_header ();
+  $headers .= sendmail_savane_headers ($context);
+  $headers .= sendmail_msgid_headers ($context);
+  if (!empty ($message['headers']))
+    foreach ($message['headers'] as $k => $v)
+      $headers .= "$k: $v\n";
+  $message['headers'] = $headers;
+}
+
+function sendmail_explode_addr_list ($to)
+{
+  $to = trim ($to);
+  if ($to == "")
+    return [];
+  $to = str_replace ([";", ' '], [","], $to);
+  $to = explode (",", $to);
+  $ret = [];
+  foreach ($to as $v)
+    $ret[$v] = true;
+  return $ret;
+}
+
+# If $from is a login name, write a nice From: field.
+function sendmail_format_from (&$addresses)
+{
+  $uid = user_getid ($addresses['from']);
+  if (!user_exists ($uid))
+    return;
+  $from = sendmail_email_lines ([$uid]);
+  $addresses['from'] = $from[$uid];
+}
+
+# Check if $delayspamcheck makes sense, unset otherwise.
+function sendmail_check_displayspamcheck ($context)
+{
+  global $int_delayspamcheck;
+
+  foreach (['group', 'tracker', 'item'] as $k)
+    if (empty ($context[$k]))
+      {
+        unset ($int_delayspamcheck);
+        return;
+      }
+}
+
+function sendmail_cc_to_uid ($address)
+{
+  if (sendmail_addr_is_uid ($address))
+    return $address;
+  return user_getid ($address);
+}
+
+function sendmail_debug_override_address (&$rcp, &$subj, &$msg, $email)
+{
+  if (!isset ($GLOBALS['sys_debug_email_override_address']))
+    return;
+  $head = "Savane debug: email override is turned on\n"
+    . "Original recipient list:\n" . sendmail_encode_recipients ($rcp) . "\n";
+  if (!empty ($subj))
+    $head .= "Additional recipients with custom subject lines:\n";
+  foreach ($subj as $a => $s)
+    $head .= $email[$a] . " => $s\n";
+  $head .= "------------\n\n";
+  $msg['body'] = "$head{$msg['body']}";
+  $rcp = [$GLOBALS['sys_debug_email_override_address']];
+  $subj = []; # No recipients with custom subject lines.
+}
+
+function sendmail_spamcheck_queue ($context, $u_name, $u_subj, $message)
+{
+  db_autoexecute ('trackers_spamcheck_queue_notification',
+    [ 'to_header' => $u_name, 'subject_header' => $u_subj,
+      'message' => $message['body'], 'other_headers' => $message['headers'],
+      'artifact' => $context['tracker'], 'item_id' => $context['item'],
+      'comment_id' => $context['comment_id']],
+    DB_AUTOQUERY_INSERT
+  );
+}
+
+# Send mails with specific subject line.
+function sendmail_send_to_list ($user_name, $user_subj, &$message, &$context)
+{
+  global $int_delayspamcheck;
+  $ret = '';
+  foreach ($user_subj as $v => $u_subj)
+    {
+      $u_name = sendmail_encode_recipients ($user_name[$v]);
+      $body = $message['body']; $headers = $message['headers'];
       if (empty ($int_delayspamcheck))
         {
-          $ret .= mail (
-            $real_to, sendmail_encode_header_content ($subject),
-            $message, $more_headers
-          );
+          $ret .= mail ($u_name, $u_subj, $body, $headers);
           # TRANSLATORS: the argument is a comma-separated list of recipients.
-          fb (sprintf ( _("Mail sent to %s"), join (', ', $recipients)));
+          fb (sprintf (_("Mail sent to %s"), $u_name));
+          continue;
         }
-      else
-        {
-          # Wait to be checked for spams.
-          db_autoexecute (
-            'trackers_spamcheck_queue_notification',
-            [
-              'artifact' => $savane_tracker, 'item_id' => $savane_item_id,
-              'comment_id' => $savane_comment_id, 'to_header' => $real_to,
-              'other_headers' => $more_headers,
-              'subject_header' => sendmail_encode_header_content ($subject),
-              'message' => $message
-            ],
-            DB_AUTOQUERY_INSERT
-          );
-        }
-    } # if (count ($recipients) > 0)
-
-  # Send mails with specific subject line.
-  foreach ($list as $v)
-    {
-      $u_name = sendmail_encode_header_content ($user_name[$v]);
-      $u_subj = sendmail_encode_header_content ($user_subject[$v]);
-      if (empty ($int_delayspamcheck))
-        {
-          $ret .= mail ($u_name, $u_subj, $message, $more_headers);
-          # TRANSLATORS: the argument is a single email address.
-          fb (sprintf (_("Mail sent to %s"), utils_email ($user_name[$v], 1)));
-        }
-      else
-        # Wait to be checked for spams.
-        db_autoexecute (
-          'trackers_spamcheck_queue_notification',
-          [
-            'artifact' => $savane_tracker, 'item_id' => $savane_item_id,
-            'comment_id' => $savane_comment_id, 'to_header' => $u_name,
-            'other_headers' => $more_headers, 'subject_header' => $u_subj,
-            'message' => $message
-          ],
-          DB_AUTOQUERY_INSERT
-        );
+      sendmail_spamcheck_queue ($context, $u_name, $u_subj, $message);
     }
   return $ret;
+}
+
+function sendmail_get_squad_ids ($addresses)
+{
+  $uids = $squads = [];
+  foreach ($addresses as $arr)
+    foreach ($arr as $a => $ignore)
+      if (sendmail_addr_is_uid ($a))
+        $uids[$a] = true;
+  if (empty ($uids))
+    return [];
+  $ph = utils_in_placeholders ($uids);
+  $result = db_execute (
+    "SELECT user_id AS id FROM user WHERE status = 'SQD' AND user_id $ph",
+    array_keys ($uids)
+  );
+  while ($row = db_fetch_array ($result))
+    $squads[$row['id']] = true;
+  return $squads;
+}
+
+# Convert array of squad IDs (id => true) to array of user IDs
+# (squad_id => [user_id, ...]); for empty squads, entries like
+# (squad_id => true) are left in the returned array so that
+# further functions could easily tell between no squad and empty squad.
+function sendmail_get_squad_set ($squads)
+{
+  $ph = utils_in_placeholders ($squads);
+  $result = db_execute (
+    "SELECT user_id AS u, squad_id AS s FROM user_squad WHERE squad_id $ph",
+    array_keys ($squads)
+  );
+  $ret = $squads;
+  while ($row = db_fetch_array ($result))
+    {
+      $s = $row['s'];
+      if (!is_array ($ret[$s]))
+        $ret[$s] = [];
+      $ret[$s][] = $row['u'];
+    }
+  return $ret;
+}
+
+function sendmail_expand_squad_set ($addresses, $squads)
+{
+  $ret = [];
+  foreach ($addresses as $arr)
+    {
+      $a = [];
+      foreach ($arr as $addr => $ignore)
+        {
+          if (empty ($squads[$addr]))
+            { # This address isn't a squad.
+              $a[$addr] = true;
+              continue;
+            }
+          if (!is_array ($squads[$addr])) # Don't pass empty squads to output.
+            continue;
+          foreach ($squads[$addr] as $uid)
+            $a[$uid] = true;
+        }
+      $ret[] = $a;
+    }
+  return $ret;
+}
+
+function sendmail_expand_squads ($addresses)
+{
+  $squads = sendmail_get_squad_ids ($addresses);
+  if (empty ($squads))
+    return ($addresses);
+  $squads = sendmail_get_squad_set ($squads);
+  return sendmail_expand_squad_set ($addresses, $squads);
+}
+
+# The address is a user id, an account name or an email;
+# strings starting with '@' also belong in account names.
+function sendmail_addr_is_email ($a)
+{
+  return strpos ($a, '@');
+}
+function sendmail_addr_is_uid ($a)
+{
+  return ctype_digit ($a);
+}
+function sendmail_addr_is_account_name ($a)
+{
+  return !(sendmail_addr_is_uid ($a) || sendmail_addr_is_email ($a));
+}
+
+function sendmail_reduce_names_to_uids ($to, $exclude)
+{
+  $names = [];
+  foreach ([$to, $exclude] as $arr)
+    foreach ($arr as $k => $ignored)
+      if (sendmail_addr_is_account_name ($k))
+        $names[$k] = true;
+   if (empty ($names))
+     return [$to, $exclude];
+   $names = array_keys ($names);
+   $ph = utils_in_placeholders ($names);
+   $res = db_execute (
+     "SELECT user_id, user_name FROM user WHERE user_name $ph", $names
+   );
+   while ($row = db_fetch_array ($res))
+     foreach (['to', 'exclude'] as $a)
+       if (!empty ($$a[$row['user_name']]))
+         {
+           unset ($$a[$row['user_name']]);
+           $$a[$row['user_id']] = true;
+         }
+   return [$to, $exclude];
+}
+
+function sendmail_email_lines ($uids)
+{
+  if (empty ($uids))
+    return [];
+  $ph = utils_in_placeholders ($uids);
+  $result = db_execute ("
+    SELECT user_id, email, user_name, realname FROM user WHERE user_id $ph",
+    $uids
+  );
+  $lines = [];
+  while ($row = db_fetch_array ($result))
+    {
+      $email = $row['email'];
+      $lines[$row['user_id']] =
+        utils_comply_with_rfc822 ($row['realname']) . " <$email>";
+    }
+  return $lines;
+}
+
+function sendmail_user_prefs ($uids, $context)
+{
+  if (empty ($uids))
+    return [];
+  $ph = utils_in_placeholders ($uids);
+  $result = db_execute ("
+    SELECT user_id AS id, preference_value AS val FROM user_preferences
+    WHERE preference_name = \"subject_line\" AND user_id $ph", $uids
+  );
+  $subj = [];
+  while ($row = db_fetch_array ($result))
+    $subj[$row['id']] =
+      sendmail_format_subject_line ($row['val'], $context);
+  return $subj;
+}
+
+# Forge the real to list, by parsing every item of the $to list.
+function sendmail_make_to_list ($addresses)
+{
+  $to = sendmail_explode_addr_list ($addresses['to']);
+  $exclude = [];
+  if (!empty ($addresses['exclude']))
+    $exclude = sendmail_explode_addr_list ($addresses['exclude']);
+  list ($to, $exclude) = sendmail_reduce_names_to_uids ($to, $exclude);
+  list ($to, $exclude) = sendmail_expand_squads ([$to, $exclude]);
+  foreach ($exclude as $v => $ignore)
+    unset ($to[$v]);
+  $to1 = [];
+  foreach ($to as $v => $ignore)
+    {
+      if (sendmail_addr_is_account_name ($v))
+        $v = utils_normalize_email ($v);
+      $to1[$v] = true;
+    }
+  return $to1;
+}
+
+function sendmail_list_uids ($vals)
+{
+  $ret = [];
+  foreach ($vals as $v => $ignore)
+    if (sendmail_addr_is_uid ($v))
+      $ret[] = $v;
+  return $ret;
+}
+
+function sendmail_compile_custom_subject_lines ($to, $context)
+{
+  $recipients = [];
+  $uids = sendmail_list_uids ($to);
+  $email_lines = sendmail_email_lines ($uids);
+  $subj_pfx =
+    sendmail_user_prefs (array_keys ($email_lines), $context);
+  foreach ($to as $v => $ignore)
+    {
+      if (empty ($email_lines[$v]))
+        {
+          $recipients[] = $v;
+          continue;
+        }
+      if (empty ($subj_pfx[$v]))
+        $recipients[] = $email_lines[$v];
+    }
+  return [$recipients, $subj_pfx, $email_lines];
+}
+
+function sendmail_add_context_to_subject ($message, $context)
+{
+  $subject = $message['subject'];
+  if (empty ($context['tracker']) || empty ($context['item']))
+    return $subject;
+  return "[" . utils_get_tracker_prefix ($context['tracker'])
+    . " #{$context['item']}] $subject";
+}
+
+function sendmail_make_subjects ($to, $message, $context)
+{
+  list ($recipients, $subj_pfx, $emails)
+    = sendmail_compile_custom_subject_lines ($to, $context);
+  sendmail_debug_override_address ($recipients, $subj_pfx, $message, $emails);
+  $subject = sendmail_add_context_to_subject ($message, $context);
+
+  $user_subj = [];
+  foreach ($subj_pfx as $k => $v)
+    $user_subj[$k] =  "$v $subject";
+  if (empty ($recipients))
+    return [$user_subj, $emails];
+  $v = join (', ', $recipients);
+  $emails[$v] = $recipients;
+  $user_subj[$v] = $subject;
+  return [$user_subj, $emails];
+}
+
+# Send the mail.
+# Every mail sent by Savannah should be using that function which
+# works like mail ().
+# $to can be a comma-separated list; $from and $to can contain user names.
+function sendmail_mail ($addresses, $message, $context = [])
+{
+  sendmail_check_displayspamcheck ($context);
+  sendmail_format_body ($message);
+  sendmail_format_from ($addresses);
+  $to = sendmail_make_to_list ($addresses);
+  sendmail_build_headers ($addresses['from'], $context, $message);
+  list ($recipients, $subj_pfx, $emails) =
+    sendmail_compile_custom_subject_lines ($to, $context);
+  sendmail_debug_override_address ($recipients, $subj_pfx, $message, $emails);
+  list ($user_subj, $emails) =
+    sendmail_make_subjects ($to, $message, $context);
+
+  return sendmail_send_to_list (
+    $emails, $user_subj, $message, $context
+  );
 }
 
 # Encode each recipient separately and separate them using commas.
 function sendmail_encode_recipients ($recipients)
 {
-  $r = array_map ("sendmail_encode_header_content", $recipients);
+  if (!is_array ($recipients))
+    $recipients = [$recipients];
+  $r = array_map ("sendmail_encode_header", $recipients);
   return join (', ', $r);
 }
 
-# Needed to send utf-8 headers:
+# Needed to send UTF-8 headers:
 # Take a look at http://www.faqs.org/rfcs/rfc2047.html.
 # We should use mb_encode_mimeheader () but it just does not work.
 #
@@ -419,21 +487,14 @@ function sendmail_encode_recipients ($recipients)
 # The easy way we use to do this is to simply consider as one string the
 # content of the quote, if any. If so, we are not working word per word but
 # it saves us the time of searching for quotes in every words.
-function sendmail_encode_header_content ($header, $charset = "UTF-8")
+function sendmail_encode_header ($header, $charset = "UTF-8")
 {
+  # The default behavior is to consider words as strings to encode.
+  $separator = ' ';
   if (strpos ($header, '"') !== FALSE)
-    {
-      # Quotes found, we each quoted part will be a string to encode.
-      $words = explode ('"', $header);
-      $separator = '"';
-    }
-  else
-    {
-      # Otherwise, the default behavior is to consider words as strings to
-      # encode.
-      $words = explode (' ', $header);
-      $separator = ' ';
-    }
+    # Quotes found, we each quoted part will be a string to encode.
+    $separator = '"';
+  $words = explode ($separator, $header);
   foreach ($words as $key => $word)
     $encode[$key] = !utils_is_ascii ($word);
   $last_key = count ($words) - 1;
@@ -489,23 +550,15 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
   print $HTML->box_bottom ();
 }
 
-function sendmail_format_subject_line (
-  $subject_line, $savane_project = "", $savane_tracker = "",
-  $savane_item_id = ""
-)
+function sendmail_format_subject_line ($subject_line, $context)
 {
-  $subject_line = str_replace ("%SERVER", $GLOBALS['sys_default_domain'],
-                               $subject_line);
-  $subject_line = str_replace ("%PROJECT", $savane_project, $subject_line);
-  $subject_line = str_replace ("%TRACKER", $savane_tracker, $subject_line);
-  return str_replace ("%ITEM", "#".$savane_item_id, $subject_line);
-}
-
-function sendmail_create_msgid ()
-{
-  mt_srand ((double)microtime () * 1000000);
-  return
-    date ("Ymd-His", time ()) . ".sv" . user_getid () . "."
-    . mt_rand (0,100000) . "@" . $_SERVER["HTTP_HOST"];
+  foreach (['group', 'tracker', 'item'] as $k)
+    if (empty ($context[$k]))
+      $context[$k] = '';
+  foreach (["%SERVER" => $GLOBALS['sys_default_domain'],
+    "%PROJECT" => $context['group'], "%TRACKER" => $context['tracker'],
+    "%ITEM" => "#{$context['item']}" ] as $k => $v)
+    $subject_line = str_replace ($k, $v, $subject_line);
+  return $subject_line;
 }
 ?>

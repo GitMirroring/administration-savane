@@ -79,7 +79,10 @@ function notify_admins ($quitting_group_id)
     }
   $from = "$sys_mail_replyto@$sys_mail_domain";
   $subject = "$user_name has quit the group $group_name";
-  sendmail_mail ($from, $to, $subject, $message);
+  sendmail_mail (
+    ['from' => $from, 'to' => $to],
+    ['subject' => $subject, 'body' => $message]
+  );
 }
 
 # If we get here, the user is actually member of the group.

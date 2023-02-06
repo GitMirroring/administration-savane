@@ -268,9 +268,11 @@ if ($update)
                     $warning_message .=
                       sprintf (_("-- the %s team."), $sys_name) . "\n";
 
-                    $success = sendmail_mail(
-                      "$sys_mail_replyto@$sys_mail_domain", $newvalue,
-                      $sys_name . ' ' . _("Verification"), $message
+                    $success = sendmail_mail (
+                      [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
+                        'to' => $newvalue],
+                      [ 'subject' => $sys_name . ' ' . _("Verification"),
+                        'body' => $message]
                     );
                     # yeupou--gnu.org 2003-11-09:
                     # Send also a warning to the current mail address,
@@ -284,9 +286,11 @@ if ($update)
                     # is going on.
                     # The next step is probably to print the mail change
                     # request on account with the possibility to discard.
-                    sendmail_mail(
-                      "$sys_mail_replyto@$sys_mail_domain", $row_user['email'],
-                      $sys_name . ' ' . _("Verification"), $warning_message
+                    sendmail_mail (
+                      [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
+                        'to' => $row_user['email']],
+                      [ 'subject' => $sys_name . ' ' . _("Verification"),
+                        'body' => $warning_message]
                     );
                     if ($success)
                       {
@@ -427,8 +431,10 @@ if ($update)
                 # TRANSLATORS: the argument is site name (like Savannah).
                 $message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
                 $success = sendmail_mail (
-                  "$sys_mail_replyto@$sys_mail_domain", $row_user['email'],
-                  $sys_name . ' ' . _("Verification"), $message
+                  [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
+                    'to' => $row_user['email']],
+                  [ 'subject' => $sys_name . ' ' . _("Verification"),
+                    'body' => $message]
                 );
                 if ($success)
                   fb (

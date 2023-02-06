@@ -32,16 +32,16 @@ extract (sane_import ('all',
   ]
 ));
 
-// This page can be used to manage the whole news system for a server
-// or news for a project.
-// That's why, when required, we test if group_id = sys_group_id.
+# This page can be used to manage the whole news system for a server
+# or news for a project.
+# That's why, when required, we test if group_id = sys_group_id.
 
 if (!($group_id && member_check(0, $group_id, 'N3')))
   exit_error(_("Action unavailable: only news managers can approve news."));
 
-// Modifications are made to the database
-// 0 = locally approved
-// 1 = front page approved
+# Modifications are made to the database
+# 0 = locally approved
+# 1 = front page approved
 if ($post_changes && $approve)
   {
     if ($group_id != $GLOBALS['sys_group_id'] && $status != 0 && $status != 4)
@@ -73,41 +73,39 @@ if ($post_changes && $approve)
                                  "id=? AND group_id=?", array($id, $group_id));
       }
 
-    if (!$result || db_affected_rows($result) < 1)
-      {
-        fb(_("Failed to update"),1);
-      }
+    if (!$result || db_affected_rows ($result) < 1)
+      fb (_("Failed to update"), 1);
     else
-      {
-        fb(_("Project News Item Updated."));
-      }
-    dbg("STATUS $status, group $group_id");
+      fb (_("Project News Item Updated."));
+    dbg ("STATUS $status, group $group_id");
     # Send mails: does not care if it was already approved.
-    if (($status == 0 && $group_id != $GLOBALS['sys_group_id'])
-        || ($status == 1 && user_is_super_user()
-            && $group_id == $GLOBALS['sys_group_id']))
+    if (($status == 0 && $group_id != $sys_group_id)
+        || ($status == 1 && user_is_super_user ()
+            && $group_id == $sys_group_id))
 
       {
-         # get notification address and submitter id
-         $to = db_result(db_execute("SELECT new_news_address "
-                                    ."FROM groups WHERE group_id=?",
-                                    array($group_id)),
-                         0, 'new_news_address');
-
-         $res = db_execute("SELECT submitted_by FROM news_bytes "
-                           ."WHERE id=? AND group_id=?",
-                           array($id, $for_group_id));
-         if (db_numrows($res) > 0)
-           {
-             $from = user_getrealname(db_result($res, 0, 'submitted_by'),1)
-                       .' <'.$GLOBALS['sys_mail_replyto'].'@'
-                       .$GLOBALS['sys_mail_domain'].'>';
-             sendmail_mail($from, $to, $summary, $details, $group, 'news');
-           }
+         $res = db_execute ("
+           SELECT new_news_address FROM groups WHERE group_id = ?",
+           [$group_id]
+         );
+         $to = db_result ($res, 0, 'new_news_address');
+         $from = "<$sys_mail_replyto@$sys_mail_domain>";
+         $res = db_execute ("
+           SELECT submitted_by FROM news_bytes WHERE id = ? AND group_id = ?",
+           [$id, $group_id]
+         );
+         if (db_numrows ($res) > 0)
+           $from = user_getrealname (db_result ($res, 0, 'submitted_by'), 1)
+             . " $from";
+         sendmail_mail (
+           ['from' => $from, 'to' => $to],
+           ['subject' => $summary, 'body' => $details],
+           ['group' => $group, 'tracker' => 'news']
+         );
       }
     # Show the list_queue.
-    $approve='';
-    $list_queue='y';
+    $approve = '';
+    $list_queue = 'y';
   }
 
 site_project_header (
@@ -124,40 +122,38 @@ if ($approve)
             groups.unix_group_name, news_bytes.*,
             news_bytes.submitted_by AS submitted_by
           FROM news_bytes,groups
-          WHERE id=?  AND news_bytes.group_id=groups.group_id",
+          WHERE id = ?  AND news_bytes.group_id = groups.group_id",
           [$id]
         );
       }
     else
       {
         $result = db_execute ("
-          SELECT *,news_bytes.submitted_by AS submitted_by
+          SELECT *, news_bytes.submitted_by AS submitted_by
           FROM news_bytes
-          WHERE id=? AND group_id=?",
+          WHERE id = ? AND group_id = ?",
           [$id, $group_id]
         );
       }
 
-    if (db_numrows($result) < 1)
+    if (db_numrows ($result) < 1)
       {
         print '<h1 class="error">' . _("No pending news") . "</h1>\n";
-        site_project_footer(array());
+        site_project_footer ([]);
         exit;
       }
 
-    if ($group_id == $GLOBALS['sys_group_id'] && !user_is_super_user())
-      {
-        print '<p class="warn">'
-. _("If you want to approve/edit site news (shown on the front page), you must
-be logged as superuser.") . "</p>\n";
-      }
-    elseif ($group_id == $GLOBALS['sys_group_id'] && user_is_super_user())
-      {
-        print '<p class="warn">'
-._("If you want to approve/edit news for the local administration project (not
-shown on the front page), you must end the superuser session.").'</p>
-';
-      }
+    if ($group_id == $GLOBALS['sys_group_id'] && !user_is_super_user ())
+      print '<p class="warn">'
+        . _("If you want to approve/edit site news (shown on the front "
+            . "page), you must\nbe logged as superuser.")
+        . "</p>\n";
+    elseif ($group_id == $GLOBALS['sys_group_id'] && user_is_super_user ())
+      print '<p class="warn">'
+        . _("If you want to approve/edit news for the local administration "
+            . "project (not\nshown on the front page), you must end the "
+            . "superuser session.")
+       . "</p>\n";
 
     $s_by_res = db_result ($result, 0, 'submitted_by');
     $submitted_by = "None";

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2004 Mathieu Roy <yeupou---gnu.org>
-# Copyright (C) 2017 Ineiev
+# Copyright (C) 2017, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -23,40 +23,48 @@
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English. (no_i18n() is defined elsewhere).
 
-require_once(dirname(__FILE__).'/sendmail.php');
+require_once (dirname(__FILE__) . '/sendmail.php');
 
-function send_new_project_email($group_id)
+function send_new_project_email ($group_id)
 {
-  $res_grp = db_execute("SELECT * FROM groups WHERE group_id=?",
-                        array($group_id));
+  $res_grp = db_execute (
+    "SELECT * FROM groups WHERE group_id = ?", [$group_id]
+  );
 
-  if (db_numrows($res_grp) < 1)
-# TRANSLATORS: the argument is group id (number).
-    exit_error (sprintf(
-no_i18n("Group [ %s ] does not exist. Shame on you, sysadmin."),
-                $group_id));
+  if (db_numrows ($res_grp) < 1)
+    # TRANSLATORS: the argument is group id (number).
+    exit_error (sprintf (
+      no_i18n ("Group [ %s ] does not exist. Shame on you, sysadmin."),
+      $group_id)
+    );
   $row_grp = db_fetch_array($res_grp);
-  $res_admins = db_execute("SELECT user.user_name,user.email "
-                           . "FROM user,user_group WHERE "
-                           . "user.user_id=user_group.user_id "
-                           . "AND user_group.group_id=? AND "
-                           . "user_group.admin_flags='A'", array($group_id));
-  if (db_numrows($res_admins) < 1)
-# TRANSLATORS: the argument is group id (number).
-    exit_error (sprintf(
-no_i18n("Group [ %s ] does not seem to have any administrators."),
-                $group_id));
+  $res_admins = db_execute ("
+    SELECT user.user_id FROM user, user_group
+    WHERE
+      user.user_id = user_group.user_id AND user_group.group_id = ?
+      AND user_group.admin_flags = 'A'", [$group_id]
+  );
+  if (db_numrows ($res_admins) < 1)
+    # TRANSLATORS: the argument is group id (number).
+    exit_error (
+      sprintf (
+        no_i18n ("Group [ %s ] does not seem to have any administrators."),
+        $group_id
+      )
+    );
 
   # Send one email per admin.
-  utils_get_content("admin/proj_email");
-  while ($row_admins = db_fetch_array($res_admins))
-    {
-      $message = approval_gen_email($row_grp['group_name'],
-                                    $row_grp['unix_group_name']);
-      sendmail_mail($GLOBALS['sys_email_adress'],
-                    $row_admins['email'],
-                    no_i18n("Project Approved"),
-                    $message);
-    }
+  utils_get_content ("admin/proj_email");
+  $message = approval_gen_email (
+    $row_grp['group_name'], $row_grp['unix_group_name']
+  );
+  $to = [];
+  while ($row_admins = db_fetch_array ($res_admins))
+    $to[] = $row_admins['user_id'];
+  $to = join (',', $to);
+  sendmail_mail (
+    ['from' => $GLOBALS['sys_email_adress'], 'to' => $to],
+    ['subject' => no_i18n ("Project Approved"), 'body' => $message]
+  );
 }
 ?>

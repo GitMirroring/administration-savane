@@ -182,18 +182,19 @@ if ($action == 'approve_for_group' && $user_ids)
           continue;
         # As mail content sent to a user different from the one browsing the
         # page, this cannot be translated.
-         $title = "Project membership approved";
+         $title = "Group membership approved";
          $message =
-           sprintf ("You've been approved as a member of the group %s on %s,
-where you are registered as %s.",
-            group_getname ($group_id), $GLOBALS['sys_name'],
+           sprintf (
+             "You've been approved as a member of the group %s on %s,\n"
+             . "where you are registered as %s.",
+            group_getname ($group_id), $sys_name,
             user_getname ($user)
           )
-          . "\n\n" . sprintf ("-- the %s team.", $GLOBALS['sys_name']) . "\n";
+          . "\n\n" . sprintf ("-- the %s team.", $sys_name) . "\n";
 
         sendmail_mail (
-          "{$GLOBALS['sys_mail_replyto']}@{$GLOBALS['sys_mail_domain']}",
-          $email, $title, $message
+          ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $email],
+          ['subject' => $title, 'body' => $message]
         );
       }
   }

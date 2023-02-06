@@ -230,8 +230,9 @@ if ($form_is_valid)
          . "actually can read those messages).") . "\n";
       }
     sendmail_mail (
-      "$sys_mail_replyto@$sys_mail_domain", $form_email,
-       $sys_name . " " . _("Account Registration"), $message
+      ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $form_email],
+      [ 'subject' => "$sys_name " . _("Account Registration"),
+        'body' => $message]
     );
 
     $HTML->header (['title' => _("Register Confirmation")]);

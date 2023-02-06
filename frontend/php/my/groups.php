@@ -100,10 +100,12 @@ function send_pending_user_email ($group_id, $user_id, $user_message)
   );
 
   sendmail_mail (
-    user_getname(), $admin_list,
+    ['from' => user_getname (), 'to' => $admin_list],
     # TRANSLATORS: the argument is group name.
-    sprintf (_("Membership request for group %s"), $row_grp['group_name']),
-    $message, $row_grp['unix_group_name'], "usermanagement"
+    [ 'subject' =>
+        sprintf (_("Membership request for group %s"), $row_grp['group_name']),
+      'body' => $message],
+    [ 'group' => $row_grp['unix_group_name'], 'tracker' => "usermanagement"]
   );
 }
 
@@ -354,7 +356,7 @@ if ($words)
 
         while ($val = db_fetch_array ($result_search))
           {
-            if (user_is_group_member ($row_user['user_id'], $val['group_id']))
+            if (user_check_ismember ($row_user['user_id'], $val['group_id']))
               {
                 print "+ {$val['group_name']} ";
                 print _('(already a member)') . "<br />\n";

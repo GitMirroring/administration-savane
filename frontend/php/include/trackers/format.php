@@ -372,6 +372,55 @@ function format_item_details (
   return $out;
 }
 
+function format_message_trailer ($bug_ref)
+{
+  return "\n    _______________________________________________________\n\n"
+  . "Reply to this item at:\n\n  <$bug_ref>";
+}
+
+function format_item_regular_fields ($res, $group_id)
+{
+  $body = '';
+  while ($field_name = trackers_list_all_fields ())
+    {
+      # If the field is a special field or if not used by this group
+      # then skip it. Otherwise print it in ASCII format.
+      if (trackers_data_is_special ($field_name))
+        continue;
+      if (!trackers_data_is_used ($field_name))
+        continue;
+      $body .= trackers_field_display (
+        $field_name, $group_id, $res[$field_name], false, true, true, true
+      );
+      $body .= "\n";
+    }
+  return $body;
+}
+
+function format_item_summary ($res, $bug_ref, $artifact)
+{
+  $group_id = $res['group_id'];
+  $item_id = $res['bug_id'];
+  $body = "URL:\n  <$bug_ref>\n\n";
+  $body .= trackers_field_display (
+    'summary', $group_id, $res['summary'], false, true, true, true
+  );
+  $body .= "\n";
+  $body .= sprintf ("%25s %s\n", "Group:", group_getname ($group_id));
+  $body .= trackers_field_display (
+    'submitted_by', $group_id, $res['submitted_by'], false, true, true, true
+  );
+  $body .= "\n";
+  $body .= trackers_field_display (
+    'date', $group_id, $res['date'], false, true, true, true
+  );
+  $body .= "\n" . format_item_regular_fields ($res, $group_id);
+  if (ARTIFACT === $artifact)
+    $body .= "\n\n" . format_item_details ($item_id, $group_id, true)
+      . "\n\n" . format_item_attached_files ($item_id, $group_id, true);
+  return $body;
+}
+
 function format_item_changes ($changes, $item_id, $group_id)
 {
   # FIXME: strange, with %25s it does not behave exactly like

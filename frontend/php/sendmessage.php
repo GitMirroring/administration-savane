@@ -1,10 +1,10 @@
 <?php
-# Send message to given user via Savane
+# Send message to given user via Savane.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2022 Ineiev
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -67,7 +67,10 @@ if (!empty ($missing_params))
 if ($cc_me)
   $touser .= ", $fromuser";
 
-sendmail_mail ($fromuser, $touser, $subject, $body);
+sendmail_mail (
+  ['from' => $fromuser, 'to' => $touser],
+  ['subject' => $subject, 'body' => $body]
+);
 $HTML->header (['title' => _('Message Sent')]);
 print html_feedback_top ();
 $HTML->footer ([]);

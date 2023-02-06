@@ -95,78 +95,77 @@ function utils_link (
 # expected.  This may corrupt the text and does extensive search.
 function utils_email ($address, $nohtml = 0)
 {
-  if  (user_isloggedin ())
+  if  (!user_isloggedin ())
     {
       if ($nohtml)
-        return $address;
+        return _("-email is unavailable-");
+      return utils_help (
+        _("-email is unavailable-"),
+        _("This information is not provided to anonymous users")
+      );
+    }
+  if ($nohtml)
+    return $address;
 
-      # Remove eventual extra white spaces.
-      $address = trim ($address);
+  # Remove eventual extra white spaces.
+  $address = trim ($address);
 
-      # If we have < > in the address, only this content must go in the mailto.
-      $realaddress = null;;
-      if (preg_match ("/\<([\w\d\-\@\.]*)\>/", $address, $matches))
-        $realaddress = $matches[1];
+  # If we have < > in the address, only this content must go in the mailto.
+  $realaddress = null;;
+  if (preg_match ("/\<([\w\d\-\@\.]*)\>/", $address, $matches))
+    $realaddress = $matches[1];
 
-      $addr = htmlspecialchars ($address);
-      $raddr = htmlspecialchars ($realaddress);
-      # We have a user name.
-      if (!strpos ($address, "@"))
-        {
-          # We found a real address and it is a user login.
-          $uid = user_getid ($realaddress);
-          if ($realaddress && user_exists ($uid))
-            return utils_user_link ($realaddress, user_getrealname ($uid));
-          # The whole address is a user login.
-          $uid = user_getid ($address);
-          if (user_exists ($uid))
-            return utils_user_link ($address, user_getrealname ($uid));
+  $addr = htmlspecialchars ($address);
+  $raddr = htmlspecialchars ($realaddress);
+  # We have a user name.
+  if (!strpos ($address, "@"))
+    {
+      # We found a real address and it is a user login.
+      $uid = user_getid ($realaddress);
+      if ($realaddress && user_exists ($uid))
+        return utils_user_link ($realaddress, user_getrealname ($uid));
+      # The whole address is a user login.
+      $uid = user_getid ($address);
+      if (user_exists ($uid))
+        return utils_user_link ($address, user_getrealname ($uid));
 
-          # No @, no real addresses and spaces inside? Looks like someone
-          # forgot commas.
-          if (!$realaddress && strpos ($address, " "))
-            return $addr . ' <span class="warn">'
-              . _("(address seems invalid and will probably be ignored)")
-              . '</span>';
-
-          # No @ but and not a login? P
-          # TRANSLATORS: the argument is mail domain (like localhost or
-          # sv.gnu.org).
-          $msg = sprintf (
-            _("(address is unknown to Savane, will fail if not valid at %s)"),
-            $GLOBALS['sys_mail_domain']
-          );
-
-          return "$addr <span class='warn'>$msg</span>";
-        }
-
-      # If we are here, it means that we have an @ in the address,
-      # Even if the address is invalid, the system is likely to try to
-      # send the mail, and we have no way to know if the address is valid.
-      # We will only do a check on the address syntax.
-
-      # We found a real address that is syntactically correct.
-      if ($realaddress && validate_email ($realaddress))
-        return "<a href=\"mailto:$raddr\">$addr</a>";
-
-      # We found real address but it does not seem correct. Print a warning.
-      if ($realaddress)
+      # No @, no real addresses and spaces inside? Looks like someone
+      # forgot commas.
+      if (!$realaddress && strpos ($address, " "))
         return $addr . ' <span class="warn">'
           . _("(address seems invalid and will probably be ignored)")
           . '</span>';
-      # No realaddress found, only one string that is an address.
-      if (validate_email ($address))
-        return "<a href=\"mailto:$addr\">$addr</a>";
-      return $addr . ' <span class="warn">'
-        . _("(address seems invalid and will probably be ignored)")
-        . '</span>';
+
+      # No @ but and not a login?
+      # TRANSLATORS: the argument is mail domain (like localhost or
+      # sv.gnu.org).
+      $msg = sprintf (
+        _("(address is unknown to Savane, will fail if not valid at %s)"),
+        $GLOBALS['sys_mail_domain']
+      );
+      return "$addr <span class='warn'>$msg</span>";
     }
-  if ($nohtml)
-    return _("-email is unavailable-");
-  return utils_help (
-    _("-email is unavailable-"),
-    _("This information is not provided to anonymous users")
-  );
+
+  # If we are here, it means that we have an @ in the address,
+  # Even if the address is invalid, the system is likely to try to
+  # send the mail, and we have no way to know if the address is valid.
+  # We will only do a check on the address syntax.
+
+  # We found a real address that is syntactically correct.
+  if ($realaddress && validate_email ($realaddress))
+    return "<a href=\"mailto:$raddr\">$addr</a>";
+
+  # We found real address but it does not seem correct. Print a warning.
+  if ($realaddress)
+    return $addr . ' <span class="warn">'
+      . _("(address seems invalid and will probably be ignored)")
+      . '</span>';
+  # No realaddress found, only one string that is an address.
+  if (validate_email ($address))
+    return "<a href=\"mailto:$addr\">$addr</a>";
+  return $addr . ' <span class="warn">'
+    . _("(address seems invalid and will probably be ignored)")
+    . '</span>';
 }
 
 # Like the previous, but does no extended search, just print as it comes.
@@ -600,10 +599,10 @@ function utils_cleanup_emails ($addresses)
 # login name.
 function utils_normalize_email ($address)
 {
-  $address = utils_cleanup_emails($address);
-  if (validate_email($address))
+  $address = utils_cleanup_emails ($address);
+  if (validate_email ($address))
     return $address;
-  return $address."@".$GLOBALS['sys_mail_domain'];
+  return "$address@" . $GLOBALS['sys_mail_domain'];
 }
 
 # Clean up email address (remove spaces...) and split comma separated emails.
@@ -916,11 +915,26 @@ function utils_placeholders ($array)
 {
   return utils_str_join (', ', '?', count ($array));
 }
+
+function utils_in_placeholders ($array)
+{
+  return "IN (" . utils_placeholders ($array) . ")";
+}
+
 function utils_update_decimal_separator ()
 {
   global $decimal_separator;
   $loc = localeconv ();
   $decimal_separator = $loc['decimal_point'];
   return $decimal_separator;
+}
+
+# RFC822 requires some characters to be escaped. We usually care about this
+# compliance only in email headers.
+function utils_comply_with_rfc822 ($string)
+{
+  if (preg_match ("#\.|\,|\@|\/|\\|\||\;|\!#", $string))
+    return "\"$string\"";
+  return $string;
 }
 ?>
