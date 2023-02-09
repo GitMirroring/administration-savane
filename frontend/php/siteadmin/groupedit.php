@@ -47,9 +47,6 @@ $post_names = function ()
     'specialchars' => ['form_license', 'form_license_other'],
     'preg' => [['form_status', '/^[A-Z]$/']]
   ];
-  $dirs = ['cvs', 'arch', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'];
-  foreach ($dirs as $d)
-    $names['specialchars'][] = "form_dir_$d";
   return $names;
 };
 
@@ -91,11 +88,9 @@ if ($update || $updatefast)
           [ 'is_public' => $form_public, 'status' => $form_status,
             'license' => $form_license, 'license_other' => $form_license_other,
             'type' => $group_type, 'unix_group_name' => $form_name,
-            'dir_cvs' => $form_dir_cvs, 'dir_arch' => $form_dir_arch,
-            'dir_svn' => $form_dir_svn, 'dir_git' => $form_dir_git,
-            'dir_hg' => $form_dir_hg, 'dir_bzr' => $form_dir_bzr,
-            'dir_homepage' => $form_dir_homepage,
-            'dir_download' => $form_dir_download],
+            'dir_cvs' => '', 'dir_arch' => '', 'dir_svn' => '',
+            'dir_git' => '', 'dir_hg' => '', 'dir_bzr' => '',
+            'dir_homepage' => '', 'dir_download' => ''],
           DB_AUTOQUERY_UPDATE, "group_id=?", [$group_id]
         );
       } # $update
@@ -264,55 +259,6 @@ print "<p><a href='triggercreation.php?group_id=$group_id'>"
 
 $HTML->box1_top (no_i18n ("Submitted Information"));
 project_admin_registration_info ($row_grp);
-$HTML->box1_bottom ();
-
-print '<p>';
-$HTML->box1_top  (no_i18n("Specific Backend Settings"));
-print no_i18n (
-  "[BACKEND SPECIFIC] If this group must have specific directories\n"
-  . "for homepage, sourcecode, download, which are not the default\n"
-  . "of the group type it belongs to, you can fill in the following\n"
-  . "fields.  You may need to also edit the urls in &ldquo;This group\n"
-  . "active features.&rdquo; If possible, you should avoid using these\n"
-  . "fields and consider creating new group types.  Exceptions are a pain\n"
-  . "to handle in the long run."
-);
-
-$i = 0;
-next_altrow ();
-
-function vcs_directory ($vcs, $label, $row_grp)
-{
-  print "<p><span class='preinput'><label for='form_dir_$vcs'>"
-    . "$label</label></span><br />\n";
-  print '<input type="text" name="form_dir_' . $vcs . '" id="form_dir_' . $vcs
-    .'" value="' . $row_grp["dir_$vcs"] . '" size="50" />';
-  next_altrow ();
-}
-
-$titles = ['cvs' => no_i18n ("CVS directory:"),
-  'arch' => no_i18n ("GNU Arch directory:"),
-  'svn' => no_i18n ("Subversion directory:"),
-  'git' => no_i18n ("Git directory:"),
-  'hg' => no_i18n ("Mercurial directory:"),
-  'bzr' => no_i18n ("Bazaar directory:"),
-];
-
-foreach ($titles as $k => $v)
-  vcs_directory ($k, $v, $row_grp);
-
-print '<p><span class="preinput"><label for="form_dir_homepage">'
-  . no_i18n("Homepage directory:") . "</label></span><br />\n"
-  . '<input type="text" name="form_dir_homepage" id="form_dir_homepage" '
-  . 'value="' . $row_grp['dir_homepage'] . '" size="50" />';
-next_altrow ();
-
-print '<p><span class="preinput"><label for="form_dir_download">'
-  . no_i18n ("Download directory:") . "</label></span><br />\n"
-  . '<input type="text" name="form_dir_download" id="form_dir_download" '
-  . 'value="' . $row_grp['dir_download'] . "\" size='50' /></p>\n";
-print '<p><input type="submit" name="update" value="' . no_i18n("Update")
-  . "\" /></p>\n";
 
 $HTML->box1_bottom ();
 site_admin_footer ([]);
