@@ -4,7 +4,7 @@
 # Copyright (C) 2001-2002 Laurent Julliard, CodeX Team, Xerox
 # Copyright (C) 2002-2005 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2018, 2020  Ineiev
+# Copyright (C) 2017, 2018, 2020, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -23,39 +23,41 @@
 
 $GLOBALS['skip_csp_headers'] = 1;
 
-require_once('include/init.php');
-require_once('include/http.php');
+require_once ('include/init.php');
+require_once ('include/http.php');
 
 extract (sane_import ('request',
   ['preg' => [['file_id', '/^(\d+|test[.]png)$/']]]
 ));
 
+if (!$file_id)
+  exit_missing_param (['file_id']);
+
 if ($file_id == 'test.png')
   {
-    header('Content-Type: image/png');
+    header ('Content-Type: image/png');
     $fname = $GLOBALS['sys_www_topdir'] . '/images/common/floating.png';
-    header('Content-Length: ' . stat($fname)['size']);
+    header ('Content-Length: ' . stat ($fname)['size']);
     readfile ($fname);
     exit (0);
   }
 
-if (!$file_id)
-  exit_missing_param();
-
 # Check privacy of the item this file is attached to and reject access by
 # non-authorized users.
 
-$result = db_execute("SELECT item_id, artifact FROM trackers_file WHERE file_id=?",
-                     array($file_id));
+$result = db_execute ("
+  SELECT item_id, artifact FROM trackers_file WHERE file_id = ?",
+  [$file_id]
+);
 
-if ($result && db_numrows($result) > 0)
+if ($result && db_numrows ($result) > 0)
   {
-    $item_id  = db_result($result, 0, 'item_id');
-    $artifact = db_result($result, 0, 'artifact');
+    $item_id  = db_result ($result, 0, 'item_id');
+    $artifact = db_result ($result, 0, 'artifact');
   }
 else
-# TRANSLATORS: the argument is file id (a number).
-  util_die (sprintf(_("File #%s not found"), $file_id));
+  # TRANSLATORS: the argument is file id (a number).
+  util_die (sprintf (_("File #%s not found"), $file_id));
 
 $in = [0 => $artifact];
 $out = [];
@@ -69,73 +71,80 @@ if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
     )
   );
 
-$result = db_execute("SELECT group_id, privacy FROM $artifact WHERE bug_id=?",
-                     array($item_id));
+$result = db_execute ("
+  SELECT group_id, privacy FROM $artifact WHERE bug_id = ?",
+  [$item_id]
+);
 
-if ($result && db_numrows($result) > 0)
+if ($result && db_numrows ($result) > 0)
   {
-    $group_id = db_result($result, 0, 'group_id');
-    if ((db_result($result, 0, 'privacy') == '2')
-        && !member_check_private(0, $group_id))
-      exit_error(_("Non-authorized access to file attached to private item"));
+    $group_id = db_result ($result, 0, 'group_id');
+    if ((db_result ($result, 0, 'privacy') == '2')
+        && !member_check_private (0, $group_id))
+      exit_error (_("Non-authorized access to file attached to private item"));
   }
 
-$result = db_execute("SELECT description,filename,filesize,filetype,date "
-                     . "FROM trackers_file WHERE file_id=? LIMIT 1",
-                     array($file_id));
+$result = db_execute ("
+  SELECT description, filename, filesize, filetype, date
+  FROM trackers_file WHERE file_id = ? LIMIT 1",
+  [$file_id]
+);
 
-$vex = $result && db_numrows($result) > 0;
+$vex = $result && db_numrows ($result) > 0;
 
-if ($vex && db_result($result, 0, 'filesize') >= 0)
+if ($vex && db_result ($result, 0, 'filesize') >= 0)
   {
     $mtime = db_result ($result, 0, 'date');
-    http_exit_if_not_modified($mtime);
-    header('Last-Modified: ' . date('r', $mtime));
+    http_exit_if_not_modified ($mtime);
+    header ('Last-Modified: ' . date ('r', $mtime));
 
     # Check if the file is not empty.
     # This should have been checked before, but it is harmless to check it
     # one more time.
-    if (db_result($result, 0, 'filesize') == 0)
-      exit_error(_("Nothing in here, file is empty"));
+    if (db_result ($result, 0, 'filesize') == 0)
+      exit_error (_("Nothing in here, file is empty"));
 
     # Check if the filename in database match with the one in the URL.
     # We do not want to allow broken URL that may make a user download
     # a file with a given name like "myimage.png" when actually downloading
     # something completely different like "mystupidvirus.scr".
-    if (db_result($result, 0, 'filename')
-        != basename(rawurldecode($_SERVER['PHP_SELF'])))
-      {
-        exit_error(
-_("The filename in the URL does not match the filename registered in the database"));
-      }
+    if (db_result ($result, 0, 'filename')
+        != basename (rawurldecode ($_SERVER['PHP_SELF'])))
+      exit_error (_("The filename in the URL does not match the filename "
+                    . "registered in the database")
+     );
 
     $path = $sys_trackers_attachments_dir . '/' . $file_id;
     if (!is_readable($path))
       exit_error(_("No access to the file."));
 
     # Download the patch with the correct filetype.
-    header('Content-Type: ' . db_result($result, 0, 'filetype'));
-    header('Content-Length: ' . db_result($result, 0, 'filesize'));
-    header('Content-Disposition: attachment; filename='
-           . db_result($result, 0, 'filename'));
-    header('Content-Description: ' . db_result($result, 0, 'description'));
+    $headers = [
+      'filetype' => 'Content-Type: ', 'filesize' => 'Content-Length: ',
+      'filename' => 'Content-Disposition: attachment; filename=',
+      'description' => 'Content-Description: '
+    ];
+    foreach ($headers as $field => $h)
+      {
+        $val = str_replace (['\n', '\r'], ' ', db_result ($result, 0, $field));
+        header ("$h$val");
+      }
     # Dump file to the browser.
-    readfile($sys_trackers_attachments_dir . '/' . $file_id);
+    readfile ("$sys_trackers_attachments_dir/$file_id");
+    exit (0);
   }
-else
-  {
-    if (!$vex)
-      exit_error(sprintf(_("Couldn't find attached file #%s."), $file_id));
 
-    exit_error (
-      sprintf (_("Attached file #%s was lost."), $file_id) . " "
-      . sprintf (
-          _("File attributes: name '%s', size %s, type '%s', date %s."),
-          htmlspecialchars(db_result ($result, 0, 'filename')),
-          htmlspecialchars(db_result ($result, 0, 'filesize')),
-          htmlspecialchars(db_result ($result, 0, 'filetype')),
-          utils_format_date(db_result ($result, 0, 'date'))
-        )
-    );
-  }
+if (!$vex)
+  exit_error (sprintf (_("Couldn't find attached file #%s."), $file_id));
+
+exit_error (
+  sprintf (_("Attached file #%s was lost."), $file_id) . " "
+  . sprintf (
+      _("File attributes: name '%s', size %s, type '%s', date %s."),
+      htmlspecialchars (db_result ($result, 0, 'filename')),
+      htmlspecialchars (db_result ($result, 0, 'filesize')),
+      htmlspecialchars (db_result ($result, 0, 'filetype')),
+      utils_format_date (db_result ($result, 0, 'date'))
+    )
+);
 ?>

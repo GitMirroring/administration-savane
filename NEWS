@@ -1,3 +1,12 @@
+????-??-?? 3.11
+
+[FRONTEND]
+
+* Bug fixes:
+
+** When user supplied multi-line file descriptions, the file was served
+   with a broken header.
+
 2023-02-01 3.10
 
 [FRONTEND]
