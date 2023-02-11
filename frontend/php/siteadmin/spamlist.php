@@ -87,7 +87,7 @@ print '<h2>' . html_anchor (no_i18n ("Suspected users"), "users_results")
 
 $title_arr = [
   no_i18n ("User"), no_i18n ("Score"), no_i18n ("Remove"),
-  no_i18n ("Wash score"), no_i18n ("Incriminated content"),
+  no_i18n ("Wash score"), no_i18n ("Incriminated posts"),
   no_i18n ("Flagged by")
 ];
 
@@ -130,7 +130,7 @@ while ($entry = db_fetch_array ($result))
       LIMIT 50", [$entry['user_id']]
     );
     $flagged_by = '';
-    $incriminated_content = '';
+    $incriminated_posts = '';
     $seen_before = [];
     while ($ent = db_fetch_array ($res_score))
       {
@@ -144,18 +144,18 @@ while ($entry = db_fetch_array ($result))
           {
             # Only put the string "here" for each item, otherwise it gets
             # overlong when we have to tell comment #nnn of item #nnnn.
-            $incriminated_content .= utils_link (
+            $incriminated_posts .= utils_link (
               $sys_home . $ent['artifact'] . '/?item_id=' . $ent['item_id']
               . '&amp;func=viewspam&amp;comment_internal_id='
               . $ent['comment_id'] . '#spam' . $ent['comment_id'],
               no_i18n ("here")
             );
-            $incriminated_content .= ', ';
+            $incriminated_posts .= ', ';
             $seen_before[$idx] = true;
           }
       }
     $flagged_by = rtrim ($flagged_by, ', ');
-    $incriminated_content = rtrim ($incriminated_content, ', ');
+    $incriminated_posts = rtrim ($incriminated_posts, ', ');
 
     print '<tr class="' . utils_altrow($i) . '">';
     print '<td width="25%">'
@@ -170,7 +170,7 @@ while ($entry = db_fetch_array ($result))
       . utils_link ("$php_self?wash_user_id={$entry['user_id']}#users_results",
           html_image ('bool/ok.png', ['alt=' => no_i18n("Wash score")])
         )
-      . "</td>\n<td width='30%'>$incriminated_content</td>\n"
+      . "</td>\n<td width='30%'>$incriminated_posts</td>\n"
       . "<td width='30%'>$flagged_by</td>\n</tr>\n";
   }
 print "</table>\n";

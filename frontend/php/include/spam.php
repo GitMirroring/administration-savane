@@ -2,7 +2,7 @@
 # Handling spam.
 #
 # Copyright (C) 2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017 Ineiev
+# Copyright (C) 2017, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -21,7 +21,7 @@
 
 # First, initialize some globals var: conffile allows two vals for
 # admin conveniency.
-if (!empty($GLOBALS['sys_spamcheck_spamassassin']))
+if (!empty ($GLOBALS['sys_spamcheck_spamassassin']))
   {
     if ($GLOBALS['sys_spamcheck_spamassassin'] == 1)
       $GLOBALS['sys_spamcheck_spamassassin'] = "anonymous";
@@ -32,71 +32,75 @@ if (!empty($GLOBALS['sys_spamcheck_spamassassin']))
 $GLOBALS['int_probablyspam'] = false;
 $GLOBALS['int_delayspamcheck_comment_id'] = false;
 
-# Function to mark a spam. This assume that checks on whether the user
-# has proper rights have been made already.
-function spam_flag ($item_id, $comment_id, $score, $group_id, $reporter_user_id=0)
+# Mark a spam.  This assumes that checks for user's permissions
+# have been made already.
+function spam_flag (
+  $item_id, $comment_id, $score, $group_id, $reporter_user_id = 0
+)
 {
   if (!$reporter_user_id)
-    $reporter_user_id = user_getid();
+    $reporter_user_id = user_getid ();
 
   # Check if the reported havent flagged the incriminated comment already.
-  $result = db_execute("SELECT id FROM trackers_spamscore WHERE item_id=?
-                          AND artifact=? AND comment_id=? AND reporter_user_id=?",
-                       array($item_id, ARTIFACT, $comment_id, $reporter_user_id));
-  if (db_numrows($result))
+  $result = db_execute ("
+    SELECT id FROM trackers_spamscore
+    WHERE
+      item_id = ? AND artifact = ? AND comment_id = ?
+      AND reporter_user_id = ?",
+    [$item_id, ARTIFACT, $comment_id, $reporter_user_id]
+  );
+  if (db_numrows ($result))
     {
-      fb(_("You already flagged this comment"), 1);
+      fb (_("You already flagged this comment"), 1);
       return false;
     }
 
   # Find out who is the alleged spammer
   # (if comment_id = 0, then it is the item itself that is a spam).
-  unset($affected_user_id);
+  unset ($affected_user_id);
   if ($comment_id)
-    {
-      # It is important to mention the field_name, to avoid malicious attempt
-      # to mess with any other part of history.
-      $affected_user_id = db_result(db_execute("SELECT mod_by FROM ".ARTIFACT
-      ."_history WHERE bug_history_id=? AND field_name='details' AND bug_id=?",
-                                               array($comment_id, $item_id)),
-                                    0, 'mod_by');
-    }
+    # It is important to mention the field_name, to avoid malicious attempt
+    # to mess with any other part of history.
+    $result = db_execute ("
+      SELECT mod_by AS user_id FROM " . ARTIFACT . "_history
+      WHERE bug_history_id = ? AND field_name = 'details' AND bug_id = ?",
+      [$comment_id, $item_id]
+    );
   else
-    {
-      $affected_user_id = db_result(db_execute("SELECT submitted_by FROM "
-                                               .ARTIFACT." WHERE bug_id=?",
-                                               array($item_id)),
-                                    0, 'submitted_by');
-    }
+    $result = db_execute ("
+      SELECT submitted_by AS user_id FROM " . ARTIFACT . "
+      WHERE bug_id = ?", [$item_id]
+    );
+  $affected_user_id = db_result ($result, 0, 'user_id');
 
   # Affected user may be 100 (anonymous) or anything else but 0.
   # If it is zero, something went wrong, let assume the worse and stop here.
   if (!$affected_user_id)
     {
-      fb(_("Not able to find out who submitted the alleged spam, stopping here"), 1);
+      fb (
+        _("Not able to find out who submitted the alleged spam, "
+          . "stopping here"),
+        1
+      );
       return false;
     }
 
   # If the affected user is member of the group that owns the item
   # assume that someone is trying to do something stupid. The code does not
-  # allow to flag as spam items posted by projects members.
-  if ($affected_user_id != 100 && member_check($affected_user_id, $group_id))
-    {
-      exit_permission_denied();
-    }
+  # allow to flag as spam items posted by group members.
+  if ($affected_user_id != 100 && member_check ($affected_user_id, $group_id))
+    exit_permission_denied ();
 
   # Feed the spamscore table.
-  db_autoexecute('trackers_spamscore',
-                 array('score' => $score,
-                       'affected_user_id' => $affected_user_id,
-                       'reporter_user_id' => $reporter_user_id,
-                       'artifact' => ARTIFACT,
-                       'item_id' => $item_id,
-                       'comment_id' => $comment_id),
-                 DB_AUTOQUERY_INSERT);
+  db_autoexecute ('trackers_spamscore',
+    [ 'score' => $score, 'affected_user_id' => $affected_user_id,
+      'reporter_user_id' => $reporter_user_id, 'artifact' => ARTIFACT,
+      'item_id' => $item_id, 'comment_id' => $comment_id],
+    DB_AUTOQUERY_INSERT
+  );
 
   # Compute the score of the item.
-  $newscore = spam_get_item_score($item_id, ARTIFACT, $comment_id);
+  $newscore = spam_get_item_score ($item_id, ARTIFACT, $comment_id);
 
   # If newscore equal to score (so it was null in first place)
   # and the affected user is anonymous, increment of 3, that is the default
@@ -107,37 +111,33 @@ function spam_flag ($item_id, $comment_id, $score, $group_id, $reporter_user_id=
 
   # Update the item spamscore fields.
   if ($comment_id)
-    {
-      db_execute("UPDATE ".ARTIFACT."_history SET spamscore=?
-                  WHERE bug_history_id=? AND field_name='details'
-                    AND bug_id=?",
-                 array($newscore, $comment_id, $item_id));
-    }
+    db_execute ("
+      UPDATE " . ARTIFACT . "_history SET spamscore = ?
+      WHERE bug_history_id = ? AND field_name = 'details' AND bug_id = ?",
+      [$newscore, $comment_id, $item_id]
+    );
   else
     {
+      $result = db_execute (
+        "SELECT summary FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
+      );
       # Get the current summary.
-      $summary = db_result(db_execute("SELECT summary FROM ".ARTIFACT
-                                      ." WHERE bug_id=?",
-                                      array($item_id)),
-                           0, 'summary');
-      $discussion_lock = array();
+      $summary = db_result ($result, 0, 'summary');
+      $arg = [];
       if ($newscore > 4)
         {
-          if (strpos($summary, '[SPAM]') === FALSE)
-            $summary = '[SPAM] '.$summary;
-          $discussion_lock = array('discussion_lock' => 1);
+          if (strpos ($summary, '[SPAM]') === FALSE)
+            $summary = "[SPAM] $summary";
+          $arg['discussion_lock'] = 1;
         }
 
-      db_autoexecute(ARTIFACT,
-                     array_merge(array('spamscore' => $newscore,
-                                       'summary' => $summary),
-                                 $discussion_lock),
-                     DB_AUTOQUERY_UPDATE,
-                     'bug_id=?',
-                     array($item_id));
+      $arg['spamscore'] = $newscore; $arg['summary'] = $summary;
+      db_autoexecute (
+        ARTIFACT, $arg, DB_AUTOQUERY_UPDATE, 'bug_id = ?', [$item_id]
+      );
     }
 
-  fb(sprintf(_("Flagged (+%s, total spamscore: %s)"), $score, $newscore));
+  fb (sprintf (_("Flagged (+%s, total spamscore: %s)"), $score, $newscore));
 
   # If the total spamscore is superior to 4, the content is supposedly
   # confirmed spam, then increment the user spamscore.
@@ -152,23 +152,17 @@ function spam_flag ($item_id, $comment_id, $score, $group_id, $reporter_user_id=
   # If the reporter already flagged a message of this user, end here
   # (we do not want a single user being able to increment by more than one
   # another user spamscore).
-  if (spam_get_user_score($affected_user_id, $reporter_user_id) > 1)
+  if (spam_get_user_score ($affected_user_id, $reporter_user_id) > 1)
     return true;
 
-  # If the reporter is not member of the project that owns the item,
-  # not increment user spamscore.
-  # FIXME: not sure about this ; as we increment the spamscore only if the
-  # content is marked as spam, not if it is simply flagged once, we can
-  # consider this to be safe enough.
-  #if (!member_check($reporter_user_id, $group_id))
-  #  { return true; }
-
   # Compute the score of the user.
-  $userscore = spam_get_user_score($affected_user_id);
+  $userscore = spam_get_user_score ($affected_user_id);
 
   # Update the user spamscore field.
-  db_execute("UPDATE user SET spamscore=? WHERE user_id=?",
-             array($userscore, $affected_user_id));
+  db_execute (
+    "UPDATE user SET spamscore = ? WHERE user_id = ?",
+    [$userscore, $affected_user_id]
+  );
 
   # No feedback about this last part, one user spamscore is the kind of info
   # that belongs to site admins territory.
@@ -181,81 +175,81 @@ function spam_flag ($item_id, $comment_id, $score, $group_id, $reporter_user_id=
 function spam_unflag ($item_id, $comment_id, $tracker, $group_id)
 {
   # Update the spamscore table.
-  db_execute("DELETE FROM trackers_spamscore
-              WHERE item_id=? AND comment_id=? AND artifact=?",
-             array($item_id, $comment_id, $tracker));
+  db_execute ("
+    DELETE FROM trackers_spamscore
+    WHERE item_id = ? AND comment_id = ? AND artifact = ?",
+    [$item_id, $comment_id, $tracker]
+  );
 
-  if (!ctype_alnum($tracker))
-    util_die(sprintf(_('Tracker &ldquo;%s&rdquo; is not valid (not alnum).'),
-                     htmlescape($tracker)));
+  if (!ctype_alnum ($tracker))
+    util_die (sprintf (_('Tracker &ldquo;%s&rdquo; is not valid (not alnum).'),
+      htmlescape ($tracker))
+    );
 
   # Update the item spamscore fields.
   if ($comment_id)
-    {
-      db_execute("UPDATE ".$tracker."_history SET spamscore=0
-                  WHERE bug_history_id=? AND field_name='details' AND bug_id=?",
-                 array($comment_id, $item_id));
-    }
+    db_execute ("
+      UPDATE {$tracker}_history SET spamscore = 0
+      WHERE bug_history_id = ? AND field_name = 'details' AND bug_id = ?",
+      [$comment_id, $item_id]
+    );
   else
-    {
-      db_execute("UPDATE $tracker SET spamscore=0
-                  WHERE bug_id=? AND group_id=?",
-                 array($item_id, $group_id));
-    }
-
+    db_execute ("
+      UPDATE $tracker SET spamscore = 0 WHERE bug_id = ? AND group_id = ?",
+      [$item_id, $group_id]
+    );
 }
 
-
 # Return the total score of a user.
-function spam_get_user_score ($user_id=0, $set_by_user_id=0)
+function spam_get_user_score ($user_id = 0, $set_by_user_id = 0)
 {
   if (!$user_id)
-    $user_id = user_getid();
+    $user_id = user_getid ();
 
   # Anonymous get always a score of 3 (requires two users to succesfully
-  # mark as spam something, only one project member).
+  # mark as spam something, only one group member).
   if ($user_id == 100)
     return 3;
 
   $set_by_user_id_sql = '';
-  $set_by_user_id_params = array();
+  $set_by_user_id_params = [];
   if ($set_by_user_id)
     {
-      $set_by_user_id_sql = " AND reporter_user_id=?";
-      $set_by_user_id_params = array($set_by_user_id);
+      $set_by_user_id_sql = "AND reporter_user_id = ?";
+      $set_by_user_id_params = [$set_by_user_id];
     }
 
   # We cannot do a count because it does not allow us to use GROUP BY.
   $userscore = 0;
-  $result = db_execute("SELECT score FROM trackers_spamscore "
-                       ."WHERE affected_user_id=? $set_by_user_id_sql "
-                       ."GROUP BY reporter_user_id",
-                       array_merge(array($user_id), $set_by_user_id_params));
-  while ($entry = db_fetch_array($result))
-    {
-      $userscore++;
-    }
+  $result = db_execute ("
+    SELECT score FROM trackers_spamscore
+    WHERE affected_user_id = ? $set_by_user_id_sql GROUP BY reporter_user_id",
+    array_merge ([$user_id], $set_by_user_id_params)
+  );
+  while ($entry = db_fetch_array ($result))
+    $userscore++;
   return $userscore;
 }
 
 # Return the total score of an item.
 function spam_get_item_score ($item_id, $tracker, $comment_id)
 {
-  $result = db_execute("SELECT score FROM trackers_spamscore "
-                       ."WHERE item_id=? AND artifact=? AND comment_id=?",
-                       array($item_id, $tracker, $comment_id));
+  $result = db_execute ("
+    SELECT score FROM trackers_spamscore
+    WHERE item_id = ? AND artifact = ? AND comment_id = ?",
+    [$item_id, $tracker, $comment_id]
+  );
   $newscore = 0;
-  while ($entry = db_fetch_array($result))
-    {
-      $newscore += $entry['score'];
-    }
+  while ($entry = db_fetch_array ($result))
+    $newscore += $entry['score'];
   return $newscore;
 }
 
 # To be used when a comment or an item is created. It is not enough to
 # update the spamscore field of $tracker and $tracker_history tables.
-function spam_set_item_default_score ($item_id, $comment_id, $tracker, $score,
-                                      $user_id)
+function spam_set_item_default_score (
+  $item_id, $comment_id, $tracker, $score, $user_id
+)
 {
   # Nothing to do for anonymous post, spam_flag will properly interpret
   # the fact that the default is not specifically set.
@@ -275,21 +269,19 @@ function spam_set_item_default_score ($item_id, $comment_id, $tracker, $score,
   # affected user: we want to set the default score for the item, not to
   # increment the user spamscore.
   # We mark the user as reporter, so it is clear where do come from the flag.
-  db_autoexecute('trackers_spamscore',
-                 array('score' => $score,
-                       'reporter_user_id' => $user_id,
-                       'artifact' => $tracker,
-                       'item_id' => $item_id,
-                       'comment_id' => $comment_id),
-                 DB_AUTOQUERY_INSERT);
-  fb(sprintf(_("Spam score of your post is set to %s"), $score), 1);
+  db_autoexecute ('trackers_spamscore',
+    [ 'score' => $score, 'reporter_user_id' => $user_id,
+      'artifact' => $tracker, 'item_id' => $item_id,
+      'comment_id' => $comment_id], DB_AUTOQUERY_INSERT
+  );
+  fb (sprintf (_("Spam score of your post is set to %s"), $score), 1);
 }
 
 # Put an item or a comment in temporary queue.
-function spam_add_to_spamcheck_queue ($item_id, $comment_id, $tracker,
-                                      $group_id, $current_score)
+function spam_add_to_spamcheck_queue (
+  $item_id, $comment_id, $tracker, $group_id, $current_score
+)
 {
-  assert('ctype_alnum($tracker)');
   # Useless if already considered as spam.
   if ($GLOBALS['int_probablyspam'])
     return false;
@@ -299,32 +291,32 @@ function spam_add_to_spamcheck_queue ($item_id, $comment_id, $tracker,
     return false;
 
   # If user is member of the current group, stop anyway.
-  if (member_check(0, $group_id))
+  if (member_check (0, $group_id))
     return false;
 
   # If logged in and we have to check only anonymous users, stop here.
   if ($GLOBALS['sys_spamcheck_spamassassin'] == "anonymous"
-      && user_isloggedin())
+      && user_isloggedin ())
     return false;
 
   # Otherwise, add to the queue and arbitrarily change spamscore.
-  $date = time();
+  $date = time ();
   $priority = 2;
-  $newscore = ($current_score + 5);
+  $newscore = $current_score + 5;
 
   # If anonymous, increment priority (yes, it will be meaningless on sites
-  # where only anonymous post are checked):
+  # where only anonymous posts are checked):
   # While we may consider giving the priority to logged in users for their
   # confort, we have to take into account that we need to start with post
   # that are the most likely to contain spams.
-  if (!user_isloggedin())
+  if (!user_isloggedin ())
     $priority++;
 
-  # Fill the queue.
-  db_execute("INSERT INTO trackers_spamcheck_queue "
-             ."(artifact,item_id,comment_id,priority,date) VALUES "
-             ."(?, ?, ?, ?, ?)",
-             array($tracker, $item_id, $comment_id, $priority, $date));
+  db_execute ("
+    INSERT INTO trackers_spamcheck_queue
+    (artifact, item_id, comment_id, priority, date) VALUES (?, ?, ?, ?, ?)",
+    [$tracker, $item_id, $comment_id, $priority, $date]
+  );
 
   # We change only the item spamscore field, not the spamscore table:
   # it means that if any user unflag the item, it will be as if
@@ -332,27 +324,26 @@ function spam_add_to_spamcheck_queue ($item_id, $comment_id, $tracker,
   # (no discussion lock, update will generate notif if sent by users that
   # can skip this spam queue check - members, etc).
   if ($comment_id)
-    {
-      $result = db_execute("UPDATE ".$tracker."_history SET spamscore=?
-                            WHERE bug_history_id=? AND field_name='details'
-                            AND bug_id=?",
-                           array($newscore, $comment_id, $item_id));
-    }
+    $result = db_execute ("
+      UPDATE {$tracker}_history SET spamscore = ?
+      WHERE bug_history_id = ? AND field_name = 'details' AND bug_id = ?",
+      [$newscore, $comment_id, $item_id]
+    );
   else
+    $result = db_execute ("
+      UPDATE $tracker SET spamscore = ? WHERE bug_id = ? AND group_id = ?",
+      [$newscore, $item_id, $group_id]
+    );
+
+  if (db_affected_rows ($result) > 0)
     {
-      $result = db_execute("UPDATE ".$tracker." SET spamscore=? "
-                           ."WHERE bug_id=? AND group_id=?",
-                           array($newscore, $item_id, $group_id));
+      $msg = sprintf (
+        _("Spam score of your post is set temporarily to %s, until it is "
+          . "checked by spam\nfilters"), $newscore);
+      fb ($msg, 1);
     }
 
-  if (db_affected_rows($result))
-    {
-      fb(sprintf(
-_("Spam score of your post is set temporarily to %s, until it is checked by spam
-filters"), $newscore), 1);
-    }
-
-  # Mail notif should be delayed.
+  # The notification should be delayed.
   $GLOBALS['int_delayspamcheck_comment_id'] = $comment_id;
   $GLOBALS['int_delayspamcheck'] = true;
 

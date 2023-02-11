@@ -5,7 +5,7 @@
 # Copyright (C) 2000-2003 Free Software Foundation
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007 Sylvain Beucler
-# Copyright (C) 2017, 2018, 2020, 2021, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2020, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -22,11 +22,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-require_once('../../include/vars.php');
-require_once('../../include/gpg.php');
+require_once ('../../include/init.php');
+require_once ('../../include/vars.php');
+require_once ('../../include/gpg.php');
 $gpg_heading_level = 3;
-require(utils_get_content_filename ("gpg-sample"));
+require (utils_get_content_filename ("gpg-sample"));
 
 extract (sane_import ('post',
   [
@@ -62,15 +62,16 @@ if ($update)
     group_add_history ('Changed Public Info', '', $group_id);
 
     $result = db_autoexecute('groups',
-      array(
+      [
         'group_name' => $form_group_name,
         'short_description' => $form_shortdesc,
         'long_description' => $form_longdesc,
         'devel_status' => $form_devel_status,
-      ), DB_AUTOQUERY_UPDATE,
-      "group_id=?", array($group_id));
+      ], DB_AUTOQUERY_UPDATE,
+      "group_id = ?", [$group_id]
+    );
     if (!$result)
-      fb(_("Update failed."), 1);
+      fb (_("Update failed."), 1);
 
     if ($row_grp['license'] == 'gpl' and $upgrade_gpl)
       db_execute (
@@ -80,9 +81,7 @@ if ($update)
   }
 
 if ($test_keyring)
-  {
-    $gpg_checks = run_gpg_checks ($new_keyring, false, '3');
-  }
+  $gpg_checks = run_gpg_checks ($new_keyring, false, '3');
 
 if ($update_keyring)
   {
@@ -96,17 +95,17 @@ if ($update_keyring)
   }
 
 $res_grp = db_execute ("SELECT * FROM groups WHERE group_id = ?", [$group_id]);
-if (db_numrows($res_grp) < 1)
-  exit_no_group();
-$row_grp = db_fetch_array($res_grp);
+if (db_numrows ($res_grp) < 1)
+  exit_no_group ();
+$row_grp = db_fetch_array ($res_grp);
 
-site_project_header(array('title' => _("Editing Public Information"),
-                          'group' => $group_id, 'context' => 'ahome'));
+site_project_header (
+  [ 'title' => _("Editing Public Information"), 'group' => $group_id,
+    'context' => 'ahome']
+);
 
-# General Description.
-
-print form_header($_SERVER['PHP_SELF'], $extra = 'name=""')
-     . form_input("hidden", "group_id", $group_id);
+print form_header ($_SERVER['PHP_SELF'], $extra = 'name=""')
+  . form_hidden (["group_id" => $group_id]);
 
 $print_preinput = function ($label, $name, $markup = '')
 {
@@ -124,7 +123,7 @@ print
   )
   . "</p>\n";
 $print_preinput (
-  _("Short Description (255 characters max)"), 'form_shortdesc', 'none'
+  _("Short description (255 characters max)"), 'form_shortdesc', 'none'
 );
 print
   form_textarea (
@@ -141,68 +140,69 @@ print
   . "</p>\n";
 
 $type_id = $row_grp['type'];
-$result1 = db_execute("SELECT * FROM group_type WHERE type_id=?", array($type_id));
-$row_grp1 = db_fetch_array($result1);
+$result1 = db_execute ("SELECT * FROM group_type WHERE type_id = ?", [$type_id]);
+$row_grp1 = db_fetch_array ($result1);
+$DEVEL_STATUS1 = $row_grp1['devel_status_array'];
+if ($DEVEL_STATUS1)
+  $DEVEL_STATUS = preg_split ("/\n/", $DEVEL_STATUS1);
 
-if($DEVEL_STATUS1 = $row_grp1['devel_status_array'])
-  $DEVEL_STATUS = preg_split("/\n/",$DEVEL_STATUS1);
-
-if ($project->CanUse("devel_status"))
+if ($project->CanUse ("devel_status"))
   {
     $print_preinput (_("Development Status:"), "form_devel_status");
     print  '<select name="form_devel_status" id="form_devel_status">';
 
     foreach ($DEVEL_STATUS as $k => $v)
       {
-        print '<option value="' . $k . '"';
+        print "<option value=\"$k\"";
         if ($k == $row_grp['devel_status'])
           print ' selected';
-        print '>' . $v;
-        print "</option>\n";
+        print ">$v</option>\n";
       }
     print "</select></p>\n";
   }
 
 print '<p><span class="preinput">'
-. _("License:") . "</span><br />&nbsp;&nbsp;\n"
-. _('License changes are moderated by the site administrators. Please contact
-them to change your project license.') . "</p>\n";
+  . _("License:") . "</span><br />&nbsp;&nbsp;\n"
+  . _("License changes are moderated by the site administrators. Please\n"
+      . "contact them to change your package license.")
+  . "</p>\n";
 
-if ($project->getLicense() == 'gpl')
+if ($project->getLicense () == 'gpl')
   {
     print '<p><span class="preinput">' . _("GNU GPL v3:")
       . "</span>\n<br />&nbsp;&nbsp;";
     print form_checkbox ("upgrade_gpl");
     print "\n<label for=\"upgrade_gpl\">"
-          . _("Upgrade license to &quot;GNU GPLv3 or later&quot;");
+      . _("Upgrade license to &quot;GNU GPLv3 or later&quot;");
     print "</label></p>\n";
   }
 
-print form_footer();
+print form_footer ();
 
 print "\n<h2>" . _("GPG Keys Used for Releases") . "</h2>\n";
 
 print $gpg_sample_text;
 
-print form_header($_SERVER['PHP_SELF']) . form_input("hidden", "group_id",
-                                                     $group_id);
+print form_header ($_SERVER['PHP_SELF'])
+  . form_hidden (["group_id" => $group_id]);
 
-if ($project->getTypeBaseHost() == "savannah.gnu.org")
+if ($project->getTypeBaseHost () == "savannah.gnu.org")
   print $gpg_gnu_maintainers_note;
 
 if (!$new_keyring)
   $new_keyring = $keyring;
 
 print form_textarea ("new_keyring",
-  htmlspecialchars ($new_keyring), 'cols="70" rows="10" wrap="virtual"');
+  htmlspecialchars ($new_keyring), 'cols="70" rows="10" wrap="virtual"'
+);
 print '<p>'
-. form_submit (_("Test GPG keys"), 'test_keyring') . "\n"
-. form_submit (_("Cancel"), 'reset_keyring') . "\n"
-. form_submit (_("Update"), 'update_keyring') . "\n"
-. "</p>\n</form>\n";
+  . form_submit (_("Test GPG keys"), 'test_keyring') . "\n"
+  . form_submit (_("Cancel"), 'reset_keyring') . "\n"
+  . form_submit (_("Update"), 'update_keyring') . "\n"
+  . "</p>\n</form>\n";
 
 if (isset ($gpg_checks))
   print $gpg_checks;
 
-site_project_footer(array());
+site_project_footer ([]);
 ?>
