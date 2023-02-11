@@ -100,39 +100,6 @@ function user_get_email($uid)
   return $val['email'];
 }
 
-# Check if a user belongs to a group - deprecated.
-function user_is_group_member($uid, $gid)
-{
-  return user_check_ismember($uid, $gid);
-}
-
-# Check if a user belongs to a group and is pending - deprecated.
-# Return value: The whole row of user_group.
-function user_is_group_pending($uid, $gid)
-{
-  return member_check_is_pending($user_id, $group_id);
-}
-
-# Approve a pending user for a group - deprecated.
-function user_approve_for_group($uid, $gid)
-{
-  return member_approve($uid, $gid);
-}
-
-# Add or update a user to/in a group - deprecated.
-function user_add_to_group($uid, $gid, $admin_flags, $bug_flags,$forum_flags,
-                           $project_flags, $patch_flags, $support_flags,
-                           $doc_flags)
-{
-  return member_add($uid, $gid);
-}
-
-# Remove a user from a group - deprecated.
-function user_remove_from_group($uid, $gid)
-{
-  return member_remove($uid, $gid);
-}
-
 function user_getname($user_id=0, $getrealname=0)
 {
   global $G_USER,$USER_NAMES;

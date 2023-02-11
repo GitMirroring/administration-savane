@@ -106,12 +106,9 @@ if (!empty ($update) && form_check ($form_id))
 
     if ($form_pw == '')
       fb (_("You must supply a password."), 1);
-    # Password sanity checks - unless PAM is used.
-    elseif ($sys_use_pamauth != "yes" && $form_usepam != 1
-            && $form_pw != $form_pw2)
+    elseif ($form_usepam != 1 && $form_pw != $form_pw2)
       fb (_("Passwords do not match."), 1);
-    elseif ($sys_use_pamauth != "yes" && $form_usepam != 1
-            && !account_pwvalid ($form_pw))
+    elseif ($form_usepam != 1 && !account_pwvalid ($form_pw))
       {
         # Feedback included by the check function.
       }
@@ -174,13 +171,7 @@ $form_is_valid = $login_is_valid && $pw_is_valid && $email_is_valid
 
 if ($form_is_valid)
   {
-    if ($sys_use_pamauth == "yes" && $form_usepam == 1)
-      # If user chose PAM based authentication, set his encrypted
-      # password to the specified string.
-      $passwd = 'PAM';
-    else
-      $passwd = account_encryptpw ($form_pw);
-
+    $passwd = account_encryptpw ($form_pw);
     $confirm_hash = substr (md5 (rand (0, 32768) . $passwd . time ()), 0, 16);
     $new_name = strtolower ($form_loginname);
     $result = db_autoexecute (
@@ -324,20 +315,6 @@ if ($sys_registration_captcha)
     print _("Antispam test:")
       . '<input type="text" name="captcha_code" size="17" '
       . 'maxlength="17" />';
-  }
-# Extension for PAM authentication.
-# FIXME: for now, only the PAM authentication that exists is for AFS.
-#  but PAM is not limited to AFS, so we should consider a way to configure
-#  this (to put it in site specific content probably).
-if ($sys_use_pamauth=="yes")
-  {
-    print "<p>" . _("Instead of providing a new password you\n        may "
-      . "choose to authenticate via an <strong>AFS</strong> account you "
-      . "own\n        at this site (this requires your new login name to "
-      . "be the\n        same as the AFS account name):") . "</p>\n";
-
-    print '<p>&nbsp;&nbsp;&nbsp;' . form_checkbox ('form_usepam', 0)
-      . _('use AFS based authentication') . "</p>\n";
   }
 print form_footer ();
 $HTML->footer ([]);

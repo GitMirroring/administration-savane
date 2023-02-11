@@ -40,7 +40,6 @@ require_once ("$file_dir/utils.php");
 # Default values, so they cannot be found undefined in the code.
 $sys_name = "Change-This-Site-Name-with-\$sys_name";
 $sys_logo_name = 'floating.png';
-$sys_use_pamauth = false;
 $stone_age_menu = false;
 $sys_spamcheck_spamassassin = false;
 $sys_use_krb5 = false;

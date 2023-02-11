@@ -39,24 +39,6 @@ if (user_isloggedin())
 # Block here potential robots.
 dnsbl_check();
 
-# CERN_SPECIFIC: here we also have a speech about AFS which must not be
-# hardcoded.
-if ($GLOBALS['sys_use_pamauth'] == "yes")
-  {
-    db_execute("SELECT user_pw FROM user WHERE user_name=?", array($form_loginname));
-    $row_pw = db_fetch_array();
-    if ($row_pw['user_pw'] == 'PAM')
-      {
-        $HTML->header(array('title'=>"Lost Password Confirmation"));
-        print "<p>"
-._('This account uses an AFS password. <strong>You cannot change your
-AFS password via Savane</strong>. Contact the AFS managers.');
-        $HTML->footer(array());
-        exit;
-      }
-  }
-# /CERN_SPECIFIC
-
 $confirm_hash = md5(strval(time()) . strval(rand()));
 # Account check.
 $res_user = db_execute("SELECT * FROM user WHERE user_name=? AND status='A'",

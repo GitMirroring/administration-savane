@@ -463,7 +463,6 @@ function post_message (
     }
 
   $msg_id = db_insertid ($result);
-  handle_monitoring ($group_forum_id, $msg_id);
 }
 
 function show_post_form (
@@ -500,131 +499,6 @@ function show_post_form (
     . "HTML tags will display in your post as text</span>\n<br />\n"
     . '<input type="submit" name="submit" value="' . _("Post Comment")
     . "\" />\n</td></tr></table>\n</form>\n</center>\n";
-}
-
-# Check if anyone is monitoring this forum.
-# If someone is, it sends them the message in email format.
-function handle_monitoring ($forum_id, $msg_id)
-{
-  global $sys_default_domain, $sys_lists_prefix;
-  $result = db_execute ("
-    SELECT u.email from forum_monitored_forums f, user u
-    WHERE f.user_id = u.user_id AND f.forum_id = ?",
-    [$forum_id]
-  );
-  $rows = db_numrows ($result);
-
-  if (!$result || $rows <= 0)
-    {
-      # Email not sent - no one monitoring.
-      print db_error ();
-      return;
-    }
-  $tolist = implode (', ', utils_result_column_to_array ($result));
-  $result = db_execute ("
-    SELECT
-      g.unix_group_name, u.user_name, l.forum_name, u.email, u.realname,
-      f.group_forum_id, f.thread_id, f.subject, f.date, f.body
-    FROM forum f, user u, forum_group_list l, groups g
-    WHERE
-      u.user_id = f.posted_by AND l.group_forum_id = f.group_forum_id
-      AND g.group_id = l.group_id AND f.msg_id = ?", [$msg_id]
-  );
-
-  if (!$result || db_numrows ($result) <= 0)
-    {
-      # Email not sent - people monitoring.
-      print db_error ();
-      return;
-    }
-  $unix_name = db_result ($result, 0, 'unix_group_name');
-  $forum_name = db_result ($result, 0, 'forum_name');
-  if ($GLOBALS['sys_lists_enable'] == "yes")
-    {
-      # NOTE: This configuration variable (sys_lists_enable) can be turned off
-      # (commented out) in the main savannah configuration file.  Turning it
-      # on will make mails appear from the user that posted the forum entry
-      # instead of the usual savannah system (sys_mail_replyto).  Additionally
-      # a reply-to will be set to
-      #  <prefix><project>_<forum>@<webserver_host> .
-      #
-      # This is made in order to use a self written mailinglist which is
-      # integrated into the savannah forum.  See sv_forums for details.
-      $decid = sprintf ("%07d", $msg_id);
-      $checksum = md5 ($decid);
-      $gpkaid = $decid . substr ($checksum, 0, 1) . substr ($checksum, 2, 1)
-        . substr ($checksum, 26, 1) . substr ($checksum, 28, 1)
-        . substr ($checksum, 30, 1);
-
-      $from = db_result ($result, 0, 'realname') . " <"
-        . db_result ($result, 0, 'email') . ">";
-      $to = "$sys_lists_prefix{$unix_name}_$forum_name@" . $sys_default_domain;
-      $subject =  "[" . $sys_lists_prefix . "$unix_name - $forum_name] "
-         . utils_unconvert_htmlspecialchars (
-             db_result ($result, 0, 'subject')
-           )
-         . "     #$gpkaid#";
-      $message="\n\n" ."\nBy: " . db_result($result,0,'realname') ." <"
-        . db_result ($result, 0, 'email') . ">\n\n"
-        . utils_unconvert_htmlspecialchars (
-            db_result ($result, 0, 'body')
-          )
-        . "\n\n_______________________________________________"
-        . "\nRead and respond to this message at: "
-        . "\nhttp://$sys_default_domain/forum/message.php?msg_id="
-        . $msg_id
-        . "\nDo not alter the subject when replying! "
-        . "\nTo stop monitoring this forum, login to Savannah and visit: "
-        . "\nhttp://$sys_default_domain/forum/"
-        . "monitor.php?forum_id=$forum_id";
-      $savannah_project = db_result ($result, 0, 'unix_group_name');
-      $savannah_artifact = 0; # These must stay zero to not mess up the subject
-                              # any further.
-      $savannah_artifact_id = 0;
-      # AH 04/08/2005:
-      # BCC should not be used to address reciepients.
-      # We use the Resent-To: header to address each person individually.
-      # Thus we need to loop over recipients which are stored in the $tolist
-      # string.  (Could lead to performance problems with many recipients...)
-
-      $toarray = explode (", ", $tolist);
-      for ($xx = 0; $xx < count ($toarray); $xx++)
-        {
-          $additional_headers = "Resent-To:" . $toarray[$xx]
-            . "\nPrecedence: bulk\nResent-From: MailingForum";
-          sendmail_mail ($from, $to, $subject, $message,
-            $savannah_project, $savannah_artifact, $savannah_artifact_id,
-            $reply_to, $additional_headers
-          );
-        }
-      return;
-    }
-  $from = $GLOBALS['sys_mail_replyto'];
-  $to = $GLOBALS['sys_mail_replyto'];
-  $subject = "[$unix_name - $forum_name] "
-    . utils_unconvert_htmlspecialchars (
-        db_result ($result, 0, 'subject')
-      );
-  $message = "\n\nRead and respond to this message at: "
-    . "\nhttp://$sys_default_domai]/forum/message.php?msg_id=$msg_id"
-    . "\nBy: " . db_result ($result, 0, 'user_name') . "\n\n"
-    . utils_unconvert_htmlspecialchars (db_result ($result, 0, 'body'))
-    . "\n\n______________________________________________________"
-    . "________________"
-    . "\nYou are receiving this email because you elected to monitor "
-    . "this forum."
-    . "\nTo stop monitoring this forum, login to Savannah and visit: "
-    . "\nhttp://$sys_default_domain/forum/monitor.php?forum_id=$forum_id";
-  $savannah_project = $unix_name;
-  $savannah_artifact = "Forum";
-  $savannah_artifact_id = $forum_id;
-  $reply_to = $GLOBALS['sys_mail_replyto'];
-  $additional_headers = "BCC: $tolist";
-
-  sendmail_mail ($from, $to, $subject, $message, $savannah_project,
-    $savannah_artifact, $savannah_artifact_id, $reply_to,
-    $additional_headers
-  );
 }
 
 # Take a message id and recurse, deleting all followups.
