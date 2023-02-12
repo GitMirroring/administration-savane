@@ -950,6 +950,37 @@ function trackers_followup_mail_addresses (
   return [$from, $to, $exclude];
 }
 
+function trackers_reported_subject ($subject)
+{
+  global $sys_new_user_watch_days, $sys_watch_anon_posts;
+
+  if (!user_isloggedin ())
+    {
+      if (empty ($sys_watch_anon_posts))
+        return null;
+      return "anonymous post - $subject";
+    }
+  if (empty ($sys_new_user_watch_days))
+    return null;
+  $date_limit = time () - $sys_new_user_watch_days * 24 * 3600;
+  $uid = user_getid ();
+  if ($date_limit > user_get_field ($uid, 'add_date'))
+    return null;
+  $name = user_getname ($uid);
+  return "post of new user #$uid <$name> - $subject";
+}
+
+function trackers_send_followup ($addresses, $message, $context)
+{
+  global $sys_mail_admin, $sys_mail_domain;
+  sendmail_mail ($addresses, $message, $context);
+  $addresses['to'] = "$sys_mail_admin@$sys_mail_domain";
+  $message['subject'] = trackers_reported_subject ($message['subject']);
+  if (empty ($message['subject']))
+    return;
+  sendmail_mail ($addresses, $message, $context);
+}
+
 function trackers_mail_followup (
   $item_id, $more_addresses = '', $changes = false,
   $exclude_list = false, $artifact = null
@@ -966,7 +997,7 @@ function trackers_mail_followup (
       $res, $more_addresses, $exclude_list, $artifact, $changes
     );
   $group = group_getunixname ($res['group_id']);
-  sendmail_mail (
+  trackers_send_followup (
     ['from' => $from, 'to' => $to, 'exclude' => $exclude],
     ['subject' => $subject, 'body' => $body],
     ['group' => $group, 'tracker' => $artifact, 'item' => $item_id]

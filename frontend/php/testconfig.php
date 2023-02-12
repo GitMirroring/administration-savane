@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007 Sylvain Beucler
-# Copyright (C) 2018, 2019, 2022 Ineiev
+# Copyright (C) 2018, 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -327,40 +327,25 @@ if (!is_readable ($sys_conf_file))
 else
   {
     include $sys_conf_file;
-    $variables = array (# Name  / required
-                      'sys_default_domain',
-                      'sys_https_host',
-                      'sys_file_domain',
-                      'sys_dbhost',
-                      'sys_dbname',
-                      'sys_dbuser',
-                      'sys_dbpasswd',
-                      'sys_www_topdir',
-                      'sys_url_topdir',
-                      'sys_etc_dir',
-                      'sys_incdir',
-                      'sys_name',
-                      'sys_unix_group_name',
-                      'sys_themedefault',
-                      'sys_mail_domain',
-                      'sys_mail_admin',
-                      'sys_mail_replyto',
-                      'sys_upload_max',
-                      );
+    $variables = [
+      'default_domain', 'https_host', 'file_domain', 'dbhost', 'dbname',
+      'dbuser', 'dbpasswd', 'www_topdir', 'url_topdir', 'etc_dir', 'incdir',
+      'name', 'unix_group_name', 'themedefault', 'mail_domain', 'mail_admin',
+      'mail_replyto', 'upload_max', 'watch_anon_posts', 'new_user_watch_days'
+    ];
 
     print "<table border=\"1\">\n";
     print "<tr><th>Conf variable</th><th>Current value</th></tr>\n";
-    unset($unset);
     foreach ($variables as $tag)
       {
-        if (isset ($GLOBALS[$tag]))
-          $value = htmlentities ($GLOBALS[$tag]);
-        else
-          $value = '<strong>unset</strong>';
-        if ($tag == "sys_dbpasswd")
+        $var = "sys_$tag";
+        $value = '<strong>unset</strong>';
+        if (isset ($GLOBALS[$var]))
+          $value = htmlentities ($GLOBALS[$var]);
+        if ($var == "sys_dbpasswd")
           $value = "**************";
 
-        printf ("<tr><td>%s</td><td>%s</td></tr>\n", $tag, $value);
+        printf ("<tr><td>%s</td><td>%s</td></tr>\n", $var, $value);
       }
     if (!isset ($GLOBALS['sys_debug_on']))
       $GLOBALS['sys_debug_on'] = false;
@@ -435,12 +420,10 @@ else
 
 print "\n<h2>Optional PHP configuration</h2>\n\n";
 
-print "<p>The following is not required to run Savane but could enhance security
-of your production server. Displaying errors is recommended: they may
-annoy the user with warnings but allow you to spot and report
-potentially harmful bugs (concerns about &ldquo;security&rdquo; or information
-leak are void since this is free software and the source code is
-available to all).</p>\n";
+print "<p>The following is not required to run Savane, but could enhance\n"
+  . "security of your production server. Displaying errors is recommended:\n"
+  . "they may annoy the user with warnings, but allow you to spot "
+  . "and report\npotentially harmful bugs.</p>\n";
 
 $phptags = array (
         'display_errors' => '1',
