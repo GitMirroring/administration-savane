@@ -1,5 +1,12 @@
 ????-??-?? 3.11
 
+[BACKEND]
+
+* Bug fixes:
+
+** In Cvs.pm<UpdateCvsNotifications>, file opening errors weren't handled
+   correctly.
+
 [FRONTEND]
 
 * Bug fixes:

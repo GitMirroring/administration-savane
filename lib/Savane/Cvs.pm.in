@@ -330,7 +330,9 @@ sub UpdateCvsNotifications {
 	{
 	    local $/;
 	    undef $/; # slurp mode
-	    open(IN, "< $file") || ($w = " Cannot open $file: $! for reading.");
+	    unless (open(IN, "< $file")) {
+		return " Cannot open $file: $! for reading.";
+	    }
 	    $text = <IN>;
 	    close(IN);
 	}
@@ -372,7 +374,10 @@ sub UpdateCvsNotifications {
 	    return $w;
 	}
 
-	open(OUT, "> $file") || ($w .= " Cannot open $file: $! for writing.");
+	unless (open(OUT, "> $file")) {
+	    $w .= " Cannot open $file: $! for writing.");
+	    return $w;
+	}
 	print OUT $text;
 	close(OUT);
 	return $w;
