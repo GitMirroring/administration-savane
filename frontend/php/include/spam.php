@@ -32,6 +32,28 @@ if (!empty ($GLOBALS['sys_spamcheck_spamassassin']))
 $GLOBALS['int_probablyspam'] = false;
 $GLOBALS['int_delayspamcheck_comment_id'] = false;
 
+function spam_flag_notification ($item, $comment, $user, $reporter)
+{
+  global $sys_mail_replyto, $sys_mail_domain, $sys_mail_admin;
+  global $sys_default_domain, $sys_home;
+
+  # No i18n: the message is sent to Savannah admins.
+  $message['subject'] = 'Spam reported';
+  $spammer = 'anonymous';
+  if ($user != 100)
+    $spammer = "<" . user_getname ($user) . ">";
+
+  $message['body'] = "User <" . user_getname ($reporter) . "> reported spam "
+    . "posted by $spammer at\nhttps://$sys_default_domain$sys_home"
+    . ARTIFACT . "/index.php?item_id=$item"
+    . "&func=viewspam&comment_internal_id=$comment#spam$comment";
+  sendmail_mail (
+    [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
+      'to' =>  "$sys_mail_admin@$sys_mail_domain"],
+    $message, ['tracker' => ARTIFACT, 'item' => $item]
+  );
+}
+
 # Mark a spam.  This assumes that checks for user's permissions
 # have been made already.
 function spam_flag (
@@ -138,6 +160,9 @@ function spam_flag (
     }
 
   fb (sprintf (_("Flagged (+%s, total spamscore: %s)"), $score, $newscore));
+  spam_flag_notification (
+    $item_id, $comment_id, $affected_user_id, $reporter_user_id
+  );
 
   # If the total spamscore is superior to 4, the content is supposedly
   # confirmed spam, then increment the user spamscore.

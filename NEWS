@@ -9,6 +9,9 @@
 
 [FRONTEND]
 
+* When spam is reported, notifications are sent to
+  $sys_mail_admin@$sys_mail_domain.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served
