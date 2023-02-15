@@ -113,15 +113,6 @@ if ($update)
             . "account..."),
           $sys_name
         );
-        $message .= "\n\n"
-          . sprintf (
-               _("The request came from %s\n"
-                 . "(IP: %s, port: %s, user agent: %s)") . "\n\n",
-               gethostbyaddr ($_SERVER['REMOTE_ADDR']),
-               $_SERVER['REMOTE_ADDR'], $_SERVER['REMOTE_PORT'],
-               $_SERVER['HTTP_USER_AGENT']
-            );
-
         # TRANSLATORS: the argument is site name (like Savannah).
         $message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
 

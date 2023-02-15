@@ -26,6 +26,9 @@
   they are not used these days, and group admins can edit those settings
   after group approval (commit 00e5788).
 
+* In "lost password" and "change SSH key" procedures, user-identifying
+  data were removed from notifying emails.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served

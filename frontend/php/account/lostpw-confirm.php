@@ -120,11 +120,6 @@ $message = sprintf (
 $message .= ' '
   . _("If this was not you, this could pose a security risk for the system.")
   . "\n\n";
-$message .= sprintf (
-  _("The request came from %s\n(IP: %s; port: %s; user agent: %s)"),
-  gethostbyaddr ($_SERVER['REMOTE_ADDR']), $_SERVER['REMOTE_ADDR'],
-  $_SERVER['REMOTE_PORT'], $_SERVER['HTTP_USER_AGENT']
-);
 $message .= "\n\n"
   . _("If you requested this verification, visit this URL to change your "
       . "password:")
@@ -145,12 +140,8 @@ sprintf (
   ("Someone attempted to change a password via email verification\n"
    . "on %s\n\nSomeone is maybe trying to steal a user account.\n\n"
    . "The user affected is %s\n\n"
-   . "The request comes from %s (IP: %s port: %s), user agent: %s\n\n"
    . "Date: %s\n"),
-  $GLOBALS['sys_default_domain'],
-  $form_loginname, gethostbyaddr ($_SERVER['REMOTE_ADDR']),
-  $_SERVER['REMOTE_ADDR'], $_SERVER['REMOTE_PORT'],
-  $_SERVER['HTTP_USER_AGENT'], gmdate ('D, d M Y H:i:s \G\M\T')
+  $sys_default_domain, $form_loginname, gmdate ('D, d M Y H:i:s \G\M\T')
 );
 
 $encrypted_message = $gpg_error = $gpg_error = "";
