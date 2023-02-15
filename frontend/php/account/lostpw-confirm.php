@@ -36,9 +36,6 @@ extract (sane_import ('post', ['name' => 'form_loginname']));
 if (user_isloggedin ())
   session_redirect ($GLOBALS['sys_home'] . "my/");
 
-# Block here potential robots.
-dnsbl_check ();
-
 $confirm_hash = md5 (strval (time ()) . strval (rand ()));
 # Account check.
 $res_user = db_execute ("

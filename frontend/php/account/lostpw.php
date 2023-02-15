@@ -26,9 +26,6 @@ require_once('../include/init.php');
 if (user_isloggedin())
   session_redirect($GLOBALS['sys_home']."my/");
 
-# Block here potential robots.
-dnsbl_check();
-
 $HTML->header(array('title'=>_("Lost Account Password")));
 print '<p><strong>'._("Lost your password?")."</strong></p>\n";
 

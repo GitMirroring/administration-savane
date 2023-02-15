@@ -21,7 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('../include/init.php');
-require_once ('../include/dnsbl.php');
 require_once ('../include/spam.php');
 require_once ('../include/html.php');
 require_once ('../include/form.php');
@@ -35,9 +34,6 @@ extract (sane_import ('post',
     'pass' => 'form_pw'
   ]
 ));
-
-# Block here potential robots.
-dnsbl_check ();
 
 # Logged users have no business here.
 if (user_isloggedin ())

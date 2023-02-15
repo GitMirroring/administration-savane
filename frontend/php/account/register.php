@@ -24,7 +24,6 @@
 require_once ('../include/init.php');
 require_once ('../include/sane.php');
 require_once ('../include/account.php');
-require_once ('../include/dnsbl.php');
 require_once ('../include/spam.php');
 require_once ('../include/form.php');
 require_once ('../include/utils.php');
@@ -53,9 +52,6 @@ if (isset ($sys_https_host) && !session_issecure ())
 # Logged users have no business here.
 if (user_isloggedin ())
   session_redirect ($sys_home . 'my/');
-
-# Block here potential robots.
-dnsbl_check ();
 
 $login_is_valid = false;
 $pw_is_valid = false;

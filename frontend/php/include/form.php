@@ -20,7 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 $dir_name = dirname (__FILE__);
-require_once ("$dir_name/dnsbl.php");
 require_once ("$dir_name/spam.php");
 
 # To use this form that disallow duplicates:
@@ -192,20 +191,14 @@ function form_check ($form_id)
   # Now, the check will remove the id. If the remove fail, it means that
   # the form id no longer exists and then we exit. We will have only one
   # SQL request, reducing as much as possible delays.
-  $success = db_affected_rows(db_execute("DELETE FROM form WHERE user_id=?
-                                          AND form_id=?",
-                                         array(user_getid(), $form_id)));
-  if (!$success)
-    {
-      fb(_("Duplicate Post: this form was already submitted."),1);
-      return 0;
-    }
-
-  # Always do a dnsbl check when such form is sent
-  # (it will kill the submission if necessary).
-  dnsbl_check();
-
-  return 1;
+  $result = db_execute (
+    "DELETE FROM form WHERE user_id = ? AND form_id = ?",
+    [user_getid (), $form_id]
+  );
+  if (db_affected_rows ($result))
+    return 1;
+  fb (_("Duplicate Post: this form was already submitted."), 1);
+  return 0;
 }
 
 # Remove form_id from database: the item was posted.

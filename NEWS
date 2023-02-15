@@ -20,6 +20,9 @@
 
 * A link to CVS notification setup was added to group menu.
 
+* IP-based bloking code is removed; it hasn't been used for ages and
+  can't be effective these days, anyway.
+
 * The "printer mode" was removed.
 
 * In siteadmin/groupedit.php, fields for custom directories were removed;

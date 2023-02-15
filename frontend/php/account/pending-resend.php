@@ -22,13 +22,9 @@
 
 require_once ('../include/init.php');
 require_once ('../include/database.php');
-require_once ('../include/dnsbl.php');
 require_once ('../include/spam.php');
 require_once ('../include/sane.php');
 require_once ('../include/sendmail.php');
-
-# Block here potential robots.
-dnsbl_check ();
 
 extract (sane_import ('get', ['name' => 'form_user']));
 $res_user = db_execute ("SELECT * FROM user WHERE user_name = ?", [$form_user]);
