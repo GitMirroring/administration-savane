@@ -16,10 +16,29 @@
   when $sys_watch_anon_posts is set; likewise, posts of new users
   are repored for first $sys_new_user_watch_days.
 
+* Registration task template was improved (commit d16b7e7).
+
+* A link to CVS notification setup was added to group menu.
+
+* The "printer mode" was removed.
+
+* In siteadmin/groupedit.php, fields for custom directories were removed;
+  they are not used these days, and group admins can edit those settings
+  after group approval (commit 00e5788).
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served
    with a broken header.
+
+** Multiple PHP notices and warnings were fixed.
+
+** Diff email list wasn't processed correctly in CVS notification settings
+   (cvs/admin/index.php, commit 5303e6fa).
+
+[I18N]
+
+* Update French, Hebrew, Russian.
 
 2023-02-01 3.10
 
