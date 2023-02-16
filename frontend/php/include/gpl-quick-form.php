@@ -34,8 +34,8 @@ class GPLQuickForm_Element
   private $error = '';
   private $title = '';
 
-  private $select_options = array();
-  public function __construct($type, $name, $params)
+  private $select_options = [];
+  public function __construct ($type, $name, $params)
   {
     $this->type = $type;
     $this->name = $name;
@@ -48,36 +48,36 @@ class GPLQuickForm_Element
       case "text":
       case "checkbox":
       case "textarea":
-        if (isset($params[1]))
-          $this->title = $params[1];
-        if (isset($params[0]))
-          $this->label = $params[0];
+        if (isset ($params[0]))
+          $this->title = $params[0];
+        if (isset ($params[1]))
+          $this->label = $params[1];
         break;
       case "hidden":
-        if (isset($params[0]))
+        if (isset ($params[0]))
           $this->default = $params[0];
         break;
       case "select":
-        $this->label = $params[0];
+        $this->title = $params[0];
         $this->select_options = $params[1];
         break;
       }
   }
 
-  public function setLabel($text)
+  public function setLabel ($text)
   {
     $this->label = $text;
   }
-  public function setText($text)
+  public function setText ($text)
   {
     $this->setLabel($text);
   }
-  public function setError($text)
+  public function setError ($text)
   {
     $this->error = $text;
   }
 
-  public function getValue()
+  public function getValue ()
   {
     if ($this->constant !== NULL)
       return $this->constant;
@@ -86,20 +86,15 @@ class GPLQuickForm_Element
     return $this->default;
   }
 
-  private function dateConvert($str)
-  {
-    list($year, $month, $day) = explode ('-', $str);
-    return array('d' => $day, 'M' => $month, 'Y' => $year);
-  }
-  public function setValue($value)
+  public function setValue ($value)
   {
     $this->value = $value;
   }
-  public function setDefault($default)
+  public function setDefault ($default)
   {
     $this->default = $default;
   }
-  public function setConstant($constant)
+  public function setConstant ($constant)
   {
     $this->constant = $constant;
   }
@@ -108,7 +103,7 @@ class GPLQuickForm_Element
     $this->frozen = true;
   }
 
-  private function title_attr()
+  private function title_attr ()
   {
     $title = '';
     if ($this->label)
@@ -117,117 +112,134 @@ class GPLQuickForm_Element
       $title = $this->title;
     $label = '';
     if ($title)
-      $label = 'title="' . htmlspecialchars($title, ENT_QUOTES) . '" ';
+      $label = 'title="' . htmlspecialchars ($title, ENT_QUOTES) . '" ';
     return $label;
   }
 
-  public function display()
+  private function display_checkbox ($value)
+  {
+    $checked = " ";
+    if ($value === NULL)
+      $value = '1';
+    else
+      $checked = ' checked="checked" ';
+    $disabled = "";
+    if ($this->frozen)
+      $disabled = ' disabled="disabled" ';
+    print "<p><input type='checkbox' name='{$this->name}' id='{$this->name}' "
+      . "value='$value'$checked$disabled/>\n"
+      . "<label for='{$this->name}'>{$this->title}</label>\n &nbsp;&nbsp;";
+    if (!empty ($this->error))
+      print "<span class='error'>$this->error</span>";
+    print "</p>\n";
+  }
+  private function name_attr ()
+  {
+     return "id='{$this->name}' name='{$this->name}'";
+  }
+  private function for_attr ()
+  {
+     return "for='{$this->name}'";
+  }
+  private function display_text ($value, $esc_val)
+  {
+    $for_attr = $this->for_attr ();
+    $name_attr = $this->name_attr ();
+    print '<p>';
+    print "<b><label $for_attr>{$this->title}</label></b>&nbsp;\n&nbsp;";
+    if ($this->frozen)
+      print "$value<input type='hidden' $name_attr value='$esc_val' />\n";
+    else
+      print "<input type='text' " . $this->title_attr ()
+        . "$name_attr value='$esc_val' />\n";
+    if (!empty ($this->error))
+      print "&nbsp;&nbsp; <span class='error'>$this->error</span>";
+    if (!$this->frozen && !empty ($this->label))
+      print "<br />\n{$this->label}";
+    print "</p>\n";
+  }
+  public function display ()
   {
     # Don't use $this->value directly, to take constants into account.
-    $value = $this->getValue();
+    $value = $this->getValue ();
     if ($this->type == 'header')
       {
-        print "<tr><td colspan=2 class='lightgrey;"
-          . " text-align: left; font-weight: bold'>"
-          . "{$this->label}</td></tr>\n";
+        print "<h2>{$this->title}</h2>\n";
+        return;
       }
-    else if ($this->type == 'submit')
+    $for_attr = $this->for_attr ();
+    $name_attr = $this->name_attr ();
+    if ($this->type == 'submit')
       {
         $disabled = "";
         if ($this->frozen)
           $disabled = 'disabled="disabled"';
 
-        print "<tr><td></td>\n<td class='element'>";
-        print "<input type='submit'"
-          . " name='{$this->name}' value='{$this->label}' $disabled />";
-        print "</td></tr>\n";
+        print "<p><input type='submit'"
+          . " $name_attr value='{$this->title}' $disabled />";
+        print "</p>\n";
+        return;
       }
-    else if ($this->type == 'hidden')
+    if ($this->type == 'hidden')
       {
-        print "<input type='hidden' name='{$this->name}' value='$value' />";
+        print "<input type='hidden' $name_attr value='$value' />";
+        return;
       }
-    else
+    $esc_val = htmlspecialchars ($value, ENT_QUOTES);
+    if ($this->type == 'checkbox')
       {
-        print '<tr>';
-        print "<td class='label'>{$this->label}</td>\n";
-        print "<td class='element'>";
-        if (!empty($this->error))
-          print "<span class='error'>$this->error</span><br />";
-        switch($this->type)
+        $this->display_checkbox ($value);
+        return;
+      }
+    if ($this->type == 'text')
+      {
+        $this->display_text ($value, $esc_val);
+        return;
+      }
+    print '<p>';
+    print "<b><label $for_attr>{$this->title}</label></b>&nbsp;\n&nbsp;";
+    if (!empty ($this->error))
+      print "<span class='error'>$this->error</span><br />";
+    switch ($this->type)
+      {
+      case 'password':
+        if ($this->frozen)
+          print "*****";
+        else
+          print "<input type='password' $name_attr value='$esc_val' />\n";
+        break;
+
+      case 'select':
+        if ($this->frozen)
           {
-
-          case 'password':
-            if ($this->frozen)
-              print "*****";
-            else
-              print "<input type='password' name='{$this->name}' value='"
-                    . htmlspecialchars($value, ENT_QUOTES) . "' />\n";
-            break;
-
-          case 'text':
-            if ($this->frozen)
-              {
-                print "$value";
-                print "<input type='hidden' name='{$this->name}' value='"
-                      . htmlspecialchars($value, ENT_QUOTES) . "' />\n";
-              }
-            else
-              {
-                print "<input type='text' ".$this->title_attr()
-                      . "name='{$this->name}' value='"
-                      . htmlspecialchars($value, ENT_QUOTES) . "' />\n";
-              }
-            break;
-
-          case 'select':
-            if ($this->frozen)
-              {
-                if ($value != NULL)
-                  {
-                    print $this->select_options[$value];
-                    print "<input type='hidden' name='{$this->name}'"
-                          ." value='$value' />\n";
-                  }
-              }
-            else
-              {
-                print "<select ".$this->title_attr()."name='{$this->name}'>";
-                foreach($this->select_options as $id => $text)
-                  {
-                    $selected = '';
-                    if ($id == $value)
-                      $selected = " selected='selected'";
-                    print "<option value='$id'$selected>$text</option>\n";
-                  }
-                print "</select>\n";
-              }
-            break;
-
-          case 'textarea':
-            $readonly = "";
-            if ($this->frozen)
-              $readonly = "readonly='readonly'";
-            print "<textarea name='{$this->name}' wrap='virtual' "
-              . "cols='60' rows='10' $readonly>"
-              . htmlspecialchars($value, ENT_QUOTES)
-              . "</textarea>\n";
-            break;
-
-          case 'checkbox':
-            $checked = "";
-            if ($value === NULL)
-              $value = '1';
-            else
-              $checked = 'checked="checked"';
-            $disabled = "";
-            if ($this->frozen)
-              $disabled = 'disabled="disabled"';
-            print "<input type='checkbox' name='{$this->name}' "
-                  . "value='$value' $checked $disabled />\n";
+            if ($value == NULL)
+              break;
+            print $this->select_options[$value];
+            print "<input type='hidden' $name_attr value='$value' />\n";
             break;
           }
-        print "</td>\n</tr>\n";
+        print "<select $name_attr " . $this->title_attr ();
+        foreach($this->select_options as $id => $text)
+          {
+            $selected = '';
+            if ($id == $value)
+              $selected = " selected='selected'";
+            print "<option value='$id'$selected>$text</option>\n";
+          }
+        print "</select>\n";
+        break;
+
+      case 'textarea':
+        $readonly = "";
+        if ($this->frozen)
+          $readonly = " readonly='readonly'";
+        print "<br />\n<textarea $name_attr wrap='virtual' "
+          . "cols='60' rows='10'$readonly>$esc_val</textarea>\n";
+        if (!$this->frozen && !empty ($this->label))
+          print "<br />\n{$this->label}";
+        break;
       }
+    print "</p>\n";
   }
 }
 
@@ -238,8 +250,6 @@ class GPLQuickForm
   private $method = '';
   private $in = array();
 
-  private $requiredNote =
-   '<span class="smaller"><span class="red">*</span> required field</span>';
   private $jsWarnings_pref = 'The form is not valid';
   private $jsWarnings_post = '';
   private $elements = array();
@@ -249,8 +259,6 @@ class GPLQuickForm
   {
     $this->name = $name;
     $this->method = $method;
-    $this->requiredNote = '<span class="smaller">'
-           .'<span class="red">*</span> '._('required field').'</span>';
 
     switch ($method)
       {
@@ -264,10 +272,6 @@ class GPLQuickForm
       }
   }
 
-  public function setRequiredNote($html_text)
-  {
-    $this->requiredNote = $html_text;
-  }
   public function setJsWarnings($pref, $post)
   {
     $this->jsWarnings_pref = $pref;
@@ -441,17 +445,10 @@ class GPLQuickForm
   public function display()
   {
     print "<form class='gpl-quick-form' id='$this->name' action='"
-          .htmlentities ($_SERVER['PHP_SELF'])."'"
-          ." method='$this->method'>
-";
-    print '<table>
-';
+      . htmlentities ($_SERVER['PHP_SELF']) . "' method='$this->method'>\n";
     foreach ($this->elements as $element)
       $element->display();
-    $there_is_a_required_field = 1;
-    if ($there_is_a_required_field)
-      print "<tr><td></td><td class='element'>$this->requiredNote</td></tr>\n";
-    print "</table>\n</form>\n";
+    print "\n</form>\n";
   }
 }
 ?>

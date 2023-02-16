@@ -75,109 +75,101 @@ if (db_numrows (db_execute ("SELECT type_id FROM group_type")) < 1)
 
 $form = new GPLQuickForm ('change_date');
 
-$form->addElement('header', 'title_name', _('Project name'));
-$form->addElement('text', 'full_name', _('Full name'));
-$form->addElement('text', 'unix_name', _('Short/system name')
-  . "\n<br />" . '<span class="smaller">'
-  . _("(used in URLs, mailing lists names, etc&mdash;4&ndash;16 characters,
-starting with a letter and only containing ASCII letters, digits and dashes;
-system names should be reasonably descriptive, rather than terse abbreviations
-or confusingly general.)")
-  . '</span>',
-  _('Short/system name'));
+$form->addElement ('header', 'title_name', _('Group name'));
+$form->addElement ('text', 'full_name', _('Full name'));
+$form->addElement ('text', 'unix_name', _('System name'),
+  _("Used in URLs, mailing list names, etc&mdash;4&ndash;16 characters,\n"
+    . "starting with a letter and only containing ASCII letters, digits "
+    . "and dashes.  System names should be reasonably descriptive, rather "
+    . "than terse abbreviations\nor confusingly general.")
+);
 
-$form->addElement('header', 'title_information', _('Project information'));
-$form->addElement('textarea', 'purpose', _('~20-lines technical description')
-  . "\n<br />" . '<span class="smaller">'
-  . _('What is your project?') . "\n<br />"
-  . _('(purpose, topic, programming language...)') . "\n<br />"
-  . _('What is special about it?') . '</span>',  _('~20-lines technical description'));
-$types = array();
-$result = db_execute("SELECT type_id, name FROM group_type ORDER BY type_id");
-while($line = db_fetch_array($result))
-     $types[$line['type_id']] = $line['name'];
-$form->addElement('select', 'group_type', _('Group type'), $types);
-$form->setDefaults(array('group_type' => 2));
-$form->addElement('select', 'license', _('Project license'), $LICENSE);
-$form->addElement('textarea', 'license_other', _('Other license, details'));
+$form->addElement ('header', 'title_information', _('Package information'));
+$form->addElement ('textarea', 'purpose', _('~20-line technical description'),
+  _("What is your package? (Purpose, topic, programming language...)\n"
+    . "What is special about it?")
+);
+$types = [];
+$result = db_execute ("SELECT type_id, name FROM group_type ORDER BY type_id");
+while ($line = db_fetch_array ($result))
+  $types[$line['type_id']] = $line['name'];
+$form->addElement ('select', 'group_type', _('Group type'), $types);
+$form->setDefaults (['group_type' => 2]);
+$form->addElement ('select', 'license', _('Package license'), $LICENSE);
+$form->addElement ('textarea', 'license_other', _('Other license, details'));
 
-$form->addElement('header', 'title_checklist',
-sprintf (
-_('Checklist - see <a href="%s">How To Get Your Project Approved Quickly</a>'),
-"https://savannah.gnu.org/maintenance/HowToGetYourProjectApprovedQuickly"));
+$form->addElement ('header', 'title_checklist', _("Checklist"));
 # <savannah-specific>
-$form->addElement('checkbox', 'cl1',
- _('My project runs primarily on a completely free OS'));
-$form->addElement('checkbox', 'cl2',
- _('My license is compatible with the GNU GPL or GFDL'));
-$form->addElement('checkbox', 'cl3',
- _('My dependencies are compatible with my project license'));
-$form->addElement('checkbox', 'cl4',
- sprintf(_('All my files include <a href="%s">valid copyright notices</a>'),
-         'https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html'));
-$form->addElement('checkbox', 'cl5',
- sprintf (_('All my files include a license header [<a href="%s">1</a>]
-[<a href="%s">2</a>]'),
-'https://www.gnu.org/licenses/gpl-howto.html',
-'https://www.gnu.org/licenses/fdl-howto.html'));
-$form->addElement('checkbox', 'cl6',
- _('Origin and license of media files is specified'));
-$form->addElement('checkbox', 'cl7',
- _('My tar file includes a copy of the license'));
+$form->addElement ('checkbox', 'cl1',
+  _('My software runs primarily on a completely free OS'));
+$form->addElement ('checkbox', 'cl2',
+  _('My license is compatible with the GNU GPL or GFDL'));
+$form->addElement ('checkbox', 'cl3',
+  _('My dependencies are compatible with my package license'));
+$form->addElement ('checkbox', 'cl4',
+  sprintf (_('All my files include <a href="%s">valid copyright notices</a>'),
+    'https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html')
+);
+$form->addElement ('checkbox', 'cl5',
+  sprintf (
+    _("All my files include a <a href=\"%s\">license notice</a>\n"),
+    '//www.gnu.org/licenses/gpl-howto.html')
+);
+$form->addElement ('checkbox', 'cl6',
+  _('Origin and license of media files is specified'));
+$form->addElement ('checkbox', 'cl7',
+  _('My tar file includes a copy of the license'));
 # </savannah-specific>
-$form->addElement('checkbox', 'cl_foolproof',
- _("I read carefully and don't check this one"));
-$form->addElement('checkbox', 'cl_requirements',
- sprintf(_('I agree with the <a href="%s">hosting requirements</a>'),
-         'requirements.php'));
+$form->addElement ('checkbox', 'cl_foolproof',
+  _("I read carefully and don't check this one"));
+$form->addElement ('checkbox', 'cl_requirements',
+  sprintf (_('I agree with the <a href="%s">hosting requirements</a>'),
+   'requirements.php')
+);
+$form->addElement ('header', 'title_details', _('Details'));
+$form->addElement ('textarea', 'required_sw', _('Dependencies'),
+  _('name + license + website for each dependency')
+);
+$form->addElement ('textarea', 'comments', _('Other Comments'));
+$form->addElement ('text', 'tarball_url', _('Tarball (.tar.gz) URL'),
+  sprintf (
+    _('(or <a href="%s" target="_blank">upload file</a> to Savannah.)'),
+    'upload.php')
+);
+$form->addElement ('submit', null, _("Register group"));
 
-$form->addElement('header', 'title_details', _('Details'));
-$form->addElement('textarea', 'required_sw', _('Dependencies')
-  . "\n<br />" . '<span class="smaller">'
-  . _('name + license + website for each dependency') . '</span>');
-$form->addElement('textarea', 'comments', _('Other Comments'));
-$form->addElement('text', 'tarball_url', _('Tarball (.tar.gz) URL')
-  . "\n<br />" . '<span class="smaller">'
-  . sprintf (
-_('(or <a href="%s" target="_blank">upload file</a> to Savannah.)'),
-             'upload.php')
-  . '</span>', _('Tarball (.tar.gz) URL'));
-$form->addElement('submit', null, _("Register project"));
+$form->addRule ('full_name', _("Invalid full name"), 'minlength', 2);
+$form->addRule ('unix_name', _("Invalid system name"), 'callback',
+  'account_groupnamevalid');
+$form->addRule ('unix_name', _("A group with that name already exists."),
+  'callback', 'group_does_not_already_exist');
+$form->addRule ('license', _("Invalid license"), 'callback', 'license_exists');
+$form->addRule ('group_type', _("Invalid group type"),
+  'callback', 'group_type_exists');
 
-$form->addRule('full_name', _("Invalid full name"), 'minlength', 2);
-$form->addRule('unix_name', _("Invalid Unix name"), 'callback',
-               'account_groupnamevalid');
-$form->addRule('unix_name', _("A project with that name already exists."),
-               'callback', 'group_does_not_already_exist');
-$form->addRule('license', _("Invalid license"), 'callback', 'license_exists');
-$form->addRule('group_type', _("Invalid group type"),
-               'callback', 'group_type_exists');
-
-# <savannah-specific>
 for ($i = 1; $i <= 7; $i++)
-  $form->addRule("cl$i", _("Please recheck your project"), 'required');
- # </savannah-specific>
-$form->addRule("cl_foolproof", _(":)"), 'maxlength', 0);
-$form->addRule("cl_requirements", _("Please accept the hosting requirements"),
-               'required');
+  $form->addRule("cl$i", _("Please recheck your submission"), 'required');
 
-$form->addRule('purpose', _("This is too short!"), 'minlength', 30);
-$form->addRule('tarball_url',
- _("Please give us a link to your project latest release"), 'minlength', 4);
+$form->addRule ("cl_foolproof", _(":)"), 'maxlength', 0);
+$form->addRule ("cl_requirements", _("Please accept the hosting requirements"),
+  'required'
+);
+$form->addRule ('purpose', _("This is too short!"), 'minlength', 30);
+$form->addRule ('tarball_url',
+ _("Please give us a link to your package latest release"), 'minlength', 4);
 
 if (!$form->validate ())
   {
-    # The form isn't filled or some fields are wrong.
     utils_get_content ("register/index");
 
-    $form->display();
-    $HTML->footer(array());
+    $form->display ();
+    $HTML->footer ([]);
     exit (0);
   }
 
 utils_get_content ("register/confirmation");
 $form_values = $form->exportValues ();
-$form->freeze();
+$form->freeze ();
 
 $form_full_name = $form_values['full_name'];
 $form_purpose = $form_values['purpose'];
@@ -208,22 +200,25 @@ $group_id = db_result ($result, 0, 'group_id');
 $project = project_get_object ($group_id);
 
 if (db_affected_rows($result) < 1)
-  exit_error(_("Unable to update database, please contact administrators"));
+  exit_error (_("Unable to update database, please contact administrators"));
+
+$user_id = user_getid ();
 
 # Make the current user an admin.
-$result = member_add (user_getid (), $group_id, "A");
+$result = member_add ($user_id, $group_id, "A");
 
 if (!$result)
-  exit_error(_("Setting you as group admin failed"));
+  exit_error (_("Setting you as group admin failed"));
 
-$user_realname = user_getrealname(user_getid());
-$user_email = user_getemail(user_getid());
-$unix_name = group_getunixname($group_id);
-$sql_type = db_execute("SELECT name FROM group_type WHERE type_id=?",
-                       array($group_type));
-$type = db_result($sql_type,0,'name');
-$type_base_host = $project->getTypeBaseHost();
-$type_admin_email_address = $project->getTypeAdminEmailAddress();
+$user_realname = user_getrealname ($user_id);
+$user_email = user_getemail ($user_id);
+$unix_name = group_getunixname ($group_id);
+$sql_type = db_execute ("SELECT name FROM group_type WHERE type_id = ?",
+  [$group_type]
+);
+$type = db_result ($sql_type, 0, 'name');
+$type_base_host = $project->getTypeBaseHost ();
+$type_admin_email_address = $project->getTypeAdminEmailAddress ();
 
 # This will define confirmation_gen_email().
 utils_get_content ("register/confirmation_mail");
@@ -273,7 +268,7 @@ $message_admin .= "\n== Tarball URL: ==\n" . $form_values['tarball_url']
   . "\n\n";
 
 sendmail_mail (
-  [ 'from' => $type_admin_email_address, 'to' => $user_email],
+  [ 'from' => $type_admin_email_address, 'to' => $user_id],
   [ 'subject' => "submission of $form_full_name - $type_base_host",
     'body' => $message_user,
     'headers' => ['Reply-To' => $type_admin_email_address]
@@ -281,40 +276,38 @@ sendmail_mail (
 );
 
 {
-  require_directory("trackers");
-  trackers_init($GLOBALS['sys_group_id']);
+  require_directory ("trackers");
+  trackers_init ($GLOBALS['sys_group_id']);
 
-  # Create a new item on the admin task tracker
-  # (planned close date: 10 days later).
-  $vfl = array();
+  $vfl = [];
   $vfl['category_id'] = '1';
-  $vfl['summary'] = 'Submission of ' . $form_full_name;
+  $vfl['summary'] = "Submission of $form_full_name";
   $vfl['details'] = $message_admin;
-  $vfl['planned_starting_date'] = date("Y") . "-" . date("m") . "-"
-                                  . date("d");
-  $vfl['planned_close_date'] = date("Y") . "-" . date("m") . "-"
-                               . (date("d") + 10);
+  $vfl['planned_starting_date'] = date ("Y") . "-" . date ("m") . "-"
+    . date ("d");
+  $vfl['planned_close_date'] = date ("Y") . "-" . date ("m") . "-"
+    . (date ("d") + 10);
 
   $address = "";
-  $item_id = trackers_data_create_item($GLOBALS['sys_group_id'], $vfl,
-                                       $address);
+  $item_id = trackers_data_create_item (
+    $GLOBALS['sys_group_id'], $vfl, $address
+  );
   # Send an email to notify the admins of the ite update.
-  list($additional_address, $sendall) =
-    trackers_data_get_item_notification_info($item_id, ARTIFACT, 1);
-  if ((trim($address) != "") && (trim($additional_address) != ""))
+  list ($additional_address, $sendall) =
+    trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
+  if ((trim ($address) != "") && (trim ($additional_address) != ""))
     $address .= ", ";
   $address .= $additional_address;
-  # Exclude the submitter from the notification, he got a specific mail
-  # for himself.
-  trackers_mail_followup($item_id, $address, false, user_getname());
+  # Exclude the submitter who has already been sent a notification.
+  trackers_mail_followup ($item_id, $address, false, $user_id);
 }
 
 # Get site-specific content, if it is not the localadmin group.
 # Create the page header just like if there was not yet any group_id.
 $group_id_not_yet_valid = $group_id;
-unset($group_id);
+unset ($group_id);
 $group_id = $group_id_not_yet_valid;
 
-$form->display();
-$HTML->footer(array());
+$form->display ();
+$HTML->footer ([]);
 ?>

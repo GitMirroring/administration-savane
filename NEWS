@@ -32,6 +32,8 @@
 * In "lost password" and "change SSH key" procedures, user-identifying
   data were removed from notifying emails.
 
+* Group submission was rewritten, both texts and markup.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served
