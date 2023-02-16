@@ -1,10 +1,10 @@
 <?php
-# Project registration wizard.
+# Group registration.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2019, 2021, 2022  Ineiev
+# Copyright (C) 2017, 2019, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -22,30 +22,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Tricks for automatically opening a task in the tracker (sigh..).
-define('ARTIFACT', 'task');
-$no_redirection = 1;
-
-# Initial db and session library, opens session.
-require_once('../include/gpl-quick-form.php');
-require_once('../include/init.php');
-require_once('../include/database.php');
-require_once('../include/vars.php'); # $LICENSE
-require_once('../include/account.php'); # account_groupnamevalid
-
-require_once('../include/group.php'); # getTypeBaseHost()
-require_once('../include/sendmail.php');
+define ('ARTIFACT', 'task');
+require_once ('../include/gpl-quick-form.php');
+require_once ('../include/init.php');
+require_once ('../include/database.php');
+require_once ('../include/vars.php'); # $LICENSE
+require_once ('../include/account.php'); # account_groupnamevalid
+require_once ('../include/group.php'); # getTypeBaseHost()
+require_once ('../include/sendmail.php');
 
 # GPLQuickForm validation callback.
-function project_does_not_already_exist($form_unix_name)
-{
 # Make sure the name is not already taken, ignoring incomplete
 # registrations: risks of a name clash seems near 0, while not doing that
 # require maintainance, since some people interrupt registration and
 # try to redoit later with another name.
 # And even if a name clash happens, admins will notice it during approval.
-  return (db_numrows(db_execute("SELECT group_id FROM groups "
-                                . "WHERE unix_group_name LIKE ? AND status <> 'I'",
-                                array($form_unix_name))) == 0);
+function group_does_not_already_exist ($form_unix_name)
+{
+  $res = db_execute ("
+    SELECT group_id FROM groups
+    WHERE unix_group_name LIKE ? AND status <> 'I'", [$form_unix_name]
+  );
+  return db_numrows ($res) < 1;
 }
 
 function license_exists ($form_license)
@@ -60,24 +58,22 @@ function group_type_exists ($type_id)
   return isset ($types[$type_id]);
 }
 
-session_require(array('isloggedin' => '1'));
-$HTML->header(array('title' => sprintf(
+session_require (['isloggedin' => '1']);
 # TRANSLATORS: the argument is site name (like Savannah).
-                                       _("%s hosting request"),
-                                       $GLOBALS['sys_name'])));
+$HTML->header (['title' => sprintf (_("%s hosting request"), $sys_name)]);
 
-if (db_numrows(db_execute("SELECT type_id FROM group_type")) < 1)
+if (db_numrows (db_execute ("SELECT type_id FROM group_type")) < 1)
   {
-    # group_type is empty; it's not possible to register projects.
-    print _("No group type has been set. Admins need to create at least one
-group type. They can make it so visiting the link &ldquo;Group Type
-Admin&rdquo; on the Administration section of the left side menu, while logged
-in as admin.");
-   $HTML->footer(array());
-   exit (0);
+    # group_type is empty; it's not possible to register groups.
+    print _("No group type has been set. Admins need to create at least one\n"
+            . "group type. They can make it so visiting the link &ldquo;Group "
+            . "Type\nAdmin&rdquo; on the Administration section of the "
+            . "left side menu, while logged\nin as admin.");
+    $HTML->footer ([]);
+    exit (0);
   }
 
-$form = new GPLQuickForm('change_date');
+$form = new GPLQuickForm ('change_date');
 
 $form->addElement('header', 'title_name', _('Project name'));
 $form->addElement('text', 'full_name', _('Full name'));
@@ -152,7 +148,7 @@ $form->addRule('full_name', _("Invalid full name"), 'minlength', 2);
 $form->addRule('unix_name', _("Invalid Unix name"), 'callback',
                'account_groupnamevalid');
 $form->addRule('unix_name', _("A project with that name already exists."),
-               'callback', 'project_does_not_already_exist');
+               'callback', 'group_does_not_already_exist');
 $form->addRule('license', _("Invalid license"), 'callback', 'license_exists');
 $form->addRule('group_type', _("Invalid group type"),
                'callback', 'group_type_exists');
@@ -169,19 +165,18 @@ $form->addRule('purpose', _("This is too short!"), 'minlength', 30);
 $form->addRule('tarball_url',
  _("Please give us a link to your project latest release"), 'minlength', 4);
 
-if (!$form->validate())
+if (!$form->validate ())
   {
     # The form isn't filled or some fields are wrong.
-    utils_get_content("register/index");
+    utils_get_content ("register/index");
 
     $form->display();
     $HTML->footer(array());
     exit (0);
   }
 
-utils_get_content("register/confirmation");
-
-$form_values = $form->exportValues();
+utils_get_content ("register/confirmation");
+$form_values = $form->exportValues ();
 $form->freeze();
 
 $form_full_name = $form_values['full_name'];
@@ -192,32 +187,34 @@ $form_license = $form_values['license'];
 $form_license_other = $form_values['license_other'];
 $group_type = $form_values['group_type'];
 
-# Complete the db entries.
-db_autoexecute('groups',
-               array('group_name' => htmlspecialchars ($form_full_name),
-                     'unix_group_name' => strtolower($form_values['unix_name']),
-                     'status' => 'P',
-                     'is_public' => 1,
-                     'register_time' => time(),
-                     'register_purpose' => htmlspecialchars($form_purpose),
-                     'required_software' => htmlspecialchars($form_required_sw),
-                     'other_comments' => htmlspecialchars($form_comments),
-                     'license' => $form_license,
-                     'license_other' => htmlspecialchars($form_license_other),
-                     'type' => $group_type,), DB_AUTOQUERY_INSERT);
-$result = db_execute("SELECT group_id FROM groups WHERE unix_group_name = ?",
-array($form_values['unix_name']));
-$group_id = db_result($result, 0, 'group_id');
-$project=project_get_object($group_id);
+db_autoexecute ('groups',
+  [
+    'group_name' => htmlspecialchars ($form_full_name),
+    'unix_group_name' => strtolower($form_values['unix_name']),
+    'status' => 'P', 'is_public' => 1, 'register_time' => time(),
+    'register_purpose' => htmlspecialchars ($form_purpose),
+    'required_software' => htmlspecialchars ($form_required_sw),
+    'other_comments' => htmlspecialchars ($form_comments),
+    'license' => $form_license,
+    'license_other' => htmlspecialchars ($form_license_other),
+    'type' => $group_type,
+  ], DB_AUTOQUERY_INSERT
+);
+$result = db_execute (
+  "SELECT group_id FROM groups WHERE unix_group_name = ?",
+  [$form_values['unix_name']]
+);
+$group_id = db_result ($result, 0, 'group_id');
+$project = project_get_object ($group_id);
 
 if (db_affected_rows($result) < 1)
   exit_error(_("Unable to update database, please contact administrators"));
 
 # Make the current user an admin.
-$result = member_add(user_getid(), $group_id, "A");
+$result = member_add (user_getid (), $group_id, "A");
 
 if (!$result)
-  exit_error(_("Setting you as project admin failed"));
+  exit_error(_("Setting you as group admin failed"));
 
 $user_realname = user_getrealname(user_getid());
 $user_email = user_getemail(user_getid());
@@ -228,23 +225,22 @@ $type = db_result($sql_type,0,'name');
 $type_base_host = $project->getTypeBaseHost();
 $type_admin_email_address = $project->getTypeAdminEmailAddress();
 
-# Get site-specific content. It will define confirmation_gen_email().
-utils_get_content("register/confirmation_mail");
+# This will define confirmation_gen_email().
+utils_get_content ("register/confirmation_mail");
 
-$message = confirmation_gen_email ($type_base_host, $user_realname,
-                                   $user_email, $type_admin_email_address,
-                                   $form_license, $form_license_other,
-                                   $form_full_name, $unix_name, $type,
-                                   $form_purpose, $form_required_sw,
-                                   $form_comments);
+$message = confirmation_gen_email (
+  $type_base_host, $user_realname, $user_email, $type_admin_email_address,
+  $form_license, $form_license_other, $form_full_name, $unix_name, $type,
+  $form_purpose, $form_required_sw, $form_comments
+);
 
-$message_user = "$message";
+$message_user = $message;
 
 $group_admin_url =
   "$sys_https_url{$sys_home}siteadmin/groupedit.php?group_id=$group_id";
 
-$message_admin = "A new project has been registered at $sys_name.
-This project account will remain inactive until a site admin approves
+$message_admin = "A new group has been registered at $sys_name.
+This group will remain inactive until a site admin approves
 or discards the registration.
 
 
@@ -313,7 +309,7 @@ sendmail_mail (
   trackers_mail_followup($item_id, $address, false, user_getname());
 }
 
-# Get site-specific content, if it is not the localadmin project.
+# Get site-specific content, if it is not the localadmin group.
 # Create the page header just like if there was not yet any group_id.
 $group_id_not_yet_valid = $group_id;
 unset($group_id);

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gna.org>
-# Copyright (C) 2017, 2018, 2020, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -437,83 +437,77 @@ if (!isset ($group_id) && isset ($msg_id))
       $group_id = db_result ($result, 0, 'group_id');
   }
 
-# Define group_id if group is set.
-# Define group_name if group_id is set.
-$res_grp = null;
-if (isset ($group) && !isset ($group_id))
-  {
-    $res_grp = db_execute (
-      "SELECT group_id, status FROM groups WHERE unix_group_name = ?",
-      [$group]
-    );
-    if (db_numrows ($res_grp) > 0)
-      $group_id = db_result ($res_grp, 0, 'group_id');
-  }
-elseif (isset ($group_id))
-  {
-    $res_grp = db_execute (
-      "SELECT unix_group_name, status FROM groups WHERE group_id = ?",
-      [$group_id]
-    );
-    if (db_numrows ($res_grp) > 0)
-      $group = db_result ($res_grp, 0, 'unix_group_name');
-  }
-
-# See also $group_name definition in sane.php.
-# TODO: don't deal with such variables sitewide, don't use several names
-
-# If group_id is defined, we are on a project page, we have several checks
-# to make.
-$check_group = function ($group_id)
+# Define $group_id if $group is set; define $group if $group_id is set;
+# return group status or null when the group isn't defined or doesn't exist.
+function init_group_vars ()
 {
-  global $res_grp, $no_redirection, $sys_debug_nobasehost;
-
-  if (!isset ($group_id))
-    return;
-
-  if (!$res_grp)
+  global $group, $group_id;
+  $var = 'group_id'; $co_var = 'group';
+  $fields = ['group_id' => 'group_id', 'group' => 'unix_group_name'];
+  if (empty ($group_id))
     {
-      $res_grp = db_execute (
-        "SELECT unix_group_name, status FROM groups WHERE group_id = ?",
-        [$group_id]);
+      if (empty ($group))
+        return null;
+      $var = 'group'; $co_var = 'group_id';
     }
-  # Check if the group truly exists.
-  if (!db_numrows ($res_grp))
-    exit_error (_("Project not found"));
+  $res = db_execute (
+    "SELECT unix_group_name, group_id, status
+     FROM groups WHERE {$fields[$var]} = ?", [$$var]
+  );
+  if (db_numrows ($res) <= 0)
+    return null;
+  $row = db_fetch_array ($res);
+  $$co_var = $row[$fields[$co_var]];
+  return $row['status'];
+}
 
-  # Ignore status of the project if being registered.
-  if (db_result ($res_grp, 0, 'status') != 'I')
-    {
-      # Check if the project is active.
-      if (db_result ($res_grp, 0, 'status') != 'A')
-        {
-          # No active but in Maintenance mode, it is ok for super user.
-          if (db_result ($res_grp, 0, 'status') == 'M' && !user_is_super_user ())
-            exit_error (_("This project is in maintenance mode"));
-          elseif (db_result ($res_grp, 0, 'status') == 'M' && user_is_super_user ())
-            fb (_("Note: this project is in maintenance mode"));
-          elseif (!user_is_super_user ())
-            # Other cases, no access granted.
-            exit_error (_("This project is not in active state"));
-        }
-    }
-
-  # Check if we are on the correct page
-  # (you can avoid it with $no_redirection=1).
-  # If getTypeBaseHost () = "", we use the default host.
-  if (!(empty ($no_redirection) && !$sys_debug_nobasehost))
+function init_check_group_status ($status)
+{
+  if ($status == 'I' || $status == 'A')
     return;
-  $project = project_get_object ($group_id);
-  $type_host = $project->getTypeBaseHost ();
+  $su = user_is_super_user ();
+  if ($status == 'M') # Maintenance mode, OK for superusers.
+    {
+      if (!$su)
+        exit_error (_("This group is in maintenance mode"));
+      fb (_("Note: this group is in maintenance mode"));
+    }
+  elseif (!$su) # Other cases, no access granted.
+    exit_error (_("This group is not in active state"));
+}
+
+# Make sure we are on the correct site.
+function init_run_redirections ($group_id)
+{
+  global $sys_debug_nobasehost;
+
+  if ($sys_debug_nobasehost)
+    return;
+  $group = project_get_object ($group_id);
+  $type_host = $group->getTypeBaseHost ();
   if (!(strcasecmp ($_SERVER['HTTP_HOST'], $type_host) && $type_host))
     return;
   $prot = 'http://';
   if (session_issecure ())
     $prot = 'https://';
   header ("Location: $prot$type_host{$_SERVER["REQUEST_URI"]}");
-  exit;
+  exit (0);
+}
+
+function init_check_group ()
+{
+  global $group_id;
+
+  $status = init_group_vars ();
+  if (empty ($group_id))
+    return;
+  if (empty ($status))
+    exit_error (sprintf (_("Group #%s not found"), $group_id));
+  init_check_group_status ($status);
+  init_run_redirections ($group_id);
 };
-$check_group ($group_id);
-unset ($check_grp);
+
+init_check_group ();
+unset ($group_row);
 $php_self = htmlentities ($_SERVER['PHP_SELF']);
 ?>
