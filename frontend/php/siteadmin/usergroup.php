@@ -155,7 +155,7 @@ function output_contributions ($result, $offset, $max_rows)
       $spam = no_i18n ('Spam score') . ' ' . $entry['spamscore'] . '; ';
       $date = utils_format_date ($entry['date'], 'natural');
       $line = "$spam$date {$entry['summary']}";
-      if ($spam > 4)
+      if ($entry['spamscore'] > 4)
         $line = "<b>$line</b>";
       $entry_num = $i + $offset;
       print "  <dt><b>$entry_num</b>: $line</dt>\n";
