@@ -1,9 +1,8 @@
 <?php
-
 # Instructions about Git usage.
 #
 # Copyright (C) 2007 Sylvain Beucler
-# Copyright (C) 2013, 2017, 2019 Ineiev <ineiev@gnu.org>
+# Copyright (C) 2013, 2017, 2019, 2023 Ineiev <ineiev@gnu.org>
 # Copyright (C) 2017 Bob Proulx
 #
 # This file is part of Savane.
@@ -27,51 +26,42 @@ global $project, $repo_list;
 
 $n = count ($repo_list);
 if ($n > 1)
-  echo "<p>"._('Note: this group has multiple Git repositories.')."</p>";
-print '
-<h3>'._('Anonymous clone:').'</h3>
-
-<pre>';
+  print "<p>" . _('Note: this group has multiple Git repositories.')
+    . "</p>\n";
+print "<h3>" . _('Anonymous clone:') . "</h3>\n<pre>";
 
 for ($i = 0; $i < $n; $i++)
   {
     if ($n > 1)
       print $repo_list[$i]['desc'] . "\n";
-    print "git clone https://git." . $project->getTypeBaseHost()
-           . "/git/" . $repo_list[$i]['url'] . "\n";
+    print "git clone https://git." . $project->getTypeBaseHost ()
+      . "/git/" . $repo_list[$i]['url'] . "\n";
     if ($i < $n - 1)
       print "\n";
   }
 
-print '</pre>
+print "</pre>\n\n<h3>" . _('Member clone:') . "</h3>\n\n<pre>";
 
-<h3>'._('Member clone:').'</h3>
-
-<pre>';
-
-$username = user_getname();
+$username = user_getname ();
 if ($username == "NA")
   # For anonymous user.
-  $username = '&lt;<i>'._('membername').'</i>&gt;';
+  $username = '&lt;<i>' . _('membername') . '</i>&gt;';
 
 for ($i = 0; $i < $n; $i++)
   {
     if ($n > 1)
       print $repo_list[$i]['desc'] . "\n";
-    print "git clone " . $username . "@git."
-         . $project->getTypeBaseHost() . ":"
-         . $repo_list[$i]['path'] . "\n";
+    print "git clone $username@git." . $project->getTypeBaseHost () . ":"
+      . $repo_list[$i]['path'] . "\n";
     if ($i < $n - 1)
       print "\n";
   }
-print '</pre>
+print "</pre>\n\n<p>"
+  . _("The SSHv2 public key fingerprints for the machine hosting the source\n"
+      . "trees are:")
+   . "</p>\n$vcs_fingerprints";
 
-<p>'
-. _('The SSHv2 public key fingerprints for the machine hosting the source
-trees are:') . "</p>\n" . $vcs_fingerprints;
-
-print '<h3>'._('More information').'</h3>
-<a href="//savannah.gnu.org/maintenance/UsingGit">
-https://savannah.gnu.org/maintenance/UsingGit</a>';
-
+print '<h3>' . _('More information') . "</h3>\n";
+print "<a href=\"//savannah.gnu.org/maintenance/UsingGit\">\n";
+print 'https://savannah.gnu.org/maintenance/UsingGit</a>';
 ?>

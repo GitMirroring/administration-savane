@@ -34,6 +34,10 @@
 
 * Group submission was rewritten, both texts and markup.
 
+* When the filesystem with Git repositories is mounted on frontend,
+  it lists the repositories directly from there rather than from
+  $sys_etc_dir/cgitrepos.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served
@@ -43,6 +47,9 @@
 
 ** Diff email list wasn't processed correctly in CVS notification settings
    (cvs/admin/index.php, commit 5303e6fa).
+
+** Git repositories with empty descriptions extracted from cgitrepos
+   were listed incorrectly.
 
 [I18N]
 

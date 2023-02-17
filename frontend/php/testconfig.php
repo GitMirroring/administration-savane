@@ -120,6 +120,55 @@ function test_cgitrepos()
   print 'OK';
 }
 
+function sys_vcs_dir_not_set ()
+{
+  global $sys_vcs_dir;
+  if (empty ($sys_vcs_dir))
+    {
+      print '<em>$sys_vcs_dir not set</em>';
+      return true;
+    }
+  if (empty ($sys_vcs_dir['git']))
+    {
+      print '<em>$sys_vcs_dir["git"] not set</em>';
+      return true;
+    }
+  if (empty ($sys_vcs_dir['git']['dir']))
+    {
+      print '<em>$sys_vcs_dir["git"]["dir"] not set</em>';
+      return true;
+    }
+  return false;
+}
+
+function test_git_dirs ()
+{
+  global $sys_vcs_dir;
+  if (sys_vcs_dir_not_set ())
+    return;
+  $git = $sys_vcs_dir["git"];
+  print "'dir': " . $git["dir"] . ' ';
+  if (!is_dir ($git["dir"]))
+    {
+      print " <strong>no such directory</strong>";
+      return;
+    }
+  print " (directory exists)";
+  $suf = '[\'clone-path\']';
+  if (!empty ($git["clone-path"]))
+    print "<br />\n'clone-path': " . $git["clone-path"];
+}
+
+function test_repos ()
+{
+  print "<tr id='cgitrepos'><td>cgitrepos</td><td>\n";
+  test_cgitrepos ();
+  print "</td></tr>\n";
+  print "<tr id='gitrepos'><td>git directories</td><td>\n";
+  test_git_dirs ();
+  print "</td></tr>\n";
+   
+}
 function test_sys_upload_dir ()
 {
   $path = utils_make_upload_file ("test.txt", $errors);
@@ -408,9 +457,7 @@ else
     print "\n<h2>Other tests</h2>\n\n";
     print "<table border=\"1\">\n";
     print "<tr><th>Test</th><th>Result</th></tr>\n";
-    print "<tr id='cgitrepos'><td>cgitrepos</td><td>\n";
-    test_cgitrepos ();
-    print "</td></tr>\n";
+    test_repos ();
     print "<tr id='sys-upload-dir'><td>sys_upload_dir writability</td><td>\n";
     test_sys_upload_dir ();
     print "</td></tr>\n";
