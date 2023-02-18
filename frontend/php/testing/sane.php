@@ -2132,9 +2132,8 @@ $reference = 'siteadmin/group_type.php';
   ];
 
   $names = [
-    'name' => 'name',
     'specialchars' => [
-      'description',  'base_host', 'homepage_scm',
+      'name', 'description',  'base_host', 'homepage_scm',
       'admin_email_adress', # Sic! adress not address
     ],
     'true' => []
@@ -2180,7 +2179,7 @@ $reference = 'siteadmin/group_type.php';
     $in[$n] = $out[$n] = true;
   foreach ($names['specialchars'] as $n)
     $in[$n] = $out[$n] = $n;
-  $in['name'] = $out['name'] = 'name';
+  $in['name'] = $out['name'] = 'Official GNU software';
   test_sane_import ($in, $names, $out);
 }
 

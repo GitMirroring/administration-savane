@@ -100,10 +100,9 @@ if ($delete)
 $name_matching = function ($trackers, $vcs_list)
 {
   $names = [
-    'name' => 'name',
     'specialchars' => [
-      'description',  'base_host', 'homepage_scm',
-      'admin_email_adress', # Sic! adress not address
+      'name', 'description',  'base_host', 'homepage_scm',
+      'admin_email_adress', # Sic! adress not address, single 'd'.
     ],
     'true' => []
   ];

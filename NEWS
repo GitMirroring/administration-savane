@@ -55,6 +55,8 @@
 
 ** Title of stats/index.php wasn't localized.
 
+** Groyp type name assignent in siteadmin/group_type.php didn't work.
+
 [I18N]
 
 * Update French, Hebrew, Russian.
