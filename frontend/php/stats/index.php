@@ -385,7 +385,7 @@ else
 
 $page .= "</p>\n";
 
-site_header (['title' => "Statistics", 'css' => $css]);
+site_header (['title' => _("Statistics"), 'css' => $css]);
 print $page;
 site_footer (0);
 ?>

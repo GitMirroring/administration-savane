@@ -53,6 +53,8 @@
 ** Git repositories with empty descriptions extracted from cgitrepos
    were listed incorrectly.
 
+** Title of stats/index.php wasn't localized.
+
 [I18N]
 
 * Update French, Hebrew, Russian.
