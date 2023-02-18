@@ -82,12 +82,12 @@ class Group extends savane_error
   # Group type info.
   function getTypeName ()
   {
-    return $this->type_data_array['name'];
+    return gettext ($this->type_data_array['name']);
   }
 
   function getTypeDescription ()
   {
-     return $this->type_data_array['description'];
+     return gettext ($this->type_data_array['description']);
   }
 
   function getTypeBaseHost ()

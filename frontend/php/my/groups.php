@@ -146,7 +146,7 @@ if ($update)
           {
             fb (_("When joining you must provide a message for the\n"
                   . "administrator, a short explanation of why you want "
-                  . "to join this project."), 1
+                  . "to join this group."), 1
             );
             continue;
           }
@@ -227,14 +227,13 @@ if (!$result_w || $rows_w < 1)
   {
     print '<p>' . _("You are not watching any partners.") . "</p>\n";
     print '<p>'
-      . _("Watching a partner (receiving a copy of all notifications\n"
-          . "sent to them) permits you to be their backup when they are "
-          . "away from the\noffice, or to review all their activities "
-          . "on a project.");
+      . _("Watching a partner (receiving a copy of all notifications sent\n"
+          . "to them) permits you to be their backup when they are away from\n"
+          . "the office, or to review all their activities in the group.");
     print "</p>\n<p>";
     print _("To watch someone, follow the &ldquo;Watch partner&rdquo; link\n"
-            . "in the project memberlist page. You need to be member of that "
-            . "project.");
+            . "in group memberlist page. You need to be member of that "
+            . "group.");
     print "<br />\n";
     print db_error ();
   }
@@ -304,11 +303,11 @@ print $HTML->box_top (_("Request for Inclusion"), '', 1);
 print "<div class='boxitem'>\n";
 print '<p>';
 print
-  _("Type below the name of the project you want to contribute to. "
-    . "Joining\na project means getting write access to the project "
-    . "repositories and trackers,\nand involves responsibilities.  Therefore, "
-    . "usually you would first contact the\nproject developers (e.g., using "
-    . "a project mailing list) before requesting\nformal inclusion using "
+  _("Type below the name of the group you want to contribute to.\n"
+    . "Joining a group means getting write access to the repositories\n"
+    . "of the group, and involves responsibilities.  Therefore,\n"
+    . "usually you would first contact group members (e.g., using\n"
+    . "a group mailing list) before requesting formal inclusion using\n"
     . "this form.");
 print "</p>\n\n";
 
@@ -324,7 +323,7 @@ extract (sane_import ('request', ['pass' => 'words']));
 if ($words)
   {
     # Avoid to big search by asking for more than 1 characters.
-    # Restricting to more than 2 chars skips a great deal of project names
+    # Restricting to more than 2 chars skips a great deal of group names
     # (eg: gv, gdb).
     $result_search = 0;
     if (strlen ($words) > 1)
@@ -349,9 +348,8 @@ if ($words)
         print '<p>';
         print
           _("To request inclusion in one or several groups, check the\n"
-            . "correspondent boxes, write a meaningful message "
-            . "for the project administrator\nwho will approve "
-            . "or disapprove the request, and submit the form.");
+            . "boxes, write a meaningful message for group administrator\n"
+            . "who will approve or discard the request, and submit the form.");
         print "</p>\n" . form_header ($_SERVER['PHP_SELF']);
 
         while ($val = db_fetch_array ($result_search))
@@ -382,7 +380,7 @@ print html_splitpage (2);
 if (!$result || $rows < 1)
   {
     print $HTML->box_top (_("My Groups"), '', 1);
-    print _("You're not a member of any public projects");
+    print _("You're not a member of any public group");
     print $HTML->box_bottom (1);
   }
 else

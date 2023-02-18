@@ -174,8 +174,8 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
                ' selected="selected"' : "")
             . '>'
             # TRANSLATORS: this string is used in the context
-            # of "Search [...] in Projects"
-            . _("Projects") . "</option>\n";
+            # of "Search [...] in Groups"
+            . _("Groups") . "</option>\n";
 
           $sel .= '<option value="people"'
             . (($type_of_search == "people") ? ' selected="selected"' : "")
@@ -189,7 +189,7 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
         . "</select>\n";
 
       # TRANSLATORS: this word is used in the phrase "Search [...] in
-      # [Projects|People|Support|Bugs|Tasks|Patches]"
+      # [Groups|People|Support|Bugs|Tasks|Patches]"
       # in the main menu on the left side.
       # Make sure to put this piece in agreement with the following strings.
       $ret .= sprintf (' ' . _("in %s"), $sel);
@@ -243,15 +243,15 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
             # of "Search [...] in any group type"
             . _("any") . "</option>\n";
           $result =
-            db_query("SELECT type_id,name FROM group_type ORDER BY type_id");
-          while ($eachtype = db_fetch_array($result))
+            db_query ("SELECT type_id, name FROM group_type ORDER BY type_id");
+          while ($eachtype = db_fetch_array ($result))
             {
               $sel_attr = '';
               if ($type == $eachtype['type_id'])
                  $sel_attr = ' selected="selected"';
-              $select .=
-                "<option value=\"{$eachtype['type_id']}\"$sel_attr>"
-                . "{$eachtype['name']}</option>\n";
+              $val = $eachtype['type_id'];
+              $name = gettext ($eachtype['name']);
+              $select .= "<option value=\"$val\"$sel_attr>$name</option>\n";
             }
           $select .= "</select>\n";
 
@@ -259,7 +259,7 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
           # (like Official GNU software).
           $ret .=
              sprintf (
-               _("Search in %s group type, when searching for a Project."),
+               _("Search in %s group type, when searching for a group."),
                $select
              );
         } # !isset ($gid)
@@ -294,7 +294,7 @@ function search_send_header ()
 }
 
 # Search results for XXX (in YYY):
-# e.g.: Search results for emacs (in Projects):
+# e.g.: Search results for emacs (in groups):
 function print_search_heading()
 {
   global $words,$type_of_search,$only_group_id;
@@ -305,54 +305,38 @@ function print_search_heading()
   print "<p>";
   # Print real words describing the type of search.
   if ($type_of_search == "soft")
-# TRANSLATORS: this string is the section to look in; it is used as the second
-# argument in 'Search results for %1$s (in %2$s)'.
-    $type_of_search_real = _("Projects");
+    # TRANSLATORS: this string is the section to look in; it is used as
+    # the second argument in 'Search results for %1$s (in %2$s)'.
+    $type_of_search_real = _("Groups");
   elseif ($type_of_search == "support")
-# TRANSLATORS: this string is the section to look in; it is used as the second
-# argument in 'Search results for %1$s (in %2$s)'.
-# The HTML comment is used to differentiate the usages of the same English string.
+    # TRANSLATORS: this string is the section to look in; it is used as
+    # the second argument in 'Search results for %1$s (in %2$s)'. The HTML
+    # comment is used to differentiate the usages of the same English string.
     $type_of_search_real = _("<!-- Search... in -->Support");
   elseif ($type_of_search == "bugs")
-# TRANSLATORS: this string is the section to look in; it is used as the second
-# argument in 'Search results for %1$s (in %2$s)'.
-# The HTML comment is used to differentiate the usages of the same English string.
     $type_of_search_real = _("<!-- Search... in -->Bugs");
   elseif ($type_of_search == "task")
-# TRANSLATORS: this string is the section to look in; it is used as the second
-# argument in 'Search results for %1$s (in %2$s)'.
-# The HTML comment is used to differentiate the usages of the same English string.
     $type_of_search_real = _("<!-- Search... in -->Tasks");
   elseif ($type_of_search == "patch")
-# TRANSLATORS: this string is the section to look in; it is used as the second
-# argument in 'Search results for %1$s (in %2$s)'.
-# The HTML comment is used to differentiate the usages of the same English string.
     $type_of_search_real = _("<!-- Search... in -->Patches");
   elseif ($type_of_search == "people")
-# TRANSLATORS: this string is the section to look in; it is used as the second
-# argument in 'Search results for %1$s (in %2$s)'.
-# The HTML comment is used to differentiate the usages of the same English string.
     $type_of_search_real = _("<!-- Search... in -->People");
 
   if (!$only_group_id)
-    {
-# TRANSLATORS: the first argument is string to look for,
-# the second argument is section (Project/Group|Support|Bugs|Task
-#   |Patch|People).
-      printf(_('Search results for %1$s in %2$s:'),
-             '<strong>'.htmlspecialchars($words).'</strong>',
-             $type_of_search_real);
-    }
+    # TRANSLATORS: the first argument is string to look for,
+    # the second argument is section (Group|Support|Bugs|Task|Patch|People).
+    printf (_('Search results for %1$s in %2$s:'),
+      '<strong>' . htmlspecialchars ($words) . '</strong>',
+      $type_of_search_real
+    );
   else
-    {
-# TRANSLATORS: the first argument is string to look for,
-# the second argument is section (Support|Bugs|Task
-#   |Patch|People), the third argument is
-# group name (like GNU Coreutils).
-      printf(_('Search results for %1$s in %2$s, for the Group %3$s:'),
-             '<strong>'.htmlspecialchars($words).'</strong>',
-             $type_of_search_real, group_getname($only_group_id));
-    }
+    # TRANSLATORS: the first argument is string to look for, the second
+    # argument is section (Support|Bugs|Task|Patch|People), the third argument
+    # is group name (like GNU Coreutils).
+    printf (_('Search results for %1$s in %2$s, for the Group %3$s:'),
+      '<strong>' . htmlspecialchars ($words) . '</strong>',
+      $type_of_search_real, group_getname ($only_group_id)
+    );
   print "</p>\n";
 }
 
@@ -536,44 +520,39 @@ function search_run ($keywords, $type_of_search="soft", $return_error_messages=1
 
 function search_exact ($keywords)
 {
-# Find the characters that maybe for a non-precise search. No need to continue
-# if it they are present.
-  $non_precise_key1 = strpos($keywords, '*' );
-  $non_precise_key2 = strpos($keywords, '%' );
+  # Find the characters that maybe for a non-precise search.
+  # No need to continue if it they are present.
+  $non_precise_key1 = strpos ($keywords, '*');
+  $non_precise_key2 = strpos ($keywords, '%');
 
   if (!($non_precise_key1 === false && $non_precise_key2 === false))
     return;
-  $arr_keywords = explode(' ', $keywords);
-  $question_marks = implode(',', array_fill(0, count($arr_keywords), '?'));
-  $sql = "SELECT group_name,unix_group_name,short_description,name
-             FROM groups,group_type
-          WHERE type=type_id AND group_name IN ($question_marks)
-          AND status='A' AND is_public='1'";
-  $result = db_execute($sql,$arr_keywords);
-  $num_rows = db_numrows($result);
+  $arr_keywords = explode (' ', $keywords);
+  $ph = utils_in_placeholders ($arr_keywords);
+  $sql = "
+    SELECT group_name, unix_group_name, short_description, name
+    FROM groups, group_type
+    WHERE
+      type = type_id AND group_name $ph AND status = 'A' AND is_public = '1'";
+  $result = db_execute ($sql, $arr_keywords);
+  $num_rows = db_numrows ($result);
 
   if ($num_rows != 1)
     return;
   print "<h2>";
-  print
-# TRANSLATORS: this is a title for search results when exactly one item is found.
-        _("Unique project search result");
-  print "</h2>\n";
-  printf('<p>'._("Search string was: %s.")."</p>\n",
-         '<strong>'.htmlspecialchars($keywords).'</strong>');
-
-  $title_arr = array();
-  $title_arr[] = _("Project");
-  $title_arr[] = _("Description");
-  $title_arr[] = _("Type");
-
-  print html_build_list_table_top($title_arr);
+  # TRANSLATORS: this is a title for search results when exactly one item is found.
+  print _("Unique group search result");
+  print "</h2>\n<p>";
+  printf (_("Search string was: %s."),
+    '<strong>' . htmlspecialchars ($keywords) . '</strong>'
+  );
+  print "</p>\n";
+  print html_build_list_table_top ([_("Group"), _("Description"), _("Type")]);
   print "\n";
-  $row = db_fetch_array($result);
-  print "<tr><td><a href=\"../projects/"
-."${row['unix_group_name']}\">${row['group_name']}</a></td>
-  <td>${row['short_description']}</td>
-  <td>${row['name']}</td></tr>
-  </table>\n";
+  $row = db_fetch_array ($result);
+  $name = gettext ($row['name']);
+  print "<tr><td><a href=\"../projects/{$row['unix_group_name']}\">"
+    . "{$row['group_name']}</a></td>\n<td>{$row['short_description']}</td>\n"
+    . "<td>$name</td></tr>\n</table>\n";
 }
 ?>

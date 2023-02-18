@@ -23,11 +23,11 @@
 function people_get_type_name ($type_id)
 {
   $result = db_execute (
-    "SELECT group_type.name FROM group_type WHERE type_id = ?", [$type_id]
+    "SELECT name FROM group_type WHERE type_id = ?", [$type_id]
   );
   if (!$result || db_numrows ($result) < 1)
     return 'Invalid ID';
-  return db_result ($result, 0, 'name');
+  return gettext (db_result ($result, 0, 'name'));
 }
 
 function people_get_category_name ($category_id)
@@ -93,17 +93,17 @@ function people_list_project_type ()
     return false;
   $return = "";
   for ($i = 0; $i < $rows; $i++)
-    $return .=
-      form_checkbox (
-        'types[]', 0,
-        [
-          'title' => db_result ($result, $i, 'name'),
-          'value' => db_result ($result, $i, 'type_id'),
-        ]
-      )
-      . "<a href=\"$php_self?types[]=" . db_result ($result, $i, 'type_id')
-      . '">' . db_result ($result, $i, 'name')
-      . ' (' . db_result ($result, $i, 'count') . ")</a><br />\n";
+    {
+      foreach (['type_id', 'name', 'count'] as $var)
+        $$var = db_result ($result, $i, $var);
+      $name = gettext ($name);
+      $return .=
+        form_checkbox (
+          'types[]', 0, [ 'title' => $name, 'value' => $type_id]
+        )
+        . "<a href=\"$php_self?types[]=$type_id"
+        . "\">$name ($count)</a><br />\n";
+     }
   return $return;
 }
 
@@ -124,7 +124,7 @@ function people_show_table ()
     $form_is_empty, people_list_categories (), _("No categories found")
   );
 
-  $return .= '<h2>' . _("Project type") . "</h2>\n";
+  $return .= '<h2>' . _("Group type") . "</h2>\n";
   $return .= people_append_list (
     $form_is_empty, people_list_project_type (), _("No types found")
   );
@@ -195,7 +195,7 @@ function people_job_category_box ($name = 'category_id', $checked = 'xyxy')
     # TRANSLATORS: this string is a job category.
     _("Developer"),
     # TRANSLATORS: this string is a job category.
-    _("Project Manager"),
+    _("Group Manager"),
     # TRANSLATORS: this string is a job category.
     _("Unix Admin"),
     # TRANSLATORS: this string is a job category.
@@ -387,8 +387,9 @@ function people_edit_job_inventory ($job_id, $group_id)
 # Take a result set from a query and show the jobs.
 function people_show_job_list ($result, $edit = 0)
 {
+  global $sys_home;
   $title_arr = [
-    _("Title"), _("Category"), _("Date Opened"), _("Project"), _("Type")
+    _("Title"), _("Category"), _("Date Opened"), _("Group"), _("Type")
   ];
 
   $page = 'viewjob.php';
@@ -408,17 +409,18 @@ function people_show_job_list ($result, $edit = 0)
         "SELECT name FROM group_type WHERE type_id = ?",
         [db_result ($result, $i, 'type')]
       );
+      $name = gettext (db_result ($res_type, 0, 'name'));
       $return .= "<tr class=\"" . utils_altrow ($i)
-        . '"><td><a href="' . $GLOBALS['sys_home'] . "people/$page?group_id="
+        . '"><td><a href="' . "{$sys_home}people/$page?group_id="
         . db_result ($result, $i, 'group_id') . '&job_id='
         . db_result ($result, $i, 'job_id') . '">'
         . db_result ($result, $i, 'title') . "</a></td>\n<td>"
         . db_result ($result, $i, 'category_name') . "</td>\n<td>"
         . utils_format_date (db_result ($result,$i,'date'), 'natural')
-        . "</td>\n<td><a href=\"" . $GLOBALS['sys_home'] . 'projects/'
+        . "</td>\n<td><a href=\"{$sys_home}projects/"
         . strtolower (db_result ($result, $i, 'unix_group_name')) . '/">'
         . db_result ($result, $i, 'group_name') . "</a></td>\n<td>"
-        . db_result ($res_type, 0, 'name') . "</td></tr>\n";
+        . "$name</td></tr>\n";
     }
   return $return . $tail;
 }

@@ -100,11 +100,11 @@ $page .= "<h3>" . _("Accounts") . "</h3>\n<ul>\n";
 $count_users = stats_getusers ();
 $count_groups = stats_getprojects ();
 
-$content = $total = [];
+$data = $total = [];
 
 $count = stats_getusers ("add_date >= $since AND add_date <= $until");
 $key = _("New users");
-$content[$key] = $count;
+$data[$key] = $count;
 $total[$key] = $count_users;
 $page .= '<li>';
 $page .= sprintf (ngettext ("%s new user", "%s new users", $count), $count);
@@ -114,21 +114,21 @@ $count = stats_getprojects (
   "", "", "register_time >= $since AND register_time <= $until"
 );
 $key = _("New groups");
-$content[$key] = $count;
+$data[$key] = $count;
 $total[$key] = $count_groups;
 $page .= "\n<li>";
 $page .=
-  sprintf (ngettext ("%s new project", "%s new projects", $count), $count);
+  sprintf (ngettext ("%s new group", "%s new groups", $count), $count);
 $page .= "</li>\n</ul>\n";
 
 $page .= '<h3>' . _("New users and new groups / total") . "</h3>\n";
 $graph_id = 0;
 $widths = "";
-function construct_graph ($content, $total)
+function construct_graph ($data, $total, $localize_keys = 0)
 {
   global $graph_id, $widths;
 
-  $build = graphs_build ($content, 0, 0, $total, $graph_id);
+  $build = graphs_build ($data, 0, 0, $total, $graph_id, $localize_keys);
   if ($graph_id != $build[0])
     {
       $widths = "$widths,{$build[1]}";
@@ -136,9 +136,8 @@ function construct_graph ($content, $total)
     }
   return $build[2];
 }
-$page .= construct_graph ($content, $total);
+$page .= construct_graph ($data, $total);
 
-$content = [];
 $total = 0;
 
 $total_patch = stats_getitems ("patch");
@@ -150,7 +149,7 @@ $page .= "\n<h3>" . _("Trackers") . "</h3>\n";
 if ($total_patch + $total_task + $total_support + $total_bugs > 0)
   $page .= "<ul>\n";
 
-$content = $content_total = [];
+$data = $data_total = [];
 
 $total_open = 0;
 $trackers = [
@@ -210,8 +209,8 @@ foreach ($trackers as $tr)
       $count_open);
     $page .= "</li>\n";
     $key = $tr['key'];
-    $content[$key] = $count;
-    $content_total[$key] = $total_art;
+    $data[$key] = $count;
+    $data_total[$key] = $total_art;
   }
 
 if ($total_patch < 1 && $total_task < 1 && $total_support < 1 && $total_bugs < 1)
@@ -231,13 +230,13 @@ else
         $total_open) . "</li>\n";
     $page .= "</ul>\n<h3>" . _("New items per tracker / tracker total")
       . "</h3>\n";
-    $page .= construct_graph ($content, $content_total);
-    unset ($content, $content_total);
+    $page .= construct_graph ($data, $data_total);
+    unset ($data, $data_total);
   }
 $page .= "</p>\n<p>&nbsp;</p>\n";
 $page .= "<h2>" . html_anchor (_("Overall"), "overall") . "</h2>\n";
 $page .= "\n<h3>" . _("Accounts") . "</h3>\n<ul>\n";
-$content = [];
+$data = [];
 
 $page .= '<li>';
 $page .= sprintf (ngettext ("%s user", "%s users", $count_users), $count_users)
@@ -246,7 +245,7 @@ $count_groups_private = stats_getprojects ("", "0");
 $page .= '<li>';
 $page .=
   # TRANSLATORS: The next two msgids form one sentence.
-  sprintf (ngettext ("%s project,", "%s projects,", $count_groups),
+  sprintf (ngettext ("%s group,", "%s groups,", $count_groups),
     $count_groups
   );
 $page .= " ";
@@ -257,15 +256,15 @@ $page .=
   );
 $page .=  "</li>\n</ul>\n";
 
-$result = db_query ("SELECT type_id,name FROM group_type ORDER BY name");
+$result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
 while ($eachtype = db_fetch_array ($result))
-  $content[$eachtype['name']] = stats_getprojects ($eachtype['type_id']);
+  $data[$eachtype['name']] = stats_getprojects ($eachtype['type_id']);
 
-$page .= "<h3>" . _("Projects per group type") . "</h3>\n";
-$page .= construct_graph ($content, 0);
+$page .= "<h3>" . _("Groups per group type") . "</h3>\n";
+$page .= construct_graph ($data, 0, 1);
 $page .= '<h3>' . _("Trackers") . "</h3>\n<ul>\n";
 
-$content = [];
+$data = [];
 
 $trackers = [
   [ 'art' => 'support', 'key' => _("Support requests"),
@@ -325,7 +324,7 @@ foreach ($trackers as $tr)
       ngettext ($tr['cls'][0], $tr['cls'][1], $count_open), $count_open
     );
     $page .= "</li>\n";
-    $content[$tr['key']] = $count;
+    $data[$tr['key']] = $count;
   }
 
 $page .= "<li>";
@@ -342,7 +341,7 @@ $page .= sprintf (ngettext ("including %s still open<!-- item -->",
 $page .= "</li>\n</ul>\n\n";
 
 $page .= '<h3>' . _("Items per tracker") . "</h3>\n";
-$page .= construct_graph ($content, 0);
+$page .= construct_graph ($data, 0);
 $css = "";
 if ($widths != '')
   $css = '/css/graph-widths.php?widths=' . substr ($widths, 1);

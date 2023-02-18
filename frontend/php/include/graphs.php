@@ -3,7 +3,7 @@
 # and w3c-compliant.
 #
 # Copyright (C) 2004-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2018, 2020 Ineiev
+# Copyright (C) 2017, 2018, 2020, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -20,10 +20,56 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# It can accept db result directy or an array.
-# Total must be an array too, if provided.
+function graphs_get_percent ($k, $v, &$total)
+{
+  if ($total[$k] <= 0)
+    {
+      $total[$k] = 0;
+      return [0, _("n/a")];
+    }
+  $width = round (($v / $total[$k]) * 100);
+  # TRANSLATORS: printing percentage.
+  $print = sprintf (_("%s%%"), $width);
+  return [$width, $print];
+}
+
+function graphs_entry_title ($k, $user_field, $localize)
+{
+  if ($user_field)
+    return utils_user_link ($k);
+  if ($localize)
+    return gettext ($k);
+  return $k;
+}
+
+function graphs_build_entry (
+  $k, $v, &$total, &$widths, $user_field, $localize_keys, $id
+)
+{
+  list ($percent_width, $percent_print) = graphs_get_percent ($k, $v, $total);
+  $title = graphs_entry_title ($k, $user_field, $localize_keys);
+
+  if ($percent_width > 25)
+    $class = '';
+  else
+    $class = 'closed';
+
+  $output = "<tr class='half-width'>\n<td class='first'>$title</td>\n"
+    . "<td class='second'>";
+  # TRANSLATORS: the arguments mean "%1$s of (total) %2$s".
+  $output .= sprintf (_('%1$s/%2$s'), $v, $total[$k]);
+  $output .= "</td>\n<td class='second'>$percent_print</td>\n"
+    . "<td class='third'><div class='prioraclosed'>"
+    . "<div class='priori$class' id='graph-bar$id'>&nbsp;</div>"
+    . "</div></td>\n</tr>\n";
+  $widths = "$widths,$percent_width";
+  return $output;
+}
+
+# It can accept db result directly or an array.
+# Total must be an array, if provided.
 function graphs_build (
-  $result, $field = 0, $dbdirect = 1, $total = 0, $id0 = 0
+  $result, $field = 0, $dbdirect = 1, $total = 0, $id0 = 0, $localize_keys = 0
 )
 {
   if (!$result)
@@ -69,41 +115,13 @@ function graphs_build (
       $output .= '</p>';
       return [$id, substr ($widths, 1), $output];
     }
-  $output .= "\n\n".'<table class="graphs">'."\n";
+  $output .= "\n\n<table class='graphs'>\n";
+  $ass_to = $field === "assigned_to";
   foreach ($data as $k => $v)
     {
-      if ($total[$k] > 0)
-        {
-          $percent_width = round (($v / $total[$k]) * 100);
-          # TRANSLATORS: printing percentage.
-          $percent_print = sprintf (_("%s%%"), $percent_width);
-        }
-      else
-        {
-          $percent_width = 0;
-          $percent_print = _("n/a");
-          $total[$k] = 0;
-        }
-
-      if ($field && $field == "assigned_to")
-        $title = utils_user_link ($k);
-      else
-        $title = $k;
-
-      if ($percent_width > 25)
-        $class = '';
-      else
-        $class = 'closed';
-
-      $output .= "<tr class='half-width'>\n<td class='first'>$title</td>\n"
-        . "<td class='second'>";
-      # TRANSLATORS: the arguments mean "%1$s of (total) %2$s".
-      $output .= sprintf (_('%1$s/%2$s'), $v, $total[$k]);
-      $output .= "</td>\n<td class='second'>$percent_print</td>\n"
-        . "<td class='third'><div class='prioraclosed'>"
-        . "<div class='priori$class' id='graph-bar$id'>&nbsp;</div>"
-        . "</div></td>\n</tr>\n";
-      $widths = "$widths,$percent_width";
+      $output .=
+        graphs_build_entry (
+          $k, $v, $total, $widths, $ass_to, $localize_keys, $id);
       $id++;
     } # foreach ($data as $k => $v)
   $output .= "\n</table>\n\n";

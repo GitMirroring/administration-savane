@@ -204,7 +204,7 @@ if (empty ($type_id))
     {
       $last = $usr['type_id'];
       print "<a href=\"$php_self?type_id=$last\">";
-      printf (no_i18n ('Type #%1$s: %2$s'), $last, gettext ($usr['name']));
+      printf (no_i18n ('Type #%1$s: %2$s'), $last, $usr['name']);
       print "</a><br />\n";
     }
   # Find an appropriate unused group type ID (skip value 100).

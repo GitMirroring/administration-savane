@@ -87,7 +87,7 @@ if ($type_of_search == 'soft')
     search_send_header();
     search_exact($words);
     print_search_heading();
-    $title_arr = [_("Project"), _("Description"), _("Type")];
+    $title_arr = [_("Group"), _("Description"), _("Type")];
 
     print html_build_list_table_top ($title_arr);
     print "\n";
@@ -99,18 +99,19 @@ if ($type_of_search == 'soft')
           [db_result ($result, $i, 'type')]
         );
 
-        print '<tr class="'. html_get_alt_row_color($i)
+        print '<tr class="' . html_get_alt_row_color($i)
           . '"><td><a href="../projects/'
           . db_result ($result, $i, 'unix_group_name')
           . '">' . db_result ($result, $i, 'group_name')
           . "</a></td>\n<td>"
           . db_result ($result, $i, 'short_description')
           . "</td>\n<td>"
-          . db_result ($res_type, 0, 'name') . "</td>\n</tr>\n";
+          . gettext (db_result ($res_type, 0, 'name')) . "</td>\n</tr>\n";
       }
     print "</table>\n";
     print '<p>'
-. _('Note that <strong>private</strong> projects are not shown on this page.')
+      . _("Note that <strong>private</strong> groups are not shown "
+          . "on this page.")
       . "</p>\n";
     finish_page ();
   }

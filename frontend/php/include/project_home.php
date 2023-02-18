@@ -1,5 +1,5 @@
 <?php
-# Project homepage
+# Group homepage.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
@@ -41,10 +41,10 @@ if (
     header ("Location: $prot$host{$_SERVER['PHP_SELF']}");
     exit;
   }
-$project=new Project ($group_id);
-site_project_header (array ());
+$project = new Project ($group_id);
+site_project_header ([]);
 
-# Members of this project (little box on the right).
+# Members of this group (little box on the right).
 $res_admin = db_execute ("
   SELECT
     user.user_id AS user_id, user.user_name AS user_name,
@@ -67,7 +67,7 @@ $adminsnum = db_numrows ($res_admin);
 $j = 0;
 if ($adminsnum > 0)
   {
-    print $adminsnum < 2? _("Project Admin:"): _("Project Admins:");
+    print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
     while ($row_admin = db_fetch_array ($res_admin))
       {
         $next_div ($j);
@@ -79,7 +79,7 @@ if ($adminsnum > 0)
       }
   }
 
-# Count of developers on this project.
+# Count of members on this group.
 $membersnum = db_fetch_array (db_execute ("
   SELECT COUNT(*) AS count
   FROM user_group
@@ -97,7 +97,7 @@ printf (
   "<strong>$membersnum</strong>"
 );
 
-# If member = 1, it's obviously (or it should be) the project admin.
+# If member = 1, it's obviously (or it should be) the group admin.
 # If there's no admin, we need to get access to the list.
 # But we show it anyway: this page can be used for request for membership,
 # provide more info that the little infobox.
@@ -150,14 +150,12 @@ if ($project->getLongDescription ())
 else
   {
     if ($project->getDescription ())
-      {
-        print "<p>" . $project->getDescription () . "</p>\n";
-      }
+      print "<p>" . $project->getDescription () . "</p>\n";
     else
       {
         print '<p>';
         printf (
-          _("This project has not yet submitted a short description. "
+          _("This group hasn't submitted a short description yet. "
             . "You can <a\nhref=\"%s\">submit it</a> now."),
           "{$sys_home}project/admin/editgroupinfo.php?group=$group"
         );
@@ -170,7 +168,7 @@ print '<p>' . _("Registration Date:") . ' '
 
 if ($project->CanUse ("license"))
   {
-    $license = $project->getLicense();
+    $license = $project->getLicense ();
     print "<br />\n" . _("License:") . ' ';
     if (!empty ($LICENSE_URL[$license]))
       print utils_link ($LICENSE_URL[$license], $LICENSE[$license]);
@@ -179,7 +177,7 @@ if ($project->CanUse ("license"))
         if (!empty ($LICENSE[$license]))
           print $LICENSE[$license];
         else
-          print _("Project license is unknown!");
+          print _("License is unknown!");
         if ($license == "other")
           print " - " . $project->getLicense_other ();
       }
@@ -193,7 +191,7 @@ if ($project->CanUse ("devel_status"))
   }
 print "</p>\n</div><!-- end indexcenter -->\n<p class='clearr'>&nbsp;</p>\n";
 
-if ($project->Uses("news"))
+if ($project->Uses ("news"))
   {
 
     print "\n<div class='splitright'>";
@@ -227,8 +225,8 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
     print '<div class="justify">';
     # TRANSLATORS: the argument is site name (like Savannah).
     printf (
-      _("Since you are administrator of\nthis project, which one is the "
-        . "&ldquo;system project,&rqduo; you are\nadministrator of the "
+      _("Since you are administrator of this group, which one is\n"
+        . "the &ldquo;system group,&rqduo; you are administrator of the "
         . "whole %s server."),
       $sys_name
     );
@@ -243,7 +241,7 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
     print utils_link (
       "${sys_home}task/?group={$sys_unix_group_name}"
       . '&amp;category_id=1&amp;status_id=1&amp;set=custom',
-      $img . _("Pending Projects List")
+      $img . _("Pending Group List")
     );
     $reg_count = number_format (stats_getprojects_pending ());
     print ' ';
@@ -261,18 +259,18 @@ if (member_check (0, $group_id, 'A'))
   {
     print $HTML->box_top (
       # TRANSLATORS: the argument is group name (like GNU Coreutils).
-      sprintf (_("Administration: %s project"), $project->getName())
+      sprintf (_("Administration: %s group"), $project->getName())
     );
     print '<div class="justify">'
-      . _("As administrator of this project, you can manage members and\n"
-          . "activate, deactivate and configure your project's tools.")
+      . _("As administrator of this group, you can manage members and\n"
+          . "activate, deactivate and configure tools used in your group.")
       . "</div>\n";
 
     print $HTML->box_nextitem (utils_altrow ($odd));
     $img = proj_home_img ("contexts/main.png");
     print utils_link (
       "${sys_home}project/admin/?group=$group",
-       $img . _("Project Main Administration Page")
+       $img . _("Group Main Administration Page")
     );
     print $HTML->box_bottom();
     print "<br />\n";
@@ -300,12 +298,12 @@ if ($project->Uses ("homepage")
   {
     $img = proj_home_img ("misc/www.png");
     print utils_link (
-      $project->getUrl ("homepage"), $img . _("Project Homepage")
+      $project->getUrl ("homepage"), $img . _("Group Homepage")
     );
     $i++;
   }
 
-if ($project->Uses("download"))
+if ($project->Uses ("download"))
   {
     specific_makesep ();
 
@@ -319,7 +317,7 @@ if ($project->Uses("download"))
   }
 
 # Cookbook Documentation (internal).
-# Projects don't have the choice to use it, as there maybe site recipe that
+# Groups don't have the choice to use it, as there maybe site recipe that
 # applies to features they use.
 # FIXME: this should print the number of recipes available.
 specific_makesep ();
@@ -335,7 +333,7 @@ if ($project->Uses ("extralink_documentation"))
         print $img;
         $br = "<br />\n&nbsp; - ";
         print $br
-          . utils_link ($extra_link, _("Browse docs (External to Savane)"));
+          . utils_link ($extra_link, _("Browse docs (external to Savane)"));
         print $br . utils_link ($cb_url, _("Browse the cookbook"));
       }
     else
@@ -346,7 +344,7 @@ if ($project->Uses ("extralink_documentation"))
 specific_makesep ();
 print utils_link(
   "${sys_home}project/memberlist.php?group=$group",
-  proj_home_img ("contexts/people.png") . _("Project Memberlist")
+  proj_home_img ("contexts/people.png") . _("Memberlist")
 );
 
 print ' ';
@@ -361,7 +359,7 @@ if (group_get_preference ($group_id, 'gpg_keyring'))
     specific_makesep ();
     print utils_link (
       "${sys_home}project/release-gpgkeys.php?group=$group",
-      proj_home_img ("contexts/keys.png") . _("Project Release GPG Keyring")
+      proj_home_img ("contexts/keys.png") . _("Group release GPG keyring")
     );
     $i++;
   }
@@ -447,7 +445,7 @@ if ($sys_unix_group_name == $group
         print utils_link (
           "${sys_home}people/?group=$group",
           proj_home_img ("contexts/people.png")
-          . _("This project is looking for people")
+          . _("This group is looking for people")
         );
         printf (
           ngettext (
@@ -552,5 +550,5 @@ if ($uses_dev)
 
 if ($project->Uses ("news"))
   print "\n</div><!-- end splitleft -->\n";
-site_project_footer(array());
+site_project_footer ([]);
 ?>

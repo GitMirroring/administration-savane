@@ -65,36 +65,27 @@ function show_features_boxes ()
 
   # Group type stats.
   $result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
-  # Try to find out how many latest registered groups per group type
-  # we should print, depending on how many groups we have.
-  $limit = 10;
-  $count = db_numrows ($result);
-  if ($count > 25)
-    $limit = 2;
-  elseif ($count < 2)
-    $limit = 25;
-  else
-    $limit = round (35 / $count);
+  $limit = 5;
 
   while ($eachtype = db_fetch_array ($result))
     {
-      $groupdata = show_newest_projects ($eachtype['type_id'], $limit);
+      $groupdata = show_newest_groups ($eachtype['type_id'], $limit);
       if (!$groupdata)
         continue;
-
+      # TRANSLATORS: the argument is group type like Official GNU software
+      # or www.gnu.org translation teams; for the full list, check
+      # frontend/site-specific/gnu/admin/groupedit_grouptype.php.
+      $lname = gettext ($eachtype['name']);
       $return .= "<br />\n";
-      # TRANSLATORS: the argument is project type (like Official GNU software).
-      $return .= $HTML->box_top (
-        sprintf (_("Newest %s Projects"), $eachtype['name']), '', 1
-      );
+      $return .= $HTML->box_top (sprintf (_("Newest %s"), $lname), '', 1);
       $return .= $groupdata;
       global $j, $sys_home;
       $return .= show_altrow ($j) . '<a href="'
         . "{$sys_home}search/?type_of_search=soft&amp;words=%%%&amp;type="
         . $eachtype['type_id'] . '">[';
-      # TRANSLATORS: the argument is project type (like Official GNU software).
-      $return .= sprintf ( _("all %s projects"), $eachtype['name']);
-      $return .= "]</a></span></div>\n";
+      # TRANSLATORS: the argument is group type like Official GNU software
+      # or www.gnu.org translation teams.
+      $return .= sprintf (_("all %s"), $lname) . "]</a></span></div>\n";
       $return .= $HTML->box_bottom (1);
     }
   return $return;
@@ -113,22 +104,22 @@ function show_sitestats ()
   $return .= "</span></div>\n";
   $i = 0;
   $return .= show_altrow ($i++);
-  $projects = stats_getprojects_active ();
+  $groups = stats_getprojects_active ();
   $return .= sprintf (
-    ngettext ("%s hosted project", "%s hosted projects", $projects),
-    "<strong>$projects</strong>"
+    ngettext ("%s hosted group", "%s hosted groups", $groups),
+    "<strong>$groups</strong>"
   );
   $return .= "</span></div>\n";
-  $result = db_query("SELECT type_id, name FROM group_type ORDER BY name");
+  $result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
   while ($eachtype = db_fetch_array ($result))
     {
       $return .= show_altrow ($i++);
       $return .= "&nbsp;&nbsp;- <a href=\"{$sys_home}search/"
         . '?type_of_search=soft&amp;words=%%%&amp;type='
         . $eachtype['type_id'] . '" class="center">';
+      $return .= ' ' . gettext ($eachtype['name']) . ": ";
       $return .= stats_getprojects_bytype_active ($eachtype['type_id']);
-      $return .= ' ' . $eachtype['name'] . '</a>';
-      $return .= "</span></div>\n";
+      $return .= "</a></span></div>\n";
     }
   $pending = stats_getprojects_pending ();
   $return .= show_altrow ($i++) . '&nbsp;&nbsp;';
@@ -141,32 +132,32 @@ function show_sitestats ()
   return $return . '</span>';
 }
 
-# Show projects that were added less than 2 months ago.
-function show_newest_projects ($group_type, $limit)
+# Show groups that were added less than 2 months ago.
+function show_newest_groups ($group_type, $limit)
 {
   global $j, $sys_home;
 
   $since = time () - 2 * 30 * 24 * 3600;
-  $res_newproj = db_execute ("
+  $res_newgrp = db_execute ("
     SELECT group_id, unix_group_name, group_name, register_time FROM groups
     WHERE is_public = 1 AND status = 'A' AND type = ? AND register_time >= ?
     ORDER BY register_time DESC LIMIT ?", [$group_type, $since, $limit]
   );
-  if (!db_numrows ($res_newproj))
+  if (!db_numrows ($res_newgrp))
     return false;
 
   $base_url = '';
-  $res_newproj_type = db_execute (
+  $res_newgrp_type = db_execute (
     "SELECT type_id, base_host FROM group_type WHERE type_id = ?",
     [$group_type]
   );
-  $row_newproj_type = db_fetch_array ($res_newproj_type);
-  if ($row_newproj_type['base_host'])
+  $row_newgrp_type = db_fetch_array ($res_newgrp_type);
+  if ($row_newgrp_type['base_host'])
     $base_url = 'http' . (session_issecure () ? 's' : '') . '://'
-      . $row_newproj_type['base_host'];
+      . $row_newgrp_type['base_host'];
 
   $return = '';
-  while ($row = db_fetch_array ($res_newproj))
+  while ($row = db_fetch_array ($res_newgrp))
     if ($row['register_time'])
       {
         $return .= show_altrow ($j++) . '&nbsp;&nbsp;- <a href="'

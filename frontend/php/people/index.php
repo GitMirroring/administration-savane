@@ -47,7 +47,7 @@ if ($group_id)
   {
     site_project_header (
       [
-        'title' => _('Project Help Wanted'),
+        'title' => _('Group Help Wanted'),
         'group' => $group_id, 'context' => 'people',
       ]
     );

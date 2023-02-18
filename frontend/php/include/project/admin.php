@@ -74,7 +74,7 @@ function project_admin_registration_info ($row_grp)
 
   $spp = "<p><span class='preinput'>'";
   $spbr = "</span><br />\n ";
-  print $spp . _("Project Admins") . ":$spbr";
+  print $spp . _("Group Admins") . ":$spbr";
   while ($row_admin = db_fetch_array ($res_admin))
     {
       print "<a href=\"{$GLOBALS['sys_home']}"

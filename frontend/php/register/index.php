@@ -92,7 +92,7 @@ $form->addElement ('textarea', 'purpose', _('~20-line technical description'),
 $types = [];
 $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY type_id");
 while ($line = db_fetch_array ($result))
-  $types[$line['type_id']] = $line['name'];
+  $types[$line['type_id']] = gettext ($line['name']);
 $form->addElement ('select', 'group_type', _('Group type'), $types);
 $form->setDefaults (['group_type' => 2]);
 $form->addElement ('select', 'license', _('Package license'), $LICENSE);
