@@ -42,12 +42,25 @@
 
 * Active languages are selected in initialization time with $sys_linguas.
 
+* The markup rendering (include/markup.php) is rewritten,
+  with the following user-visible changes:
+
+** nomarkup and verbatim areas are processed without nesting.
+
+** <strong> and <em> are replaced with <b> and <i>.
+
+** In the ASCII mode, support for nesting ordered and unordered lists
+   is added.
+
+** A few bugs are fixed, see the 'Bug fixes' section.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served
    with a broken header.
 
-** Multiple PHP notices and warnings were fixed.
+** Multiple PHP notices and warnings and a few SQL errors were fixed---hopefully
+   more than introduced.
 
 ** Diff email list wasn't processed correctly in CVS notification settings
    (cvs/admin/index.php, commit 5303e6fa).
@@ -59,7 +72,14 @@
 
 ** Groyp type name assignent in siteadmin/group_type.php didn't work.
 
-** The LANGUAGE environment overrode locale settings requested by browsers.
+** The LANGUAGE environment variable overrode locale settings requested
+   by browsers.
+
+** Asterisks in markup didn't work as documented in cases like
+   0 *item*.
+
+** In the ASCII mode, ordered lists were in effect even within
+   verbatim blocks, Savannah sr #110621.
 
 [I18N]
 

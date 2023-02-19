@@ -1,47 +1,40 @@
 /* Common stylesheet for all themes.
- *
- * Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
- * Copyright (C) 2018, 2019 Ineiev
- *
- * This file is part of Savane.
- *
- * Savane is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * Savane is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+
+Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
+Copyright (C) 2018, 2019, 2023 Ineiev
+
+This file is part of Savane.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* THIS CSS DEFINES BASIC ELEMENTS AND IS SUPPOSED TO BE IMPORTED */
-
 /* GUIDELINES VERSION FOLLOWED: 1.18 */
 
+/* Very basic (mostly text) items.  */
 
-/**********************************************************************
- *
- * Very basic (mostly text) items:
- *
- **********************************************************************/
+body { font-family: sans-serif; }
 
-body {
-        font-family: sans-serif;
+img
+{
+  border: none;
+  margin-bottom: -0.2em;
 }
 
-img {
-        border: none;
-        margin-bottom: -0.2em;
-}
-
-p {
-        padding-left: 0.2em;
-        padding-right: 0.2em;
+p
+{
+  padding-left: 0.2em;
+  padding-right: 0.2em;
 }
 
 strong { font-weight: bold; }
@@ -112,16 +105,16 @@ div.tracker_comment blockquote
 
 code { border: solid thin; }
 
-pre {
-        border-top: dashed thin;
-        border-bottom: dashed thin;
-        border-left: solid thick;
-        padding: 1em;
-        margin: 1em;
+pre
+{
+  border-top: dashed thin;
+  border-bottom: dashed thin;
+  border-left: solid thick;
+  padding: 1em;
+  margin: 1em;
 }
 
 .block { display: block; }
-
 
 .smaller { font-size: smaller; }
 .small { font-size: small; }
@@ -129,238 +122,170 @@ pre {
 .large { font-size: large; }
 
 .error { font-weight: bold; color: #c12424; }
-.warn {  color: #c12424; }
+.warn { color: #c12424; }
 
 .footer { font-size: x-small; clear: both; }
 
-
-/* .text should be deprecated in favor of <p class="smaller">
-.text {
-        padding-left: 5px;
-        text-indent: 1em;
-        font-size: smaller;
-}
-*/
-
-.icon {
-        width: 1em;
-        height: 1em;
-        margin-bottom: -0.2em;
+.icon
+{
+  width: 1em;
+  height: 1em;
+  margin-bottom: -0.2em;
 }
 
-
-.pageicon {
-        padding-right: 0.5em;
-        margin-bottom: -0.5em;
+.pageicon
+{
+  padding-right: 0.5em;
+  margin-bottom: -0.5em;
 }
 
-
-.minusorplus {
-        vertical-align: middle;
-        font-family: monospace;
-        font-size: xx-small;
+.minusorplus
+{
+  vertical-align: middle;
+  font-family: monospace;
+  font-size: xx-small;
 }
 
-.minusorplus:after {
-        content: " ";
+.minusorplus:after { content: " "; }
+
+.feedbackimage
+{
+  vertical-align: middle;
+  width: 1em;
 }
 
-.feedbackimage {
-        vertical-align: middle;
-        width: 1em;
+.feedback, .feedbackerror, .feedbackerrorandsuccess
+{
+  cursor: pointer;
+  vertical-align: middle;
+  font-weight: normal;
+  text-align: left;
+  position: fixed;
+  top: 1%;
+  right: 9%;
+  bottom: auto;
+  /* Feedback should not interfere with the menu (width: 15%):
+     so we have 9% + menu.  */
+  left: 24%;
+  opacity: 0.9;
 }
 
-
-.feedback {
-        cursor: pointer;
-        vertical-align: middle;
-        font-size: smaller;
-        font-weight: normal;
-        border: thin solid #005d23;
-        background-color: #e7ffe8;
-        text-align: left;
-        color: #005d23;
-        position: fixed;
-        top: 1%;
-        right: 9%;
-        bottom: auto;
-        /* should not interfere with the menu (width: 15%):
-                so we have 9% + menu*/
-        left: 24%;
-        opacity: 0.9;  /* CSS3 standard */
-
+.feedback
+{
+  font-size: smaller;
+  border: thin solid #005d23;
+  background-color: #e7ffe8;
+  color: #005d23;
 }
 
-.feedback:hover {
-        background-color: #f1fff2;
+.feedbackerror
+{
+  border: thin solid #871b00;
+  background-color: #ffeae5;
+  color: #871b00;
 }
 
-.feedbacktitle {
-        vertical-align: middle;
-        font-weight: bold;
-        background-color: #005d23;
-        text-align: center;
-        color: white;
-        float: left;
-        padding-left: 0.1em;
-        padding-right: 0.1em;
-        margin-right: 0.5em;
-        text-indent: 0;
-        width: 20%;
-        opacity: 0.9;  /* CSS3 standard */
+/* This last feedback style is used when there was both Ok
+   and error feedbacks.  */
+.feedbackerrorandsuccess
+{
+  font-size: smaller;
+  border: thin solid #804206;
+  background-color: #ffd1a5;
+  color: #804206;
 }
 
+.feedback:hover { background-color: #f1fff2; }
 
-.feedbackerror {
-        cursor: pointer;
-        vertical-align: middle;
-        font-weight: normal;
-        border: thin solid #871b00;
-        background-color: #ffeae5;
-        text-align: left;
-        color: #871b00;
-        position: fixed;
-        top: 1%;
-        right: 9%;
-        bottom: auto;
-        /* should not interfere with the menu (width: 15%):
-                so we have 9% + menu*/
-        left: 24%;
-        opacity: 0.9;  /* CSS3 standard */
+.feedbacktitle, .feedbackerrortitle, .feedbackerrorandsuccesstitle
+{
+  vertical-align: middle;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  float: left;
+  padding-left: 0.1em;
+  padding-right: 0.1em;
+  margin-right: 0.5em;
+  text-indent: 0;
+  width: 20%;
+  opacity: 0.9;
 }
 
-.feedbackerror:hover {
-        background-color: #ffefeb;
+.feedbacktitle { background-color: #005d23; }
+.feedbackerrortitle { background-color: #871b00; }
+
+.feedbackerror:hover { background-color: #ffefeb; }
+
+.feedbackerrorandsuccess:hover { background-color: #ffe3c7; }
+.feedbackerrorandsuccesstitle { background-color: #804206; }
+
+/* Button to make the hidden feedback showed back.  It is hidden by default.
+It does not carry every possible colors for feedback, it would overcomplicate
+it.  */
+
+.feedbackback
+{
+  cursor: pointer;
+  visibility: hidden;
+  position: fixed;
+  background-color: #d5d5d5;
+  border: thin solid #adadad;
+  color: #727272;
+  top: 1%;
+  right: 1em;
+  white-space: nowrap;
+  font-size: smaller;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  opacity: 0.9;
 }
 
-.feedbackerrortitle {
-        vertical-align: middle;
-        font-weight: bold;
-        background-color: #871b00;
-        text-align: center;
-        color: white;
-        float: left;
-        padding-left: 0.1em;
-        padding-right: 0.1em;
-        margin-right: 0.5em;
-        text-indent: 0;
-        width: 20%;
-        opacity: 0.9;  /* CSS3 standard */
+.feedbackback:hover { background-color: #e6e6e6; }
+
+.item-navbar span.item-count { font-size: x-large; }
+.item-navbar
+{
+  text-align: center;
+  font-weight: bold;
+}
+.nextprev { text-align: center; }
+.nextprev a { display: inline; }
+
+.debug
+{
+  width: 80%;
+  border: thin solid #871b00;
+  background-color: #ffbfaf;
+  text-align: center;
+  color: #871b00;
+  font-weight: normal;
+  font-size: xx-small;
 }
 
-/* this last feedback time occurs when there was both ok and error feedbacks */
-.feedbackerrorandsuccess {
-        cursor: pointer;
-        font-size: smaller;
-        font-weight: normal;
-        border: thin solid #804206;
-        background-color: #ffd1a5;
-        text-align: left;
-        color: #804206;
-        position: fixed;
-        top: 1%;
-        right: 9%;
-        bottom: auto;
-        /* should not interfere with the menu (width: 15%):
-                so we have 9% + menu*/
-        left: 24%;
-        opacity: 0.9;  /* CSS3 standard */
+.help
+{
+  cursor: help;
+  text-decoration: underline;
 }
 
-.feedbackerrorandsuccess:hover {
-        background-color: #ffe3c7;
-}
+.preinput { font-style: italic; }
 
-.feedbackerrorandsuccesstitle {
-        font-weight: bold;
-        background-color: #804206;
-        text-align: center;
-        color: white;
-        float: left;
-        padding-left: 0.1em;
-        padding-right: 0.1em;
-        margin-right: 0.5em;
-        text-indent: 0;
-        width: 20%;
-        opacity: 0.9;  /* CSS3 standard */
-}
-
-/* button to make the hidden feedback showed back
-     - by default it is hidden
-     - does not carries every possible colors for feedback, it would
-        overcomplicated it */
-
-.feedbackback {
-        cursor: pointer;
-        visibility: hidden;
-        position: fixed;
-        background-color: #d5d5d5;
-        border: thin solid #adadad;
-        color: #727272;
-        top: 1%;
-        right: 1em;
-        white-space: nowrap;
-        font-size: smaller;
-        padding-left: 0.2em;
-        padding-right: 0.2em;
-        opacity: 0.9;  /* CSS3 standard */
-}
-
-.feedbackback:hover {
-        background-color: #e6e6e6;
-}
-
-.item-navbar span.item-count {
-        font-size: x-large;
-}
-.item-navbar {
-        text-align: center;
-        font-weight: bold;
-}
-.nextprev {
-        text-align: center;
-}
-.nextprev a {
-        display: inline;
+hr
+{
+  background-color: black;
+  height: 1px;
+  border: 0;
 }
 
 
-.debug {
-        width: 80%;
-        border: thin solid #871b00;
-        background-color: #ffbfaf;
-        text-align: center;
-        color: #871b00;
-        font-weight: normal;
-        font-size: xx-small;
-}
+h2 a { display: block; }
 
-.help {
-        cursor: help;
-        text-decoration: underline;
-}
-
-.preinput {
-        font-style: italic;
-}
-
-hr {
-        background-color: black;
-        height: 1px;
-        border: 0;
-}
-
-
-h2 a {
-        display: block;
-}
-
-h4 a {
-        display: block;
-}
+h4 a { display: block; }
 
 .quote
 {
+  margin-left: 0.5em;
   font-style: italic;
 }
 
@@ -369,12 +294,7 @@ h4 a {
   font-style: normal;
 }
 
-
-/**********************************************************************
- *
- * Alignement, main tables
- *
- **********************************************************************/
+/* Alignement, main tables */
 
 .center { text-align: center; }
 .left { text-align: left; }
@@ -387,29 +307,40 @@ h4 a {
 .indexcenter { vertical-align: top; width: 80%; }
 .indexright { vertical-align: top; float: right; width: 19%; font-size: small; }
 
-.splitleft { margin-left: 1%;         margin-right: 51%; }
-.splitright {  display:block;  float: right; margin-right: 1%; width: 49%; overflow: hidden; vertical-align: top;}
+.splitleft { margin-left: 1%; margin-right: 51%; }
+.splitright
+{
+  display:block;
+  float: right;
+  margin-right: 1%;
+  width: 49%;
+  overflow: hidden;
+  vertical-align: top;
+}
 
-.trash { vertical-align: top; text-align: right; margin-right: 0; float: right; height: 1em; }
-
+.trash
+{
+  vertical-align: top;
+  text-align: right;
+  margin-right: 0;
+  float: right;
+  height: 1em;
+}
 
 .clear { clear: both; }
 .clearl { clear: left; }
 .clearr { clear: right; }
 
-.realbody {
-        vertical-align: top;
+.realbody { vertical-align: top; }
+
+.highlight
+{
+  background-color: #f7c58f;
+  color: black;
 }
 
-
-/* like  boxhighlight */
-.highlight {
-        background-color: #f7c58f;
-        color: black;
-}
-
-/* margin-left + width must be equal to 100% (but think about body margins
- present in many themes) */
+/* Note: margin-left + width must be equal to 100% (but think about body
+margins present in many themes).  */
 .main
 {
   vertical-align: top;
@@ -421,475 +352,455 @@ h4 a {
 }
 
 /* Menus */
-.menu {
-        float: left;
-        font-size: small;
-        vertical-align: top;
-        border-spacing:        0;
-        border: none;
-        width: 15%;
-        margin-top: 0;
-        margin-left: 0;
-        padding-left: 0;
+.menu
+{
+  float: left;
+  font-size: small;
+  vertical-align: top;
+  border-spacing: 0;
+  border: none;
+  width: 15%;
+  margin-top: 0;
+  margin-left: 0;
+  padding-left: 0;
 }
 
-.menulogo {
-        list-style-type: none;
-        font-size: larger;
-        text-align: center;
+.menulogo
+{
+  list-style-type: none;
+  font-size: larger;
+  text-align: center;
 }
 
-
-.menutitle {
-        list-style-type: none;
-        vertical-align: top;
-        padding-top: 0;
-        margin-top: 15px;
+.menutitle
+{
+  list-style-type: none;
+  vertical-align: top;
+  padding-top: 0;
+  margin-top: 15px;
 }
 
-.menuitem {
-        text-indent: 0;
-        list-style-type: none;
-        list-style-position: inside;
-        vertical-align: middle;
-        margin-left: 0;
-        font-size: small;
+.menuitem
+{
+  text-indent: 0;
+  list-style-type: none;
+  list-style-position: inside;
+  vertical-align: middle;
+  margin-left: 0;
+  font-size: small;
 }
 
-.menu a {
-        display: block;
-}
-.menu {
-        list-style-type: none;
-}
+.menu a { display: block; }
+.menu { list-style-type: none; }
 
-.menusearch {
-        text-indent: 0;
-        text-align: right;
-        list-style-type: none;
-        font-size: smaller;
+.menusearch
+{
+  text-indent: 0;
+  text-align: right;
+  list-style-type: none;
+  font-size: smaller;
 }
 
-.menusearch input[name=words] {
-        width: 100%;
-        box-sizing: border-box;
+.menusearch input[name=words]
+{
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.relatedrecipes {
-        text-indent: 0;
-        list-style-type: none;
-        list-style-position: inside;
-        vertical-align: middle;
-        margin-left: 0;
-        text-align: left;
-
+.relatedrecipes
+{
+  text-indent: 0;
+  list-style-type: none;
+  list-style-position: inside;
+  vertical-align: middle;
+  margin-left: 0;
+  text-align: left;
 }
 
-.relatedrecipesitem {
-        margin-left: 1em;
-        font-size: xx-small;
+.relatedrecipesitem
+{
+  margin-left: 1em;
+  font-size: xx-small;
 }
 
-.topmenu {
-        font-size: small;
-        margin-right: 6em;
+.topmenu
+{
+  font-size: small;
+  margin-right: 6em;
 }
 
-.topmenutitle {
-        float: left;
-        padding-left: 1%;
-        padding-right: 1%;
-        width: 15%;
+.topmenutitle
+{
+  float: left;
+  padding-left: 1%;
+  padding-right: 1%;
+  width: 15%;
 }
 
-.topmenuitem {
-        border: none;
-        padding-left: 15%;
+.topmenuitem
+{
+  border: none;
+  padding-left: 15%;
 }
 
 #topmenu { z-index: 1; }
 #topmenu ul { margin: 0; padding: 0; }
 #topmenu li { margin: 0; padding: 0; list-style-type: none; }
 
-li.topmenuitemmainitem {
-        display: inline;
-        float: left;
-        position: relative;
+li.topmenuitemmainitem
+{
+  display: inline;
+  float: left;
+  position: relative;
 }
 
-li.topmenuitemmainitem a {
-        padding-bottom: 0;
-        padding-left: 0.5em;
-        padding-right: 0.5em;
+li.topmenuitemmainitem a
+{
+  padding-bottom: 0;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
-li.topmenuitemmainitem:hover > ul {
-        visibility: visible;
+li.topmenuitemmainitem:hover > ul { visibility: visible; }
+
+ul.topmenuitemsubmenu
+{
+  z-index: 100;  /* Big z-index to be always on top.  */
+  display: block;
+  visibility: hidden;
+  text-align: left;
+  position: absolute;
+  top: 1em;
+  left: -0.3em;
+  width: 13em;
+  /* Default border, so it the theme is not up to date, it still
+  looks ok; keep that color please, some themes do not override it.  */
+   border: thin solid #F1F1F1;
 }
 
+ul.topmenuitemsubmenu li
+{
+  display: block;
 
-ul.topmenuitemsubmenu {
-        z-index: 100;  /* big z-index to be always on top */
-        display: block;
-        visibility: hidden;
-        text-align: left;
-        position: absolute;
-        top: 1em;
-        left: -0.3em;
-        width: 13em;
-        /* default border, so it the theme is not up to date, it still
-        looks ok ; keep that color please, some themes do not override it */
-         border: thin solid #F1F1F1;
+  border: solid thin #F1F1F1;
+  /* No top border, that would be make too large separators
+  while it is perfectly fine to overload the right and bottom with
+  the ul border, it makes some kind of light 3d effect.  */
+  border-top: none;
+  border-left: 0.4em solid #E2E2E2;
 }
 
-
-ul.topmenuitemsubmenu li {
-        display: block;
-
-        /* default border, so it the theme is not up to date, it still
-        looks ok */
-        border: solid thin #F1F1F1;
-        /* no top border, that would be make too large separators
-         while it is perfectly fine to overload the right and bottom with
-        the ul border, it makes some kind of light 3d effect*/
-        border-top: none;
-        border-left: 0.4em solid #E2E2E2;
+ul.topmenuitemsubmenu li a
+{
+  margin: 0;
+  display: block;
+  line-height: normal;
+  text-decoration: none;
 }
 
-ul.topmenuitemsubmenu li a {
-        margin: 0;
-        display: block;
-        line-height: normal;
-        text-decoration: none;
-}
-
-
-li.topmenuitemsubmenuseparator {
-        line-height: 2px;
-}
-
+li.topmenuitemsubmenuseparator { line-height: 2px; }
 
 /* Here we do something quite strange to avoid an overlap of the menu:
-        We add two divs, one in float right, the other with clear
-        right.
-        Ideally, only a clear left would have done trick, but it does not
-        because the menu is a float left like the menu
-
-    */
-#topmenunooverlap {
-        visibility: hidden;
-        background: red;
-        margin-right: 50%;
-        padding: 0;
-        float: right;
-        height: 0.5em;
-}
-
-#topmenunooverlapbis {
-        visibility: hidden;
-        padding: 0;
-        margin: 0;
-        clear: right;
-        height: 0.5em;
-}
-.boxoptions {
-        /* for some reason, with firefox, this is necessary, and it does                 not change anything for the others */
-        margin-top: 1em;
-}
-
-
-/* only for bots */
-#website {
-        visibility: hidden;
-        display: none;
-}
-
-
-/**********************************************************************
- *
- * Boxes
- *
- **********************************************************************/
-
-.box {
-        width: 96%;
-        margin-left: 2%;
-          margin-right: 2%;
-        vertical-align: top;
-        border-spacing: 1px;
-        border: 0;
-}
-
-.boxli {
-        padding: 0;
-        margin: 0;
-        border: 0;
-        border-spacing: 0;
-}
-
-
-
-.boxtitle {
-        font-weight: bold;
-        text-align: center;
-}
-
-.boxtitle a {
-        display: block;
-}
-
-.boxitem {
-        padding-left: 1%;
-        text-indent: 0;
-        list-style-type: none;
-        text-align: left;
-}
-
-
-.boxitemextra {
-        text-align: right;
-        font-size: smaller;
-        vertical-align: top;
-}
-
-
-.boxitemalt {
-        padding-left: 1%;
-        text-indent: 0;
-        list-style-type: none;
-        text-align: left;
-}
-
-.boxitemaltextra {
-        text-align: right;
-        font-size: smaller;
-        vertical-align: top;
-}
-
-
-.boxoptions {
-        width: 95%;
-        padding: 1%;
-        text-align: left;
-        font-size: small;
-
-}
-
-/* by default, the boxoption will provide content, so the page should work
-  properly with or without javascript */
-#boxoptionslinkshow {
-        cursor: pointer;
-        display: none;
-}
-#boxoptionslinkhide {
-        cursor: pointer;
-}
-
-.boxoptionssubmit {
-        vertical-align: bottom;
-        text-align: right;
-        float: right;
-        height: 1em;
-}
-
-.boxhighlight {
-        padding-left: 1%;
-        text-indent: 0;
-        list-style-type: none;
-        text-align: left;
-        background-color: #f7c58f;
-        color: black;
-}
-
-.boxhighlightextra {
-        text-align: right;
-        font-size: smaller;
-        vertical-align: top;
-}
-
-
-/**********************************************************************
- *
- * Trackers specific
- *
- **********************************************************************/
-
-.trackersoriginalsubmission {
-        padding-left: 0.2em;
-        padding-top: 0.5em;
-        padding-bottom: 0.5em;
-        border-left: thin #b5b5b5 solid;
-}
-
-/**********************************************************************
- *
- * Priorities
- *
- **********************************************************************/
-
-
-.priora {
-        background-color: #fff2f2;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-
-
-.priorb {
-        background-color: #ffe8e8;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-
-.priorc {
-        background-color: #ffe0e0;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-
-.priord {
-        background-color: #ffd8d8;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-
-.priore {
-        background-color: #ffcece;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none;  }
-
-.priorf {
-        background-color: #ffc6c6;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-.priorg {
-        background-color: #ffbfbf;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-.priorh {
-        background-color: #ffb7b7;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-.priori {
-        background-color: #ffadad;
-        border: thin solid #ef6e6e;
-        text-indent: 0;
-        list-style-type: none; }
-
-
-.prioraclosed {
-        background-color: #F5FFEB;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-.priorbclosed {
-        background-color: #EDFFE6;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-.priorcclosed {
-        background-color: #EEFFE1;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-.priordclosed {
-        background-color: #E0FFD5;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-
-.prioreclosed {
-        background-color: #CCFFBB;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-
-.priorfclosed {
-        background-color: #C6FFB9;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-.priorgclosed {
-        background-color: #C0FFB2;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-.priorhclosed {
-        background-color: #ADFFA4;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-.prioriclosed {
-        background-color: #A0FF9D;
-        border: thin solid #51DA96;
-        text-indent: 0;
-        list-style-type: none; }
-
-tr.priora a {
-        display: block;
-}
-tr.priorb a {
-        display: block;
-}
-tr.priorc a {
-        display: block;
-}
-tr.priord a {
-        display: block;
-}
-tr.priore a {
-        display: block;
-}
-tr.priorf a {
-        display: block;
-}
-tr.priorg a {
-        display: block;
-}
-tr.priorh a {
-        display: block;
-}
-tr.priori a {
-        display: block;
-}
-
-tr.prioraclosed a {
-        display: block;
-}
-tr.priorbclosed a {
-        display: block;
-}
-tr.priorcclosed a {
-        display: block;
-}
-tr.priordclosed a {
-        display: block;
-}
-tr.prioreclosed a {
-        display: block;
-}
-tr.priorfclosed a {
-        display: block;
-}
-tr.priorgclosed a {
-        display: block;
-}
-tr.priorhclosed a {
-        display: block;
-}
-tr.prioriclosed a {
-        display: block;
-}
-
-.menu .priore
+We add two divs, one in float right, the other with clear
+right.  Ideally, only a clear left would have done trick, but it does not
+because the menu is a float left like the menu.  */
+#topmenunooverlap
 {
- /* when the priority is included in a menu, we dont want any border effect */
- border: none;
+  visibility: hidden;
+  background: red;
+  margin-right: 50%;
+  padding: 0;
+  float: right;
+  height: 0.5em;
 }
+
+#topmenunooverlapbis
+{
+  visibility: hidden;
+  padding: 0;
+  margin: 0;
+  clear: right;
+  height: 0.5em;
+}
+/* For some reason this is necessary with firefox, and it does
+not change anything for other browsers.  */
+.boxoptions { margin-top: 1em; }
+
+/* Only for bots. */
+#website
+{
+  visibility: hidden;
+  display: none;
+}
+
+/* Boxes.  */
+
+.box
+{
+  width: 96%;
+  margin-left: 2%;
+  margin-right: 2%;
+  vertical-align: top;
+  border-spacing: 1px;
+  border: 0;
+}
+
+.boxli
+{
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-spacing: 0;
+}
+
+.boxtitle
+{
+  font-weight: bold;
+  text-align: center;
+}
+
+.boxtitle a { display: block; }
+
+.boxitem
+{
+  padding-left: 1%;
+  text-indent: 0;
+  list-style-type: none;
+  text-align: left;
+}
+
+.boxitemextra
+{
+  text-align: right;
+  font-size: smaller;
+  vertical-align: top;
+}
+
+.boxitemalt
+{
+  padding-left: 1%;
+  text-indent: 0;
+  list-style-type: none;
+  text-align: left;
+}
+
+.boxitemaltextra
+{
+  text-align: right;
+  font-size: smaller;
+  vertical-align: top;
+}
+
+.boxoptions
+{
+  width: 95%;
+  padding: 1%;
+  text-align: left;
+  font-size: small;
+}
+
+/* By default, the boxoption will show the HTML, so the page should work
+properly with or without JavaScript.  */
+#boxoptionslinkshow
+{
+  cursor: pointer;
+  display: none;
+}
+#boxoptionslinkhide { cursor: pointer; }
+
+.boxoptionssubmit
+{
+  vertical-align: bottom;
+  text-align: right;
+  float: right;
+  height: 1em;
+}
+
+.boxhighlight
+{
+  padding-left: 1%;
+  text-indent: 0;
+  list-style-type: none;
+  text-align: left;
+  background-color: #f7c58f;
+  color: black;
+}
+
+.boxhighlightextra
+{
+  text-align: right;
+  font-size: smaller;
+  vertical-align: top;
+}
+
+
+/* Tracker-specific definitions.  */
+
+.trackersoriginalsubmission
+{
+  padding-left: 0.2em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-left: thin #b5b5b5 solid;
+}
+
+/* Priorities. */
+
+.priora
+{
+  background-color: #fff2f2;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorb
+{
+  background-color: #ffe8e8;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorc
+{
+  background-color: #ffe0e0;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priord
+{
+  background-color: #ffd8d8;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priore
+{
+  background-color: #ffcece;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none; 
+}
+
+.priorf
+{
+  background-color: #ffc6c6;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorg
+{
+  background-color: #ffbfbf;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorh
+{
+  background-color: #ffb7b7;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priori
+{
+  background-color: #ffadad;
+  border: thin solid #ef6e6e;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.prioraclosed
+{
+  background-color: #F5FFEB;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorbclosed
+{
+  background-color: #EDFFE6;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorcclosed
+{
+  background-color: #EEFFE1;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priordclosed
+{
+  background-color: #E0FFD5;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.prioreclosed
+{
+  background-color: #CCFFBB;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorfclosed
+{
+  background-color: #C6FFB9;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorgclosed
+{
+  background-color: #C0FFB2;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.priorhclosed
+{
+  background-color: #ADFFA4;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+.prioriclosed
+{
+  background-color: #A0FF9D;
+  border: thin solid #51DA96;
+  text-indent: 0;
+  list-style-type: none;
+}
+
+tr.priora a, tr.priorb a, tr.priorc a, tr.priord a, tr.priore a, tr.priorf a,
+tr.priorg a, tr.priorh a, tr.priori a,
+tr.prioraclosed a, tr.priorbclosed a, tr.priorcclosed a, tr.priordclosed a,
+tr.prioreclosed a, tr.priorfclosed a, tr.priorgclosed a, tr.priorhclosed a,
+tr.prioriclosed a
+{
+  display: block;
+}
+
+/* When the priority is included in a menu, we dont want any border effect.  */
+.menu .priore { border: none; }
 
 .feedback-hide
 {
@@ -899,7 +810,8 @@ tr.prioriclosed a {
   left: 0;
   position: relative;
 }
-/* table in graphs.php */
+
+/* Table in graphs.php. */
 table.graphs
 {
   width: 98%;

@@ -35,7 +35,6 @@ function sendmail_signature ()
 function sendmail_format_body (&$message)
 {
   $body = $message['body'];
-  $body = markup_textoutput ($body);
   $body = wordwrap ($body, 78) . sendmail_signature ();
   # Beuc - 20050316
   # That is what I intended to do:

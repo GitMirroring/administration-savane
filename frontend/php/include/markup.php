@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005-2006 Tobias Toedter <t.toedter--gmx.net>
 # Copyright (C) 2005-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2018, 2019, 2020, 2021, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2020, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -20,139 +20,118 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Make sure the string has no newlines after translation.
+function markup_i18n ($str)
+{
+  return str_replace ("\n", ' ', $str);
+}
+
 # Return current markup language documentation in Full Markup format.
 function markup_get_reminder ()
 {
   return
-"== " . _("Tag Scope") . " ==\n\n"
-. str_replace("\n", ' ',
-_("Every markup element should fit in a single line.  For example,
-this text isn't converted in two lines of italics:")) . "\n\n"
-. "+verbatim+\n"
-. _("_First line
-Second line_")
-. "\n-verbatim-\n\n"
-. _("The only exception is the verbatim blocks of text.") . "\n\n"
-. "== " . _("Basic Markup") . " ==\n\n"
-. _("Basic Markup tags are available almost everywhere.") . ' '
-. str_replace("\n", ' ',
-_("Multiple subsequent spaces and newlines are collapsed in Basic markup
-into single spaces. In Rich and Full markup, they are preserved."))
-. "\n\n"
-. _("*bold* markup is:")
-. "\n+verbatim+\n*"
-. _("bold")
-. "*\n-verbatim-\n\n"
-
-. _("_italic_ markup is:")
-
-. "\n+verbatim+\n_"
-. _("italic")
-. "_\n-verbatim-\n\n"
-
-. _("URLs are transformed to links, additionally you can give them a title:")
-. "\n\n"
-. "\n+verbatim+\n"
-. "www.gnu.org
-http://www.fsf.org
-[http://url " . _('Title') . ']'
-. "\n-verbatim-\n\n"
-
-. str_replace("\n", ' ',
-_("Also, these texts are made links to comments
-(within the same item), tracker items and files:"))
-
-. "\n\n+verbatim+\n"
-. "comment #51\n"
-. "bug #1419857\n"
-. "task #289\n"
-. "sr #4913 support #4913\n"
-. "patch #119\n"
-. "file #83521\n"
-. "-verbatim-\n\n"
-
-. str_replace("\n", ' ',
-_("Links to files whose names end in '.png', '.jpg', '.jpeg' (case insensitive)
-are converted to HTML images, the surrounding parentheses and commas (if any)
-are removed:"))
-. "\n\n+verbatim+
-(file #47102)
--verbatim-\n\n"
-. _("You can add the 'alt' attribute within the parentheses:")
-. "\n\n+verbatim+
-(file #47102 " . _('Flying GNU') . ")
--verbatim-\n\n"
-. "== " . _("Rich Markup") . " ==\n\n"
-
-. _('Rich Markup tags are available in comments.') . "\n\n"
-
-. _('Unnumbered list markup is:') . "\n\n"
-
-. "+verbatim+\n"
-. _('* item 1
-* item 2
-** item 2 subitem 1
-** item 2 subitem 2
-* item 3')
-. "\n-verbatim-\n\n"
-
-. _('Numbered list markup is:') . "\n\n"
-
-. "+verbatim+\n"
-._('0 item 1
-00 item 1 subitem 1
-0 item 2')
-. "\n-verbatim-\n\n"
-
-. _('Horizontal ruler markup is:') . "\n\n"
-
-. "+verbatim+
-----
--verbatim-\n\n"
-
-. _('Verbatim markup (useful for code bits) is:') . "\n\n"
-
-. "+verbatim+\n+verbatim+\n"
-. _('seconds = 3600 *days * 24;
-_printf (_("Enter something:"));')
-. "\n-verbatim-\n-verbatim-\n\n"
-. str_replace("\n", ' ',
-_("The starting and ending verbatim marks take whole lines; the rest
-text that may be on the same lines is ignored.")) . "\n\n"
-
-. str_replace("\n", ' ',
-_('The other tag that disables the markup is:')) . "\n\n"
-
-. "+verbatim+\n+nomarkup++verba-nomarkup-tim+\n-verbatim-\n\n"
-
-. str_replace("\n", ' ',
-_('Unlike the verbatim tag, it produces no text block and can be used
-within a line.')) . "\n\n"
-
-. _('Lines starting with ">" are highlighted as quotes:')
-
-. "\n+verbatim+\n> " . _('Quoted line.') . "\n-verbatim-\n\n"
-
-. "== " . _('Full Markup (Heading Tags)') . " ==\n\n"
-
-. str_replace("\n", ' ',
-_("Heading tags are available in rare places like item original
-submissions, news items, project description and user's resume."))
-
-. ' ' . _('First level heading markup is:')
-. "\n\n+verbatim+\n= " . _('Title') . " =\n-verbatim-\n\n"
-
-. _('Second level heading markup is:')
-. "\n\n+verbatim+\n== " . _('Subtitle') . " ==\n-verbatim-\n\n"
-
-. _('Third level heading markup is:')
-
-. "\n\n+verbatim+\n=== " . _('Subsubtitle') . " ===\n-verbatim-\n\n"
-
-. _('Fourth level heading markup is:')
-
-. "\n\n+verbatim+\n==== " . _('Subsubsubtitle') . " ====\n-verbatim-\n\n"
-;
+    "== " . _("Tag Scope") . " ==\n\n"
+    . markup_i18n (
+      _("Every markup element except 'verbatim' and 'nomarkup' blocks should\n"
+        . "fit in a single line.  For example,\n"
+        . "this text isn't converted in two lines of italics:"))
+    . "\n\n+verbatim+\n"
+    . _("_First line\n"
+        . "Second line_")
+    . "\n-verbatim-\n\n"
+    . "== " . _("Basic Markup") . " ==\n\n"
+    . _("Basic Markup tags are available almost everywhere.") . ' '
+    . markup_i18n (
+      _("Multiple subsequent spaces and newlines are collapsed in Basic "
+        . "markup\ninto single spaces. In Rich and Full markup, they are "
+        . "preserved."))
+    . "\n\n"
+    . _("*bold* markup is:")
+    . "\n+verbatim+\n*"
+    . _("bold")
+    . "*\n-verbatim-\n\n"
+    . _("_italic_ markup is:")
+    . "\n+verbatim+\n_"
+    . _("italic")
+    . "_\n-verbatim-\n\n"
+    . _("URLs are transformed to links, additionally you can give them a "
+        . "title:")
+    . "\n\n"
+    . "\n+verbatim+\n"
+    . "www.gnu.org\n"
+    . "http://www.fsf.org\n"
+    . "[http://url " . _('Title') . ']'
+    . "\n-verbatim-\n\n"
+    . markup_i18n (
+    _("Also, these texts are made links to comments\n"
+      . "(within the same item), tracker items and files:"))
+    . "\n\n+verbatim+\n"
+    . "comment #51\n"
+    . "bug #1419857\n"
+    . "task #289\n"
+    . "sr #4913 support #4913\n"
+    . "patch #119\n"
+    . "file #83521\n"
+    . "-verbatim-\n\n"
+    . markup_i18n (
+      _("Links to files whose names end in '.png', '.jpg', '.jpeg' "
+       . "(case-insensitive) are converted to HTML images, the surrounding "
+       . "parentheses and commas (if any) are removed:"))
+    . "\n\n+verbatim+\n"
+    . "(file #47102)\n"
+    . "-verbatim-\n\n"
+    . _("You can add the 'alt' attribute within the parentheses:")
+    . "\n\n+verbatim+\n"
+    . "(file #47102 " . _('Flying GNU') . ")\n"
+    . "-verbatim-\n\n"
+    . "== " . _("Rich Markup") . " ==\n\n"
+    . _('Rich Markup tags are available in comments.') . "\n\n"
+    . _('Unnumbered list markup is:') . "\n\n"
+    . "+verbatim+\n"
+    . _("* item 1\n"
+        . "* item 2\n"
+        . "** item 2 subitem 1\n"
+        . "** item 2 subitem 2\n"
+        . "* item 3")
+    . "\n-verbatim-\n\n"
+    . _('Numbered list markup is:') . "\n\n"
+    . "+verbatim+\n"
+    . _("0 item 1\n"
+        . "00 item 1 subitem 1\n"
+        . "0 item 2")
+    . "\n-verbatim-\n\n"
+    . _('Horizontal ruler markup is:') . "\n\n"
+    . "+verbatim+\n"
+    . "----\n"
+    . "-verbatim-\n\n"
+    . _('Verbatim markup (useful for code bits) is:') . "\n\n"
+    . "+verbatim+\n+verbatim+\n"
+    . _("seconds = 3600 * days * 24;\n"
+        . "_printf (_(\"Enter something:\"));")
+    . "\n-#fnord;verbatim-\n-verbatim-\n\n"
+    . markup_i18n (
+      _("The starting and ending verbatim marks take whole lines; the rest\n"
+        . "text that may be on the same lines is ignored.")) . "\n\n"
+    . markup_i18n (
+      _('The other tag that disables the markup is:')) . "\n\n"
+    . "+verbatim+\n+nomarkup+...-nomarkup-\n-verbatim-\n\n"
+    . markup_i18n (
+      _("Unlike the verbatim tag, it produces no text block and can apply\n"
+        . "to arbitrary parts of texts.")) . "\n\n"
+    . _('Lines starting with ">" are highlighted as quotes:')
+    . "\n+verbatim+\n> " . _('Quoted line.') . "\n-verbatim-\n\n"
+    . "== " . _('Full Markup (Heading Tags)') . " ==\n\n"
+    . markup_i18n (
+      _("Heading tags are available in rare places like item original\n"
+        . "submissions, news items, project description and user's resume."))
+    . ' ' . _('First level heading markup is:')
+    . "\n\n+verbatim+\n= " . _('Title') . " =\n-verbatim-\n\n"
+    . _('Second level heading markup is:')
+    . "\n\n+verbatim+\n== " . _('Subtitle') . " ==\n-verbatim-\n\n"
+    . _('Third level heading markup is:')
+    . "\n\n+verbatim+\n=== " . _('Subsubtitle') . " ===\n-verbatim-\n\n"
+    . _('Fourth level heading markup is:')
+    . "\n\n+verbatim+\n==== " . _('Subsubsubtitle') . " ====\n-verbatim-\n\n";
 }
 
 # Functions to allow users to format the text in a secure way:
@@ -164,82 +143,84 @@ submissions, news items, project description and user's resume."))
 # Takes as argument the level, being full / rich / basic / none.
 # To avoid making page looking strange, we will put that only on textarea
 # where it is supposed to be the most useful.
-function markup_info($level)
+function markup_info ($level)
 {
+  $info = [
+    'basic' => [ _("Basic Markup"),
+      _("Only basic text tags are available in this input field.")],
+    'rich' => [ _("Rich Markup"),
+      _("Rich and basic text tags are available in this input field.")],
+    'full' => [ _("Full Markup"),
+      _("Every tags are available in this input field.")],
+    'none' => [ _("No Markup"),
+      _("No tags are available in this input field.")]
+  ];
+  if (empty ($info[$level]))
+    $level = 'none';
   $link_head = '<a target="_blank" href="/markup-test.php">';
   $link_tail = '</a>';
-
-  if ($level == 'basic')
-    {
-      $string = _("Basic Markup");
-      $text = _("Only basic text tags are available in this input field.");
-    }
-  elseif ($level == 'rich')
-    {
-      $string = _("Rich Markup");
-      $text = _("Rich and basic text tags are available in this input field.");
-    }
-  elseif ($level == 'full')
-    {
-      $string = _("Full Markup");
-      $text = _("Every tags are available in this input field.");
-    }
-  elseif ($level == 'none')
-    {
-      $string = _("No Markup");
-      $text = _("No tags are available in this input field.");
-      $link_head = '';
-      $link_tail = '';
-    }
+  if ($level == 'none')
+    $link_head = $link_tail = '';
+  $string = $info[$level][0];
+  $text = $info[$level][1];
 
   $img = html_image ('misc/edit.png', ['class' => 'icon']);
   return '<span class="smaller">('
-    . utils_help ("$link_head$img$string$link_tail", $text)
-    . ')</span>';
+    . utils_help ("$link_head$img$string$link_tail", $text) . ')</span>';
 }
 
-# Convert special markup characters in the input text to real HTML.
+# Convert special markup characters in the input text to HTML.
 #
 # The following syntax is supported:
-# * *word* -> <strong>word</strong>
-# * _word_ -> <em>word</em>
+# * *word* -> <b>word</b>
+# * _word_ -> <i>word</i>
 # * [http://gna.org/] -> <a href="http://gna.org/">http://gna.org/</a>
 # * [http://gna.org/ text] -> <a href="http://gna.org/">text</a>
-# * (bug|task|...) #1234 -> Link to corresponding page
-function markup_basic($text)
+# * (bug|task|...) #1234 -> link to corresponding page
+# * +nomarkup+text-nomarkup- -> text (with unconverted markup)
+function markup_basic ($text)
 {
-  $lines = explode("\n", $text);
-  $result = array();
+  $lines = explode ("\n", $text);
+  $result = [];
 
   foreach ($lines as $line)
-    {
-      $result[] = _markup_inline($line);
-    }
-  return join("\n", $result);
+    $result[] = markup_inline ($line);
+  return join ("\n", $result);
 }
 
-# Convert special markup characters in the input text to real HTML.
+# Convert special markup characters in the input text to HTML.
 #
 # This function does the same markup as markup_basic(), plus
 # it supports the following:
-# * paragraphs
 # * lists (<ul> and <ol>)
-# * nested lists
 # * horizontal rulers
-function markup_rich($text)
+# * verbatim blocks
+function markup_rich ($text)
 {
-  return markup_full($text, false);
+  return markup_full ($text, false);
 }
 
 # Transform spaces so that they are hopefully preserved in HTML.
 function markup_preserve_spaces ($buf)
 {
   $buf = preg_replace ('/  *(\n|$)/', '$1', $buf);
-  $buf = preg_replace ('/ /', '&nbsp;', $buf);
+  $buf = str_replace (' ', '&nbsp;', $buf);
   $buf = preg_replace ('/(([&]nbsp;)*)[&]nbsp;/', '$1 ', $buf);
   $buf = preg_replace ('/(\n) /', '$1&nbsp;', $buf);
   $buf = preg_replace ('/^((<p>)?) /', '$1&nbsp;', $buf);
   return $buf;
+}
+
+function markup_normalize_spaces ($buf)
+{
+  # Unify line breaks.
+  $buf = str_replace ("\r\n", "\n", $buf);
+  $buf = str_replace ("\n\r", "\n", $buf);
+  $buf = str_replace ("\r", "\n", $buf);
+  # Hopefully preserve spaces in HTML allowing line breaking.
+  $buf = str_replace ("\t", "        ", $buf);
+  # The leading space will be collapsed in markup_preserve_spaces.
+  return ' ' . markup_preserve_spaces ($buf);
 }
 
 # Compile HTML text for a verbatim block, append it to $result;
@@ -249,18 +230,9 @@ function markup_build_verbatim (&$verbatim_buffer, &$context_stack, &$result)
   $line = join ("\n", $context_stack);
   array_shift ($context_stack);
 
-  # Unify line breaks.
-  $verbatim_buffer = str_replace ("\r\n", "\n", $verbatim_buffer);
-  $verbatim_buffer = str_replace ("\n\r", "\n", $verbatim_buffer);
-  $verbatim_buffer = str_replace ("\r", "\n", $verbatim_buffer);
-  # Hopefully preserve spaces in HTML allowing line breaking.
-  $verbatim_buffer = str_replace ("\t", "        ",
-                                  $verbatim_buffer);
-  # The leading space will be collapsed in markup_preserve_spaces.
-  $verbatim_buffer = ' ' . markup_preserve_spaces ($verbatim_buffer);
-
+  $verbatim_buffer = markup_normalize_spaces ($verbatim_buffer);
   # Preserve line breaks.
-  $verbatim_buffer = str_replace ("\n", "<br />\n", $verbatim_buffer);
+  $verbatim_buffer = nl2br ($verbatim_buffer);
   # Take into account unclosed paragraphs of surrounding text.
   $closure = $aperture = $prev_line = "";
   if (count ($result) > 0)
@@ -277,560 +249,718 @@ function markup_build_verbatim (&$verbatim_buffer, &$context_stack, &$result)
   $verbatim_buffer = '';
 }
 
+function markup_match_nomarkup_item ($match)
+{
+  if (empty ($match['type'][0]))
+    $ret = ['type' => 'verbatim', 'mark' => $match['mv'][0]];
+  else
+    $ret = ['type' => $match['type'][0], 'mark' => $match['mn'][0]];
+  $ret['off'] = $match[0][1];
+  $ret['len'] = strlen ($match[0][0]);
+  return $ret;
+}
+
+function markup_split_nomarkups ($text)
+{
+  $regexp = '/(?<mn>[+-])(?<type>nomarkup)\1'
+    . '|[^\n]*(?<mv>[+-])verbatim\3[^\n]*(\n|$)/';
+  preg_match_all ($regexp, $text, $matches,
+    PREG_OFFSET_CAPTURE | PREG_SET_ORDER
+  );
+  return $matches;
+}
+
+# Don't allow nomarkup parts that fit in a single line;
+# they are handled later in markup_inline_nomarkup ().
+# If they weren't, they would break inline markup, e.g.
+# nomarkup tags couldn't be used in list items.
+function markup_pop_invalid_nomarkup ($item, &$ret, &$off)
+{
+  if (false !== strpos ($item[1], "\n"))
+    return false;
+  list ($t, $str, $off) = array_pop ($ret);
+  return true;
+}
+
+function markup_add_closing_nomarkup (&$ret, $text, $off, $type)
+{
+  $str = substr ($text, $off);
+  if (false === strpos ($str, "\n"))
+    $type = '';
+  $ret[] = [$type, $str];
+}
+
+function markup_nomarkup_text ($text)
+{
+  $matches = markup_split_nomarkups ($text);
+  $off = 0; $type = ''; $ret = [];
+  foreach ($matches as $match)
+    {
+      $m = markup_match_nomarkup_item ($match);
+      $item = [$type, substr ($text, $off, $m['off'] - $off), $off];
+      if ($m['mark'] === '-' && $m['type'] === $type)
+        {
+          $type = '';
+          if (markup_pop_invalid_nomarkup ($item, $ret, $off))
+            continue;
+        }
+      elseif ($m['mark'] === '+' && $type === '')
+        $type = $m['type'];
+      else
+        continue;
+      $ret[] = $item;
+      $off = $m['off'] + $m['len'];
+    }
+  markup_add_closing_nomarkup ($ret, $text, $off, $type);
+  return $ret;
+}
+
+function markup_mark_nomarkup ($chunks)
+{
+  $ret = [];
+  foreach ($chunks as $ch)
+    {
+      if (is_array ($ch))
+        {
+          $ret[] = $ch;
+          continue;
+        }
+      foreach (markup_nomarkup_text ($ch) as $r)
+        if (empty ($r[0]))
+          $ret[] = $r[1];
+        else
+          $ret[] = $r;
+    }
+  return $ret;
+}
+
+function markup_heading_text ($text, &$ret)
+{
+  $lines = explode ("\n", $text);
+  $accum = [];
+  foreach ($lines as $l)
+    {
+      if (!preg_match ('/(\n|^)(?<rank>={1,4}) (?<data>.+) \2\s*$/', $l, $m))
+        {
+          $accum[] = $l;
+          continue;
+        }
+      if (!empty ($accum))
+        $ret[] = join ("\n", $accum) . "\n";
+      $ret[] = ['heading', [strlen ($m['rank']) + 1, $m['data']]];
+      $accum = [];
+    }
+  if (!empty ($accum))
+    $ret[] = join ("\n", $accum);
+}
+
+function markup_mark_headings ($chunks)
+{
+  $ret = [];
+  foreach ($chunks as $ch)
+    {
+      if (is_array ($ch))
+        {
+          $ret[] = $ch;
+          continue;
+        }
+      markup_heading_text ($ch, $ret);
+    }
+  return $ret;
+}
+
+function markup_hr ($line)
+{
+  if (preg_match ('/^----\s*$/', $line))
+    return ["<hr />\n", true];
+  return [$line, false];
+}
+
+function markup_markup_line ($line)
+{
+  list ($line, $return) = markup_hr ($line);
+  if ($return)
+    return $line;
+  return markup_inline (markup_preserve_spaces ($line));
+}
+
+function markup_verbatim_chunk ($ch)
+{
+  $ch = markup_normalize_spaces ($ch);
+  # Undocumented feature to allow -verbatim- string in verbatim
+  # environment, like -#fnord;verbatim-.
+  $ch = str_replace ('#fnord;', '', $ch);
+  $ch = nl2br ($ch);
+  return "<blockquote class='verbatim'><p>$ch</p></blockquote>\n" ;
+}
+
+function markup_nomarkup_chunk ($ch)
+{
+  return "<p class='nomarkup'>" . nl2br ($ch) . "</p>\n";
+}
+
+function markup_li_chunk ($ch)
+{
+  $ch = markup_markup_line ($ch);
+  return "<li>$ch\n";
+}
+
+function markup_oli_chunk ($ch)
+{
+  return markup_li_chunk ($ch);
+}
+
+function markup_uli_chunk ($ch)
+{
+  return markup_li_chunk ($ch);
+}
+
+function markup_heading_chunk ($ch)
+{
+  return "<h$ch[0]>$ch[1]</h$ch[0]>\n";
+}
+
+function markup_quote_chunk ($ch)
+{
+  $ch = nl2br (markup_inline_chunk ($ch));
+  return "<blockquote class='quote'><p>$ch</p></blockquote>\n";
+}
+
+function markup_inline_chunk ($ch)
+{
+  $ret = '';
+  foreach (explode ("\n", preg_replace ('/\n\s*\n/', "\n", $ch)) as $l)
+    $ret .= markup_markup_line ($l) . "\n";
+  return $ret;
+}
+
+# Translate an element of markup to HTML.  $ch is either a simple string
+# to be converted using "inline" markup or a list where the first member
+# is chunk type, and the second (if present) is chunk data.
+function markup_build_chunk ($ch, &$state)
+{
+  if (!is_array ($ch))
+    return markup_inline_chunk ($ch);
+  $string_tags = [
+    'o-start' => "<ol>\n", 'o-end' => "</ol>\n", 'oli-end' => "</li>\n",
+    'u-start' => "<ul>\n", 'u-end' => "</ul>\n", 'uli-end' => "</li>\n",
+    'p-start' => "<p>", 'p-end' => "</p>\n"
+  ];
+  $func_tags = ['verbatim', 'nomarkup', 'oli', 'uli', 'heading', 'quote'];
+  $f = $ch[0];
+  if (!empty ($string_tags[$f]))
+    return $string_tags[$f];
+  if (!in_array ($f, $func_tags))
+    util_die ("unknown chunk type $f");
+  $f = "markup_{$f}_chunk";
+  $a = null;
+  if (!empty ($ch[1]))
+    $a = $ch[1];
+  return $f ($a);
+}
+
+function markup_u_start_ascii_chunk ($ch, &$state)
+{
+  $state['length']++;
+  return "";
+}
+
+function markup_li_ascii_indent (&$state)
+{
+  return str_repeat ("\t", $state['length'] - 1);
+}
+
+function markup_uli_ascii_chunk ($ch, &$state)
+{
+  $indent = markup_li_ascii_indent ($state);
+  return "$indent* $ch\n";
+}
+
+function markup_uli_end_ascii_chunk ($ch, &$state)
+{
+  return "";
+}
+
+function markup_u_end_ascii_chunk ($ch, &$state)
+{
+  $n = $state['length'];
+  if ($n >= 1)
+    $state['length'] = $n - 1;
+  return '';
+}
+
+function markup_o_start_ascii_chunk ($ch, &$state)
+{
+  $state['stack'][] = 1;
+  return markup_u_start_ascii_chunk ($ch, $state);
+}
+
+function markup_oli_ascii_chunk ($ch, &$state)
+{
+  $indent = markup_li_ascii_indent ($state);
+  $n = array_pop ($state['stack']);
+  $state['stack'][] = $n + 1;
+  return "$indent$n. $ch\n";
+}
+
+function markup_oli_end_ascii_chunk ($ch, &$state)
+{
+  return "";
+}
+
+function markup_o_end_ascii_chunk ($ch, &$state)
+{
+  array_pop ($state['stack']);
+  return markup_u_end_ascii_chunk ($ch, $state);
+}
+
+function markup_inline_ascii_chunk ($text)
+{
+  $lines = explode ("\n", $text);
+  $ret = '';
+  foreach ($lines as $line)
+    {
+      foreach (markup_inline_nomarkup ($line) as $ch)
+        $ret .= $ch[0];
+      $ret .= "\n";
+    }
+  return $ret;
+}
+
+# The version of markup_build_chunk () for ASCII output.  Most things
+# are very simple, but ordered lists need extra computations.
+function markup_build_ascii ($ch, &$state)
+{
+  if ($state === null)
+    $state = ['stack' => [], 'length' => 0];
+  if (!is_array ($ch))
+    return markup_inline_ascii_chunk ($ch);
+  $pass_tags = ['verbatim', 'nomarkup', 'quote'];
+  if (in_array ($ch[0], $pass_tags))
+    return "$ch[1]\n";
+  $func_tags = [];
+  foreach (['o', 'u'] as $lt)
+    foreach (['-start', 'li', 'li-end', '-end'] as $stage)
+      $func_tags[] = "$lt$stage";
+  if (!in_array ($ch[0], $func_tags))
+    return '';
+  $a = null;
+  if (!empty ($ch[1]))
+    $a = $ch[1];
+  $f = str_replace ('-', '_', $ch[0]);
+  $f = "markup_{$f}_ascii_chunk";
+  return $f ($a, $state);
+}
+
+function markup_chunk_type ($ch)
+{
+  if (is_array ($ch))
+    return $ch[0];
+  return 'plain';
+}
+
+function markup_p_mark ($have_p, $prev, $type)
+{
+  $common_tags = ['heading', 'nomarkup', 'verbatim', 'quote'];
+  if ($have_p)
+    {
+      $mark = 'p-end';
+      $tags = array_merge ($common_tags, ['o-start', 'u-start']);
+      if ($prev != 'plain' || !in_array ($type, $tags))
+        return null;
+    }
+  else
+    {
+      $mark = 'p-start';
+      $tags = array_merge ($common_tags, ['o-end', 'u-end', 'begin']);
+      if ($type != 'plain' || !in_array ($prev, $tags))
+        return null;
+    }
+  return $mark;
+}
+
+# Insert p-start and p-end tags to enclose 'plain' chunks.
+function markup_insert_p_tags ($chunks)
+{
+  $have_p = false; $prev = 'begin'; $ret = [];
+  foreach ($chunks as $ch)
+    {
+      $type = markup_chunk_type ($ch);
+      $mark = markup_p_mark ($have_p, $prev, $type);
+      if ($mark !== null)
+        {
+          $ret[] = [$mark];
+          $have_p = !$have_p;
+        }
+      $prev = $type;
+      $ret[] = $ch;
+    }
+  if ($have_p)
+    $ret[] = ['p-end'];
+  return $ret;
+}
+
+# Pop elements from the stack to close as many nested lists as necessary
+# to reduce $current to $next; return the list of resulting tockens;
+# update both $stack and $current.
+function markup_close_lists (&$stack, &$current, $next = '')
+{
+  $deepest_level = true;
+  $ret = [];
+  for ($cnt = count ($stack) - strlen ($next);
+    $cnt > 0 && null !== ($l = array_shift ($stack)); $cnt--
+  )
+    {
+      if ($deepest_level)
+        $ret[] = [$l[0] . 'li-end'];
+      $deepest_level = false;
+      $ret[] = [$l[0] . '-end'];
+      if (!empty ($stack))
+        $ret[] = [$l[0] . 'li-end'];
+    }
+  $current = $next;
+  return $ret;
+}
+
+# Compare previous to next list markup; return "start", "end", "li" or false
+# depending on the next stage of the markup.
+function markup_match_lists ($prev, $next, &$stack)
+{
+  if ($prev === $next)
+    return 'li';
+  $p = strlen ($prev); $n = strlen ($next);
+  $m = $p > $n? $n: $p;
+  if ($m < $n - 1)
+    return false; # Only allow one level increase at once.
+  if (substr ($prev, 0, $m) !== substr ($next, 0, $m))
+    return false; # List nesting doesn't match (like '0*0' and '*0*').
+  if ($p > $n)
+    return 'end';
+  if ($p + 1 == $n)
+    {
+      $c = substr ($next, $p, 1);
+      array_unshift ($stack, $c);
+      return "start";
+    }
+  return false;
+}
+
+function markup_parse_list ($ch, &$stack, &$prev)
+{
+  if (!preg_match ('/^\s?([*0]+) (.+)$/', $ch, $matches))
+    return array_merge (markup_close_lists ($stack, $prev), [$ch]);
+  $next = str_replace (['0', '*'], ['o', 'u'], $matches[1]);
+  $token = markup_match_lists ($prev, $next, $stack);
+  if ($token === false)
+    return array_merge (markup_close_lists ($stack, $prev), [$ch]);
+  $c = substr ($next, -1, 1);
+  $item = ["${c}li", $matches[2]];
+  $ret = [$item];
+  if ($token == 'end')
+    return array_merge (markup_close_lists ($stack, $prev, $next), $ret);
+  $pr = $prev;
+  $prev = $next;
+  if ($token == 'start')
+    array_unshift ($ret, ["$c-start"]);
+  elseif ($pr == $next)
+    array_unshift ($ret, ["${c}li-end"]);
+  return $ret;
+}
+
+function markup_mark_lists ($chunks)
+{
+  $ret = $stack = []; $prev = '';
+  foreach ($chunks as $ch)
+    {
+      if (is_array ($ch))
+        {
+          $ret = array_merge ($ret, markup_close_lists ($stack, $prev));
+          $ret[] = $ch;
+          continue;
+        }
+      $lines = explode ("\n", $ch);
+      foreach ($lines as $l)
+        $ret = array_merge ($ret, markup_parse_list ($l, $stack, $prev));
+    }
+  return array_merge ($ret, markup_close_lists ($stack, $prev));
+}
+
+function markup_add_quoted_item ($mark, &$accum, &$ret)
+{
+  $item = join ("\n", $accum);
+  if ($mark)
+    $item = ['quote', $item];
+  $ret[] = $item;
+}
+
+function markup_quoted_text ($text, &$ret)
+{
+  $lines = explode ("\n", $text);
+  $accum = []; $mark = false;
+  foreach ($lines as $l)
+    {
+      $next_mark = (substr ($l, 0, 4) == '&gt;');
+      if ($next_mark != $mark)
+        {
+          markup_add_quoted_item ($mark, $accum, $ret);
+          $accum = [];
+          $mark = $next_mark;
+        }
+      $accum[] = $l;
+    }
+  markup_add_quoted_item ($mark, $accum, $ret);
+}
+
+function markup_mark_quoted ($chunks)
+{
+  $ret = [];
+  foreach ($chunks as $ch)
+    if (is_array ($ch))
+      $ret[] = $ch;
+    else
+      markup_quoted_text ($ch, $ret);
+  return $ret;
+}
+
+# Parse markup and post-process it with the $build_chunk function.
+function markup_run_markup ($text, $allow_headings, $build_chunk)
+{
+  $marked = markup_mark_nomarkup ([$text]);
+  $marked = markup_mark_quoted ($marked);
+  $marked = markup_mark_lists ($marked);
+  if ($allow_headings)
+    $marked = markup_mark_headings ($marked);
+  $marked = markup_insert_p_tags ($marked);
+  $out = ''; $state = null;
+  foreach ($marked as $ch)
+    $out .= $build_chunk ($ch, $state);
+  return $out;
+}
+
 # Convert special markup characters in the input text to real HTML.
 #
 # This function does exactly the same markup as markup_rich()
 # when !$allow_headings, plus it converts headings to <h2> ... <h5>
 # when $allow_headings.
-function markup_full($text, $allow_headings = true)
+function markup_full ($text, $allow_headings = true)
 {
-  $verb_tag = 'verbatim';
-  $no_markup_magic = 'no-1a4f67a7-4eae-4aa1-a2ef-eecd8af6a997-markup';
-  $lines = explode ("\n", $text);
-  $result = array();
-
-  # We use a stack (last in, first out) to track the current
-  # context (paragraph, lists) so we can correctly close tags.
-  $context_stack = array();
-
-  $quoted_text = false;
-  $verbatim = 0;
-  $verbatim_buffer = '';
-  foreach ($lines as $index => $line)
-    {
-      $found = strpos ($line, "+$verb_tag+") !== false;
-      if ($found)
-        $verbatim++;
-      # The verbatim tags are not allowed to be nested, because
-      # they are translated to HTML code that isn't allowed to be nested.
-      if ($verbatim == 1 && $found)
-        {
-          $line = join("\n", $context_stack);
-          array_unshift ($context_stack, '</textarea>');
-
-          # Jump to the next line, ignoring the rest of the line.
-          continue;
-        }
-
-      if (strpos ($line, "-$verb_tag-") !== false && --$verbatim <= 0)
-        {
-          markup_build_verbatim ($verbatim_buffer, $context_stack, $result);
-          continue;
-        }
-
-      # If we're in the verbatim markup, don't apply the markup.
-      if ($verbatim)
-        {
-          # Disable the +nomarkup+ tags by inserting a unique string.
-          # This has to be done in the original string, because that
-          # is the one which will be split upon the +nomarkup+ tags,
-          # see below.
-          $escaped_line = str_replace ('nomarkup', $no_markup_magic, $line);
-          $lines[$index] = $escaped_line;
-          $verbatim_buffer .= "$escaped_line\n";
-          continue;
-        }
-      # Normal run, do the markup.
-      $line =
-        _full_markup ($line, $allow_headings, $context_stack, $quoted_text);
-      $result[] = markup_preserve_spaces ($line);
-    } # foreach ($lines as $index => $line)
-
-  if ($verbatim) # Missing "-$verb_tag-": append accumulated text.
-    markup_build_verbatim ($verbatim_buffer, $context_stack, $result);
-
-  # Make sure that all previously used contexts get their
-  # proper closing tag by merging in the last closing tags.
-  $markup_text = join("\n", array_merge($result, $context_stack));
-
-  # It's easiest to markup everything, without supporting the nomarkup
-  # tag. afterwards, we replace every nomarkup tag pair with the content
-  # between those tags in the original string.
-  $original = preg_split('/([+-]nomarkup[+-])/', join("\n", $lines), -1,
-    PREG_SPLIT_DELIM_CAPTURE);
-  $markup = preg_split('/([+-]nomarkup[+-])/', $markup_text, -1,
-    PREG_SPLIT_DELIM_CAPTURE);
-  # Save the HTML tags from the last element in the markup array, see below.
-  $last_tags = $markup[count($markup)-1];
-  $nomarkup_level = 0;
-
-  foreach ($original as $index => $original_text)
-    {
-      # Keep track of nomarkup tags.
-      if ($original_text == '+nomarkup+') $nomarkup_level++;
-      if ($original_text == '-nomarkup-') $nomarkup_level--;
-
-      # If the current match is the nomarkup tag, we don't want it to
-      # show up in the markup text -> set it to an empty string.
-      if (preg_match('/([+-]nomarkup[+-])/', $original_text))
-        {
-          $markup[$index] = '';
-          $original_text = '';
-        }
-      # While we're in a nomarkup environment, the already marked up text
-      # needs to be replaced with the original content. Also, we need
-      # to add <br />  tags for newlines.
-      if ($nomarkup_level > 0)
-        {
-          $markup[$index] = nl2br($original_text);
-        }
-    }
-
-  # Normally, $nomarkup_level must be zero at this point. However, if
-  # the user submits wrong markup and forgets to close the -nomarkup-
-  # tag, we need to take care of that.
-  # To do this, we need to look for closing tags which have been deleted.
-  if ($nomarkup_level > 0)
-    {
-      $trailing_markup = array_reverse(explode ("\n", $last_tags));
-      $restored_tags = '';
-      foreach ($trailing_markup as $tag)
-        {
-          if (preg_match('/^\s*<\/[a-z]+>$/', $tag))
-            {
-              $restored_tags = "\n$tag$restored_tags";
-            }
-          else
-            {
-              $markup[] = $restored_tags;
-              break;
-            }
-        }
-    }
-
-  # Lastly, revert the escaping of +nomarkup+ tags done above
-  # for verbatim environments.
-  return str_replace ($no_markup_magic, 'nomarkup', join ('', $markup));
+  return markup_run_markup ($text, $allow_headings, 'markup_build_chunk');
 }
 
-# Convert whatever content that can contain markup to a valid text output
-# It won't touch what seems to be valid in text already, or what cannot
-# be converted in a very satisfactory way.
-# This function should be minimal, just to avoid weird things, not to do
-# very fancy things.
-function markup_textoutput ($text)
+function markup_substitute_highlighted ($line, $selector, $tag)
 {
-  $lines = explode("\n", $text);
-  $result = array();
-
-  $protocols = "https?|ftp|sftp|file|afs|nfs";
-  $savane_tags = "verbatim|nomarkup";
-
-  foreach ($lines as $line)
-    {
-      # Handle named hyperlink.
-      $line =
-        preg_replace(
-              # Find the opening brace '['
-                     '/\['
-              # followed by the protocol, either http:// or https://
-                     .'(('.$protocols.'):\/\/'
-              # match any character except whitespace or the closing
-              # brace ']' for the actual link
-                     .'[^\s\]]+)'
-              # followed by at least one whitespace
-                     .'\s+'
-              # followed by any character (non-greedy) and the
-              # next closing brace ']'.
-                     .'(.+?)\]/', '$3 <$1>', $line);
-
-      # Remove savane-specific tags.
-      $line = preg_replace('/\+('.$savane_tags.')\+/', '', $line);
-      $line = preg_replace('/\-('.$savane_tags.')\-/', '', $line);
-      $result[] = $line;
-    }
-  return join("\n", $result);
+  return preg_replace (
+    # Allow for the pattern to start at the beginning of a line.
+    # if it doesn't start there, the character before the slash
+    # must be either whitespace or the closing brace '>', to
+    # allow for nested html tags (e.g. <p>_markup_</p>).
+    # Additionally, the opening brace may appear.
+    '/(^|\s+|>|\()'
+    . $selector
+    # Match any character (non-greedy).
+    . '(.+?)'
+    # Match the ending underscore and either end of line or
+    # a non-word character.
+    . $selector . '(\W|$)/', "\\1<$tag>\\2</$tag>\\3", $line);
 }
 
-# Internal function for recognizing and formatting special markup
-# characters in the input line to real HTML.
-#
-# This function is a helper for markup_full() and should
-# not be used otherwise.
-function _full_markup($line, $allow_headings, &$context_stack, &$quoted_text)
+# *word* -> <b>word</b>
+function markup_substitute_asterized ($line)
 {
-  # Context formatting.
-
-  # The code below marks up recognized special characters,
-  # by starting a new context (e.g. headings and lists).
-
-  # Generally, we want to start a new paragraph. this will be set
-  # to false, if a new paragraph is no longer appropriate, like
-  # for headings or lists.
-  $start_paragraph = true;
-
-  # Match the headings, e.g. === heading ===.
-  if ($allow_headings)
-    {
-      $line = _markup_headings($line, $context_stack, $start_paragraph);
-    }
-  # Match list items.
-  $line = _markup_lists($line, $context_stack, $start_paragraph);
-
-  # Replace four '-' sign with a horizontal ruler.
-  if (preg_match('/^----\s*$/', $line))
-    {
-      $line = join("\n", $context_stack).'<hr />';
-      $context_stack = array();
-      $start_paragraph = false;
-    }
-
-  # Inline formatting.
-
-  # The code below marks up recognized special characters,
-  # without starting a new context (e.g. <strong> and <em>).
-  $line = _markup_inline ($line);
-
-  # Paragraph formatting.
-
-  # The code below is responsible for doing the Right Thing(tm)
-  # by either starting a new paragraph and closing any previous
-  # context or continuing an existing paragraph.
-
-  # Change the quoteing mode when the line start with '>'.
-  if (substr($line, 0, 4) == '&gt;')
-    {
-      # If the previous line was not quoted, start a new quote paragraph.
-      if (!$quoted_text)
-        {
-          $line = join("\n", $context_stack)
-                  . "<blockquote><p class=\"quote\">$line";
-          # Empty the stack.
-          $context_stack = array('</p></blockquote>');
-          $start_paragraph = false;
-        }
-      $quoted_text = true;
-    }
-  else
-    {
-      # If the previous line was quoted, end the quote paragraph.
-      if ($quoted_text and $start_paragraph and $line != '')
-        {
-          $line = join("\n", $context_stack)."\n<p>$line";
-          # Empty the stack.
-          $context_stack = array('</p>');
-        }
-      $quoted_text = false;
-    }
-  # Don't start a new paragraph again, if we already did that.
-  if (isset ($context_stack[0]) && substr ($context_stack[0], 0, 4) == '</p>')
-    $start_paragraph = false;
-  # Add proper closing tags when we encounter an empty line.
-  # note that there might be no closing tags, in this case
-  # the line will remain emtpy.
-  if (preg_match ('/^(|\s*)$/', $line))
-    {
-      $line = join("\n", $context_stack)."$line";
-      # Empty the stack.
-      $context_stack = array();
-      $start_paragraph = false;
-    }
-  # Finally start a new paragraph if appropriate.
-  if ($start_paragraph)
-    {
-      # Make sure that all previously used contexts get their
-      # proper closing tag.
-      $line = join("\n", $context_stack)."<p>$line";
-      # Empty the stack.
-      $context_stack = array('</p>');
-    }
-  # Append a linebreak while in paragraph mode.
-  if (isset ($context_stack[0]) && substr ($context_stack[0], 0, 4) == '</p>')
-    $line .= '<br />';
-  return $line;
+  return markup_substitute_highlighted ($line, '\*', 'b');
 }
 
-# Internal function for recognizing and formatting headings.
-#
-# This function is a helper for _full_markup() and should
-# not be used otherwise.
-function _markup_headings($line, &$context_stack, &$start_paragraph)
+# _word_ -> <i>word</i>
+function markup_substitute_underscored ($line)
 {
-  if (preg_match(
-    # Find one to four '=' signs at the start of a line
-    '/^(={1,4})'
-    # followed by exactly one space
-    .' '
-    # followed by any character
-    .'(.+)'
-    # followed by exactly one space
-    .' '
-    # followed by one to four '=' signs at the end of a line (whitespace allowed).
-    .'(={1,4})\s*$/', $line, $matches))
-    {
-      $header_level_start = max(min(strlen($matches[1]), 4), 1);
-      $header_level_end = strlen($matches[3]);
-      if ($header_level_start == $header_level_end)
-        {
-          # If the user types '= heading =' (one '=' sign), it will
-          # actually be rendered as a level 2 heading <h2>.
-          $header_level_start += 1;
-          $header_level_end += 1;
-
-          $line = "<h$header_level_start>$matches[2]</h$header_level_end>";
-          # Make sure that all previously used contexts get their
-          # proper closing tag.
-          $line = join("\n", $context_stack).$line;
-          # Empty the stack.
-          $context_stack = array();
-          $start_paragraph = false;
-        }
-    }
-  return $line;
+  return markup_substitute_highlighted ($line, '_', 'i');
 }
 
-# Internal function for recognizing and formatting lists.
-#
-# This function is a helper for _full_markup() and should
-# not be used otherwise.
-function _markup_lists($line, &$context_stack, &$start_paragraph)
+function markup_substitute_img_file_domain ($line)
 {
-  if (preg_match('/^\s?([*0]+) (.+)$/', $line, $matches))
-    {
-      # Determine the list level currently in use.
-      $current_list_level = 0;
-      foreach ($context_stack as $context)
-        {
-          if ($context == '</ul>' or $context == '</ol>')
-            {
-              $current_list_level++;
-            }
-        }
-      # Determine whether the user list levels match the list
-      # level we have in our context stack.
-      #
-      # This will catch (potential) errors of the following form:
-      # * list start
-      # 0 maybe wrong list character
-      # * list end
-      $markup_position = 0;
-      foreach (array_reverse($context_stack) as $context)
-        {
-          # We only care for the list types.
-          if ($context != '</ul>' and $context != '</ol>')
-            {
-              continue;
-            }
-
-          $markup_character = substr($matches[1], $markup_position, 1);
-
-          if (($markup_character === '*' and $context != '</ul>')
-              or ($markup_character === '0' and $context != '</ol>'))
-            {
-              # Force a new and clean list start.
-              $current_list_level = 0;
-              break;
-            }
-          else
-            {
-              $markup_position++;
-            }
-        }
-
-      # If we are not in a list, close the previous context.
-      $line = '';
-      if ($current_list_level == 0)
-        {
-          $line = join("\n", $context_stack);
-          $context_stack = array();
-        }
-      # Determine the list level the user wanted.
-      $wanted_list_level = strlen($matches[1]);
-
-      # Start a new list and make sure that the markup
-      # is valid, even if the user did skip one or more list levels.
-      $list_level_counter = $current_list_level;
-      while ($list_level_counter < $wanted_list_level)
-        {
-          switch (substr($matches[1], $list_level_counter, 1))
-            {
-              case '*':
-                $tag = 'ul';
-                break;
-              case '0':
-                $tag = 'ol';
-                break;
-            }
-          $line .= "<$tag>\n<li>";
-          array_unshift($context_stack, "</$tag>");
-          array_unshift($context_stack, "</li>");
-          $list_level_counter++;
-        }
-      # End a previous list and make sure that the markup
-      # is valid, even if the user did skip one or more list levels.
-      $list_level_counter = $current_list_level;
-      while ($list_level_counter > $wanted_list_level)
-        {
-          $line .= array_shift($context_stack)."\n"
-            .array_shift($context_stack)."\n";
-          $list_level_counter--;
-        }
-      # Prepare the next item of the same list level.
-      if ($current_list_level >= $wanted_list_level)
-        {
-          $line .= "</li>\n<li>";
-        }
-      # Finally, append the list item.
-      $line .= $matches[2];
-      $start_paragraph = false;
-    }
-  return $line;
+  global $sys_file_domain;
+  if ($GLOBALS['sys_default_domain'] == $sys_file_domain)
+    return $line;
+  $http = session_issecure ()? 'https': 'http';
+  return preg_replace (
+    '/<img src="\/file/', "<img src=\"$http://$sys_file_domain/file", $line
+  );
 }
 
-# Internal function for recognizing and formatting inline tags and links.
-#
-# This function is a helper for _full_markup() and should
-# not be used otherwise.
-function _markup_inline($line)
+# Return array [ file_id => filename ] for the given list of file_ids.
+function markup_fetch_file_list ($file_ids)
 {
-  # Group_id may be necessary for recipe #nnn links.
-  global $group_id;
+  if (empty ($file_ids))
+    return [];
+  $in_ph = utils_in_placeholders ($file_ids);
+  $result =  db_execute ("
+    SELECT file_id, filename FROM trackers_file WHERE file_id $in_ph",
+    $file_ids
+  );
+  $ret = [];
+  while ($row = db_fetch_array ($result))
+    $ret[$row['file_id']] = $row['filename'];
+  return $ret;
+}
 
-  $comingfrom = '';
-  if ($group_id)
-    $comingfrom = "&amp;comingfrom=$group_id";
+function markup_expand_img ($line, $file_id, $file_name, $comment)
+{
+  if (!(preg_match ('/\.(jpe?g|png)$/', strtolower ($file_name))))
+    return $line;
+  $alt = $comment;
+  if (substr ($alt, 0, 1) === ' ')
+    $alt = substr ($alt, 1);
+  if ($alt !== '')
+    $alt = 'alt="' . htmlspecialchars ($alt) . '" ';
+  $file_name = htmlspecialchars ($file_name);
+  return preg_replace ("/\(?((files? ))#{$file_id}[^),]*((\)|, )?)/",
+    "<img src=\"/file/$file_name?file_id=$file_id\" $alt/> ", $line
+  );
+}
 
-  if (strlen ($line) == 0)
-    return "";
-  # Replace references to image files with <img>.
+# Replace references to image files with <img>.
+function markup_expand_img_files ($line)
+{
   preg_match_all ('/\(?((files? ))#(?P<file_id>\d+)'
-                  . '(?P<comment>[^),]*)((\)|, )?)/',
-                  $line, $matches);
+    . '(?P<comment>[^),]*)((\)|, )?)/',
+    $line, $matches
+  );
+  $file_list = markup_fetch_file_list ($matches['file_id']);
   foreach ($matches['file_id'] as $key => $file_id)
     {
-      $result = db_execute("SELECT filename FROM trackers_file
-                            WHERE file_id=? LIMIT 1", array ($file_id));
-      if (!$result || db_numrows ($result) < 1)
+      if (empty ($file_list[$file_id]))
         continue;
-      $file_name = db_result ($result, 0, 0);
-      if (!(preg_match ('/\.(jpe?g|png)$/', strtolower($file_name))))
-        continue;
-      $alt = $matches['comment'][$key];
-      if (substr ($alt, 0, 1) === ' ')
-        $alt = substr ($alt, 1);
-      if ($alt !== '')
-        $alt = 'alt="' . htmlspecialchars ($alt) . '" ';
-      $line = preg_replace ('/\(?((files? ))#' . $file_id . '[^),]*((\)|, )?)/',
-                            '<img src="/file/' . htmlspecialchars ($file_name)
-                            . '?file_id=' . $file_id . '" ' . $alt . '/> ',
-                            $line);
+      $line = markup_expand_img ($line, $file_id,
+        $file_list[$file_id], $matches['comment'][$key]
+      );
     }
+  return markup_substitute_img_file_domain ($line);
+}
 
-  # Regexp of protocols supported in hyperlinks (should be protocols that
-  # we can expect web browsers to support).
-  $protocols = "https?|ftp|sftp|file|afs|nfs";
-
-  # Artificial protocol for protocol-relative links.
-  $protocol_relative = "p-r";
-  # Make sure $line doesn't contain $protocol_relative.
-  $pr_esc = "p-&#83521;-r";
-  $line = str_replace ($protocol_relative, $pr_esc, $line);
-
-  # Reword "//" as artificial "protocol".
-  $line = preg_replace('#(^|\s|\[)//#', '$1' . $protocol_relative . '://', $line);
-  $protocols .= '|' . $protocol_relative;
-
-  # Links between items.
-  # FIXME: It should be i18n, but in a clever way, meaning that everytime
-  # a form is submitted with such string, the string get converted in
-  # english so we always get the links found without having a regexp
-  # including every possible language.
-  $trackers = array (
-      "bugs?" => "bugs/?",
-      "support|sr" => "support/?",
-      "tasks?" => "task/?",
-      "recipes?|rcp" => "cookbook/?func=detailitem$comingfrom&amp;item_id=",
-      "patch" => "patch/?",
-      # In this case, we make the link pointing to support, it won't matter,
-      # the download page is in every tracker and does not check if the tracker
-      # is actually used.
-      "files?" => "support/download.php?file_id=",
+# Prepare usual links: prefix "www." with "$protocol_relative://"
+# if it is preceded by [ or whitespace or at the beginning of line
+# (don't want to prepend in cases like "//www.." or "ngwww...").
+function markup_insert_prot_rel ($line, $protocol_relative)
+{
+  return preg_replace (
+    '/(^|\s|\[)(www\.)/i', "\\1$protocol_relative://\\2", $line
   );
-  $artifact_regex = implode ('|', array_keys($trackers)).'|comments?';
+}
 
-  # Modify link texts to disable interpreting them as nested links.
-  $line = preg_replace_callback ('/(\[(('
-        .$protocols.'|www\.)[^\s]+'
-        . '|((' . $artifact_regex . ')\s{0,2}#[0-9]+))\s+)(.*?)\]/',
-        function ($matches)
-          {
-        # Replace '#' in link texts with HTML references;
-        # if we don't, we may get links like
-        # [bug #3 bug #1] ->
-        # <em><a href="/bugs/?3"><em><a href="/bugs/?1">bug #1</a></em></a></em>
-            $tail = preg_replace ('/(^|[^&])#/', '$1&#35;', $matches[6]);
-        # Add '&#32;' before each word to disable interpreting it as
-        # a link in texts like
-        # [https://www.gnu.org/home.html home page for www.gnu.org]
-            $tail = preg_replace ('/(^|\s)([^\s])/', '$1&#32;$2', $tail);
-            return $matches[1].$tail.']';
-          }, $line);
-
-  # Prepare usual links: prefix "www." with $protocol_relative . "://"
-  # if it is preceded by [ or whitespace or at the beginning of line
-  # (don't want to prefix in cases like "//www.." or "ngwww...").
-  $line = preg_replace('/(^|\s|\[)(www\.)/i',
-                       '$1' . $protocol_relative . '://$2', $line);
-
+function markup_convert_standalone_URLs ($line, $protocols)
+{
   # Prepare the markup for normal links, e.g. http://test.org, by
   # surrounding them with braces []
   # (& = begin of html entities, it means a end of string unless
   # it is &amp; which itself is the entity for &)
-  $line = preg_replace('/(^|[^;\[\/])((' . $protocols
-                       . '):\/\/(&amp;|[^\s&]+[a-z0-9\/^])+)/i',
-    '$1[$2]', $line);
-  # Remove spaces added with preg_replace_callback
+  $line = preg_replace (
+    '/(^|[^;\[\/])((' . $protocols . '):\/\/(&amp;|[^\s&]+[a-z0-9\/^])+)/i',
+    '$1[$2]', $line
+  );
+  # Remove spaces added in markup_prevent_nested_links ()
   # and process links with preceding ';'.
   $line = preg_replace ('/&#32;/', '', $line);
-  $line = preg_replace('/(;)(((' . $protocols
-                       . '):)?\/\/(&amp;|[^\s&]+[a-z0-9\/^])+)/i',
-    '$1[$2]', $line);
+  $line = preg_replace (
+    '/(;)(((' . $protocols . '):)?\/\/(&amp;|[^\s&]+[a-z0-9\/^])+)/i',
+    '$1[$2]', $line
+  );
+  return $line;
+}
 
+function markup_encode_prot_rel ($line, $protocol_relative, $revert)
+{
+  $pr_esc = "p-&#83521;-r";
+  if ($revert)
+    {
+      $line = str_replace ($protocol_relative . "://", "//", $line);
+      return str_replace ($pr_esc, $protocol_relative, $line);
+    }
+  # Make sure $line doesn't contain $protocol_relative.
+  $line = str_replace ($protocol_relative, $pr_esc, $line);
+  # Reword "//" as artificial "protocol".
+  return preg_replace ('#(^|\s|\[)//#', "\\1$protocol_relative://", $line);
+}
+
+function markup_convert_mail_links ($line, $protocols)
+{
   # Replace the @ sign with an HTML entity, if it is used within
   # an URL (e.g. for pointers to mailing lists).  This way, the
-  # @ sign doesn't get mangled in the e-mail markup code
+  # @ sign doesn't get mangled in the email markup code
   # below.
-  $line = preg_replace ("#((" . $protocols . ")://[^<>[:space:]]+)@#i",
-                        "$1&#64;", $line);
+  $line = preg_replace ("#(($protocols)://[^<>[:space:]]+)@#i",
+    "$1&#64;", $line
+  );
 
-  # Do a markup for mail links, e.g. info@support.org
-  # (do not use utils_emails, this does extensive database
-  # search on the string
-  # and replace addresses in several fashion. Here we just want to make
-  # a link). Make sure that 'cvs -d:pserver:anonymous@cvs.sv.gnu.org:/...'
-  # is NOT replaced.
-  $line = preg_replace("/(^|\s)([a-z0-9_+-.]+@([a-z0-9_+-]+\.)+[a-z]+)(\s|$)/i",
-                       '\1' . utils_email_basic('\2') . '\4', $line);
+  # Do a markup for mail links, e.g. info@support.org (do not use utils_emails,
+  # this does extensive database search on the string and replace addresses
+  # in several fashion. Here we just want to make a link).  Make sure that
+  # 'cvs -d:pserver:anonymous@cvs.sv.gnu.org:/...' is NOT replaced.
+  $email = utils_email_basic ('\2');
+  $line = preg_replace (
+    "/(^|\s)([a-z0-9_+-.]+@([a-z0-9_+-]+\.)+[a-z]+)(\s|$)/i",
+    "\\1$email\\4", $line
+  );
 
   # Unreplace the @ sign.
-  $line = preg_replace ("%((" . $protocols . ")://[^<>[:space:]]+)[&]#64;%i",
-                        "$1@", $line);
+  return preg_replace (
+    "%(($protocols)://[^<>[:space:]]+)[&]#64;%i", "$1@", $line
+  );
+}
 
-  foreach ($trackers as $regexp => $link)
-    {
-      # Allow only two white spaces between the string and the numeric id
-      # to avoid having too time consuming regexp. People just have to pay
-      # attention.
+function markup_expand_tracker_links ($line, $regexp, $link)
+{
+  global $sys_home;
+  # Allow only two white spaces between the string and the numeric id
+  # to avoid having too time consuming regexp. People just have to pay
+  # attention.
 
-      # Handle named links.
-      $line = preg_replace("/(^|\s|\W)\[($regexp)\s{0,2}#([0-9]+)\s+(.+?)\]/i",
-        '$1<em><a href="'.$GLOBALS['sys_home'].$link.'$3">$4</a></em>', $line);
+  # Handle named links like [bug #4913 text of the link].
+  $line = preg_replace (
+    "/(^|\s|\W)\[($regexp)\s{0,2}#([0-9]+)\s+(.+?)\]/i",
+    "\\1<i><a href=\"$sys_home$link\\3\">\\4</a></i>", $line
+  );
 
-      # Now process "usual" links.
-      $line = preg_replace("/(^|\s|\W)($regexp)\s{0,2}#([0-9]+)/i",
-        '$1<em><a href="'.$GLOBALS['sys_home']
-        .$link.'$3">$2&nbsp;#$3</a></em>', $line);
-    }
+  # Now process "usual" links like bug #4913.
+  return preg_replace ("/(^|\s|\W)($regexp)\s{0,2}#([0-9]+)/i",
+    "\\1<i><a href=\"$sys_home$link\\3\">\\2&nbsp;#\\3</a></i>",
+    $line);
+}
 
-  # Add an internal link for comments.
-  $line = preg_replace("/(^|\s|\W)\[(comments?)\s{0,2}#([0-9]+)\s+(.+?)\]/i",
-    '$1<em><a href="#comment$3">$4</a></em>', $line);
-  $line = preg_replace('/(comments?)\s{0,2}#([0-9]+)/i',
-    '<em><a href="#comment$2">$1&nbsp;#$2</a></em>', $line);
+function markup_expand_comment_links ($line)
+{
+  $line = preg_replace ("/(^|\s|\W)\[(comments?)\s{0,2}#([0-9]+)\s+(.+?)\]/i",
+    '$1<i><a href="#comment$3">$4</a></i>', $line);
+  return preg_replace ('/(comments?)\s{0,2}#([0-9]+)/i',
+    '<i><a href="#comment$2">$1&nbsp;#$2</a></i>', $line);
+}
 
-  # Add support for named hyperlinks, e.g.
-  # [http://gna.org/ Text] -> <a href="http://gna.org/">Text</a>
-  $line = preg_replace(
+# Modify link texts to disable interpreting them as nested links.
+function markup_prevent_nested_links ($line, $protocols, $artifact_regex)
+{
+  return preg_replace_callback ('/(\[((' . $protocols . '|www\.)[^\s]+'
+    . '|((' . $artifact_regex . ')\s{0,2}#[0-9]+))\s+)(.*?)\]/',
+    function ($matches)
+      {
+        # Replace '#' in link texts with HTML references;
+        # if we don't, we may get links like
+        # [bug #3 bug #1] ->
+        # <i><a href="/bugs/?3"><i><a href="/bugs/?1">bug #1</a></i></a></i>
+        $tail = preg_replace ('/(^|[^&])#/', '$1&#35;', $matches[6]);
+        # Add '&#32;' before each word to disable interpreting it as
+        # a link in texts like
+        # [https://www.gnu.org/home.html home page for www.gnu.org]
+        $tail = preg_replace ('/(^|\s)([^\s])/', '$1&#32;$2', $tail);
+        return $matches[1] . "$tail]";
+      },
+     $line
+  );
+}
+
+# Expand named hyperlinks, e.g.
+# [http://gna.org/ Text] -> <a href="http://gna.org/">Text</a>
+function markup_expand_named_links ($line, $protocols)
+{
+  return preg_replace (
     # Find the opening brace '['
     '/\['
     # followed by the protocol
@@ -843,101 +973,144 @@ function _markup_inline($line)
     # followed by any character (non-greedy) and the
     # next closing brace ']'.
     .'(.+?)\]/', '<a href="$1">$4</a>', $line);
+}
 
-  # Add support for unnamed hyperlinks, e.g.
-  # [http://gna.org/] -> <a href="http://gna.org/">http://gna.org/</a>
-  # We make sure the string is not too long, otherwise we cut
-  # it.
-  $line = preg_replace_callback(
+# Expand unnamed hyperlinks, e.g.
+# [http://gna.org/] -> <a href="http://gna.org/">http://gna.org/</a>
+# We make sure the string is not too long, otherwise we cut it.
+function markup_expand_unnamed_links ($line, $protocols, $protocol_relative)
+{
+  return preg_replace_callback (
     # Find the opening brace '['
     '/\['
-    # followed by the protocol
+    # followed by the protocol;
     . '(((' . $protocols . '):)?\/\/'
     # match any character except whitespace (non-greedy) for
     # the actual link, followed by the closing brace ']'.
-    . '([^\s]+?))\]/', function ($match_arr) use ($protocol_relative)
-                      {
-                        $url = $match_arr[1];
-                        $string = $url;
-                        if ($match_arr[3] == $protocol_relative)
-                          $string = $match_arr[4];
-                        return '<a href="' . $url . '">' . $string . '</a>';
-                      }, $line);
-
-  $line = str_replace ($protocol_relative . "://", "//", $line);
-  $line = str_replace ($pr_esc, $protocol_relative, $line);
-
-  # *word* -> <strong>word</strong>
-  $line = preg_replace(
-    # Find an asterisk after a space or starting the line
-    '/(^|\s)\*'
-    # then one character (except a space or asterisk)
-    .'([^* ]'
-    # then (optionally) any character except asterisk
-    .'[^*]*?)'
-    # then an asterisk.
-    .'\*/', '$1<strong>$2</strong>', $line);
-
-  # _word_ -> <em>word</em>
-  $line = preg_replace(
-    # Allow for the pattern to start at the beginning of a line.
-    # if it doesn't start there, the character before the slash
-    # must be either whitespace or the closing brace '>', to
-    # allow for nested html tags (e.g. <p>_markup_</p>).
-    # Additionally, the opening brace may appear.
-    # See bug #10571 on http://gna.org/ for reference.
-    '/(^|\s+|>|\()'
-    # match the underscore
-    .'_'
-    # match any character (non-greedy)
-    .'(.+?)'
-    # match the ending underscore and either end of line or
-    # a non-word character
-    .'_(\W|$)/', '$1<em>$2</em>$3', $line);
-  if ($GLOBALS['sys_default_domain'] != $GLOBALS['sys_file_domain'])
+    . '([^\s]+?))\]/',
+    function ($match_arr) use ($protocol_relative)
     {
-      $http = session_issecure()? 'https': 'http';
-      $line = preg_replace('/<img src="\/file/',
-                           '<img src="' . $http . "://"
-                           . $GLOBALS['sys_file_domain'] . '/file', $line);
+      $url = $match_arr[1];
+      $string = $url;
+      if ($match_arr[3] == $protocol_relative)
+        $string = $match_arr[4];
+      return "<a href=\"$url\">$string</a>";
+    },
+    $line);
+}
+
+function markup_tracker_list ()
+{
+  global $group_id;
+
+  $comingfrom = '';
+  if ($group_id)
+    $comingfrom = "&amp;comingfrom=$group_id";
+
+  return [
+    "bugs?" => "bugs/?",
+    "support|sr" => "support/?",
+    "tasks?" => "task/?",
+    "recipes?|rcp" => "cookbook/?func=detailitem$comingfrom&amp;item_id=",
+    "patch" => "patch/?",
+    # In this case, we make the link pointing to support, it won't matter,
+    # the download page is in every tracker and does not check if the tracker
+    # is actually used.
+    "files?" => "support/download.php?file_id=",
+  ];
+}
+
+function markup_protocol_regex ()
+{
+  # Regexp of protocols supported in hyperlinks (should be protocols
+  # web browsers are expected to support).
+  $protocols = "https?|s?ftp|file|afs|nfs";
+
+  # Artificial protocol for protocol-relative links.
+  $protocol_relative = "p-r";
+  $protocols .= "|$protocol_relative";
+
+  return [$protocols, $protocol_relative];
+}
+
+function markup_expand_links ($line)
+{
+  $trackers = markup_tracker_list ();
+  $artifact_regex = join ('|', array_keys ($trackers)) . '|comments?';
+  list ($protocols, $protocol_relative) = markup_protocol_regex ();
+
+  $line = markup_encode_prot_rel ($line, $protocol_relative, false);
+
+  $line = markup_prevent_nested_links ($line, $protocols, $artifact_regex);
+  $line = markup_insert_prot_rel ($line, $protocol_relative);
+  $line = markup_convert_standalone_URLs ($line, $protocols);
+  $line = markup_convert_mail_links ($line, $protocols);
+
+  foreach ($trackers as $regexp => $link)
+    $line = markup_expand_tracker_links ($line, $regexp, $link);
+
+  $line = markup_expand_comment_links ($line);
+  $line = markup_expand_named_links ($line, $protocols);
+  $line = markup_expand_unnamed_links ($line, $protocols, $protocol_relative);
+
+  return markup_encode_prot_rel ($line, $protocol_relative, true);
+}
+
+# Process nomarkup parts that fit in a single line; nomarkup blocks
+# that include a newline are handled earlier in markup_mark_nomarkup ().
+function markup_inline_nomarkup ($line)
+{
+  $tag = 'nomarkup';
+  $chunks = preg_split ("/(([+-])$tag\\2)/", $line, -1,
+    PREG_SPLIT_DELIM_CAPTURE
+  );
+  $ret = []; $mark = false; $chunk_is_mark = false;
+  foreach ($chunks as $ch)
+    {
+      if ($chunk_is_mark)
+        {
+          $chunk_is_mark = false;
+          $mark = ($ch === '+');
+          continue;
+        }
+      if (in_array ($ch, ["+$tag+", "-$tag-"]))
+        $chunk_is_mark = true;
+      else
+        $ret[] = [$ch, $mark];
     }
+  return $ret;
+}
+
+function markup_inline_string ($line)
+{
+  if (strlen ($line) == 0)
+    return "";
+
+  $line = markup_expand_img_files ($line);
+  $line = markup_expand_links ($line);
+  $line = markup_substitute_asterized ($line);
+  $line = markup_substitute_underscored ($line);
   return $line;
 }
 
-# Process a single line for markup_ascii ().
-function markup_ascii_line ($line, &$item_no)
+# Internal function for converting inline tags and links.
+function markup_inline ($line)
 {
-  # Purge all list indices starting from $n.
-  $markup_trim_item_no = function (&$item_no, $n)
-  {
-    $cnt = count ($item_no);
-    for ($i = $n; $i < $cnt; $i++)
-      unset ($item_no[$i]);
-  };
-  $indent_base = "\t";
-  if (!preg_match('/^\s?([0]+) (.+)$/', $line, $matches))
-    {
-      $item_no = [];
-      return $line;
-    }
-  $n = strlen ($matches[1]);
-  $markup_trim_item_no ($item_no, $n);
-  $n--;
-  if (empty ($item_no[$n]))
-    $item_no[$n] = 0;
-  $item_no[$n]++;
-  return str_repeat ($indent_base, $n) . "{$item_no[$n]}. {$matches[2]}";
+  $chunks = markup_inline_nomarkup ($line);
+  $ret = '';
+  foreach ($chunks as $ch)
+    if ($ch[1])
+      $ret .= "<span class='nomarkup'>$ch[0]</span>";
+    else
+      $ret .= markup_inline_string ($ch[0]);
+  return $ret;
 }
 
 # Implement applicable parts of tracker comment in ASCII, which currently
 # amounts to enumerations in ordered lists, Savannah sr #110621.
 function markup_ascii ($text)
 {
-  $lines = explode ("\n", htmlspecialchars_decode ($text, ENT_QUOTES));
-  $item_no = [];
-  $ret = '';
-  foreach ($lines as $line)
-    $ret .= markup_ascii_line ($line, $item_no) . "\n";
-  return $ret;
+  $text = markup_run_markup ($text, false, 'markup_build_ascii');
+  return htmlspecialchars_decode ($text, ENT_QUOTES);
 }
 ?>
