@@ -145,6 +145,7 @@ function db_expand_sql ($sql, $inputarr)
       if ($i + 1 == sizeof ($sql_exploded))
         return $sql_expanded;
     }
+  return null;
 }
 
 # Substitute '?' with one of the values in the $inputarr array,
