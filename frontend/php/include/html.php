@@ -6,7 +6,7 @@
 # Copyright (C) 2002-2006 Pogonyshev <pogonyshev--gmx.net>
 # Copyright (C) 2007, 2008  Sylvain Beucler
 # Copyright (C) 2008  Aleix Conchillo Flaque
-# Copyright (C) 2013, 2017, 2018, 2020, 2021, 2022 Ineiev <ineiev--gnu.org>
+# Copyright (C) 2013, 2017, 2018, 2020, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -532,34 +532,24 @@ function html_build_multiple_select_box (
   $title = ""
 )
 {
-  $checked_count = count ($checked_array);
-
-  $return = "\n<select " . html_title_attr ($title)
-    . "name=\"$name\" multiple size='$size'>\n";
+  $title_attr = html_title_attr ($title);
+  $return = "\n<select $title_attr name=\"$name\" multiple size='$size'>\n";
   # Put in the Any box.
   if ($show_any)
     {
       $return .= '<option value="0"';
-      for ($j = 0; $j < $checked_count; $j++)
-        {
-          if ($checked_array[$j] == '0')
-            {
-              $return .= ' selected="selected"';
-            }
-        }
+      foreach ($checked_array as $v)
+        if ($v == '0')
+          $return .= ' selected="selected"';
       $return .= ">$text_any</option>\n";
     }
   # Put in the default NONE box.
   if ($show_100)
     {
       $return .= '<option value="100"';
-      for ($j = 0; $j < $checked_count; $j++)
-        {
-          if ($checked_array[$j] == '100')
-            {
-              $return .= ' selected="selected"';
-            }
-        }
+      foreach ($checked_array as $v)
+        if ($v == '100')
+          $return .= ' selected="selected"';
       $return .= ">$text_100</option>\n";
     }
   $rows = db_numrows ($result);
@@ -569,14 +559,10 @@ function html_build_multiple_select_box (
         {
           $return .= '<option value="' . db_result ($result, $i, 0) . '"';
           # Determine if it's checked.
-          $val = db_result($result, $i, 0);
-          for ($j = 0; $j<$checked_count; $j++)
-            {
-              if ($val == $checked_array[$j])
-                {
-                  $return .= ' selected="selected"';
-                }
-            }
+          $val = db_result ($result, $i, 0);
+          foreach ($checked_array as $v)
+            if ($val == $v)
+              $return .= ' selected="selected"';
           $val .= '-';
           if (!$show_value)
             $val = '';
