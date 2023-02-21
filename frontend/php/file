@@ -57,13 +57,13 @@ if ($result && db_numrows ($result) > 0)
   }
 else
   # TRANSLATORS: the argument is file id (a number).
-  util_die (sprintf (_("File #%s not found"), $file_id));
+  exit_error (sprintf (_("File #%s not found"), $file_id));
 
 $in = [0 => $artifact];
 $out = [];
 
 if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
-  util_die (
+  exit_error (
     sprintf (
       # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
       _('Invalid artifact %s'),
@@ -116,7 +116,7 @@ if ($vex && db_result ($result, 0, 'filesize') >= 0)
 
     $path = $sys_trackers_attachments_dir . '/' . $file_id;
     if (!is_readable($path))
-      exit_error(_("No access to the file."));
+      exit_error (_("No access to the file."));
 
     # Download the patch with the correct filetype.
     $headers = [
