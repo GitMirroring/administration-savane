@@ -409,6 +409,15 @@ reset ($url_params);
 $summary_search = 0;
 $details_search = 0;
 
+foreach ($url_params as $field => $val)
+  {
+    if (!is_array ($val))
+      continue;
+    foreach ($val as $v)
+      if (is_array ($v))
+        exit_error (_('Wrong parameter') . " $field");
+  }
+
 foreach ($url_params as $field => $value_id)
   {
     # If the criteria is not in the field showed on query screen then
@@ -421,8 +430,8 @@ foreach ($url_params as $field => $value_id)
         && !trackers_isvarany ($url_params[$field]))
       {
         # Only select box criteria to where clause if argument is not ANY.
-        $where .= " AND $art.$field IN ("
-          . utils_placeholders ($url_params[$field]) . ') ';
+        $where .= " AND $art.$field "
+          . utils_in_placeholders ($url_params[$field]) . ' ';
         $where_params = array_merge ($where_params, $url_params[$field]);
       }
     elseif (trackers_data_is_date_field ($field) && $url_params[$field][0])
