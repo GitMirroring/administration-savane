@@ -5,7 +5,7 @@
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007, 2008  Sylvain Beucler
 # Copyright (C) 2008  Nicodemo Alvaro
-# Copyright (C) 2017, 2018, 2021, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -114,6 +114,9 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
 {
   global $words, $group_id, $exact, $type_of_search, $type, $max_rows;
   global $only_group_id;
+
+  if (!is_scalar ($searched_words))
+    $searched_words = '';
 
   $gid = null;
   if (!empty ($group_id))
@@ -295,11 +298,10 @@ function search_send_header ()
 
 # Search results for XXX (in YYY):
 # e.g.: Search results for emacs (in groups):
-function print_search_heading()
+function print_search_heading ()
 {
-  global $words,$type_of_search,$only_group_id;
-  # Print the result
-  print '<h2 id="results">'._('Search results')."</h2>\n";
+  global $words, $type_of_search, $only_group_id;
+  print '<h2 id="results">' . _('Search results') . "</h2>\n";
   if (!($words && $type_of_search))
     return;
   print "<p>";
@@ -342,14 +344,14 @@ function print_search_heading()
 
 function result_no_match ()
 {
-  return search_failed();
+  return search_failed ();
 }
 
 function search_failed ()
 {
-  global $no_rows,$words;
+  global $no_rows, $words;
   $no_rows = 1 ;
-  search_send_header();
+  search_send_header ();
   print '<span class="warn">';
   print _("None found. Please note that only search words of more than two
 characters are valid.");
@@ -357,50 +359,54 @@ characters are valid.");
   print db_error();
 }
 
-// Build
-// "((field1 LIKE '%kw1%' and/or field1 LIKE '%kw2%' ...)
-//   or (field2 LIKE '%kw1%' and/or field2 LIKE '%kw2%' ...)
-//   ...)"
-// + matching parameters array, suitable for db_execute()
-// $and_or <=> 'AND'/'OR' <=> all/any word
-function search_keywords_in_fields($keywords, $fields, $and_or='OR')
+# Build
+# "((field1 LIKE '%kw1%' and/or field1 LIKE '%kw2%' ...)
+#   or (field2 LIKE '%kw1%' and/or field2 LIKE '%kw2%' ...)
+#   ...)"
+# + matching parameters array, suitable for db_execute()
+# $and_or <=> 'AND'/'OR' <=> all/any word
+function search_keywords_in_fields ($keywords, $fields, $and_or = 'OR')
 {
-  $allfields_sql_bits = array();
-  $allfields_sql_params = array();
+  $allfields_sql_bits = $allfields_sql_params = [];
   foreach ($fields as $field)
     {
-      $thisfield_sql_bits = array();
-      $thisfield_sql_params = array();
+      $thisfield_sql_bits = $thisfield_sql_params = [];
       foreach($keywords as $keyword)
         {
           $thisfield_sql_bits[] = "$field LIKE ?";
           if (preg_match('/_id$/', $field))
-            {
-              # Strip "#" from, eg, "#153".
-              $thisfield_sql_params[] = '%'
-                                        . str_replace ('#', '', $keyword)
-                                        . '%';
-            }
+            # Strip "#" from, eg, "#153".
+            $thisfield_sql_params[] = '%'
+              . str_replace ('#', '', $keyword) . '%';
           else
-            $thisfield_sql_params[] = '%'.$keyword.'%';
+            $thisfield_sql_params[] = "%$keyword%";
         }
-      $allfields_sql_bits[] = '(' . implode(" $and_or ", $thisfield_sql_bits)
-                              . ')';
-      $allfields_sql_params = array_merge($allfields_sql_params,
-                                          $thisfield_sql_params);
+      $allfields_sql_bits[] =
+        '(' . join (" $and_or ", $thisfield_sql_bits) . ')';
+      $allfields_sql_params = array_merge (
+        $allfields_sql_params, $thisfield_sql_params
+      );
     }
-  $allfields_sql = '(' . implode(' OR ', $allfields_sql_bits) . ')';
-  return array($allfields_sql, $allfields_sql_params);
+  $allfields_sql = '(' . join (' OR ', $allfields_sql_bits) . ')';
+  return [$allfields_sql, $allfields_sql_params];
 }
 
 # Run a search in the database, by default in programs.
-function search_run ($keywords, $type_of_search="soft", $return_error_messages=1)
+function search_run (
+  $keywords, $type_of_search = "soft", $return_error_messages = 1
+)
 {
   global $type, $exact, $crit, $offset, $only_group_id, $max_rows;
   $and_or = $crit;
 
+  if (!is_scalar ($keywords))
+    {
+      search_failed ();
+      exit;
+    }
+
   # Remove useless blank spaces, escape nasty characters.
-  $keywords = trim($keywords);
+  $keywords = trim ($keywords);
 
   # Convert the wildcard * to the similar SQL one, when it is alone.
   if ($keywords == "*")
@@ -408,7 +414,7 @@ function search_run ($keywords, $type_of_search="soft", $return_error_messages=1
 
   # Replace the wildcard * to the similar SQL one, when included in a
   # word.
-  $keywords = strtr($keywords, "*", "%");
+  $keywords = strtr ($keywords, "*", "%");
 
   # Convert the crit form value to the SQL equiv.
   if ($exact)
@@ -429,17 +435,18 @@ function search_run ($keywords, $type_of_search="soft", $return_error_messages=1
   # Note: we tell user we want more than 3 characters, to incitate to
   # do clever searchs. But it will be ok for only 2 characters (limit
   # that conveniently allow us to search by items numbers).
-  if ($keywords && (strlen($keywords) < 3) && $return_error_messages)
+  if ($keywords && (strlen ($keywords) < 3) && $return_error_messages)
     {
-      search_failed();
+      search_failed ();
       exit;
     }
 
-  $arr_keywords = explode(" ", $keywords);
+  $arr_keywords = explode (" ", $keywords);
   $sql = '';
-  $sql_params = array();
+  $sql_params = [];
 
-  if ($type_of_search == "soft")
+  $tos = $type_of_search;
+  if ($tos == "soft")
     {
       $sql = "SELECT group_name,unix_group_name,type,group_id,short_description "
              ."FROM groups WHERE status='A' AND is_public='1' ";
@@ -449,19 +456,20 @@ function search_run ($keywords, $type_of_search="soft", $return_error_messages=1
           $sql_params[] = $type;
         }
 
-      list($kw_sql, $kw_sql_params) = search_keywords_in_fields(
+      list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
         $arr_keywords,
-        array('group_name', 'short_description', 'unix_group_name', 'group_id'),
-        $and_or);
+        ['group_name', 'short_description', 'unix_group_name', 'group_id'],
+        $and_or
+      );
       $sql .= " AND $kw_sql ORDER BY group_name,unix_group_name ";
       $sql_params = array_merge($sql_params, $kw_sql_params);
     }
-  elseif ($type_of_search == "people")
+  elseif ($tos == "people")
     {
       $sql = "SELECT user_name,user_id,realname "
         . "FROM user WHERE status='A' ";
 
-      list($kw_sql, $kw_sql_params) = search_keywords_in_fields(
+      list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
         $arr_keywords,
         array('user_name', 'realname', 'user_id'),
         $and_or);
@@ -469,50 +477,40 @@ function search_run ($keywords, $type_of_search="soft", $return_error_messages=1
       $sql .= " AND $kw_sql ORDER BY user_name ";
       $sql_params = array_merge($sql_params, $kw_sql_params);
     }
-  elseif ($type_of_search == 'bugs'
-          || $type_of_search == 'support'
-          || $type_of_search == 'patch'
-          || $type_of_search == 'cookbook'
-          || $type_of_search == 'task')
+  elseif (
+    !in_array ($tos, ['bugs', 'support', 'patch', 'cookbook', 'task'])
+  )
+    exit_error (_("Invalid search."));
+  $sql = "
+    SELECT
+      $tos.bug_id, $tos.summary, $tos.date, $tos.privacy, $tos.submitted_by,
+      user.user_name, $tos.group_id
+    FROM $tos, user, groups
+    WHERE
+      user.user_id = $tos.submitted_by AND groups.group_id = $tos.group_id ";
+ if ($tos != 'cookbook')
+   # As of 2021, we have no use_cookbook in the groups table.
+   $sql .= "AND groups.use_$tos = 1";
+
+  list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
+    $arr_keywords, [ "$tos.details", "$tos.summary", "$tos.bug_id"], $and_or
+  );
+
+  $sql .= " AND $kw_sql ";
+  $sql_params = array_merge ($sql_params, $kw_sql_params);
+
+  if ($only_group_id)
     {
-      $sql = "SELECT " . $type_of_search . ".bug_id,"
-        . $type_of_search . ".summary,"
-        . $type_of_search . ".date,"
-        . $type_of_search . ".privacy,"
-        . $type_of_search . ".submitted_by, user.user_name,"
-        . $type_of_search . ".group_id "
-        . "FROM " . $type_of_search . ",user,groups "
-        . "WHERE user.user_id=" . $type_of_search . ".submitted_by "
-        . "AND groups.group_id=" . $type_of_search . ".group_id ";
-     if ($type_of_search != 'cookbook')
-       # As of 2021, we have no use_cookbook in the groups table.
-       $sql .= "AND groups.use_" . $type_of_search . "=1";
-
-      list($kw_sql, $kw_sql_params) = search_keywords_in_fields(
-        $arr_keywords,
-        array("{$type_of_search}.details", "{$type_of_search}.summary",
-              "{$type_of_search}.bug_id"),
-        $and_or);
-
-      $sql .= " AND $kw_sql ";
-      $sql_params = array_merge($sql_params, $kw_sql_params);
-
-      if ($only_group_id)
-        {
-          # $search_without_group_id can be set to avoid restricting search
-          # to a group even if group_id is set.
-          $sql .= " AND ".$type_of_search.".group_id=? ";
-          $sql_params[] = $only_group_id;
-        }
-
-      $sql .= " AND ".$type_of_search.".spamscore < 5 "
-        . "GROUP BY bug_id,summary,date,user_name "
-        . "ORDER BY ".$type_of_search.".date DESC ";
+      # $search_without_group_id can be set to avoid restricting search
+      # to a group even if group_id is set.
+      $sql .= " AND $tos.group_id = ? ";
+      $sql_params[] = $only_group_id;
     }
-  else
-    exit_error(_("Invalid search."));
 
-  $sql .= " LIMIT ?,?";
+  $sql .= " AND $tos.spamscore < 5
+    GROUP BY bug_id, summary, date, user_name ORDER BY $tos.date DESC ";
+
+  $sql .= " LIMIT ?, ?";
   $sql_params[] = intval($offset);
   $sql_params[] = $max_rows + 1;
   return db_execute($sql, $sql_params);

@@ -320,6 +320,8 @@ print form_submit (_("Search Groups"), "Submit", false, true);
 print "</form>\n\n</div><!-- end boxitem -->\n";
 
 extract (sane_import ('request', ['pass' => 'words']));
+if (!is_scalar ($words))
+  $words = '';
 if ($words)
   {
     # Avoid to big search by asking for more than 1 characters.

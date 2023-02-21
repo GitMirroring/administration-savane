@@ -132,6 +132,10 @@ if ($is_trackeradmin)
     ]
   ));
 
+foreach (['reassign_change_project_search', 'depends_search'] as $var)
+  if (!is_scalar ($$var))
+    $$var = '';
+
 if ($canned_response === null)
   extract (sane_import ('post',
     ['array' => [['canned_response', [null, 'digits']]]]

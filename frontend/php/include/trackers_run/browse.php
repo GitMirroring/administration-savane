@@ -323,7 +323,8 @@ elseif ($set == 'custom')
         if (!is_array ($arr_val))
           $arr_val = [$arr_val];
         foreach ($arr_val as $value_id)
-          $pref_stg .= "&amp;{$field}[]=$value_id";
+          if (is_scalar ($value_id))
+            $pref_stg .= "&amp;{$field}[]=$value_id";
       }
     $pref_stg .= "&amp;advsrch=$advsrch&amp;msort=$msort&amp;chunksz=$chunksz";
     $pref_stg .= "&amp;spamscore=$spamscore&amp;report_id=$report_id";

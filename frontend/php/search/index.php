@@ -37,11 +37,11 @@ extract (sane_import ('request',
   ]
 ));
 
-if (!$words)
+if (!$words || !is_scalar ($words))
   {
-    search_send_header();
+    search_send_header ();
     print '<p>' . _("Enter your search words above.") . "</p>\n";
-    $HTML->footer(array());
+    $HTML->footer ([]);
     exit;
   }
 
