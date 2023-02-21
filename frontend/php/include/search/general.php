@@ -418,9 +418,9 @@ function search_run (
 
   # Convert the crit form value to the SQL equiv.
   if ($exact)
-    $and_or='AND';
+    $and_or = 'AND';
   else
-    $and_or='OR';
+    $and_or = 'OR';
 
   # No offset defined? Start the search in the DB at 0.
   if (!$offset || $offset < 0)
@@ -448,11 +448,12 @@ function search_run (
   $tos = $type_of_search;
   if ($tos == "soft")
     {
-      $sql = "SELECT group_name,unix_group_name,type,group_id,short_description "
-             ."FROM groups WHERE status='A' AND is_public='1' ";
+      $sql = "
+        SELECT group_name, unix_group_name, type, group_id, short_description
+        FROM groups WHERE status = 'A' AND is_public = '1' ";
       if ($type)
         {
-          $sql .= "AND type=? ";
+          $sql .= "AND type = ? ";
           $sql_params[] = $type;
         }
 
@@ -461,19 +462,16 @@ function search_run (
         ['group_name', 'short_description', 'unix_group_name', 'group_id'],
         $and_or
       );
-      $sql .= " AND $kw_sql ORDER BY group_name,unix_group_name ";
+      $sql .= " AND $kw_sql ORDER BY group_name, unix_group_name ";
       $sql_params = array_merge($sql_params, $kw_sql_params);
     }
   elseif ($tos == "people")
     {
-      $sql = "SELECT user_name,user_id,realname "
-        . "FROM user WHERE status='A' ";
+      $sql = "SELECT user_name, user_id, realname FROM user WHERE status = 'A'";
 
       list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-        $arr_keywords,
-        array('user_name', 'realname', 'user_id'),
-        $and_or);
-
+        $arr_keywords, ['user_name', 'realname', 'user_id'], $and_or
+      );
       $sql .= " AND $kw_sql ORDER BY user_name ";
       $sql_params = array_merge($sql_params, $kw_sql_params);
     }
@@ -481,39 +479,44 @@ function search_run (
     !in_array ($tos, ['bugs', 'support', 'patch', 'cookbook', 'task'])
   )
     exit_error (_("Invalid search."));
-  $sql = "
-    SELECT
-      $tos.bug_id, $tos.summary, $tos.date, $tos.privacy, $tos.submitted_by,
-      user.user_name, $tos.group_id
-    FROM $tos, user, groups
-    WHERE
-      user.user_id = $tos.submitted_by AND groups.group_id = $tos.group_id ";
- if ($tos != 'cookbook')
-   # As of 2021, we have no use_cookbook in the groups table.
-   $sql .= "AND groups.use_$tos = 1";
-
-  list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-    $arr_keywords, [ "$tos.details", "$tos.summary", "$tos.bug_id"], $and_or
-  );
-
-  $sql .= " AND $kw_sql ";
-  $sql_params = array_merge ($sql_params, $kw_sql_params);
-
-  if ($only_group_id)
+  else
     {
-      # $search_without_group_id can be set to avoid restricting search
-      # to a group even if group_id is set.
-      $sql .= " AND $tos.group_id = ? ";
-      $sql_params[] = $only_group_id;
+      $sql = "
+        SELECT
+          $tos.bug_id, $tos.summary, $tos.date, $tos.privacy,
+          $tos.submitted_by, user.user_name, $tos.group_id
+        FROM $tos, user, groups
+        WHERE
+          user.user_id = $tos.submitted_by
+          AND groups.group_id = $tos.group_id ";
+      if ($tos != 'cookbook')
+        # As of 2021, we have no use_cookbook in the groups table.
+        $sql .= "AND groups.use_$tos = 1";
+
+      list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
+        $arr_keywords, [ "$tos.details", "$tos.summary", "$tos.bug_id"],
+        $and_or
+      );
+
+      $sql .= " AND $kw_sql ";
+      $sql_params = array_merge ($sql_params, $kw_sql_params);
+
+      if ($only_group_id)
+        {
+          # $search_without_group_id can be set to avoid restricting search
+          # to a group even if group_id is set.
+          $sql .= " AND $tos.group_id = ? ";
+          $sql_params[] = $only_group_id;
+        }
+
+      $sql .= " AND $tos.spamscore < 5
+        GROUP BY bug_id, summary, date, user_name ORDER BY $tos.date DESC ";
     }
 
-  $sql .= " AND $tos.spamscore < 5
-    GROUP BY bug_id, summary, date, user_name ORDER BY $tos.date DESC ";
-
   $sql .= " LIMIT ?, ?";
-  $sql_params[] = intval($offset);
+  $sql_params[] = intval ($offset);
   $sql_params[] = $max_rows + 1;
-  return db_execute($sql, $sql_params);
+  return db_execute ($sql, $sql_params);
 }
 
 function search_exact ($keywords)
