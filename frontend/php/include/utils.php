@@ -680,6 +680,11 @@ function temp_dbg ($msg)
 # Die with debug information.
 function util_die ($msg)
 {
+  $backtrace = debug_backtrace ();
+  array_shift ($backtrace);
+  error_log ( "util_die: $msg ::: backtrace: "
+    . utils_debug_print_mybacktrace ($backtrace, false)
+  );
   if (!$GLOBALS['sys_debug_on'])
     die ($msg);
   print "<strong>Fatal error:</strong> $msg<br />";
@@ -703,7 +708,7 @@ function util_die ($msg)
 #  @version     $Revision: 1.6 $
 #  @since       PHP 5
 #  @require     PHP 4.3.0 (debug_backtrace)
-function utils_debug_print_mybacktrace ($backtrace = null)
+function utils_debug_print_mybacktrace ($backtrace = null, $print = true)
 {
   # Get backtrace.
   if ($backtrace === null)
@@ -748,7 +753,10 @@ function utils_debug_print_mybacktrace ($backtrace = null)
         '#%d  %s(%s) called at [%s]', $i, $function, $params, $location
       );
     }
-  echo implode("\n", $calls), "\n";
+  $ret = join ("\n", $calls) . "\n";
+  if ($print)
+    print $ret;
+  return $ret;
 }
 
 function util_feedback ($msg, $error = 0)
