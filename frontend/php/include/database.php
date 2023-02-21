@@ -115,6 +115,38 @@ function db_argval ($v)
   util_die ("Don't use db_execute with type $typ.");
 }
 
+function db_query_report_string ($sql, $inputarr)
+{
+  return "Query is: <code>"
+    . htmlspecialchars ($sql) . "</code>, \$inputarr is <code>"
+    . print_r ($inputarr, 1) . "</code>";
+}
+
+function db_expand_sql ($sql, $inputarr)
+{
+  $sql_exploded = explode ('?', $sql);
+  $i = 0;
+  $sql_expanded = '';
+
+  foreach ($inputarr as $v)
+    {
+      if (!array_key_exists ($i, $sql_exploded))
+        util_die ("db_expand_sql: too long \$inputarr ("
+          . count ($inputarr) . " vs. " . count ($sql_exploded)
+          . " in \$sql_exploded).\n" . db_query_report_string ($sql, $inputarr)
+        );
+      $sql_expanded .= $sql_exploded[$i] . db_argval ($v);
+      $i += 1;
+    }
+
+  if (isset ($sql_exploded[$i]))
+    {
+      $sql_expanded .= $sql_exploded[$i];
+      if ($i + 1 == sizeof ($sql_exploded))
+        return $sql_expanded;
+    }
+}
+
 # Substitute '?' with one of the values in the $inputarr array,
 # properly escaped for inclusion in an SQL query.
 function db_variable_binding ($sql, $inputarr = null)
@@ -126,28 +158,14 @@ function db_variable_binding ($sql, $inputarr = null)
 
   if (!is_array ($inputarr))
     util_die (
-      "db_variable_binding: \$inputarr is not an array. Query is: <code>"
-      . htmlspecialchars ($sql) . "</code>, \$inputarr is <code>"
-      . print_r ($inputarr, 1) . "</code>"
+      "db_variable_binding: \$inputarr is not an array.\n"
+      . db_query_report_string ($sql, $inputarr)
     );
 
-  $sql_exploded = explode ('?', $sql);
 
-  $i = 0;
-  $sql_expanded = '';
-
-  foreach ($inputarr as $v)
-    {
-      $sql_expanded .= $sql_exploded[$i] . db_argval ($v);
-      $i += 1;
-    }
-
-  if (isset ($sql_exploded[$i]))
-    {
-      $sql_expanded .= $sql_exploded[$i];
-      if ($i + 1 == sizeof ($sql_exploded))
-        return $sql_expanded;
-    }
+  $ret = db_expand_sql ($sql, $inputarr);
+  if ($ret !== null)
+    return $ret;
   util_die (
     "db_variable_binding: input array does not match query: <pre>"
     . htmlspecialchars ($sql) . "<br />" . print_r ($inputarr, true)
