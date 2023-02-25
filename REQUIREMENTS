@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Exim (or sendmail, postfix...)
 * MySQL or MariaDB
 * Apache (apache2, libapache2-mod-php, apache2-utils in debian)
-* pwqcheck (handling new passwords in frontend)
+* pwqcheck (handling new passwords in frontend, passwdqc in debian)
 
 = Perl Modules =
 
