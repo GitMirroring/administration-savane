@@ -4,7 +4,7 @@
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2018, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -21,12 +21,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
+require_once ('../include/init.php');
 
 extract (sane_import ('request',
   [
     'digits' =>
-      ['type', 'offset', 'max_rows', 'only_group_id', ['exact', [0, 1]]],
+      [ 'type', 'only_group_id', ['offset', [0, 410338673]],
+        ['max_rows', [1, 4913]], ['exact', [0, 1]]
+      ],
     'strings' => [
       [
         'type_of_search',
@@ -36,6 +38,12 @@ extract (sane_import ('request',
     'pass' => 'words',
   ]
 ));
+
+if (empty ($offset))
+  $offset = 0;
+
+if (empty ($max_rows))
+  $max_rows = 25;
 
 if (!$words || !is_scalar ($words))
   {

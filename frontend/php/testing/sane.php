@@ -2035,7 +2035,9 @@ $reference = 'search/index.php';
 {
   $names = [
     'digits' =>
-      ['type', 'offset', 'max_rows', 'only_group_id', ['exact', [0, 1]]],
+      [ 'type', 'only_group_id', ['offset', [0, 410338673]],
+        ['max_rows', [1, 4913]], ['exact', [0, 1]]
+      ],
     'strings' => [
       [
         'type_of_search',
@@ -2048,6 +2050,10 @@ $reference = 'search/index.php';
     'type' => 1, 'exact' => 0, 'offset' => 2, 'max_rows' => 3,
     'only_group_id' => 4, 'type_of_search' => 'soft', 'words' => 'w',
   ];
+  test_sane_import ($in, $names, $out);
+  $in['offset'] = -1; $out['offset'] = 1;
+  test_sane_import ($in, $names, $out);
+  $in['max_rows'] = 0; $out['max_rows'] = null;
   test_sane_import ($in, $names, $out);
 }
 

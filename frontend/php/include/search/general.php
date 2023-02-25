@@ -138,8 +138,6 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
   # If there is no search currently, set the default.
   if (!isset ($type_of_search))
     $exact = 1;
-  if (!isset ($max_rows))
-    $max_rows = "25";
 
   # If the wildcard '%%%' is searched, replace it with the more usual '*'.
   if ($words == "%%%")
@@ -421,14 +419,6 @@ function search_run (
     $and_or = 'AND';
   else
     $and_or = 'OR';
-
-  # No offset defined? Start the search in the DB at 0.
-  if (!$offset || $offset < 0)
-    $GLOBALS['offset'] = 0;
-
-  # Print 25 rows by default.
-  if (!$max_rows)
-    $GLOBALS['max_rows'] = 25;
 
   # Accept only to do a search for more than 2 characters.
   # Exit only if we were not told to avoid returning error messages.
