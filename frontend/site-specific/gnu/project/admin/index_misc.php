@@ -35,12 +35,12 @@ $host = $project->getTypeBaseHost();
 $grp = $GLOBALS['group'];
 
 print "rsync cvs.$host::sources/$grp/\n";
-print "rsync cvs.$host::web/$grp/\n";
+print "rsync cvs.$host::web/$grp/\n</pre>";
 
 if (substr ($GLOBALS['sys_default_domain'], -8) == ".gnu.org")
   {
     # TRANSLATORS: this is a header (<h3>).
-    print "\n</pre>\n\n<h3>" .  _('ftp.gnu.org area') . "</h3>\n<p>";
+    print "\n\n<h3>" .  _('ftp.gnu.org area') . "</h3>\n<p>";
     # TRANSLATORS: the argument is a mailto: link.
     printf (
       _("Each GNU project has a download area at ftp.gnu.org. This area "
