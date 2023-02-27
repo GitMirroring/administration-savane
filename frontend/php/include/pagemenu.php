@@ -145,7 +145,7 @@ function pagemenu_submenu_title (
   # As the current code was not planned to be forced to make context guessing
   # for submenus, we are forced to do it in a quite awkward way.
   if  (!empty ($stone_age_menu))
-    $stone_age_menu_lastcontext = context_guess_from_url ($url, true);
+    list ($stone_age_menu_lastcontext, $ign) = context_guess_from_url ($url);
 
   # We make appear the submenu with both CSS and JavaScript.  That is because
   # some browsers (MSIE) have poor CSS support and cannot do it otherwise.
