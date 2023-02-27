@@ -645,7 +645,7 @@ function pagemenu_group_trackers ($tracker)
 
   $ret .= pagemenu_submenu_entry_separator ()
     . pagemenu_submenu_entry ('<strong>' . _("Configure:") . '</strong>',
-        "$root/admin/?$gr_n"
+        "$root/admin/$gr_n"
       )
     . pagemenu_submenu_entry (_("Select fields"),
        "$root/admin/field_usage.php$gr_n", 1,
