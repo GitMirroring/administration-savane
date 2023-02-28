@@ -1,8 +1,8 @@
 <?php
 # Check password strength.
 #
-# Copyright (C) 2000-2002, 2010, 2013, 2016 Solar Designer
-# Copyright (C) 2017, 2022 Ineiev
+# Copyright (C) 2000-2002, 2010, 2013, 2016, 2020 Solar Designer
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -19,20 +19,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# From:
+# The pwqcheck() function was originally taken from
 # http://www.openwall.com/articles/PHP-Users-Passwords#enforcing-password-policy
+#
+# The article disclaimed:
 #
 # No copyright to the source code snippets found in this article and
 # to the sample programs included in the accompanying archive is
 # claimed, and they're hereby placed in the public domain. Please feel
 # free to reuse them in your programs.
 #
-# Author: Alexander Peslyak
+# Author: Alexander Peslyak (original pwqcheck())
 # Author: Ineiev (i18n).
 
 # The original pwqcheck is not internationalized. Strings to localize
 # are taken from passwdqc_check.c (the 1.3.1 release); they are copyrighted
-# by Solar Designer.
+# by Solar Designer (if copyrightable at all).
 # The license for passwdqc_check.c is:
 #
 # Redistribution and use in source and binary forms, with or without
@@ -51,6 +53,7 @@
 # SUCH DAMAGE.
 
 $pwqcheck_messages_for_i18n = [
+  # Available in passwdqc-1.3.0 and passwdqc-1.3.1.
   _("Bad passphrase (is the same as the old one)"),
   _("Bad passphrase (is based on the old one)"),
   _("Bad passphrase (too short)"),
@@ -61,7 +64,11 @@ $pwqcheck_messages_for_i18n = [
   _("Bad passphrase (based on personal login information)"),
   _("Bad passphrase (based on a dictionary word and not a passphrase)"),
   _("Bad passphrase (based on a common sequence of characters and not "
-    . "a passphrase)")
+    . "a passphrase)"),
+  # Added since passwdqc-1.3.1 to passwdqc-2.0.2.
+  _("Bad passphrase (based on a word list entry)"),
+  _("Bad passphrase (is in deny list)"),
+  _("Bad passphrase (appears to be in a database)"),
 ];
 
 function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = '')
