@@ -57,6 +57,8 @@
 
 ** Groyp type name assignent in siteadmin/group_type.php didn't work.
 
+** The LANGUAGE environment overrode locale settings requested by browsers.
+
 [I18N]
 
 * Update French, Hebrew, Russian.

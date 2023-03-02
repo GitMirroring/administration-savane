@@ -1,5 +1,5 @@
 <?php
-# Configure locale using browser preferences, via gettext and date(1).
+# Configure locale using browser preferences.
 #
 # Copyright (C) 2016 Karl Berry (disable languages)
 # Copyright (C) 2003-2006 Stéphane Urbanovski <s.urbanovski--ac-nancy-metz.fr>
@@ -37,7 +37,7 @@ $locale_names = [];
 function register_language ($code, $locale, $name = "")
 {
   global $locale_list, $locale_names;
-  $locale_list[$code] = $locale.".UTF-8";
+  $locale_list[$code] = "$locale.UTF-8";
   if ($name !== "")
     $locale_names[$code] = $name;
 }
@@ -64,62 +64,64 @@ register_language ("ru", "ru_RU", "русский");
 #register_language ("zh-cn", "zh_CN");
 
 # Get user's preferred languages from UA headers.
-$accept_language = strtolower (str_replace (array (' ', '	'), '',
-                                            getenv("HTTP_ACCEPT_LANGUAGE")));
-$browser_preferences = explode(",", $accept_language);
+$accept_lang =  str_replace ([' ', "\t"], '', getenv ("HTTP_ACCEPT_LANGUAGE"));
+$browser_preferences = explode (",", strtolower ($accept_lang));
 
 # Set the default locale.
 $quality = 0;
 $best_lang = "en";
 
-if (isset($GLOBALS['sys_default_locale']))
-  $best_lang = $GLOBALS['sys_default_locale'];
+if (isset ($sys_default_locale))
+  $best_lang = $sys_default_locale;
 
 # Find the best language available.
 foreach ($browser_preferences as $lng)
   {
-  # Parse language and quality factor.
+    # Parse language and quality factor.
     $q = 1;
     $arr = explode (';', $lng);
     if (isset ($arr[1]))
       {
         $lng = $arr[0];
         $arr[1] = $arr[1];
-        if (substr($arr[1], 0, 2) === 'q=')
-          $q = substr($arr[1], 2);
+        if (substr ($arr[1], 0, 2) === 'q=')
+          $q = substr ($arr[1], 2);
         else continue; # The second half doesn't define quality; skip the item.
         if ($q > 1 || $q <= 0)
           continue; # Unusable quality value.
       }
     $cur_lang = $lng;
 
-  # Check language code.
+    # Check language code.
     $lang_len = strpos ($cur_lang, '-');
     if ($lang_len === FALSE)
       $lang_len = strlen ($cur_lang);
     if ($lang_len < 2)
       continue; # Language code must be at least 2 characters long.
 
-    if (!isset($locale_list[$cur_lang] ))
+    if (empty ($locale_list[$cur_lang]))
       continue; # No such locale; skip the item.
 
     if ($q <= $quality)
       continue;
 
-  # Best item available so far: select.
+    # Best item available so far: select.
     $quality = $q;
     $best_lang = $cur_lang;
   } # foreach ($browser_preferences as $lng)
 
-if (isset($_COOKIE['LANGUAGE']) && isset($locale_list[$_COOKIE['LANGUAGE']]))
+if (isset ($_COOKIE['LANGUAGE']) && isset ($locale_list[$_COOKIE['LANGUAGE']]))
   $best_lang = $_COOKIE['LANGUAGE'];
 
 $locale = $locale_list[$best_lang];
-define('SV_LANG', $best_lang);
+define ('SV_LANG', $best_lang);
 
-setlocale (LC_ALL, $locale);
+# The LANGUAGE variable would override our settings, so we unset it.
+putenv ("LANGUAGE=");
+
+$sloc = setlocale (LC_ALL, $locale);
 utils_update_decimal_separator ();
-# Specify the .mo path; defaults to gettext's compile-time $datadir/locale otherwise
-if (!empty($sys_localedir))
-  bindtextdomain('savane', $sys_localedir);
-textdomain('savane');
+if (!empty ($sys_localedir))
+  $res = bindtextdomain ('savane', $sys_localedir);
+textdomain ('savane');
+?>
