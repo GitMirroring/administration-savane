@@ -36,31 +36,33 @@ $locale_names = [];
 # isn't offered for selection on /i18n.php.
 function register_language ($code, $locale, $name = "")
 {
-  global $locale_list, $locale_names;
+  global $locale_list, $locale_names, $sys_linguas;
+  if (false === strpos (":$sys_linguas:", ":$code:"))
+    return;
   $locale_list[$code] = "$locale.UTF-8";
   if ($name !== "")
     $locale_names[$code] = $name;
 }
 
-#register_language ("ca", "ca_ES", "català");
-#register_language ("de", "de_DE", "Deutsch");
+register_language ("ca", "ca_ES", "català");
+register_language ("de", "de_DE", "Deutsch");
 register_language ("en", "en_US", "English");
 #register_language ("en-gb", "en_GB");
 register_language ("es", "es_ES", "español");
 register_language ("fr", "fr_FR", "français");
 #register_language ("fr-fr", "fr_FR");
-#register_language ("it", "it_IT", "italiano");
-#register_language ("ja", "ja_JP", "日本語");
+register_language ("it", "it_IT", "italiano");
+register_language ("ja", "ja_JP", "日本語");
 #register_language ("ja-jp", "ja_JP");
-#register_language ("ko", "ko_KR", "한국어");
+register_language ("ko", "ko_KR", "한국어");
 #register_language ("ko-kr", "ko_KR");
 register_language ("he", "he_IL", "עברית");
 register_language ("pt", "pt_BR", "português do Brasil");
 register_language ("pt-br", "pt_BR");
 register_language ("ru", "ru_RU", "русский");
-#register_language ("sv", "sv_SE", "svenska");
+register_language ("sv", "sv_SE", "svenska");
 #register_language ("sv-se", "sv_SE");
-#register_language ("zh", "zh_CN", "简体中文");
+register_language ("zh", "zh_CN", "简体中文");
 #register_language ("zh-cn", "zh_CN");
 
 # Get user's preferred languages from UA headers.

@@ -40,6 +40,8 @@
 
 * Group type names and descriptions are localized.
 
+* Active languages are selected in initialization time with $sys_linguas.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served
