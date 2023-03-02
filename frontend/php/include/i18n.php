@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/utils.php');
-# Table of supported languages :
+# Table of supported languages:
 # "language variant" => "associated preferred locale"
 $locale_list = [];
 
@@ -118,12 +118,17 @@ if (isset ($_COOKIE['LANGUAGE']) && isset ($locale_list[$_COOKIE['LANGUAGE']]))
 $locale = $locale_list[$best_lang];
 define ('SV_LANG', $best_lang);
 
-# The LANGUAGE variable would override our settings, so we unset it.
-putenv ("LANGUAGE=");
+function i18n_setup ($locale)
+{
+  global $sys_localedir;
+  # The LANGUAGE variable would override our settings, so we unset it.
+  putenv ("LANGUAGE=");
 
-$sloc = setlocale (LC_ALL, $locale);
-utils_update_decimal_separator ();
-if (!empty ($sys_localedir))
-  $res = bindtextdomain ('savane', $sys_localedir);
-textdomain ('savane');
+  $sloc = setlocale (LC_ALL, $locale);
+  utils_update_decimal_separator ();
+  if (!empty ($sys_localedir))
+    $res = bindtextdomain ('savane', $sys_localedir);
+  textdomain ('savane');
+}
+i18n_setup  ($locale);
 ?>

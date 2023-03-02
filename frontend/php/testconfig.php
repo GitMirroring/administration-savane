@@ -161,12 +161,12 @@ function test_git_dirs ()
 
 function test_repos ()
 {
-  print "<tr id='cgitrepos'><td>cgitrepos</td><td>\n";
+  print "<dt id='cgitrepos'>cgitrepos</dt>\n<dd>";
   test_cgitrepos ();
-  print "</td></tr>\n";
-  print "<tr id='gitrepos'><td>git directories</td><td>\n";
+  print "</dd>";
+  print "<dt id='gitrepos'>git directories</dt>\n<dd>";
   test_git_dirs ();
-  print "</td></tr>\n";
+  print "</dd>\n";
    
 }
 function test_sys_upload_dir ()
@@ -285,9 +285,8 @@ foreach ($phptags as $tag => $goodval)
   }
 
 # Check against minimum sizes.
-$phptags = array ('post_max_size' => '3M',
-                  'upload_max_filesize' => '2M');
-ksort($phptags);
+$phptags = ['post_max_size' => '3M', 'upload_max_filesize' => '2M'];
+ksort ($phptags);
 foreach ($phptags as $tag => $goodval)
   {
     if (return_bytes(ini_get($tag)) >= return_bytes($goodval))
@@ -342,8 +341,25 @@ foreach ($phpfunctions as $func => $comment)
       print
         "function <strong>$func</strong> not found. <em>$comment</em><br />\n";
   }
+print "</p>\n";
 
-print "</p>\n\n<h2>Apache environment vars</h2>\n\n<p>";
+$sys_linguas = "en:es";
+require_once ("include/i18n.php");
+function test_i18n ()
+{
+  global $sys_linguas;
+
+  i18n_setup ("es_ES.UTF-8");
+  $str = 'High';
+  $res = gettext ($str);
+  if ($res == $str)
+    print "<strong>fail</strong>";
+  else
+    print "$str => $res";
+  i18n_setup ("en_US.UTF-8");
+}
+
+print "\n<h2>Apache environment vars</h2>\n\n<p>";
 if (getenv ('SAVANE_CONF'))
   {
     $conf_var = getenv ('SAVANE_CONF');
@@ -444,10 +460,9 @@ else
               {
                 $vals = explode (",", $mysql_highlight[$param]);
                 foreach ($vals as $i => $v)
-                  $value = str_replace ($v, '<strong>' . $v . '</strong>',
-                                        $value);
+                  $value = str_replace ($v, "<strong>$v</strong>", $value);
               }
-            print '<dt>' . $param . "</dt><dd>'" . $value . "'";
+            print "<dt>$param</dt><dd>'$value'";
             if ($comment !== NULL)
               print "\n$comment";
             print "</dd>\n";
@@ -456,12 +471,15 @@ else
       } # db_connect ()
     print "\n<h2>Other tests</h2>\n\n";
     print "<table border=\"1\">\n";
-    print "<tr><th>Test</th><th>Result</th></tr>\n";
+    print "<dl>\n";
     test_repos ();
-    print "<tr id='sys-upload-dir'><td>sys_upload_dir writability</td><td>\n";
+    print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
     test_sys_upload_dir ();
-    print "</td></tr>\n";
-    print "</table>\n";
+    print "</dd>\n";
+    print "<dt id='i18n'>i18n</dt>\n<dd>";
+    test_i18n ();
+    print "</dd>\n";
+    print "</dl>\n";
     test_gpg ();
   } # is_readable ($sys_conf_file)
 
@@ -515,5 +533,5 @@ if ($unset)
   echo "<blockquote>* This tag was not found at all. It is probably irrelevant "
        . "to your PHP version so you may ignore this entry.</blockquote>\n\n";
 
-print "\n<h2>That's it!</h2>\n";
 print "</body>\n<html>\n";
+?>
