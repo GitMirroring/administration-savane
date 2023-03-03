@@ -5,7 +5,7 @@
 # Copyright (C) 2000-2003 Free Software Foundation
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007 Sylvain Beucler
-# Copyright (C) 2017, 2018, 2019, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 # 
@@ -207,41 +207,28 @@ if ($is_suspended)
 
 print "<br />\n";
 
-print $HTML->box_top (_("Project Information"), '', 1);
+print $HTML->box_top (_("Group Information"), '', 1);
 $result = db_execute ("
-  SELECT
-    groups.group_name, groups.group_id, groups.unix_group_name,
-    group_history.date
-  FROM groups, user_group, group_history
+  SELECT g.group_name, g.group_id, g.unix_group_name, h.date
+  FROM groups g, user_group u, group_history h
   WHERE
-    groups.group_id = user_group.group_id AND user_group.user_id = ?
-    AND groups.status = 'A' AND groups.is_public = '1'
-    AND (
-      group_history.field_name = 'Added User'
-      OR group_history.field_name = 'Approved User'
-    )
-    AND group_history.group_id = user_group.group_id
-    AND group_history.old_value = ?
-  GROUP BY groups.unix_group_name
-  ORDER BY groups.unix_group_name",
+    g.group_id = u.group_id AND h.group_id = u.group_id AND u.user_id = ?
+    AND g.status = 'A' AND g.is_public = '1' AND h.old_value = ?
+    AND h.field_name IN ('Added User', 'Approved User')
+  GROUP BY g.unix_group_name ORDER BY g.unix_group_name",
   [$user_id, db_result ($res_user, 0, 'user_name')]
 );
 $rows = db_numrows ($result);
 
-# Alternative sql that do not use group_history, just in case this history
+# Alternative SQL that do not use group_history, just in case this history
 # would be flawed (history usage has been inconsistent over Savane history).
 $result_without_history = db_execute ("
-  SELECT
-    groups.group_name, groups.group_id, groups.unix_group_name,
-    0 as date
-  FROM groups, user_group
+  SELECT g.group_name, g.group_id, g.unix_group_name, 0 as date
+  FROM groups g, user_group u
   WHERE
-    groups.group_id = user_group.group_id AND user_group.user_id = ?
-    AND groups.status = 'A' AND groups.is_public = '1'
-    AND user_group.admin_flags != 'P'
-  GROUP BY groups.unix_group_name
-  ORDER BY groups.unix_group_name",
-  [$user_id]
+    g.group_id = u.group_id AND u.user_id = ?
+    AND g.status = 'A' AND g.is_public = '1' AND u.admin_flags != 'P'
+  GROUP BY g.unix_group_name ORDER BY g.unix_group_name", [$user_id]
 );
 $rows_without_history = db_numrows ($result_without_history);
 
@@ -272,7 +259,7 @@ for ($i = 0; $i < $rows; $i++)
     $items .= "</li>\n";
   }
 if ($items === '')
-  print _("This user is not a member of any Group");
+  print _("This user is not a member of any group.");
 else
   print "<ul class='boxli'>$items</ul>\n";
 print $HTML->box_bottom (1);
