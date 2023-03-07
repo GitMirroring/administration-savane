@@ -1428,18 +1428,25 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
   return join (',', $arr);
 }
 
-# Transform criteria list to SQL query (+ means ascending
-# - is descending).
-function trackers_criteria_list_to_query ($criteria_list)
+# Filter out invalid criteria.
+function trackers_criteria_sanitize ($criteria_list)
 {
   $criteria = explode (',', $criteria_list);
+  $fields = [];
+  while ($field = trackers_list_all_fields ())
+    $fields[] = $field;
+  $regexp = "/^(" . join ('|', $fields) . ')[<>]?$/';
   $criteria_filtered = [];
   foreach ($criteria as $cr)
-    {
-      if (preg_match ('/^[a-z_]+[<>]?$/i', $cr))
-        $criteria_filtered[] = $cr;
-    }
-  $criteria_list = join (',', $criteria_filtered);
+    if (preg_match ($regexp, $cr))
+      $criteria_filtered[] = $cr;
+  return join (',', $criteria_filtered);
+}
+
+# Transform criteria list to SQL query ('>' means ascending, '<' descending).
+function trackers_criteria_list_to_query ($criteria_list)
+{
+  $criteria_list = trackers_criteria_sanitize ($criteria_list);
   $criteria_list = str_replace ('>', ' ASC', $criteria_list);
   $criteria_list = str_replace ('<', ' DESC', $criteria_list);
   # Undo the uid->user_name trick to avoid "Column 'submitted_by' in
