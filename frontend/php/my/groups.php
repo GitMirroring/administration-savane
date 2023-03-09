@@ -28,7 +28,6 @@ require_directory ('trackers');
 # Make this page register global off compliant.
 register_globals_off ();
 
-# Obtain general user info.
 $res_user =
   db_execute ("SELECT * FROM user WHERE user_id = ?", [user_getid ()]);
 $row_user = db_fetch_array ($res_user);
@@ -36,8 +35,6 @@ $row_user = db_fetch_array ($res_user);
 # Obtain approval_user_gen_email() for site specific content.
 utils_get_content ("my/request_for_inclusion");
 
-# Updates.
-# Watchee add.
 extract (sane_import ('request',
   [
     'strings' => [['func', ['addwatchee', 'delwatchee']]],
@@ -225,12 +222,7 @@ $rows_w = db_numrows ($result_w);
 
 if (!$result_w || $rows_w < 1)
   {
-    print '<p>' . _("You are not watching any partners.") . "</p>\n";
-    print '<p>'
-      . _("Watching a partner (receiving a copy of all notifications sent\n"
-          . "to them) permits you to be their backup when they are away from\n"
-          . "the office, or to review all their activities in the group.");
-    print "</p>\n<p>";
+    print '<p>' . _("You are not watching any partners.") . "</p>\n<p>";
     print _("To watch someone, follow the &ldquo;Watch partner&rdquo; link\n"
             . "in group memberlist page. You need to be member of that "
             . "group.");
@@ -285,8 +277,8 @@ if ($watchers)
     # list of watchers.
     printf (
       ngettext (
-        'My own notifications are currently watched by %1$s user: %2$s.',
-        'My own notifications are currently watched by %1$s users: %2$s.',
+        'I am currently watched by %1$s user: %2$s.',
+        'I am currently watched by %1$s users: %2$s.',
         $watchers_num
       ),
       $watchers_num, $watchers
@@ -294,7 +286,7 @@ if ($watchers)
     print "</p>\n";
   }
 else
-  print '<p>' . _("Nobody is currently watching my own notifications.")
+  print '<p>' . _("Nobody is currently watching me.")
     . "</p>\n";
 
 print $HTML->box_bottom ();
