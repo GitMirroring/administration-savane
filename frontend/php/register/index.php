@@ -103,7 +103,8 @@ $form->addElement ('header', 'title_checklist', _("Checklist"));
 $form->addElement ('checkbox', 'cl1',
   _('My software runs primarily on a completely free OS'));
 $form->addElement ('checkbox', 'cl2',
-  _('My license is compatible with the GNU GPL or GFDL'));
+  _('My license is compatible with GNU GPLv3 and later '
+    . 'or GFDLv1.3 and later'));
 $form->addElement ('checkbox', 'cl3',
   _('My dependencies are compatible with my package license'));
 $form->addElement ('checkbox', 'cl4',
