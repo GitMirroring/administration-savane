@@ -141,15 +141,6 @@ $tr_head = "<tr valign='top'>\n";
 if ($is_suspended && user_is_super_user ())
   print "$tr_head<td>" . _("Note:") . " </td>\n<td><strong>"
     . _("The account was deleted") . "</strong></td>\n</tr>\n";
-# We don't translate the text of these links because it's for sysadmins only.
-if (user_is_super_user ())
-  {
-    $admin_url = "/siteadmin/usergroup.php?user_id=$user_id";
-    print $tr_head
-      . "<td><a href=\"$admin_url\">[Edit User]</a></td>\n</td>\n"
-      . "<td><a href=\"$admin_url&action=delete\">[Delete User]</a></td>\n"
-      . "</tr>\n";
-  }
 print "$tr_head<td>" . _("Real Name:")
   . " </td>\n<td><strong>$realname</strong></td>\n</tr>\n"
   . "$tr_head<td>" . _("Login Name:") . " </td>\n<td><strong>"
@@ -174,12 +165,19 @@ if (user_is_super_user () || !$is_suspended)
     print "</a></strong></td>\n</tr>\n";
   }
 
-# Meaningless for squads.
 if (!$is_squad && (!$is_suspended || user_is_super_user ()))
   {
     print "$tr_head<td>" . _("Site Member Since:") . "</td>\n<td><strong>"
       . utils_format_date (db_result ($res_user, 0, 'add_date'))
-      . "</strong>\n</td>\n</tr>\n$tr_head<td></td>\n<td>";
+      . "</strong>\n</td>\n</tr>\n$tr_head<td>";
+    if (user_is_super_user ())
+      {
+        # We don't translate the text of this links because it's for
+        # sysadmins only.
+        $admin_url = "/siteadmin/usergroup.php?user_id=$user_id";
+        print "<a href=\"$admin_url\">[Edit User]</a>";
+      }
+    print "</td>\n<td>";
 
     if (db_result ($res_user, 0, 'people_view_skills') != 1)
       print _("This user did not enable Resume & Skills.");
