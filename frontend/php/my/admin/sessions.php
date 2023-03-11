@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 require_once('../../include/init.php');
-register_globals_off ();
 
 # Check if the user is logged in.
 session_require (['isloggedin' => '1']);
@@ -38,61 +37,61 @@ extract (sane_import ('get',
 ));
 extract (sane_import ('cookie', ['hash' => 'session_hash']));
 
-# Update the database.
 if ($func == 'del')
   {
     if ($dsession_hash && $dip_addr && $dtime)
       {
         # Delete one session.
-        $dsession_hash = substr($dsession_hash, 0, 6)."%";
-        if (db_execute("DELETE FROM session "
-              . " WHERE session_hash like ? AND ip_addr=? "
-              . " AND time=? AND user_id=? LIMIT 1",
-              array($dsession_hash, $dip_addr,
-                    $dtime, user_getid())))
-          fb(
-# TRANSLATORS: this is a report of a successful action.
-             _("Old session deleted"));
+        $dsession_hash = substr ($dsession_hash, 0, 6) . "%";
+        $res = db_execute ("
+          DELETE FROM session
+          WHERE
+            session_hash like ? AND ip_addr = ?  AND time = ? AND user_id = ?
+          LIMIT 1", [$dsession_hash, $dip_addr, $dtime, user_getid ()]
+        );
+        if ($res)
+          # TRANSLATORS: this is a report of a successful action.
+          fb (_("Old session deleted"));
         else
           fb(_("Failed to delete old session"), 1);
       }
     elseif ($dkeep_one)
       {
         # Delete all sessions apart from the current one.
-        if (db_execute("DELETE FROM session "
-              . " WHERE session_hash<>? AND user_id=?",
-              array($session_hash, user_getid())))
-          fb(
-# TRANSLATORS: this is a report of a successful action.
-             _("Old sessions deleted"));
+        $res = db_execute ("
+          DELETE FROM session WHERE session_hash <> ? AND user_id = ?",
+          [$session_hash, user_getid ()]
+        );
+        if ($res)
+          # TRANSLATORS: this is a report of a successful action.
+          fb (_("Old sessions deleted"));
         else
-          fb(_("Failed to delete old sessions"), 1);
+          fb (_("Failed to delete old sessions"), 1);
       }
     else
-      fb(_("Parameters missing, update canceled"), 1);
+      fb (_("Parameters missing, update canceled"), 1);
   }
-# Actually print the HTML page.
-site_user_header(array('title'=>_("Manage sessions"),
-                       'context'=>'account'));
-$res = db_execute("SELECT session_hash,ip_addr,time FROM session WHERE "
-                  . "user_id = ? "
-                  . "ORDER BY time DESC", array(user_getid()));
-if (db_numrows($res) < 1)
-  exit_error(_("No session found."));
+site_user_header (['title' => _("Manage sessions"), 'context' => 'account']);
+$res = db_execute ("
+  SELECT session_hash, ip_addr, time FROM session
+  WHERE user_id = ? ORDER BY time DESC", [user_getid()]
+);
+if (db_numrows ($res) < 1)
+  exit_error (_("No session found."));
 
-print $HTML->box_top(_("Opened Sessions"));
+print $HTML->box_top (_("Opened Sessions"));
 $i = 0;
-while ($row = db_fetch_array($res))
+while ($row = db_fetch_array ($res))
   {
     $i++;
     if ($i > 1)
-      print $HTML->box_nextitem(utils_altrow($i));
+      print $HTML->box_nextitem (utils_altrow ($i));
 
-  # We destroy a part of the session hash because in no case we want to
-  # provide in clear text that complete information that could be used for
-  # forgery (even if it is true that this page access is normally properly
-  # restricted).
-    $dsession_hash = substr($row['session_hash'], 0, 6)."...";
+    # We destroy a part of the session hash because in no case we want to
+    # provide in clear text that complete information that could be used
+    # for forgery (even if it is true that this page access is normally
+    # properly restricted).
+    $dsession_hash = substr($row['session_hash'], 0, 6) . "...";
     # Do not incitate users to kill their own session.
     print '<span class="trash">';
     if ($session_hash != $row['session_hash'])
@@ -105,19 +104,18 @@ while ($row = db_fetch_array($res))
       print _("Current session").' ';
     print '</span>';
 
-  # TRANSLATORS: The variables are session identifier, time, remote host.
-    print sprintf(_('Session %1$s opened on %2$s from %3$s'), $dsession_hash,
-                  utils_format_date($row['time']), gethostbyaddr($row['ip_addr']))
-          ."<br />&nbsp;";
+    # TRANSLATORS: The variables are session identifier, time, remote host.
+    printf (_('Session %1$s opened on %2$s from %3$s'), $dsession_hash,
+      utils_format_date($row['time']), gethostbyaddr($row['ip_addr']));
+    print "<br />\n&nbsp;";
   }
 
 # Allow to kill sessions apart the current one,
-# if more than 3 sessions were counted
-# (otherwise, it looks overkill).
+# if more than 3 sessions were counted (otherwise, it looks overkill).
 if ($i > 3)
   {
     $i++;
-    print $HTML->box_nextitem(utils_altrow($i));
+    print $HTML->box_nextitem (utils_altrow ($i));
     print '<span class="trash">';
     print utils_link (
       "$php_self?func=del&amp;dkeep_one=1",
@@ -126,6 +124,6 @@ if ($i > 3)
     print '</span><em>';
     print _("All sessions apart from the current one") . "</em><br />&nbsp;\n";
   }
-print $HTML->box_bottom();
-site_user_footer(array());
+print $HTML->box_bottom ();
+site_user_footer ([]);
 ?>

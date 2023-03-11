@@ -23,7 +23,6 @@
 require_once ('../include/init.php');
 require_once ('../include/my/general.php');
 require_directory ("trackers");
-register_globals_off ();
 
 global $item_data, $group_data;
 $item_data = $group_data = [];

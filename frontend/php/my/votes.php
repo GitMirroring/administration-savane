@@ -21,7 +21,6 @@
 require_once ('../include/init.php');
 require_once ('../include/html.php');
 require_directory ("trackers");
-register_globals_off ();
 
 extract (sane_import ('post',
   [

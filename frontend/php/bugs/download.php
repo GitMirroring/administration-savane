@@ -22,7 +22,6 @@
 
 require_once ('../include/init.php');
 require_once ('../include/trackers/general.php');
-register_globals_off ();
 
 extract (sane_import ('get', ['digits' => 'file_id']));
 

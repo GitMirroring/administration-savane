@@ -19,14 +19,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once ('../../include/init.php');
+require_once ('../../include/account.php');
 
-## NOTE: for now, squads are group specific. However, as squads reuse the
-# users code, we could easily imagine to share squads among different projects
-
-require_once('../../include/init.php');
-require_once('../../include/account.php');
-
-register_globals_off();
 extract (sane_import ('request', ['digits' => 'squad_id']));
 extract (sane_import ('post',
   [

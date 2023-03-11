@@ -21,7 +21,6 @@
 require_once ('../include/init.php');
 require_once ('../include/my/general.php');
 require_directory ("trackers");
-register_globals_off ();
 
 global $item_data, $group_data;
 $item_data = $group_data = [];
@@ -70,9 +69,7 @@ if ($result && $rows > 0)
   {
     unset ($nosquads);
     for ($j = 0; $j < $rows; $j++)
-      {
-        $usersquads[] = db_result ($result, $j, 'squad_id');
-      }
+      $usersquads[] = db_result ($result, $j, 'squad_id');
   }
 else
   $nosquads = 1;
@@ -91,7 +88,7 @@ unset ($result);
 unset ($rows);
 # Build an sql request that will fetch any relevant news.
 $sql = "
-  SELECT group_id,date,id,summary FROM news_bytes
+  SELECT group_id, date, id, summary FROM news_bytes
   WHERE date > ? AND is_approved = '5' AND (";
 $params = [$new_date_limit];
 $link = '';
@@ -146,13 +143,12 @@ reset ($usergroups_groupid);
 $sql = "
 SELECT group_id, date, forum_id, summary FROM news_bytes
 WHERE
-  date > ? AND (is_approved = '0' OR is_approved = '1')
-  AND (group_id = ? ";
+  date > ? AND is_approved in ('0', '1') AND (group_id = ? ";
 $params = [$new_date_limit, $sys_group_id];
 
 foreach ($usergroups as $group => $groupname)
   {
-    $sql .= "OR group_id=? ";
+    $sql .= "OR group_id = ? ";
     $params[] = $usergroups_groupid[$group];
   }
 $sql .= ") ORDER BY date DESC";

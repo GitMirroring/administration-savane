@@ -1,5 +1,5 @@
 <?php
-# Show history.
+# Show group history.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2000-2003 Free Software Foundation
@@ -21,16 +21,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-require_once('../../include/project/admin.php');
-register_globals_off();
+require_once ('../../include/init.php');
+require_once ('../../include/project/admin.php');
 
-if (!member_check(0, $group_id))
-  exit_permission_denied();
+if (!member_check (0, $group_id))
+  exit_permission_denied ();
 
-site_project_header(array('title'=>_("Project History"),
-                          'group'=>$group_id,'context'=>'ahome'));
+site_project_header (
+  ['title' => _("Group History"), 'group' => $group_id,'context' => 'ahome']
+);
 
-show_grouphistory($group_id);
-site_project_footer(array());
+show_grouphistory ($group_id);
+site_project_footer ([]);
 ?>

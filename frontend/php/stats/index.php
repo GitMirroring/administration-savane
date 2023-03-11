@@ -27,8 +27,6 @@ require_once ('../include/calendar.php');
 require_once ('../include/graphs.php');
 require_once ('../include/form.php');
 
-register_globals_off();
-
 $digit_names = [];
 foreach (['day', 'month', 'year'] as $term)
   foreach (['since', 'until'] as $prep)

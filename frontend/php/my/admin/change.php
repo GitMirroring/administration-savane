@@ -28,13 +28,8 @@ require_once ('../../include/sendmail.php');
 require_once ('../../include/gpg.php');
 
 require (utils_get_content_filename ("gpg-sample"));
-register_globals_off ();
-# Should be mysql-safe, needs various input validation + !!tests!!
 
-# Preliminary checks.
-# Check if the user is logged in.
-session_require(array('isloggedin'=>'1'));
-
+session_require (['isloggedin' => '1']);
 extract (sane_import ('request',
   [
     'strings' =>
@@ -51,7 +46,7 @@ extract (sane_import ('request',
 ));
 
 if (!$item)
-  exit_missing_param();
+  exit_missing_param ();
 
 $success = FALSE;
 
@@ -63,7 +58,7 @@ if ($item == 'delete')
   {
     $res_check = db_execute (
       "SELECT group_id FROM user_group WHERE user_id = ?",
-      [user_getid()]
+      [user_getid ()]
     );
     $rows = db_numrows ($res_check);
     $exists = false;

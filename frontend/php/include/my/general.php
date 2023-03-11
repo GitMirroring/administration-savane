@@ -115,8 +115,6 @@ function my_item_count($total, $new)
 
 # Function that expect item_data and $group_data to exist as globals,
 # so we can avoid doing hundred of time the same SQL requests.
-# Indeed, it is safe only as register_globals_off() is used on my/ pages
-# and since it is reinitialized at the begin of these pages.
 function my_item_list (
   $role = "assignee", $threshold = "5", $openclosed = "open", $uid = 0,
   $condensed = 0

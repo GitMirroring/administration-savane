@@ -388,7 +388,7 @@ function sane_apply_func ($func, $input, $name, &$values)
 #   ],
 # ]
 # For more examples, see testing/sane.php.
-function sane_import($method, $names)
+function sane_import ($method, $names)
 {
   $values = array();
   $input =& $GLOBALS[sane_input_array_name ($method)];
@@ -402,44 +402,5 @@ function sane_import($method, $names)
         $values[$name] = null;
     }
   return $values;
-}
-
-# Does an isset. Not really necessary, just for cohesion sake.
-function sane_isset($varname)
-{
-  return isset($_REQUEST[$varname]);
-}
-
-# Function to obtain info related to a file upload.
-function sane_upload($varname, $subvarname=false)
-{
-  if (!$subvarname)
-    return $_FILES[$varname];
-
-  return $_FILES[$varname][$subvarname];
-}
-
-# Function to set a variable in both $_REQUEST and global.
-# The global may be deleted by a call to register_globals_off(),
-# so the $_REQUEST will remain and should be safe
-# (this function should be used only to set safe values! Normally
-# it should be used only in include/ like pre.php).
-function sane_set($varname, $value)
-{
-  $GLOBALS[$varname] = $value;
-  $_REQUEST[$varname] = $value;
-}
-
-# Noop function to mark a page as input-sanitized.
-# Warning: MySQL calls are not necessarily secure.
-function register_globals_off()
-{
-  # This is unsecure: you can switch off existing globals
-  # - unless that's the very first thing you do in the script
-  # - and it's not always the case
-#  foreach ($_REQUEST as $key => $value)
-#    {
-#      unset($GLOBALS[$key]);
-#    }
 }
 ?>

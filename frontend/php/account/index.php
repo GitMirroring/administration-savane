@@ -1,7 +1,8 @@
 <?php
-# First valid login, after account confirmation
+# Redirection to account settings.
 #
 # Copyright (C) 2008 Sylvain Beucler
+# Copyright (C) 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -18,8 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/session.php');
-register_globals_off();
-session_redirect($GLOBALS['sys_home']."my/admin/");
+require_once ('../include/init.php');
+require_once ('../include/session.php');
+session_redirect ("${sys_home}my/admin/");
 ?>

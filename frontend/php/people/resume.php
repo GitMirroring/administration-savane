@@ -22,20 +22,19 @@
 
 require_once('../include/init.php');
 require_once('../include/people/general.php');
-register_globals_off();
 
 extract (sane_import ('get', ['digits' => 'user_id']));
 
 if (empty ($user_id))
-  exit_missing_param();
+  exit_missing_param (['user_id']);
 
-$result = db_execute ("SELECT * FROM user WHERE user_id = ?", array($user_id));
+$result = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
 
-if (!$result || (db_numrows($result) < 1))
+if (!$result || (db_numrows ($result) < 1))
   exit_error (_("User not found"));
 
 if (db_result ($result, 0, 'people_view_skills') != 1)
-  exit_error (_("This user deactivated his/her Resume & Skills page"));
+  exit_error (_("Resume & Skills page for this user is disabled"));
 
 $user_status = db_result ($result, 0, 'status');
 
@@ -65,5 +64,5 @@ if ($resume != '')
 print '<h2>' . _("Skills") . "</h2>\n";
 print people_show_skill_inventory ($user_id);
 
-site_footer (array());
+site_footer ([]);
 ?>

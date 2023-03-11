@@ -23,7 +23,6 @@
 require_once ('../../include/init.php');
 require_once ('../../include/form.php');
 require_directory ("people");
-register_globals_off ();
 
 if (!user_isloggedin ())
   exit_not_logged_in ();

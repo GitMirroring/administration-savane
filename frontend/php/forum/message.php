@@ -24,7 +24,6 @@ require_once('../include/init.php');
 require_once('../include/sane.php');
 require_once('../include/news/forum.php');
 require_once('../include/news/general.php');
-register_globals_off();
 
 extract(sane_import('request', ['digits' => 'msg_id']));
 

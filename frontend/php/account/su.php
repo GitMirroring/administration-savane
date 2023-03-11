@@ -1,5 +1,5 @@
 <?php
-# Enable or disable admin privileges for the current user
+# Enable or disable admin privileges for the current user.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2004-2006 Mathieu Roy <yeupou--gnu.org>
@@ -21,9 +21,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/sane.php');
-register_globals_off();
+require_once ('../include/init.php');
+require_once ('../include/sane.php');
 
 # Login was asked and user can be super user? Set a cookie and that's done.
 # For now, set a cookie that does not stay long, we'll see if admin complains

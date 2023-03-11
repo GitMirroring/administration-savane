@@ -21,8 +21,6 @@
 
 require_once ('../include/init.php');
 require_once ('../include/form.php');
-
-register_globals_off ();
 session_require (['group' => '1', 'admin_flags' => 'A']);
 
 # We don't internationalize messages in this file because they are

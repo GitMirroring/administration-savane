@@ -28,8 +28,6 @@ require_once ('../include/sendmail.php');
 require_once ('../include/database.php');
 require_once ('../include/gpg.php');
 
-register_globals_off ();
-
 extract (sane_import ('post', ['name' => 'form_loginname']));
 
 # Logged users have no business here.

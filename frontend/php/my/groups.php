@@ -25,9 +25,6 @@ require_once ('../include/database.php');
 require_directory ('search');
 require_directory ('trackers');
 
-# Make this page register global off compliant.
-register_globals_off ();
-
 $res_user =
   db_execute ("SELECT * FROM user WHERE user_id = ?", [user_getid ()]);
 $row_user = db_fetch_array ($res_user);

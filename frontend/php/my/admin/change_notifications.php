@@ -26,7 +26,6 @@
 require_once('../../include/init.php');
 require_once('../../include/account.php');
 require_directory("trackers");
-register_globals_off();
 
 $notif_arr = [
   'notify_unless_im_author', 'notify_item_closed',

@@ -19,13 +19,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/session.php');
+require_once ('../include/init.php');
+require_once ('../include/session.php');
 
-register_globals_off();
+if (user_isloggedin ())
+  session_logout ();
 
-if (user_isloggedin())
-  session_logout();
-
-session_redirect($GLOBALS['sys_home']);
+session_redirect ($sys_home);
 ?>

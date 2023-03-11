@@ -21,9 +21,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-register_globals_off();
-require_once('../include/people/general.php');
+require_once ('../include/init.php');
+require_once ('../include/people/general.php');
 
 extract (sane_import ('get',
   [
