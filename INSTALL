@@ -1,107 +1,305 @@
-Testing
-~~~~~~~
+Copyright (C) 2023 Ineiev
 
-If you want to give a quick try at the web interface:
+This file is part of Savane.
 
-	cd tests/minimal_configs/
-	make install
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
 
-Then point your browser at http://localhost:50080/
-That's all!
+This document describes a sample Savane installation procedure using
+a demo database.  For more details and options, you may want to look
+into Savannah wiki (https://savannah.gnu.org/maintenance/).
+The commands are run from a non-root account unless specifically
+noted for the command in question.
 
-You need 'apache2', 'mysqld_safe' and 'mysql' binaries in your
-PATH. They will be used with alternate configuration files to create a
-non-privileged testing environment, and will not impact your other
-Apache or MySQL installations.
+Install dependencies (plus Git, GNU Autotools, GNU gettext).
 
+Download and gpg --verify savane_demo-$latest.sql.gz{.sig,}
+from Savannah administration group download area
+(as of 2023-02, $latest is 2022-05).
 
-Complete install
-~~~~~~~~~~~~~~~~
+With root privileges, create a database and a user;
+grant proper permissions:
 
-	# Configure system paths [1]
-	./configure.sh
-	# build what need to be built
-	make
-	# log as superuser
-	su
-	# create the database
-	make database
-	# create the configuration file (WIP)
-	# make conf
-	emacs /etc/savane/savane.conf.pl
-	# install the backend scripts and the translation files
-	make install
+# mysql
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 37
+Server version: 10.3.38-MariaDB-0ubuntu0.20.04.1 Ubuntu 20.04
 
-	
-	# OR do all of the above all at once (WIP)
-	#./configure
-	#su -c "make savane"
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
 
-Then, you must plug Savane into Apache. Exemple if you want to install Savane
-at yourdomain/savane: 
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-  Alias /savane $path_to_savane/frontend/php
+MariaDB [(none)]> CREATE DATABASE sv_demo;
+Query OK, 1 row affected (0.001 sec)
 
-  <Directory $path_to_savane/frontend/php>
-      # Pure apache conf:
-      SetEnv SAVANE_CONF /etc/savane
-      Options SymLinksIfOwnerMatch
-      DirectoryIndex index.php
-      AllowOverride None
-      #Necessary with apache2: AcceptPathInfo On
-      ErrorDocument 404 /savane/404.php
-      Order allow,deny
-      Allow from all
+MariaDB [(none)]> CREATE USER 'sv'@'localhost' IDENTIFIED BY 'sv';
+Query OK, 0 rows affected (0.009 sec)
 
-      # Configure some specials urls:
-      <Files u>
-          ForceType application/x-httpd-php
-      </Files>
-      <Files us>
-          ForceType application/x-httpd-php
-      </Files>
-      <Files users>
-          ForceType application/x-httpd-php
-      </Files>
-      <Files projects>
-          ForceType application/x-httpd-php
-      </Files>
-      <Files pr>
-          ForceType application/x-httpd-php
-      </Files>
-      <Files p>
-          ForceType application/x-httpd-php
-      </Files>
-      <Files file>
-          ForceType application/x-httpd-php
-      </Files>
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON sv_demo.* TO 'sv'@'localhost';
+Query OK, 0 rows affected (0.001 sec)
 
-      # Restrict access to testconfig
-      <Files testconfig.php>
-          Order Deny,Allow
-          Allow from 127.0.0.1
-          Deny from All
-      </Files>
+MariaDB [(none)]> quit
+Bye
+# exit
+$
+
+Fill the database from the demo dump:
+
+$ gzip -d < savane_demo-$latest.sql.gz \
+  | mysql --user=sv --password=sv sv_demo
+
+Clone Savane to $HOME/sv:
+
+$ mkdir ~/sv && cd ~/sv \
+  && git clone https://git.savannah.nongnu.org/git/administration/savane.git
+git clone https://git.savannah.nongnu.org/git/administration/savane.git
+Cloning into 'savane'...
+remote: Counting objects: 14454, done.
+remote: Compressing objects: 100% (3394/3394), done.
+remote: Total 14454 (delta 10514), reused 14454 (delta 10514)
+Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
+Resolving deltas: 100% (10514/10514), done.
+
+Bootstrap, configure and build:
+
+$ cd savane; ./bootstrap
+autoreconf: Entering directory `.'
+...
+autoreconf: Leaving directory `.'
+$ ./configure --prefix=$HOME/sv/install
+checking for a BSD-compatible install... /usr/bin/install -c
+...
+Now you can run:
+  make
+  make install
+to install the backend scripts, their Savane Perl library,
+and language files for the web interface
+$ make && make install
+Making all in etc
+make[1]: Entering directory '/home/dti/sv/savane/etc'
+...
+make[2]: Nothing to be done for 'install-data-am'.
+make[2]: Leaving directory '/home/dti/sv/savane'
+make[1]: Leaving directory '/home/dti/sv/savane'
+$
+
+Write a sample ~/sv/etc/savane/cgitrepos:
+
+8< - - - - - - - - - -
+repo.group=GNU Core Utilities
+repo.url=coreutils.git
+repo.path=/srv/git/coreutils.git
+repo.desc=GNU coreutils
+repo.readme=README.html
+repo.owner=
+repo.group=emacs
+repo.url=emacs.git
+repo.path=/srv/git/emacs.git
+repo.desc=Emacs source repository
+repo.readme=README.html
+repo.owner=
+repo.url=emacs/elpa.git
+repo.path=/srv/git/emacs/elpa.git
+repo.desc=GNU ELPA
+repo.readme=README.html
+repo.owner=
+repo.url=emacs/nongnu.git
+repo.path=/srv/git/emacs/nongnu.git
+repo.desc=NonGNU ELPA
+repo.readme=README.html
+repo.owner=
+repo.url=emacs/org-mode.git
+repo.path=/srv/git/emacs/org-mode.git
+repo.desc=Emacs Org mode
+repo.readme=README.html
+repo.owner=
+repo.group=GNU sed
+repo.url=sed.git
+repo.path=/srv/git/sed.git
+repo.desc=GNU stream editor
+repo.readme=README.html
+repo.owner=
+repo.url=sed/sed-history.git
+repo.path=/srv/git/sed/sed-history.git
+repo.desc=
+repo.readme=README.html
+repo.owner=
+- - - - - - - - - - >8
+
+Fill local2/etc-savane/savane-dev-db.php:
+
+$ echo '<?php' > local2/etc-savane/savane-dev-db.php
+$ echo '$sys_dbhost="localhost";' >> local2/etc-savane/savane-dev-db.php
+$ echo '$sys_dbname="sv_demo";' >> local2/etc-savane/savane-dev-db.php
+$ echo '$sys_dbuser="sv";' >> local2/etc-savane/savane-dev-db.php
+$ echo '$sys_dbpasswd="sv";' >> local2/etc-savane/savane-dev-db.php
+$ echo '?>";' >> local2/etc-savane/savane-dev-db.php
+
+Run ./run-local-dev.sh and visit <http://127.0.0.1:7890/testconfig.php>.
+
+Check "MySQL configuration" and disable flags like STRICT_TRANS_TABLES
+in database configuration: set sql_mode in the right file from /etc/mysql
+to something like
+
+  [mysqld]
+
+  sql_mode = \
+    ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+Then restart the database server (requires root privileges):
+
+# service mariadb restart
+
+Write savane.conf:
+
+8< - - - - - - - - - -
+ServerName 127.0.0.1
+
+<VirtualHost 127.0.0.51:80>
+  ServerAdmin webmasters@localhost
+  ServerName 127.0.0.1
+
+  DocumentRoot @pref@/savane/frontend/php
+
+  SetEnv SAVANE_CONF @pref@/etc/savane
+
+  <Directory "@pref@/savane/frontend/php/">
+    php_admin_flag register_globals off
+    php_admin_flag magic_quotes_gpc off
+    php_admin_flag file_uploads on
+
+    php_admin_flag allow_url_fopen off
+    php_admin_value disable_functions exec,passthru,popen,shell_exec,system
+
+    DirectoryIndex index.php index.html
+    Require all granted
   </Directory>
+
+  <Files ~ "^(users|us|u|projects|pr|p|file)$">
+    SetHandler application/x-httpd-php
+  </Files>
+  ErrorDocument 404 /404.php
+
   # Restrict access into include/
-  <Directory $path_to_savane/frontend/php/include>
-	Order Allow,Deny
-	Deny from all
+  <Directory "@pref@/savane/frontend/php/include/">
+   Require all denied
   </Directory>
-	
-If you use the backend, read also etc/README.
 
-	# Afterwards, you should check 
-	# http://127.0.0.1/savane/testconfig.php
+  <Location "/register">
+    php_admin_value post_max_size 52428800
+    php_admin_value upload_max_filesize 52428800
+  </Location>
 
-(please read carefully INSTALL.verbose for a more complete guide)
+  # Uploads for new project registrations and bug-report attachments.
+  # This directory must be writable by 'www-data' user.
+  # NOTE: Ensure this directory matches the '$sys_upload_dir' value
+  #       in the custom savanne configuration file
+  #       ($SAVANE_CONF/.savane.conf.php).
+  Alias /submissions_uploads @pref@/var/www/submissions_uploads/
+  <Directory "@pref@/var/www/submissions_uploads/">
+    Options Indexes
+    AllowOverride None
 
+    # Tested with Apache2 + mod-php7
+    php_admin_flag engine off
 
-Notes
-~~~~~
+    # Method 3:
+    <FilesMatch ".">
+      SetHandler default-handler
+    </FilesMatch>
+  </Directory>
 
-[1] If you checked out Savane directly from the repository (instead of
-downloading a release tarball), you first need to install the
-autotools (Autoconf and Automake), and bootstrap the build system:
+  # Apache Logs for development site
+  CustomLog @pref@/var/logs/sv.access.log combined
+  ErrorLog @pref@/var/logs/sv.error.log
 
-	./bootstrap
+  # PHP logs for development site.
+  php_admin_flag log_errors on
+  php_admin_flag display_errors on
+
+  # Include decperation warnings, set the value to E_ALL (32767).
+  # see http://php.net/manual/en/errorfunc.constants.php .
+  php_admin_value error_reporting 32767
+
+  php_admin_value error_log @pref@/var/logs/sv.php-error.log
+
+</VirtualHost>
+- - - - - - - - - - >8
+
+Substitute your path:
+
+$ sed -i "s,@pref@,$HOME/sv,g" savane.conf
+
+Create used directories:
+
+$ mkdir -p $HOME/sv/etc/savane \
+  $HOME/sv/var/{logs,www/submissions_uploads/trackers_attachments}}
+
+Make var directories writeable for www-data (uses root privileges
+via sudo):
+
+$ sudo chgrp -R www-data $HOME/sv/var
+
+Write in $HOME/sv/etc/savane/.savane.conf.php:
+8< - - - - - - - - - -
+<?php
+$sys_default_domain = "127.0.0.51";
+#$sys_https_host = "$sys_default_domain";
+$sys_brother_domain = "127.0.0.51";
+$sys_file_domain = $sys_default_domain;
+
+$sys_debug_nobasehost = true;
+$sys_debug_email_override_address = "webmasters@localhost";
+
+$sys_dbhost = "localhost";
+$sys_dbname = "sv_demo";
+$sys_dbuser = "sv";
+$sys_dbpasswd = 'sv';
+$sys_incdir = "gnu";
+$sys_name = "Savannah-dev";
+$sys_unix_group_name = "administration";
+$sys_themedefault = "Savannah";
+
+# Directory for group registration uploads.
+$sys_upload_dir = "@pref@/var/www/submissions_uploads/";
+$sys_trackers_attachments_dir = "{$sys_upload_dir}trackers_attachments";
+
+$sys_logo_name = "floating.png";
+$sys_logo_name_width = "148";
+$sys_logo_name_height = "125";
+$sys_mail_domain = "localhost";
+$sys_mail_admin = "savannah-reports-private";
+$sys_mail_replyto = "INVALID.NOREPLY";
+$sys_mail_list = "/etc/email-addresses";
+$sys_mail_aliases = "/etc/aliases";
+$sys_enable_forum_comments = 0;
+$sys_registration_text_spam_test = 0;
+$sys_registration_captcha = 1;
+$sys_userx_prefix = "/usr/sbin";
+$sys_upload_max = 16384;
+
+$sys_etc_dir = "@pref@/etc/savane";
+
+$sys_debug_sqlprofiler = false;
+?>
+- - - - - - - - - - >8
+
+Substitute your path:
+
+$ sed -i "s,@pref@,$HOME/sv,g" ~/sv/etc/savane/.savane.conf.php
+
+Copy to Apache configuration directory, add a link, restart Apache
+(requires root privileges):
+
+# cp savane.conf /etc/apache2/sites-available
+# cd /etc/apache2/sites-enabled; ln -s ../sites-available/savane.conf .
+# apachectl -k graceful
+# exit
+$
+
+Visit <http://127.0.0.51/testconfig.php>.
+
+At this point, it should work: visit <http://127.0.0.51>,
+login as 'agn' using password '12345'.
