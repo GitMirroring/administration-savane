@@ -54,6 +54,15 @@
 
 ** A few bugs are fixed, see the 'Bug fixes' section.
 
+* In tracker comment form, comment type & canned response selector
+  was rewritten:
+
+** No comment type selection is offered unless there are at least two
+   choices.
+
+** Comment types and canned responses are only available for group
+   members, per Savannah sr #110789.
+
 * Bug fixes:
 
 ** When user supplied multi-line file descriptions, the file was served

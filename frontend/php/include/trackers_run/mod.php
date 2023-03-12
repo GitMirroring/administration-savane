@@ -425,6 +425,80 @@ if (isset ($quote_no))
 if (!empty ($comment))
   $is_deployed['postcomment'] = $enable_comments;
 
+function print_comment_types ($group_id, $comment_type_id)
+{
+  global $preview, $anon_check_failed;
+
+  $comment_types =
+    trackers_data_get_field_predefined_values ('comment_type_id', $group_id);
+  if (db_numrows ($comment_types) <= 1)
+    {
+      unset ($GLOBALS['comment_type_id']);
+      return;
+    }
+  print "<label for='comment_type_id'>". _("Comment type:") . "</label>\n";
+
+  $checked = '';
+  if (($preview || !empty ($anon_check_failed)) && !empty ($comment_type_id))
+    $checked = $comment_type_id;
+  $box = trackers_field_box ('comment_type_id', '', $group_id, $checked, true);
+  print "$box<br />\n";
+}
+
+function print_canned_box ($group_id, $canned)
+{
+  global $sys_home;
+  print "<label for='canned_response'>" . _("Canned response:") . "</label>\n";
+  print trackers_canned_response_box ($group_id, 'canned_response', $canned);
+  if (!user_ismember ($group_id, 'A'))
+    return;
+  print "&nbsp;&nbsp;&nbsp;<a class='smaller' href=\"$sys_home"
+    . ARTIFACT . "/admin/field_values.php?group_id=$group_id"
+    . '&amp;create_canned=1">' . _("Define a new canned response") . '</a>';
+}
+
+function print_canned_checkboxes ($group_id, $canned_response)
+{
+  print _("Canned response:") . "\n";
+  $result = trackers_data_get_canned_responses ($group_id);
+  if (db_numrows ($result) <= 0)
+    {
+      print '<span class="warn">'
+        . _("Strangely enough, there is no canned response available.")
+        . '</span>';
+      return;
+    }
+  print '<div>';
+  $cra = is_array ($canned_response);
+  while ($canned = db_fetch_array ($result))
+    {
+      $id = $canned['bug_canned_id'];
+      $ck = $cra && in_array ($id, $canned_response);
+      print '&nbsp;&nbsp;&nbsp;';
+      print form_checkbox ("canned_response[]", $ck, ['value' => $id]);
+      print " {$canned['title']}<br />\n";
+    }
+  print "</div>\n";
+}
+
+function print_canned_selector ($group_id, $canned_response)
+{
+  if ($canned_response == "!multiple!" || is_array ($canned_response))
+    print_canned_checkboxes ($group_id, $canned_response);
+  else
+    print_canned_box ($group_id, $canned_response);
+}
+
+function print_comment_type_and_canned ($group_id, $canned_response, $ct_id)
+{
+  if (!user_ismember ($group_id))
+    return;
+  print '<p class="noprint"><span class="preinput">';
+  print_comment_types ($group_id, $ct_id);
+  print_canned_selector ($group_id, $canned_response);
+  print "</p>\n";
+}
+
 if ($enable_comments)
   {
     print html_hidsubpart_header (
@@ -434,59 +508,15 @@ if ($enable_comments)
       print markup_rich ($preambles[ARTIFACT . '_comment_preamble']);
 
     print '<p class="noprint"><span class="preinput"> ' . _("Add a New Comment")
-          . ' ' . markup_info ("rich");
+      . ' ' . markup_info ("rich");
     print form_submit (_('Preview'), 'preview')
-          . "</span><br />&nbsp;&nbsp;&nbsp;\n";
+      . "</span><br />&nbsp;&nbsp;&nbsp;\n";
     print trackers_field_textarea ('comment', htmlspecialchars ($comment),
-                                  0, 0, _("New comment"));
+      0, 0, _("New comment"));
     print "</p>\n";
-
-    print '<p class="noprint"><span class="preinput">';
-    print _("Comment Type & Canned Response:")
-      . '</span><br />&nbsp;&nbsp;&nbsp;';
-    $checked = '';
-    if (($preview || !empty ($anon_check_failed)) && !empty ($comment_type_id))
-      $checked = $comment_type_id;
-    print trackers_field_box ('comment_type_id', '', $group_id, $checked, true);
-
-    print '&nbsp;&nbsp;&nbsp;';
-
-    if ($canned_response == "!multiple!" || is_array ($canned_response))
-      {
-        $result_canned = trackers_data_get_canned_responses ($group_id);
-        if (db_numrows ($result_canned) > 0)
-          {
-            print '<div>';
-            while ($canned = db_fetch_array ($result_canned))
-              {
-                $id = $canned['bug_canned_id'];
-                $ck = is_array ($canned_response)
-                  && in_array ($id, $canned_response);
-                print '&nbsp;&nbsp;&nbsp;';
-                print
-                  form_checkbox ("canned_response[]", $ck, ['value' => $id]);
-                print " {$canned['title']}<br />\n";
-              }
-            print "</div>\n";
-          }
-        else
-          print '<span class="warn">'
-            . _("Strangely enough, there is no canned response available.")
-            . '</span>';
-      }
-    else
-      {
-        print trackers_canned_response_box (
-          $group_id, 'canned_response', $canned_response
-        );
-        if (user_ismember ($group_id, 'A'))
-          print "&nbsp;&nbsp;&nbsp;<a class='smaller' href=\"$sys_home"
-            . ARTIFACT . "/admin/field_values.php?group_id=$group_id"
-            . '&amp;create_canned=1">(' . _("Or define a new Canned Response")
-            . ')</a>';
-      }
-    print "</p>\n";
-    print "<p>&nbsp;</p>\n";
+    print_comment_type_and_canned ($group_id, $canned_response,
+      $comment_type_id
+    );
     print html_hidsubpart_footer ();
   } # $enable_comments
 if ($item_discussion_lock)
