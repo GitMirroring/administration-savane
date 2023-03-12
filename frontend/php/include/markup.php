@@ -430,7 +430,7 @@ function markup_inline_chunk ($ch)
 {
   $ret = '';
   foreach (explode ("\n", preg_replace ('/\n\s*\n/', "\n", $ch)) as $l)
-    $ret .= markup_markup_line ($l) . "\n";
+    $ret .= markup_markup_line ($l) . "<br />\n";
   return $ret;
 }
 

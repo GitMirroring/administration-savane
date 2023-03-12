@@ -110,12 +110,12 @@ $out_html = '<h2>Title</h2>
 <li>item 3
 </li>
 </ol>
-<p>
-<a href="//www.gnu.org">GNU website</a>
-
+<p><br />
+<a href="//www.gnu.org">GNU website</a><br />
+<br />
 </p>
 <h3>Subtitle</h3>
-<p>
+<p><br />
 </p>
 <ol>
 <li>item 1
@@ -125,14 +125,14 @@ $out_html = '<h2>Title</h2>
 <li>item 3
 </li>
 </ol>
-<p>
-
+<p><br />
+<br />
 </p>
 <blockquote class=\'verbatim\'><p> 0 verbatim 1<br />
 0 verbatim 2<br />
 0 verbatim 3<br />
 </p></blockquote>
-<p>
+<p><br />
 </p>
 ';
 
@@ -171,16 +171,16 @@ nomarkup
 
 ';
 
-$out_html = '<p>
-<i>it</i> <span class=\'nomarkup\'> inline *no* markup</span>
-
-<b>bold</b>
+$out_html = '<p><br />
+<i>it</i> <span class=\'nomarkup\'> inline *no* markup</span><br />
+<br />
+<b>bold</b><br />
 </p>
 <p class=\'nomarkup\'> multi-<br />
 line<br />
 nomarkup</p>
-<p>&nbsp;<a href="//www.gnu.org">continued</a>
-
+<p>&nbsp;<a href="//www.gnu.org">continued</a><br />
+<br />
 </p>
 ';
 
