@@ -403,4 +403,13 @@ function sane_import ($method, $names)
     }
   return $values;
 }
+
+# Function to set a variable in both $_REQUEST and global.
+# (This function should be used only to set safe values! Normally
+# it should be used only in include/ like pre.php).
+function sane_set ($varname, $value)
+{
+  $GLOBALS[$varname] = $value;
+  $_REQUEST[$varname] = $value;
+}
 ?>
