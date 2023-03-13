@@ -96,6 +96,10 @@
 
 * Update pwqcheck messages to the 2.0.2 release.
 
+[BUILD]
+
+* In po/Makefile.am, --previous is added to msgmerge command line.
+
 2023-02-01 3.10
 
 [FRONTEND]

@@ -1,6 +1,6 @@
-# Based on gettext-0.17/gettext-tools/examples/hello-php
-# (public domain)
-
+# Public domain.
+# Based on gettext-0.17/gettext-tools/examples/hello-php.
+#
 # Changes:
 # - some targets at the end, use `find` instead of
 #   $(POTFILES). $(POTFILES_DEPS) is supposed to do that though.
@@ -11,6 +11,7 @@
 #   autoconf. Let's not use for now.
 # - Add $(GMOFILES) to the default target (all-local-yes), so .mo
 #   files are updated when a .po is modified.
+# - Add --previous to msgmerge invocation.
 
 # List of files which contain translatable strings.
 # Empty because we use some `find` in $(DOMAIN).opt-update
@@ -52,8 +53,8 @@ MSGID_BUGS_ADDRESS = savannah-hackers-public@gnu.org
 # message catalogs shall be used.  It is usually empty.
 EXTRA_LOCALE_CATEGORIES =
 
-MSGMERGE = @MSGMERGE@
-MSGMERGE_UPDATE = @MSGMERGE@ --update
+MSGMERGE = @MSGMERGE@ --previous
+MSGMERGE_UPDATE = @MSGMERGE@ --previous --update
 MSGINIT = msginit
 MSGCONV = msgconv
 MSGFILTER = msgfilter
