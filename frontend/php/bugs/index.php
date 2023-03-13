@@ -141,6 +141,9 @@ if ($canned_response === null)
     ['array' => [['canned_response', [null, 'digits']]]]
   ));
 
+if (empty ($canned_response))
+  $canned_response = null;
+
 extract (sane_import ('get',
   [
     'digits' => ['comment_internal_id', 'item_depends_on'],

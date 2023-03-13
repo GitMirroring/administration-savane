@@ -1421,14 +1421,9 @@ function trackers_data_handle_update (
   # Return true if bug updated, false if nothing changed or
   # DB update failed.
 
-  # Make sure absolutely required fields are not empty
-  # yeupou, 2005-11: why is canned_response absolutely required?
-  if (!$group_id || !$item_id || !$canned_response)
-    {
-      dbg ("params were group_id:$group_id item_id:$item_id "
-          . "canned_response:$canned_response");
-      exit_missing_param ();
-    }
+  # Make sure absolutely required fields are not empty.
+  if (!$group_id || !$item_id)
+    exit_missing_param (['group_id', 'item_id']);
 
   # Make sure mandatory fields are not empty, otherwise we want the form
   # to be re-submitted.
@@ -1594,6 +1589,8 @@ function trackers_data_handle_update (
       $change_exists = 1;
       fb (_("Comment added"), 0);
       $dtext = htmlspecialchars ($details);
+      if (empty ($vfl['comment_type_id']))
+        $vfl['comment_type_id'] = false;
       trackers_data_add_history (
         'details', $dtext, '', $item_id, $vfl['comment_type_id']
       );
@@ -1612,7 +1609,7 @@ function trackers_data_handle_update (
   if (ARTIFACT == 'cookbook')
     {
       $details = htmlspecialchars ($vfl['details']);
-      $previous_details = db_result ($result,0,'details');
+      $previous_details = db_result ($result, 0, 'details');
 
       if ($details != $previous_details)
         {

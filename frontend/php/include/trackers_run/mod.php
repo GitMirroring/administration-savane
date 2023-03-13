@@ -537,10 +537,13 @@ if ($preview)
     $new_comment['user_name'] = user_getname (user_getid (), 0);
     $new_comment['realname'] = user_getname (user_getid (), 1);
     $new_comment['date'] = time ();
-    $new_comment['comment_type'] =
-      trackers_data_get_cached_field_value (
-        'comment_type_id', $group_id, $comment_type_id
-      );
+    if (empty ($comment_type_id))
+      $new_comment['comment_type'] = false;
+    else
+      $new_comment['comment_type'] =
+        trackers_data_get_cached_field_value (
+          'comment_type_id', $group_id, $comment_type_id
+        );
     $comm = $comment . $canned_text;
     if (!empty ($comm))
       $comm = trackers_encode_value (htmlspecialchars ($comm));
