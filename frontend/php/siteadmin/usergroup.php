@@ -169,7 +169,7 @@ function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
   print_contribution_heading ($user_id);
   $query = contribution_query ($user_id, $user_name, $offset, $max_rows);
   $result = db_execute ($query);
-  if (!$result || db_numrows ($result) < 1)
+  if (db_numrows ($result) < 1)
     {
       print '<p>' . no_i18n ('No contributions found.') . "</p>\n";
       return;

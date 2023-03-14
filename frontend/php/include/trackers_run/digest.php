@@ -154,7 +154,7 @@ foreach ($items_for_digest as $item)
     $result =
       db_execute ("SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?", [$item]);
 
-    if (!$result || db_numrows ($result) < 1)
+    if (db_numrows ($result) < 1)
       continue;
     $res_arr = db_fetch_array ($result);
     # Skip it is it is private but the user got no privilege.

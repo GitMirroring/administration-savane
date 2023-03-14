@@ -55,12 +55,12 @@ if ($update)
       [$form_news_address, $group_id]
     );
 
-    if (group_set_preference($group_id, "batch_frequency", $form_frequency))
-      fb(_("Successfully Updated Reminder Settings"));
+    if (group_set_preference ($group_id, "batch_frequency", $form_frequency))
+      fb (_("Successfully Updated Reminder Settings"));
     else
-      fb(_("Failed to Update Reminder Setting"), 1);
+      fb (_("Failed to Update Reminder Setting"), 1);
 
-    if (group_get_preference($group_id, "batch_lastsent") == "")
+    if (group_get_preference ($group_id, "batch_lastsent") == "")
       {
         if (group_set_preference($group_id, "batch_lastsent", "0"))
           fb(_("Successfully set Timestamp of the Latest Reminder"));
@@ -69,10 +69,10 @@ if ($update)
       }
   }
 
-$res_grp = db_execute("SELECT * FROM groups WHERE group_id=?", array($group_id));
-if (db_numrows($res_grp) < 1)
-  exit_no_group();
-$row_grp = db_fetch_array($res_grp);
+$res_grp = db_execute ("SELECT * FROM groups WHERE group_id = ?", [$group_id]);
+if (db_numrows ($res_grp) < 1)
+  exit_no_group ();
+$row_grp = db_fetch_array ($res_grp);
 
 site_project_header (
   ['title' => _("Set Notifications"),'group' => $group_id, 'context' => 'ahome']

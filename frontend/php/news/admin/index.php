@@ -39,7 +39,7 @@ if (!user_ismember ($group_id, 'A'))
 $grp = project_get_object ($group_id);
 
 if (!$grp->Uses ("news"))
-  exit_error (_("Error"), _("This Project Has Turned Off News Tracker"));
+  exit_error (_("Error"), _("This group doesn't post news"));
 
 if ($update)
   {

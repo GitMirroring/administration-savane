@@ -449,7 +449,9 @@ function trackers_data_get_all_report_fields ($report_id = 100)
     SELECT * FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
     [$report_id]
   );
-
+  $flags = ['show_on_query' => 0, 'show_on_result' => 1,
+    'place_query' => null, 'place_result' => null, 'col_width' => null
+  ];
   while ($arr = db_fetch_array ($res))
     {
       $field = $arr['field_name'];
@@ -459,43 +461,19 @@ function trackers_data_get_all_report_fields ($report_id = 100)
           # bug_id should always show up.
           $arr['show_on_result'] = 1;
         }
-      $field_id = trackers_data_get_field_id ($field);
-      $BF_USAGE_BY_NAME[$field]['show_on_query'] =
-        $BF_USAGE_BY_ID[$field_id]['show_on_query'] = $arr['show_on_query'];
-
-      $BF_USAGE_BY_NAME[$field]['show_on_result'] =
-        $BF_USAGE_BY_ID[$field_id]['show_on_result'] = $arr['show_on_result'];
-
-      $BF_USAGE_BY_NAME[$field]['place_query'] =
-        $BF_USAGE_BY_ID[$field_id]['place_query'] = $arr['place_query'];
-
-      $BF_USAGE_BY_NAME[$field]['place_result'] =
-        $BF_USAGE_BY_ID[$field_id]['place_result'] = $arr['place_result'];
-
-      $BF_USAGE_BY_NAME[$field]['col_width'] =
-        $BF_USAGE_BY_ID[$field_id]['col_width'] = $arr['col_width'];
+      $id = trackers_data_get_field_id ($field);
+      foreach ($flags as $f => $ignored)
+        $BF_USAGE_BY_NAME[$field][$f] = $BF_USAGE_BY_ID[$id][$f] = $arr[$f];
     }
   # Every query form should have 'bug_id'; if it hasn't, add it.
   if (!$have_bug_id)
     {
       if (db_numrows ($res) > 0)
-        error_log ("No bug it found in query form #" . $report_id);
+        error_log ("No bug it found in query form #$report_id");
       $field = 'bug_id';
-      $field_id = trackers_data_get_field_id ($field);
-      $BF_USAGE_BY_NAME[$field]['show_on_query'] =
-        $BF_USAGE_BY_ID[$field_id]['show_on_query'] = 0;
-
-      $BF_USAGE_BY_NAME[$field]['show_on_result'] =
-        $BF_USAGE_BY_ID[$field_id]['show_on_result'] = 1;
-
-      $BF_USAGE_BY_NAME[$field]['place_query'] =
-        $BF_USAGE_BY_ID[$field_id]['place_query'] = null;
-
-      $BF_USAGE_BY_NAME[$field]['place_result'] =
-        $BF_USAGE_BY_ID[$field_id]['place_result'] = null;
-
-      $BF_USAGE_BY_NAME[$field]['col_width'] =
-        $BF_USAGE_BY_ID[$field_id]['col_width'] = null;
+      $id = trackers_data_get_field_id ($field);
+      foreach ($flags as $f => $v)
+        $BF_USAGE_BY_NAME[$field][$f] = $BF_USAGE_BY_ID[$id][$f] = $v;
     }
   return db_numrows ($res) > 0;
 }
@@ -1394,7 +1372,7 @@ function trackers_data_append_canned_response ($details, $canned_response)
         [$response]
       );
 
-      if (!$res || db_numrows ($res) <= 0)
+      if (db_numrows ($res) <= 0)
         {
           fb (_("Unable to use canned response"), 1);
           continue;
@@ -2245,13 +2223,13 @@ function trackers_data_get_value (
 
   # Look for project specific values first...
   $result = db_execute ($sql, $args);
-  if ($result && db_numrows ($result) > 0)
+  if (db_numrows ($result) > 0)
     return db_result ($result, 0, 'value');
 
   # ... if it fails, look for system wide default values (group_id=100)...
   $args[0] = 100;
   $result = db_execute ($sql, $args);
-  if ($result && db_numrows ($result) > 0)
+  if (db_numrows ($result) > 0)
     return db_result ($result, 0, 'value');
 
   # No value found for this value id.

@@ -335,7 +335,7 @@ if ($update_field)
           WHERE group_id = ? AND bug_field_id = ?",
           [$group_id, trackers_data_get_field_id ($field)]
         );
-        if (db_numrows($result) > 0)
+        if (db_numrows ($result) > 0)
           $transition_default_auth =
             db_result ($result, 0, 'transition_default_auth');
         $ck_str = ' checked="checked"';

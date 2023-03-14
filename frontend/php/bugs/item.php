@@ -38,7 +38,7 @@ $result = db_execute (
   [$item_id, 5]
 );
 
-if (!$result || db_numrows ($result) < 1)
+if (db_numrows ($result) < 1)
   exit_error (_("Item not found."));
 
 $arr = db_fetch_array ($result);
@@ -61,7 +61,7 @@ if ($data_are_private)
       "SELECT user_id FROM user WHERE user_name = ?", [$user]
     );
 
-    if (!$result || db_numrows ($result) < 1)
+    if (db_numrows ($result) < 1)
       exit_error (_("User not found."));
     $user_id = db_fetch_array ($result)['user_id'];
 

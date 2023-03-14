@@ -115,46 +115,44 @@ function forum_header ($params)
   );
 
   # If the result is empty, this is not a news item, but a forum.
-  if (!$result || db_numrows($result) < 1)
+  if (db_numrows ($result) < 1)
     {
       $is_news = 0;
       site_project_header ($params);
+      return;
     }
-  else
-    {
-      $is_news = 1;
-      # Backwards shim for all "generic news" that used to be submitted
-      # as of may, "generic news" is not permitted - only project-specific
-      # news.
+  $is_news = 1;
+  # Backwards shim for all "generic news" that used to be submitted
+  # as of may, "generic news" is not permitted - only project-specific
+  # news.
 
-      $params['group'] = db_result ($result, 0, 'group_id');
+  $params['group'] = db_result ($result, 0, 'group_id');
 
-      $group_id = db_result ($result, 0, 'group_id');
-      $params['toptab'] = 'news';
-      site_project_header ($params);
+  $group_id = db_result ($result, 0, 'group_id');
+  $params['toptab'] = 'news';
+  site_project_header ($params);
 
-      print "\n<div class='indexright'>\n";
-      print $HTML->box_top (_("Latest News"));
-      print news_show_latest (db_result ($result, 0, 'group_id'), 5, "false");
-      print $HTML->box_bottom ();
-      print "</div>\n<div class='indexcenter'>\n";
-      print "<h2><a href='forum.php?forum_id=$forum_id'>"
-        . db_result ($result, 0, 'summary') . "</a></h2>\n";
-      print '<p><em>';
-      $sub_by = db_result ($result, 0, 'submitted_by');
-      $posted_by = utils_user_link (
-        user_getname ($sub_by), user_getrealname ($sub_by)
-      );
-      # TRANSLATORS: the first argument is user's name, the second
-      # argument is date.
-      printf (_('Item posted by %1$s on %2$s.'),
-          $posted_by, utils_format_date (db_result ($result, 0, 'date'))
-      );
-      print "</em></p>\n";
-      print markup_full (db_result ($result, 0, 'details'));
-      $forum_name = db_result ($result, 0, 'summary');
-      print "</div>\n";
-    }
+  print "\n<div class='indexright'>\n";
+  print $HTML->box_top (_("Latest News"));
+  print news_show_latest (db_result ($result, 0, 'group_id'), 5, "false");
+  print $HTML->box_bottom ();
+  print "</div>\n<div class='indexcenter'>\n";
+  print "<h2><a href='forum.php?forum_id=$forum_id'>"
+    . db_result ($result, 0, 'summary') . "</a></h2>\n";
+  print '<p><em>';
+  $sub_by = db_result ($result, 0, 'submitted_by');
+  $posted_by = utils_user_link (
+    user_getname ($sub_by), user_getrealname ($sub_by)
+  );
+  # TRANSLATORS: the first argument is user's name, the second
+  # argument is date.
+  printf (_('Item posted by %1$s on %2$s.'),
+      $posted_by, utils_format_date (db_result ($result, 0, 'date'))
+  );
+  print "</em></p>\n";
+  print markup_full (db_result ($result, 0, 'details'));
+  $forum_name = db_result ($result, 0, 'summary');
+  print "</div>\n";
 }
 
 # Backward compatibility.
@@ -221,7 +219,7 @@ function show_thread ($thread_id, $et = 0)
   );
   $total_rows = 0;
   $ret_val = '';
-  if (!$result || db_numrows ($result) < 1)
+  if (db_numrows ($result) < 1)
     return 'Broken Thread';
   $title_arr = [_('Thread'), _('Author'), _('Date')];
   $ret_val .= html_build_list_table_top ($title_arr);
@@ -358,7 +356,7 @@ function get_forum_saved_date ($forum_id)
     WHERE user_id = ? AND forum_id = ?",
     [user_getid (), $forum_id]
   );
-  if ($result && db_numrows ($result) > 0)
+  if (db_numrows ($result) > 0)
     {
       $forum_saved_dat = db_result ($result, 0, 'save_date');
       return $forum_saved_date;

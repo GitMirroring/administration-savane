@@ -33,56 +33,51 @@ extract (sane_import ('all',
 ));
 
 # This page can be used to manage the whole news system for a server
-# or news for a project.
+# or news for a group.
 # That's why, when required, we test if group_id = sys_group_id.
 
-if (!($group_id && member_check(0, $group_id, 'N3')))
-  exit_error(_("Action unavailable: only news managers can approve news."));
+if (!($group_id && member_check (0, $group_id, 'N3')))
+  exit_error (_("Action unavailable: only news managers can approve news."));
 
-# Modifications are made to the database
-# 0 = locally approved
-# 1 = front page approved
+$group_is_sys = $group_id == $sys_group_id;
+$su_and_sys = user_is_super_user () && $group_is_sys;
+
+# Modifications are made to the database,
+# 0 = approved for the group;
+# 1 = approved for the website front page.
 if ($post_changes && $approve)
   {
-    if ($group_id != $GLOBALS['sys_group_id'] && $status != 0 && $status != 4)
-      {
-        # Make sure that an item accepted for front page is not modified.
-        $status=0;
-      }
+    if (!$group_is_sys && $status != 0 && $status != 4)
+      # Make sure that an item accepted for front page is not modified.
+      $status = 0;
 
     $result = false;
-    if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
+    if ($su_and_sys)
       {
-        $fields = array('is_approved' => $status,
-                        'date' => time(),
-                        'date_last_edit' => time(),
-                        'summary' => $summary,
-                        'details' => $details);
-        $result = db_autoexecute('news_bytes', $fields, DB_AUTOQUERY_UPDATE,
-                                 "id=? AND group_id=?",
-                                 array($id, $for_group_id));
+        $fields = ['is_approved' => $status, 'date' => time (),
+          'date_last_edit' => time (), 'summary' => $summary,
+          'details' => $details
+        ];
+        $result = db_autoexecute ('news_bytes', $fields, DB_AUTOQUERY_UPDATE,
+          "id = ? AND group_id = ?", [$id, $for_group_id]);
 
       }
     elseif ($status == 0 || $status == 4)
       {
-        $fields = array('is_approved' => $status,
-                        'date_last_edit' => time(),
-                        'summary' => $summary,
-                        'details' => $details);
-        $result = db_autoexecute('news_bytes', $fields, DB_AUTOQUERY_UPDATE,
-                                 "id=? AND group_id=?", array($id, $group_id));
+        $fields = ['is_approved' => $status, 'date_last_edit' => time (),
+          'summary' => $summary, 'details' => $details
+        ];
+        $result = db_autoexecute ('news_bytes', $fields, DB_AUTOQUERY_UPDATE,
+          "id = ? AND group_id = ?", [$id, $group_id]
+        );
       }
 
     if (!$result || db_affected_rows ($result) < 1)
       fb (_("Failed to update"), 1);
     else
-      fb (_("Project News Item Updated."));
-    dbg ("STATUS $status, group $group_id");
+      fb (_("Group news item updated"));
     # Send mails: does not care if it was already approved.
-    if (($status == 0 && $group_id != $sys_group_id)
-        || ($status == 1 && user_is_super_user ()
-            && $group_id == $sys_group_id))
-
+    if (($status == 0 && !$group_is_sys) || ($status == 1 && $su_and_sys))
       {
          $res = db_execute ("
            SELECT new_news_address FROM groups WHERE group_id = ?",
@@ -103,7 +98,6 @@ if ($post_changes && $approve)
            ['group' => $group, 'tracker' => 'news']
          );
       }
-    # Show the list_queue.
     $approve = '';
     $list_queue = 'y';
   }
@@ -115,26 +109,20 @@ site_project_header (
 # Form to make modifications to an existing item, to submit one.
 if ($approve)
   {
-    if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
-      {
-        $result = db_execute ("
-          SELECT
-            groups.unix_group_name, news_bytes.*,
-            news_bytes.submitted_by AS submitted_by
-          FROM news_bytes,groups
-          WHERE id = ?  AND news_bytes.group_id = groups.group_id",
-          [$id]
-        );
-      }
+    if ($su_and_sys)
+      $result = db_execute ("
+        SELECT
+          groups.unix_group_name, news_bytes.*,
+          news_bytes.submitted_by AS submitted_by
+        FROM news_bytes, groups
+        WHERE id = ?  AND news_bytes.group_id = groups.group_id", [$id]
+      );
     else
-      {
-        $result = db_execute ("
-          SELECT *, news_bytes.submitted_by AS submitted_by
-          FROM news_bytes
-          WHERE id = ? AND group_id = ?",
-          [$id, $group_id]
-        );
-      }
+      $result = db_execute ("
+        SELECT *, news_bytes.submitted_by AS submitted_by
+        FROM news_bytes
+        WHERE id = ? AND group_id = ?", [$id, $group_id]
+      );
 
     if (db_numrows ($result) < 1)
       {
@@ -143,23 +131,11 @@ if ($approve)
         exit;
       }
 
-    if ($group_id == $GLOBALS['sys_group_id'] && !user_is_super_user ())
-      print '<p class="warn">'
-        . _("If you want to approve/edit site news (shown on the front "
-            . "page), you must\nbe logged as superuser.")
-        . "</p>\n";
-    elseif ($group_id == $GLOBALS['sys_group_id'] && user_is_super_user ())
-      print '<p class="warn">'
-        . _("If you want to approve/edit news for the local administration "
-            . "project (not\nshown on the front page), you must end the "
-            . "superuser session.")
-       . "</p>\n";
-
+    print_su_warning ($group_id);
     $s_by_res = db_result ($result, 0, 'submitted_by');
     $submitted_by = "None";
     if (db_result ($result, 0, 'submitted_by'))
       $submitted_by = user_getname ($s_by_res);
-
 
     print '<p>' . _("Submitter:") . ' '
      . utils_user_link ($submitted_by, user_getrealname ($s_by_res))
@@ -169,15 +145,13 @@ if ($approve)
           'approve' => 'y', 'post_changes' => 'y']
         );
 
-    if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
+    if ($su_and_sys)
       {
         print "<input type='radio' name='status' id='status_admin' "
           . "value='1'\n/>&nbsp;&nbsp;";
         print '<span class="preinput"><label for="status_admin">';
         # TRANSLATORS: the argument is site name (like Savannah).
-        printf (
-          _("Approve For %s' Front Page"), $GLOBALS['sys_name']
-        );
+        printf (_("Approve for %s front page"), $GLOBALS['sys_name']);
         print "</label></span><br />\n";
         print "<input type='radio' id='status_do_nothing' name='status' "
           . "value='0' checked='checked'\n"
@@ -187,10 +161,10 @@ if ($approve)
           . "<input type='radio' name='status' id='status_refuse' value='2'\n"
           . "/>&nbsp;&nbsp;<span class='preinput'><label for='status_refuse'>"
           . _("Refuse") . "</label></span><br />\n"
-          . "<input type='hidden' name='for_group_id' value='"
-          . db_result ($result, 0, 'group_id') . "' />\n"
-          . "<input type='hidden' name='group_id' "
-          . "value='{$GLOBALS['sys_group_id']}' />\n";
+          . form_hidden ([
+              'for_group_id' => db_result ($result, 0, 'group_id'),
+              "group_id" => $sys_group_id]
+            );
       }
     else
       {
@@ -202,8 +176,7 @@ if ($approve)
           . "value='4' />\n"
           . '&nbsp;&nbsp;<span class="preinput"><label for="status_delete">'
           . _("Delete") . "</label></span><br />\n"
-          . '<input type="hidden" name="group_id" value="'
-          . db_result ($result, 0, 'group_id') . "\" />\n";
+          . form_hidden (["group_id" => db_result ($result, 0, 'group_id')]);
       }
 
     print "<br />\n<span class='preinput'><label for='summary'>"
@@ -212,15 +185,15 @@ if ($approve)
       . db_result ($result, 0, 'summary') . '" size="65" maxlength="80" />'
       . "<br />\n"
       . '<span class="preinput"><label for="details">'
-      . _("Details"). '</label> '. markup_info ("full")
+      . _("Details") . '</label> ' . markup_info ("full")
       . "</span><br />\n&nbsp;&nbsp;\n"
       . '<textarea name="details" id="details" rows="20" cols="65" wrap="soft">'
-      . db_result($result, 0, 'details') . "</textarea>\n";
+      . db_result ($result, 0, 'details') . "</textarea>\n";
     print '<p>';
+    # TRANSLATORS: the argument is site name (like Savannah).
     printf (
-# TRANSLATORS: the argument is site name (like Savannah).
-      _("Note: If this item is on the %s home page and you edit it, it will be
-removed from the home page."),
+      _("Note: If this item is on the %s home page and you edit it, it will be\n"
+        . "removed from the home page."),
       $GLOBALS['sys_name']
     );
     print "</p>\n<div class='center'>"
@@ -232,156 +205,123 @@ removed from the home page."),
 else # ! $approve
   {
     # No item selected.
-    if ($group_id == $GLOBALS['sys_group_id'] && !user_is_super_user())
-      {
-        print '<p class="warn">'
-. _("If you want to approve/edit site news (shown on the front page), you must
-be logged as superuser.") . "</p>\n";
-      }
-    elseif ($group_id == $GLOBALS['sys_group_id'] && user_is_super_user())
-      {
-        print '<p class="warn">'
-. _("If you want to approve/edit news for the local administration project (not
-shown on the front page), you must end the superuser session.") . "</p>\n";
-      }
+    print_su_warning ($group_id);
 
-    $old_date=(time()-(86400*15));
+    $old_date = time () - 86400 * 15;
 
-    # Firstly, we show item that requires approval.
-    #   - if site news: it has to be already approved projects (0)
-    #     or project submitted on the system site project
-    #   - if project news: it has to be proposed news (5)
-    if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
-      {
-        $result=db_execute("SELECT * FROM news_bytes
-          WHERE (is_approved=0 OR (is_approved=5 AND group_id=?))
-          AND date > ?",
-          array($group_id, $old_date));
-      }
+    if ($su_and_sys)
+      $result = db_execute ("
+        SELECT * FROM news_bytes
+        WHERE
+          (is_approved = 0 OR (is_approved = 5 AND group_id = ?)) AND date > ?",
+        [$group_id, $old_date]
+      );
     else
-      {
-        $result=db_execute("SELECT * FROM news_bytes
-          WHERE is_approved=5 AND date > ? AND group_id=?",
-          array($old_date, $group_id));
-      }
-    $rows=db_numrows($result);
+      $result = db_execute ("
+        SELECT * FROM news_bytes
+        WHERE is_approved = 5 AND date > ? AND group_id = ?",
+        [$old_date, $group_id]
+      );
+    $rows = db_numrows ($result);
     if ($rows < 1)
-      {
-        print '<h2>' . _("No queued items found") . "</h2>\n";
-      }
+      print '<h2>' . _("No queued items found") . "</h2>\n";
     else
       {
         print '<h2>' . _("These news items were submitted and need approval")
-          . "</h2>\n<ul>\n";
-
-        for ($i=0; $i<$rows; $i++)
-          {
-            print '<li';
-            if (db_result($result,$i,'group_id') == $GLOBALS['sys_group_id'])
-              print ' class="boxhighlight"';
-            print "><a href=\"$php_self?approve=1&amp;id="
-              . db_result ($result, $i, 'id');
-
-            if ($group_id == $GLOBALS['sys_group_id'])
-              {
-                print '&amp;group='.$GLOBALS['sys_unix_group_name'];
-              }
-            else
-              {
-                print '&amp;group_id='.db_result($result,$i,'group_id');
-              }
-
-            print '">';
-            if ($group_id == $GLOBALS['sys_group_id'])
-              print group_getname(db_result($result,$i,'group_id')).' - ';
-            print db_result ($result, $i, 'summary') . "</a></li>\n";
-          }
-          print "</ul>\n";
+          . "</h2>\n";
+        print_news_list ($result, $group_id, $group);
       }
-    # Secondly, we show deleted items for this week.
-    if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
-      {
-        $result = db_execute("SELECT * FROM news_bytes WHERE (is_approved=2 OR
-          (is_approved=4 AND group_id=?)) AND date > ?",
-          array($group_id, $old_date));
-      }
+    if ($su_and_sys)
+      $result = db_execute ("
+        SELECT * FROM news_bytes
+        WHERE
+          (is_approved = 2 OR (is_approved = 4 AND group_id = ?))
+          AND date > ?",
+        [$group_id, $old_date]
+      );
     else
-      {
-        $result = db_execute("SELECT * FROM news_bytes WHERE is_approved=4
-          AND date > ? AND group_id=?",
-          array($old_date, $group_id));
-      }
-    $rows=db_numrows($result);
+      $result = db_execute ("
+        SELECT * FROM news_bytes
+        WHERE is_approved = 4 AND date > ? AND group_id = ?",
+        [$old_date, $group_id]
+      );
+    $rows = db_numrows ($result);
     if ($rows < 1)
-      {
-        print '<h2>'
-          . _("No deleted items during these past two weeks") . "</h2>\n";
-      }
+      print '<h2>'
+        . _("No deleted items during these past two weeks") . "</h2>\n";
     else
       {
-        if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
-          {
-            print '<h2>'
-              ._("These items were refused these past two weeks:") . "</h2\n";
-          }
+        print '<h2>';
+        if ($su_and_sys)
+          print _("These items were refused these past two weeks:");
         else
-          {
-            print '<h2>'
-              ._("These items were deleted these past two weeks:") . "</h2>\n";
-          }
-        print "<ul>\n";
-        for ($i = 0; $i < $rows; $i++)
-          {
-            print '<li';
-            if (db_result($result,$i,'group_id') == $GLOBALS['sys_group_id'])
-              print ' class="boxhighlight"';
-            print "><a href=\"$php_self?approve=1&amp;group=$group&amp;id="
-              . db_result($result,$i,'id') . '">';
-
-            if ($group_id == $GLOBALS['sys_group_id'])
-              print group_getname(db_result($result,$i,'group_id')).' - ';
-            print db_result ($result, $i, 'summary') . "</a></li>\n";
-          }
-        print "</ul>\n";
+          print _("These items were deleted these past two weeks:");
+        print "</h2>\n";
+        print_news_list ($result, $group_id, $group);
       } # $rows >= 1
 
     # We show all approved items.
-    if (user_is_super_user() && $group_id == $GLOBALS['sys_group_id'])
-      {
-        $result=db_execute("SELECT * FROM news_bytes
-          WHERE (is_approved=1 OR (is_approved=0  AND group_id=?))",
-          array($group_id));
-      }
+    if ($su_and_sys)
+      $result = db_execute ("
+        SELECT * FROM news_bytes
+        WHERE (is_approved = 1 OR (is_approved = 0  AND group_id = ?))",
+        [$group_id]
+      );
     else
-      {
-        $result=db_execute("SELECT * FROM news_bytes
-          WHERE (is_approved=0 OR is_approved=1)
-          AND date > ? AND group_id=?",
-          array($old_date, $group_id));
-      }
-    $rows=db_numrows($result);
+      $result = db_execute ("
+        SELECT * FROM news_bytes
+        WHERE
+          (is_approved = 0 OR is_approved = 1) AND date > ? AND group_id = ?",
+        [$old_date, $group_id]
+      );
+    $rows = db_numrows ($result);
     if ($rows < 1)
-      {
-        print '<h2>' . _("No news items approved"). "</h2>\n";
-      }
+      print '<h2>' . _("No news items approved"). "</h2>\n";
     else
       {
-        print '<h2>' . _("These items were approved:") . "</h2>\n<ul>\n";
-
-        for ($i = 0; $i < $rows; $i++)
-          {
-            print '<li';
-            if (db_result($result,$i,'group_id') == $GLOBALS['sys_group_id'])
-              print ' class="boxhighlight"';
-            print "><a href=$php_self?approve=1&amp;group=$group&amp;id="
-              . db_result ($result, $i, 'id') . '">';
-
-              if ($group_id == $GLOBALS['sys_group_id'])
-                print group_getname(db_result($result,$i,'group_id')).' - ';
-              print db_result ($result, $i, 'summary') . "</a></li>\n";
-          }
-        print "</ul>\n";
+        print '<h2>' . _("These items were approved:") . "</h2>\n";
+        print_news_list ($result, $group_id, $group);
       } # $rows >= 1
   }
-site_project_footer(array());
+site_project_footer ([]);
+
+function print_news_list ($result, $group_id, $group)
+{
+  global $php_self, $group_is_sys;
+  $class_str = $name_str = '';
+  if ($group_is_sys)
+    {
+      $name_str = group_getname ($group_id) . ' - ';
+      $class_str = ' class="boxhighlight"';
+    }
+  print "<ul>\n";
+  while ($row = db_fetch_array ($result))
+    {
+      print "<li$class_str>";
+      print "<a href=\"$php_self?approve=1&amp;group=$group&amp;";
+      print "id={$row['id']}\">$name_str{$row['summary']}</a></li>\n";
+    }
+  print "</ul>\n";
+}
+function no_i18n ($s)
+{
+  return $s;
+}
+function print_su_warning ($group_id)
+{
+  global $group_is_sys;
+  if (!$group_is_sys)
+    return;
+  print '<p class="warn">';
+  if (user_is_super_user ())
+    print
+      no_i18n ("If you want to manage news for the local administration\n"
+        . "group (not shown on the front page), you must end\n"
+        . "the superuser session.");
+  else
+    print
+      no_i18n ("If you want to manage site news (shown on the front page),\n"
+        . "you must be logged as superuser.");
+  print "</p>\n";
+}
 ?>

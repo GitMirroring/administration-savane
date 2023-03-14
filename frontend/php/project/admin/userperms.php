@@ -190,9 +190,9 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
             $result_user_squads = db_execute ("
               SELECT squad_id FROM user_squad
               WHERE user_id=? AND group_id = ?",
-              array($row_dev['user_id'], $group_id)
+              [$row_dev['user_id'], $group_id]
             );
-            if (db_numrows($result_user_squads))
+            if (db_numrows ($result_user_squads))
               {
                 while ($thissquad = db_fetch_array($result_user_squads))
                   {
@@ -217,11 +217,12 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
                     # Record any squad override for later generated feedback.
                     if ($GLOBALS['did_squad_override'])
                       $feedback_squad_override =
+                        # TRANSLATORS: the argument is user's name.
                         sprintf (
-                      # TRANSLATORS: the argument is user's name.
-_("Personal permissions of %s were overridden by squad permissions")."\n",
+                          _("Personal permissions of %s were overridden "
+                            . "by squad permissions"),
                           $name
-                        );
+                        ) . "\n";
                   }
               }
           }
@@ -293,11 +294,15 @@ _("Personal permissions of %s were overridden by squad permissions")."\n",
     extract (sane_import ('post', ['preg' => [$names]]));
 
     # If the group entry do not exists, create it.
-    if (!db_numrows(db_execute("SELECT groups_default_permissions_id "
-                               ."FROM groups_default_permissions WHERE group_id=?",
-                               array($group_id))))
-      db_execute("INSERT INTO groups_default_permissions (group_id) VALUES (?)",
-                 array($group_id));
+    $res = db_execute ("
+      SELECT groups_default_permissions_id
+      FROM groups_default_permissions WHERE group_id = ?", [$group_id]
+    );
+    if (!db_numrows ($res))
+      db_execute (
+        "INSERT INTO groups_default_permissions (group_id) VALUES (?)",
+        [$group_id]
+      );
 
     # Update the table.
     $fields_values = [];
@@ -308,10 +313,9 @@ _("Personal permissions of %s were overridden by squad permissions")."\n",
           $fields_values[$art . '_flags'] = $$var;
       }
 
-    $result = db_autoexecute('groups_default_permissions',
-                             $fields_values,
-                             DB_AUTOQUERY_UPDATE,
-                             "group_id=?", array($group_id));
+    $result = db_autoexecute ('groups_default_permissions',
+      $fields_values, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
+    );
 
     if ($result && db_affected_rows($result))
       {
@@ -478,7 +482,7 @@ $result = db_execute ("
 
 print "<p>&nbsp;</p>\n<h2>" . _("Permissions per squad") . "</h2>\n";
 
-if (!$result || db_numrows($result) < 1)
+if (db_numrows ($result) < 1)
   print '<p class="warn">' . _("No Squads Found") . "</p>\n";
 else
   {
@@ -523,7 +527,7 @@ else
       . form_submit (_("Update Permissions")) . "</p>\n";
   }
 
-$result = db_execute("
+$result = db_execute ("
   SELECT
     user.user_name, user.realname, user.user_id,
     user_group.admin_flags, user_group.onduty, user_group.privacy_flags,
@@ -535,12 +539,12 @@ $result = db_execute("
     user_group.group_id = ?
     AND user_group.admin_flags <> 'P' AND user_group.admin_flags <> 'SQD'
   ORDER BY user.user_name",
-  array($group_id)
+  [$group_id]
 );
 
 print "<p>&nbsp;</p>\n<h2>" . _("Permissions per member") . "</h2>\n";
 
-if (!$result || db_numrows($result) < 1)
+if (db_numrows ($result) < 1)
   {
     # No point in changing permissions of an orphaned project.
     print '<p class="warn">' . _("No Members Found") . "</p>\n";

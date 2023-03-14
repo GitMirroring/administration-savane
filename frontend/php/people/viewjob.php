@@ -56,7 +56,7 @@ $finish_page = function ()
   exit (0);
 };
 
-if (!$result || db_numrows ($result) < 1)
+if (db_numrows ($result) < 1)
   {
     print db_error();
     fb (_("POSTING fetch FAILED"), 1);

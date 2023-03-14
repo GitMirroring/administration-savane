@@ -677,32 +677,30 @@ function trackers_canned_response_box (
     $checked = 'xzxz';
   if (!$group_id)
     {
-      fb (_("Error, no group_id"),1);
+      fb (_("Error, no group_id"), 1);
       return 0;
     }
   $vals = $texts = [];
   $result = trackers_data_get_canned_responses ($group_id);
-  if (db_numrows ($result) > 0)
+  if (db_numrows ($result) <= 0)
+    return form_input ("hidden", "canned_response", "100")
+      . _("No canned response available");
+
+  if (db_numrows ($result) > 1)
     {
-      if (db_numrows ($result) > 1)
-        {
-          $vals[] = '!multiple!';
-          $texts[] = "> " . _("Multiple Canned Responses");
-        }
-
-      while ($entry = db_fetch_array ($result))
-        {
-          $vals[] = $entry['bug_canned_id'];
-          $texts[] = $entry['title'];
-
-        }
-      return html_build_select_box_from_arrays (
-        $vals, $texts, $name, $checked, true, 'None', false,' Any', false,
-        _("Canned Responses")
-      );
+      $vals[] = '!multiple!';
+      $texts[] = "> " . _("Multiple Canned Responses");
     }
-  return form_input ("hidden", "canned_response", "100")
-    . _("No canned response available");
+
+  while ($entry = db_fetch_array ($result))
+    {
+      $vals[] = $entry['bug_canned_id'];
+      $texts[] = $entry['title'];
+    }
+  return html_build_select_box_from_arrays (
+    $vals, $texts, $name, $checked, true, 'None', false,' Any', false,
+    _("Canned Responses")
+  );
 }
 
 function trackers_artifact_is_sane (&$artifact)
@@ -776,7 +774,7 @@ function trackers_convert_email_to_uid ($email, &$addresses_to_skip)
   $res = db_execute ("
     SELECT user_id FROM user WHERE email = ? AND user_id > 0 LIMIT 1", [$email]
   );
-  if (!$res || db_numrows ($res) < 1)
+  if (db_numrows ($res) < 1)
     return $email;
   $user_id = db_result ($res, 0, 'user_id');
   $addresses_to_skip[$email] = true;
@@ -887,7 +885,7 @@ function trackers_mail_fetch_followup (&$artifact, $item_id)
     return false;
   $res = db_execute ("SELECT * from $artifact WHERE bug_id = ?", [$item_id]);
 
-  if ($res && db_numrows ($res) > 0)
+  if (db_numrows ($res) > 0)
     return db_fetch_array ($res);
 
   fb (_("Could not send item update."), 0);

@@ -420,7 +420,7 @@ if (!isset ($group_id) && !isset ($group) && isset ($forum_id))
       "SELECT group_id FROM forum_group_list WHERE group_forum_id=?",
       [$forum_id]
     );
-    if ($result && db_numrows ($result) > 0)
+    if (db_numrows ($result) > 0)
       $group_id = db_result ($result, 0, 'group_id');
   }
 

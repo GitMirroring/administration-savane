@@ -41,10 +41,6 @@ $user_id = db_result ($res_user, 0, 'user_id');
 
 require_directory ("my");
 
-# Assumes $res_user result handle is present.
-if (!$res_user || db_numrows ($res_user) < 1)
-  exit_error (_('No Such User'), _('No Such User'));
-
 $realname = db_result ($res_user, 0, 'realname');
 $account_status = db_result ($res_user, 0, 'status');
 

@@ -1,11 +1,11 @@
 <?php # -*- PHP -*-
-# Project homepage.
+# Group homepage.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2000-2003 Free Software Foundation
 # Copyright (C) 2002-2005 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007 Sylvain Beucler
-# Copyright (C) 2018 Ineiev
+# Copyright (C) 2018, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -23,27 +23,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # The context of this page cannot be guessed later, we have to hardcode it.
-define('CONTEXT', 'project');
-require_once('include/init.php');
+define ('CONTEXT', 'project');
+require_once ('include/init.php');
 
 # Extract the group name.
 $pathinfo = basename (preg_replace ("/\?.*/", "", $_SERVER['REQUEST_URI']));
 
-$res_grp = db_execute ("SELECT * FROM groups WHERE unix_group_name=?",
-                       array($pathinfo));
+$res_grp = db_execute (
+  "SELECT * FROM groups WHERE unix_group_name = ?", [$pathinfo]
+);
 
-if (db_numrows($res_grp) < 1)
+if (db_numrows ($res_grp) < 1)
   {
-    echo db_error();
-    exit_error(_("Invalid Group"), _("That group does not exist."));
+    print db_error ();
+    exit_error (_("Invalid Group"), _("That group does not exist."));
   }
 
 $group = $pathinfo;
-$extra_script_name = '/' . $pathinfo;
+$extra_script_name = "/$pathinfo";
 $group_id = db_result ($res_grp, 0, 'group_id');
 
 $project = new Project ($group_id);
 
-# Show the project page.
-require('include/project_home.php');
+require ('include/project_home.php');
 ?>

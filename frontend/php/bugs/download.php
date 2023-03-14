@@ -40,7 +40,7 @@ $result = db_execute ("
   [$file_id]
 );
 
-if ($result && db_numrows ($result) > 0)
+if (db_numrows ($result) > 0)
   {
     $item_id  = db_result ($result, 0, 'item_id');
     $group_id = db_result ($result, 0, 'group_id');
@@ -61,7 +61,7 @@ $result = db_execute ("
   [$file_id]
 );
 
-if ($result && db_numrows ($result) <= 0)
+if (db_numrows ($result) <= 0)
   {
     # TRANSLATORS: the argument is file id (a number).
     $msg = sprintf (_("Couldn't find attached file (file #%s)"), $file_id);

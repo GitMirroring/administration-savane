@@ -110,9 +110,9 @@ if ($squad_id)
         AND user_group.user_id = user.user_id
         AND user_group.admin_flags = 'SQD'
       ORDER BY user.user_name";
-    $result = db_execute($sql, array($squad_id, $group_id));
-    if (!db_numrows($result))
-      exit_error(_("Squad not found"));
+    $result = db_execute ($sql, [$squad_id, $group_id]);
+    if (!db_numrows ($result))
+      exit_error (_("Squad not found"));
 
     $realname = db_result ($result, 0, 'realname');
     $squad_name = db_result ($result, 0, 'user_name');
@@ -242,7 +242,6 @@ below.") . "</p>\n";
   } # if ($squad_id)
 
 # No $squad_id.  List existing squads, allow to create one.
-
 function validate_loginname ($form_loginname, $group)
 {
   if (!account_namevalid ($form_loginname))
@@ -250,17 +249,17 @@ function validate_loginname ($form_loginname, $group)
 
   $res = db_execute (
     "SELECT user_id FROM user WHERE user_name LIKE ?",
-     [$group . '-' . $form_loginname]
+     ["$group-$form_loginname"]
   );
   if (db_numrows ($res) > 0)
     {
-      fb(_("That username already exists."), 1);
+      fb (_("That username already exists."), 1);
       return false;
     }
 
   $res = db_execute (
     "SELECT group_list_id FROM mail_group_list WHERE list_name LIKE ?",
-    [$group . '-' . $form_loginname]
+    ["$group-$form_loginname"]
   );
   if (db_numrows ($res) <= 0)
     return true;
@@ -319,11 +318,10 @@ if ($update_delete_step2 && $deletionconfirmed == "yes")
         user.user_id = ? AND user_group.group_id = ?
         AND user_group.user_id = user.user_id
         AND user_group.admin_flags = 'SQD'
-      ORDER BY user.user_name",
-      array($squad_id_to_delete, $group_id)
+      ORDER BY user.user_name", [$squad_id_to_delete, $group_id]
     );
 
-    if (!db_numrows($delete_result))
+    if (!db_numrows ($delete_result))
       exit_error(_("Squad not found"));
 
     fb(_("Squad deleted"));
@@ -336,13 +334,13 @@ $result = db_execute ("
   WHERE
     user.user_id = user_group.user_id AND user_group.group_id = ?
     AND user_group.admin_flags = 'SQD'
-  ORDER BY user.user_name",
-  array($group_id)
+  ORDER BY user.user_name", [$group_id]
 );
-$rows = db_numrows($result);
+$rows = db_numrows ($result);
 
-site_project_header(array('title' => _("Manage Squads"),
-                          'group' => $group_id, 'context' => 'ahome'));
+site_project_header (
+  ['title' => _("Manage Squads"), 'group' => $group_id, 'context' => 'ahome']
+);
 
 print '<p>'
 . _("Squads can be assigned items, share permissions. Creating squads is useful
@@ -373,7 +371,7 @@ print '<h2>' . _("Create a New Squad") . "</h2>\n";
 $result = db_execute ("
   SELECT user_id FROM user_group
   WHERE group_id = ? AND admin_flags <> 'P' AND admin_flags <> 'SQD'",
-  array($group_id)
+  [$group_id]
 );
 if ($rows < db_numrows ($result))
   {

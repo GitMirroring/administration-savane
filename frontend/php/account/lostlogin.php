@@ -1,10 +1,10 @@
 <?php
-# URL sent by mail to recover a password (not a login, despite the name)
+# URL sent by mail to recover a passphrase (not a login, despite the name).
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007  Sylvain Beucler
-# Copyright (C) 2017, 2019 Ineiev
+# Copyright (C) 2017, 2019, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -21,13 +21,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/database.php');
-require_once('../include/account.php');
-require_once('../include/form.php');
+require_once ('../include/init.php');
+require_once ('../include/database.php');
+require_once ('../include/account.php');
+require_once ('../include/form.php');
 
-extract(sane_import('request', ['hash' => 'confirm_hash']));
-extract(sane_import('post',
+extract (sane_import ('request', ['hash' => 'confirm_hash']));
+extract (sane_import ('post',
   [
     'hash' => 'form_id',
     'true' => 'update',
@@ -35,49 +35,54 @@ extract(sane_import('post',
   ]
 ));
 
-$res_lostuser = db_execute("SELECT * FROM user WHERE confirm_hash=?",
-                           array($confirm_hash));
-if (db_numrows($res_lostuser) > 1)
-  exit_error(_("Error"),
-# TRANSLATORS: confirmation hash is a secret code mailed to the user.
-             _("This confirmation hash exists more than once."));
-if (db_numrows($res_lostuser) < 1)
-  exit_error(_("Error"),_("Invalid confirmation hash."));
+$res_lostuser = db_execute (
+  "SELECT * FROM user WHERE confirm_hash = ?", [$confirm_hash]
+);
+if (db_numrows ($res_lostuser) > 1)
+  exit_error (_("Error"),
+    # TRANSLATORS: confirmation hash is a secret code mailed to the user.
+    _("This confirmation hash exists more than once.")
+  );
+if (db_numrows ($res_lostuser) < 1)
+  exit_error (_("Error"), _("Invalid confirmation hash."));
 $row_lostuser = db_fetch_array($res_lostuser);
 
 if ($update && $form_pw)
   {
     if (strcmp ($form_pw, $form_pw2))
-      fb(_("Passwords do not match."), 1);
-    elseif (account_pwvalid($form_pw) && form_check($form_id))
+      fb(_("Passphrases do not match."), 1);
+    elseif (account_pwvalid ($form_pw) && form_check ($form_id))
       {
-        db_autoexecute('user',
-          array('user_pw' => account_encryptpw($form_pw), 'confirm_hash' => ''),
-          DB_AUTOQUERY_UPDATE, "confirm_hash=?", array($confirm_hash));
-
-        form_clean($form_id);
-        session_redirect($GLOBALS['sys_home']);
+        db_autoexecute ('user',
+          ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => ''],
+          DB_AUTOQUERY_UPDATE, "confirm_hash = ?", [$confirm_hash]
+        );
+        form_clean ($form_id);
+        session_redirect ($sys_home);
       }
   }
 
-site_header(array('title'=>_("Lost Password Login")));
+site_header (['title' => _("Lost Passphrase Login")]);
 
-print '<h2>'._("Lost Password Login").'</h2>';
-print '<p>'.sprintf(_("Welcome, %s."), $row_lostuser['user_name']);
-print ' '._("You may now change your password").'.</p>';
+print '<h2>' . _("Lost Passphrase Login") . "</h2>\n";
+print '<p>';
+printf (_("Welcome, %s."), $row_lostuser['user_name']);
+print ' ' . _("You may now change your passphrase.") . "</p>\n";
 
-print form_header($_SERVER['PHP_SELF']);
+print form_header ($_SERVER['PHP_SELF']);
 
-print '<div>'.account_password_help().'</div>';
-print '<div class="inputfield"><strong>'._("New password / passphrase:")
-      .'</strong>';
-print form_input("password", "form_pw").'</div>';
+print '<div>' . account_password_help () . "</div>\n";
+print '<div class="inputfield"><strong><label for="form_pw">'
+  . _("New passphrase:")
+  . '</label></strong>';
+print form_input ("password", "form_pw") . "</div>\n";
 
-print '<div class="inputfield"><strong>'._("New Password (repeat):").'</strong>';
-print form_input("password", "form_pw2").'</div>';
+print '<div class="inputfield"><strong><label for="form_pw2">'
+  . _("New passphrase (repeat):") . '</label></strong>';
+print form_input ("password", "form_pw2") . "</div>\n";
 
-print form_input("hidden", "confirm_hash", $confirm_hash);
-print form_footer();
+print form_input ("hidden", "confirm_hash", $confirm_hash);
+print form_footer ();
 
-$HTML->footer(array());
+$HTML->footer ([]);
 ?>

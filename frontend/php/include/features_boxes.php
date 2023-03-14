@@ -184,7 +184,7 @@ function show_votes ($limit = 10)
         ORDER BY vote DESC LIMIT ?", [$limit]
       );
       $rows = db_numrows ($result);
-      if (!$result || $rows <= 0)
+      if ($rows <= 0)
         continue;
       for ($j = 0; $j < $rows; $j++)
         {

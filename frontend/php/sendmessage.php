@@ -45,7 +45,7 @@ $result = db_execute ("
   [$touser]
 );
 
-if (!$result || db_numrows ($result) < 1)
+if (db_numrows ($result) < 1)
   # TRANSLATORS: the argument is user id (a number).
   exit_error (sprintf (_('User %s does not exist'), $touser));
 

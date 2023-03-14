@@ -225,7 +225,7 @@ if ($field != 'status_id')
             AND ${artifact}_field_value.group_id = ?",
           [trackers_data_get_field_id ($field), $group_id]
         );
-        if ($result && db_numrows ($result) > 0)
+        if (db_numrows ($result) > 0)
           $group_to_be_used = $group_id;
         else
           # The project does not have its own instance,
@@ -245,7 +245,7 @@ if ($field != 'status_id')
       }
 
     $result = db_execute ($sql, $params);
-    if ($result && db_numrows ($result) > 0)
+    if (db_numrows ($result) > 0)
       $page .= reporting_build_graph (null, $result, $widths, $graph_id, $field);
     else
       $page .= _("No item found.");
@@ -268,11 +268,11 @@ if ($field == 'assigned_to')
 else
   {
     $result = db_execute ("
-      SELECT fv.value
-      FROM ${artifact}_field_value fv
+      SELECT fv.value FROM ${artifact}_field_value fv
       WHERE fv.bug_field_id = ? AND fv.group_id = ?",
-      array (trackers_data_get_field_id ($field), $group_id));
-    if ($result && db_numrows ($result) > 0)
+      [trackers_data_get_field_id ($field), $group_id]
+    );
+    if (db_numrows ($result) > 0)
       $group_to_be_used = $group_id;
     else
       $group_to_be_used = 100;
@@ -288,7 +288,7 @@ else
       [trackers_data_get_field_id ($field), $group_to_be_used, $group_id];
   }
 $result = db_execute ($sql, $params);
-if ($result && db_numrows ($result) > 0)
+if (db_numrows ($result) > 0)
   $page .= reporting_build_graph (null, $result, $widths, $graph_id, $field);
 else
   $page .= _("No item found. This field is probably unused");

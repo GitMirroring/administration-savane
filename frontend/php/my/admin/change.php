@@ -71,15 +71,14 @@ if ($item == 'delete')
           WHERE group_id = ? and status = 'A'",
           [$group_id]
         );
-        if ($r && 0 != db_numrows ($r))
+        if (db_numrows ($r))
           $exists = true;
       }
     if ($exists)
       exit_error (
-        _("You must quit groups of which you are a member before\nrequesting "
-          . "account deletion. If you registered a project that was not "
-          . "approved\nor discarded yet, you must ask admins to cancel that "
-          . "registration."));
+        _("You must quit all groups before requesting account deletion. "
+          . "If you registered a group that is still pending,\n"
+          . "please ask site admins to cancel that registration."));
   }
 
 # Update the database.

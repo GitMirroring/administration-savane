@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2019, 2022 Ineiev
+# Copyright (C) 2017, 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -46,96 +46,104 @@ extract (sane_import ('post',
 # Check if resume should be editable at all.
 $allow_resume = false;
 # Let edit resume when it already exists.
-$result = db_execute ("SELECT people_resume FROM user WHERE user_id=?",
-                      array(user_getid()));
-if ($result && db_numrows ($result) > 0)
-  {
-    if ('' != db_result ($result, 0, 'people_resume'))
-      $allow_resume = true;
-  }
+$result = db_execute (
+ "SELECT people_resume FROM user WHERE user_id = ?", [user_getid ()]
+);
+if (db_numrows ($result) > 0)
+  if ('' != db_result ($result, 0, 'people_resume'))
+    $allow_resume = true;
 # Let members of any group edit their resume.
 if (!$allow_resume)
   {
-    $result = db_execute ("SELECT groups.group_id FROM user_group,groups
-                           WHERE groups.group_id = user_group.group_id
-                                 AND groups.status = 'A'
-                                 AND user_id=? AND admin_flags != 'P' LIMIT 1",
-                          array(user_getid()));
-    if ($result && db_numrows ($result) > 0)
+    $result = db_execute ("
+      SELECT groups.group_id FROM user_group, groups
+      WHERE
+        groups.group_id = user_group.group_id AND groups.status = 'A'
+        AND user_id=? AND admin_flags != 'P'
+      LIMIT 1", [user_getid ()]
+    );
+    if (db_numrows ($result) > 0)
       $allow_resume = true;
   }
 
 if ($update_profile)
   {
-    $arg_arr = array ($people_view_skills, user_getid());
+    $arg_arr = [$people_view_skills, user_getid ()];
     $sql_str = "people_view_skills=?";
     if ($allow_resume)
       {
         if (!$people_resume)
           $people_resume = '';
-        $arg_arr = array ($people_view_skills, $people_resume, user_getid());
-        $sql_str = $sql_str . ", people_resume=?";
+        $arg_arr = [$people_view_skills, $people_resume, user_getid ()];
+        $sql_str = "$sql_str, people_resume = ?";
       }
     $result = db_execute (
-      "UPDATE user SET " . $sql_str . " WHERE user_id=?", $arg_arr
+      "UPDATE user SET $sql_str WHERE user_id = ?", $arg_arr
     );
     if ($result)
-      fb(_("Updated successfully"));
+      fb (_("Updated successfully"));
     else
-      fb(_("Update failed"), 1);
+      fb (_("Update failed"), 1);
   }
 elseif ($add_to_skill_inventory)
   {
-    if ($skill_id==100 || $skill_level_id==100 || $skill_year_id==100)
-      fb(_("Missing info: fill in all required fields"),1);
+    if ($skill_id == 100 || $skill_level_id == 100 || $skill_year_id == 100)
+      fb (_("Missing info: fill in all required fields"), 1);
     else
-      people_add_to_skill_inventory($skill_id,$skill_level_id,$skill_year_id);
+      people_add_to_skill_inventory (
+        $skill_id, $skill_level_id, $skill_year_id
+      );
   }
 elseif ($update_skill_inventory)
   {
-  # Change Skill level, experience etc.
-    if ($skill_level_id==100 || $skill_year_id==100  || !$skill_inventory_id)
-      fb(_("Missing info: fill in all required fields"));
+    if (
+      $skill_level_id == 100 || $skill_year_id == 100  || !$skill_inventory_id
+    )
+      fb (_("Missing info: fill in all required fields"));
     else
       {
-        $result = db_execute("UPDATE people_skill_inventory "
-           ."SET skill_level_id=?,skill_year_id=? "
-           ."WHERE user_id=? AND skill_inventory_id=?",
-           array($skill_level_id, $skill_year_id, user_getid(),
-                 $skill_inventory_id));
+        $result = db_execute ("
+          UPDATE people_skill_inventory
+          SET skill_level_id = ?, skill_year_id = ?
+          WHERE user_id = ? AND skill_inventory_id = ?",
+          [$skill_level_id, $skill_year_id, user_getid (), $skill_inventory_id]
+        );
 
-        if (!$result || db_affected_rows($result) < 1)
-          fb(_("User Skill update failed"),1);
+        if (!$result || db_affected_rows ($result) < 1)
+          fb (_("User Skill update failed"),1);
         else
-          fb(_("User Skills updated successfully"));
+          fb (_("User Skills updated successfully"));
       }
   }
 elseif ($delete_from_skill_inventory)
   {
     if (!$skill_inventory_id)
-      exit_error(_("Missing information: fill in all required fields"));
+      exit_error (_("Missing information: fill in all required fields"));
 
-    $result = db_execute("DELETE FROM people_skill_inventory "
-                         ."WHERE user_id=? AND skill_inventory_id=?",
-                         array(user_getid(), $skill_inventory_id));
-    if (!$result || db_affected_rows($result) < 1)
-      fb(_("User Skill Delete failed"),1);
+    $result = db_execute ("
+      DELETE FROM people_skill_inventory
+      WHERE user_id = ? AND skill_inventory_id = ?",
+      [user_getid (), $skill_inventory_id]
+    );
+    if (!$result || db_affected_rows ($result) < 1)
+      fb (_("User Skill Delete failed"),1);
     else
-     fb(_("User Skill Deleted successfully"));
+      fb (_("User Skill Deleted successfully"));
   }
 
 # Fill in the info to edit the resume.
-site_user_header(array('title'=>_("Edit Your Resume & Skills"),
-                       'context'=>'account'));
+site_user_header (
+  ['title' => _("Edit Your Resume & Skills"), 'context' => 'account']
+);
 print '<p>'
   . _("Details about your experience and skills may be of interest to other "
       . "users\nor visitors.")
   . "</p>\n";
 
-$result = db_execute("SELECT * FROM user WHERE user_id=?", array(user_getid()));
-if (!$result || db_numrows($result) < 1)
-  exit_error(_("No such user"));
-utils_get_content("people/editresume");
+$result = db_execute ("SELECT * FROM user WHERE user_id = ?", [user_getid ()]);
+if (db_numrows ($result) < 1)
+  exit_error (_("No such user"));
+utils_get_content ("people/editresume");
 
 $viewableoptions = ["0" => _("No"), "1" => _("Yes")];
 

@@ -1,147 +1,144 @@
 <?php
 # Trigger group creation.
-# 
+#
 # Copyright (C) 2004 Mathieu Roy <yeupou--at--gnu.org>
-# Copyright 2017, 2020 Ineiev
-# 
+# Copyright 2017, 2020, 2023 Ineiev
+#
 # This file is part of Savane.
-# 
+#
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # Savane is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n($string)
+function no_i18n ($string)
 {
   return $string;
 }
 
-require_once('../include/init.php');
-require_once('../include/proj_email.php');
+require_once ('../include/init.php');
+require_once ('../include/proj_email.php');
 
 # Skip admin rights check if we are dealing with the sys group.
-if ($GLOBALS['sys_group_id'] != $group_id)
-{ session_require(array('group'=>'1','admin_flags'=>'A')); }
+if ($sys_group_id != $group_id)
+  session_require (['group' => '1','admin_flags' => 'A']);
 
-# Configure the project according to group type settings:
-#   If a project can use a feature for its group type, assume he would
-#   use it by default.
-#   Exception: the patch tracker is deprecated, so it is ignored.
-$group_type = db_result(db_execute("SELECT type FROM groups WHERE group_id=?",
-                                   array($group_id)),0,'type');
-$res_type = db_execute("SELECT * FROM group_type WHERE type_id=?",
-                       array($group_type));
-$user_id = user_getid();
+# Configure the group according to group type settings.
+# If a group can use a feature for its group type, assume he would
+# use it by default.
+# Exception: the patch tracker is deprecated, so it is ignored.
+$res = db_execute ("SELECT type FROM groups WHERE group_id = ?", [$group_id]);
+$group_type = db_result ($res, 0,'type');
+$res_type = db_execute (
+  "SELECT * FROM group_type WHERE type_id = ?", [$group_type]
+);
+$user_id = user_getid ();
 
-$to_update = array("homepage", "download", "cvs", "forum","mailing_list",
-                   "task","news","support","bug");
-$upd_list = array();
+$to_update = ["homepage", "download", "cvs", "forum", "mailing_list", "task",
+  "news", "support", "bug"
+];
+$upd_list = [];
 
 foreach ($to_update as $field)
-{
-  # bug = bugs, mailing_list = mail
-  $value = db_result($res_type, 0, 'can_use_'.$field);
-  
-  if ($field == 'mailing_list')
-      { $field = 'mail'; }
-  if ($field == 'bug')
-      { $field = 'bugs'; }
-  $field = 'use_'.$field;
+  {
+    $value = db_result ($res_type, 0, "can_use_$field");
 
-# TRANSLATORS: the first argument is field, the second is value.
-  fb(sprintf(no_i18n('%1$s will be set to %2$s'),$field, $value));
-  $upd_list[$field] = $value;
-}
+    if ($field == 'mailing_list')
+      $field = 'mail';
+    if ($field == 'bug')
+      $field = 'bugs';
+    $field = "use_$field";
+
+    # TRANSLATORS: the first argument is field, the second is value.
+    fb (sprintf (no_i18n ('%1$s will be set to %2$s'), $field, $value));
+    $upd_list[$field] = $value;
+  }
 
 if ($upd_list)
-{
-  $result=db_affected_rows(db_autoexecute('groups', $upd_list, DB_AUTOQUERY_UPDATE,
-					  "group_id=?", array($group_id)));
+  {
+    $result = db_affected_rows (
+      db_autoexecute ('groups', $upd_list, DB_AUTOQUERY_UPDATE, "group_id = ?",
+        [$group_id]
+      )
+    );
+    if ($result)
+      {
+        fb_dbsuccess ();
+        group_add_history (
+          'Set Active Features to the default for the Group Type',
+          user_getname ($user_id), $group_id
+        );
+      }
+    else
+      fb (no_i18n ("No field to update or SQL error"));
+  }
 
-  if (!$result)
-    { 
-      fb(no_i18n("No field to update or SQL error"));
-    }
-  else
-    { 
-      fb_dbsuccess();  
-      group_add_history('Set Active Features to the default for the Group Type',
-                        user_getname($user_id),$group_id);
-    }
-}
-
-# Now set a default notification setup for the trackers. 
+# Now set a default notification setup for the trackers.
 # We do not even check whether the trackers are used, because we want this
 # configuration to be already done if at some point the tracker gets activated,
 # if it is not the case by default.
-$to_update = '';
-$upd_list = array();
+$to_update = ''; $upd_list = [];
 
-# Build the notification list
-$res_admins = db_execute("SELECT user.user_name FROM user,user_group WHERE "
-			 . "user.user_id=user_group.user_id "
-                         . "AND user_group.group_id=? AND "
-			 . "user_group.admin_flags='A'", array($group_id));
-if (db_numrows($res_admins) > 0)
-{
-  $admin_list = '';
-  while ($row_admins = db_fetch_array($res_admins))
-    {
-      $admin_list .= ($admin_list ? ', ':'').$row_admins['user_name'];
-    }
-  
-  $to_update = array("news", "support", "task", "bugs", "patch", "cookbook");
+# Build the notification list.
+$res_admins = db_execute ("
+  SELECT user.user_name FROM user, user_group
+  WHERE
+    user.user_id = user_group.user_id AND user_group.group_id = ?
+    AND user_group.admin_flags = 'A'", [$group_id]
+);
+if (db_numrows ($res_admins) > 0)
+  {
+    $admin_list = '';
+    while ($row_admins = db_fetch_array ($res_admins))
+      $admin_list .= ($admin_list? ', ': '') . $row_admins['user_name'];
 
-  foreach ($to_update as $field)
-    {
-      $upd_list["new_".$field."_address"] = $admin_list;
-      if ($field != "news")
-	{
-	  $upd_list["send_all_".$field] = $value;
-	}
-    }
-}
+    $to_update = ["news", "support", "task", "bugs", "patch", "cookbook"];
+
+    foreach ($to_update as $field)
+      {
+        $upd_list["new_{$field}_address"] = $admin_list;
+        if ($field != "news")
+          $upd_list["send_all_$field"] = $value;
+      }
+  }
 if ($upd_list)
-{
-  # Strip the excess comma at the end of the update field list.
-  $result=db_affected_rows(db_autoexecute('groups', $upd_list,
-                                          DB_AUTOQUERY_UPDATE, "group_id=?", 
-                                          array($group_id)));
+  {
+    # Strip the excess comma at the end of the update field list.
+    $result = db_affected_rows (db_autoexecute ('groups', $upd_list,
+      DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id])
+    );
 
-  if (!$result)
-    { 
-      fb(no_i18n("No field to update or SQL error"));
-    }
-  else
-    { 
-      fb_dbsuccess();  
-      group_add_history('Set Mail Notification to a sensible default',
-                        user_getname($user_id),$group_id);
-    }
-}
+    if ($result)
+      {
+        fb_dbsuccess ();
+        group_add_history ('Set Mail Notification to a sensible default',
+          user_getname ($user_id), $group_id
+        );
+      }
+    else
+      fb (no_i18n("No field to update or SQL error"));
+  }
 
 # Send email and do site specific triggered stuff that comes along.
-send_new_project_email($group_id);
-fb(no_i18n("Mail sent, site-specific triggers executed"));
+send_new_project_email ($group_id);
+fb (no_i18n ("Mail sent, site-specific triggers executed"));
 
-if ($GLOBALS['sys_group_id'] != $group_id)
-{ 
-  site_admin_header(array('title'=>no_i18n("Project Creation Trigger")));
-  site_admin_footer(array());
-}
-else
-{
-  site_header(array('title'=>no_i18n("Local Administration Project Approved")));
-  site_footer(array());
-}
+if ($sys_group_id != $group_id)
+  {
+    site_admin_header (['title' => no_i18n ("Group Creation Trigger")]);
+    site_admin_footer ([]);
+    exit;
+  }
+site_header (['title' => no_i18n ("Local Administration Group Approved")]);
+site_footer ([]);
 ?>

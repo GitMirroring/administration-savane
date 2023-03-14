@@ -25,7 +25,7 @@ function people_get_type_name ($type_id)
   $result = db_execute (
     "SELECT name FROM group_type WHERE type_id = ?", [$type_id]
   );
-  if (!$result || db_numrows ($result) < 1)
+  if (db_numrows ($result) < 1)
     return 'Invalid ID';
   return gettext (db_result ($result, 0, 'name'));
 }
@@ -36,7 +36,7 @@ function people_get_category_name ($category_id)
     "SELECT name FROM people_job_category WHERE category_id = ?",
     [$category_id]
   );
-  if (!$result || db_numrows ($result) < 1)
+  if (db_numrows ($result) < 1)
     return 'Invalid ID';
   return db_result ($result, 0, 'name');
 }
@@ -47,7 +47,7 @@ function people_list_categories ()
 
   $result = db_query ("SELECT * FROM people_job_category ORDER BY category_id");
   $rows = db_numrows ($result);
-  if (!$result || $rows < 1)
+  if ($rows < 1)
     return false;
   $return = "";
   for ($i = 0; $i < $rows; $i++)
@@ -89,7 +89,7 @@ function people_list_project_type ()
     WHERE status_id = 1 GROUP BY type_id ORDER BY type_id"
   );
   $rows = db_numrows ($result);
-  if (!$result || $rows < 1)
+  if ($rows < 1)
     return false;
   $return = "";
   for ($i = 0; $i < $rows; $i++)
@@ -144,7 +144,7 @@ function people_show_category_list ()
   $result = db_query ($sql);
   $rows = db_numrows ($result);
   $return = '';
-  if (!$result || $rows < 1)
+  if ($rows < 1)
     return $finalize ("<li>" . _("No categories found") . "</li>");
   for ($i = $j = 0; $i < $rows; $i++)
     {
@@ -233,7 +233,7 @@ function people_add_to_job_inventory (
     SELECT * FROM people_job_inventory WHERE job_id = ? AND skill_id = ?",
     [$job_id, $skill_id]
   );
-  if ($result && db_numrows ($result) > 0)
+  if (db_numrows ($result) > 0)
     {
       fb (_("Skill already in your inventory"), 1);
       return;
@@ -304,7 +304,7 @@ function people_verify_job_group ($job_id, $group_id)
     SELECT * FROM people_job WHERE job_id = ? AND group_id = ?",
     [$job_id, $group_id]
   );
-  return $result && db_numrows ($result) > 0;
+  return db_numrows ($result) > 0;
 }
 
 function people_draw_skill_box ($result, $job_id = false, $group_id = false)
@@ -317,7 +317,7 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
   $title_arr = [_('Skill'), _('Level'), _('Experience'), _('Action')];
 
   $rows = db_numrows ($result);
-  if (!$result || $rows < 1)
+  if ($rows < 1)
     {
       print html_build_list_table_top ($title_arr);
       print "\n<tr><td colspan='4'><strong>"
@@ -576,7 +576,7 @@ function people_add_to_skill_inventory (
     SELECT * FROM people_skill_inventory WHERE user_id = ? AND skill_id = ?",
     [user_getid (), $skill_id]
   );
-  if ($result && db_numrows ($result) > 0)
+  if (db_numrows ($result) > 0)
     {
       fb (_('ERROR - skill already in your inventory'));
       return;

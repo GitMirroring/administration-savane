@@ -36,7 +36,7 @@ if ($msg_id)
                        ."FROM forum_group_list,forum "
                        ."WHERE forum_group_list.group_forum_id="
                        ."forum.group_forum_id AND forum.msg_id=?",
-                       array($msg_id));
+                       [$msg_id]);
     $forum_id=db_result($result,0,'group_forum_id');
     $thread_id=db_result($result,0,'thread_id');
     $forum_name=db_result($result,0,'forum_name');
@@ -48,19 +48,16 @@ if ($msg_id)
           ."FROM forum,user WHERE user.user_id=forum.posted_by "
           ."AND forum.msg_id=?;";
 
-    $result = db_execute($sql, array($msg_id));
-    if (!$result || db_numrows($result) < 1)
+    $result = db_execute($sql, [$msg_id]);
+    if (db_numrows($result) < 1)
       exit_error (_('Message not found.'));
 
-    $title_arr=array();
-    $title_arr[] = sprintf (
-# TRANSLATORS: the argment is message id.
-                            _('Message %s'), $msg_id);
-    print html_build_list_table_top ($title_arr);
+    # TRANSLATORS: the argment is message id.
+    print html_build_list_table_top ([sprintf (_('Message %s'), $msg_id)]);
 
     print "<tr>\n<td>\n";
-# TRANSLATORS: the first argument is subject, the second is user's name,
-# the third is date.
+    # TRANSLATORS: the first argument is subject, the second is user's name,
+    # the third is date.
     printf (_('%1$s (posted by %2$s, %3$s)'),
             '<strong>'.db_result($result,0, "subject").'</strong>',
             utils_user_link(db_result($result,0, "user_name")),

@@ -30,7 +30,7 @@ if (empty ($user_id))
 
 $result = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
 
-if (!$result || (db_numrows ($result) < 1))
+if (db_numrows ($result) < 1)
   exit_error (_("User not found"));
 
 if (db_result ($result, 0, 'people_view_skills') != 1)

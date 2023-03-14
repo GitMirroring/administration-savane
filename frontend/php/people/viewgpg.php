@@ -29,7 +29,7 @@ $result = db_execute (
   "SELECT user_name, gpg_key FROM user WHERE user_id = ?", [$user_id]
 );
 
-if (!$result || db_numrows ($result) < 1)
+if (db_numrows ($result) < 1)
   exit_error (_("User not found."));
 
 $user_name = db_result ($result, 0, 'user_name');

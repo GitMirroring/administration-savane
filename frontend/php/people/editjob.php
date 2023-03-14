@@ -174,7 +174,7 @@ if ($job_id)
       "SELECT * FROM people_job WHERE job_id = ? AND group_id = ?",
       [$job_id, $group_id]
     );
-    if (!$result || db_numrows ($result) < 1)
+    if (db_numrows ($result) < 1)
       {
         print db_error ();
         fb (_("POSTING fetch FAILED"));

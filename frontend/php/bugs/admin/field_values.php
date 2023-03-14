@@ -801,7 +801,7 @@ if ($update_canned)
       [$group_id, $item_canned_id]
     );
 
-    if (!$result || db_numrows ($result) < 1)
+    if (db_numrows ($result) < 1)
       fb (_("No such response!"), 1);
     else
       {

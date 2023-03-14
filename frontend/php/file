@@ -50,7 +50,7 @@ $result = db_execute ("
   [$file_id]
 );
 
-if ($result && db_numrows ($result) > 0)
+if (db_numrows ($result) > 0)
   {
     $item_id  = db_result ($result, 0, 'item_id');
     $artifact = db_result ($result, 0, 'artifact');
@@ -76,7 +76,7 @@ $result = db_execute ("
   [$item_id]
 );
 
-if ($result && db_numrows ($result) > 0)
+if (db_numrows ($result) > 0)
   {
     $group_id = db_result ($result, 0, 'group_id');
     if ((db_result ($result, 0, 'privacy') == '2')
@@ -90,7 +90,7 @@ $result = db_execute ("
   [$file_id]
 );
 
-$vex = $result && db_numrows ($result) > 0;
+$vex = db_numrows ($result) > 0;
 
 if ($vex && db_result ($result, 0, 'filesize') >= 0)
   {

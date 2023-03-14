@@ -64,7 +64,7 @@ function member_remove ($user_id, $group_id)
     SELECT admin_flags FROM user_group WHERE user_id = ? AND group_id = ?",
     [$user_id, $group_id]
   );
-  if (db_numrows ($result) == 0)
+  if (!db_numrows ($result))
     return false;
 
   $admin_flags = db_result ($result, 0, 'admin_flags');
@@ -335,10 +335,7 @@ function member_check_admin_flags ($user_id, $group_id, $flags)
     WHERE user_id = ? AND group_id = ? AND admin_flags = ?",
     [$user_id, $group_id, $flags]
   );
-
-  if (db_numrows ($result))
-    return true;
-  return false;
+  return db_numrows ($result) != 0;
 }
 
 # Additional function to check whether a member is pending for a group
@@ -381,9 +378,7 @@ function member_check_private ($user_id, $group_id)
     WHERE user_id = ? AND group_id = ? AND admin_flags <> 'P'
     AND privacy_flags = '1'", [$user_id, $group_id]
   );
-  if (db_numrows ($res))
-    return true;
-  return false;
+  return db_numrows ($res) != 0;
 }
 
 # Permit to keep the "simple" syntax of member_check but also
