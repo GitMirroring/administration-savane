@@ -240,7 +240,7 @@ function html_feedback ($bottom)
       print "<div id=\"feedback$suffix\" class=\"feedbackerror $class_hide\">"
         . "<span class='feedbackerrortitle'>"
         . html_image ($img_wrong, ['class' => 'feedbackimage'])
-        . _("Error:") . "</span><br/>\n$ffeedback</div>\n";
+        . _("Error:") . "</span>\n$ffeedback</div>\n";
     }
 
   # Errors and success.
