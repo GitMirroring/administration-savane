@@ -618,6 +618,11 @@ function trackers_data_mandatory_flag ($field, $by_field_id = false)
   return trackers_data_custom_val ($field, 'empty_ok', $by_field_id);
 }
 
+function trackers_data_do_keep_history ($field, $by_field_id = false)
+{
+  return trackers_data_custom_val ($field, 'keep_history', $by_field_id);
+}
+
 function trackers_data_is_required ($field, $by_field_id = false)
 {
   return trackers_data_field_val ($field, 'required', $by_field_id);

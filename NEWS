@@ -90,6 +90,8 @@
 ** In the ASCII mode, ordered lists were in effect even within
    verbatim blocks, Savannah sr #110621.
 
+** Editing field usage was broken in 3.10.
+
 [I18N]
 
 * Update French, Hebrew, Russian.
