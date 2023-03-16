@@ -516,7 +516,7 @@ function pagemenu_group ()
 
   if (!$project->Uses ("news"))
     return;
-  $news = $sys_home . 'news/';
+  $news = $sys_home . 'news';
   pagemenu_submenu_title (_("News"), "$news/$gr_n", CONTEXT == 'news', 1,
     _("Read latest News, post News")
   );
