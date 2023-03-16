@@ -375,7 +375,7 @@ sub UpdateCvsNotifications {
 	}
 
 	unless (open(OUT, "> $file")) {
-	    $w .= " Cannot open $file: $! for writing.");
+	    $w .= " Cannot open $file: $! for writing.";
 	    return $w;
 	}
 	print OUT $text;
