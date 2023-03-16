@@ -37,134 +37,101 @@ $result = db_execute ("
   SELECT * FROM mail_group_list WHERE group_id = ?
   AND is_public IN ($public_flag) ORDER BY list_name ASC", [$group_id]
 );
-$rows = db_numrows ($result);
 
-if (!$result || $rows < 1)
+if (!db_numrows ($result))
   {
+    print "<p><strong>";
     # TRANSLATORS: The argument is Savannah group (project) name.
-    printf ('<h1>' . _("No Lists found for %s") . '</h1>',
-      $project->getName ()
-    );
-    print '<p>'
-      . _("Project administrators can add mailing lists using the admin "
+    printf (_("No mailing lists found for %s."), $project->getName ());
+    print "</strong></p>\n<p>"
+      . _("Group administrators can add mailing lists using the admin "
           . "interface.")
     . "</p>\n";
     $HTML->footer ([]);
     exit;
   }
 
-# The <br /> is here to put some space with the menu.  Please, keep it.
-print "<br />\n";
-function url_is_custom ($url)
+function url_is_real ($url)
 {
   return $url && $url != 'http://';
 }
 
-for ($j = 0; $j < $rows; $j++)
+print "<dl>";
+while ($row = db_fetch_array ($result))
   {
-    $is_public = db_result ($result, $j, 'is_public');
-    $pass = db_result ($result, $j, 'password');
-    $list = db_result ($result, $j, 'list_name');
+    $is_public = $row['is_public'];
+    $list = $row['list_name'];
 
+    print "<dt>" . html_image ("contexts/mail.png") . "\n";
     # Pointer to listinfo or to the mailing list address, if no listinfo
     # is found.
     $url = $project->getTypeMailingListListinfoUrl ($list);
-    if (url_is_custom ($url))
-      $default_pointer = $url;
+    if (url_is_real ($url))
+      $list_string = "<a href=\"$url\">$list</a> ";
     else
-      unset ($default_pointer);
+      $list_string = "$list ";
 
-    print html_image ("contexts/mail.png")
-      . " <a href=\"$default_pointer\">$list</a> ";
+    print "$list_string&nbsp;&nbsp;<em>" . $row['description'] . "</em>\n";
+    print "</dt>\n<dd class='smaller'>";
 
-    print '&nbsp;&nbsp;<em>'
-      . db_result ($result, $j, 'description') . '</em>';
-    print "\n<p class='smaller'>";
-
-    $text = '';
+    $lines = [];
     $url = $project->getTypeMailingListArchivesUrl ($list);
-    if ($is_public && url_is_custom ($url))
-      {
-        # TRANSLATORS: the second argument is mailing list name.
-        $text .= sprintf (
-          _("To see the collection of prior posting to the list,\n"
-            . "visit the <a href=" . '"%1$s">%2$s' . " archives</a>."),
-          $url, $list
-        );
-        $text .= "\n<br />\n";
-      }
+    if ($is_public && url_is_real ($url))
+      # TRANSLATORS: the second argument is mailing list name.
+      $lines[] = sprintf (
+        _("To see the collection of prior posting to the list,\n"
+          . "visit the <a href=" . '"%1$s">%2$s' . " archives</a>."),
+        $url, $list
+      );
 
     $url = $project->getTypeMailingListArchivesPrivateUrl ($list);
-    if (!$is_public && url_is_custom ($url))
-      {
-        # TRANSLATORS: the second argument is mailing list name.
-        $text .= sprintf (
-          _("To see the collection of prior posting to the list,\nvisit the "
-            . "<a href=".'"%1$s">%2$s'." archives</a> (authorization "
-            . "required)."),
-          $url, $list
-        );
-        $text .= "\n<br />\n";
-      }
+    if (!$is_public && url_is_real ($url))
+      # TRANSLATORS: the second argument is mailing list name.
+      $lines[] = sprintf (
+        _("To see the collection of prior posting to the list,\nvisit the "
+          . "<a href=".'"%1$s">%2$s'." archives</a> (authorization "
+          . "required)."),
+        $url, $list
+      );
     $url = $project->getTypeMailingListAddress ($list);
     if ($url)
-      {
-        # TRANSLATORS: the argument is mailing list address.
-        $text .= sprintf (
-          _("To post a message to all the list members, write to %s."),
-          utils_email ($url)
-        );
-        $text .= "\n<br />\n";
-      }
+      # TRANSLATORS: the argument is mailing list address.
+      $lines[] = sprintf (
+        _("To post a message to all the list members, write to %s."),
+        utils_email ($url)
+      );
     else
-      $text .= '<br /><span class="error">'
+      $lines[] = "<span class='error'>"
         . _("No mailing list address was found, the configuration of the\n"
             . "server is probably broken, contact the admins!")
-        . "</span><br />\n";
-
+        . "</span>";
     # Subscribe, unsubscribe:
     # if these fields are empty, go back on the listinfo page.
     $url = $project->getTypeMailingListSubscribeUrl ($list);
     $url1 = $project->getTypeMailingListUnsubscribeUrl ($list);
     $url2 = $project->getTypeMailingListListinfoUrl ($list);
-    if (url_is_custom ($url) && url_is_custom ($url1))
+    if (url_is_real ($url) && url_is_real ($url1))
       {
-        if (url_is_custom ($url))
-          {
-            $text .= "<a href=\"$url\">"
-              . _("Subscribe to the list.") . "</a>";
-            $text .= "\n<br />\n";
-          }
-        if (url_is_custom ($url1))
-          {
-            $text .= "<a href=\"$url1\">"
-              . _("Unsubscribe from the list.") . "</a>";
-            $text .= "\n<br />\n";
-          }
+        $lines[] = "<a href=\"$url\">" . _("Subscribe to the list.") . "</a>";
+        $lines[] = "<a href=\"$url1\">"
+          . _("Unsubscribe from the list.") . "</a>";
       }
-    elseif (url_is_custom ($url2))
-      {
-        $text .= sprintf (
-          _("You can subscribe to the list\n"
-            . "and unsubscribe from the list by following\n"
-            . "instructions on the <a href=\"%s\">list information page</a>."),
-          $url2
-        );
-        $text .= "\n<br />\n";
-      }
+    elseif (url_is_real ($url2))
+      $lines[] = sprintf (
+        _("You can subscribe to the list\n"
+          . "and unsubscribe from the list by following\n"
+          . "instructions on the <a href=\"%s\">list information page</a>."),
+        $url2
+      );
     $url = $project->getTypeMailingListAdminUrl ($list);
-    if (url_is_custom ($url))
-      {
-        $text .= sprintf (
-          _("Project administrators can use the\n<a href=\"%s\">"
-            . "administrative interface</a> to manage the list."),
-          $url
-        );
-        $text .= "\n<br />\n";
-      }
-    if (substr ($text, -7) == "<br />\n")
-      $text = substr ($text, 0, -7);
-    print "$text</p>\n";
-  }
+    if (url_is_real ($url))
+      $lines[] = sprintf (
+        _("Group administrators can use the\n<a href=\"%s\">"
+          . "administrative interface</a> to manage the list."),
+        $url
+      );
+    print join ("<br />\n", $lines) . "</dd>\n";
+  } # while ($row = db_fetch_array ($result))
+print "</dl>\n";
 site_project_footer ([]);
 ?>

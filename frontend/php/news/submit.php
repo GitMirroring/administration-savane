@@ -1,5 +1,5 @@
 <?php
-# News subnissions.
+# News submission.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
@@ -21,7 +21,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('../include/init.php');
-require_once ('../include/news/forum.php');
 
 extract (sane_import ('post',
   [
@@ -50,14 +49,10 @@ if ($update)
     $result = false;
     if ($valid)
       {
-        # Insert the new item, with 5 as status: group admin
-        # must moderate it. There must be a title.
-        $new_id = forum_create_forum ($group_id, $summary, 1, 0);
-
         $t = time ();
         $fields = [ 'group_id' => $group_id, 'submitted_by' => user_getid (),
           'is_approved' => 5, 'date' => $t, 'date_last_edit' => $t,
-          'forum_id' => $new_id, 'summary' => $summary, 'details' => $details
+          'forum_id' => 0, 'summary' => $summary, 'details' => $details
         ];
         $result = db_autoexecute ('news_bytes', $fields, DB_AUTOQUERY_INSERT);
       }
@@ -86,11 +81,11 @@ print '<p class="warn">'
   . "</p>\n"
   . form_header ($_SERVER['PHP_SELF'], $form_id)
   . form_hidden (["group_id" => $group_id])
-  . "<span class='preinput'><label for='summary'>" . _("Subject:")
-  . "</label></span><br/>&nbsp;&nbsp;\n"
+  . "<span class='preinput'>" . html_label ('summary', _("Subject:"))
+  . "</span><br/>&nbsp;&nbsp;\n"
   . "<input type='text' id='summary' name='summary' value=\"$summary\" "
-  . "size='65' maxlenght='80' /><br />\n<span class='preinput'>"
-  . "<label for='details'>" . _("Details") . '</label> '
+  . "size='65' maxlength='80' /><br />\n"
+  . "<span class='preinput'>" . html_label ('details', _("Details"))
   . markup_info ("full") . "</span><br />&nbsp;&nbsp;\n"
   . "<textarea name='details' id='details' rows='20' cols='65' wrap='soft'>\n"
   . "$details</textarea><br />\n" . form_footer ();

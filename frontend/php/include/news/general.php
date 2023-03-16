@@ -1,9 +1,10 @@
 <?php
-# News functions.
+# News-related functions.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2004-2005 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2017, 2022, 2023 Ineiev
+# Copyright (C) 2007 Sylvain Beucler
+# Copyright (C) 2017, 2018, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -20,47 +21,213 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function news_new_subbox ($row)
+# is_approved values:
+# 5 - newly submitted
+# 4 - deleted
+# 2 - "refused" news in sys_group (obsolete, should be 4)
+# 1 - approved for forge front page (obsolete, should be 0)
+# 0 - approved for group main page
+
+function news_fetch_item ($news_id)
 {
-  return $row > 1? '</div><div class="' . utils_altrow ($row) . '">': '';
+  $result = db_execute ("SELECT * from news_bytes WHERE id = ?", [$news_id]);
+  if (!db_numrows ($result))
+    return null;
+  $row = db_fetch_array ($result);
+  $group = project_get_object ($row['group_id']);
+  if ($group->isError ())
+    return null;
+  return $row;
 }
 
-# Show a simple list of the latest news items with a link to the forum.
-function news_show_latest (
-  $group_id, $limit = 10, $show_summaries = "true", $start_from = "no"
-)
+function news_show_news_item ($news_id)
 {
-  if (!isset ($group_id))
-    $group_id = $GLOBALS['sys_group_id'];
-
-  # We want the total number of news.
-  $news_n = news_total_number ($group_id);
-
-  $params = [];
-
-  # We fetch news item for that group.
-  if ($group_id != $GLOBALS['sys_group_id'])
+  $item = news_fetch_item ($news_id);
+  if (empty ($item))
     {
-      $wclause = "news_bytes.group_id = ? AND news_bytes.is_approved <> 4 "
-        . "AND news_bytes.is_approved <> 5";
-      $params[] = $group_id;
+      fb (_("No news item found"), 1);
+      return;
     }
+  print "<h2>" . $item['summary'] . "</h2>\n";
+  print "<p><i>";
+  # TRANSLATORS: the first argument is user's name, the second
+  # argument is date.
+  printf (_('Item posted by %1$s on %2$s.'),
+    news_submitted_by_link ($item['submitted_by']),
+    utils_format_date ($item['date'])
+  );
+  print "</i></p>\n";
+  print markup_full ($item['details']);
+}
+
+function news_query_news ($group_id, $set)
+{
+  $timeout = time () - 86400 * 15;
+  return db_execute ("
+      SELECT * FROM news_bytes
+      WHERE is_approved IN ($set) AND date > ? AND group_id = ?",
+      [$timeout, $group_id]
+    );
+}
+
+function news_print_news_list ($result, $group_id, $group)
+{
+  global $php_self;
+  print "<ul>\n";
+  while ($row = db_fetch_array ($result))
+    {
+      print "<li>";
+      print "<a href=\"$php_self?approve=1&amp;group=$group&amp;";
+      print "id={$row['id']}\">{$row['summary']}</a></li>\n";
+    }
+  print "</ul>\n";
+}
+
+function news_list_news_to_manage ($group_id, $group)
+{
+  $news_sets = [
+    '5' => [_("News wating for approval"), _("No news wating for approval")],
+    '4' => [_("Recently deleted news"), _("No recently deleted news")],
+    '0, 1' => [_("Recently approved news"), _("No recently approved news")]
+  ];
+  foreach ($news_sets as $set => $t)
+    {
+      $result = news_query_news ($group_id, $set);
+      if (!db_numrows ($result))
+        {
+          print "<h2>{$t[1]}</h2>\n";
+          continue;
+        }
+      print "<h2>{$t[0]}</h2>\n";
+      news_print_news_list ($result, $group_id, $group);
+    }
+}
+
+function news_send_notification ($group, $item)
+{
+  global $sys_mail_replyto, $sys_mail_domain;
+  $res = db_execute ("
+    SELECT new_news_address FROM groups WHERE group_id = ?",
+    [$group['id']]
+  );
+  $to = db_result ($res, 0, 'new_news_address');
+  $from = "<$sys_mail_replyto@$sys_mail_domain>";
+  $res = db_execute ("
+    SELECT submitted_by FROM news_bytes WHERE id = ? AND group_id = ?",
+    [$item['id'], $group['id']]
+  );
+  if (db_numrows ($res) > 0)
+    $from = user_getrealname (db_result ($res, 0, 'submitted_by'), 1)
+      . " $from";
+  sendmail_mail (
+    ['from' => $from, 'to' => $to],
+    ['subject' => $item['summary'], 'body' => markup_ascii ($item['details'])],
+    ['group' => $group['name'], 'tracker' => 'news']
+  );
+}
+
+function news_update_news_item ($group, $item)
+{
+  $new_status = $item['status'];
+  if (!in_array ($new_status, [4, 5]))
+    $new_status = 0;
+  $fields = ['is_approved' => $new_status, 'date_last_edit' => time (),
+    'summary' => $item['summary'], 'details' => $item['details']
+  ];
+  $result = db_autoexecute ('news_bytes', $fields, DB_AUTOQUERY_UPDATE,
+    "id = ? AND group_id = ?", [$item['id'], $group['id']]
+  );
+  if ($result)
+    fb (_("Group news item updated"));
   else
-    $wclause = 'news_bytes.is_approved = 1';
+    fb (_("Failed to update"), 1);
+  if ($new_status == 0)
+    # Send mails; don't care if it was already approved.
+    news_send_notification ($group, $item);
+}
 
+function news_submitted_by_link ($submitted_by)
+{
+  $s_by = "None";
+  if ($submitted_by)
+    $s_by = user_getname ($submitted_by);
+   return utils_user_link ($s_by, user_getrealname ($submitted_by));
+}
+
+function news_print_submitter_link ($submitted_by)
+{
+  print '<p>' . _("Submitter:") . ' '
+    . news_submitted_by_link ($submitted_by) . "</p>\n";
+}
+
+function news_print_status_button ($label, $name, $value, $checked)
+{
+  print "\n&nbsp;&nbsp;";
+  print form_radio ('status', $value,
+    ["id" => "status_$name", 'label' => $label, 'checked' => $checked]
+  );
+}
+function news_print_status_selector ($status)
+{
+  $defer = $status == 5;
+  print "<p>";
+  news_print_status_button (_("Display"), 'display', '0', !$defer);
+  print "<br />\n";
+  news_print_status_button (_("Delete"), 'delete', '4', false);
+  if ($defer)
+    {
+      print "<br />\n";
+      news_print_status_button (_("Approve later"), 'defer', '5', true);
+    }
+  print "</p>";
+}
+
+function news_print_news_fields ($summary, $details)
+{
+  print "<span class='preinput'>" . html_label ('summary', _("Subject:"))
+    . "</span><br />\n&nbsp;&nbsp;\n"
+    . '<input type="text" name="summary" id="summary" value="'
+    . "$summary\" size='65' maxlength='80' /><br />\n"
+    . '<span class="preinput">' . html_label ('details', _("Details")) . "\n"
+    . markup_info ("full") . "</span><br />\n&nbsp;&nbsp;\n"
+    . '<textarea name="details" id="details" rows="20" cols="65" wrap="soft">'
+    . "$details</textarea>\n";
+}
+
+function news_print_approve_form ($row)
+{
+  news_print_submitter_link ($row['submitted_by']);
+  print form_tag ();
+  print form_hidden (
+    [ 'id' =>  $row['id'], 'group_id' => $row['group_id'],
+      'approve' => 'y', 'post_changes' => 'y']
+  );
+  news_print_status_selector ($row['is_approved']);
+  news_print_news_fields ($row['summary'], $row['details']);
+  print '<p><input type="submit" name="submit" value="'
+    . _("Submit") . "\" /></p>\n</form>\n";
+  print '<h2>' . _("Preview") . "</h2>\n" . markup_full ($row['details']);
+}
+
+function news_new_subbox ($row)
+{
+  if ($row <= 0)
+    return '';
+  return '</div><div class="' . utils_altrow ($row + 1) . '">';
+}
+
+# Request either first $limit approved news items (when $start_from <= 0),
+# or all approved items starting from $start_from.
+function news_get_news ($group_id, $start_from, $limit, $news_n)
+{
   $sql = "
-    SELECT
-      groups.group_name, groups.unix_group_name, user.user_name,
-      news_bytes.forum_id, news_bytes.summary, news_bytes.date,
-      news_bytes.details
-    FROM user, news_bytes, groups
+    SELECT user_name, id, forum_id, summary, details, date
+    FROM user, news_bytes
     WHERE
-      $wclause AND user.user_id = news_bytes.submitted_by
-      AND news_bytes.group_id = groups.group_id
-    ORDER BY date DESC";
-
-  $sql .= " LIMIT ";
-  if ($start_from != 0 && $start_from != "no" && $start_from != "nolinks")
+      is_approved NOT IN (4, 5) AND group_id = ? AND user_id = submitted_by
+    ORDER BY date DESC LIMIT ";
+  $params = [$group_id];
+  if ($start_from > 0)
     {
       $sql .= "?, ?";
       $params[] = $start_from;
@@ -71,131 +238,151 @@ function news_show_latest (
       $sql .= "?";
       $params[] = $limit;
     }
+  return db_execute ($sql, $params);
+}
 
-  $result = db_execute ($sql, $params);
-  $rows = db_numrows ($result);
-  $return = '';
+# Return the position to truncate the string at,
+# or -1 when the string is short enough.
+function news_break_details ($story)
+{
+  if (strlen ($story) < 500)
+    return -1;
+  # If there is a linebreak close to the 250 character mark, we use it
+  # to truncate the news item, so that the markup will not be confused.
+  # We accept the range from 240 to 350 characters, else
+  # the news item will be split on whitespace.
+  $linebreak = strpos ($story, "\n", 240);
+  if ($linebreak !== false && $linebreak < 350)
+    return $linebreak;
+  $truncate = strrpos (substr ($story, 0, 350), ' ');
+  if ($truncate === false)
+    $truncate = 300;
+  return $truncate;
+}
 
-  if ($rows < 1)
-    $return .= news_new_subbox (0) . '<h2>' . _("No news items found")
-      . "</h2>\n";
-  else
+# Markup the string without trailing line breaks.
+function news_markup_details ($story)
+{
+  $ret = markup_full ($story);
+  return preg_replace ("/(<br \\/>\s*)*((<\\/p>\s*)?)$/", '$2', $ret);
+}
+
+function news_item_url ($row, $reply)
+{
+  global $sys_home;
+
+  if ($reply === '')
+    $url = "news/?id={$row['id']}";
+   else
+    $url = "forum/forum.php?forum_id={$row['forum_id']}";
+  return "$sys_home$url";
+}
+
+function news_link ($row, $reply)
+{
+  $url = news_item_url ($row, $reply);
+  return "<a href=\"$url\">[...]</a>";
+}
+
+function news_format_details ($row, $reply)
+{
+  global $sys_home;
+  $story = trim ($row['details']);
+  $truncate = news_break_details ($story);
+  if ($truncate < 0)
+    return news_markup_details ($story);
+  $sub = substr ($story, 0, $truncate);
+  $story = news_markup_details (substr ($story, 0, $truncate));
+  # Put the "Read more" link into the last <p>.
+  if (!preg_match ("/<\\/p>\s*$/", $story, $matches, PREG_OFFSET_CAPTURE))
+    $matches = [0 => ['', strlen ($story)]];
+  $head = substr ($story, 0, $matches[0][1]);
+  $tail = $matches[0][0];
+  $link = news_link ($row, $reply);
+  return "$head\n$link$tail\n";
+}
+
+function news_reply_count ($forum_id)
+{
+  $result = db_execute (
+    "SELECT group_forum_id FROM forum WHERE group_forum_id = ?", [$forum_id]
+  );
+  $cnt = db_numrows ($result);
+  if (!$cnt)
+    return '';
+  return  ' - ' . sprintf (ngettext ("%s reply", "%s replies", $cnt), $cnt);
+}
+
+function news_format_item ($row, $show_details, $i)
+{
+  global $sys_home;
+  $return = $det = '';
+  $reply = news_reply_count ($row['forum_id']);
+  $link = news_item_url ($row, $reply);
+  $return .= news_new_subbox ($i)
+    . "<a href=\"$link\"><strong>{$row['summary']}</strong></a>";
+  if ($show_details)
     {
-      for ($i = 0; $i < $rows; $i++)
-        {
-          # We want the number of message in this forum.
-          $tres_count = db_execute (
-            "SELECT group_forum_id FROM forum WHERE group_forum_id = ?",
-            [db_result ($result, $i, 'forum_id')]
-          );
-          $trow_count = db_numrows ($tres_count);
-          if ($show_summaries != "false")
-            {
-              # Get the story.
-              $story = rtrim(db_result($result,$i,'details'));
-
-              # If the news item is large (>500 characters),
-              # only show about 250 characters of the story.
-              $strlen_story = strlen($story);
-              if ($strlen_story > 500)
-                {
-                  # If there is a linebreak close to the 250 character
-                  # mark, we use it to truncate the news item, so that
-                  # the markup will not be confused.
-                  # We accept the range from 240 to 350 characters, else
-                  # the news item will be split on whitespace.
-                  $linebreak = strpos ($story, "\n", min ($strlen_story, 240));
-                  if ($linebreak !== false and $linebreak < 350)
-                    $truncate = $linebreak;
-                  else
-                    {
-                      $truncate = strrpos (substr ($story, 0, 250), ' ');
-                      if ($truncate === false)
-                        $truncate = 250;
-                    }
-                  $summ_txt = substr ($story, 0, $truncate);
-                  $summ_txt .= " ...";
-                  $summ_txt = markup_full($summ_txt);
-                  $summ_txt .= sprintf("%s["._("Read more")."]%s",
-                            '<br /><a href="'
-                            .$GLOBALS['sys_home'].'forum/forum.php?forum_id='
-                            .db_result($result,$i,'forum_id').'">', '</a>');
-                }
-              else
-                {
-                  # This is a short news item.  Just display it.
-                  $summ_txt = markup_full($story);
-                }
-              $proj_name = db_result($result,$i,'group_name');
-            }
-          else
-            {
-              $proj_name='';
-              $summ_txt='';
-            }
-      $reply = sprintf (
-        ngettext ("%s reply", "%s replies", $trow_count), $trow_count
-      );
-      $return .= news_new_subbox ($i + 1)
-        . '<a href="'.$GLOBALS['sys_home'] . 'forum/forum.php?forum_id='
-        . db_result($result, $i, 'forum_id') . '"><strong>'
-        . db_result($result, $i, 'summary') . '</strong></a>';
-      if ($show_summaries != "false")
-        $return .= "<br />\n&nbsp;&nbsp;&nbsp;&nbsp;";
-      $uname = db_result ($result, $i, 'user_name');
-      $return .= ' <span class="smaller"><em>' . _("posted by") . ' <a href="'
-        . $GLOBALS['sys_home'] . 'users/' . $uname . '">' . $uname . '</a>, '
-        . utils_format_date (db_result ($result, $i, 'date')) . ' - '
-        . $reply . '</em></span>' . $summ_txt;
-        }
+      $return .= "<br />\n&nbsp;&nbsp;&nbsp;&nbsp;";
+      $det = news_format_details ($row, $reply);
     }
-
-  if ($start_from != "nolinks")
-    {
-      # No link is a trick to skip archives + submit news links.
-      if ($group_id != $GLOBALS['sys_group_id'])
-        {
-          # You can only submit news from a project now.
-          # You used to be able to submit general news.
-          $return .= news_new_subbox (0)
-            . '<br /> <a href="' . $GLOBALS['sys_home']
-            . 'news/submit.php?group_id='
-            . $group_id . '"><span class="smaller">[' . _("Submit News")
-            . ']</span></a>';
-        }
-
-      $return .= news_new_subbox (0)
-        . '<br /> <a href="' . $GLOBALS['sys_home'] . 'news/?group_id='
-        . $group_id . '"><span class="smaller">['
-        . sprintf (
-            ngettext ("%d news in archive", "%d news in archive", $news_n),
-            $news_n
-          )
-        . ']</span></a>';
-    }
+  $uname = $row['user_name'];
+  $return .= ' <span class="smaller"><em>' . _("posted by")
+    . " <a href=\"${sys_home}users/$uname\">$uname</a>, "
+    . utils_format_date ($row['date']) . "$reply</em></span>\n$det";
   return $return;
+}
+
+function news_list_items ($result, $show_details)
+{
+  if (!db_numrows ($result))
+    return ['<p><strong>' . _("No news found") . "</strong></p>\n", -1];
+  $return = '';
+  for ($i = 0; $row = db_fetch_array ($result); $i++)
+    $return .= news_format_item ($row, $show_details, $i);
+  return [$return, $i];
+}
+
+function news_bottom_link ($group_id, $news_n)
+{
+  global $sys_home;
+  return "<a href=\"{$sys_home}news/?group_id=$group_id"
+    . '"><span class="smaller">['
+    . sprintf (
+        ngettext ("%d news in archive", "%d news in archive", $news_n),
+        $news_n
+      )
+    . ']</span></a>';
+}
+
+# Show a simple list of the latest news items with a link to the forum.
+# When $start_from is negative, the bottom link is skipped.
+function news_show_latest (
+  $group_id, $limit = 10, $show_details = true, $start_from = 0
+)
+{
+  global $sys_group_id;
+  if (empty ($group_id))
+    $group_id = $sys_group_id;
+
+  $news_n = news_total_number ($group_id);
+  $result = news_get_news ($group_id, $start_from, $limit, $news_n);
+  list ($return, $n) = news_list_items ($result, $show_details);
+
+  if ($start_from < 0 || $n < 0)
+    return $return;
+  $return .= news_new_subbox ($n);
+  return $return . news_bottom_link ($group_id, $news_n);
 }
 
 function news_total_number ($group_id)
 {
-  # We want the total number of news for a group.
-  if ($group_id != $GLOBALS['sys_group_id'])
-    {
-      $wclause = "news_bytes.group_id = ? AND news_bytes.is_approved <> 4 "
-        . "AND news_bytes.is_approved <> 5";
-      $params = [$group_id];
-    }
-  else
-    {
-      $wclause = 'news_bytes.is_approved = 1';
-      $params = [];
-    }
   $sql = "
-    SELECT count(*) FROM user, news_bytes, groups
+    SELECT count(id) FROM news_bytes n, groups g
     WHERE
-      $wclause AND user.user_id = news_bytes.submitted_by
-      AND news_bytes.group_id = groups.group_id ";
-  return db_result (db_execute ($sql, $params), 0, 0);
+      is_approved NOT IN (4, 5)
+      AND n.group_id = ? AND n.group_id = g.group_id";
+  return db_result (db_execute ($sql, [$group_id]), 0, 0);
 }
 
 # Take an ID and returns the corresponding forum name.

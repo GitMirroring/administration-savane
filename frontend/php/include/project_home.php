@@ -204,8 +204,8 @@ if ($project->Uses ("news"))
         . "class='inline-link'><img alt='rss feed' "
         . "src='{$sys_home}images/common/feed16.png' /></a>"
       );
-    print news_show_latest ($group_id, 4, "true");
-    print $HTML->box_bottom();
+    print news_show_latest ($group_id, 4);
+    print $HTML->box_bottom ();
 
     print "\n</div><!-- end splitright -->\n<div class='splitleft'>\n";
   }

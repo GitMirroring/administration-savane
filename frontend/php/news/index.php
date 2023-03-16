@@ -23,9 +23,11 @@ require_once ('../include/form.php');
 require_once ('../include/news/general.php');
 
 if (!$group_id)
-  $group_id = $GLOBALS['sys_group_id'];
+  $group_id = $sys_group_id;
 
-extract (sane_import ('request', ['pass' => 'feedback', 'digits' => 'limit']));
+extract (sane_import ('request',
+  ['pass' => 'feedback', 'digits' => ['id', 'limit']])
+);
 
 if (empty ($limit))
   $limit = 10;
@@ -34,15 +36,22 @@ else
 
 $project = project_get_object ($group_id);
 if (!$project->Uses ("news"))
-  exit_error (_("This project doesn't use this tool."));
+  exit_error (_("This group doesn't post news."));
 
 site_project_header (['group' => $group_id, 'context' => 'news']);
+
+if ($id)
+  {
+    news_show_news_item ($id);
+    site_project_footer ([]);
+    exit;
+  }
 
 $form_opening = form_tag (['method' => 'get'], "#options");
 $format_string =
   ngettext (
-    "Show summaries for the %s latest news.",
-    "Show summaries for the %s latest news.",
+    "Show details for the %s latest news.",
+    "Show details for the %s latest news.",
     $limit
   );
 $news_no_input =
@@ -53,13 +62,13 @@ $form = sprintf ($format_string, $news_no_input);
 if (isset ($group))
   $form .= form_hidden (['group' => $group]);
 
-$form_submit = '<input class="bold" type="submit" value="'
-  . _("Apply") . "\"  />\n";
+$form_submit =
+   '<input class="bold" type="submit" value="' . _("Apply") . "\" />\n";
 
 print html_show_displayoptions ($form, $form_opening, $form_submit);
 print "<br />\n";
-print $HTML->box_top (_("Latest News Approved - With Summaries"));
-print news_show_latest ($group_id, $limit, "true", "nolinks");
+print $HTML->box_top (_("Latest News Approved"));
+print news_show_latest ($group_id, $limit, true, -1);
 print $HTML->box_bottom ();
 
 # A box with no summaries, if they are not all already shown.
@@ -67,7 +76,7 @@ if ($limit < news_total_number ($group_id))
   {
     print "<br />\n";
     print $HTML->box_top (_("Older News Approved"));
-    print news_show_latest ($group_id, 0, "false", $limit);
+    print news_show_latest ($group_id, 0, false, $limit);
     print $HTML->box_bottom ();
   }
 site_project_footer ([]);

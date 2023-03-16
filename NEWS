@@ -10,6 +10,10 @@
 
 * A Content-Disposition header is added to atom feeds.
 
+* No more "sitewide" news as opposed to "local" news of the admin group;
+  all news from the admin group go to the front page of the website
+  as well as to the main page of the admin group.
+
 * Bug fixes:
 
 ** In frontend/php/forum/forum.php, one argument of SQL query

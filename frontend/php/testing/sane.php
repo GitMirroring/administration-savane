@@ -1766,7 +1766,8 @@ $reference = 'news/submit.php';
 $reference = 'news/approve.php';
 {
   $names = [
-    'digits' => ['id', 'status', 'for_group_id'],
+    'digits' => ['id', 'status'],
+    'strings' => [['status', ['0', '4', '5']]],
     'hash' => 'form_id',
     'true' => ['update', 'post_changes', 'approve'],
     'specialchars' => ['summary', 'details'],
@@ -1774,13 +1775,14 @@ $reference = 'news/approve.php';
   $in = $out = [
     'id' => 1,
     'status' => 4,
-    'for_group_id' => 83521,
     'form_id' => md5 ('md5'),
     'update' => true,
     'summary' => 'sum',
     'details' => 'det'
   ];
   $out['post_changes'] = $out['approve'] = null;
+  test_sane_import ($in, $names, $out);
+  $in['status'] = 3; $out['status'] = null;
   test_sane_import ($in, $names, $out);
 }
 

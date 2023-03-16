@@ -134,7 +134,7 @@ function forum_header ($params)
 
   print "\n<div class='indexright'>\n";
   print $HTML->box_top (_("Latest News"));
-  print news_show_latest (db_result ($result, 0, 'group_id'), 5, "false");
+  print news_show_latest (db_result ($result, 0, 'group_id'), 5, false);
   print $HTML->box_bottom ();
   print "</div>\n<div class='indexcenter'>\n";
   print "<h2><a href='forum.php?forum_id=$forum_id'>"

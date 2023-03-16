@@ -4,7 +4,7 @@
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017 Ineiev
+# Copyright (C) 2017, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -117,14 +117,11 @@ function sitemenu_site_admin ()
   # This menu is shown whether the user is a logged as super user or not.
   global $HTML, $sys_home, $sys_unix_group_name;
   $is_su = user_is_super_user ();
-  $HTML->menuhtml_top (_("Site Administration"));
-  $HTML->menu_entry ("{$sys_home}siteadmin/", _("Main page"), $is_su);
+  $HTML->menuhtml_top (no_i18n ("Site Administration"));
+  $HTML->menu_entry ("{$sys_home}siteadmin/", no_i18n ("Main page"), $is_su);
   $HTML->menu_entry ("{$sys_home}task/?group=$sys_unix_group_name"
     . '&amp;category_id=1&amp;status_id=1&amp;set=custom#results',
-    _("Pending projects")
-  );
-  $HTML->menu_entry ("{$sys_home}news/approve.php?group=$sys_unix_group_name",
-    _("Site news approval"), $is_su
+    no_i18n ("Pending registrations")
   );
   $HTML->menuhtml_bottom ();
 }

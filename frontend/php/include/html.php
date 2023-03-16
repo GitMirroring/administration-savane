@@ -307,6 +307,11 @@ function html_image_trash ($args)
   return html_image ('misc/trash.png', $args);
 }
 
+function html_label ($for, $title)
+{
+  return "<label for='$for'>$title</label>";
+}
+
 # Start a list table from an array of titles and builds.
 # The first row of a new table.
 #

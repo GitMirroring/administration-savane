@@ -32,24 +32,24 @@ if (empty ($group_id))
 # Cache control
 $result = db_execute ("
   SELECT date_last_edit FROM news_bytes
-  WHERE is_approved <> 4 AND is_approved <> 5 AND group_id = ?
+  WHERE is_approved NOT IN (4, 5) AND group_id = ?
   ORDER BY date_last_edit DESC LIMIT 1", [$group_id]
 );
 
 $mtime = 0;
 if ($row = db_fetch_array ($result))
   $mtime = $row['date_last_edit'];
-http_exit_if_not_modified($mtime);
+http_exit_if_not_modified ($mtime);
 header ('Last-Modified: ' . date ('r', $mtime));
 
 require_once ('../include/news/general.php');
 $group_obj = project_get_object ($group_id);
 
-$result = db_execute("
+$result = db_execute ("
   SELECT forum_id, summary, date, details, user.realname
   FROM news_bytes, user
   WHERE
-    is_approved <> 4 AND is_approved <> 5 AND group_id=?
+    is_approved NOT IN (4, 5) AND group_id = ?
     AND news_bytes.submitted_by = user.user_id
   ORDER BY date DESC LIMIT 20", [$group_id]);
 

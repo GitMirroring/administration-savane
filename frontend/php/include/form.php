@@ -28,7 +28,9 @@ require_once ("$dir_name/spam.php");
 #    - form_clean must be used after succesful item submission
 
 # Start the form with unique ID, store it in the database.
-function form_header ($action, $form_id=false, $method="post", $extra=false)
+function form_header (
+  $action, $form_id = false, $method = "post", $extra = false
+)
 {
   if ($extra)
     $extra = " $extra";
@@ -36,20 +38,20 @@ function form_header ($action, $form_id=false, $method="post", $extra=false)
   # Keep previous form id, in case of form that are recreated on failure.
   if (!$form_id)
     {
-      mt_srand((double)microtime()*1000000);
-      $form_id=md5(mt_rand(0,1000000));
+      mt_srand ((double)microtime () * 1000000);
+      $form_id = md5 (mt_rand (0, 1000000));
     }
-  $result = db_autoexecute('form',
-    array('form_id' => $form_id,
-          'timestamp' => time(),
-          'user_id' => user_getid()),
-    DB_AUTOQUERY_INSERT);
-  if (db_affected_rows($result) != 1)
-    fb(_("System error while creating the form, report it to admins"), 1);
+  $result = db_autoexecute ('form',
+    [ 'form_id' => $form_id, 'timestamp' => time (),
+      'user_id' => user_getid ()],
+    DB_AUTOQUERY_INSERT
+  );
+  if (db_affected_rows ($result) != 1)
+    fb (_("System error while creating the form, report it to admins"), 1);
 
-  return '
-  <form action="'.htmlentities($action).'" method="'.$method.'"'.$extra.'>'
-       .form_input("hidden","form_id",$form_id);
+  return "\n<form action=\""
+    . htmlentities ($action) . "\" method=\"$method\"$extra>"
+    . form_hidden (["form_id" => $form_id]);
 }
 
 # Similar to form_header, but without generating new $form_id.
@@ -70,17 +72,29 @@ function form_tag ($args = [], $action_suffix = '')
 }
 
 # Usual input.
-function form_input ($type, $name, $value="", $extra=false)
+function form_input ($type, $name, $value = "", $extra = false)
 {
-  if ($value != "")
-    $value = 'value="'.htmlentities($value).'"';
+  if ($value !== "")
+    $value = 'value="' . htmlentities ($value) . '"';
   if ($extra)
     $extra = " $extra";
-  $id_attr = ' id="'.$name.'"';
+  $id_attr = " id=\"$name\"";
   if ($type == 'hidden' || $type == 'submit' || $type == 'radio')
     $id_attr = '';
-
   return "<input type=\"$type\"$id_attr name=\"$name\" $value$extra />";
+}
+
+function form_radio ($name, $value, $attr)
+{
+  $extra = '';
+  if (!empty ($attr['checked']))
+    $extra .= "checked='checked' ";
+  if (!empty ($attr['id'] !== false))
+    $extra .= "id=\"{$attr['id']}\"";
+  $ret = form_input ('radio', $name, $value, $extra);
+  if (empty ($attr['label']) || empty ($attr['id']))
+    return $ret;
+  return $ret . html_label ($attr['id'], $attr['label']);
 }
 
 function form_checkbox ($name, $is_checked = 0, $attr = [])

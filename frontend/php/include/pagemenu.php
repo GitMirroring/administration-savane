@@ -742,7 +742,7 @@ function pagemenu_siteadmin ()
     }
   $uname = "?group=$sys_unix_group_name";
   $txt =
-    pagemenu_submenu_entry ("Pending project registrations",
+    pagemenu_submenu_entry ("Pending registrations",
       "{$sys_home}task/$uname&amp;category_id=1"
       . "&amp;status_id=1&amp;go_report=Apply"
     )
