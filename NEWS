@@ -100,7 +100,7 @@
 
 [BUILD]
 
-* In po/Makefile.am, --previous is added to msgmerge command line.
+* autotols/m4/po.m4 and po/Makefile.am are updated from gettext-0.21.1.
 
 2023-02-01 3.10
 
