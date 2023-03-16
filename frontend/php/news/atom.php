@@ -73,16 +73,17 @@ $myself = "$protocol{$_SERVER['SERVER_NAME']}$port"
 
 # Nice doc here: http://www.atomenabled.org/developers/syndication/
 header ('Content-type: application/atom+xml;charset=UTF-8');
-print '<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <id>' . $id . '</id>
-  <link rel="self" href="' . $myself . '"/>
-  <title>' . $title . '</title>
-  <updated>' . $last_updated . "</updated>\n\n";
+header ("Content-Disposition: attachment; filename=$group.atom");
+print "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<feed xmlns=\"http://www.w3.org/2005/Atom\">
+  <id>$id</id>
+  <link rel=\"self\" href=\"$myself\"/>
+  <title>$title</title>
+  <updated>$last_updated</updated>\n\n";
 
 while ($row = db_fetch_array ($result))
   {
-    $id = "http://$sys_default_domain{$sys_home}"
+    $id = "https://$sys_default_domain{$sys_home}"
       . "forum/forum.php?forum_id={$row['forum_id']}";
     $title = $row['summary'];
     $updated = date ('c', $row['date']);

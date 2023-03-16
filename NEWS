@@ -8,10 +8,15 @@
 * Additional repositories are listed in the top menu as well as
   in the "Development Tools" section.
 
+* A Content-Disposition header is added to atom feeds.
+
 * Bug fixes:
 
 ** In frontend/php/forum/forum.php, one argument of SQL query
    had a wrong type.
+
+** Anonymous posts were accepted even when the "captcha" wasn't filled,
+   broken since 2022-04-18 (b45631f42).
 
 [BUILD]
 
