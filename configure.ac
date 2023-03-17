@@ -23,7 +23,7 @@
 # (public domain)
 
 AC_INIT([GNU Savannah],
-	[3.10],
+	[3.11],
 	[savannah-hackers-public@gnu.org], [savane],
 	[https://savannah.gnu.org/projects/administration])
 
