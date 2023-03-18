@@ -169,23 +169,11 @@ function forum_create_forum (
 {
   global $feedback;
   $fields = [
-    'group_id' => $group_id, 'forum_name' => $forum_name,
+    'group_id' => $group_id, 'forum_name' => htmlspecialchars ($forum_name),
     'is_public' => $is_public,
     'description' => htmlspecialchars ($description)
   ];
-
-  $result = db_autoexecute ('forum_group_list',
-    [ 'group_id' => $group_id, 'forum_name' => htmlspecialchars ($forum_name),
-      'is_public' => $is_public,
-      'description' => htmlspecialchars ($description)
-    ],
-    DB_AUTOQUERY_INSERT
-  );
-
-  if (!$result)
-    " Error Adding Forum ";
-  else
-    " Forum Added ";
+  $result = db_autoexecute ('forum_group_list', $fields, DB_AUTOQUERY_INSERT);
   $forum_id = db_insertid ($result);
 
   if ($create_default_message)

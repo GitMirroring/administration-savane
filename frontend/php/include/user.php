@@ -89,8 +89,9 @@ function user_get_email ($uid)
 
 function user_getname ($user_id = 0, $getrealname = 0)
 {
-  global $G_USER,$USER_NAMES;
+  global $G_USER, $USER_NAMES;
 
+  # Use current user if one is not passed in.
   if (!$user_id && $getrealname)
     $user_id = user_getid ();
 
@@ -101,21 +102,16 @@ function user_getname ($user_id = 0, $getrealname = 0)
       $prefix = 'user';
       $column = 'user_name';
     }
-  # Use current user if one is not passed in.
-  if (!$user_id && !$getrealname)
+  if (!$user_id)
    {
+      if ($getrealname)
+        return _("anonymous");
       if ($G_USER)
         return $G_USER['user_name'];
       # TRANSLATORS: "Not applicable".
       return _("NA");
    }
 
-  if (!$user_id)
-    {
-      if (!$getrealname)
-        return _("NA");
-      return _("anonymous");
-    }
   # Lookup name.
   if (!empty ($USER_NAMES["{$prefix}_$user_id"]))
     return $USER_NAMES["{$prefix}_$user_id"];
@@ -124,7 +120,7 @@ function user_getname ($user_id = 0, $getrealname = 0)
     SELECT user_id, user_name, realname FROM user WHERE user_id = ?",
     [$user_id]
   );
-  if (db_numrows ($result) > 0)
+  if (db_numrows ($result))
     {
       # Valid user - store and return.
       $USER_NAMES["{$prefix}_$user_id"] = db_result ($result, 0, $column);
