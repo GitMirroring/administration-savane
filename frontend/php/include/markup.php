@@ -422,7 +422,7 @@ function markup_heading_chunk ($ch)
 
 function markup_quote_chunk ($ch)
 {
-  $ch = nl2br (markup_inline_chunk ($ch));
+  $ch = markup_inline_chunk ($ch);
   return "<blockquote class='quote'><p>$ch</p></blockquote>\n";
 }
 
