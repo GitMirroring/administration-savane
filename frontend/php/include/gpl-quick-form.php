@@ -218,7 +218,7 @@ class GPLQuickForm_Element
             print "<input type='hidden' $name_attr value='$value' />\n";
             break;
           }
-        print "<select $name_attr " . $this->title_attr ();
+        print "<select $name_attr " . $this->title_attr () . ">\n";
         foreach($this->select_options as $id => $text)
           {
             $selected = '';
