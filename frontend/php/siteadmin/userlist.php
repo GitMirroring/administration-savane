@@ -24,10 +24,6 @@
 # for Savannah admins who use English.
 require_once('../include/init.php');
 require_once('../include/form.php');
-function no_i18n($string)
-{
-  return $string;
-}
 
 site_admin_header (['title' => no_i18n("User List"), 'context' => 'admuser']);
 

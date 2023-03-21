@@ -30,10 +30,6 @@ session_require (['group' => '1','admin_flags' => 'A']);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n ($string)
-{
-  return $string;
-}
 
 function specific_showinput ($title, $form, $id = false)
 {

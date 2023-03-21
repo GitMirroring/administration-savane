@@ -303,10 +303,6 @@ function print_news_list ($result, $group_id, $group)
     }
   print "</ul>\n";
 }
-function no_i18n ($s)
-{
-  return $s;
-}
 function print_su_warning ($group_id)
 {
   global $group_is_sys;

@@ -23,10 +23,6 @@
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n ($string)
-{
-  return $string;
-}
 
 require_once ('../include/init.php');
 require_once ('../include/form.php');

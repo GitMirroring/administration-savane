@@ -25,10 +25,6 @@ session_require (['group' => '1', 'admin_flags' => 'A']);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n ($string)
-{
-  return $string;
-}
 
 extract (sane_import ('get',
   ['digits' => ['ban_user_id', 'wash_user_id', 'max_rows', 'offset']]

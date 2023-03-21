@@ -22,6 +22,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/utils.php');
+
+# Used for strings that specifically shouldn't be localized.
+function no_i18n ($x)
+{
+  return $x;
+}
+
 # Table of supported languages:
 # "language variant" => "associated preferred locale"
 $locale_list = [];

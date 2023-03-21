@@ -23,6 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once ('../include/init.php');
+require_once ('../include/group.php');
 require_once ('../include/trackers/general.php');
 require_once ('../include/trackers/votes.php');
 
@@ -390,7 +391,7 @@ switch ($func)
           }
         if (!$is_trackeradmin && db_result ($result, 0, 'discussion_lock'))
           exit_permission_denied ();
-        if (!group_restrictions_check ($group_id, ARTIFACT, 2))
+        if (!group_restrictions_check ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT))
           exit_permission_denied ();
       }
     elseif (!$is_trackeradmin)

@@ -5,7 +5,7 @@
 # Copyright 2001-2002 Laurent Julliard, CodeX Team, Xerox
 # Copyright 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright 2002-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright 2017, 2018, 2020, 2022 Ineiev
+# Copyright 2017, 2018, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -85,8 +85,8 @@ if ($res_arr['privacy'] == "2")
           . "allowed to read private items.")
       );
   }
-# Check if it is possible for the current user to post a comment.
-if (!group_restrictions_check ($group_id, ARTIFACT, 2))
+
+if (!group_restrictions_check ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT))
   {
     $private_intro .= ' '
        . _("You are not allowed to post comments on this tracker "

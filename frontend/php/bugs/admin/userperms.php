@@ -5,7 +5,7 @@
 # Copyright (C) 2000-2003 Free Software Foundation
 # Copyright (C) 2000-2005 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2004-2005 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2018, 2022 Ineiev
+# Copyright (C) 2017, 2018, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -29,14 +29,13 @@ $is_admin_page = 'y';
 
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
+$event_name_prefix = ARTIFACT . '_restrict_event';
+$event1_name = $event_name_prefix . TRACKER_EVENT_COMMENT;
+$event2_name = $event_name_prefix . TRACKER_EVENT_NEW_ITEM;
+
 extract (sane_import ('post',
   [
-    'true' => 'update',
-    'digits' =>
-      [
-        ARTIFACT . '_restrict_event2',
-        [ARTIFACT . '_restrict_event1', [0, 99]]
-      ]
+    'true' => 'update', 'digits' => [$event1_name, [$event2_name, [0, 99]]]
   ]
 ));
 
@@ -54,10 +53,7 @@ if ($update)
         [$group_id]
       );
 
-    # Update posting restrictions.
-    $newitem_restrict_event1 = ARTIFACT . "_restrict_event1";
-    $newitem_restrict_event2 = ARTIFACT . "_restrict_event2";
-    $flags = $$newitem_restrict_event2 * 100 + $$newitem_restrict_event1;
+    $flags = $$event2_name * TRACKER_FLAG_FACTOR + $$event2_name;
     if (!$flags)
       # If equal to 0, manually set to NULL, since 0 has a different meaning.
       $flags = NULL;
@@ -91,7 +87,8 @@ print '<span class="preinput">'
   . " </span><br />\n";
 print '&nbsp;&nbsp;&nbsp;';
 print html_select_restriction_box (
-  ARTIFACT, group_getrestrictions ($group_id, ARTIFACT), $group, '', 1
+  ARTIFACT, group_getrestrictions ($group_id, ARTIFACT), $group, '',
+  TRACKER_EVENT_NEW_ITEM
 );
 print "<br /><br />\n<span class='preinput'>"
   . _("Authentication level required to be able to post comments (and to "
@@ -99,7 +96,8 @@ print "<br /><br />\n<span class='preinput'>"
   . " </span><br />\n";
 print '&nbsp;&nbsp;&nbsp;';
 print html_select_restriction_box (
-  ARTIFACT, group_getrestrictions ($group_id, ARTIFACT, 2), $group, '', 2
+  ARTIFACT, group_getrestrictions ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT),
+  $group, '', TRACKER_EVENT_COMMENT
 );
 print "\n<p align='center'><input type='submit' name='update' value=\""
   . _("Update Permissions") . "\" /></p>\n</form>\n";

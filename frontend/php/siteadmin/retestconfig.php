@@ -23,10 +23,6 @@ require_once ('../include/init.php');
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n ($string)
-{
-  return $string;
-}
 
 site_admin_header (['title' => no_i18n ("Home"), 'context' => 'admhome']);
 

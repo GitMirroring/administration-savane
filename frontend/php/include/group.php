@@ -6,7 +6,7 @@
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007, 2008  Sylvain Beucler
 # Copyright (C) 2008  Aleix Conchillo Flaque
-# Copyright (C) 2017-2019, 2021, 2022 Ineiev
+# Copyright (C) 2017-2019, 2021, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -23,7 +23,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once(dirname (__FILE__) . '/savane_error.php');
+require_once (dirname (__FILE__) . '/savane_error.php');
+
+define ('TRACKER_EVENT_NEW_ITEM', 1);
+define ('TRACKER_EVENT_COMMENT', 2);
+define ('TRACKER_FLAG_FACTOR', 100);
+define ('TRACKER_PERM_ANON', 2);
+define ('TRACKER_PERM_USER', 3);
+define ('TRACKER_PERM_MEMBER', 5);
+define ('TRACKER_PERM_NOBODY', 6);
 
 $PROJECT_OBJ = [];
 
@@ -334,7 +342,7 @@ class Group extends savane_error
           continue;
         # TRANSLATORS: the first argument is the full name,
         # the second is the login.
-        $keyring .= sprintf(_("GPG keys of %s <%s>"), $name, $user);
+        $keyring .= sprintf (_("GPG keys of %s <%s>"), $name, $user);
         $keyring .= "\n$key\n";
       }
     return $keyring;
@@ -528,88 +536,70 @@ function group_getid ($group_name)
   return null;
 }
 
-function group_getpermissions ($group_id, $flags)
+function group_get_perm_flags ($group_id, $artifact, $prefix = '')
 {
-  if (!$flags)
+  if (!$artifact)
     return null;
-  if (!preg_match ('/^[a-z]+$/', $flags))
-    die ('group_getpermissions: unvalid argument flags');
+  if (!preg_match ('/^[a-z]+$/', $artifact))
+    die ('group_getpermissions: unvalid argument artifact');
+  $field = "{$artifact}_{$prefix}flags";
   $res =
     db_execute ("
-      SELECT {$flags}_flags FROM groups_default_permissions
-      WHERE group_id = ?",
+      SELECT $field as f FROM groups_default_permissions WHERE group_id = ?",
       [$group_id]
     );
-  if (db_numrows($res) > 0)
-    return db_result($res, 0, "${flags}_flags");
+  if (db_numrows ($res))
+    return db_result ($res, 0, "f");
   return null;
 }
 
-function group_getrestrictions ($group_id, $flags, $event = 1)
+function group_getpermissions ($group_id, $artifact)
 {
-  # event = 1: posting new items.
-  # event = 2: posting followups.
+  return group_get_perm_flags ($group_id, $artifact);
+}
 
-  # flag = (comment post restrictions)*100 + (newitem post restrictions)
-  #        with post restrictions = 2 ... allow post by ANONYMOUS
-  #                               = 3 ... allow post by LOGGED-IN
-  #                               = 5 ... allow post by MEMBERS
-  #                               = 6 ... allow post by NOBODY
+function group_getrestrictions (
+  $group_id, $artifact, $event = TRACKER_EVENT_NEW_ITEM
+)
+{
+  $flag = group_get_perm_flags ($group_id, $artifact, 'r');
+  if ($flag === null)
+    return $flag;
 
-  if (!$flags)
-    return null;
-  $flag = null;
-  if (!preg_match ('/^[a-z]+$/', $flags))
-    die ('group_getrestrictions: unvalid argument flags');
-  $res = db_execute ("
-    SELECT {$flags}_rflags FROM groups_default_permissions
-    WHERE group_id = ?", [$group_id]);
-  if (db_numrows ($res) > 0)
-    $flag = db_result ($res, 0, "${flags}_rflags");
-
-  if ($event == 1)
-    {
-      # Trying to post a NEW item.
-      $flag = ($flag % 100);
-    }
-  if ($event == 2)
-    {
-      # Trying to post a COMMENT.
-      $flag = (int)($flag / 100);
-    }
+  if ($event == TRACKER_EVENT_NEW_ITEM)
+    $flag = $flag % TRACKER_FLAG_FACTOR;
+  if ($event == TRACKER_EVENT_COMMENT)
+    $flag = (int)($flag / TRACKER_FLAG_FACTOR);
   # We really want group restrictions here, not group type ones if missing.
   return $flag;
 }
 
-function group_getrestrictions_explained ($group_id, $artifact, $event = 1)
+function group_restriction_flag ($group_id, $artifact, $event)
 {
   $flag = group_getrestrictions ($group_id, $artifact, $event);
+  if ($flag)
+    return $flag;
+  if ($event == TRACKER_EVENT_COMMENT)
+    # No restriction defined for comment, check the restriction for new items.
+    $flag = group_getrestrictions ($group_id, $artifact);
+  if ($flag)
+    return $flag;
 
-  # If we are looking for item post restriction, Get group type default
-  # in case no flag was found.
-  # For comment post restriction we want the group restriction first.
-  if (!$flag)
+  # No restriction set for the group: use group type default.
+  return group_gettyperestrictions ($group_id, $artifact);
+}
+
+function group_getrestrictions_explained (
+  $group_id, $artifact, $event = TRACKER_EVENT_NEW_ITEM
+)
+{
+  switch (group_restriction_flag ($group_id, $artifact, $event))
     {
-      if ($event == 2)
-        {
-          # Post comment, fetching the restriction for post item.
-          $flag = group_getrestrictions ($group_id, $artifact, 1);
-        }
-
-      if ($event == 1 || !$flag)
-        {
-          # Post item or post comment with no group restriction to fallback on.
-          $flag = group_gettyperestrictions ($group_id, $artifact);
-        }
-    }
-
-  switch ($flag)
-    {
-    case '2':
+    case TRACKER_PERM_ANON:
       return _("It is possible to post anonymously on this tracker.");
-    case '5':
-      return _("Project Membership is required to post on this tracker.");
-    case '3':
+    case TRACKER_PERM_MEMBER:
+      return _("Group membership is required to post on this tracker.");
+    case TRACKER_PERM_USER:
       return _("Being logged-in is required to post on this tracker.");
     }
   return _("Posting on this tracker is disabled.");
@@ -627,45 +617,22 @@ function group_gettyperestrictions ($group_id, $flags)
   return $grp->getTypeRestrictions ($flags);
 }
 
-function group_restrictions_check ($group_id, $artifact, $event = 1)
+function group_restrictions_check (
+  $group_id, $artifact, $event = TRACKER_EVENT_NEW_ITEM
+)
 {
-  # No restriction for the logged in superuser
-  if (user_is_super_user ())
+  if (user_is_super_user ()) # No restriction for superusers.
     return true;
 
-  $flag = group_getrestrictions ($group_id, $artifact, $event);
-
-  # If we are looking for item post restriction, Get group type default
-  # in case no flag was found.
-  # For comment post restriction we want the group restriction first
-  if (!$flag)
-    {
-      if ($event == 2)
-        {
-          # Post comment, fetching the restriction for post item.
-          $flag = group_getrestrictions ($group_id, $artifact, 1);
-        }
-
-      if ($event == 1 || !$flag)
-        {
-          # Post item or post comment with no group restriction to fallback on.
-          $flag = group_gettyperestrictions ($group_id, $artifact);
-        }
-    }
-
-  # Anonymous required? Always OK.
-  if ($flag == '2')
-    return true;
-
-  # Logged in required? OK if logged in.
-  if ($flag == '3' && user_isloggedin ())
-    return true;
-
-  # Member required?
-  if ($flag == '5' && member_check (0, $group_id))
-    return true;
-
-  # $flag should be '6' here.
+  $check_functions = [
+    TRACKER_PERM_ANON => function ($group_id) { return true; },
+    TRACKER_PERM_USER => function ($group_id) { return user_isloggedin (); },
+    TRACKER_PERM_MEMBER => function ($gid) { return member_check (0, $gid); }
+  ];
+  $flag = group_restriction_flag ($group_id, $artifact, $event);
+  if (array_key_exists ($flag, $check_functions))
+    return $check_functions[$flag] ($group_id);
+  # $flag should be TRACKER_PERM_NOBODY here.
   return false;
 }
 
@@ -689,7 +656,7 @@ function group_add_history ($field_name, $old_value, $group_id)
    'group_history',
     [
       'group_id' => $group_id, 'field_name' => $field_name,
-      'old_value' => $old_value, 'mod_by' => user_getid (), 'date' => time()
+      'old_value' => $old_value, 'mod_by' => user_getid (), 'date' => time ()
     ],
     DB_AUTOQUERY_INSERT
   );
@@ -698,34 +665,22 @@ function group_add_history ($field_name, $old_value, $group_id)
 # Return the standard URL for an artifact.
 function group_get_artifact_url ($artifact, $hostname = 1)
 {
-  if ($artifact == "homepage")
-    return $GLOBALS['project']->getTypeUrl("homepage");
-  if ($artifact == "download")
-    return $GLOBALS['project']->getTypeUrl("download");
-  if ($artifact == "cvs_viewcvs")
-    return $GLOBALS['project']->getTypeUrl("cvs_viewcvs");
-  if ($artifact == "cvs_viewcvs_homepage")
-    return $GLOBALS['project']->getTypeUrl("cvs_viewcvs_homepage");
-  if ($artifact == "arch_viewcvs")
-    return $GLOBALS['project']->getTypeUrl("arch_viewcvs");
-  if ($artifact == "svn_viewcvs")
-    return $GLOBALS['project']->getTypeUrl("svn_viewcvs");
-  if ($artifact == "git_viewcvs")
-    return $GLOBALS['project']->getTypeUrl("git_viewcvs");
-  if ($artifact == "hg_viewcvs")
-    return $GLOBALS['project']->getTypeUrl("hg_viewcvs");
-  if ($artifact == "bzr_viewcvs")
-    return $GLOBALS['project']->getTypeUrl("bzr_viewcvs");
+  global $project, $sys_home;
+  $type_urls = [
+    "homepage", "download", "cvs_viewcvs", "cvs_viewcvs_homepage",
+    "arch_viewcvs", "svn_viewcvs", "git_viewcvs", "hg_viewcvs", "bzr_viewcvs"
+  ];
+  if (in_array ($artifact, $type_urls))
+    return $project->getTypeUrl ($artifact);
+
   if (!$hostname)
-    return "{$GLOBALS['sys_home']}$artifact/?group="
-      . $GLOBALS['project']->getUnixName ();
-  if ($GLOBALS['project']->getTypeBaseHost ())
-    $host = $GLOBALS['project']->getTypeBaseHost ();
+    return "{$sys_home}$artifact/?group=" . $project->getUnixName ();
+  if ($project->getTypeBaseHost ())
+    $host = $project->getTypeBaseHost ();
   else
     $host = $_SERVER['HTTP_HOST'];
 
-  return "http://$host{$GLOBALS['sys_home']}$artifact/?group="
-    . $GLOBALS['project']->getUnixName ();
+  return "http://$host{$sys_home}$artifact/?group=" . $project->getUnixName ();
 }
 
 # Normalize preference names before feeding it to SQL.
@@ -774,15 +729,13 @@ function group_get_preference ($group_id, $preference_names)
     );
   if (!is_array ($preference_names))
     {
-      if (db_numrows ($result) < 1)
-        return false;
-      return db_result ($result, 0, 'preference_value');
+      if (db_numrows ($result))
+        return db_result ($result, 0, 'preference_value');
+     return false;
     }
 
   while ($row = db_fetch_array ())
-    {
-      $val_arr[$row['preference_name']] = $row['preference_value'];
-    }
+    $val_arr[$row['preference_name']] = $row['preference_value'];
   return $val_arr;
 }
 

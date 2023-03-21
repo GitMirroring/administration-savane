@@ -33,10 +33,6 @@ session_require (['group' => $sys_group_id, 'admin_flags' => 'A']);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-function no_i18n ($string)
-{
-  return $string;
-}
 
 $post_names = function ()
 {
