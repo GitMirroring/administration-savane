@@ -1,5 +1,4 @@
 <?php /*-*-PHP-*-*/
-#
 # Page layout.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
@@ -9,7 +8,7 @@
 #
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2004-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2018, 2019 Ineiev
+# Copyright (C) 2017, 2018, 2019, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -26,31 +25,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# base error library for new objects
-require_once(dirname(__FILE__).'/savane_error.php');
-# left-hand and top menu nav library (requires context to be set)
-require_once(dirname(__FILE__).'/sitemenu.php');
-require_once(dirname(__FILE__).'/pagemenu.php');
-# i18n setup
-require_once(dirname(__FILE__).'/i18n.php');
-# theme - color scheme informations
-require_once(dirname(__FILE__).'/theme.php');
-require_once(dirname(__FILE__).'/utils.php');
+$dir_name = dirname (__FILE__);
+require_once ("$dir_name/savane_error.php");
+require_once ("$dir_name/sitemenu.php");
+require_once ("$dir_name/pagemenu.php");
+require_once ("$dir_name/i18n.php");
+require_once ("$dir_name/theme.php");
+require_once ("$dir_name/utils.php");
 
 class Layout extends savane_error
 {
 
-########################################## BASIC HTML
-  var $bgpri = array();
+  # Basic HTML.
+  var $bgpri = [];
 
-# Constuctor
   function __construct ()
   {
     GLOBAL $bgpri;
-    parent::__construct();
+    parent::__construct ();
 
-# Setup the priority color array one time only.
+    # Setup the priority color array one time only.
     $bgpri[1] = 'priora';
     $bgpri[2] = 'priorb';
     $bgpri[3] = 'priorc';
@@ -70,91 +64,60 @@ class Layout extends savane_error
     $bgpri[17] = 'priorgclosed';
     $bgpri[18] = 'priorhclosed';
     $bgpri[19] = 'prioriclosed';
-
   }
 
-  function box_top ($title, $subclass="", $noboxitem=0)
+  function box_top ($title, $subclass = "", $noboxitem = 0)
   {
-    $return = '     <div class="box'.$subclass.'">
-       <div class="boxtitle">'.$title.'</div><!-- end boxtitle -->';
-    if (!$noboxitem)
-      {
-        $return .= '
-       <div class="boxitem">';
-      }
-    return $return;
+    $return = "<div class=\"box$subclass\">\n"
+      . "<div class='boxtitle'>$title</div><!-- end boxtitle -->\n";
+    if ($noboxitem)
+      return $return;
+    return "$return\n<div class='boxitem'>";
   }
 
-# Box Middle, equivalent to html_box1_middle().
-  function box_middle ($title, $noboxitem=0)
+  function box_middle ($title, $noboxitem = 0)
   {
-    $return = '</div><!-- end boxitem -->
-       <div class="boxtitle">'.$title.'</div><!-- end boxtitle -->';
-    if (!$noboxitem)
-      {
-        $return .= '
-       <div class="boxitem">';
-      }
-    return $return;
+    $return = "</div><!-- end boxitem -->\n"
+      . "<div class='boxtitle'>$title</div><!-- end boxtitle -->\n";
+    if ($noboxitem)
+      return $return;
+    return "$return\n<div class='boxitem'>";
   }
 
-# Box Middle, equivalent to html_box1_middle().
   function box_nextitem ($class)
   {
-    return '</div><!-- end boxitem -->
-       <div class="'.$class.'">';
+    return "</div><!-- end boxitem -->\n<div class=\"$class\">";
   }
 
-# Box Bottom, equivalent to html_box1_bottom().
-  function box_bottom ($noboxitem=0)
+  function box_bottom ($noboxitem = 0)
   {
-    $return = '';
-    if (!$noboxitem)
-      {
-        $return .= '</div><!-- end boxitem -->';
-      }
-
-    $return .= '
-     </div><!-- end box -->
-';
-    return $return;
+    $return = "\n</div><!-- end box -->\n";
+    if ($noboxitem)
+      return $return;
+    return "</div><!-- end boxitem -->\n$return";
   }
 
-# Box Top, equivalent to html_box1_top().
-  function box1_top ($title,$echoout=1,$subclass="")
+  function box1_top ($title, $echoout = 1, $subclass = "")
   {
-    $return = '<table class="box'.$subclass.'">
-                <tr>
-                        <td colspan="2" class="boxtitle">'.$title.'</td>
-                </tr>
-                <tr>
-                        <td colspan="2" class="boxitem">';
+    $return = "<table class=\"box$subclass\">\n<tr>\n"
+      . "<td colspan='2' class='boxtitle'>$title</td>\n</tr>\n<tr>\n"
+      . "<td colspan='2' class='boxitem'>";
     if ($echoout)
       print $return;
     else
       return $return;
   }
 
-# Box Middle, equivalent to html_box1_middle().
-  function box1_middle ($title,$bgcolor='')
+  function box1_middle ($title, $bgcolor = '')
   {
-    return '
-                        </td>
-                </tr>
-                <tr>
-                        <td colspan="2" class="boxtitle">'.$title.'</td>
-                </tr>
-                <tr>
-                        <td colspan=2 class="boxitem">';
+    return "\n</td>\n</tr>\n<tr>\n"
+      . "<td colspan='2' class='boxtitle'>$title</td>\n</tr>\n<tr>\n"
+      . "<td colspan='2' class='boxitem'>";
   }
 
-# Box Bottom, equivalent to html_box1_bottom().
-  function box1_bottom ($echoout=1)
+  function box1_bottom ($echoout = 1)
   {
-    $return = '
-                        </td>
-                </tr>
-        </table>';
+    $return = "\n</td>\n</tr>\n</table>";
     if ($echoout)
       print $return;
     else
@@ -163,80 +126,68 @@ class Layout extends savane_error
 
   function generic_header_start ($params)
   {
-    global $G_USER, $G_SESSION;
+    global $G_USER, $G_SESSION, $sys_name, $savane_version, $savane_url;
+    global $sys_home, $stone_age_menu;
 
-# Avoid any cache by setting an expire time in the past, without
-# distinction.
-# On Savane there are many forms, the content changes frequently,
-# it is probably better to avoid any cache problem that way.
-# We could use the Lastest-Modification header, but it would require
-# an extra call to time().
+    # Avoid any cache by setting an expire time in the past, without
+    # distinction.
+    # On Savane there are many forms, the text changes frequently,
+    # it is probably better to avoid any cache problem that way.
+    # We could use the Lastest-Modification header, but it would require
+    # an extra call to time().
     $context = '';
-    if (!empty($params['context']))
+    if (!empty ($params['context']))
       {
         $context = $params['context'];
-# Only make the test if context is set.
-# Then look for usual trackers (bugs, patch...), project admin part
-# and personal area (/my)
-        if ("news" == $context
-            || "support" == $context
-            || "bugs" == $context
-            || "task" == $context
-            || "my" == $context
-            || "myitems" == $context
-            || "mygroups" == $context
-            || preg_match ("/^a/", $context))
+        # Only make the test if context is set.
+        # Then look for usual trackers (bugs, patch...), project admin part
+        # and personal area (/my)
+        $ct = ["news", "support", "bugs", "task", "my", "myitems", "mygroups"];
+        if (in_array ($context, $ct) || preg_match ("/^a/", $context))
           {
-            header("Expires: Thu, 22 Dec 1977 15:00:00 GMT");
-            dbg("Expires is set.");
+            header ("Expires: Thu, 22 Dec 1977 15:00:00 GMT");
+            dbg ("Expires is set.");
           }
       }
-    $title = context_title($context, isset($params['group']) ? $params['group'] : '');
-    if (!empty($params['title']) && $title)
-      {
-        $params['title'] = sprintf("%s: %s", $title, $params['title']);
-      }
+    $title = context_title ($context,
+      isset ($params['group'])? $params['group'] : ''
+    );
+    if (!empty ($params['title']) && $title)
+      $params['title'] = sprintf ("%s: %s", $title, $params['title']);
     elseif ($title)
-      {
-        $params['title'] = $title;
-      }
-    $params['title'] = sprintf("%s [%s]", $params['title'], $GLOBALS['sys_name']);
+      $params['title'] = $title;
+    $params['title'] = sprintf ("%s [%s]", $params['title'], $sys_name);
     $theme = SV_THEME;
-
-    print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="'.SV_LANG.'" xml:lang="'
-          .SV_LANG.'">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <title>'.$params['title'].'</title>
-  <meta name="Generator" content="Savane '.$GLOBALS['savane_version']
-          .', see '.$GLOBALS['savane_url'].'" />
-  <meta http-equiv="Content-Script-Type" content="text/javascript" />
-  <link rel="stylesheet" type="text/css" href="'.$GLOBALS['sys_home']
-          .'css/'.$theme.'.css" />
-';
+    $la = SV_LANG;
+    print "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n"
+      . "  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"
+      . "<html xmlns=\"http://www.w3.org/1999/xhtml\" "
+      . "lang=\"'$la\" xml:lang=\"$la\">\n<head>\n"
+      . "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" "
+      . "/>\n"
+      . "<title>{$params['title']}</title>\n"
+      . "<meta name=\"Generator\" "
+      . "content=\"Savane $savane_version, see $savane_url\" />\n"
+      . "<meta http-equiv=\"Content-Script-Type\" "
+      . "content=\"text/javascript\" />\n"
+      . "<link rel=\"stylesheet\" type=\"text/css\" "
+      . "href=\"${sys_home}css/$theme.css\" />\n";
     # If the user want the stone age menu, we must add the appropriate
     # additional CSS.
-    if (!empty($GLOBALS['stone_age_menu']))
-      {
-        print '  <link rel="stylesheet" type="text/css" href="'
-              .$GLOBALS['sys_home'].'css/internal/stone-age-menu.css" />
-';
-      }
-    if (!empty($params['css']))
-      print '  <link rel="stylesheet" type="text/css" href="'
-            . $params['css'] . '" />' . "\n";
+    if (!empty ($stone_age_menu))
+      print "<link rel=\"stylesheet\" type=\"text/css\" "
+        . "href=\"${sys_home}css/internal/stone-age-menu.css\" />\n";
+    if (!empty ($params['css']))
+      print "<link rel=\"stylesheet\" type=\"text/css\" "
+        . "href=\"{$params['css']}\" />\n";
 
-    print '  <link rel="icon" type="image/png" href="'.$GLOBALS['sys_home']
-          .'images/'.SV_THEME.'.theme/icon.png" />
-';
-    utils_get_content("page_header");
+    print "<link rel=\"icon\" type=\"image/png\" "
+      . "href=\"${sys_home}images/$theme.theme/icon.png\" />\n";
+    utils_get_content ("page_header");
   }
   function generic_header_end ($params)
   {
-    print '
-</head>';
+    print "\n</head>";
   }
 
   function generic_footer ($params)
@@ -244,9 +195,9 @@ class Layout extends savane_error
     global $savane_url, $savane_version;
     print '<p class="footer">';
     utils_get_content ("page_footer");
+    # TRANSLATORS: the argument is version of Savane (like 3.2).
     print "</p>\n<div align='right'><p>"
       . utils_link ($savane_url,
-          # TRANSLATORS: the argument is version of Savane (like 3.2).
           sprintf (_("Powered by Savane %s"), $savane_version)
         )
       . "</p></div>\n";
@@ -276,30 +227,26 @@ class Layout extends savane_error
     $this->generic_footer ($params);
   }
 
-# Left menu
-# Most of it is in sitemenu.php.
+  # Left menu.
+  # Most of it is in sitemenu.php.
 
-# Title of left menu part.
+  # Title of left menu part.
   function menuhtml_top ($title)
   {
     print "<li class='menutitle'>$title</li><!-- end menutitle -->\n";
   }
 
-# left menu entry
-  function menu_entry ($link, $title, $available=1, $help=0)
+  # Left menu entry.
+  function menu_entry ($link, $title, $available = 1, $help = 0)
   {
-    print '
-        <li class="menuitem">
-           '.utils_link($link, $title, "menulink", $available, $help).'
-        </li><!-- end menuitem -->';
+    print "\n<li class='menuitem'>\n"
+      . utils_link ($link, $title, "menulink", $available, $help)
+      . "</li><!-- end menuitem -->\n";
   }
 
-# end of left menu part
   function menuhtml_bottom ()
   {
-
   }
-
-  # Top menu is in pagemenu.php
+  # Top menu is in pagemenu.php.
 }
 ?>

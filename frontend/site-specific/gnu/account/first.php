@@ -1,7 +1,7 @@
 <?php
 # Note for first valid login.
 #
-# Copyright (C) 2019 Ineiev <ineiev@gnu.org>
+# Copyright (C) 2019, 2023 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #
@@ -18,14 +18,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-print '<p>' . sprintf (
+# The code is included from functions, so we need 'global'.
+global $sys_home, $sys_name;
+
+print '<p>';
 # TRANSLATORS: the second argument is system name (like Savannah).
-_('You should take some time to read the <a href="%1$s">Savane User
-Guide</a> so that you may take full advantage of %2$s.'),
-                       $GLOBALS['sys_home'] . 'userguide/',
-                       $GLOBALS['sys_name']) . "</p>\n";
-print '<p>' . sprintf (_('Note that <a href="%s">unused accounts</a>
-may be removed without notice.'),
-                       $GLOBALS['sys_home'] . 'maintenance/IdleAccounts/')
-     . "</p>\n";
+printf (
+  _("You should take some time to read the <a href=\"%1\$s\">Savane User\n"
+    . "Guide</a> so that you may take full advantage of %2\$s."),
+    "${sys_home}/maintenance/back-page/", $sys_name
+);
+print "</p>\n<p>";
+printf (
+  _("Note that <a href=\"%s\">unused accounts</a>\n"
+    . "may be removed without notice."),
+  "${sys_home}maintenance/IdleAccounts/"
+);
+print "</p>\n";
 ?>
