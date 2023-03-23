@@ -367,13 +367,6 @@ function pagemenu_group ()
 {
   global $group_id, $sys_group_id, $project, $sys_home, $sys_name;
   $url = $sys_home . 'project';
-
-  if (CONTEXT == 'userguide')
-    {
-      $group_id = $sys_group_id;
-      $GLOBALS['group_name'] = $GLOBALS['sys_unix_group_name'];
-    }
-
   $is_admin = member_check (0, $group_id, 'A');
 
   $project = project_get_object ($group_id);
@@ -385,7 +378,7 @@ function pagemenu_group ()
   pagemenu_submenu_title (_("Main"), $uname,
     CONTEXT == 'project', 1,
     # TRANSLATORS: the argument is site name like Savannah.
-    sprintf(_("Project Main Page at %s"), $sys_name)
+    sprintf (_("Project Main Page at %s"), $sys_name)
   );
   $ret = pagemenu_submenu_entry (_("Main"), $uname)
     . pagemenu_submenu_entry (_("View members"), "$url/memberlist.php$gr_n")
@@ -636,7 +629,7 @@ function pagemenu_group_trackers ($tracker)
       if ($group_id == $sys_group_id)
         $ret .= pagemenu_submenu_entry_separator ()
           . pagemenu_submenu_entry (
-              _("Savane In Depth Guide"), "{$sys_home}userguide/"
+              _("Savane In Depth Guide"), "{$sys_home}maintenance/back-page/"
             );
     } # ($tracker == "cookbook")
 

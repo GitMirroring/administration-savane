@@ -201,12 +201,6 @@ function context_project_context_title ()
   return _("Summary");
 }
 
-function context_userguide_context_title ()
-{
-  $GLOBALS['group_id'] = $GLOBALS['sys_group_id'];
-  return _("In Depth Guide");
-}
-
 function context_my_context_title ()
 {
   $titles = [ 'configure' => _("My Account Configuration"),
@@ -222,7 +216,7 @@ function context_my_context_title ()
 # (possibly including side effects).
 function context_cont_custom_title ()
 {
-  $titles = ['project', 'userguide', 'my'];
+  $titles = ['project', 'my'];
 
   if (!in_array (CONTEXT, $titles))
     return null;
@@ -282,7 +276,7 @@ function context_cont_icon ()
 {
   $icon_list = [
     'admin' => ['siteadmin'], 'bug' => ['bugs'], 'support' => ['help'],
-    'man' => ['doc', 'userguide', 'cookbook'], 'search' => ['directory'],
+    'man' => ['doc', 'cookbook'], 'search' => ['directory'],
     'cvs' => ['cvs', 'arch', 'svn', 'git', 'hg', 'bzr'],
     'news' => ['forum', 'news', 'special'],
   ];

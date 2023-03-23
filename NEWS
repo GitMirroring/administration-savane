@@ -2,6 +2,9 @@
 
 [FRONTEND]
 
+* The obsolete documentation in userguide/ is removed; links to wiki
+  are added instead.
+
 * Bug fixes:
 
 ** In frontend/php/forum/forum.php, one argument of SQL query

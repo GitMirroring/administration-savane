@@ -2276,10 +2276,4 @@ $reference = 'stats/index.php';
     $in[$n] = $out[$n] = 83521;
   test_sane_import ($in, $names, $out);
 }
-$reference = 'userguide/index.php';
-{
-  $names = ['preg' => [['file', '/^[[:alnum:]_-]+[.]html$/']]];
-  $in = $out = ['file' => 'ch01.html'];
-  test_sane_import ($in, $names, $out);
-}
 ?>

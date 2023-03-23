@@ -185,7 +185,6 @@ POTFILES = \
 	frontend/php/js/hide-feedback.php \
 	frontend/php/js/show-feedback.php \
 	frontend/php/sendmessage.php \
-	frontend/php/userguide/index.php \
 	frontend/php/404.php \
 	frontend/site-specific/gnu/fingerprints.php \
 	frontend/site-specific/gnu/git/index.php \

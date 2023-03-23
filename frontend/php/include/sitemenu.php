@@ -376,7 +376,7 @@ function sitemenu_help ()
   $HTML->menuhtml_top (_("Site Help"));
 
   $HTML->menu_entry ('/maintenance/FrontPage/', _('User Docs: FAQ'));
-  $HTML->menu_entry ("{$sys_home}userguide/", _("User Docs: In Depth Guide"),
+  $HTML->menu_entry ("/maintenance/back-page/", _("User Docs: In Depth Guide"),
     1,
     _("In-depth Documentation dedicated to any users, including "
       . "Project Admins")
