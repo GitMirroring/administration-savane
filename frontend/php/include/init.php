@@ -130,6 +130,13 @@ $sys_home = $GLOBALS['sys_url_topdir'];
 if (!preg_match ('|/$|', $GLOBALS['sys_url_topdir']))
   $sys_home = $GLOBALS['sys_url_topdir'] . '/';
 
+if (empty ($sys_savane_url))
+  $sys_savane_url = '//savannah.nongnu.org/projects/administration';
+
+if (empty ($sys_savane_cgit))
+  $sys_savane_cgit =
+    "//git.savannah.nongnu.org/cgit/administration/savane.git";
+
 # Defines the https url, if available -- no path is added since this
 # variable can be used with REQUEST_URI added. It's used when we need
 # to point a https URL (cannot be expressed using a http-relative

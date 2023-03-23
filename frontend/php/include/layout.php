@@ -123,11 +123,36 @@ class Layout extends savane_error
     else
       return $return;
   }
+  function get_git_commit ()
+  {
+    $git_dir = dirname (__FILE__) . "/../../../.git";
+    if (!is_dir ($git_dir))
+      return null;
+    $ref_file = "$git_dir/HEAD";
+    if (!is_file ($ref_file) || !is_readable ($ref_file))
+      return null;
+    $ref = file_get_contents ($ref_file);
+    if (!preg_match ("/^ref: ([^\n]*)\n$/", $ref, $matches))
+      return null;
+    $ref_file = "$git_dir/{$matches[1]}";
+    if (!is_file ($ref_file) || !is_readable ($ref_file))
+      return null;
+    return trim (file_get_contents ($ref_file));
+  }
+  function get_savane_url ($commit)
+  {
+    global $sys_savane_url, $sys_savane_cgit;
+    if (empty ($commit))
+      return $sys_savane_url;
+    return "$sys_savane_cgit/commit/?id=$commit";
+  }
 
   function generic_header_start ($params)
   {
-    global $G_USER, $G_SESSION, $sys_name, $savane_version, $savane_url;
+    global $G_USER, $G_SESSION, $sys_name, $savane_version;
     global $sys_home, $stone_age_menu;
+
+    $url = $this->get_savane_url ($this->get_git_commit ());
 
     # Avoid any cache by setting an expire time in the past, without
     # distinction.
@@ -167,7 +192,7 @@ class Layout extends savane_error
       . "/>\n"
       . "<title>{$params['title']}</title>\n"
       . "<meta name=\"Generator\" "
-      . "content=\"Savane $savane_version, see $savane_url\" />\n"
+      . "content=\"Savane $savane_version, see $url\" />\n"
       . "<meta http-equiv=\"Content-Script-Type\" "
       . "content=\"text/javascript\" />\n"
       . "<link rel=\"stylesheet\" type=\"text/css\" "
@@ -192,14 +217,24 @@ class Layout extends savane_error
 
   function generic_footer ($params)
   {
-    global $savane_url, $savane_version;
+    global $savane_version;
+    $commit = $this->get_git_commit ();
+    $url = $this->get_savane_url ($commit);
     print '<p class="footer">';
     utils_get_content ("page_footer");
+    $root = realpath (dirname (__FILE__) . "/../../..");
+    print "<br />\n<a href=\"";
+    print '//git.savannah.gnu.org/cgit/administration/savane.git/plain'
+      . preg_replace (
+          ":^$root:", '', realpath ($_SERVER['SCRIPT_FILENAME'])
+        );
+    if (!empty ($commit))
+      print "?id=$commit";
+    print "\">" . _('Source Code') . "</a>\n";
+
     # TRANSLATORS: the argument is version of Savane (like 3.2).
     print "</p>\n<div align='right'><p>"
-      . utils_link ($savane_url,
-          sprintf (_("Powered by Savane %s"), $savane_version)
-        )
+      . utils_link ($url, sprintf (_("Powered by Savane %s"), $savane_version))
       . "</p></div>\n";
     print "\n</body>\n</html>\n";
   }

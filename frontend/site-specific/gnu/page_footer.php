@@ -1,9 +1,6 @@
 <?php
-# Copyright (C) 2002, 2003 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2005, 2006, 2007, 2008, 2009 Sylvain Beucler
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 Karl Berry
-# Copyright (C) 2013, 2017, 2018, 2023 Ineiev <ineiev@gnu.org>
-# Copyright (C) 2022 Bob Proulx
+# Copyright (C) 2017, 2018, 2023 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #
@@ -31,12 +28,4 @@ printf (
     . "logo is a GNU GPL'ed image provided\nby the Nevrax Design Team."),
   '//www.gnu.org/graphics/meditate.html'
 );
-
-print "<br />\n<a href=\"";
-print '//git.savannah.gnu.org/cgit/administration/savane.git/plain/'
-  . preg_replace (
-      ':/opt/savannah/savane/:', '', realpath ($_SERVER['SCRIPT_FILENAME'])
-    );
-print '">' . _('Source Code') . "</a>\n";
-
 ?>
