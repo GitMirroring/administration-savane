@@ -20,6 +20,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function vcs_description_fallback (&$desc, $url)
+{
+  $default_description =
+    "Unnamed repository; edit this file 'description' to name the repository.";
+  if (empty ($desc) || $desc == $default_description)
+    $desc = $url;
+}
+
 function vcs_get_list_from_cgitrepos ($group_name)
 {
   global $sys_etc_dir;
@@ -37,16 +45,13 @@ function vcs_get_list_from_cgitrepos ($group_name)
         'path' => preg_replace (':repo.path=:', '', $output[$i * 5 + 1]),
         'desc' => preg_replace (':^repo[.]desc=:', '', $output[$i * 5 + 2])
       ];
-      if (empty ($ret[$i]['desc']))
-        $ret[$i]['desc'] = $ret[$i]['url'];
+      vcs_description_fallback ($ret[$i]['desc'], $ret[$i]['url']);
     }
   return $ret;
 }
 
 function vcs_make_git_entry ($git_dir, $repo_dir, $clone_path)
 {
-  $initial_desc = "Unnamed repository; edit this file 'description' "
-    . "to name the repository.";
   $dir_name = "$git_dir/$repo_dir";
   if (!is_dir ($dir_name))
     return null;
@@ -54,8 +59,7 @@ function vcs_make_git_entry ($git_dir, $repo_dir, $clone_path)
   if ($desc === false)
     $desc = '';
   $desc = trim ($desc);
-  if ($desc == $initial_desc || empty ($desc))
-    $desc = $repo_dir;
+  vcs_description_fallback ($desc, $repo_dir);
   return
     ['url' => $repo_dir, 'desc' => $desc, 'path' => "$clone_path/$repo_dir"];
 }
