@@ -1,5 +1,5 @@
-# Based on gettext-0.16.1/gettext-tools/examples/hello-php
-# (public domain)
+# Based on gettext-0.16.1/gettext-tools/examples/hello-php.
+# Public domain.
 
 # General automake options.
 AUTOMAKE_OPTIONS = gnits
@@ -40,21 +40,10 @@ $(backend_scripts): %: %.in
 	chmod +x $@
 
 EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
-	REQUIREMENTS db debian devel update tests \
-	$(backend_scripts:%=%.in) \
+	REQUIREMENTS db tests $(backend_scripts:%=%.in) \
 	backend/README
 
 CLEANFILES=$(backend_scripts)
-
-database:
-	( \
-	  echo "CREATE DATABASE $(SV_DB_NAME) DEFAULT CHARACTER SET utf8;"; \
-	  echo "USE $(SV_DB_NAME);"; \
-	  cat db/mysql/table_*.structure; \
-	  cat db/mysql/table_*.initvalues; \
-	  cat db/mysql/bootstrap.sql; \
-	) | $(SV_DB_CMD) $(SV_DB_OPTIONS)
-# TODO: create the siteadmin group here
 
 dist-hook:
 	find $(distdir) -type d -name '.svn' -o -name '*~' | xargs -r rm -rf
