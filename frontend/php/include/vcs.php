@@ -219,4 +219,13 @@ function vcs_page ($vcs_name, $vcs_exfix, $group_id)
   utils_get_content ("$vcs_exfix/index");
   site_project_footer ([]);
 }
+
+function vcs_compile_repo_ul ($repos, $scm_url)
+{
+  $u = preg_replace(':/[^/]*$:', '/', $scm_url);
+  $ret = '';
+  foreach ($repos as $r)
+    $ret .= "<li><a href=\"$u{$r['url']}\">{$r['desc']}</a></li>\n";
+  return $ret;
+}
 ?>

@@ -5,6 +5,9 @@
 * The obsolete documentation in userguide/ is removed; links to wiki
   are added instead.
 
+* Additional repositories are listed in the top menu as well as
+  in the "Development Tools" section.
+
 * Bug fixes:
 
 ** In frontend/php/forum/forum.php, one argument of SQL query

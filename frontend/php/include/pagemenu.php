@@ -29,6 +29,8 @@
 # The related pages the submenus point to should have title that are the
 # same as the submenu, or almost.
 
+require_once (dirname (__FILE__) . "/vcs.php");
+
 # Menu specific to the current page: group if group page, my if my pages etc.
 function pagemenu ($params)
 {
@@ -131,6 +133,11 @@ function pagemenu ($params)
     . "<div id='topmenunooverlapbis'>&nbsp;</div>\n";
 }
 
+function pagemenu_submenu_class ()
+{
+  return 'topmenuitemmainitem';
+}
+
 # Column title.
 function pagemenu_submenu_title (
   $title, $url, $selected = 0, $available = 1, $help = ''
@@ -147,16 +154,23 @@ function pagemenu_submenu_title (
   if  (!empty ($stone_age_menu))
     list ($stone_age_menu_lastcontext, $ign) = context_guess_from_url ($url);
 
+  $li_class = pagemenu_submenu_class ();
   # We make appear the submenu with both CSS and JavaScript.  That is because
   # some browsers (MSIE) have poor CSS support and cannot do it otherwise.
   # (When it gains focus, the submenu appears.)
-  print "  <li class='topmenuitemmainitem'>\n    "
-    . utils_link ($url, $title, $class, $available, $help);
+  if (empty ($url))
+    {
+      $ret = "$title\n";
+      $li_class .= " sublist";
+    }
+  else
+    $ret = utils_link ($url, $title, $class, $available, $help);
+  return "  <li class='$li_class'>\n$ret";
 }
 
 function pagemenu_submenu_end ()
 {
-  print "  </li><!-- end topmenuitemmainitem -->\n\n";
+  return "  </li><!-- end " . pagemenu_submenu_class () . " -->\n\n";
 }
 
 function pagemenu_submenu_body ($txt)
@@ -176,7 +190,7 @@ function pagemenu_submenu_body ($txt)
         $stone_age_submenu = $txt;
       return;
     }
-  print "<ul id='submenu{$submenucount}' "
+  return "<ul id='submenu{$submenucount}' "
     . "class='topmenuitemsubmenu'>$txt\n</ul><!-- end submenu -->\n";
 }
 
@@ -185,7 +199,7 @@ function pagemenu_submenu_entry ($title, $url, $available = 1, $help = "")
   $class = "topmenuitemsubmenu";
 
   if ($GLOBALS['stone_age_menu'])
-    $class = "topmenuitemmainitem";
+    $class = pagemenu_submenu_class ();
   return "<li class=\"$class\">"
     . utils_link ($url, $title, '', $available, $help)
     . "</li>\n";
@@ -224,8 +238,9 @@ function pagemenu_my ()
 
   foreach ($titles as $t)
     {
-      pagemenu_submenu_title ($t[0], $t[1], SUBCONTEXT == $t[2], 1, $t[3]);
-      pagemenu_submenu_end ();
+      print pagemenu_submenu_title ($t[0], $t[1],
+        SUBCONTEXT == $t[2], 1, $t[3]);
+      print pagemenu_submenu_end ();
     }
 }
 
@@ -234,13 +249,13 @@ function pagemenu_tracker_submenu ($project, $tracker, $title, $help)
   if (!$project->Uses ($tracker))
     return;
 
-  pagemenu_submenu_title ($title, $project->getArtifactUrl ($tracker),
+  print pagemenu_submenu_title ($title, $project->getArtifactUrl ($tracker),
     CONTEXT == $tracker, 1, $help);
 
   # Only add submenu list when the URL wasn't customized.
   if ($project->url_is_default ($tracker))
-    pagemenu_submenu_body (pagemenu_group_trackers ($tracker));
-  pagemenu_submenu_end ();
+    print pagemenu_submenu_body (pagemenu_group_trackers ($tracker));
+  print pagemenu_submenu_end ();
 }
 
 # Submenu for group admins.
@@ -296,12 +311,25 @@ function pagemenu_vcs_use_entry ($group, $vcs, $vcs_name)
 
 function pagemenu_vcs_browse_entry ($group, $vcs, $name)
 {
+  $group_id = $group->getGroupId ();
   $a_idx = $vcs . '_viewcvs';
   if (!($group->Uses ($vcs) && pagemenu_url_is_set ($group, $a_idx)))
-  return '';
-  return pagemenu_submenu_entry (
-    _("Browse Sources Repository"), $group->getUrl ($a_idx)
-  );
+    return '';
+  $repos = vcs_get_repos ($vcs, $group_id);
+  $n = count ($repos);
+  $scm_url = $group->getUrl ($a_idx);
+  if (count ($repos) < 2)
+    {
+      $title = sprintf (_("Browse %s repository"), $name);
+      return pagemenu_submenu_entry ($title, $scm_url);
+    }
+  $ret = pagemenu_submenu_entry_separator ();
+  $title = sprintf (_("Browse %s repositories"), $name);
+  $ret .= pagemenu_submenu_title ("<span>$title</span>", null);
+  $repo_ul = "\n" . vcs_compile_repo_ul ($repos, $scm_url);
+  $ret .= pagemenu_submenu_body ($repo_ul);
+  $ret .= "\n$repo_ul" . pagemenu_submenu_end ();
+  return $ret;
 }
 
 function pagemenu_vcs_web_browse_url ($group, $vcs)
@@ -375,7 +403,7 @@ function pagemenu_group ()
   $unix_name = $project->getUnixName ();
   $uname = "{$url}s/$unix_name/";
   $gr_n = "?group=$unix_name";
-  pagemenu_submenu_title (_("Main"), $uname,
+  print pagemenu_submenu_title (_("Main"), $uname,
     CONTEXT == 'project', 1,
     # TRANSLATORS: the argument is site name like Savannah.
     sprintf (_("Project Main Page at %s"), $sys_name)
@@ -386,24 +414,25 @@ function pagemenu_group ()
 
   if ($is_admin)
     $ret .= pagemenu_group_admin ($url, $gr_n);
-  pagemenu_submenu_body ($ret);
-  pagemenu_submenu_end ();
+  print pagemenu_submenu_body ($ret);
+  print pagemenu_submenu_end ();
 
   if (pagemenu_test_url ($project, "homepage"))
     {
-      pagemenu_submenu_title( _("Homepage"), $project->getUrl("homepage"),
+      print pagemenu_submenu_title ( _("Homepage"),
+        $project->getUrl("homepage"),
         0, 1, _("Browse project homepage (outside of Savane)")
       );
-      pagemenu_submenu_end ();
+      print pagemenu_submenu_end ();
     }
 
   if ($project->Uses ("download"))
     {
-      pagemenu_submenu_title (_("Download"),
+      print pagemenu_submenu_title (_("Download"),
         $project->getArtifactUrl ("files"), CONTEXT == 'download', 1,
         _("Visit download area: files released")
       );
-      pagemenu_submenu_end ();
+      print pagemenu_submenu_end ();
     }
 
   # The cookbook is the default and cannot be deactivated as it contains
@@ -418,11 +447,11 @@ function pagemenu_group ()
 
   if ($project->getUrl ("extralink_documentation"))
     {
-      pagemenu_submenu_title (_("Docs"), $u, CONTEXT == 'cookbook', 1,
+      print pagemenu_submenu_title (_("Docs"), $u, CONTEXT == 'cookbook', 1,
         _("Docs: Cookbook, etc")
       );
-      pagemenu_submenu_body (pagemenu_group_trackers ("cookbook"));
-      pagemenu_submenu_end ();
+      print pagemenu_submenu_body (pagemenu_group_trackers ("cookbook"));
+      print pagemenu_submenu_end ();
     }
 
 
@@ -434,7 +463,7 @@ function pagemenu_group ()
 
   if ($project->Uses ('mail'))
     {
-      pagemenu_submenu_title ( _("Mailing lists"),
+      print pagemenu_submenu_title ( _("Mailing lists"),
         $project->getArtifactUrl ("mail"), CONTEXT == 'mail', 1,
         _("List existing mailing lists")
       );
@@ -450,9 +479,9 @@ function pagemenu_group ()
                 '<strong>' . _("Configure:") . '</strong>',
                 "$u/admin/$gr_n"
               );
-          pagemenu_submenu_body ($ret);
+          print pagemenu_submenu_body ($ret);
         }
-      pagemenu_submenu_end ();
+      print pagemenu_submenu_end ();
     }
 
   $count = 0;
@@ -476,12 +505,12 @@ function pagemenu_group ()
     {
       if ($count == 1)
         # Only one SCM - direct link.
-        pagemenu_submenu_title (_("Source code"),
+        print pagemenu_submenu_title (_("Source code"),
           $project->getArtifactUrl ($last_vcs), CONTEXT == $last_vcs, 1,
           _("Source code management")
         );
       else
-        pagemenu_submenu_title (_("Source code"), "$uname#devtools",
+        print pagemenu_submenu_title (_("Source code"), "$uname#devtools",
           isset ($vcses[CONTEXT]), 1, _("Source code management")
         );
 
@@ -494,8 +523,8 @@ function pagemenu_group ()
 
       # Add a submenu only if there is more than one item.
       if ($ret && $count > 1)
-        pagemenu_submenu_body ($ret);
-      pagemenu_submenu_end ();
+        print pagemenu_submenu_body ($ret);
+      print pagemenu_submenu_end ();
     } # if ($count)
 
   pagemenu_tracker_submenu ($project, "bugs", _("Bugs"),
@@ -510,7 +539,7 @@ function pagemenu_group ()
   if (!$project->Uses ("news"))
     return;
   $news = $sys_home . 'news';
-  pagemenu_submenu_title (_("News"), "$news/$gr_n", CONTEXT == 'news', 1,
+  print pagemenu_submenu_title (_("News"), "$news/$gr_n", CONTEXT == 'news', 1,
     _("Read latest News, post News")
   );
   $ret = pagemenu_submenu_entry (_("Browse"), "$news/$gr_n");
@@ -529,8 +558,8 @@ function pagemenu_group ()
             1, _("News Manager: edit notifications")
           );
     }
-  pagemenu_submenu_body ($ret);
-  pagemenu_submenu_end ();
+  print pagemenu_submenu_body ($ret);
+  print pagemenu_submenu_end ();
 }
 
 # Menu specific to tracker pages.
@@ -677,7 +706,7 @@ function pagemenu_siteadmin ()
 {
   global $sys_home, $group_name, $sys_unix_group_name;
   $root = $sys_home . "siteadmin";
-  pagemenu_submenu_title ("Configuration", "root/?func=configure",
+  print pagemenu_submenu_title ("Configuration", "root/?func=configure",
     SUBCONTEXT == 'configure'
   );
   $titles = [
@@ -687,10 +716,10 @@ function pagemenu_siteadmin ()
   $txt = "";
   foreach ($titles as $u => $t)
     $txt .= pagemenu_submenu_entry ($t, $u);
-  pagemenu_submenu_body ($txt);
-  pagemenu_submenu_end ();
+  print pagemenu_submenu_body ($txt);
+  print pagemenu_submenu_end ();
 
-  pagemenu_submenu_title ("Management", "$root/?func=manage",
+  print pagemenu_submenu_title ("Management", "$root/?func=manage",
     SUBCONTEXT == 'manage'
   );
   # If the current page shows a group edition page, add extra links.
@@ -723,9 +752,9 @@ function pagemenu_siteadmin ()
     . pagemenu_submenu_entry_separator ()
     . pagemenu_submenu_entry ("Group list", "$root/grouplist.php")
     . pagemenu_submenu_entry ("User list", "$root/userlist.php");
-  pagemenu_submenu_body ("$txt$extralinks");
-  pagemenu_submenu_end ();
-  pagemenu_submenu_title ("Monitoring", "$root/?func=monitor",
+  print pagemenu_submenu_body ("$txt$extralinks");
+  print pagemenu_submenu_end ();
+  print pagemenu_submenu_title ("Monitoring", "$root/?func=monitor",
     SUBCONTEXT == 'monitor'
   );
   $txt = pagemenu_submenu_entry ("Monitor spam", "$root/spamlist.php")
@@ -733,7 +762,7 @@ function pagemenu_siteadmin ()
     . pagemenu_submenu_entry ("Anonymous posts",
         "$root/usergroup.php?user_id=100"
       );
-  pagemenu_submenu_body ($txt);
-  pagemenu_submenu_end ();
+  print pagemenu_submenu_body ($txt);
+  print pagemenu_submenu_end ();
 }
 ?>

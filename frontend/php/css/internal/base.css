@@ -460,8 +460,12 @@ li.topmenuitemmainitem a
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
+li.topmenuitemmainitem span
+{
+  margin: 1em;
+}
 
-li.topmenuitemmainitem:hover > ul { visibility: visible; }
+li.topmenuitemmainitem:hover ul { visibility: visible; }
 
 ul.topmenuitemsubmenu
 {
@@ -478,6 +482,12 @@ ul.topmenuitemsubmenu
    border: thin solid #F1F1F1;
 }
 
+#topmenu ul.topmenuitemsubmenu ul.topmenuitemsubmenu
+{
+  margin-top: .5em;
+  left: 0;
+}
+
 ul.topmenuitemsubmenu li
 {
   display: block;
@@ -488,6 +498,11 @@ ul.topmenuitemsubmenu li
   the ul border, it makes some kind of light 3d effect.  */
   border-top: none;
   border-left: 0.4em solid #E2E2E2;
+}
+
+ul.topmenuitemsubmenu li.sublist
+{
+  border: none;
 }
 
 ul.topmenuitemsubmenu li a

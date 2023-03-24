@@ -490,12 +490,8 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
           . _("Browse Sources Repository") . "</a>\n";
       else
         {
-          $u = preg_replace(':/[^/]*$:', '/', $scm_url);
-          print '<p>' . _("Browse Sources Repository") . "</p>\n";
-          print "<ul>\n";
-          foreach ($repos as $r)
-            print "<li><a href=\"$u{$r['url']}\">{$r['desc']}</a></li>\n";
-          print "</ul>\n";
+          print '<p>' . _("Browse Sources Repository") . "</p>\n<ul>\n";
+          print vcs_compile_repo_ul ($repos, $scm_url) . "</ul>\n";
         }
     }
   $view_url = pagemenu_vcs_web_browse_url ($group, $scm);
