@@ -1,4 +1,2 @@
-Copied from gettext-0.16.1/gettext-tools/examples/hello-php/m4
-(public domain)
-
-Update the .m4 files regularly!
+These files are not part of Savane, but are used with it.
+nls.m4, po.m4, progtest.m4 come from gettext-0.21.1.

@@ -1,2 +1,1 @@
-EXTRA_DIST = \
-  nls.m4 po.m4
+EXTRA_DIST = nls.m4 po.m4 progtest.m4

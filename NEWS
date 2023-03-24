@@ -7,6 +7,11 @@
 ** In frontend/php/forum/forum.php, one argument of SQL query
    had a wrong type.
 
+[BUILD]
+
+* autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
+  from gettext-0.21.1.
+
 2023-03-17 3.11
 
 [BACKEND]
