@@ -129,7 +129,7 @@ if ($forum_id)
       }
     # Now setup the query.
     $threading_sql = '';
-    if ($style == 'nested' || $style== 'threaded' )
+    if ($style == 'nested' || $style == 'threaded' )
       {
         # The flat and 'no comments' view just selects the most recent
         # messages out of the forum.
@@ -147,7 +147,7 @@ if ($forum_id)
         f.group_forum_id = ?  AND u.user_id = f.posted_by $threading_sql
         AND g.group_forum_id = f.group_forum_id
       ORDER BY f.date DESC LIMIT ?, ?",
-      [$forum_id, $offset, $max_rows + 1]
+      [$forum_id, intval ($offset), $max_rows + 1]
     );
     $rows = db_numrows ($result);
     if ($rows > $max_rows)
