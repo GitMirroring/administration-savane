@@ -2,7 +2,7 @@
 # Edit group public info.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2000-2003 Free Software Foundation
+# Copyright (C) 2000-2003 Free Software Foundation, Inc.
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007 Sylvain Beucler
 # Copyright (C) 2017, 2018, 2020, 2021, 2022, 2023 Ineiev

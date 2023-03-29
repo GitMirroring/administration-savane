@@ -1,33 +1,30 @@
 /* Light style.
- *
- * Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
- * See the changelog file for a detailed list of changes
- *
- * This file is part of Savane.
- *
- * Savane is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * Savane is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
+
+See the changelog file for a detailed list of changes.
+
+This file is part of Savane.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* GUIDELINES VERSION FOLLOWED: 1.18 */
 
 @import "internal/base.css";
 
-/**********************************************************************
- *
- * Very basic (mostly text) items:
- *
- **********************************************************************/
+/* Very basic (mostly text) items. */
 
 body {
   margin-top: 0.5%;
@@ -50,7 +47,6 @@ a:hover {
 a:active {
 	color: #553b63;
 }
-
 
 .unavailable
 {
@@ -95,13 +91,7 @@ h4 {
 	border-bottom: thin dotted #e2c4f2;
 }
 
-
-
-/**********************************************************************
- *
- * Alignement, main tables
- *
- **********************************************************************/
+/* Alignement, main tables. */
 
 .realbody {
 	color: #333333;
@@ -109,11 +99,7 @@ h4 {
 	background-color: #ffffff;
 }
 
-/**********************************************************************
- *
- * Menus
- *
- **********************************************************************/
+/* Menus. */
 
 .menutitle {
 	background-color: #eaffed;
@@ -170,18 +156,12 @@ li.topmenuitemsubmenu a:hover {
 	text-decoration: underline;
 }
 
-
 .tabs { color: #008456; }
 .tabs:hover { color: #005135; }
 .tabselect { text-decoration: underline; color: #000000; }
 .tabselect:hover { color: #000000; }
 
-/**********************************************************************
- *
- * Boxes
- *
- **********************************************************************/
-
+/* Boxes. */
 
 .boxtitle {
 	background-color: #f3dbff;
@@ -219,8 +199,8 @@ li.topmenuitemsubmenu a:hover {
 	border: thin dotted #e2c4f2;
 }
 
-/* Forms */
-button,input
+/* Forms. */
+button, input
 {
   background-color: #e8f0ff;
   border: thin solid #004cd1;
@@ -248,7 +228,7 @@ textarea {
 
 textarea:hover { background-color: #d6e9ff; }
 
-/* Priorities */
+/* Priorities. */
 .priora { background-color: #fff2f2; border: thin solid #ef6e6e; }
 .priorb { background-color: #ffe8e8; border: thin solid #ef6e6e; }
 .priorc { background-color: #ffe0e0; border: thin solid #ef6e6e; }

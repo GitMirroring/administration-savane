@@ -2,7 +2,7 @@
 # Group administration start page.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2000-2003 Free Software Foundation
+# Copyright (C) 2000-2003 Free Software Foundation, Inc.
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2017, 2020, 2023 Ineiev
 #

@@ -5,6 +5,7 @@
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2007  Sylvain Beucler
 # Copyright (C) 2017, 2018, 2022 Ineiev
+#
 # Modified 2016 Karl Berry (trivial wording changes)
 #
 # This file is part of Savane.

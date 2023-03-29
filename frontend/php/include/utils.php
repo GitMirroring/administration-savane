@@ -2,9 +2,10 @@
 # Utility functions.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>,
+# Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2002-2006 Tobias Toedter <t.toedter--gmx.net>
-# Copyright (C) 2004-2007 Aidan Lister <aidan@php.net>, Arpad Ray <arpad@php.net>
+# Copyright (C) 2004-2007 Aidan Lister <aidan@php.net>
+# Copyright (C) 2004-2007 Arpad Ray <arpad@php.net>
 # Copyright (C) 2006, 2007, 2008, 2010 Sylvain Beucler
 # Copyright (C) 2017, 2018, 2019, 2020, 2022, 2023 Ineiev
 #

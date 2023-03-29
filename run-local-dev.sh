@@ -1,6 +1,7 @@
 #! /bin/sh
-
-# Copyright (C) 2017 Assaf Gordon (assafgordon@gmail.com)
+#
+# Copyright (C) 2017 Assaf Gordon <assafgordon@gmail.com>
+#
 # This file is part of Savane.
 #
 # Savane is free software: you can redistribute it and/or modify

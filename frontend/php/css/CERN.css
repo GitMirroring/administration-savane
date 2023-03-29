@@ -1,68 +1,54 @@
 /* CERN theme.
- * 
- * Copyright 2005-2006 (c) Yves Perrin <ype--cern.ch>
- *                         Mathieu Roy <yeupou--gnu.org>
- *   
- * Based on Emeraud                      
- *
- * This file is part of Savane.
- * 
- * Savane is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Savane is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
+Copyright (C) 2005-2006 Yves Perrin <ype--cern.ch>
+Copyright (C) 2005-2006 Mathieu Roy <yeupou--gnu.org>
+
+This file is part of Savane.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* GUIDELINES VERSION FOLLOWED: 1.18 */
 
 @import "Emeraud.css";
 
-body {
-        color: #666666;
+body { color: #666666; }
+
+.realbody { padding-top: 2px; }
+
+.main { padding-top: 2px; }
+
+.menulogo
+{
+  margin-top: 0;
+  list-style-type: none;
+  font-weight: bold;
+  font-size: larger;
+  text-align: center;
 }
 
-.realbody {
-        padding-top: 2px;
-}
- 
-.main {
-        padding-top: 2px;
-}
- 
-.menulogo {
-        margin-top: 0;
-        list-style-type: none;
-        font-weight: bold;
-        font-size: larger;
-        text-align: center;
+.hometitle
+{
+  margin-top: 0;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  background-color: #E9B879;
+  font-weight: bold;
+  border: solid #CC885E thin;
+  text-align: center;
+  font-size: x-large;
+  color: #ffffff;
 }
 
-.hometitle {
-        margin-top: 0;
-        padding-top: 0.5em;
-        padding-bottom: 0.5em;
-        background-color: #E9B879;
-        font-weight: bold;
-        border: solid #CC885E thin;
-        text-align: center;
-        font-size: x-large;
-        color: #ffffff;
-}
-
-.topmenu {
-        border-top: none;
-}
-.topmenuitemmainitem {
-        border-top: thin solid #D7D7CF;
-}
-                                                                                
-/* EOF */
+.topmenu { border-top: none; }
+.topmenuitemmainitem { border-top: thin solid #D7D7CF; }

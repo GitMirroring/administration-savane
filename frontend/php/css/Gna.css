@@ -1,30 +1,31 @@
 /* Gna theme.
- *
- * Copyright (C) 2004-2006 Vincent Caron <zerodeux--gnu.org>
- * Copyright (C) 2018 Ineiev
- * Heavily based on Light theme by Mathieu Roy <yeupou--gnu.org>
- *
- * This file is part of Savane.
- *
- * Savane is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * Savane is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
+Copyright (C) 2002-2004 Mathieu Roy <yeupou--gnu.org>
+Copyright (C) 2004-2006 Vincent Caron <zerodeux--gnu.org>
+Copyright (C) 2018 Ineiev
+
+Heavily based on Light theme by Mathieu Roy <yeupou--gnu.org>
+
+This file is part of Savane.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* GUIDELINES VERSION FOLLOWED: 1.18 */
 
 @import "internal/base.css";
 
-/* Very basic (mostly text) items: */
+/* Very basic (mostly text) items.  */
 
 body {
 	margin: 0;
@@ -43,9 +44,7 @@ a:hover {
 	text-decoration: underline;
 }
 
-a:active {
-	color: #00c6a5;
-}
+a:active { color: #00c6a5; }
 
 .unavailable, .unavailable:hover { color: #acc7c7 !important; }
 
@@ -61,10 +60,7 @@ a:active {
 	color: #475a5a;
  }
 
-h1 {
-        margin-bottom: 1%;
-}
-
+h1 { margin-bottom: 1%; }
 
 h2 {
 	background-color: #0869bc;
@@ -76,9 +72,7 @@ h2 {
 	border: solid #004c8c thin;
 }
 
-h2 a {
-	color: #ffffff;
-}
+h2 a { color: #ffffff; }
 
 h2 a:hover {
 	background-color: #0879d9;
@@ -95,10 +89,7 @@ h4 {
 	border: solid #004c8c thin;
 }
 
-
-h4 a {
-	color: #ffffff;
-}
+h4 a { color: #ffffff; }
 
 h4 a:hover {
 	background-color: #0768ba;
@@ -107,23 +98,15 @@ h4 a:hover {
 }
 
 
-hr {
-	background-color: #b0b0b0;
-}
+hr { background-color: #b0b0b0; }
 
-.highlight {
-	background-color: #C2E2EF;
-}
+.highlight { background-color: #C2E2EF; }
 
-.quote {
-	color: #01559e;
-}
+.quote { color: #01559e; }
 
-/* Alignement, main tables */
+/* Alignement, main tables.  */
 
-.realbody {
-	padding-right: 0;
-}
+.realbody { padding-right: 0; }
 
 .main {
 	padding-top: 10px;
@@ -132,7 +115,7 @@ hr {
 	margin-left: 160px;
 }
 
-/* Menus */
+/* Menus.  */
 
 .menu {
 	background: #cef0f0;
@@ -173,18 +156,14 @@ hr {
 	text-decoration: none;
 }
 
-.menu a:hover {
-	background-color: #d7f8f8;
-}
+.menu a:hover { background-color: #d7f8f8; }
 
 .topmenu {
 	border: thin solid white;
 	border-top: solid thin #004c8c;
 }
 
-.topmenu a {
-	text-decoration: none;
-}
+.topmenu a { text-decoration: none; }
 
 
 .topmenutitle {
@@ -202,10 +181,7 @@ hr {
 	border: thin solid #b3e2e3;
 }
 
-.topmenuitemmainitem:hover {
-	background-color: #d7f8f8;
-
-}
+.topmenuitemmainitem:hover { background-color: #d7f8f8; }
 
 ul.topmenuitemsubmenu {
 	background-color: #F4FFFE;
@@ -231,27 +207,21 @@ li.topmenuitemsubmenu a:hover {
 	text-decoration: none;
 }
 
-li.topmenuitemsubmenuseparator {
-	background-color: #b3e2e3;
-}
+li.topmenuitemsubmenuseparator { background-color: #b3e2e3; }
 
 
 .tabs:hover { text-decoration: none; }
-/* we cannot keep it in bold, it makes an extra space with some konqueror
-  version (RHEL) */
+/* We cannot keep it in bold, it makes an extra space
+   with some konqueror version (RHEL).  */
 .tabselect {  background-color: #d7f8f8; }
 .tabselect:hover {  background-color: #b7e7e8; color: black;  text-decoration: none; }
 
 
-/* Boxes */
+/* Boxes.  */
 
-.box {
-	border-spacing: 0;
-}
+.box { border-spacing: 0; }
 
-.boxleft {
-	border-spacing: 0;
-}
+.boxleft { border-spacing: 0; }
 
 .boxtitle {
 	background-color: #80c0e0;
@@ -259,14 +229,9 @@ li.topmenuitemsubmenuseparator {
 	border-width: 0 thin thin 0;
 }
 
-.boxtitle a {
-	color: #ffffff;
-}
+.boxtitle a { color: #ffffff; }
 
-.boxtitle a:hover {
-	background-color: #83c5e6;
-}
-
+.boxtitle a:hover { background-color: #83c5e6; }
 
 .boxitem {
 	background-color: #fafafa;
@@ -275,9 +240,7 @@ li.topmenuitemsubmenuseparator {
 	border-width: 0 thin thin thin;
 }
 
-.boxitemextra {
-	background-color: #F8F8F8;
-}
+.boxitemextra { background-color: #F8F8F8; }
 
 .boxitemalt {
 	background-color: #ebebeb;
@@ -286,10 +249,7 @@ li.topmenuitemsubmenuseparator {
 	border-width: 0 thin thin thin;
 }
 
-.boxitemaltextra {
-	background-color: #E9E9E9;
-}
-
+.boxitemaltextra { background-color: #E9E9E9; }
 
 .boxhighlight {
 	background-color: #C2E2EF;
@@ -303,15 +263,15 @@ li.topmenuitemsubmenuseparator {
 	border: thin solid #b0b0b0;
 }
 
-/* Forms */
-button,input
+/* Forms.  */
+button, input
 {
   background-color: #e7f5fc;
   color: black;
   border: thin solid #b1cccc;
 }
 
-button:hover,input:hover
+button:hover, input:hover
 {
   background-color: #f8fdff;
 }
@@ -332,7 +292,5 @@ textarea {
 
 textarea:hover { background-color: #f8fdff; }
 
-/* text before inputs */
-.preinput {
-	color: #5b5b5b;
-}
+/* Text before inputs.  */
+.preinput { color: #5b5b5b; }

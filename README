@@ -1,15 +1,40 @@
 Copyright (C) 1999-2000 The SourceForge Crew
-Copyright (C) 2002-2006 Mathieu Roy
-Copyright (C) 2007-2009 Sylvain Beucler
-Copyright (C) 2014, 2016, 2017 Assaf Gordon
-Copyright (C) 2013, 2014, 2017-2023 Ineiev
-
-This file is part of Savane.
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2014, 2016-2017 Assaf Gordon
+Copyright (C) 2013-2014, 2017-2023 Ineiev
 
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.  This file is offered as-is,
 without any warranty.
+
+This file is part of Savane.
+
+Copyright notices of Savane may use year ranges ("2002-2006") instead
+of listing individual years ("2002, 2003, 2004, 2005, 2006").
+
+Introduction
+============
+
+Savane is a free software hosting system.  As of 2023, it powers
+Puszcza and GNU Savannah: each site runs its own version of Savane;
+this tarball distributes the version of GNU Savannah.  For the exact
+release number, see the NEWS file.
+
+Licensing
+=========
+
+The original package was distributed under GPLv2 "or later."
+On 2008-03-30, the option to re-license under a later version
+was used.  In other words, the old code is distributed under the GPLv3
+"or later" (commit 8b757b2565ff).  Then, section 13 of GPLv3
+and section 13 of AGPLv3 allowed combining code released under these
+licenses, so all further contributions come under the AGPL.
+The combination is effectively under the AGPLv3 "or later," but
+the precise conditions are explained in the licenses.
+
+The license notices for the AGPL and the GPL follow.
 
 Savane is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -24,28 +49,39 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Copyright notices of Savane may use year ranges ('2002-2006') instead
-of listing individual years ('2002, 2003, 2004, 2005, 2006').
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
 
-Savane is free software hosting system.  As of 2022, it runs
-on GNU Savannah and on Puszcza: each site runs its own version
-of Savane; this tarball distributes the version of GNU Savannah.
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Getting Savane
 ==============
 
 The code of Savane is maintaned in the Savane Git repository of
-the 'administration' group of GNU Savannah,
+the "administration" group of GNU Savannah,
 
 https://savannah.nongnu.org/git/?group=administration
 
-GNU Savannah runs the master branch of that repository.
+GNU Savannah generally runs the master branch of that repository.
 
 Tarballs of Savane are released periodically, mainly for the reference
-for the Translation Project, in the download area of Savannah
+of the Translation Project, in the download area of Savannah
 administration:
 
 https://savannah.nongnu.org/files/?group=administration
+
+Contacting developers
+=====================
+
+See https://savannah.gnu.org/contact.php
 
 Dependencies
 ============
@@ -62,5 +98,5 @@ For more details, see REQUIREMENTS.
 Documentation
 =============
 
-For more info, see Savannah User Docs,
-https://savannah.gnu.org/maintenance/FrontPage/
+For more info, see Savannah wiki,
+https://savannah.gnu.org/maintenance/back-page/

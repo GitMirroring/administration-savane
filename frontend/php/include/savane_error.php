@@ -2,8 +2,8 @@
 # Define savane_error class.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2000-2001 Free Software Foundation
-# Copyright (C) 2004      John Doe <john.doe-at--dude.org>
+# Copyright (C) 2000-2001 Free Software Foundation, Inc.
+# Copyright (C) 2004 John Doe <john.doe-at--dude.org>
 # Copyright (C) 2019 Ineiev
 #
 # This file is part of Savane.

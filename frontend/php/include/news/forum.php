@@ -2,7 +2,7 @@
 # Forum functions.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2004-2005 Mathieu Roy <yeupou--gnu.org>.
+# Copyright (C) 2004-2005 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2017, 2018, 2022, 2023 Ineiev
 #
 # This file is part of Savane.

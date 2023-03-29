@@ -1,10 +1,6 @@
 <?php
-
-# Copyright (C) 2002, 2003 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2005 Sylvain Beucler
 # Copyright (C) 2015, 2016, 2017 Karl Berry
 # Copyright (C) 2013, 2017, 2023 Ineiev <ineiev@gnu.org>
-# Copyright (C) 2022 Bob Proulx
 #
 # This file is part of Savane.
 #

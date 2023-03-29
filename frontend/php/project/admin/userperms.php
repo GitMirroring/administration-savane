@@ -2,7 +2,7 @@
 # Modify user permissions.
 #
 # Copyright 1999-2000 The SourceForge Crew
-# Copyright 2000-2003 Free Software Foundation
+# Copyright 2000-2003 Free Software Foundation, Inc.
 # Copyright 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright 2004-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright 2017 Ineiev

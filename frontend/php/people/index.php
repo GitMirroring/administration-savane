@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2006-2008 Beucler <beuc--beuc.net>
+# Copyright (C) 2006-2008 Sylvain Beucler <beuc--beuc.net>
 # Copyright (C) 2013, 2017, 2018, 2022 Ineiev <ineiev--gnu.org>
 #
 # This file is part of Savane.

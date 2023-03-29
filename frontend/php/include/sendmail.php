@@ -2,6 +2,7 @@
 # Every mails sent should be using functions listed here.
 #
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2016 Assaf Gordon
 # Copyright (C) 2017, 2018, 2019, 2020, 2022, 2023 Ineiev
 #
 # This file is part of Savane.

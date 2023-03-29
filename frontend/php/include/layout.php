@@ -2,8 +2,8 @@
 # Page layout.
 #
 # Copyright (C) 1999-2000 The SourceForge Crew
-# Copyright (C) 2000-2003 Free Software Foundation
-# Copyright (C) 2000-2003 Stéphane Urbanoski <s.urbanovski--ac-nancy-metz.fr>
+# Copyright (C) 2000-2003 Free Software Foundation, Inc.
+# Copyright (C) 2000-2003 Stéphane Urbanovski <s.urbanovski--ac-nancy-metz.fr>
 # Copyright (C) 2000-2003 Derek Feichtinger <derek.feichtinger--cern.ch>
 #
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
