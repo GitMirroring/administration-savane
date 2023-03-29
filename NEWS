@@ -12,6 +12,10 @@
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
   from gettext-0.21.1.
 
+Bug fixes:
+
+** Some images in the OldCERN theme weren't built.
+
 2023-03-17 3.11
 
 [BACKEND]
