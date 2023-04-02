@@ -146,6 +146,8 @@ if (isset ($GLOBALS['sys_https_host']))
 else
   $sys_https_url = 'http://' . $GLOBALS['sys_default_domain'];
 
+$php_self = htmlentities ($_SERVER['PHP_SELF']);
+
 # Security issues apply even during fundrasing periods.  Please don't disable
 # this, make the banner work with the headers instead.
 utils_set_csp_headers ();
@@ -522,5 +524,4 @@ function init_check_group ()
 
 init_check_group ();
 unset ($group_row);
-$php_self = htmlentities ($_SERVER['PHP_SELF']);
 ?>
