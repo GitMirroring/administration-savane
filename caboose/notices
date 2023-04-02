@@ -1,0 +1,107 @@
+#! /bin/bash
+# Ad-hoc script to normalize license and copyright notices.
+# Public domain; originally written in 2023 by Ineiev.
+
+# Find files with AGPL license notices, update license notices
+# and normalize copyright notices.
+
+# As an exception, in the few files listed in the rest_file variable,
+# the license notices aren't updated and "main" copyright holders aren't
+# forcefully added, only copyright notices for already present ones
+# are normalized.
+
+export LC_ALL=C
+
+top=..
+
+rest_files="ChangeLog README NEWS"
+
+rest_paths="$(for i in $rest_files; do echo $top/$i; done)"
+
+list_files ()
+{
+  exclude_rest=$(for i in $rest_files; do echo '! -path' $top/$i; done)
+  find $top -type f \
+    ! -path $top/.git/\* ! -path $top/autotools/\* \
+    ! -path $top/caboose/\* ! -path $top/autom4te.cache/\* \
+    ! -path $top/po/\* $exclude_rest \
+    ! -name \*.png ! -name COPYING\* ! -name '.*.sw?' \
+    ! -name Makefile ! -name Makefile.in \
+  | sort
+}
+
+agpled_files ()
+{
+  echo "$1" | while read i; do
+    grep -qF 'GNU Affero General Public License' "$i" && echo "$i"
+  done
+}
+
+copyright ()
+{
+  gawk -v file_name="$1" < "$1" -f ./copyright.awk
+}
+
+parse_files ()
+{
+  echo "$1" | while read i; do
+    copyright "$i"
+  done | gawk -f ./parse-files.awk
+}
+
+notice='This file is part of Savane.
+
+Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+under the terms of the GNU General Public license version 3 or (at your
+option) any later version; further contributions are covered by
+the GNU Affero General Public license version 3 or (at your option)
+any later version.  The license notices for the AGPL and the GPL follow.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.'
+
+notice_start='(This file is part of Savane.|This program is free software:'
+notice_start="$notice_start you can redistribute it and/or modify)"
+notice_end='with this program.  If not, see <http://www.gnu.org/licenses/>.'
+
+fixup_notices ()
+{
+  tmp_file="../file.tmp"
+  { echo "$1" | sed 's,^,file:\t,'; echo "$years"; } \
+  | gawk -v tmp_file="$tmp_file" \
+      -v notice="$notice" -v notice_start="$notice_start" \
+      -v notice_line_cnt=9 -v notice_end="$notice_end"  \
+      -f ./fixup-notices.awk $2
+}
+
+file_list=$(list_files)
+agpled_list=$(agpled_files "$file_list")
+full_list=$(printf "$agpled_list\n$rest_paths\n")
+years=$(parse_files "$full_list" | grep '^years:')
+
+fixup_notices "$agpled_list" || exit 1
+fixup_notices "$rest_paths" "-v skip_principals=1 -v dont_touch_license=1" \
+  || exit 1
