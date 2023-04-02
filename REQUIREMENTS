@@ -47,8 +47,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * Date::Calc.pm (libdate-calc-perl in debian)
 * String::Random (for sv_mailman, libstring-random-perl in debian)
 
-
 = Optional =
 
 * Kerberos authentication support (bindings for the krb5 library):
   https://savannah.nongnu.org/projects/phpkrb5
+
+= Build Time =
+
+* ImageMagic (resizing images for icons)
