@@ -5,7 +5,7 @@
 # Copyright (C) 2001-2002 Laurent Julliard, CodeX Team, Xerox
 # Copyright (C) 2002-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2019, 2022 Ineiev
+# Copyright (C) 2017, 2019, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -241,13 +241,13 @@ switch ($func)
 
     # Check for duplicates.
     if (!form_check ($form_id))
-      exit_error(_("Exiting"));
+      exit_error (_("Exiting"));
 
     # Get the list of bug fields used in the form.
     $vfl = trackers_extract_field_list ();
 
     $item_id = null;
-    if (empty ($preview))
+    if (empty ($preview) && !$anon_check_failed)
       {
         # Data control layer.
         $item_id = trackers_data_create_item ($group_id, $vfl, $address);

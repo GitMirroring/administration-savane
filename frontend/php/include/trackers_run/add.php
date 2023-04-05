@@ -5,7 +5,7 @@
 # Copyright (C) 2001-2002 Laurent Julliard, CodeX Team, Xerox
 # Copyright (C) 2003-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2003-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2022 Ineiev
+# Copyright (C) 2017, 2022, 2023 Ineiev
 #
 # This file is part of Savane.
 #
@@ -56,8 +56,7 @@ print form_header (
   $_SERVER['PHP_SELF'], $form_id, "post",
   'enctype="multipart/form-data" name="trackers_form"'
 );
-print form_input ("hidden", "func", "postadditem");
-print form_input ("hidden", "group_id", $group_id);
+print form_hidden (["func" => "postadditem", 'group_id' => $group_id]);
 print "\n<table cellpadding='0' width='100%'>";
 
 # Now display the variable part of the field list (depending on the project).
@@ -122,29 +121,23 @@ while ($field_name = trackers_list_all_fields ())
     # Fields colors.
     $field_class = $row_class = '';
     if ($j % 2 && $field_name != 'details')
-      {
-        # We keep the original submission with the default
-        # background color, for lisibility sake.
-        #
-        # We also use the boxitem background color only one time
-        # out of two, to keep the page light.
-        $row_class = ' class="' . utils_altrow ($j + 1) . '"';
-      }
+      # We keep the original submission with the default background color,
+      # for lisibility sake.
+      #
+      # We also use the boxitem background color only one time out of two,
+      # to keep the page light.
+      $row_class = ' class="' . utils_altrow ($j + 1) . '"';
 
     # If we are working on the cookbook, present checkboxes to
     # defines context before the summary line.
     if (CONTEXT == 'cookbook' && $field_name == 'summary' && $is_trackeradmin)
-      {
-        cookbook_print_form ();
-      }
+      cookbook_print_form ();
 
     # We highlight fields that were not properly/completely
     # filled.
     if (!empty ($previous_form_bad_fields)
         && array_key_exists ($field_name, $previous_form_bad_fields))
-      {
-        $field_class = ' class="highlight"';
-      }
+      $field_class = ' class="highlight"';
 
     if ($sz > $max_size)
       {
