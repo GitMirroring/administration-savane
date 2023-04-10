@@ -123,11 +123,10 @@ function i18n_setup ($locale)
   global $sys_localedir;
   # The LANGUAGE variable would override our settings, so we unset it.
   putenv ("LANGUAGE=");
-
-  $sloc = setlocale (LC_ALL, $locale);
+  setlocale (LC_ALL, $locale);
   utils_update_decimal_separator ();
   if (!empty ($sys_localedir))
-    $res = bindtextdomain ('savane', $sys_localedir);
+    bindtextdomain ('savane', $sys_localedir);
   textdomain ('savane');
 }
 i18n_setup  ($locale);

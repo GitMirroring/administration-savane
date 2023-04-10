@@ -21,6 +21,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include ("include/ac_config.php");
+$sys_debug_sqlprofiler = false;
+$sys_file_domain = '';
 
 function return_bytes ($v)
 {
@@ -347,8 +349,6 @@ $sys_linguas = "en:es";
 require_once ("include/i18n.php");
 function test_i18n ()
 {
-  global $sys_linguas;
-
   i18n_setup ("es_ES.UTF-8");
   $str = 'High';
   $res = gettext ($str);
@@ -396,7 +396,8 @@ else
       'default_domain', 'https_host', 'file_domain', 'dbhost', 'dbname',
       'dbuser', 'dbpasswd', 'www_topdir', 'url_topdir', 'etc_dir', 'incdir',
       'name', 'unix_group_name', 'themedefault', 'mail_domain', 'mail_admin',
-      'mail_replyto', 'upload_max', 'watch_anon_posts', 'new_user_watch_days'
+      'mail_replyto', 'upload_max', 'watch_anon_posts', 'new_user_watch_days',
+      'localedir'
     ];
 
     print "<table border=\"1\">\n";

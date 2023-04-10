@@ -90,14 +90,17 @@ function sitemenu_extraurl ($only_with_post = false)
           . htmlspecialchars ($item_id) . "&amp;";
       return $extraurl;
     }
-  if (!empty ($item_id) && ctype_digit ($_SERVER['QUERY_STRING']))
+  $query_string = '';
+  if (!empty ($_SERVER['QUERY_STRING']))
+    $query_string = $_SERVER['QUERY_STRING'];
+  if (!empty ($item_id) && ctype_digit ($query_string))
     {
       # Short link case (like /bugs/?212).
       $extraurl .= "&amp;func=detailitem&amp;item_id="
         . htmlspecialchars ($item_id);
       return $extraurl;
     }
-  $extraurl = htmlspecialchars ($_SERVER['QUERY_STRING']);
+  $extraurl = htmlspecialchars ($query_string);
   $extraurl = str_replace ("reload=1&amp;", "", $extraurl);
   $extraurl = "&amp;$extraurl";
   return $extraurl;
