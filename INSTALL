@@ -235,7 +235,7 @@ $ sed -i "s,@pref@,$HOME/sv,g" savane.conf
 Create used directories:
 
 $ mkdir -p $HOME/sv/etc/savane \
-  $HOME/sv/var/{logs,www/submissions_uploads/trackers_attachments}}
+  $HOME/sv/var/{logs,www/submissions_uploads/trackers_attachments}
 
 Make var directories writeable for www-data (uses root privileges
 via sudo):
