@@ -50,10 +50,10 @@ if ($edit)
         );
         if ($result)
           {
-            $title = htmlspecialchars (
+            $title = utils_specialchars (
               db_result ($result, 0, 'bookmark_title')
             );
-            $url = htmlspecialchars (
+            $url = utils_specialchars (
                db_result ($result, 0, 'bookmark_url')
             );
 
@@ -91,8 +91,8 @@ else
     print "\n<ul>\n";
     for ($i = 0; $i < $rows; $i++)
       {
-        $url = htmlspecialchars (db_result ($result, $i, 'bookmark_url'));
-        $title = htmlspecialchars (db_result ($result, $i,'bookmark_title'));
+        $url = utils_specialchars (db_result ($result, $i, 'bookmark_url'));
+        $title = utils_specialchars (db_result ($result, $i,'bookmark_title'));
         $bm_id = db_result ($result, $i, 'bookmark_id');
         print '<li class="' . utils_altrow($i) . '">';
         print '<span class="trash"><a href="?edit=' . $bm_id . '">'

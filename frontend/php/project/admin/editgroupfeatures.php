@@ -199,7 +199,7 @@ function specific_line ($artifact, $explanation, $use, $increment=1)
     $url = $project->getUrl($artifact);
   else
     $url = $project->getArtifactUrl($artifact);
-  $url = htmlspecialchars_decode ($url);
+  $url = utils_specialchars_decode ($url);
   $extra = 'size="20" title="' . _("Alternative Address") . '"';
   print form_input ("text", "url_$artifact", $url, $extra) . $tail;
 }

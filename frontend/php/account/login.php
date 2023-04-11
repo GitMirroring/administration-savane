@@ -45,7 +45,7 @@ extract(sane_import('request',
 ));
 
 $stay_in_ssl = isset ($GLOBALS['sys_https_host']);
-$uri_enc = urlencode ($uri);
+$uri_enc = utils_urlencode ($uri);
 
 # Check cookie support.
 if (!$from_brother && !isset ($_COOKIE["cookie_probe"]))
@@ -111,7 +111,7 @@ if (!empty ($login))
         if (!$uri)
           {
             $uri = $GLOBALS['sys_home'] . 'my/';
-            $uri_enc = urlencode ($uri);
+            $uri_enc = utils_urlencode ($uri);
           }
         # If a brother server exists, login there too, if we are not
         # already coming from there.

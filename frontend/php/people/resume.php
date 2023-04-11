@@ -59,7 +59,7 @@ $resume = db_result ($result, 0, 'people_resume');
 if ($resume != '')
   {
     print '<h2>' . _("Resume") . "</h2>\n";
-    print markup_full (htmlspecialchars ($resume));
+    print markup_full (utils_specialchars ($resume));
   }
 print '<h2>' . _("Skills") . "</h2>\n";
 print people_show_skill_inventory ($user_id);

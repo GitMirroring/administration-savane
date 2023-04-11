@@ -18,6 +18,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+require_once (dirname (__FILE__) . '/utils.php');
 
 function sendmail_signature ()
 {
@@ -302,7 +303,7 @@ function sendmail_addr_is_email ($a)
 }
 function sendmail_addr_is_uid ($a)
 {
-  return ctype_digit ($a);
+  return ctype_digit (strval ($a));
 }
 function sendmail_addr_is_account_name ($a)
 {
@@ -530,7 +531,7 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
   # will do it.
   print "<form action=\"$form_action\" method='post'>\n"
     . form_hidden ([
-        'touser' => htmlspecialchars ($user_id),
+        'touser' => utils_specialchars ($user_id),
         'fromuser' => user_getname ()])
     . "\n$pre" . _("From:") . "$post"
     . user_getrealname (user_getid (), 1) . ' &lt;'

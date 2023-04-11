@@ -67,7 +67,8 @@ if ($update)
          . "manager of this group before it shows on the front page.");
         form_clean ($form_id);
         session_redirect (
-          "${sys_home}news/?group=$group&feedback=" . urlencode ($feedback)
+          "${sys_home}news/?group=$group&feedback="
+          . utils_urlencode ($feedback)
         );
       }
     else

@@ -158,7 +158,7 @@ extract (sane_import ('get',
 # blabla.org/task/?nnnn (blabla.org/task/?#nnnn cannot work because # is
 # not sent by the browser as it's a tag for html anchors).
 if (!empty ($_SERVER['QUERY_STRING'])
-    && ctype_digit ($_SERVER['QUERY_STRING']))
+    && ctype_digit (strval ($_SERVER['QUERY_STRING'])))
   $func = 'detailitem';
 
 # Initialize the global data structure before anything else.

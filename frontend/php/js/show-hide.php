@@ -22,10 +22,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/sane.php');
-header('Content-Type: text/javascript');
+require_once ('../include/sane.php');
+header ('Content-Type: text/javascript');
 
-extract(sane_import('request',
+extract (sane_import('request',
   [
     'digits' => 'deploy',
     'preg' => [['box_id', 'suffix', '/^\w*$/']],
@@ -51,7 +51,7 @@ $sign_func = function ($sign, $id, $legend)
 {
   return "<span class=\"show-hide\" id=\"$id\">"
    . "<span class=\"minusorplus\">($sign)</span>"
-   . htmlspecialchars ($legend, ENT_QUOTES) . "</span>";
+   . utils_specialchars ($legend, ENT_QUOTES) . "</span>";
 };
 print "document.write('"
   .  $sign_func ('-', $hide, $legend) .  $sign_func ('+', $show, $legend)

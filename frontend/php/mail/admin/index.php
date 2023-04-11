@@ -21,37 +21,37 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-## Note about status of list:
-##   - Status 0: list is deleted (ie, does not exist).
-##   - Status 1: list is marked for creation.
-##   - Status 2: list is marked for reconfiguration.
-##   - Status 5: list has been created (ie, it exists).
-##
-##   This frontend php script sets status to:
-##      0 if user deletes a list before the backend ever actually created it.
-##      1 if user adds a list
-##      2 if user reconfigures an _existing_ list (ie, status was 5)
-##
-##   The backend sv_mailman.pl script sets status to:
-##      0 when a list is actually deleted
-##      5 when a list is actually created
-##
-##   - when we create an alias, which mean someone was able, according to
-##     group type restriction to add to his project a list that was already
-##     inside the database, we add the list inside the database with a status
-##     of 5, so sv_mailman does not try to recreate it.
-##     In the worse case, if two persons creates the same list at the same
+# Note about status of list:
+#   - Status 0: list is deleted (ie, does not exist).
+#   - Status 1: list is marked for creation.
+#   - Status 2: list is marked for reconfiguration.
+#   - Status 5: list has been created (ie, it exists).
+#
+#   This frontend php script sets status to:
+#      0 if user deletes a list before the backend ever actually created it.
+#      1 if user adds a list
+#      2 if user reconfigures an _existing_ list (ie, status was 5)
+#
+#   The backend sv_mailman.pl script sets status to:
+#      0 when a list is actually deleted
+#      5 when a list is actually created
+#
+#   - when we create an alias, which mean someone was able, according to
+#     group type restriction to add to his project a list that was already
+#     inside the database, we add the list inside the database with a status
+#     of 5, so sv_mailman does not try to recreate it.
+#     In the worse case, if two persons creates the same list at the same
 
-##   The field password will not contact real password, it will contain
-##   '1' when the backend is supposed to reset it.
+#   The field password will not contact real password, it will contain
+#   '1' when the backend is supposed to reset it.
 
-define('LIST_STATUS_DELETED', 0);
-define('LIST_STATUS_NEED_CREATION', 1);
-define('LIST_STATUS_NEED_RECONFIGURATION', 2);
-define('LIST_STATUS_CREATED', 5);
+define ('LIST_STATUS_DELETED', 0);
+define ('LIST_STATUS_NEED_CREATION', 1);
+define ('LIST_STATUS_NEED_RECONFIGURATION', 2);
+define ('LIST_STATUS_CREATED', 5);
 
-require_once('../../include/init.php');
-require_once('../../include/account.php');
+require_once ('../../include/init.php');
+require_once ('../../include/account.php');
 
 $key_func = ['preg', '/^(\d+|new)$/'];
 extract (sane_import ('post',
@@ -312,7 +312,7 @@ while ($row = db_fetch_array($result))
     print '<br />&nbsp;&nbsp;&nbsp;'
      . form_input (
          "text", "description[$id]",
-          htmlspecialchars_decode ($row['description']),
+          utils_specialchars_decode ($row['description']),
           'maxlenght="120" size="50"'
       );
 

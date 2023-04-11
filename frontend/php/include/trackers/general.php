@@ -28,6 +28,7 @@ require_once ("$dir_name/../calendar.php");
 require_once ("$dir_name/../sendmail.php");
 require_once ("$dir_name/data.php");
 require_once ("$dir_name/format.php");
+require_once ("$dir_name/../utils.php");
 
 # Generate URL arguments from a variable wether scalar or array.
 function trackers_convert_to_url_arg ($varname, $var)
@@ -329,10 +330,10 @@ function trackers_date_op_list ()
 function trackers_field_date_operator ($field_name, $value = '', $ro = false)
 {
   if ($ro)
-    return htmlspecialchars ($value);
+    return utils_specialchars ($value);
   $options = '';
   foreach (trackers_date_op_list () as $v)
-    $options .= form_option ($v, $value, htmlspecialchars ($v));
+    $options .= form_option ($v, $value, utils_specialchars ($v));
   return '<select title="' . _("comparison operator")
     . "\" name=\"${field_name}_op\">$options</select>\n";
 }
@@ -708,10 +709,10 @@ function trackers_artifact_is_sane (&$artifact)
   if (!$artifact)
     $artifact = ARTIFACT;
 
-  if (ctype_alnum ($artifact))
+  if (ctype_alnum (strval ($artifact)))
     return true;
 
-  $arg = '<em>' . htmlspecialchars ($artifact) . '</em>';
+  $arg = '<em>' . utils_specialchars ($artifact) . '</em>';
   # TRANSLATORS: the argument is name of artifact (like bugs or patches).
   util_die (sprintf (_('Invalid artifact %s'), $arg));
   return false; # Just in case.
@@ -741,7 +742,7 @@ function trackers_get_cc_list ($artifact, $item_id)
 
 function trackers_cc_is_to_be_ignored ($email, $added_by)
 {
-  if ($email != $added_by || !ctype_digit ($email))
+  if ($email != $added_by || !ctype_digit (strval ($email)))
     return false;
   # Here we have an integer as email address, it is likely to be
   # a CC automatically added.
@@ -758,7 +759,7 @@ function trackers_cc_is_to_be_ignored ($email, $added_by)
 function trackers_convert_user_name_to_uid ($email, &$addresses_to_skip)
 {
   # If we have a valid username, convert it to an uid.
-  if (ctype_digit ($email) || !user_getid ($email))
+  if (ctype_digit (strval ($email)) || !user_getid ($email))
     return $email;
   # Since is is will be registered, we can ignore it in further check.
   $addresses_to_skip[$email] = true;
@@ -799,7 +800,7 @@ function trackers_initial_notification_list ($tracker, $item)
 
 function trackers_enforce_notif_per_user_prefs ($changes, $email)
 {
-  if (!ctype_digit ($email))
+  if (!ctype_digit (strval ($email)))
     return true;
 
   # We have a user ID: check specific user's prefs.
@@ -908,7 +909,7 @@ function trackers_build_mail ($artifact, $res, $item_id, $changes)
   else
     $body = format_item_summary ($res, $bug_ref, $artifact);
   $body .= format_message_trailer ($bug_ref);
-  $subject = htmlspecialchars_decode ($res['summary'], ENT_QUOTES);
+  $subject = utils_specialchars_decode ($res['summary'], ENT_QUOTES);
   # Necessary to mention the comment id (for delayed mails).
   if ($int_delayspamcheck_comment_id)
     $item_id .= ":$int_delayspamcheck_comment_id";

@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . '/utils.php');
 
 # The point of this library is to reach the point where Savane will
 # no longer needs register globals set to on.
@@ -53,7 +54,7 @@ $sane_sanitizers['specialchars'] = function ($in, &$out, $i, $arg)
 {
   if (!is_scalar ($in[$i]))
     return 1;
-  $out[$i] = htmlspecialchars ($in[$i], ENT_QUOTES);
+  $out[$i] = utils_specialchars ($in[$i], ENT_QUOTES);
   return 0;
 };
 

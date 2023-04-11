@@ -92,7 +92,7 @@ foreach ($artifacts as $art => $label)
     $show_intro = 0;
     print "<br />\n";
   }
-$news_address = htmlspecialchars ($row_grp['new_news_address']);
+$news_address = utils_specialchars ($row_grp['new_news_address']);
 print_h2 (_("News Manager Email Notification Settings"));
 print '<span class="preinput">' . _("Carbon-Copy List:")
   . "</span><br />\n&nbsp;&nbsp;<input type='text' name='form_news_address' "

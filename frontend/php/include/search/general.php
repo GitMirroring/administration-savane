@@ -22,6 +22,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . '/../utils.php');
 # Check if the group uses any trackers to search in.
 function search_has_group_anything_to_search ($gid)
 {
@@ -156,7 +157,7 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
 
   $ret .= '<input type="text" title="' . _("Terms to look for") . '" '
     . "size=\"$size\" name=\"words\" value=\""
-    . htmlspecialchars ($searched_words) . "\" />\n";
+    . utils_specialchars ($searched_words) . "\" />\n";
 
   if ($is_small)
     $ret .= "<br />\n";
@@ -326,7 +327,7 @@ function print_search_heading ()
     # TRANSLATORS: the first argument is string to look for,
     # the second argument is section (Group|Support|Bugs|Task|Patch|People).
     printf (_('Search results for %1$s in %2$s:'),
-      '<strong>' . htmlspecialchars ($words) . '</strong>',
+      '<strong>' . utils_specialchars ($words) . '</strong>',
       $type_of_search_real
     );
   else
@@ -334,7 +335,7 @@ function print_search_heading ()
     # argument is section (Support|Bugs|Task|Patch|People), the third argument
     # is group name (like GNU Coreutils).
     printf (_('Search results for %1$s in %2$s, for the Group %3$s:'),
-      '<strong>' . htmlspecialchars ($words) . '</strong>',
+      '<strong>' . utils_specialchars ($words) . '</strong>',
       $type_of_search_real, group_getname ($only_group_id)
     );
   print "</p>\n";
@@ -535,7 +536,7 @@ function search_exact ($keywords)
   print _("Unique group search result");
   print "</h2>\n<p>";
   printf (_("Search string was: %s."),
-    '<strong>' . htmlspecialchars ($keywords) . '</strong>'
+    '<strong>' . utils_specialchars ($keywords) . '</strong>'
   );
   print "</p>\n";
   print html_build_list_table_top ([_("Group"), _("Description"), _("Type")]);

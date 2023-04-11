@@ -69,7 +69,7 @@ if ($is_https)
 elseif ($_SERVER['SERVER_PORT'] == 80)
   $port = '';
 $myself = "$protocol{$_SERVER['SERVER_NAME']}$port"
-   . urlencode ($_SERVER['REQUEST_URI']);
+   . utils_urlencode ($_SERVER['REQUEST_URI']);
 
 # Nice doc here: http://www.atomenabled.org/developers/syndication/
 header ('Content-type: application/atom+xml;charset=UTF-8');

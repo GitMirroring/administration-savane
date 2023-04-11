@@ -67,7 +67,7 @@ if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
     sprintf (
       # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
       _('Invalid artifact %s'),
-      "<em>" . htmlspecialchars ($artifact) . "</em>"
+      "<em>" . utils_specialchars ($artifact) . "</em>"
     )
   );
 
@@ -141,9 +141,9 @@ exit_error (
   sprintf (_("Attached file #%s was lost."), $file_id) . " "
   . sprintf (
       _("File attributes: name '%s', size %s, type '%s', date %s."),
-      htmlspecialchars (db_result ($result, 0, 'filename')),
-      htmlspecialchars (db_result ($result, 0, 'filesize')),
-      htmlspecialchars (db_result ($result, 0, 'filetype')),
+      utils_specialchars (db_result ($result, 0, 'filename')),
+      utils_specialchars (db_result ($result, 0, 'filesize')),
+      utils_specialchars (db_result ($result, 0, 'filetype')),
       utils_format_date (db_result ($result, 0, 'date'))
     )
 );

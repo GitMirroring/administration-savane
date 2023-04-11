@@ -21,6 +21,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . '/utils.php');
 require_once (dirname (__FILE__) . '/pwqcheck.php');
 
 # Return a string explaining current pwcheck requirements.
@@ -107,11 +108,11 @@ function account_password_help ()
     return $help;
   $pwqgen = exec ("pwqgen");
   # TRANSLATORS: the argument is an example of passphrase.
-  $help .= " " . sprintf (_("For instance: %s."), htmlspecialchars ($pwqgen));
+  $help .= " " . sprintf (_("For instance: %s."), utils_specialchars ($pwqgen));
   $help .= " <br />\n"
     . sprintf (
         _("pwqcheck options are '%s':"),
-        htmlspecialchars ($pwqcheck_args)
+        utils_specialchars ($pwqcheck_args)
       );
   $help .= expand_pwqcheck_options ();
   return $help;

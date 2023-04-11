@@ -119,7 +119,7 @@ $print_preinput (_("Group Name:"), 'form_group_name');
 print
   form_input (
     "text", "form_group_name",
-    htmlspecialchars_decode ($row_grp['group_name']), 'size="60" maxlen="254"'
+    utils_specialchars_decode ($row_grp['group_name']), 'size="60" maxlen="254"'
   )
   . "</p>\n";
 $print_preinput (
@@ -134,7 +134,7 @@ print
 $print_preinput (_("Long Description"), 'form_longdesc', 'full');
 print
   form_textarea (
-    "form_longdesc", htmlspecialchars ($row_grp['long_description']),
+    "form_longdesc", utils_specialchars ($row_grp['long_description']),
     'cols="70" rows="10" wrap="virtual"'
   )
   . "</p>\n";
@@ -193,7 +193,7 @@ if (!$new_keyring)
   $new_keyring = $keyring;
 
 print form_textarea ("new_keyring",
-  htmlspecialchars ($new_keyring), 'cols="70" rows="10" wrap="virtual"'
+  utils_specialchars ($new_keyring), 'cols="70" rows="10" wrap="virtual"'
 );
 print '<p>'
   . form_submit (_("Test GPG keys"), 'test_keyring') . "\n"

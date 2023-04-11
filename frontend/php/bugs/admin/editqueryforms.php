@@ -168,7 +168,7 @@ if ($post_changes)
     $sql = substr ($sql, 0, -1);
 
     $res = db_execute ($sql, $params);
-    $fb_name = htmlspecialchars_decode ($rep_name);
+    $fb_name = utils_specialchars_decode ($rep_name);
     if ($res)
       {
         if ($create_report)
@@ -479,7 +479,7 @@ if ($rows)
         if ($arr['scope'] == 'P' && !user_ismember ($group_id, 'A'))
           {
             print $arr['report_id'];
-            print "</td>\n<td>" . htmlspecialchars ($arr['name']) . "</td>\n";
+            print "</td>\n<td>" . utils_specialchars ($arr['name']) . "</td>\n";
           }
         else
           {
@@ -501,7 +501,7 @@ if ($rows)
             print '<a href="'
               . "$php_self?group=$group"
               . '&amp;delete_report=1&amp;report_id='.$arr['report_id']
-              . '&amp;rep_name=' . urlencode ($arr['name']) . '">'
+              . '&amp;rep_name=' . utils_urlencode ($arr['name']) . '">'
               .  html_image_trash (['alt' => _("Delete")]) . '</a>';
           }
         print "</td>\n</tr>\n";

@@ -18,6 +18,10 @@
 ** Anonymous posts were accepted even when the "captcha" wasn't filled,
    broken since 2022-04-18 (b45631f42).
 
+** Multiple PHP notices and warnings were fixed.
+
+** PHP 8.0 => 8.1 incompatibilities were resolved.
+
 [BUILD]
 
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated

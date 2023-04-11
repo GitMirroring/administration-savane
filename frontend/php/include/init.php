@@ -190,7 +190,7 @@ if ($sys_debug_on == true)
         {
           print "<hr />\n$key:<br />\n";
           print
-            htmlspecialchars (
+            utils_specialchars (
               print_r ($INPUT_SAVE[strtolower ($key)], true), ENT_QUOTES
             );
         }
@@ -379,7 +379,7 @@ if (!defined ('ARTIFACT'))
 # Necessary to determine group_id.
 if (
   in_array (ARTIFACT, $tracker_list) && !empty ($_SERVER['QUERY_STRING'])
-  && ctype_digit ($_SERVER['QUERY_STRING'])
+  && ctype_digit (strval ($_SERVER['QUERY_STRING']))
 )
   $item_id = $_SERVER['QUERY_STRING'];
 
@@ -416,7 +416,7 @@ if (
   # it actually belongs to the system group.
     if (ARTIFACT == 'cookbook'
         && $group_id == $sys_group_id && isset ($comingfrom)
-        && $comingfrom && ctype_digit ($comingfrom))
+        && $comingfrom && ctype_digit (strval ($comingfrom)))
       $group_id = $comingfrom;
   }
 

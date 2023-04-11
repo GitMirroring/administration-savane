@@ -22,8 +22,8 @@
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
-require_once('../include/init.php');
-require_once('../include/form.php');
+require_once ('../include/init.php');
+require_once ('../include/form.php');
 
 site_admin_header (['title' => no_i18n("User List"), 'context' => 'admuser']);
 
@@ -125,7 +125,7 @@ else
       }
     elseif ($text_search)
       {
-        $term = htmlspecialchars_decode ($text_search);
+        $term = utils_specialchars_decode ($text_search);
         $result = db_execute ("
           SELECT $sql_fields FROM user
           WHERE
@@ -164,7 +164,7 @@ function finish_page ()
   print "</table>\n";
   html_nextprev (
     "$php_self?user_name_search=$user_name_search"
-    . '&amp;usersearch=1&amp;search=' . urlencode($search)
+    . '&amp;usersearch=1&amp;search=' . utils_urlencode ($search)
     . "&amp;text_search=$text_search",
     $rows, $rows_returned
   );

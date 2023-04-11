@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . '/utils.php');
+
 class GPLQuickForm_Element
 {
   private $name = '';
@@ -112,7 +114,7 @@ class GPLQuickForm_Element
       $title = $this->title;
     $label = '';
     if ($title)
-      $label = 'title="' . htmlspecialchars ($title, ENT_QUOTES) . '" ';
+      $label = 'title="' . utils_specialchars ($title, ENT_QUOTES) . '" ';
     return $label;
   }
 
@@ -185,7 +187,7 @@ class GPLQuickForm_Element
         print "<input type='hidden' $name_attr value='$value' />";
         return;
       }
-    $esc_val = htmlspecialchars ($value, ENT_QUOTES);
+    $esc_val = utils_specialchars ($value, ENT_QUOTES);
     if ($this->type == 'checkbox')
       {
         $this->display_checkbox ($value);

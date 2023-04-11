@@ -100,7 +100,7 @@ if ($remaining_votes < 100)
       {
         $tr = $row['tracker'];
         $msg = sprintf (_("Invalid tracker name: %s"), "<em>$tr/em>");
-        if (!ctype_alnum ($tr))
+        if (!ctype_alnum (strval ($tr)))
           util_die ($msg);
         $res_item = db_execute ("
           SELECT summary, vote, status_id, priority, group_id

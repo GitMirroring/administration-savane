@@ -89,7 +89,7 @@ while ($field_name = trackers_list_all_fields ())
     # We allow people to make urls with predefined values,
     # if the values are in the url, we override the default value.
     if (!empty ($$field_name))
-      $field_value = htmlspecialchars ($$field_name);
+      $field_value = utils_specialchars ($$field_name);
     elseif (isset ($prefill[$field_name]))
       $field_value = $prefill[$field_name];
     else
@@ -178,7 +178,7 @@ print
 if ($preview)
   {
     print '<h2>' . _('Preview') . "</h2>\n\n";
-    print markup_full (htmlspecialchars ($details));
+    print markup_full (utils_specialchars ($details));
   }
 
 
@@ -225,11 +225,11 @@ if (user_isloggedin ())
       . _("Add Email Addresses (use comma as separator):")
       . "</span><br />\n&nbsp;&nbsp;&nbsp;"
       . '<input type="text" name="add_cc" size="40" value="'
-      . htmlspecialchars ($add_cc) . "\" />&nbsp;&nbsp;&nbsp;\n"
+      . utils_specialchars ($add_cc) . "\" />&nbsp;&nbsp;&nbsp;\n"
       . "<br />\n<span class='preinput'>" . _("Comment:")
       . "</span><br />\n&nbsp;&nbsp;&nbsp;"
       . '<input type="text" name="cc_comment" value="'
-      . htmlspecialchars ($cc_comment) . '" size="40" maxlength="255" />';
+      . utils_specialchars ($cc_comment) . '" size="40" maxlength="255" />';
     print "</p>\n";
   }
 
@@ -237,7 +237,7 @@ if (user_isloggedin ())
 if (empty ($fields['check']))
   $check = '';
 else
-  $check = htmlspecialchars ($fields['check']);
+  $check = utils_specialchars ($fields['check']);
 if (!user_isloggedin ())
   print '<p class="noprint">'
     . _("Please enter the title of <a\n"

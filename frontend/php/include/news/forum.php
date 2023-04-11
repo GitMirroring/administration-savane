@@ -169,9 +169,9 @@ function forum_create_forum (
 {
   global $feedback;
   $fields = [
-    'group_id' => $group_id, 'forum_name' => htmlspecialchars ($forum_name),
+    'group_id' => $group_id, 'forum_name' => utils_specialchars ($forum_name),
     'is_public' => $is_public,
-    'description' => htmlspecialchars ($description)
+    'description' => utils_specialchars ($description)
   ];
   $result = db_autoexecute ('forum_group_list', $fields, DB_AUTOQUERY_INSERT);
   $forum_id = db_insertid ($result);

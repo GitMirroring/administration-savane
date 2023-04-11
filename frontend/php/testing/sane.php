@@ -34,6 +34,8 @@ $reference = null;
 
 function htmlspec ($x)
 {
+  if ($x === null)
+    $x = '';
   return htmlspecialchars ($x, ENT_QUOTES);
 }
 

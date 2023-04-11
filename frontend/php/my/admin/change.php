@@ -558,7 +558,7 @@ elseif ($item == "gpgkey")
 
     $input_specific .= '<textarea title="' . _("New GPG key")
       . '" cols="70" rows="20" wrap="virtual" name="newvalue">'
-      . htmlspecialchars ($newvalue) . "</textarea>\n";
+      . utils_specialchars ($newvalue) . "</textarea>\n";
     $input_specific .= '<p><input type="submit" name="test_gpg_key" value="'
       . _("Test GPG keys") . '" /> '
       . _("(Testing is recommended before updating.)") . "</p>\n"

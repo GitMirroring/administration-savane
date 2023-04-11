@@ -260,7 +260,7 @@ while ($field_name = trackers_list_all_fields ())
                 $$field_name = mktime (0, 0, 0, $mn, $dy, $yr);
               }
           }
-        $field_value = htmlspecialchars ($$field_name);
+        $field_value = utils_specialchars ($$field_name);
       }
     list ($sz,) = trackers_data_get_display_size ($field_name);
     $label = trackers_field_label_display ($field_name, $group_id,
@@ -511,7 +511,7 @@ if ($enable_comments)
       . ' ' . markup_info ("rich");
     print form_submit (_('Preview'), 'preview')
       . "</span><br />&nbsp;&nbsp;&nbsp;\n";
-    print trackers_field_textarea ('comment', htmlspecialchars ($comment),
+    print trackers_field_textarea ('comment', utils_specialchars ($comment),
       0, 0, _("New comment"));
     print "</p>\n";
     print_comment_type_and_canned ($group_id, $canned_response,
@@ -546,7 +546,7 @@ if ($preview)
         );
     $comm = $comment . $canned_text;
     if (!empty ($comm))
-      $comm = trackers_encode_value (htmlspecialchars ($comm));
+      $comm = trackers_encode_value (utils_specialchars ($comm));
     $new_comment['old_value'] = $comm;
     $new_comment['bug_history_id'] = -1;
     $new_comment['spamscore'] = '0';
@@ -688,7 +688,7 @@ if ($is_trackeradmin)
         printf (
           _("Please select a dependency to add in the result of your search\n"
             . "of '%s' in the database:"),
-          htmlspecialchars ($depends_search)
+          utils_specialchars ($depends_search)
         );
         print '</span>';
 
@@ -778,12 +778,12 @@ if (user_isloggedin() && !$item_discussion_lock)
       . _("Add Email Addresses (comma as separator):")
       . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
       . '<input type="text" id="add_cc" name="add_cc" size="40" value="'
-      . htmlspecialchars ($add_cc) . '" />&nbsp;&nbsp;&nbsp;'
+      . utils_specialchars ($add_cc) . '" />&nbsp;&nbsp;&nbsp;'
       . "\n<br />\n<span class='preinput'><label for='cc_comment'>"
       . _("Comment:") . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
       . '<input type="text" id="cc_comment" name="cc_comment" '
       . 'size="40" maxlength="255" value="'
-      . htmlspecialchars ($cc_comment) . '" />';
+      . utils_specialchars ($cc_comment) . '" />';
     print "<p>&nbsp;</p>\n";
   }
 show_item_cc_list ($item_id, $group_id);
@@ -921,7 +921,7 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
         printf (
           _("To which project this bug should be reassigned to? This is\n"
             . "the result of your search of '%s' in the database:"),
-          htmlspecialchars ($reassign_change_project_search));
+          utils_specialchars ($reassign_change_project_search));
         print '</span>';
 
         # Print a null-option, someone may change his mine without having

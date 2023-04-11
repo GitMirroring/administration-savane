@@ -665,7 +665,7 @@ if ($update_value)
       . _("Value:") . "</label> </span><br />\n";
     print form_input (
        "text", "title",
-       htmlspecialchars_decode (db_result ($res, 0, 'value'), ENT_QUOTES),
+       utils_specialchars_decode (db_result ($res, 0, 'value'), ENT_QUOTES),
        'size="30" maxlength="60"'
     );
     print "\n&nbsp;&nbsp;\n"

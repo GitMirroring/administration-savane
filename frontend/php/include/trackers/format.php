@@ -21,6 +21,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+require_once (dirname (__FILE__) . '/../utils.php');
 
 function format_item_details (
   $item_id, $group_id, $ascii = false, $item_assigned_to = false,
@@ -577,7 +578,7 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
           # is user's name.
           $out .= sprintf (
             _('<!-- file -->%1$s added by %2$s'),
-            htmlspecialchars (db_result ($result, $i, 'filename'))
+            utils_specialchars (db_result ($result, $i, 'filename'))
             . '</a>',
             utils_user_link (db_result ($result, $i, 'user_name'))
           );
@@ -657,7 +658,7 @@ function format_item_cc_list ($item_id, $group_id, $ascii = false)
 
           # If email is numeric, it must be an user id. Try to convert it
           # to the username.
-          if (ctype_digit ($email) && user_exists ($email))
+          if (ctype_digit (strval ($email)) && user_exists ($email))
             $email =  user_getname ($email);
 
           # HTML preformat the address.

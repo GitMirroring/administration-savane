@@ -191,7 +191,7 @@ if ($forum_id)
         $ret_val .= "<table border='0' width='50%'>\n"
           . form_tag (['method' => 'get'])
           . form_hidden (
-              ['set' => 'custom', 'forum_id' => htmlspecialchars ($forum_id)]
+              ['set' => 'custom', 'forum_id' => utils_specialchars ($forum_id)]
             )
           . "\n<tr>\n<td><span class='smaller'>$options_popup</span></td>\n"
           . "<td><span class='smaller'>$max_row_popup</span></td>\n"

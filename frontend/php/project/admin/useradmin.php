@@ -125,7 +125,7 @@ function show_all_users_add_searchbox ($group_id, $previous_search)
     . "</p>\n" . form_tag ([], "#searchuser")
     . form_hidden (['action' => 'add_to_group_list'])
     . "<input type='text' size='35' title=\"" . _("Search users")
-    . '" name="words" value="' . htmlspecialchars ($previous_search)
+    . '" name="words" value="' . utils_specialchars ($previous_search)
     . "\" /><br />\n<p>\n<input type='hidden' name='group_id' value='"
     . "$group_id' />\n<input type='submit' name='Submit' value=\""
     . _("Search users") . "\" />\n</p>\n</form>\n";

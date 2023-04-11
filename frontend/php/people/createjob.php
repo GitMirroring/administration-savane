@@ -20,41 +20,44 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/people/general.php');
+require_once ('../include/init.php');
+require_once ('../include/people/general.php');
 
 if (!$group_id)
-  exit_no_group();
-if (!user_ismember($group_id, 'A'))
+  exit_no_group ();
+if (!user_ismember ($group_id, 'A'))
   exit_permission_denied ();
 
 # Fill in the info to create a job.
-site_project_header(array('title'=>_("Create a job for your project"),
-                          'group'=>$group_id,'context'=>'ahome'));
+site_project_header (
+  [ 'title' => _("Create a job for your project"),
+    'group' => $group_id,'context' => 'ahome']
+);
 
 utils_get_content("people/createjob");
 
 print '
-<form action="'.$GLOBALS['sys_home'].'people/editjob.php" method="POST">
-<input type="hidden" name="group_id" value="'.htmlspecialchars($group_id).'" />
+<form action="' . $GLOBALS['sys_home'] . 'people/editjob.php" method="POST">
+<input type="hidden" name="group_id" value="'
+  . utils_specialchars ($group_id) . '" />
 <strong>'
-    ._("Category:")."</strong><br />\n"
-    . people_job_category_box('category_id') .'
+ . _("Category:") . "</strong><br />\n"
+ .  people_job_category_box ('category_id') . '
 <p><strong><label for="title">'
-    ._("Summary:").'</label></strong><br />
+ . _("Summary:") . '</label></strong><br />
 <input type="text" id="title" name="title" value="" size="40" maxlength="60" />
 </p>
 <p>'
-    ._("Your project description will be inserted on the announce.").'
+  . _("Your project description will be inserted on the announce.") . '
 <p><strong><label for="description">'
-    ._("Details (job description, contact...):").'</label></strong><br />
+  . _("Details (job description, contact...):") . '</label></strong><br />
 <textarea name="description" id="description" rows="10" cols="60"
           wrap="soft"></textarea>
 </p>
 <p><input type="submit" name="add_job" value="'
-    ._("continue >>").'" />
+  . _("continue >>") . '" />
 </p>
 </form>
 ';
-site_project_footer(array());
+site_project_footer ([]);
 ?>

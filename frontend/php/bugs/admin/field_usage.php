@@ -410,7 +410,7 @@ while ($field_name = trackers_list_all_fields ())
     $place_label = $is_used? trackers_data_get_place ($field_name): '-';
 
     $html = "<td><a href=\"$php_self?group_id=$group_id"
-      . '&update_field=1&field=' . urlencode ($field_name) . '">'
+      . '&update_field=1&field=' . utils_urlencode ($field_name) . '">'
       . trackers_data_get_label ($field_name) . "</a></td>\n"
       . "\n<td>" . trackers_data_get_display_type_in_clear ($field_name)
       . "</td>\n<td>" . trackers_data_get_description ($field_name)

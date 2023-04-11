@@ -118,7 +118,7 @@ function db_argval ($v)
 function db_query_report_string ($sql, $inputarr)
 {
   return "Query is: <code>"
-    . htmlspecialchars ($sql) . "</code>, \$inputarr is <code>"
+    . utils_specialchars ($sql) . "</code>, \$inputarr is <code>"
     . print_r ($inputarr, 1) . "</code>";
 }
 
@@ -169,7 +169,7 @@ function db_variable_binding ($sql, $inputarr = null)
     return $ret;
   util_die (
     "db_variable_binding: input array does not match query: <pre>"
-    . htmlspecialchars ($sql) . "<br />" . print_r ($inputarr, true)
+    . utils_specialchars ($sql) . "<br />" . print_r ($inputarr, true)
   );
 }
 
@@ -199,7 +199,7 @@ function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
     {
       if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]+$/', $table))
         util_die (
-          "db_autoexecute: invalid table name: " . htmlspecialchars($table)
+          "db_autoexecute: invalid table name: " . utils_specialchars ($table)
         );
       if ($first)
         {
@@ -276,7 +276,7 @@ function db_execute ($sql, $inputarr = null, $multi_query = 0)
 
 function db_query_die ($qstring, $errors = null)
 {
-  $str = 'db_query: SQL query error in [' . htmlspecialchars ($qstring) . ']';
+  $str = 'db_query: SQL query error in [' . utils_specialchars ($qstring) . ']';
   if (empty ($errors))
     $str .= ' <i>' . db_error () . '</i>';
   else

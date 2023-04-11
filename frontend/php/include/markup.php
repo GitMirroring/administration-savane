@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . '/utils.php');
 # Make sure the string has no newlines after translation.
 function markup_i18n ($str)
 {
@@ -811,8 +812,8 @@ function markup_expand_img ($line, $file_id, $file_name, $comment)
   if (substr ($alt, 0, 1) === ' ')
     $alt = substr ($alt, 1);
   if ($alt !== '')
-    $alt = 'alt="' . htmlspecialchars ($alt) . '" ';
-  $file_name = htmlspecialchars ($file_name);
+    $alt = 'alt="' . utils_specialchars ($alt) . '" ';
+  $file_name = utils_specialchars ($file_name);
   return preg_replace ("/\(?((files? ))#{$file_id}[^),]*((\)|, )?)/",
     "<img src=\"/file/$file_name?file_id=$file_id\" $alt/> ", $line
   );
@@ -1111,6 +1112,6 @@ function markup_inline ($line)
 function markup_ascii ($text)
 {
   $text = markup_run_markup ($text, false, 'markup_build_ascii');
-  return htmlspecialchars_decode ($text, ENT_QUOTES);
+  return utils_specialchars_decode ($text, ENT_QUOTES);
 }
 ?>

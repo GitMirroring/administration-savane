@@ -19,9 +19,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/people/general.php');
-require_once('../include/vars.php');
+require_once ('../include/init.php');
+require_once ('../include/people/general.php');
+require_once ('../include/vars.php');
 extract (sane_import ('get', ['digits' => ['group_id', 'job_id']]));
 
 if (!$group_id)
@@ -89,7 +89,7 @@ if ($project->getTypeDescription())
   print "<p>" . markup_full ($project->getTypeDescription()) . "</p>\n";
 print "<p>";
 if ($project->getLongDescription())
-  print markup_full (htmlspecialchars ($project->getLongDescription()));
+  print markup_full (utils_specialchars ($project->getLongDescription()));
 elseif ($project->getDescription())
   print $project->getDescription();
 print "</p>\n";
@@ -109,7 +109,7 @@ print "<span class=\"preinput\"><br />\n"
 
 print '<p><span class="preinput">'
   . _("Details (job description, contact ...):") . "</span></p>\n";
-print markup_full (htmlspecialchars (db_result ($result, 0, 'description')));
+print markup_full (utils_specialchars (db_result ($result, 0, 'description')));
 print '<h2>' . _("Required Skills:") . "</h2>\n";
 print people_show_job_inventory($job_id);
 $finish_page ();

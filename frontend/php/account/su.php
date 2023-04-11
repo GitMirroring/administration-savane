@@ -35,57 +35,55 @@ extract(sane_import('get',
   ]
 ));
 
-if ($action == "login" && user_can_be_super_user())
-  {
-    session_cookie("session_su", "wannabe");
-    if (!empty($GLOBALS['sys_brother_domain']))
-      {
-        if (!$from_brother)
-          {
-            header ("Location: ".su_getprotocol()."://"
-                    .$GLOBALS['sys_brother_domain'].$GLOBALS['sys_home']
-                    ."account/su.php?action=login&from_brother=1&uri="
-                    .urlencode($uri));
-          }
-        else
-        header("Location: ".su_getprotocol()."://".$GLOBALS['sys_brother_domain']
-               .$uri);
-      }
-    else
-      header("Location: ".$uri);
-  }
-elseif ($action == "login" && !user_is_super_user() && $from_brother)
-  # The user is not logged at this website, go back to the brother website.
-  header("Location: ".su_getprotocol()."://".$GLOBALS['sys_brother_domain'].$uri);
-elseif ($action == "logout" && user_is_super_user())
-  {
-    session_delete_cookie("session_su");
-    if (!empty($GLOBALS['sys_brother_domain']))
-      {
-        if (!$from_brother)
-          {
-            header ("Location: ".su_getprotocol()."://"
-                    .$GLOBALS['sys_brother_domain'].$GLOBALS['sys_home']
-                    ."account/su.php?action=logout&from_brother=1&uri="
-                    .urlencode($uri));
-            exit;
-          }
-        else
-          header("Location: ".su_getprotocol()."://"
-                 .$GLOBALS['sys_brother_domain'].$uri);
-      }
-    else
-      header("Location: ".$uri);
-  }
-elseif ($action == "logout" && !user_is_super_user() && $from_brother)
-  # The user is not logged at this website, go back to the brother website.
-  header("Location: ".su_getprotocol()."://".$GLOBALS['sys_brother_domain'].$uri);
-else
-  exit_error(_("You shouldn't have come to this page."));
+$brother_domain = '';
+if (!empty ($GLOBALS['sys_brother_domain']))
+  $brother_domain = $GLOBALS['sys_brother_domain'];
 
-function su_getprotocol()
+$hdr = [
+  1 => $brother_domain . $uri,
+  2 => $brother_domain . $GLOBALS['sys_home']
+    . "account/su.php?action=login&from_brother=1&uri="
+    . utils_urlencode ($uri),
+  3 => $brother_domain . $GLOBALS['sys_home']
+    . "account/su.php?action=logout&from_brother=1&uri="
+    . utils_urlencode ($uri)
+];
+$prot = su_getprotocol ();
+foreach ($hdr as $k => $v)
+  $hdr[$k] = "Location: $prot://$v";
+$hdr[0] = "Location: $uri";
+
+$i = 1;
+$from_brother_not_su = !user_is_super_user () && $from_brother;
+
+if ($action == "login" && user_can_be_super_user ())
+  {
+    session_cookie ("session_su", "wannabe");
+    $i = 0;
+    if (!empty ($brother_domain))
+      $i = $from_brother? 1: 2;
+  }
+elseif ($action == "login" && $from_brother_not_su)
+  # The user is not logged at this website, go back to the brother website.
+  ;
+elseif ($action == "logout" && user_is_super_user ())
+  {
+    session_delete_cookie ("session_su");
+    $i = 0;
+    if (!empty ($brother_domain))
+      $i = $from_brother? 1: 3;
+  }
+elseif ($action == "logout" && $from_brother_not_su)
+  # The user is not logged at this website, go back to the brother website.
+  ;
+else
+  exit_error (_("You shouldn't have come to this page."));
+
+header ($hdr[$i]);
+
+function su_getprotocol ()
 {
-  if (session_issecure())
+  if (session_issecure ())
     return "https";
   return "http";
 }

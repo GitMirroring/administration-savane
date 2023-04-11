@@ -101,14 +101,14 @@ print "<br />\n"
 print "\n"
   . "<form name='gpsrch' action='grouplist.php' method='POST'>\n"
   . "<input type='text' title=\"" . no_i18n ("Group name")
-  . "\" name='search' value =\"" . htmlspecialchars ($search) . "\" />\n"
+  . "\" name='search' value =\"" . utils_specialchars ($search) . "\" />\n"
   . form_hidden (['groupsearch' => '1'])
   . "<input type='submit' value=\"" . no_i18n ("Search") . "\" />\n"
   . "</form>\n</p>\n";
 
 print '<h2>' . no_i18n ("Group List") . "</h2>\n";
 
-if (!$offset or !ctype_digit ($offset) or $offset < 0)
+if (!$offset or !ctype_digit (strval ($offset)) or $offset < 0)
   $offset = 0;
 else
   $offset = intval ($offset);
@@ -130,10 +130,10 @@ elseif (!empty ($status_arr[$status]))
 elseif ($groupsearch)
 {
   $msg = no_i18n ("Groups that match") . " <strong>'"
-    . htmlspecialchars ($search) . "'</strong>\n";
+    . utils_specialchars ($search) . "'</strong>\n";
   $where = "group_id LIKE '%$search%' OR unix_group_name "
     . "LIKE '%$search%' OR group_name LIKE '%$search%'";
-  $search_url = "&groupsearch=1&search=" . urlencode ($search);
+  $search_url = "&groupsearch=1&search=" . utils_urlencode ($search);
 }
 
 $res = db_execute ("
@@ -188,8 +188,8 @@ else
 print "</table>\n";
 
 html_nextprev (
- '?groupsearch=1&amp;group_name_search=' . urlencode ($group_name_search)
- . '&amp;search=' . urlencode($search),
+ '?groupsearch=1&amp;group_name_search=' . utils_urlencode ($group_name_search)
+ . '&amp;search=' . utils_urlencode ($search),
  $rows, $rows_returned
 );
 

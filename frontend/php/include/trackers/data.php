@@ -27,6 +27,7 @@
 $dir_name = dirname (__FILE__);
 require_once ("$dir_name/../trackers/transition.php");
 require_once ("$dir_name/../trackers/cookbook.php");
+require_once (dirname (__FILE__) . '/../utils.php');
 
 # Get all the possible bug fields for this project both used and unused. If
 # used then show the project specific information about field usage
@@ -36,8 +37,8 @@ function trackers_data_get_all_fields ($group_id = false, $reload = false)
 {
   global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME, $AT_START;
 
-  if (!ctype_alnum (ARTIFACT))
-    die ("Invalid ARTIFACT name: " . htmlspecialchars (ARTIFACT ));
+  if (!ctype_alnum (strval (ARTIFACT)))
+    die ("Invalid ARTIFACT name: " . utils_specialchars (ARTIFACT));
 
   # Do nothing if already set and reload not forced.
   if (isset ($BF_USAGE_BY_ID) && !$reload)
@@ -93,7 +94,7 @@ function trackers_data_get_item_group ($item_id)
 
 function &trackers_data_get_notification_settings ($group_id, $tracker)
 {
-  assert ('ctype_alnum($tracker)');
+  assert ('ctype_alnum (strval ($tracker))');
 
   $result = db_execute (
     "SELECT * FROM groups WHERE group_id = ?", [$group_id]
@@ -194,7 +195,7 @@ function trackers_data_show_notification_settings (
             . $settings['name']
             . "</span><br />\n&nbsp;&nbsp;<input type='text' id=\""
             . "${tr_cat}_email\" name=\"${tr_cat}_email\" value=\""
-            . htmlspecialchars ($settings['email'])
+            . utils_specialchars ($settings['email'])
             . "\" size='50' maxlength='255' />\n"
             . "&nbsp;&nbsp;<span class='preinput'>("
             . form_checkbox ($cb_name, $settings['send_all_flag'])
@@ -216,7 +217,7 @@ function trackers_data_show_notification_settings (
   print "<span class='preinput'><label for=\"$txt_name\">"
     . _("Global List:") . "</label></span><br />\n&nbsp;&nbsp;"
     . "<input type='text' id=\"$txt_name\" name=\"$txt_name\""
-    . 'value="' . htmlspecialchars ($grtrsettings['glnewad'])
+    . 'value="' . utils_specialchars ($grtrsettings['glnewad'])
     . '" size="50" maxlength="255" />
       &nbsp;&nbsp;<span class="preinput">('
     . form_checkbox ($cb_name, $grtrsettings['glsendall'])
@@ -234,7 +235,7 @@ function trackers_data_show_notification_settings (
   print "<span class='preinput'><label for=\"$txt_name\">"
     . _("Exclude List:") . "</label></span><br />\n&nbsp;&nbsp;"
     . "<input type='text' id=\"$txt_name\" name=\"$txt_name\" value=\""
-    . htmlspecialchars ($grtrsettings['private_exclude'])
+    . utils_specialchars ($grtrsettings['private_exclude'])
     . "\" size='50' maxlength='255' /><br />\n";
 }
 
@@ -1379,7 +1380,7 @@ function trackers_data_append_canned_response ($details, $canned_response)
         }
       if (!empty ($details))
         $details .= $separator;
-      $details .= htmlspecialchars_decode (
+      $details .= utils_specialchars_decode (
         db_result ($res, 0, 'body'), ENT_QUOTES
       );
       $any_response_used = true;
@@ -1501,7 +1502,7 @@ function trackers_data_handle_update (
                   || trackers_data_is_text_area ($field));
       if  ($is_text)
         {
-          $differ = ($old_value != htmlspecialchars ($value));
+          $differ = ($old_value != utils_specialchars ($value));
         }
       elseif (trackers_data_is_date_field ($field))
         {
@@ -1525,7 +1526,7 @@ function trackers_data_handle_update (
           $extra_addresses .= $field_transition_cc;
 
           if ($is_text)
-            $upd_list[$field] = htmlspecialchars ($value);
+            $upd_list[$field] = utils_specialchars ($value);
           else
             $upd_list[$field] = $value;
           trackers_data_add_history ($field, $old_value, $value, $item_id);
@@ -1571,7 +1572,7 @@ function trackers_data_handle_update (
     {
       $change_exists = 1;
       fb (_("Comment added"), 0);
-      $dtext = htmlspecialchars ($details);
+      $dtext = utils_specialchars ($details);
       if (empty ($vfl['comment_type_id']))
         $vfl['comment_type_id'] = false;
       trackers_data_add_history (
@@ -1591,7 +1592,7 @@ function trackers_data_handle_update (
   # If we are on the cookbook, the original submission have been details.
   if (ARTIFACT == 'cookbook')
     {
-      $details = htmlspecialchars ($vfl['details']);
+      $details = utils_specialchars ($vfl['details']);
       $previous_details = db_result ($result, 0, 'details');
 
       if ($details != $previous_details)
@@ -1611,8 +1612,8 @@ function trackers_data_handle_update (
           $change .= " chars";
 
           trackers_data_add_history (
-            'realdetails', htmlspecialchars ($del_cut),
-            htmlspecialchars ($change), $item_id, false, false, true
+            'realdetails', utils_specialchars ($del_cut),
+            utils_specialchars ($change), $item_id, false, false, true
           );
           $changes['realdetails']['add'] = $change;
           $changes['realdetails']['del'] = $del_cut;
@@ -2101,7 +2102,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
 
       if (trackers_data_is_text_area ($field)
           || trackers_data_is_text_field ($field))
-        $value = htmlspecialchars ($value);
+        $value = utils_specialchars ($value);
       elseif (trackers_data_is_date_field ($field))
         list ($value, $ok) = utils_date_to_unixtime ($value);
 
@@ -2136,8 +2137,8 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   $insert_fields['group_id'] = $group_id;
   $insert_fields['submitted_by'] = $user;
   $insert_fields['date'] = time ();
-  $insert_fields['summary'] = htmlspecialchars ($vfl['summary']);
-  $insert_fields['details'] = htmlspecialchars ($vfl['details']);
+  $insert_fields['summary'] = utils_specialchars ($vfl['summary']);
+  $insert_fields['details'] = utils_specialchars ($vfl['details']);
   $insert_fields['spamscore'] = $spamscore;
   $insert_fields['ip'] = '127.0.0.1';
 
@@ -2444,7 +2445,7 @@ function trackers_data_count_field_value_usage (
   if (!preg_match ('/^[a-z0-9_]+$/', $field))
     util_die (
       'trackers_data_count_field_value_usage: invalid $field <em>'
-      . htmlspecialchars ($field) . '</em>'
+      . utils_specialchars ($field) . '</em>'
     );
   $res = db_execute ("
     SELECT COUNT(*) AS count FROM " . ARTIFACT . "

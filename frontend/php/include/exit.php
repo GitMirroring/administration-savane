@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require_once (dirname (__FILE__) . "/utils.php");
 
 # Base function. The alternatives below should be used whenever relevant,
 # as they may wrap this one with additional useful things
@@ -61,7 +62,7 @@ function exit_not_logged_in ()
   # Instead of a simple error page, take user to the login page.
   global $REQUEST_URI, $sys_https_host, $sys_default_domain, $sys_home;
 
-  $uri = urlencode ($REQUEST_URI);
+  $uri = utils_urlencode ($REQUEST_URI);
   $domain = "http://$sys_default_domain";
   if (!empty ($sys_https_host))
     $domain = "https://$sys_https_host";

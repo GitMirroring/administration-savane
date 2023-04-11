@@ -20,6 +20,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+require_once (dirname (__FILE__) . '/../utils.php');
 
 #  Function that generates hide/show urls to expand/collapse
 #  sections of the personal page.
@@ -153,8 +154,8 @@ function my_item_list_buildsql (
   global $item_data, $group_data, $sql_limit, $usergroups, $usergroups_groupid;
   global $items_per_groups, $usersquads;
 
-  if (!ctype_alnum ($tracker))
-    die (_("Invalid tracker name:") . " " . htmlspecialchars ($tracker));
+  if (!ctype_alnum (strval ($tracker)))
+    die (_("Invalid tracker name:") . " " . utils_specialchars ($tracker));
 
   # status: 1 = open, 3 = closed
   if ($openclosed == "open")

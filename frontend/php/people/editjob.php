@@ -182,7 +182,9 @@ if ($job_id)
       }
     else
       {
-        $description = htmlspecialchars (db_result ($result, 0, 'description'));
+        $description = utils_specialchars (
+          db_result ($result, 0, 'description')
+        );
         utils_get_content ("people/editjob");
         print form_tag ()
           . form_hidden (['group_id' => $group_id, 'job_id' => $job_id])

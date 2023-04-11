@@ -22,6 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/cookbook.php');
+require_once (dirname (__FILE__) . '/../utils.php');
 
 function show_item_navbar_begin ($url, $offset, $total_rows)
 {
@@ -292,7 +293,7 @@ function show_item_history ($item_id, $group_id, $no_limit = false)
           print utils_format_date ($value_id, 'natural');
         }
       else
-        print markup_basic (htmlspecialchars ($value_id));
+        print markup_basic (utils_specialchars ($value_id));
 
        print "</td>\n<td class='smaller' align='center'>"
          . html_image ('arrows/next.png') . "</td>\n"
@@ -302,7 +303,7 @@ function show_item_history ($item_id, $group_id, $no_limit = false)
       elseif (trackers_data_is_date_field ($field))
         print utils_format_date ($new_value_id, 'natural');
       else
-        print markup_basic (htmlspecialchars ($new_value_id));
+        print markup_basic (utils_specialchars ($new_value_id));
       print "</td>\n</tr>\n";
     } # for ($i = 0; $i < $rows; $i++)
   print "</table>\n";

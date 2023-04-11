@@ -21,27 +21,31 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('include/init.php');
+require_once ('include/init.php');
 
-site_header(array('title'=>_("Requested XML not Found (Error 404)")));
+site_header (['title' => _("Requested XML not Found (Error 404)")]);
 
+print '<p class="warn">';
 # TRANSLATORS: the argument is system name (like Savannah).
-print '<p class="warn">'
-       .sprintf(_("The XML file you are trying to access doesn't exist on %s."),
-                $GLOBALS['sys_name'])
-       .'</p>';
-print '<p>'.
-sprintf(_("It is surely because it was not yet generated, or too old. If you
-think that there's a broken link on %s that must be repaired, <a href=\"%s\">
-file a support request</a>, mentioning the URL you tried to access (%s)."),
-  $GLOBALS['sys_name'],
-  $GLOBALS['sys_home'].'support/?group='.$GLOBALS['sys_unix_group_name'],
-  htmlspecialchars ($_SERVER['REQUEST_URI'])) . '</p>';
+printf (
+  _("The XML file you are trying to access doesn't exist on %s."),
+  $GLOBALS['sys_name']
+);
+print "</p>\n<p>";
+printf (
+  _("It is surely because it was not yet generated, or too old. If you\nthink "
+    . "that there's a broken link on %s that must be repaired, "
+    . "<a href=\"%s\">\nfile a support request</a>, mentioning the URL you "
+    . "tried to access (%s)."),
+  $sys_name, "${sys_home}support/?group=$sys_unix_group_name",
+  utils_specialchars ($_SERVER['REQUEST_URI']));
+print "</p>\n<p>";
 
 # TRANSLATORS: the second argument is system name (like Savannah).
-print '<p>'
-  .sprintf(_("Otherwise, you can return to the <a href=\"%s\">%s main page</a>."),
-           $GLOBALS['sys_home'], $GLOBALS['sys_name']).'</p>';
-
-
-$HTML->footer(array());
+printf (
+  _("Otherwise, you can return to the <a href=\"%s\">%s main page</a>."),
+  $sys_home, $sys_name
+);
+print "</p>\n";
+$HTML->footer ([]);
+?>

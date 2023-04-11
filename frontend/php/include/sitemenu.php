@@ -83,24 +83,24 @@ function sitemenu_extraurl ($only_with_post = false)
   if ($_SERVER["REQUEST_METHOD"] == "POST")
     {
       if (!empty($group_name))
-        $extraurl .= "&amp;group=" . htmlspecialchars ($group_name)
+        $extraurl .= "&amp;group=" . utils_specialchars ($group_name)
           . "&amp;";
       if (!empty ($item_id))
         $extraurl .= "&amp;func=detailitem&amp;item_id="
-          . htmlspecialchars ($item_id) . "&amp;";
+          . utils_specialchars ($item_id) . "&amp;";
       return $extraurl;
     }
   $query_string = '';
   if (!empty ($_SERVER['QUERY_STRING']))
     $query_string = $_SERVER['QUERY_STRING'];
-  if (!empty ($item_id) && ctype_digit ($query_string))
+  if (!empty ($item_id) && ctype_digit (strval ($query_string)))
     {
       # Short link case (like /bugs/?212).
       $extraurl .= "&amp;func=detailitem&amp;item_id="
-        . htmlspecialchars ($item_id);
+        . utils_specialchars ($item_id);
       return $extraurl;
     }
-  $extraurl = htmlspecialchars ($query_string);
+  $extraurl = utils_specialchars ($query_string);
   $extraurl = str_replace ("reload=1&amp;", "", $extraurl);
   $extraurl = "&amp;$extraurl";
   return $extraurl;
@@ -204,7 +204,7 @@ function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
       if ($extraurl)
         $extraurl = "?$extraurl";
       $HTML->menu_entry ("{$sys_home}i18n.php?lang_uri="
-        . urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
+        . utils_urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
         _("Language"), 1, _("Choose website language")
       );
     }
@@ -225,14 +225,14 @@ function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
     {
       if (user_isloggedin () && user_get_preference ("use_bookmarks"))
         {
-          $bookmark_title = urlencode (context_title ());
+          $bookmark_title = utils_urlencode (context_title ());
           if ($page_title)
             # TRANSLATORS: this string is used to separate context from
             # further description, like _("Bugs")._(": ").$bug_title.
-            $bookmark_title .= urlencode (_(": ") . $page_title);
+            $bookmark_title .= utils_urlencode (_(": ") . $page_title);
 
             $HTML->menu_entry ("{$sys_home}my/bookmarks.php?add=1&amp;url="
-              . urlencode ($_SERVER['REQUEST_URI']) . '&amp;title='
+              . utils_urlencode ($_SERVER['REQUEST_URI']) . '&amp;title='
               . $bookmark_title,
               _("Bookmark It"), 1, _("Add this page to my bookmarks")
             );
@@ -421,7 +421,7 @@ function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
     );
   if (user_can_be_super_user () && !user_is_super_user ())
     $HTML->menu_entry ("{$sys_home}account/su.php?action=login&amp;uri="
-      . urlencode ($_SERVER['REQUEST_URI']), _("Become Superuser"), 1,
+      . utils_urlencode ($_SERVER['REQUEST_URI']), _("Become Superuser"), 1,
       _("Superuser rights are required to perform site admin tasks")
     );
   if (user_is_super_user ())
@@ -429,7 +429,7 @@ function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
       print form_tag (['action' => "{$sys_home}account/impersonate.php"])
         . '<label for="user_name">' . _("Become this user:")
         . "</label><br/>\n";
-      print form_hidden (["uri" => urlencode ($_SERVER['REQUEST_URI'])]);
+      print form_hidden (["uri" => utils_urlencode ($_SERVER['REQUEST_URI'])]);
       print '<input type="text" id="user_name" name="user_name" size=10 '
         . '/>&nbsp;';
       print '<input type="submit" name="impersonate" value="'
@@ -463,7 +463,7 @@ function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
   if (user_is_super_user ())
     $HTML->menu_entry (
       "{$sys_home}account/su.php?action=logout&amp;uri="
-      . urlencode ($_SERVER['REQUEST_URI']),
+      . utils_urlencode ($_SERVER['REQUEST_URI']),
       _("Logout Superuser"), 1,
       _("End the Superuser session, go back to normal user session")
     );
@@ -490,7 +490,7 @@ function sitemenu_notloggedin ()
 
   $HTML->menu_entry (
     "{$sys_home}account/login.php?uri="
-    . urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
+    . utils_urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
     _("Login"), 1,
     _("Login page - you must have registered an account first")
   );

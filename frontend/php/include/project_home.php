@@ -29,6 +29,7 @@ require_directory ("news");
 require_directory ("stats");
 require_once (dirname (__FILE__) . '/vars.php');
 require_once (dirname (__FILE__) . '/vcs.php');
+require_once (dirname (__FILE__) . '/utils.php');
 
 # If we are at wrong url, redirect.
 $host = $project->getTypeBaseHost ();
@@ -145,7 +146,7 @@ if ($project->getTypeDescription ())
 
 if ($project->getLongDescription ())
   print "<p>"
-    . markup_full (htmlspecialchars ($project->getLongDescription ()))
+    . markup_full (utils_specialchars ($project->getLongDescription ()))
     . "</p>\n";
 else
   {

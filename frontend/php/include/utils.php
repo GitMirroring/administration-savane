@@ -115,8 +115,8 @@ function utils_email ($address, $nohtml = 0)
   if (preg_match ("/\<([\w\d\-\@\.]*)\>/", $address, $matches))
     $realaddress = $matches[1];
 
-  $addr = htmlspecialchars ($address);
-  $raddr = htmlspecialchars ($realaddress);
+  $addr = utils_specialchars ($address);
+  $raddr = utils_specialchars ($realaddress);
   # We have a user name.
   if (!strpos ($address, "@"))
     {
@@ -175,7 +175,7 @@ function utils_email_basic ($address, $nohtml = 0)
       || CONTEXT == '' # frontpage
   )
     {
-      $addr = htmlspecialchars ($address);
+      $addr = utils_specialchars ($address);
       if ($nohtml)
         return $addr;
       # Make mailto without trying to find out whether it makes sense.
@@ -402,7 +402,7 @@ function utils_result_column_to_array ($result, $col = 0, $localize = false)
     {
       $val = db_result ($result, $i, $col);
       if ($localize)
-        $val = htmlentities (gettext ($val));
+        $val = utils_htmlentities (gettext ($val));
       $arr[$i] = $val;
     }
   return $arr;
@@ -944,5 +944,32 @@ function utils_comply_with_rfc822 ($string)
   if (preg_match ("#\.|\,|\@|\/|\\|\||\;|\!#", $string))
     return "\"$string\"";
   return $string;
+}
+
+# Work-around PHP 8.1 deprecation of null parameter #1 and change of defaults
+# for parameter #2.
+function utils_specialchars ($string, $flags = ENT_COMPAT)
+{
+  if ($string === null)
+    $string = '';
+  return htmlspecialchars ($string, $flags);
+}
+function utils_specialchars_decode ($string, $flags = ENT_COMPAT)
+{
+  if ($string === null)
+    $string = '';
+  return htmlspecialchars_decode ($string, $flags);
+}
+function utils_htmlentities ($string, $flags = ENT_COMPAT)
+{
+  if ($string === null)
+    $string = '';
+  return htmlentities ($string, $flags);
+}
+function utils_urlencode ($string)
+{
+  if ($string === null)
+    $string = '';
+  return urlencode ($string);
 }
 ?>

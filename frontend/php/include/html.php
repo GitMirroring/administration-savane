@@ -51,7 +51,7 @@ function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
     $boxoptionwanted = 1;
 
   $ret .= "\n<script type='text/javascript' src=\"/js/show-hide.php?"
-  . "deploy=$boxoptionwanted&amp;legend=" . urlencode ($legend)
+  . "deploy=$boxoptionwanted&amp;legend=" . utils_urlencode ($legend)
   . "&amp;box_id=boxoptions&amp;suffix=\"></script>";
   $ret .= "\n<noscript>\n<span id='boxoptionslinkshow'>$legend</span>\n"
     . "</noscript>\n</legend>\n";
@@ -99,7 +99,7 @@ function html_hidsubpart_header ($uniqueid, $title, $deployed=false)
 
   $ret = "\n<h2 id=\"$uniqueid\">\n"
     . '<script type="text/javascript" src="/js/show-hide.php?'
-  . "deploy=$deployed&amp;legend=" . urlencode ($title)
+  . "deploy=$deployed&amp;legend=" . utils_urlencode ($title)
   . "&amp;box_id=hidsubpart&amp;suffix=$uniqueid\"></script>\n";
   $ret .= "\n<noscript>\n<a href=\"#$uniqueid\">$title</a>\n</noscript>"
     . "</h2>\n\n";
@@ -154,7 +154,7 @@ function html_nextprev ($search_url, $rows, $rows_returned, $varprefix = false)
         {
           print "<a href=\"$search_url&amp;${varprefix}offset="
             . ($offset - $rows) . "&amp;${varprefix}max_rows="
-            . htmlspecialchars ($max_rows) . "#${varprefix}results\">";
+            . utils_specialchars ($max_rows) . "#${varprefix}results\">";
           print html_image ("arrows/previous.png") . " $prev_msg</a>";
         }
       else
@@ -165,7 +165,7 @@ function html_nextprev ($search_url, $rows, $rows_returned, $varprefix = false)
         {
           print "<a href=\"$search_url&amp;${varprefix}offset="
             . ($offset + $rows) . "&amp;${varprefix}max_rows="
-            . htmlspecialchars ($max_rows) . "#${varprefix}results\">";
+            . utils_specialchars ($max_rows) . "#${varprefix}results\">";
           print "$next_msg " . html_image ("arrows/next.png") . "</a>";
         }
       else
@@ -198,8 +198,8 @@ function html_feedback ($bottom)
   if (!($ffeedback || $feedback))
     return;
 
-  $feedback = markup_basic (htmlspecialchars ($feedback));
-  $ffeedback = markup_basic (htmlspecialchars ($ffeedback));
+  $feedback = markup_basic (utils_specialchars ($feedback));
+  $ffeedback = markup_basic (utils_specialchars ($ffeedback));
 
   $suffix = '';
   if ($bottom)
