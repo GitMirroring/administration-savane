@@ -911,6 +911,7 @@ function markup_convert_mail_links ($line, $protocols)
 function markup_expand_tracker_links ($line, $regexp, $link)
 {
   global $sys_home;
+  $line = markup_expand_img_files ($line);
   # Allow only two white spaces between the string and the numeric id
   # to avoid having too time consuming regexp. People just have to pay
   # attention.
@@ -1087,7 +1088,6 @@ function markup_inline_string ($line)
   if (strlen ($line) == 0)
     return "";
 
-  $line = markup_expand_img_files ($line);
   $line = markup_expand_links ($line);
   $line = markup_substitute_asterized ($line);
   $line = markup_substitute_underscored ($line);

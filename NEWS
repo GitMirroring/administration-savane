@@ -26,6 +26,10 @@
 
 ** PHP 8.0 => 8.1 incompatibilities were resolved.
 
+** Fix regression in markup added in 3.11 (commit e61f3ec357d5a): links
+   to image files (file #47102) translated to HTML incorrectly,
+   per Savannah sr #110868.
+
 [BUILD]
 
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
