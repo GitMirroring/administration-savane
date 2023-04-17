@@ -199,7 +199,7 @@ while ($i < $rows && $row = db_fetch_array ($result))
       print "<td><a href=\"$url\">" . group_getname ($row["group_id"])
         . "</a></td>\n";
     print  "<td>" . utils_user_link ($row["user_name"]) . "</td>\n<td>"
-      . utils_format_date ($row["date"]) . "</td>\n</tr>\n";
+      . utils_format_date ($row["date"], 'natural') . "</td>\n</tr>\n";
      $i++;
   }
 print "</table>\n";
