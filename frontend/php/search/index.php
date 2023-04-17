@@ -57,16 +57,16 @@ $result = search_run ($words, $type_of_search);
 
 function finish_page ()
 {
-  global $words, $type_of_search, $type, $group_id, $exact, $rows;
-  global $rows_returned;
+  global $words, $type_of_search, $type, $exact, $rows;
+  global $rows_returned, $sys_home, $only_group_id;
 
   $nextprev_url =
-    $GLOBALS['sys_home'] . "search/?type_of_search=$type_of_search&amp;words="
+    "{$sys_home}search/?type_of_search=$type_of_search&amp;words="
     . utils_urlencode ($words);
   if (isset ($type))
     $nextprev_url .= "&amp;type=$type";
-  if ($group_id)
-    $nextprev_url .= "&amp;only_group_id=$group_id";
+  if (isset ($only_group_id))
+    $nextprev_url .= "&amp;only_group_id=$only_group_id";
   if (isset ($exact))
     $nextprev_url .= "&amp;exact=$exact";
 
@@ -78,23 +78,22 @@ function finish_page ()
 function check_search_fail ($result)
 {
   $rows = db_numrows ($result);
-  if (!$result || $rows < 1)
-    {
-      search_failed ();
-      finish_page ();
-    }
-  return $rows;
+  if ($rows)
+    return $rows;
+  search_failed ();
+  finish_page ();
+  return 0;
 }
+
+$rows = $rows_returned = check_search_fail ($result);
+if ($rows_returned > $max_rows)
+  $rows = $max_rows;
 
 if ($type_of_search == 'soft')
   {
-    $rows = $rows_returned = check_search_fail ($result);
-    if ($rows_returned > $GLOBALS['max_rows'])
-      $rows = $GLOBALS['max_rows'];
-
-    search_send_header();
-    search_exact($words);
-    print_search_heading();
+    search_send_header ();
+    search_exact ($words);
+    print_search_heading ();
     $title_arr = [_("Group"), _("Description"), _("Type")];
 
     print html_build_list_table_top ($title_arr);
@@ -107,7 +106,7 @@ if ($type_of_search == 'soft')
           [db_result ($result, $i, 'type')]
         );
 
-        print '<tr class="' . html_get_alt_row_color($i)
+        print '<tr class="' . html_get_alt_row_color ($i)
           . '"><td><a href="../projects/'
           . db_result ($result, $i, 'unix_group_name')
           . '">' . db_result ($result, $i, 'group_name')
@@ -125,100 +124,78 @@ if ($type_of_search == 'soft')
   }
 if ($type_of_search == "people")
   {
-    $rows = $rows_returned = check_search_fail ($result);
-    if (($rows == 1) && ($GLOBALS['offset'] == 0))
+    if ($rows == 1 && $offset == 0)
       {
-        $user = db_result($result, 0, 'user_name');
-        Header("Location: {$GLOBALS['sys_home']}users/$user");
+        $user = db_result ($result, 0, 'user_name');
+        Header ("Location: {$sys_home}users/$user");
       }
     else
       {
-        if ($rows_returned > $GLOBALS['max_rows'])
-          $rows = $GLOBALS['max_rows'];
-
-        search_send_header();
-        print_search_heading();
+        search_send_header ();
+        print_search_heading ();
 
         print html_build_list_table_top ([_("Login"), _("Name")]);
         print "\n";
 
         for ($i = 0; $i < $rows; $i++)
           {
-            $namequery = preg_replace ('/[^a-z]+/i', '+',
-                                       db_result ($result, $i, 'realname'));
-            print "<tr class=\"". html_get_alt_row_color($i) ."\"><td>"
-              .utils_user_link(db_result($result, $i, 'user_name'))
-              . "</td>\n<td>".db_result($result,$i,'realname')."</td>\n</tr>\n";
+            $namequery = preg_replace (
+              '/[^a-z]+/i', '+', db_result ($result, $i, 'realname')
+            );
+            print "<tr class=\"" . html_get_alt_row_color ($i) . "\"><td>"
+              . utils_user_link (db_result ($result, $i, 'user_name'))
+              . "</td>\n<td>" . db_result ($result, $i, 'realname')
+              . "</td>\n</tr>\n";
           }
         print "</table>\n";
       }
     finish_page ();
   }
-if (
-  $type_of_search == 'bugs' || $type_of_search == 'support'
-  || $type_of_search == 'patch' || $type_of_search == 'cookbook'
-  || $type_of_search == 'task'
-)
+$trackers = ['bugs', 'support', 'patch', 'cookbook', 'task'];
+if (!in_array ($type_of_search, $trackers))
   {
-    $rows= $rows_returned = check_search_fail ($result);
-    if (($rows == 1) && ($GLOBALS['offset'] == 0
-        && (db_result($result, 0, 'privacy') != "2")))
-      {
-        # No automatic redirection for private item, use the usual listing.
-        $bug = db_result ($result, 0, 'bug_id');
-        Header (
-          "Location: {$GLOBALS['sys_home']}$type_of_search"
-          . "/?func=detailitem&item_id=$bug"
-        );
-        finish_page ();
-      }
-    if ($rows_returned > $GLOBALS['max_rows'])
-      $rows = $GLOBALS['max_rows'];
-
-    search_send_header();
-    print_search_heading();
-
-    print html_build_list_table_top (
-      [
-        _("Item Id"), _("Item Summary"), _("Group"), _("Submitter"), _("Date"),
-      ]
-    );
-    print "\n";
-
-    $j = 0;
-    for ($i = 0; $i < $rows; $i++)
-      {
-        # Do even show private item.
-        if (db_result($result, $i, 'privacy') == "2"
-            && !member_check_private(0, $group_id)
-            && db_result($result,$i,'user_name') != user_getname())
-          {
-            dbg("Private item.");
-            continue;
-          }
-        $url = $GLOBALS['sys_home'] . $type_of_search
-          . "/?func=detailitem&amp;item_id="
-          . db_result ($result, $i, "bug_id");
-
-        print '<tr class="' . html_get_alt_row_color ($j) . '">'
-          . "<td><a href=\"$url\">#" . db_result ($result, $i, "bug_id")
-          . "</a></td>\n<td><a href=\"$url\">"
-          . db_result ($result, $i, "summary")
-          . "</a></td>\n<td><a href=\"$url\">"
-          . group_getname (db_result ($result, $i, "group_id"))
-          . "</a></td>\n<td>"
-          . utils_user_link (db_result ($result, $i, "user_name"))
-          . "</td>\n<td>"
-          . utils_format_date (db_result ($result, $i, "date"))
-          . "</td>\n</tr>\n";
-        $j++;
-      }
-    print "</table>\n";
+    search_send_header ();
+    print '<p class="error">' . _("Error") . ' - ' . _("Invalid Search!!")
+      . "</p>\n";
     finish_page ();
   }
 
-search_send_header();
-print '<p class="error">' . _("Error") . ' - ' . _("Invalid Search!!")
-  . "</p>\n";
+if ($rows == 1 && $offset == 0 && db_result ($result, 0, 'privacy') != "2")
+  {
+    # No automatic redirection for private item, use the usual listing.
+    $bug = db_result ($result, 0, 'bug_id');
+    Header (
+      "Location: $sys_home$type_of_search/?func=detailitem&item_id=$bug"
+    );
+    finish_page ();
+  }
+
+search_send_header ();
+print_search_heading ();
+
+print html_build_list_table_top (
+  [_("Item Id"), _("Item Summary"), _("Group"), _("Submitter"), _("Date")]
+);
+print "\n";
+
+$i = 0;
+while ($i < $rows && $row = db_fetch_array ($result))
+  {
+    if ($row['privacy'] == "2" && !member_check_private (0, $row['group_id'])
+        && $row['user_name'] != user_getname ()
+    )
+      continue;
+    $url = "$sys_home$type_of_search/?func=detailitem&amp;item_id="
+      . $row["bug_id"];
+
+    print '<tr class="' . html_get_alt_row_color ($i) . '">'
+      . "<td><a href=\"$url\">#" . $row["bug_id"]
+      . "</a></td>\n<td><a href=\"$url\">" . $row["summary"]
+      . "</a></td>\n<td><a href=\"$url\">" . group_getname ($row["group_id"])
+      . "</a></td>\n<td>" . utils_user_link ($row["user_name"]) . "</td>\n<td>"
+      . utils_format_date ($row["date"]) . "</td>\n</tr>\n";
+     $i++;
+  }
+print "</table>\n";
 finish_page ();
 ?>
