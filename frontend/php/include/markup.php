@@ -782,9 +782,8 @@ function markup_substitute_img_file_domain ($line)
   global $sys_file_domain;
   if ($GLOBALS['sys_default_domain'] == $sys_file_domain)
     return $line;
-  $http = session_issecure ()? 'https': 'http';
   return preg_replace (
-    '/<img src="\/file/', "<img src=\"$http://$sys_file_domain/file", $line
+    '/<img src="\/file/', "<img src=\"//$sys_file_domain/file", $line
   );
 }
 
