@@ -173,9 +173,12 @@ if ($rows == 1 && $offset == 0 && db_result ($result, 0, 'privacy') != "2")
 search_send_header ();
 print_search_heading ();
 
-print html_build_list_table_top (
-  [_("Item Id"), _("Item Summary"), _("Group"), _("Submitter"), _("Date")]
-);
+$titles = [_("Item Id"), _("Item Summary")];
+if (empty ($only_group_id))
+  $titles[] = _("Group");
+$titles = array_merge ($titles, [_("Submitter"), _("Date")]);
+
+print html_build_list_table_top ($titles);
 print "\n";
 
 $i = 0;
@@ -191,8 +194,11 @@ while ($i < $rows && $row = db_fetch_array ($result))
     print '<tr class="' . html_get_alt_row_color ($i) . '">'
       . "<td><a href=\"$url\">#" . $row["bug_id"]
       . "</a></td>\n<td><a href=\"$url\">" . $row["summary"]
-      . "</a></td>\n<td><a href=\"$url\">" . group_getname ($row["group_id"])
-      . "</a></td>\n<td>" . utils_user_link ($row["user_name"]) . "</td>\n<td>"
+      . "</a></td>\n";
+    if (empty ($only_group_id))
+      print "<td><a href=\"$url\">" . group_getname ($row["group_id"])
+        . "</a></td>\n";
+    print  "<td>" . utils_user_link ($row["user_name"]) . "</td>\n<td>"
       . utils_format_date ($row["date"]) . "</td>\n</tr>\n";
      $i++;
   }
