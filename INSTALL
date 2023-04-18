@@ -14,6 +14,8 @@ The commands are run from a non-root account unless specifically
 noted for the command in question.
 
 Install dependencies (plus Git, GNU Autotools, GNU gettext).
+If you are going to use localizations, make sure they are listed
+when running locale -a (in Trisquel, look for language-pack-*).
 
 Download and gpg --verify savane_demo-$latest.sql.gz{.sig,}
 from Savannah administration group download area
