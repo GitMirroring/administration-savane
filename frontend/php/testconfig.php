@@ -397,7 +397,7 @@ else
       'dbuser', 'dbpasswd', 'www_topdir', 'url_topdir', 'etc_dir', 'incdir',
       'name', 'unix_group_name', 'themedefault', 'mail_domain', 'mail_admin',
       'mail_replyto', 'upload_max', 'watch_anon_posts', 'new_user_watch_days',
-      'localedir'
+      'localedir', 'linguas'
     ];
 
     print "<table border=\"1\">\n";
