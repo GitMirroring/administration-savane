@@ -515,4 +515,106 @@ function user_delete ($user_id = false, $confirm_hash = false)
   fb (_("Account deleted."));
   return true;
 }
+
+# List groups where we can track date of inclusion; private groups
+# are not filtered out.
+function user_list_groups_with_history ($uid, $skip)
+{
+  return db_execute ("
+    SELECT
+      g.group_name, g.group_id, g.unix_group_name, g.is_public,
+      u.admin_flags, h.date
+    FROM groups g, user_group u, group_history h, user a
+    WHERE
+      g.group_id = u.group_id AND h.group_id = u.group_id $skip
+      AND u.user_id = ? AND a.user_id = ? AND h.old_value = a.user_name
+      AND g.status = 'A' AND h.field_name IN ('Added User', 'Approved User')
+    GROUP BY g.group_id ORDER BY g.group_id", [$uid, $uid]
+  );
+}
+
+# Like user_list_group_with_history, but based only on actual membership.
+function user_list_groups_without_history ($uid, $skip)
+{
+  return db_execute ("
+    SELECT g.group_name, g.group_id, g.unix_group_name, g.is_public,
+      u.admin_flags, 0 as date
+    FROM groups g, user_group u
+    WHERE g.group_id = u.group_id AND u.user_id = ? AND g.status = 'A' $skip
+    GROUP BY g.group_id ORDER BY g.group_id", [$uid]
+  );
+}
+
+# Merge results of user_list_groups_with_history
+# and user_list_group_without_history into an array.
+function user_list_merge_row (&$ret, &$row)
+{
+  if (array_key_exists ($row['group_id'], $ret))
+    return;
+  $fields = [
+    'group_name', 'unix_group_name', 'date', 'admin_flags', 'is_public'
+  ];
+  $ret[$row['group_id']] = [];
+  foreach ($fields as $f)
+    $ret[$row['group_id']][$f] = $row[$f];
+}
+
+# Auxiliary function used in user_list_groups.
+function user_enumerate_groups ($uid, $skip_pending)
+{
+  $skip = $skip_pending? "AND u.admin_flags != 'P'": "";
+  $ret = [];
+  $result = user_list_groups_with_history ($uid, $skip);
+  while ($row = db_fetch_array ($result))
+    user_list_merge_row ($ret, $row);
+  $result = user_list_groups_without_history ($uid, $skip);
+  while ($row = db_fetch_array ($result))
+    user_list_merge_row ($ret, $row);
+  return $ret;
+}
+
+# List private groups listed in $ret that the current user shouldn't see;
+# used in user_list_groups.
+function user_list_groups_to_hide (&$ret)
+{
+  $private = [];
+  foreach ($ret as $group_id => $v)
+    if (!$v['is_public'])
+      $private[] = $group_id;
+  if (empty ($private) || !user_isloggedin ())
+    return $private;
+  $gid_in = utils_in_placeholders ($private);
+  $result = db_execute ("
+    SELECT group_id FROM user_group
+    WHERE user_id = ? AND group_id $gid_in AND admin_flags != 'P'",
+    array_merge ([user_getid ()], $private)
+  );
+  $allowed = [];
+  while ($row = db_fetch_array ($result))
+    $allowed[] = $row['group_id'];
+  return array_diff ($private, $allowed);
+}
+
+# Return groups $uid belongs in allowed to show up for the current user.
+# The key is group_id, the items are arrays with keys 'group_name',
+# 'unix_group_name', 'date' (zero when unavailable), 'admin_flags'.
+function user_list_groups ($uid, $skip_pending)
+{
+  $ret = user_enumerate_groups ($uid, $skip_pending);
+  if (empty ($ret) || user_is_super_user () || $uid == user_getid ())
+    # No need to filter out private groups.
+    return $ret;
+  foreach (user_list_groups_to_hide ($ret) as $gid)
+    unset ($ret[$gid]);
+  return $ret;
+}
+
+function user_format_member_since ($date)
+{
+  if (empty ($date))
+    return '';
+  return '<span class="smaller">'
+    . sprintf (_("Member since %s"), utils_format_date ($date))
+    . '</span>';
+}
 ?>

@@ -199,64 +199,33 @@ if ($is_suspended)
     exit (0);
   }
 
-print "<br />\n";
-
-print $HTML->box_top (_("Group Information"), '', 1);
-$result = db_execute ("
-  SELECT g.group_name, g.group_id, g.unix_group_name, h.date
-  FROM groups g, user_group u, group_history h
-  WHERE
-    g.group_id = u.group_id AND h.group_id = u.group_id AND u.user_id = ?
-    AND g.status = 'A' AND g.is_public = '1' AND h.old_value = ?
-    AND h.field_name IN ('Added User', 'Approved User')
-  GROUP BY g.unix_group_name ORDER BY g.unix_group_name",
-  [$user_id, db_result ($res_user, 0, 'user_name')]
-);
-$rows = db_numrows ($result);
-
-# Alternative SQL that do not use group_history, just in case this history
-# would be flawed (history usage has been inconsistent over Savane history).
-$result_without_history = db_execute ("
-  SELECT g.group_name, g.group_id, g.unix_group_name, 0 as date
-  FROM groups g, user_group u
-  WHERE
-    g.group_id = u.group_id AND u.user_id = ?
-    AND g.status = 'A' AND g.is_public = '1' AND u.admin_flags != 'P'
-  GROUP BY g.unix_group_name ORDER BY g.unix_group_name", [$user_id]
-);
-$rows_without_history = db_numrows ($result_without_history);
-
-# The history may be broken due to an old install &c.
-$history_is_flawed = false;
-if ($rows_without_history != $rows)
+function output_group_info ($user_id)
+{
+  global $HTML;
+  $group_list = user_list_groups ($user_id, true);
+  if (empty ($group_list))
+    return;
+  print "<br />\n";
+  print $HTML->box_top (_("Group Information"), '', 1);
+  print "<ul class='boxli'>";
+  $j = 1;
+  foreach ($group_list as $gid => $v)
   {
-    # If number of rows differ, assume that history is flawed.
-    $result = $result_without_history;
-    $rows = $rows_without_history;
-    $history_is_flawed = true;
+    if ($v['admin_flags'] == 'A')
+      $color = "boxhighlight";
+    else
+      $color = utils_altrow ($j++);
+    print '<li class="' . $color . '">';
+    print "<a href=\"{$GLOBALS['sys_home']}projects/"
+       . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n";
+    print user_format_member_since ($v['date']);
+    print "</li>\n";
   }
-$j = 1;
-$items = '';
-for ($i = 0; $i < $rows; $i++)
-  {
-    $items .= '<li class="' . utils_altrow ($j++) . '">';
-    $items .= "<a href=\"{$GLOBALS['sys_home']}projects/"
-       . db_result ($result, $i, 'unix_group_name') . '/">'
-       . db_result ($result, $i, 'group_name') . "</a><br />\n";
-    $date_joined = db_result ($result, $i, 'date');
-    if ($date_joined)
-      {
-        $items .= '<span class="smaller">'
-         . sprintf (_("Member since %s"), utils_format_date ($date_joined))
-         . '</span>';
-      }
-    $items .= "</li>\n";
-  }
-if ($items === '')
-  print _("This user is not a member of any group.");
-else
-  print "<ul class='boxli'>$items</ul>\n";
-print $HTML->box_bottom (1);
+  print "</ul>\n";
+  print $HTML->box_bottom (1);
+}
+
+output_group_info ($user_id);
 
 # List of squad members, if appliable.
 if ($is_squad)

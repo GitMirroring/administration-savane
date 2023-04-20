@@ -29,7 +29,6 @@ $res_user =
   db_execute ("SELECT * FROM user WHERE user_id = ?", [user_getid ()]);
 $row_user = db_fetch_array ($res_user);
 
-# Obtain approval_user_gen_email() for site specific content.
 utils_get_content ("my/request_for_inclusion");
 
 extract (sane_import ('request',
@@ -157,49 +156,7 @@ if ($update)
       }
   } # if ($update)
 
-# Get global user and group vars.
-$result = db_execute ("
-  SELECT
-    g.group_name, g.group_id, g.unix_group_name, g.status,
-    u.admin_flags, h.date
-  FROM groups g, user_group u, group_history h
-  WHERE
-    g.group_id = u.group_id AND u.user_id = ? AND g.status = 'A'
-    AND
-      ( h.field_name = 'Added User' OR h.field_name = 'Approved User'
-        OR u.admin_flags = 'P')
-    AND h.group_id = u.group_id AND h.old_value = ?
-  GROUP BY g.unix_group_name ORDER BY g.unix_group_name",
-  [user_getid (), user_getname ()]
-);
-$rows = db_numrows ($result);
-
-# Alternative sql that do not use group_history, just in case this history
-# would be flawed (history usage has been inconsistent over Savane history).
-$history_is_flawed = false;
-$result_without_history = db_execute ("
-  SELECT g.group_name, g.group_id, g.unix_group_name, g.status, u.admin_flags
-  FROM groups g, user_group u
-  WHERE g.group_id = u.group_id AND u.user_id = ?  AND g.status = 'A'
-  GROUP BY g.unix_group_name ORDER BY g.unix_group_name", [user_getid ()]
-);
-$rows_without_history = db_numrows ($result_without_history);
-
-if ($rows_without_history != $rows)
-  {
-    # If number of rows differ, assume that history is flawed. Print a
-    # feedback incitating to fix the installation and override flawed result.
-    #
-    # The following update script was maybe forgot:
-    # update/1.0.6/update_group_history.pl
-    fb (_("Groups history appears to be flawed.\n"
-          . "Please report the incident to administrators."), 1
-    );
-    $history_is_flawed = true;
-    $result = $result_without_history;
-    $rows = $rows_without_history;
-  }
-
+$group_list = user_list_groups (user_getid (), false);
 # Start HTML.
 site_user_header (['context'=>'mygroups']);
 
@@ -368,66 +325,56 @@ if ($words)
 print $HTML->box_bottom (1);
 print html_splitpage (2);
 
-if (!$result || $rows < 1)
+if (count ($group_list) < 1)
   {
     print $HTML->box_top (_("My Groups"), '', 1);
     print _("You're not a member of any public group");
     print $HTML->box_bottom (1);
+    print html_splitpage (3);
+    $HTML->footer ([]);
+    exit;
   }
-else
+$titles = [
+  'A' => [
+    _("Groups I'm administrator of"),
+    _("I am not administrator of any groups"),
+    _("Quit this group")],
+  '' => [
+    _("Groups I'm contributor of"),
+    _("I am not contributor member of any groups"),
+    _("Quit this group")],
+  'P' => [
+    _("Requests for inclusion waiting for approval"),
+    _("None found"),
+    _("Discard this request")]
+];
+foreach ($titles as $k => $t)
   {
-    $titles = [
-      'A' => [
-        _("Groups I'm administrator of"),
-        _("I am not administrator of any groups"),
-        _("Quit this group")],
-      '' => [
-        _("Groups I'm contributor of"),
-        _("I am not contributor member of any groups"),
-        _("Quit this group")],
-      'P' => [
-        _("Requests for inclusion waiting for approval"),
-        _("None found"),
-        _("Discard this request")]
-    ];
-    foreach ($titles as $k => $t)
+    print $HTML->box_top ($t[0], '', 1);
+    $j = 1;
+    $text = '';
+    foreach ($group_list as $gid => $v)
       {
-        print $HTML->box_top ($t[0], '', 1);
-        $j = 1;
-        $content = '';
-        for ($i = 0; $i < $rows; $i++)
-          {
-            if (db_result ($result, $i, 'admin_flags') != $k)
-              continue;
-            $content .= '<li class="'. utils_altrow ($j) . '">';
-            $content .= '<span class="trash">'
-             . '<a href="../my/quitproject.php?quitting_group_id='
-             . db_result ($result, $i, 'group_id') . '">'
-             . html_image_trash (['alt' => $t[2]])
-             . "</a><br /></span>\n";
+        if ($v['admin_flags'] != $k)
+          continue;
+        $text .= '<li class="' . utils_altrow ($j) . '">';
+        $text .= '<span class="trash">'
+          . "<a href=\"../my/quitproject.php?quitting_group_id=$gid\">"
+          . html_image_trash (['alt' => $t[2]])
+          . "</a><br /></span>\n";
 
-            $content .= "<a href=\"{$sys_home}projects/"
-              . db_result ($result, $i, 'unix_group_name') . '/">'
-              . db_result ($result, $i, 'group_name') . "</a><br />\n";
-            $date_joined = null;
-            if (!$history_is_flawed)
-              $date_joined = db_result ($result, $i, 'date');
-            if ($date_joined)
-              # If the group history is flawed (site install problem),
-              # the date may be unavailable.
-              $content .= '<span class="smaller">'
-                . sprintf (_("Member since %s"), utils_format_date ($date_joined))
-                . '</span>';
-            $content .= '</li>';
-            $j++;
-          }
-        if ($content != '')
-          print "<ul class='boxli'>$content</ul>\n";
-        else
-          print $t[1];
-        print $HTML->box_bottom (1);
-        print "<br />\n";
+        $text .= "<a href=\"{$sys_home}projects/"
+          . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n"
+          . user_format_member_since ($v['date']);
+        $text .= "</li>\n";
+        $j++;
       }
+    if ($text != '')
+      print "<ul class='boxli'>$text</ul>\n";
+    else
+      print $t[1];
+    print $HTML->box_bottom (1);
+    print "<br />\n";
   }
 print html_splitpage (3);
 $HTML->footer ([]);

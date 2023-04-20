@@ -14,6 +14,12 @@
   all news from the admin group go to the front page of the website
   as well as to the main page of the admin group.
 
+* Private groups are listed on user's page (/u/$user) when the visitor
+  has access to them; when the user is an admin, the group is highlighted.
+
+* Absent 'member since' dates are not treated as broken group history
+  any more.
+
 * Bug fixes:
 
 ** In frontend/php/forum/forum.php, one argument of SQL query
