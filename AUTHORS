@@ -115,6 +115,9 @@ Sylvain Beucler		<beuc@beuc.net>
 Ryan Doyle		<ryan@doylenet.net>
 	Code improvements.
 
+Solar Designer
+	Checking password quality (from pwqcheck).
+
 Aleix Conchillo Flaque	<aleix@member.fsf.org>
 	Code improvements.
 
@@ -135,6 +138,9 @@ Brian Gough		<bjg@hp2.config>
 
 Ineiev			<ineiev@gnu.org>
 	Bugfixing, code improvements, Russian translation.
+
+Richard Stallman
+	Text of hosting requirements.
 
 Bob Proulx		<bob@proulx.com>
 	Bugfixing, code improvements.
