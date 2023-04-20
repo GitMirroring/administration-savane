@@ -112,11 +112,11 @@ Karl Berry		<karl@freefriends.org>
 Sylvain Beucler		<beuc@beuc.net>
 	Bugfixing, code improvements.
 
-Ryan Doyle		<ryan@doylenet.net>
-	Code improvements.
-
 Solar Designer
 	Checking password quality (from pwqcheck).
+
+Ryan Doyle		<ryan@doylenet.net>
+	Code improvements.
 
 Aleix Conchillo Flaque	<aleix@member.fsf.org>
 	Code improvements.
@@ -139,11 +139,11 @@ Brian Gough		<bjg@hp2.config>
 Ineiev			<ineiev@gnu.org>
 	Bugfixing, code improvements, Russian translation.
 
-Richard Stallman
-	Text of hosting requirements.
-
 Bob Proulx		<bob@proulx.com>
 	Bugfixing, code improvements.
+
+Richard Stallman
+	Text of hosting requirements.
 
 Tobias Toedter		<t.toedter@gmx.net>
 	Code improvements, bugfixing.
