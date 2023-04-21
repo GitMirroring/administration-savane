@@ -39,6 +39,12 @@
 ** Links to "next results" in tracker item search were incorrect,
    Savannah sr #110869.
 
+[BACKEND]
+
+Bug fixes:
+
+** PrintVersionOrHelp emitted spurious error messages.
+
 [BUILD]
 
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated

@@ -41,7 +41,9 @@ sub PrintVersionOrHelp
   my $version;
   my $getopt;
   my @my_argv = @ARGV;
+  Getopt::Long::Configure ("pass_through");
   GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
+  Getopt::Long::Configure ("no_pass_through");
   return unless $help || $version;
   
   print "$_[0]\n\n" if $help;
