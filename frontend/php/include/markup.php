@@ -726,6 +726,8 @@ function markup_mark_quoted ($chunks)
 # Parse markup and post-process it with the $build_chunk function.
 function markup_run_markup ($text, $allow_headings, $build_chunk)
 {
+  if ($text === null)
+    return "";
   $marked = markup_mark_nomarkup ([$text]);
   $marked = markup_mark_quoted ($marked);
   $marked = markup_mark_lists ($marked);
@@ -1084,7 +1086,7 @@ function markup_inline_nomarkup ($line)
 
 function markup_inline_string ($line)
 {
-  if (strlen ($line) == 0)
+  if ($line === null || strlen ($line) == 0)
     return "";
 
   $line = markup_expand_links ($line);
