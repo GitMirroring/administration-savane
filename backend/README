@@ -1,19 +1,33 @@
+Copyright (C) 1999-2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2014, 2016-2017 Assaf Gordon
+Copyright (C) 2013-2014, 2017-2023 Ineiev
+
+This file is part of Savane.
+
+Savane is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+Savane is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 The Savane Backend:
 -------------------
 
 This part of Savane is a set of scripts that permits to synchronize the 
 Savane database with the system.
 
-Some of theme are purely accessories, some of them are important on Savane
-installation. 
-
-Scripts beginning by the prefix sv_extra are useful only when use with 
-another service (like a cvs server) that is not part of Savane. 
-
 Usually, the backend relies on perl scripts and the Savane lib (Savannah.pm).
 
-Most of the script provide a --help option.
-
+Most of these scripts provide a --help option.
 
 Description of the subdirectories:
 ----------------------------------
@@ -24,32 +38,11 @@ accounts:
 	database.
 	It can also build repositories of different kind.
 
-
-admin:
-	Scripts designed for savane administrators (of an installation). For
-	instance, sv_register_discard permit to remove a group from the 
-	database completely.
-
-cvs: 
-	Scripts for CVS management
-
-darwin:
-	Scripts for savane use on Darwin/Mac OS X
-
-devel:
-	Scripts for savane developers
-
-
-install:
-	Scripts for savane installation / upgrade
-
+extra:
+	Scripts providing extra features.
 
 mail:
-	Scripts related to mail management
+	Scripts related to mail management.
 
-
-*-specific:
-	Specific to an installation of Savane, like the installation at Gna!
-
-
-$Id$
+misc:
+	Other scripts.

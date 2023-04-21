@@ -22,6 +22,7 @@ backend_scripts = \
 	backend/extra/cvs/sv_extra_daily_cvs_tarball_forbid \
 	backend/extra/cvs/sv_extra_import_cvs \
 	backend/extra/cvs/sv_extra_pserver_cvsroots \
+	backend/extra/git/sv_cgit.pl \
 	backend/misc/sv_reminder \
 	backend/misc/sv_cleaner \
 	backend/accounts/sv_assign_uid_gid

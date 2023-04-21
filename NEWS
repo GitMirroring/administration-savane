@@ -41,6 +41,9 @@
 
 [BACKEND]
 
+* New script, backend/extra/git/sv_cgit.pl.in (fetched from vcs2
+  and heavily rewritten).
+
 Bug fixes:
 
 ** PrintVersionOrHelp emitted spurious error messages.
