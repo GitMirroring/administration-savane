@@ -24,7 +24,16 @@ modules = \
 	Savane/Version.pm
 
 nobase_libexec_SCRIPTS = $(modules)
-sysconf_DATA = savane.conf.pl
+
+install-data-local: savane.conf.pl; \
+  if test -e "$(sysconfdir)/savane.conf.pl"; then\
+     echo; echo; \
+     echo "NOTE: $(sysconfdir)/savane.conf.pl exists; not trying "; \
+     echo "      to overwrite it with a new configuration file."; \
+     echo; echo; \
+  else \
+    $(INSTALL) -m 644 -D savane.conf.pl "$(sysconfdir)/savane.conf.pl"; \
+  fi
 
 substituted = $(modules) savane.conf.pl
 
@@ -33,11 +42,11 @@ subst_pm = sed \
 	-e 's,[@]sysconfdir[@],$(sysconfdir),' \
 	-e 's,[@]PERL[@],$(PERL),' \
 	-e 's,[@]VERSION[@],$(VERSION),'
-	chmod +x $@
 
 $(substituted): %: %.in
 	$(MKDIR_P) $(dir $@)
 	$(subst_pm) < $^ > $@
+	chmod +x $@
 
 CLEANFILES = $(substituted)
 

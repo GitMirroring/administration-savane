@@ -38,11 +38,12 @@ AC_CONFIG_AUX_DIR(autotools)
 # For future version of aclocal:
 AC_CONFIG_MACRO_DIR(autotools/m4)
 AM_INIT_AUTOMAKE([1.11.1])
+AC_PROG_INSTALL
 
-dnl The installed program must know where to find its message catalogs.
-dnl Unfortunately, prefix gets only finally determined at the end of configure.
-dnl i.e. otherwise you'll get @localedir@ => ${datarootdir}/locale
-dnl (litterally)
+# The installed program must know where to find its message catalogs.
+# Unfortunately, prefix gets only finally determined at the end of configure.
+# i.e. otherwise you'll get @localedir@ => ${datarootdir}/locale
+# (litterally).
 if test "X$prefix" = "XNONE"; then
   final_prefix="$ac_default_prefix"
 else
@@ -54,7 +55,7 @@ eval "datarootdir=\"${datarootdir}\""
 eval "localedir=\"${datadir}/locale\""
 prefix="$save_prefix"
 
-dnl Support for the po directory.
+# Support for the po directory.
 AM_PO_SUBDIRS
 
 if test -z "$MSGFMT" || test "x$MSGFMT" = "x:"; then
@@ -118,9 +119,11 @@ AC_ARG_WITH([db-options], AS_HELP_STRING([--with-db-options],
 AC_SUBST(SV_DB_NAME)
 AC_SUBST(SV_DB_OPTIONS)
 
-# Apache
-# Perl: TODO, see how to autoconfiscate this proPERLy
-echo -n "checking for webserver user... "
+sysconfdir="$sysconfdir/savane"
+SV_CONF=$sysconfdir
+AC_SUBST(SV_CONF)
+
+AC_CHECKING([for webserver user])
 if test -e  "/etc/debian_version"; then
     # Debian-based
     GUESS_WWW_SERVER_USER="www-data"
@@ -136,15 +139,10 @@ elif test -e "/etc/slackware-version"; then
     # Slackware-based"
     GUESS_WWW_SERVER_USER="nobody"
 fi
-echo $GUESS_WWW_SERVER_USER
+AC_MSG_RESULT([$GUESS_WWW_SERVER_USER])
 # TODO: --with-php-uid=... (AC_ARG_ENABLE)
 # TODO: ps aux | grep -E 'http|apache' | parse_uid_field...
 # TODO: else { echo "Couldn't guess Apache user"; exit 1}
-
-
-SV_CONF=$sysconfdir/savane
-AC_SUBST(SV_CONF)
-
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([ \
@@ -159,19 +157,15 @@ AC_CONFIG_FILES([frontend/php/include/ac_config.php])
 
 AC_OUTPUT
 
-echo
-
-echo "Configuration directory: " `eval echo $SV_CONF`
-echo "Guessed HTTPd/PHP user (configuration file permissions): $GUESS_WWW_SERVER_USER"
-echo "Database name: $SV_DB_NAME"
+AS_ECHO([])
+AS_ECHO(["Configuration directory: " `eval echo $SV_CONF`])
+AS_ECHO(["Guessed HTTPd/PHP user: $GUESS_WWW_SERVER_USER"])
+AS_ECHO(["Database name: $SV_DB_NAME"])
 if test ! -z "$SV_DB_OPTIONS"; then
-   echo "Database options: $SV_DB_OPTIONS"
+  AS_ECHO(["Database options: $SV_DB_OPTIONS"])
 fi
 
-echo
-
-echo "Now you can run:"
-echo "  make"
-echo "  make install"
-echo "to install the backend scripts, their Savane Perl library,"
-echo "and language files for the web interface"
+AS_ECHO([])
+AS_ECHO(["Now you can run"])
+AS_ECHO(["  make all install"])
+AS_ECHO(["to install the backend scripts and their Savane Perl library."])
