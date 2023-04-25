@@ -24,6 +24,7 @@ use Savane;
 use Getopt::Long;
 use File::Temp qw/ tempfile /;
 
+our $dbd;
 my $verbose;
 my $dry_run;
 my $topdir;
@@ -53,6 +54,8 @@ $pfx = "/srv/git" unless $pfx;
 $dry_run = 0 unless $dry_run;
 $verbose = 0 unless $verbose;
 
+$dbd->{mysql_enable_utf8} = 1;
+
 sub htmlspecialchars
 {
   $_ = $_[0];
@@ -74,7 +77,7 @@ sub get_desc
 {
   my $path = $_[0];
   my $desc = '';
-  open (DESC, "<$path/description") or warn "$path/description: $!";
+  open (DESC, "<:encoding(UTF-8)", "$path/description") or warn "$path/description: $!";
   $desc = <DESC>;
   close (DESC);
   chomp ($desc);
@@ -141,6 +144,7 @@ my $tmp_filename;
 
 chdir ($topdir) or die $!;
 ($out, $tmp_filename) = tempfile ("cgitrepos-XXXXXXXX", UNLINK => 1);
+binmode $out, ":utf8";
 foreach my $path (<*.git>)
   {
     next if ! -d $path;

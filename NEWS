@@ -48,6 +48,9 @@ Bug fixes:
 
 ** PrintVersionOrHelp emitted spurious error messages.
 
+** Git repository descriptions using UTF-8 non-ASCII characters
+   weren't passed to cgitrepos correctly.
+
 [BUILD]
 
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
