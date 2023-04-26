@@ -178,7 +178,8 @@ print
 if ($preview)
   {
     print '<h2>' . _('Preview') . "</h2>\n\n";
-    print markup_full (utils_specialchars ($details));
+    if (isset ($details))
+      print markup_full (utils_specialchars ($details));
   }
 
 
