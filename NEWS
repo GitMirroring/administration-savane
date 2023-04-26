@@ -53,6 +53,8 @@ Bug fixes:
 ** Git repository descriptions using UTF-8 non-ASCII characters
    weren't passed to cgitrepos correctly.
 
+** In sv_reminder, the "month before" date was assigned incorrectly.
+
 [BUILD]
 
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
