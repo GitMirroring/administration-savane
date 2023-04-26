@@ -49,12 +49,12 @@ $help =
 
 This script will send reminder to users in some specific cases.
 Case 1: an item is about to start or finish, all people from the item
-notification list should be warned.
-Case 2: an user decided to receive a batch of open item assigned to
-him each x days, minimum priority being > 5.
-Case 3: a project admin decided that members assigned to some item of
+notification list should be warned. (not implemented)
+Case 2: users decided to receive a batch of open items assigned to
+them each x days, minimum priority being > 5.
+Case 3: a group admin decided that members assigned to some item of
 should receive a batch each x days, minimum priority > 5.
-(Case 4: a project admin decided that members assigned to some item
+(Case 4: a group admin decided that members assigned to some item
 whose status or resolution haven't changed for some period should receive
 a batch each x days).
 
@@ -69,12 +69,13 @@ This script is supposed to run twice a day.
                                Make sure this parameters fit to your
                                number of users and servers possibilities!
                                (Default: $max)
-      --max-items              Maximum number of items mentionned in a mail
+      --max-items              Maximum number of items mentioned in a mail
                                The purpose of this setting is to avoid
                                sending extremely big mails
                                (Default: $max_items)
       --cron                   Option to set when including this script
-                               in a crontab";
+                               in a crontab
+";
 PrintVersionOrHelp ($help);
 
 GetOptions (
@@ -82,7 +83,7 @@ GetOptions (
   "debug" => \$debug
 );
 
-exit if ($cron && ! $sys_cron_reminder);
+exit if ($cron && !$sys_cron_reminder);
 
 sub PrintLog
 {
@@ -93,12 +94,10 @@ open (LOG, ">>$logfile");
 PrintLog ("starting");
 AcquireReplicationLock();
 
-
 # - List items + why + user.
-# - Then compile per user, mentionning why+item,
-#        adding more info and links
-# - Send all mails
-# - Register in the db with one SQL command would be best (saving
+# - Then compile per user, mentionning why+item, adding more info and links.
+# - Send all mails.
+# - Register in the DB with one SQL command would be best (saving
 #   ressource), but painy  if the script is interrupted.
 
 # List of users that is supposed to receive a batch.
@@ -110,48 +109,43 @@ my %items;
 # summary{bugs542} = summary of the item.
 my %summary;
 
-# Timestamps.
-
-# Determine the timestamp of one month ago, one week ago and one day
-# ago.
-# With these, we'll run only 3 sql command and find out which users need
+# Determine the timestamp of one month ago, one week ago and one day ago.
+# With these, we'll run only 3 SQL command and find out which users need
 # to receive a bach.
-my ($year, $month, $day);
-my $now = timelocal (localtime ());
+my $date0 = time;
+my $now = timelocal (localtime ($date0));
 
-my ($year, $month, $day) = split (",", `date +%Y,%m,%d`);
-($year, $month, $day) = Add_Delta_YMD ($year, $month, $day, 0, 0, -1);
-my $daybefore = timelocal ("0", "0", "0", $day, ($month-1), ($year-1900));
+sub date_before
+{
+  my ($d0, $dd, $dm) = @_;
+  my ($sec, $mi, $h, $d, $m, $y) = localtime ($d0);
+  ($y, $m, $d) = Add_Delta_YMD ($y + 1900, $m + 1, $d, 0, -$dm, -$dd);
+  return timelocal ($sec, $mi, $h, $d, $m - 1, $y - 1900);
+}
 
-my ($year, $month, $day) = split (",", `date +%Y,%m,%d`);
-($year, $month, $day) = Add_Delta_YMD ($year, $month, $day, 0, 0, -7);
-my $weekbefore = timelocal ("0", "0", "0", $day, ($month-1), ($year-1900));
-
-my ($year, $month, $day) = split (",", `date +%Y,%m,%d`);
-($year, $month, $day) = Add_Delta_YMD ($year, $month, $day, 0, -1, 0);
-my $monthbefore = timelocal ("0", "0", "0", $day, ($month-1), ($year-1900));
+my $daybefore = date_before ($date0, 1, 0);
+my $weekbefore = date_before ($date0, 7, 0);
+my $monthbefore = date_before ($date0, 0, 1);
 
 print
   "DBG time: daybefore:$daybefore, weekbefore:$weekbefore; "
   . "monthbefore:$monthbefore\n"
   if $debug;
 
-# Case 1: an item is about to start or finish, assigned to person
-# should be warned.
+# Case 1: an item is about to start or finish, assignee should be warned.
 
 # Not implemented yet.
 
-# Case 2: an user decided to receive a batch of open item
-# assigned to him each x days.
+# Case 2: users decided to receive a batch of open item assigned to them
+# each x days.
 
 # Store user frequency useful to test if they really need to be in user.
 my %user_frequency;
-# Store user that need to receive batch for case 2.
+# Store users that need to receive batch for case 2.
 my @user_case2;
 
-# Make one sql command to catch appropriate users:
-#   with batch_frequency pref. set (not to zero)
-#   frequency flag: 0 = none, 1 = daily, 2 = weekly, 3 = monthly
+# Find appropriate users; frequency flag:
+# 0 = none, 1 = daily, 2 = weekly, 3 = monthly.
 foreach my $line
   (
     GetDB (
@@ -167,10 +161,9 @@ foreach my $line
     $user_frequency{$user_id} = $frequency;
 }
 
-# Make one sql command to catch defined batch last sent timestamp
-# People that got batch_frequency set MUST have batch_lastsent set, otherwise
+# Get last sent timestamps.
+# People that got batch_frequency set must have batch_lastsent set, otherwise
 # it's a bug in the frontend.
-# batch_lastsent must be smaller than yesterday
 foreach my $line
   (
     GetDB (
@@ -233,8 +226,8 @@ foreach my $tracker (@trackers)
       }
   }
 
-# Case 3: a project admin decided that anybody on his project that got
-# open item assigned should receive reminders. The project admin
+# Case 3: a group admin decided that anybody on his group that got
+# open item assigned should receive reminders.  The group admin
 # set the frequency.
 
 # User frequency useful to test if they really need to be in user.
@@ -242,7 +235,7 @@ my %group_frequency;
 # Group that needs batch to be sent.
 my @group_case3;
 
-# Make one sql command to catch appropriate users:
+# Make one SQL command to catch appropriate users:
 #   with batch_frequency pref. set (not to zero)
 #   frequency flag: 0 = none, 1 = daily, 2 = weekly, 3 = monthly
 foreach my $line
@@ -261,10 +254,6 @@ foreach my $line
     $group_frequency{$group_id} = $frequency;
   }
 
-# Make one sql command to catch defined batch last sent timestamp
-# People that got batch_frequency set MUST have batch_lastsent set, otherwise
-# it's a bug in the frontend.
-# batch_lastsent must be smaller than yesterday.
 foreach my $line
   (
     GetDB (
@@ -280,7 +269,7 @@ foreach my $line
 
     my $dbg_msg = "DBG case3 valid for monthly/weekly/daily batch: "
       . "$group_id, $lastsent\n";
-    if ( $lastsent < $monthbefore && $group_frequency{$group_id} > 0)
+    if ($lastsent < $monthbefore && $group_frequency{$group_id} > 0)
       {
         push (@group_case3, $group_id);
         print $dbg_msg if $debug;
@@ -329,7 +318,7 @@ foreach my $tracker (@trackers)
       }
   }
 
-# Grab db information related to users - we want to do that
+# Grab DB information related to users - we want to do that
 # in one SQL command.
 
 my %user_email;
@@ -349,7 +338,7 @@ foreach my $line
   }
 
 # Send mails:
-# Currently the contact is standard. Later it will probably partly
+# Currently the contact is unified.  Later it will probably partly
 # site-specific.
 #
 # Some test needs to be done to be sure the smtp will accept to send
@@ -387,7 +376,7 @@ while (my ($user_id,) = each (%user))
 
       This reminder is sent to you because of your personal
       notification settings or, possibly, configuration settings
-      of projects you are member of.
+      of groups you are member of.
 
       Follows items, assigned to you, that require your attention
       (same status for too long, high priority, etc...).
