@@ -162,6 +162,19 @@ sub send_notification
   close ($input);
 }
 
+sub purge_account_aux_data
+{
+  my ($id) = @_;
+  foreach my $t ("user_group", "user_squad")
+    {
+      delete_and_log ($t, "user_id = $id", "#$id $t --- THIS MUSTN'T HAPPEN");
+    }
+  foreach my $t ("user_bookmarks", "user_preferences", "user_votes", "session")
+    {
+      delete_and_log ($t, "user_id = $id", "#$id $t");
+    }
+}
+
 sub purge_account
 {
   my ($id, $name) = @_;
@@ -207,6 +220,7 @@ sub remove_account
     {
       suspend_account ($id, $name, $email);
     }
+  purge_account_aux_data ($id);
   return if $dry_run;
   send_notification ($name, $email) unless domain_is_banned ($email);
 }

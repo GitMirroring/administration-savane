@@ -412,12 +412,21 @@ function user_has_history ($user_id)
   return db_numrows ($result) > 0;
 }
 
+# Delete user's data that are not stored in the 'user' table.
+function user_delete_aux_data ($user_id)
+{
+  foreach (['user_group', 'user_squad', 'user_bookmarks', 'user_preferences',
+    'user_votes', 'session'] as $table)
+    db_execute ("DELETE FROM $table WHERE user_id = ?", [$user_id]);
+}
+
 # Completely remove account from the database; should only be done
 # when there was no activity related to the account on trackers
 # and in group_history.
 function user_purge ($user_id)
 {
   db_execute ("DELETE FROM user where user_id = ?", [$user_id]);
+  user_delete_aux_data ($user_id);
 }
 
 # Rename account, with necessary history adjustments in the database (unless
@@ -497,21 +506,10 @@ function user_delete ($user_id = false, $confirm_hash = false)
       fb (_("Failed to update the database."), 1);
       return false;
     }
-  # Remove from any groups, if by any chances this was not done before
-  # (normally, an user must quit groups before being allowed to delete his
-  # account).
-  db_execute ("DELETE FROM user_group WHERE user_id = ?", [$user_id]);
-  db_execute ("DELETE FROM user_squad WHERE user_id = ?", [$user_id]);
-
-  # Additionally, clean up sessions, remove prefs.
-  db_execute ("DELETE FROM user_bookmarks WHERE user_id = ?", [$user_id]);
-  db_execute ("DELETE FROM user_preferences WHERE user_id = ?", [$user_id]);
-  db_execute ("DELETE FROM user_votes WHERE user_id = ?", [$user_id]);
-  db_execute ("DELETE FROM session WHERE user_id = ?", [$user_id]);
+  user_delete_aux_data ($user_id);
   # Rename user; the name starts with '_' so it can't be registered manually,
   # and it shall be unique because it's derived from $user_id.
   user_rename ($user_id, "_$user_id");
-
   fb (_("Account deleted."));
   return true;
 }

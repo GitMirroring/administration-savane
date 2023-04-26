@@ -55,6 +55,9 @@ Bug fixes:
 
 ** In sv_reminder, the "month before" date was assigned incorrectly.
 
+** In sv_cleaner, user's auxiliary data like preferences and bookmarks
+   weren't removed when removing the account.
+
 [BUILD]
 
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
