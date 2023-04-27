@@ -49,6 +49,8 @@
 * The --cron option in scripts is ignored, --logfile is added when
   relevant.
 
+* --version option in scripts outputs copyright and license notices.
+
 Bug fixes:
 
 ** PrintVersionOrHelp emitted spurious error messages.

@@ -54,6 +54,52 @@ sub GetVersion
   return '@VERSION@';
 }
 
+sub print_copyright_notice
+{
+  my $line;
+  my ($path, $fh) = @_;
+  $line = <$fh>;
+  while ($line = <$fh>)
+    {
+      last if $line =~ m/Copyright/;
+    }
+  die "Copyright notice not found in $path"
+    if $line !~ m/Copyright/;
+  $line =~ s,^# ,,;
+  print "\n$line";
+  while ($line = <$fh>)
+    {
+      $line =~ s,^# ?,,;
+      last if $line eq "\n";
+      print $line;
+    }
+}
+
+sub print_license_notice
+{
+  my $fh = shift;
+  my $line;
+  $line = <$fh>;
+  while ($line = <$fh>)
+    {
+      last if $line eq "\n";
+      $line =~ s,^# ?,,;
+      print $line;
+    }
+}
+
+sub print_legal_notices
+{
+  my $libexec = '@libexecdir@';
+  my $line;
+  my $fh;
+  my $path = "$libexec/Savane/Version.pm";
+  open ($fh, "<:encoding(UTF-8)", $path) or die $!;
+  print_copyright_notice ($path, $fh);
+  print_license_notice ($fh);
+  close ($fh);
+}
+
 # Parse command line, check if help or version options are present,
 # print the requested info and exit.
 
@@ -68,9 +114,12 @@ sub PrintVersionOrHelp
   GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
   Getopt::Long::Configure ("no_pass_through");
   return unless $help || $version;
+  $version = 0 if $help;
   
   print "$_[0]\n\n" if $help;
+  print "$0 is part of Savane.\n\n" if $version;
   print "Savane version: @VERSION@\n";
+  print_legal_notices if $version;
   exit (0);
 }
 
