@@ -77,28 +77,40 @@ $res_admin = db_execute ("
   [$group_id]
 );
 print "\n<div class='indexright'>\n";
-print $HTML->box_top (_("Membership Info"));
-print '<span class="smaller">';
-$next_div = function (&$j)
+print $HTML->box_top (_("Membership Info"), "", 1);
+$start_div = function (&$j)
 {
-  print "</span></div>\n<div class=\""
-    . utils_altrow ($j++) . '"><span class="smaller">';
+  print "<div class=\"" . utils_altrow ($j++) . '"><span class="smaller">';
 };
-$adminsnum = db_numrows ($res_admin);
-$j = 0;
-if ($adminsnum > 0)
-  {
-    print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
-    while ($row_admin = db_fetch_array ($res_admin))
-      {
-        $next_div ($j);
-        print "&nbsp; - "
-          . utils_link (
-              "{$sys_home}users/{$row_admin['user_name']}",
-              $row_admin['realname']
-            );
-      }
-  }
+$end_div = function ()
+{
+  print "</span></div>\n";
+};
+$j = 1;
+function print_group_admins ($res_admin)
+{
+  global $sys_home, $j, $start_div, $end_div;
+  $adminsnum = db_numrows ($res_admin);
+  if (!$adminsnum)
+    return;
+  $start_div ($j);
+  print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
+  $end_div ();
+  print "\n<ul class='group-page-admins'>\n";
+  while ($row_admin = db_fetch_array ($res_admin))
+    {
+      print "<li>";
+      $start_div ($j);
+      print utils_link (
+            "{$sys_home}users/{$row_admin['user_name']}",
+            $row_admin['realname']
+          );
+      $end_div ();
+      print "</li>\n";
+    }
+  print "</ul>\n";
+}
+print_group_admins ($res_admin);
 
 # Count of members on this group.
 $membersnum = db_fetch_array (db_execute ("
@@ -112,32 +124,33 @@ $membersnum = db_fetch_array (db_execute ("
 
 $membersnum = $membersnum['count'];
 
-$next_div ($j);
+$start_div ($j);
 printf (
   ngettext ("%s active member", "%s active members", $membersnum),
-  "<strong>$membersnum</strong>"
+  "<b>$membersnum</b>"
 );
+$end_div ();
 
 # If member = 1, it's obviously (or it should be) the group admin.
 # If there's no admin, we need to get access to the list.
 # But we show it anyway: this page can be used for request for membership,
 # provide more info that the little infobox.
-$next_div ($j);
+$start_div ($j);
 
 print '['
   . utils_link (
      "${sys_home}project/memberlist.php?group=$group", _("View Members")
     )
-  . ']</span>';
-print $HTML->box_bottom ();
+  . ']';
+$end_div ();
+print $HTML->box_bottom (1);
 print "<br />\n";
-print $HTML->box_top (_("Group identification"));
-print '<span class="smaller">';
-# TRANSLATORS: the argument is group id (a number).
-printf (_("Id: <strong>#%s</strong>"), $group_id);
+print $HTML->box_top (_("Group identification"), "", 1);
 $j = 0;
 
 $item_arr = [
+   # TRANSLATORS: the group id (a number) will follow.
+  _("Id:") => $group_id,
   _("System Name:") => $group,
   _("Name:") => $project->GetName (),
   _("Group Type:") => $project->getTypeName ()
@@ -145,11 +158,13 @@ $item_arr = [
 
 foreach ($item_arr as $key => $val)
   {
-    $next_div ($j);
-    print "$key <strong>$val</strong>";
+    $start_div ($j);
+    print "$key <b>$val</b>";
+    $end_div ();
   }
-unset ($next_div);
-print '</span>'. $HTML->box_bottom () . "<br />\n";
+unset ($start_div);
+unset ($end_div);
+print $HTML->box_bottom (1) . "<br />\n";
 
 if (search_has_group_anything_to_search ($group_id))
   {
@@ -268,7 +283,7 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
       ngettext (
          "(%s registration pending)", "(%s registrations pending)", $reg_count
       ),
-      "<strong>$reg_count</strong>"
+      "<b>$reg_count</b>"
     );
     print $HTML->box_bottom ();
     print "<br />\n";
@@ -350,10 +365,10 @@ if ($project->Uses ("extralink_documentation"))
         # The group has an external doc? Print it first. See pagemenu.php
         # for explanations about this.
         print $img;
-        $br = "<br />\n&nbsp; - ";
-        print $br
+        print "<ul><li>"
           . utils_link ($extra_link, _("Browse docs (external to Savane)"));
-        print $br . utils_link ($cb_url, _("Browse the cookbook"));
+        print "</li>\n<li>" . utils_link ($cb_url, _("Browse the cookbook"));
+        print "</li>\n<ul>\n";
       }
     else
       print utils_link ($cb_url, $img);
@@ -369,7 +384,7 @@ print utils_link(
 print ' ';
 printf (
   ngettext ("(%s member)", "(%s members)", $membersnum),
-  "<strong>$membersnum</strong>"
+  "<b>$membersnum</b>"
 );
 $i++;
 
@@ -393,24 +408,25 @@ function open_vs_total_items ($url, $group_id, $artifact)
     WHERE group_id = ? AND status_id != 3",
     [$group_id]);
   $row_count = db_fetch_array($res_count)['count'];
-  $open_num = "<strong>$row_count</strong>";
+  $open_num = "<b>$row_count</b>";
   $res_count = db_execute (
     "SELECT count(*) AS count FROM $artifact WHERE group_id = ?",
     [$group_id]
   );
   $row_count = db_fetch_array($res_count)['count'];
-  $total_num = "<strong>$row_count</strong>";
+  $total_num = "<b>$row_count</b>";
   print ' ';
   # TRANSLATORS: the arguments are numbers of items.
   printf (_('(open items: %1$s, total: %2$s)'), $open_num, $total_num);
 
-  print "<br />\n&nbsp; - "
+  print "<ul>\n<li>"
     . utils_link ("$url&amp;func=browse&amp;set=open", _("Browse open items"));
-  print "<br />\n&nbsp; - "
+  print "</li>\n<li>"
     . utils_link (
        "$url&amp;func=additem", _("Submit a new item"),
        0, group_restrictions_check ($group_id, $artifact)
       );
+  print "</li>\n</ul>\n";
 }
 
 $job_num = people_project_jobs_rows ($group_id);
@@ -453,7 +469,7 @@ if ($sys_unix_group_name == $group
           ngettext (
             "(%s public mailing list)", "(%s public mailing lists)", $row_count
            ),
-           "<strong>$row_count</strong>"
+           "<b>$row_count</b>"
         );
         $i++;
       }
@@ -465,12 +481,12 @@ if ($sys_unix_group_name == $group
           "${sys_home}people/?group=$group",
           proj_home_img ("contexts/people.png")
           . _("This group is looking for people")
-        );
+        ) . ' ';
         printf (
           ngettext (
             "(%s contributor wanted)", "(%s contributors wanted)", $job_num
           ),
-          "<strong>$job_num</strong>"
+          "<b>$job_num</b>"
         );
         $i++;
       }
@@ -491,11 +507,10 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
   print proj_home_img ("contexts/cvs.png") . "<a href=\"$url\">";
   # TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
   printf (_("%s Repository"), $scm_name);
-  print "</a>\n";
-  $brk = "<br />\n&nbsp; - "; 
+  print "</a>\n<ul>\n";
   $admin_url = pagemenu_vcs_admin_url ($group, $scm);
   if ($admin_url != '')
-    print "$brk<a href=\"$admin_url\">" . _("Administer") . "</a>";
+    print "<li><a href=\"$admin_url\">" . _("Administer") . "</a></li>\n";
 
   $scm_url = $group->getUrl ("${scm}_viewcvs");
   if (
@@ -505,18 +520,19 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
       $repos = vcs_get_repos ($scm, $group_id);
       $n = count ($repos);
       if ($n < 2)
-        print "$brk<a href=\"$scm_url\">"
-          . _("Browse Sources Repository") . "</a>\n";
+        print "<li><a href=\"$scm_url\">"
+          . _("Browse Sources Repository") . "</a></li>\n";
       else
         {
-          print '<p>' . _("Browse Sources Repository") . "</p>\n<ul>\n";
-          print vcs_compile_repo_ul ($repos, $scm_url) . "</ul>\n";
+          print '<li>' . _("Browse Sources Repository") . "\n</li>\n";
+          print vcs_compile_repo_ul ($repos, $scm_url) . "\n";
         }
     }
   $view_url = pagemenu_vcs_web_browse_url ($group, $scm);
   if ($view_url != '')
-    print "<br />\n&nbsp; - <a href=\"$view_url\">"
-      . _("Browse Web Pages Repository") . '</a>';
+    print "<li><a href=\"$view_url\">"
+      . _("Browse Web Pages Repository") . "</a></li>\n";
+  print "</ul>\n";
   $i++;
 } # print_scm_entry
 # Development.

@@ -537,6 +537,15 @@ ul.topmenuitemsubmenu li a
 
 li.topmenuitemsubmenuseparator { line-height: 2px; }
 
+ul.group-page-admins
+{
+  list-style-type: none;
+  padding-right: 0;
+  padding-left: 0;
+  margin-top: .3em;
+  margin-bottom: .3em;
+}
+
 /* Here we do something quite strange to avoid an overlap of the menu:
 We add two divs, one in float right, the other with clear
 right.  Ideally, only a clear left would have done trick, but it does not
