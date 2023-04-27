@@ -93,7 +93,7 @@ fixup_notices ()
   { echo "$1" | sed 's,^,file:\t,'; echo "$years"; } \
   | gawk -v tmp_file="$tmp_file" \
       -v notice="$notice" -v notice_start="$notice_start" \
-      -v notice_line_cnt=9 -v notice_end="$notice_end"  \
+      -v notice_line_cnt=23 -v notice_end="$notice_end"  \
       -f ./fixup-notices.awk $2
 }
 
