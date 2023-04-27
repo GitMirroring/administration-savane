@@ -177,7 +177,7 @@ foreach my $line (@$lists_ref)
     PrintLog ("List $name <$admin> config_list.");
 
     # Send a mail giving the password.
-    my $mail = <<~EOF;
+    my $mail = <<"    EOF";
       Hello,
 
       You requested the creation of the list $name at $sys_mail_domain.
@@ -190,7 +190,8 @@ foreach my $line (@$lists_ref)
       really provide security for these list passwords.
 
       Regards
-      EOF
+    EOF
+    $mail =~ s/^      //gm;
 
     MailSend ("", $admin, "Mailman list $name", $mail)
         unless $skipmail;
@@ -302,7 +303,7 @@ foreach my $line
     PrintLog ("List $name password was reset.");
 
     # Send a mail giving the password.
-    my $mail = <<~EOF;
+    my $mail = <<"    EOF";
       Hello,
 
       You requested the password of the list $name at $sys_mail_domain to be
@@ -316,7 +317,8 @@ foreach my $line
       really provide security for these list passwords.
 
       Regards,
-      EOF
+    EOF
+    $mail =~ s/^      //gm;
     MailSend ("", $admins, "Mailman list $name", $mail)
         unless $skipmail;
     PrintLog ("Mail sent to $admins for list $name.");

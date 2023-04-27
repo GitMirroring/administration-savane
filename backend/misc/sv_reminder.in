@@ -390,7 +390,7 @@ while (my ($user_id,) = each (%user))
 
     my $title = "$sys_name Reminder";
 
-    my $mail = <<~"EOF";
+    my $mail = <<"    EOF";
       Hello $user_name{$user_id},
 
       This reminder is sent to you because of your personal
@@ -399,7 +399,8 @@ while (my ($user_id,) = each (%user))
 
       Follows items, assigned to you, that require your attention
       (same status for too long, high priority, etc...).
-      EOF
+    EOF
+    $mail =~ s/^      //gm;
 
     my $itemcount;
     foreach my $item (@{$items{$user_id}})
@@ -419,12 +420,13 @@ while (my ($user_id,) = each (%user))
         $mail .= "<$basepath$tracker/?func=detailitem&item_id=$item_id>\n";
       }
 
-    $mail .= <<~"EOF";
+    $mail .= <<"    EOF";
 
 
       You can change your personal notification settings at
       <${basepath}my/admin/change_notifications.php>
-      EOF
+    EOF
+    $mail =~ s/^      //gm;
 
     unless ($debug)
       {
