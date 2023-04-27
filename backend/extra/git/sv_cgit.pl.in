@@ -48,33 +48,28 @@ use File::Temp qw/ tempfile /;
 
 our $dbd;
 my $verbose;
-my $dry_run;
-my $topdir;
-my $pfx;
+my $output_filename = "cgitrepos";
+my $topdir = "/srv/git";
+my $pfx = "/srv/git";
 
 my $help_msg =
 "Usage: $0 [OPTIONS]
 
 Generate the list of Git repositories for CGit.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-      --verbose                Output extra warnings
-      --dry-run                Write to cgitrepos~ instead of cgitrepos
-      --topdir                 The working directory [/srv/git]
-      --path-prefix            Prefix for the URL part [/srv/git]";
+  -h, --help                   show this help and exit
+  -v, --version                show Savane version and exit
+      --verbose                output extra warnings
+      --topdir                 the working directory [$topdir]
+      --output                 the file to write [$output_filename]
+      --path-prefix            prefix for the URL part [$pfx]";
 
 PrintVersionOrHelp ($help_msg);
 
 GetOptions (
-  "dry-run" => \$dry_run, "topdir=s" => \$topdir, "path-prefix=s" => \$pfx,
-  "verbose" => \$verbose
+  "output=s" => \$output_filename, "topdir=s" => \$topdir,
+  "path-prefix=s" => \$pfx, "verbose" => \$verbose
 ) or die ("Wrong command line.");
-
-$topdir = "/srv/git" unless $topdir;
-$pfx = "/srv/git" unless $pfx;
-$dry_run = 0 unless $dry_run;
-$verbose = 0 unless $verbose;
 
 $dbd->{mysql_enable_utf8} = 1;
 
@@ -178,7 +173,4 @@ foreach my $path (<*.git>)
   }
 chmod 0644, $out;
 close ($out);
-
-my $target = "cgitrepos";
-$target .= "~" if $dry_run;
-rename $tmp_filename,  $target or die $!;
+rename $tmp_filename,  $output_filename or die $!;
