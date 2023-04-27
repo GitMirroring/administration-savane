@@ -807,8 +807,8 @@ Bug fixes:
 * Full UTF-8 database (including declarations and ordering)
 
 ================================================================
-Copyright (C) 2017, 2018, 2019, 2021, 2022, 2023 Ineiev
-Copyright (C) 2007, 2009, 2010 Sylvain Beucler
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2023 Ineiev
 
 This file is part of Savane.
 

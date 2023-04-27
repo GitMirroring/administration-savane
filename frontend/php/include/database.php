@@ -1,15 +1,22 @@
 <?php
 # Database access wrappers, with quoting/escaping.
 #
-# Copyright (C) 1999-2000  The SourceForge Crew
-# Copyright (C) 2004-2005  Elfyn McBratney <elfyn--emcb.co.uk>
-# Copyright (C) 2004-2005  Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2000-2006  John Lim (ADOdb)
-# Copyright (C) 2007  Cliss XXI (GCourrier)
-# Copyright (C) 2006, 2007  Sylvain Beucler
-# Copyright (C) 2017, 2019, 2020, 2022, 2023 Ineiev
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2004, 2005 Elfyn McBratney <elfyn--emcb.co.uk>
+# Copyright (C) 2000-2006 John Lim (ADOdb)
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2007 Cliss XXI (GCourrier)
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2023 Ineiev
 #
 # This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
 #
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -22,6 +29,19 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 define ('DB_AUTOQUERY_INSERT', 1);
