@@ -78,7 +78,8 @@ Clean up the database:
 
   * groups marked for deletion, including tracker items, news &c.;
   * mailing lists marked for deletion;
-  * news marked for deletion as well as unapproved for a long time.
+  * news marked for deletion as well as unapproved for a long time;
+  * orphan user data---bookmarks, sessions, preferences &c.
 
   -h, --help         show this help and exit
   -v, --version      show Savane version and exit
@@ -177,14 +178,15 @@ sub send_notification
   close ($input);
 }
 
+my @user_tables = (
+  "user_group", "user_squad",
+  "user_bookmarks", "user_preferences", "user_votes", "session"
+);
+
 sub purge_account_aux_data
 {
   my ($id) = @_;
-  foreach my $t ("user_group", "user_squad")
-    {
-      delete_and_log ($t, "user_id = $id", "#$id $t --- THIS MUSTN'T HAPPEN");
-    }
-  foreach my $t ("user_bookmarks", "user_preferences", "user_votes", "session")
+  foreach my $t (@user_tables)
     {
       delete_and_log ($t, "user_id = $id", "#$id $t");
     }
@@ -468,7 +470,7 @@ foreach my $tracker (@trackers)
         push (@table_list, "$tracker$suf");
       }
   }
-# Now remove anything that belong to a group that is dead.
+
 foreach my $group_id (@dead_group_id)
   {
     die "Strange group id found for dead group, exiting" if $group_id eq "";
@@ -488,4 +490,17 @@ foreach my $group_id (@dead_group_id)
     );
     DeleteDB ("mail_group_list", "group_id = '$group_id' AND status = '0'");
   } # foreach my $group_id (@dead_group_id)
+
+foreach my $table (@user_tables)
+  {
+    my @res = GetDB ("$table p LEFT JOIN user u ON p.user_id = u.user_id",
+      "u.user_id IS NULL OR u.status = 'S' GROUP BY p.user_id", "p.user_id"
+    );
+    foreach my $line (@res)
+      {
+        chomp ($line);
+        my ($uid) = split (",", $line);
+        delete_and_log ($table, "user_id = $uid", "#$uid orphan $table");
+      }
+  }
 finish_work;

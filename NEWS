@@ -44,7 +44,7 @@
 * New script, backend/extra/git/sv_cgit.pl.in (fetched from vcs2
   and heavily rewritten).
 
-* sv_cleaner removes irrelevant pieces of news.
+* sv_cleaner removes irrelevant pieces of news and orphan user data.
 
 * The --cron option in scripts is ignored, --logfile is added when
   relevant.
