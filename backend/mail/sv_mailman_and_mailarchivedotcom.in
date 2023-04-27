@@ -53,7 +53,6 @@ my $cache = "/var/cache/savane/sv_mailman_and_mailarchivedotcom";
 
 # Import.
 our $sys_mail_domain;
-our $sys_cron_mailman;
 
 my $debug;
 my $cron;
@@ -67,23 +66,18 @@ address already exists, relying on mailman to do this.
 
 This script is optional and have no purpose if you do not real public lists.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-      --cron                   Option to set when including this script
-                               in a crontab
+  -h, --help                   show this help and exit
+  -v, --version                show Savane version and exit
+      --cron                   ignored
       --debug                  Debug mode: do everything apart from
                                overwriting system files
 
 
 Author: yeupou\@gnu.org";
 PrintVersionOrHelp ($help);
-
 GetOptions ("debug" => \$debug, "cron" => \$cron);
 
-# Test if we should run, according to conffile.
-exit if ($cron && ! $sys_cron_mailman);
-
-AcquireReplicationLock(); # Instances should not run concurrently.
+AcquireReplicationLock ();
 
 my ($tmpcfgfh, $address) = tempfile(UNLINK => 1);
 print $tmpcfgfh "archive\@mail-archive.com\n";

@@ -48,9 +48,9 @@
 # by reading the database about users.
 #
 # It will add create/update an account for each user that belongs
-# to a group.
+# a group.
 #
-# Users will all belong to the group svusers. Note that sv_groups should
+# Users will all belong the group svusers. Note that sv_groups should
 # have checked if that group exists.
 #
 # WARNING: sv_groups should run first.
@@ -62,7 +62,6 @@ use Term::ANSIColor qw(:constants);
 use POSIX qw(strftime);
 
 our $sys_shell;
-our $sys_cron_users;
 our $sys_userx_prefix;
 
 my $script = "sv_users";
@@ -70,7 +69,6 @@ my $logfile = "/var/log/sv_database2system.log";
 my $lockfile = "groups-users.lock";
 my $debug;
 my $cron;
-my $version = GetVersion();
 
 my $useradd = "useradd";
 my $usermod = "usermod";
@@ -80,69 +78,62 @@ my $userx_prefix;
 my $min_uid = "5000";
 my $nobody_uid = "65534";
 
-# deprecated, replaced by webgroup
 my $one_group = 0;
 my $webgroup = 0;
 
-my $svusers = "svusers"; # This could be configurable, however it
-                         # does not seems very important right now.
-my $svusers_gid = getgrnam($svusers);
+my $svusers = "svusers"; # This could be configurable, but it isn't important.
+my $svusers_gid = getgrnam ($svusers);
 
 my $help_msg =
-"Usage: $0 [project] [OPTIONS]
+"Usage: $0 [group] [OPTIONS]
 
 Update the system to reflect the database, about users.
 Normally, sv_groups should run just before.
 
 Note that users are associated with the group $svusers.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-  -d, --debug                  Do nothing, print everything
-      --cron                   Option to set when including this script
-                               in a crontab
+  -h, --help               show this help and exit
+  -v, --version            show Savane version and exit
+  -d, --debug              do nothing, print everything
+      --cron               ignored
+      --one-group          ignored
+      --logfile            file for reports [$logfile]
+      --useradd            useradd binary
+      --usermod            usermod binary
+      --userdel            userdel binary
+      --userx-prefix       prefix for the binaries above
+      --webgroup           for each Savane group, add users in two groups,
+                             including one with the prefix web.";
 
-      --userx-prefix=[prefix]  Specify a prefix for user* bin
-                               For instance, for useradd.
-      --useradd=[useradd]      Specify useradd binary
-      --usermod=[usermod]      Specify usermod binary
-      --userdel=[userdel]      Specify userdel binary
-
-      --webgroup               For each projects, add users in two group,
-                               including one with the prefix web.
-";
 PrintVersionOrHelp ($help_msg);
 
-GetOptions (
-  "debug" => \$debug,
-  "userx-prefix=s" => \$userx_prefix,
-  "cron" => \$cron,
-  "useradd=s" => \$useradd,
-  "usermod=s" => \$usermod,
-  "userdel=s" => \$userdel,
-  "webgroup" => \$webgroup,
+GetOptions ("debug" => \$debug, "userx-prefix=s" => \$userx_prefix,
+  "useradd=s" => \$useradd, "usermod=s" => \$usermod,  "userdel=s" => \$userdel,
+  "logfile=s" => \$logfile, "cron" => \$cron, "webgroup" => \$webgroup,
   "one-group" => \$one_group
 );
 
-if ($userx_prefix) {
-    $useradd = "$userx_prefix/$useradd";
-    $usermod = "$userx_prefix/$usermod";
-    $userdel = "$userx_prefix/$userdel";
-} elsif ($sys_userx_prefix) {
-    $useradd = "$sys_userx_prefix/$useradd";
-    $usermod = "$sys_userx_prefix/$usermod";
-    $userdel = "$sys_userx_prefix/$userdel";
+sub assign_binaries
+{
+  my $pfx = $sys_userx_prefix;
+  $pfx = $userx_prefix if $userx_prefix;
+  return unless $pfx;
+  $useradd = "$pfx/$useradd";
+  $usermod = "$pfx/$usermod";
+  $userdel = "$pfx/$userdel";
 }
 
-# Test if we should run, according to conffile.
-exit if ($cron && ! $sys_cron_users);
+assign_binaries;
+
+sub PrintLog
+{
+  print LOG strftime "[$script] %c $_[0]\n", localtime;
+}
 
 open (LOG, ">>$logfile");
-print LOG strftime "[$script] %c - starting\n", localtime;
+PrintLog ("- starting");
 
-# Locks: There are several sv_db2sys scripts but they should not run
-#        concurrently.
-AcquireReplicationLock($lockfile);
+AcquireReplicationLock ($lockfile);
 
 # Grab database information.
 #
@@ -150,58 +141,56 @@ AcquireReplicationLock($lockfile);
 # - db_user_group items
 
 # db_user:
-#    Create an hash that contains users infos from the table user,
-#    as lists for each user
-#    ( @{$db_user{$user}} )
-#    Additionally, create a list of users.
+# Create an hash that contains users infos from the table user,
+# as lists for each user
+# ( @{$db_user{$user}} )
+# Additionally, create a list of users.
 #
-#    To limit the number of request, we use only one very long SQL request.
+# To limit the number of request, we use only one very long SQL request.
 my %db_user;
 my @db_users;
-my $lists_ref = GetDBListsRef("user",
-  "status='A' OR status='D'",
-  "user_name,email,realname,authorized_keys,status");
-foreach my $line (@$lists_ref) {
+my $lists_ref = GetDBListsRef ("user", "status = 'A' OR status = 'D'",
+  "user_name,email,realname,authorized_keys,status"
+);
+foreach my $line (@$lists_ref)
+  {
     my ($user, $email, $realname, $authorized_keys, $status) = @$line;
     print "DBG db: get $user <$email> from database\n" if $debug;
     $realname =~ s/\://g;
     $db_user{$user} = [ ($user, $email, $realname, $authorized_keys, $status) ];
     push (@db_users, $user);
-}
+  }
 
 # db_user_group:
-#    Create an hash that contains users groups infos (which user belongs to
-#    which group) from the table user_groups, as lists for each user
-#    ( @{$db_user_group{$user}} )
-#    We only consider active groups.
+# Create an hash that contains users groups infos (which user belongs
+# which group) from the table user_groups, as lists for each user
+# ( @{$db_user_group{$user}} )
+# We only consider active groups.
 my %db_user_group;
-foreach my $line (GetDB("user_group,groups,user",
-			"groups.group_id=user_group.group_id "
-                        . "AND user.user_id=user_group.user_id "
-                        . "AND groups.status='A' AND user_group.admin_flags<>'P'",
-			"user_name,unix_group_name")) {
-    chomp($line);
-    my ($user, $group) = split(",", $line);
+foreach my $line (GetDB ("user_group,groups,user",
+  "groups.group_id = user_group.group_id AND user.user_id = user_group.user_id "
+  . "AND groups.status = 'A' AND user_group.admin_flags <> 'P'",
+  "user_name,unix_group_name")
+)
+  {
+    chomp ($line);
+    my ($user, $group) = split (",", $line);
 
     print "DBG db: $user is member of $group\n" if $debug;
-
     my @groups;
-    push(@groups, $group);
-    push(@groups, "web".$group) if $webgroup;
-    push(@{$db_user_group{$user}}, @groups);
-}
+    push (@groups, $group);
+    push (@groups, "web$group") if $webgroup;
+    push (@{$db_user_group{$user}}, @groups);
+  }
 
-# db_groups:
-#
-#    We need to able to determine whether a group is related to
-#    Savane or not.
-#
+# We need to able to determine whether a group is related to Savane or not.
 my %db_groups;
-foreach my $group (GetGroupList(0, "unix_group_name")) {
+foreach my $group (GetGroupList (0, "unix_group_name"))
+  {
     $db_groups{$group} = 1;
-}
+  }
 
-print LOG strftime "[$script] %c - database infos grabbed\n", localtime;
+PrintLog ("- database infos grabbed");
 
 # Grab system information.
 #
@@ -209,74 +198,81 @@ print LOG strftime "[$script] %c - database infos grabbed\n", localtime;
 # - etc_group* items
 
 # /etc/passwd (/etc/shadow...):
-#    - Create an hash that contains users infos from these files,
-#    as lists for each user.
-#    ( @{$etc_password{$user}} )
-#    - Find what is the maximum id number known.
-#    - Additionally, create a list of users.
-#    - To be ignored list groups that were not created by sv_users, since they
-#    do not belongs to svusers group: their account will remain untouched.
+# - Create an hash that contains users infos from these files,
+# as lists for each user.
+# ( @{$etc_password{$user}} )
+# - Find what is the maximum id number known.
+# - Additionally, create a list of users.
+# - To be ignored list groups that were not created by sv_users, since they
+# do not belongs svusers group: their account will remain untouched.
 my %etc_password;
 my @etc_users;
 my %etc_password_tobeignored;
-my $etc_password_maxid = -1;
-while (my @entry = getpwent()) {
-    # Save the uid of nobody, if found.
-    if ($entry[0] eq 'nobody') { $nobody_uid = $entry[2]; }
+my $passwd_maxid = -1;
+while (my @entry = getpwent ())
+  {
+    my $u_id = $entry[0];
+    my $max_id = $entry[2];
+    my $grp = $entry[3];
 
-    # Ignore any user not belonging to svusers: we wont mess with accounts not
+    $nobody_uid = $max_id if $u_id eq 'nobody';
+
+    # Ignore any user not belonging svusers: we wont mess with accounts not
     # created by the backend itself. We also add them in an hash, to make
     # sure no action we be taken related to these accounts.
-    if ($entry[3] ne $svusers_gid) {
-	print "DBG etc: user $entry[0] will be ignored, belongs to group $entry[3]\n" if $debug;
-	$etc_password_tobeignored{$entry[0]} = 1;
-	next;
-    }
+    if ($grp ne $svusers_gid)
+      {
+        print "DBG etc: user $u_id in group $grp\n" if $debug;
+        $etc_password_tobeignored{$u_id} = 1;
+        next;
+      }
 
     # Ignore special users like webcvs, anoncvs and nobody
     # The first ones are supposed to be under 5000 (min uid).
-    next if($entry[0] eq 'anoncvs' || $entry[0] eq 'webcvs' || $entry[0] eq 'nobody');
+    next if ($u_id eq 'anoncvs' || $u_id eq 'webcvs' || $u_id eq 'nobody');
 
-    push(@etc_users, $entry[0]);
-    $etc_password_maxid = $entry[2] > $etc_password_maxid ? $entry[2]
-                                                          : $etc_password_maxid;
+    push (@etc_users, $u_id);
+    $passwd_maxid = $max_id if $max_id > $passwd_maxid;
 
-    $etc_password{$entry[0]} = [ @entry ];
-    print "DBG etc: user $entry[0]\t\t maxid $etc_password_maxid \t group $entry[3]\n" if $debug;
+    $etc_password{$u_id} = [ @entry ];
+    print "DBG etc: user $u_id\t\t maxid $passwd_maxid \t group $grp\n"
+      if $debug;
 }
-$etc_password_maxid++;
+$passwd_maxid++;
 # If we did not reached the minimal uid, set it as maxid.
-$etc_password_maxid = $min_uid if $min_uid > $etc_password_maxid;
+$passwd_maxid = $min_uid if $min_uid > $passwd_maxid;
 
 # /etc/group:
-#    Create an hash that contains users infos about groups,
-#    as lists for each group.
-#    ( @{$etc_group_bygroup{$group}} )
-#    Create an hash that contains users infos about groups,
-#    as lists for each user (which to which groups belongs a user).
-#    ( @{$etc_group{$user}} )
-#    Find what is the maximum id number known.
+# Create an hash that contains users infos about groups,
+# as lists for each group.
+# ( @{$etc_group_bygroup{$group}} )
+# Create an hash that contains users infos about groups,
+# as lists for each user (which to which groups belongs a user).
+# ( @{$etc_group{$user}} )
+# Find what is the maximum id number known.
 my %etc_group_bygroup;
 my %etc_group;
 my $etc_group_maxid = -1;
-while(my @entry = getgrent()) {
+while (my @entry = getgrent ())
+  {
     $etc_group_bygroup{$entry[0]} = [ @entry ];
 
-    foreach my $user (split ' ', $entry[3]) {
-	if ($user) {
-	    print "DBG etc: user $user belongs to group $entry[0]\n" if $debug;
-	    push(@{$etc_group{$user}}, $entry[0]);
-	}
-    }
+    foreach my $user (split ' ', $entry[3])
+      {
+        next unless $user;
+        print "DBG etc: user $user belongs group $entry[0]\n" if $debug;
+        push (@{$etc_group{$user}}, $entry[0]);
+      }
 
-    if($entry[0] ne 'nogroup') {
-	$etc_group_maxid = $entry[2] > $etc_group_maxid ? $entry[2] : $etc_group_maxid;
-    }
+    if ($entry[0] ne 'nogroup')
+      {
+        $etc_group_maxid = $entry[2] if $entry[2] > $etc_group_maxid;
+      }
     print "DBG etc: group $entry[0]\t\t maxid $etc_group_maxid\n" if $debug;
-}
+  }
 $etc_group_maxid++;
 
-print LOG strftime "[$script] %c - system infos grabbed\n", localtime;
+PrintLog ("- system infos grabbed");
 
 # Do comparisons.
 #
@@ -284,139 +280,125 @@ print LOG strftime "[$script] %c - system infos grabbed\n", localtime;
 # - @well_known: users on the system and in the database
 # - @to_be_remove: users marked as D, canditates for deletion
 #
-#   IMPORTANT: a user may be in @well_known but not associated to
-#          any project!
+# IMPORTANT: a user may be in @well_known but not associated to any group.
 
 # Find out users only in database.
 my %seen_in_etc;
 my @only_in_db;
 my @well_known;
-foreach my $user (@etc_users) {
+foreach my $user (@etc_users)
+  {
     $seen_in_etc{$user} = 1;
-}
+  }
 
-foreach my $user (@db_users) {
+foreach my $user (@db_users)
+  {
     next if $user eq "None";
     next if $user eq $etc_password_tobeignored{$user};
-    unless ($seen_in_etc{$user}) {
-	push(@only_in_db, $user);
-	print "DBG compare: $user is seen only in database\n" if $debug;
-    } else {
-	push(@well_known, $user);
-	print "DBG compare: $user is known by the database and the system\n" if $debug;
-    }
-}
+    unless ($seen_in_etc{$user})
+      {
+        push (@only_in_db, $user);
+        print "DBG compare: $user is seen only in database\n" if $debug;
+      }
+    else
+      {
+        push (@well_known, $user);
+        print "DBG compare: $user is known by the database and the system\n"
+          if $debug;
+      }
+  }
 
 # Find out users that should be really removed: they are marked as D
 # in the database or they are not member of any group but are
 # in the database and on the system.
 # These users must be in both the database and the system.
 my @to_be_removed;
-foreach my $user (@well_known) {
-    # First test: looks for the typical case when someone is no
-    # longer member of any project: we just list
-    # Second test: looks for the marked as D users
-    if (!exists($db_user_group{$user}) || $db_user{$user}->[5] eq 'D') {
-	# Last test: check if we are not dealing with an account ignored
-	# (it should not be necessary at this point but it does not cost much)
-	push(@to_be_removed, $user) unless $etc_password_tobeignored{$user};
-    }
-}
+foreach my $user (@well_known)
+  {
+    next unless !exists ($db_user_group{$user}) || $db_user{$user}->[5] eq 'D';
+    push (@to_be_removed, $user) unless $etc_password_tobeignored{$user};
+  }
 
-print LOG strftime "[$script] %c - comparison done\n", localtime;
-
-# Finally, update the system.
+PrintLog ("- comparison done");
 
 # Add users only in database, missing on the system.
-foreach my $user (@only_in_db){
+foreach my $user (@only_in_db)
+  {
     next if $etc_password_tobeignored{$user};
+    next unless exists ($db_user_group{$user});
 
-    # We only create an account for project's members.
-    if (exists($db_user_group{$user})) {
-	
-	my ($user_name, $email, $realname, $authorized_keys, $status)
-           = @{$db_user{$user}};
-	my $home = GetUserHome($user);
-	my $groups = join ",", @{$db_user_group{$user}};
-	my $ssh_keys_count = 0;
+    my ($user_name, $email, $realname, $authorized_keys, $status)
+       = @{$db_user{$user}};
+    my $home = GetUserHome($user);
+    my $groups = join ",", @{$db_user_group{$user}};
+    my $ssh_keys_count = 0;
 
-	print "DBG create: $user belongs to $groups\n" if $debug;
-	unless ($debug) {
-		
-	    # Make a backup if a home user already exists.
-	    system("/bin/rm", "-fr", "$home.old") if -e "$home.old";
-	    system("/bin/mv", $home, "$home.old") if -d "$home";
+    print "DBG create: $user belongs $groups\n" if $debug;
+    unless ($debug)
+      {
+        # Make a backup if a home user already exists.
+        system ("/bin/rm", "-fr", "$home.old") if -e "$home.old";
+        system ("/bin/mv", $home, "$home.old") if -d "$home";
 
-	    # Build the home dir.
-	    system("/bin/mkdir", "-p", $home);
-	    mkdir("$home/.ssh");
-	    system("/usr/bin/touch", "$home/.savane", "$home/.ssh/authorized_keys");
+        # Build the home dir.
+        system ("/bin/mkdir", "-p", $home);
+        mkdir ("$home/.ssh");
+        system ("/usr/bin/touch", "$home/.savane", "$home/.ssh/authorized_keys");
 
-	    # Create a proper account
-	    # (this should be done after the building of the home dir,
-	    # because some versions of useradd tries foolishly to create
-	    # the user home, and fail due to missing directories in the path).
-	    system($useradd,
-		   "-p", "*",
-		   "-u", $etc_password_maxid,
-		   "-d", $home,
-		   "-c", $realname,
-		   "-s", $sys_shell,
-		   "-g", $svusers,
-		   "-G", $groups,
-		   $user);
+        # Create a proper account after building the home dir,
+        # because some versions of useradd tries foolishly to create
+        # the user home, and fail due to missing directories in the path).
+        system ($useradd, "-p", "*", "-u", $passwd_maxid, "-d", $home,
+          "-c", $realname, "-s", $sys_shell, "-g", $svusers, "-G", $groups,
+          $user
+        );
 
-	    # Add SSH public key.
-	    if (defined($authorized_keys)) {
-		$ssh_keys_count = UserAddSSHKey($user, $authorized_keys);
-	    }
+        $ssh_keys_count = UserAddSSHKey ($user, $authorized_keys)
+          if defined ($authorized_keys);
 
-	    # Fix modes and ownership.
-	    system("/bin/chmod", "2755", $home);
-	    system("/bin/chmod", "755", "$home/.ssh");
-	    if (-e "$home/.ssh/authorized_keys") {
-		system("/bin/chmod", "600", "$home/.ssh/authorized_keys");
-	    }
-	    system("/bin/chown", "-R", "$user:$svusers", $home);
+        # Fix modes and ownership.
+        system ("/bin/chmod", "2755", $home);
+        system ("/bin/chmod", "755", "$home/.ssh");
+        if (-e "$home/.ssh/authorized_keys")
+          {
+            system ("/bin/chmod", "600", "$home/.ssh/authorized_keys");
+          }
+        system ("/bin/chown", "-R", "$user:$svusers", $home);
+      } # unless ($debug)
+    # Increment the uid for the next user, avoid the special value
+    # attributed to nobody.
+    $passwd_maxid++;
+    $passwd_maxid++ if $passwd_maxid == $nobody_uid;
 
-	}
-	# Increment the uid for the next user, avoid the special value
-	# attributed to nobody.
-	$etc_password_maxid++;	
-	$etc_password_maxid++ if $etc_password_maxid == $nobody_uid;
+    PrintLog ("---- $useradd $user "
+      . "($passwd_maxid, $email, $home, $ssh_keys_count ssh keys) "
+      . "$groups");
+  } # foreach my $user (@only_in_db)
 
-	print LOG strftime "[$script] %c ---- $useradd $user "
-          . "($etc_password_maxid, $email, $home, $ssh_keys_count ssh keys) "
-          . "$groups\n", localtime;
-    }
-
-}
-
-print LOG strftime "[$script] %c - account creation done\n", localtime;
+PrintLog ("- account creation done");
 
 # Remove users marked as D in the database.
 # This is the safest way to remove users quitting Savane.
-foreach my $user (@to_be_removed) {
+foreach my $user (@to_be_removed)
+  {
     next if $etc_password_tobeignored{$user};
 
-    print LOG strftime "[$script] %c ---- delete $user account\n", localtime;
-    print "DBG delete: $user is marked as D or no longer member of any project\n" if $debug;
-    DeleteUser($user) unless $debug;
-}
+    PrintLog ("---- delete $user account");
+    print "DBG delete: $user is marked as D or no longer member of any group\n"
+     if $debug;
+    DeleteUser ($user) unless $debug;
+  }
 
-print LOG strftime "[$script] %c - account deletion done\n", localtime;
+PrintLog ("- account deletion done");
 
 # Update existing users.
 # These users are in the database and on the system.
-foreach my $user (@well_known) {
+foreach my $user (@well_known)
+  {
     next if $etc_password_tobeignored{$user};
-
     # Get usual info.
-    my ($user_name,
-	$email,
-	$realname,
-	$authorized_keys,
-	$status) = @{$db_user{$user}};
+    my ($user_name, $email, $realname, $authorized_keys, $status)
+      = @{$db_user{$user}};
 
     # Update groups: check if the system knows all groups the user
     # is member of.
@@ -424,82 +406,80 @@ foreach my $user (@well_known) {
     # to the sys reality. Update if different.
     my @groups_list;
     my @groups_list_etc = 0;
-    @groups_list = @{$db_user_group{$user}} if
-	(exists($db_user_group{$user}));
-    if (exists($etc_group{$user})) {
-	# Add the list only system groups that are not managed by Savane.
-	# We want to avoid removing system groups that have nothing to do
-	# with Savane, but we want to remove Savane groups the user is no
-	# longer member of.
-	for (@{$etc_group{$user}}) {
-	    push(@groups_list, $_) unless $db_groups{$_};
-	}
-    }
-    @groups_list_etc =  @{$etc_group{$user}} if
-	(exists($etc_group{$user}));
+    @groups_list = @{$db_user_group{$user}} if exists ($db_user_group{$user});
+    if (exists($etc_group{$user}))
+      {
+        # Add the list only system groups that are not managed by Savane.
+        # We want to avoid removing system groups that have nothing to do
+        # with Savane, but we want to remove Savane groups the user is no
+        # longer member of.
+        for (@{$etc_group{$user}})
+          {
+            push(@groups_list, $_) unless $db_groups{$_};
+          }
+      }
+    @groups_list_etc = @{$etc_group{$user}} if exists ($etc_group{$user});
 
-    my %seen_before = (); # remove duplicates
+    my %seen_before = ();
     @groups_list = grep { ! $seen_before{$_} ++ } @groups_list;
 
     # Update groups: check if the user is removed from a group in the
     # database.
-    if (@groups_list ne @groups_list_etc) {
-	my $groups = join(",", @groups_list);
-	
-	system($usermod,
-	       "-G", $groups,
-	       $user) unless $debug;
+    if (@groups_list ne @groups_list_etc)
+      {
+        my $groups = join(",", @groups_list);
 
-	print LOG strftime "[$script] %c ---- update $user groups\n", localtime;
-	print "DBG update: $user belongs to \t[db+sys]\t"
-              . join(", ", @groups_list) . "\t[sys]\t"
-              . join(", ", @groups_list_etc) . "\n" if $debug;
-	
-    } else {
-	print "DBG update: NO UPDATE for user $user that belongs to \t[db+sys]\t"
-              . join(", ", @groups_list) . "\t[sys]\t"
-              . join(", ", @groups_list_etc) . "\n" if $debug;
-    }
+        system ($usermod, "-G", $groups, $user) unless $debug;
+        PrintLog ("---- update $user groups");
+        print "DBG update: $user belongs \t[db+sys]\t"
+          . join (", ", @groups_list) . "\t[sys]\t"
+          . join (", ", @groups_list_etc) . "\n" if $debug;
+      }
+    else
+      {
+        print "DBG update: NO UPDATE for user $user that belongs \t[db+sys]\t"
+          . join (", ", @groups_list) . "\t[sys]\t"
+          . join (", ", @groups_list_etc) . "\n" if $debug;
+      }
 
     # Update name (name, email) if not accurate.
     my $password_realname = $etc_password{$user}->[6];
     my $expected_realname = $realname;
-    if ($password_realname ne $expected_realname) {
-	system($usermod, "-c", $expected_realname, $user) unless $debug;
-	print LOG strftime "[$script] %c ---- update $user /etc/passwd realname\n",
-                           localtime;
-    }
+    if ($password_realname ne $expected_realname)
+      {
+        system ($usermod, "-c", $expected_realname, $user) unless $debug;
+        PrintLog ("---- update $user /etc/passwd realname");
+      }
 
     # Make sure that the homedirectory is correct according to the
     # configuration.
     my $password_home = $etc_password{$user}->[7];
-    my $expected_home = GetUserHome($user);
-    if ($password_home ne $expected_home) {
-	system($usermod, "-d", $expected_home, $user) unless $debug;
-	system("/bin/mkdir", "-p", $expected_home) unless $debug;
-	system("/bin/rm", "-rf", $expected_home) unless $debug;
-	system("/bin/mv", "-f", $password_home, $expected_home) unless $debug;
-	print LOG strftime "[$script] %c ---- update $user /etc/passwd homedir\n",
-                           localtime;
-    }
+    my $expected_home = GetUserHome ($user);
+    if ($password_home ne $expected_home)
+      {
+        system ($usermod, "-d", $expected_home, $user) unless $debug;
+        system ("/bin/mkdir", "-p", $expected_home) unless $debug;
+        system ("/bin/rm", "-rf", $expected_home) unless $debug;
+        system ("/bin/mv", "-f", $password_home, $expected_home) unless $debug;
+        PrintLog ("---- update $user /etc/passwd homedir");
+      }
 
     # Update SSH public keys if not accurate and only if the user
     # got the default shell.
     # In other cases, we do not mess with the way login rights are
-    # managed. Example: a user who got a /bin/bash should change his
-    # key by bash login, not by web interface.
+    # managed. Example: a user who got a /bin/bash should change the key
+    # using bash login, not by web interface.
     my $ssh_keys_count = 0;
-    if ($etc_password{$user}->[8] eq $sys_shell) {
-	print "DBG update: $user ssh key managed by sv\n" if $debug;
-	if (defined($authorized_keys) and $authorized_keys ne GetUserSSHKeyReal($user)) {
-	    unless ($debug) {
-		$ssh_keys_count = UserAddSSHKey($user, $authorized_keys);
-	    }
-	    print LOG strftime "[$script] %c ---- update $ssh_keys_count "
-                               . "$user ssh keys\n", localtime;
-	}
-    }
-}
-print LOG strftime "[$script] %c - account deletion done\n", localtime;
-print LOG strftime "[$script] %c - work finished\n", localtime;
+    if ($etc_password{$user}->[8] eq $sys_shell)
+      {
+        print "DBG update: $user ssh key managed by sv\n" if $debug;
+        next unless defined ($authorized_keys);
+        next unless $authorized_keys ne GetUserSSHKeyReal ($user);
+        $ssh_keys_count = UserAddSSHKey($user, $authorized_keys)
+          unless ($debug);
+        PrintLog ("---- update $ssh_keys_count $user ssh keys");
+      }
+  } # foreach my $user (@well_known)
+PrintLog ("- account deletion done");
+PrintLog ("- work finished");
 print LOG "[$script] ------------------------------------------------------\n";

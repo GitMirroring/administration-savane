@@ -50,7 +50,6 @@ use POSIX qw(strftime);
 use Time::Local;
 use Date::Calc qw(Add_Delta_YMD);
 
-our $sys_cron_reminder;
 our $sys_name;
 our $sys_https_host;
 our $sys_default_domain;
@@ -69,43 +68,41 @@ my @trackers  = ("bugs", "task", "support", "patch");
 $help =
 "Usage: $0 [OPTIONS]
 
-This script will send reminder to users in some specific cases.
-Case 1: an item is about to start or finish, all people from the item
-notification list should be warned. (not implemented)
-Case 2: users decided to receive a batch of open items assigned to
-them each x days, minimum priority being > 5.
-Case 3: a group admin decided that members assigned to some item of
-should receive a batch each x days, minimum priority > 5.
-(Case 4: a group admin decided that members assigned to some item
-whose status or resolution haven't changed for some period should receive
-a batch each x days).
+Send reminders to users in some specific cases.
+
+* An item is about to start or finish, all people from the item
+  notification list should be warned. (not implemented)
+
+* Users decided to receive a batch of open items assigned to
+  them each x days, minimum priority being > 5.
+
+* An admin of a group decided that members assigned to some item of
+  should receive a batch each x days, minimum priority > 5.
+
+* (An admin of a group decided that members assigned to some item
+  whose status or resolution haven't changed for some period should receive
+  a batch each x days).
 
 This script is supposed to run twice a day.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-  -d, --debug                  Do nothing, print everything
-      --max                    Maximum number of mails sent by the script
-                               If that number is reached, next mails are
-                               discarded and tagged as sent.
-                               Make sure this parameters fit to your
-                               number of users and servers possibilities!
-                               (Default: $max)
-      --max-items              Maximum number of items mentioned in a mail
-                               The purpose of this setting is to avoid
-                               sending extremely big mails
-                               (Default: $max_items)
-      --cron                   Option to set when including this script
-                               in a crontab
-";
+  -h, --help       show this help and exit
+  -v, --version    show Savane version and exit
+  -d, --debug      do nothing, print everything
+      --max        maximum number of mails sent by the script; if that number
+                     is reached, next mails are discarded and tagged as sent;
+                     make sure this parameter fits your
+                     number of users and servers possibilities [$max]
+      --max-items  maximum number of items mentioned in a mail;
+                     set it to avoid sending extremely big mails [$max_items]
+      --cron       ignored
+      --logfile    file for reports [$logfile]";
+
 PrintVersionOrHelp ($help);
 
 GetOptions (
   "cron" => \$cron, "max=s" => \$max, "max-items=s" => \$max_items,
-  "debug" => \$debug
+  "debug" => \$debug, "logfile=s" => \$logfile
 );
-
-exit if ($cron && !$sys_cron_reminder);
 
 sub PrintLog
 {

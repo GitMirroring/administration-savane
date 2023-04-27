@@ -46,20 +46,26 @@ use strict;
 use Savane;
 use Getopt::Long;
 
+# Using range 5000-oo for our groups.  1000-5000 should be reserved for
+# /etc/passwd and /etc/group.
+
+my $min_uidNumber = 5000;
+my $min_gidNumber = 5000;
+
 my $help =
-"Usage: $0 [project] [OPTIONS]
+"Usage: $0 [group] [OPTIONS]
 
-Assign uidNumber/gidNumber for users/groups.
+Assign uidNumber for users and gidNumber for groups.
 
-Minimum IDs need to be set above your system maximum
-uidNumber/gidNumber, so that the system can create users and groups in
-a range that is not used by this script.
+Minimum IDs need to be set above your system maximum uidNumber and gidNumber,
+so that the system can create users and groups in a range that is not used
+by this script.
 
-      --help                   Show this help and exit
-      --min-uidNumber          Start assigning user ids from this number
-      --min-gidNumber          Start assigning group ids from this number
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+      --min-uidNumber  starting user ID [$min_uidNumber]
+      --min-gidNumber  starting group ID [$min_gidNumber]";
 
-";
 PrintVersionOrHelp ($help);
 
 # This is done in a cron job to avoid any race condition. Ideally
@@ -70,18 +76,11 @@ PrintVersionOrHelp ($help);
 # should just start at 65535 or 70000 (and update sv_users/sv_groups
 # accordingly)...
 
-# Locks: There are several sv_db2sys scripts but they should not run
-#  concurrently.
+# There are several sv_db2sys scripts but they should not run concurrently.
 my $lockfile = 'assign_uid_gid';
 AcquireReplicationLock ($lockfile);
 
 # Fill remaining uidNumbers and gidNumbers.
-
-# Using range 5000-oo for our groups. 1000-5000 should be reserved for
-# /etc/passwd and /etc/group.  You can change this value if necessary.
-
-my $min_uidNumber = 5000;
-my $min_gidNumber = 5000;
 
 GetOptions (
   "min-uidNumber=i" => \$min_uidNumber, "min-gidNumber=i" => \$min_gidNumber

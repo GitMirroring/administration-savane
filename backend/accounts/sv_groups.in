@@ -70,8 +70,6 @@ use Getopt::Long;
 use Term::ANSIColor qw(:constants);
 use POSIX qw(strftime);
 
-our $sys_cron_groups;
-
 our $script = "sv_groups";
 my $logfile = "/var/log/sv_database2system.log";
 my $lockfile = "groups-users.lock";
@@ -98,7 +96,7 @@ my $only_bzr;
 my $only_homepage;
 my $only_download;
 
-my $one_group = 0; # Deprecated, replaced by webgroup.
+my $one_group;
 my $webgroup = 0;
 
 my $min_gid = "5000";
@@ -106,61 +104,51 @@ my $min_gid = "5000";
 my $help_msg =
 "Usage: $0 [OPTIONS]
 
-Update the system to reflect the database, about groups.
+Update the system to reflect the database about groups.
 Normally, sv_users should run just after.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-  -d, --debug                  Do nothing, print everything
-      --cron                   Option to set when including this script
-                               in a crontab
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+  -d, --debug          do nothing, print everything
+      --cron           ignored
+      --one-group      ignored
+      --logfile        file for reports [$logfile]
 
-      --no-etc                 Do not update system groups
-      --no-cvs                 Do not update CVS trees
-      --no-arch                Do not update GNU Arch trees
-      --no-svn                 Do not update Subversion trees
-      --no-git                 Do not update Git trees
-      --no-hg                  Do not update Mercurial trees
-      --no-bzr                 Do not update Bazaar trees
-      --no-homepage            Do not update homepage dirs
-      --no-download            Do not update download dirs
+      --no-etc         do not update system groups
+      --no-cvs         do not update CVS trees
+      --no-arch        do not update GNU Arch trees
+      --no-svn         do not update Subversion trees
+      --no-git         do not update Git trees
+      --no-hg          do not update Mercurial trees
+      --no-bzr         do not update Bazaar trees
+      --no-homepage    do not update homepage dirs
+      --no-download    do not update download dirs
 
-      --only-etc               Only update system groups
-      --only-cvs               Only update CVS trees
-      --only-arch              Only update GNU Arch trees
-      --only-svn               Only update Subversion trees
-      --only-git               Only update Git trees
-      --only-hg                Only update Mercurial trees
-      --only-bzr               Only update Bazaar trees
-      --only-homepage          Only update homepage dirs
-      --only-download          Only update download dirs
+      --only-etc       only update system groups
+      --only-cvs       only update CVS trees
+      --only-arch      only update GNU Arch trees
+      --only-svn       only update Subversion trees
+      --only-git       only update Git trees
+      --only-hg        only update Mercurial trees
+      --only-bzr       only update Bazaar trees
+      --only-homepage  only update homepage dirs
+      --only-download  only update download dirs
 
-      --webgroup               For each projects, add users in two group,
-                               including one with the prefix web.";
+      --webgroup       for each Savane group, add users in two groups,
+                       including one with the prefix web";
 PrintVersionOrHelp ($help_msg);
 
 GetOptions (
-  "cron" => \$cron,
-  "debug" => \$debug,
-  "no-etc" => \$no_etc,
-  "no-cvs" => \$no_cvs,
-  "no-svn" => \$no_svn,
-  "no-git" => \$no_git,
-  "no-hg" => \$no_hg,
-  "no-arch" => \$no_arch,
-  "no-homepage" => \$no_homepage,
-  "no-download" => \$no_download,
-  "only-etc" => \$only_etc,
-  "only-cvs" => \$only_cvs,
-  "only-svn" => \$only_svn,
-  "only-git" => \$only_git,
-  "only-hg" => \$only_hg,
-  "only-bzr" => \$only_bzr,
-  "only-arch" => \$only_arch,
-  "only-homepage" => \$only_homepage,
+  "cron" => \$cron, "logfile=s" => \$logfile, "debug" => \$debug,
+  "no-etc" => \$no_etc, "no-cvs" => \$no_cvs, "no-svn" => \$no_svn,
+  "no-git" => \$no_git, "no-hg" => \$no_hg, "no-arch" => \$no_arch,
+  "no-homepage" => \$no_homepage, "no-download" => \$no_download,
+  "only-etc" => \$only_etc, "only-cvs" => \$only_cvs,
+  "only-svn" => \$only_svn, "only-git" => \$only_git,
+  "only-hg" => \$only_hg, "only-bzr" => \$only_bzr,
+  "only-arch" => \$only_arch, "only-homepage" => \$only_homepage,
   "only-download" => \$only_download,
-  "webgroup" => \$webgroup,
-  "one-group" => \$one_group
+  "webgroup" => \$webgroup, "one-group" => \$one_group
 );
 
 # If we are asked to create only a few services, set everything to "no"
@@ -190,9 +178,6 @@ if ($only_etc || $only_cvs || $only_arch || $only_svn || $only_git
     $no_download = 0 if $only_download;
   }
 
-# Test if we should run, according to conffile.
-exit if ($cron && ! $sys_cron_groups);
-
 # Start logging.
 open (LOG, ">>$logfile");
 
@@ -214,12 +199,12 @@ AcquireReplicationLock ($lockfile);
 # - db_group_type items
 
 # db_group_type:
-#   Create an hash that contains group type infos from the table group_type,
-#   as lists for each group type (@{$db_group_type{$id}}).
-#   Note that we store the data with the id as key, not the name, because
-#   in the group db are only used the ids.
+# Create an hash that contains group type infos from the table group_type,
+# as lists for each group type (@{$db_group_type{$id}}).
+# Note that we store the data with the id as key, not the name, because
+# in the group db are only used the ids.
 #
-#   To limit the number of requests, we use one very long SQL request.
+# To limit the number of requests, we use one very long SQL request.
 my %db_group_type;
 foreach my $line
   (

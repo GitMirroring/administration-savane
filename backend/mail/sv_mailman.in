@@ -76,7 +76,6 @@ my $logfile = "/var/log/sv_database2system.log";
 
 # Import.
 our $sys_mail_domain;
-our $sys_cron_mailman;
 
 my $debug;
 my $cron;
@@ -90,26 +89,21 @@ Create with mailman shell command a list for each mailing list found in
 the database with status set to 1.
 It will change the status of the created list to 5.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-      --cron                   Option to set when including this script
-                               in a crontab
+  -h, --help                   show this help and exit
+  -v, --version                show Savane version and exit
+      --cron                   ignored
+      --logfile                file for reports [$logfile]
 
-      --keep-archives          When deleting a list, do not ask mailman to
-                               remove its archives
-      --skip-mail              When creating a list, do not send a mail
-                               containing list admin password to admins
-
-
-Author: yeupou\@gnu.org";
+      --keep-archives          when deleting a list, do not ask mailman to
+                                 remove its archives
+      --skip-mail              when creating a list, do not send a mail
+                                 containing list admin password to admins";
 PrintVersionOrHelp ($help);
 
 GetOptions (
   "debug" => \$debug, "cron" => \$cron, "keep-archives" => \$keeparchives,
-  "skip-mail" => \$skipmail
+  "skip-mail" => \$skipmail, "logfile=s" => \$logfile
 );
-
-exit if ($cron && ! $sys_cron_mailman);
 
 sub Escape
 {

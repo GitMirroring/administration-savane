@@ -56,13 +56,10 @@ use POSIX qw(strftime);
 use Time::Local;
 
 our $dbd;
-
-our $sys_cron_cleaner;
 our $sys_banned_email_domains;
 
 my $script = "sv_cleaner";
 my $logfile = "/var/log/sv_cleaner.log";
-my $log;
 my $help;
 my $big_cleanup;
 my $dry_run;
@@ -75,31 +72,27 @@ $help =
 Clean up the database:
 
   * old form ids, sessions, lost password requests;
-  * idle and unconfirmed user accounts;
+  * banned, idle and unconfirmed user accounts;
+
+  (--big-cleanup)
+
   * groups marked for deletion, including tracker items, news &c.;
   * mailing lists marked for deletion;
   * news marked for deletion as well as unapproved for a long time.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-      --big-cleanup            Will take care of unusual cases (like removing
-                               items from deleted groups).  Typically runs
-                               once a month.
-      --cron                   Option used when including this script
-                               in a crontab.
-      --logfile                File for reports [/var/log/sv_cleaner.log].
-      --dry-run                Skip updating the database\n";
+  -h, --help         show this help and exit
+  -v, --version      show Savane version and exit
+      --big-cleanup  take care of less frequent cases; typically runs monthly
+      --cron         ignored
+      --logfile      file for reports [$logfile]
+      --dry-run      skip updating the database";
 
 PrintVersionOrHelp ($help);
 
 GetOptions (
   "cron" => \$cron, "big-cleanup" => \$big_cleanup, "dry-run" => \$dry_run,
-  "logfile=s" => \$log
+  "logfile=s" => \$logfile
 ) or die ("Wrong command line.");
-
-$logfile = $log if $log;
-
-exit if ($cron && !$sys_cron_cleaner);
 
 open (LOG, ">>$logfile") or die $!;
 sub add_to_log

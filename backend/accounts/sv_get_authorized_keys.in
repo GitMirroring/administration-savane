@@ -59,9 +59,8 @@ my $help_msg =
 Read /etc/libnss-mysql.cfg to share the same configuration
 using the database config from it.
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-";
+  -h, --help                   show this help and exit
+  -v, --version                show Savane version and exit";
 
 PrintVersionOrHelp ($help_msg);
 
@@ -73,43 +72,45 @@ my $dbhost;
 
 my $user = $ARGV[0];
 
-open(FILE, "<$dbconf")
-    or die "Error: Could not open \"$dbconf\": $!";
+open (FILE, "<$dbconf") or die "Error: Could not open \"$dbconf\": $!";
 
 my $line;
-while ($line = <FILE>) {
-    chomp($line);
+while ($line = <FILE>)
+  {
+    chomp ($line);
     $line =~ s/\s*#.*//;
-    if ($line =~ m/\bhost\b/) {
-        # host 208.118.235.78
-        $dbhost = (split(' ',$line))[1];
-    } elsif ($line =~ m/\bdatabase\b/) {
-        # database savane
-        $dbname = (split(' ',$line))[1];
-    } elsif ($line =~ m/\busername\b/) {
-        # username nss-user
-        $dbuser = (split(' ',$line))[1];
-    } elsif ($line =~ m/\bpassword\b/) {
-        # password XXXXXX
-        $dbpass = (split(' ',$line))[1];
-    }
-}
+    if ($line =~ m/\bhost\b/)
+      {
+        $dbhost = (split (' ', $line))[1];
+      }
+    elsif ($line =~ m/\bdatabase\b/)
+      {
+        $dbname = (split (' ', $line))[1];
+      }
+    elsif ($line =~ m/\busername\b/)
+      {
+        $dbuser = (split (' ', $line))[1];
+      }
+    elsif ($line =~ m/\bpassword\b/)
+      {
+        $dbpass = (split (' ', $line))[1];
+      }
+ }
 
-my $dbh = DBI->connect("DBI:mysql:$dbname:$dbhost", $dbuser, $dbpass,
-                       { PrintError => 0, AutoCommit => 0 })
-    or die "Error: connect: $DBI::errstr\n";
+my $dbh = DBI->connect (
+  "DBI:mysql:$dbname:$dbhost", $dbuser, $dbpass,
+  { PrintError => 0, AutoCommit => 0 }
+) or die "Error: connect: $DBI::errstr\n";
 
 my $sql = "SELECT authorized_keys FROM user WHERE user_name = ?";
-my $query = $dbh->prepare($sql);
-$query->execute($user)
-    or die $dbh->errstr;
-$dbh->commit
-    or die $dbh->errstr;
-while (my @row = $query->fetchrow_array()) {
+my $query = $dbh->prepare ($sql);
+$query->execute ($user) or die $dbh->errstr;
+$dbh->commit or die $dbh->errstr;
+while (my @row = $query->fetchrow_array())
+  {
     my $keys = $row[0];
-    printf("%s\n", join("\n", split('###', $keys)));
-}
+    printf ("%s\n", join ("\n", split ('###', $keys)));
+  }
 
-$dbh->disconnect() or die $dbh->errstr;
-
-exit(0);
+$dbh->disconnect () or die $dbh->errstr;
+exit (0);

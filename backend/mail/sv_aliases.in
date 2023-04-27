@@ -50,7 +50,6 @@ use File::Temp qw(tempfile tempdir);
 # Imports (needed for strict).
 our $sys_mail_list;
 our $sys_mail_aliases;
-our $sys_cron_mail;
 
 # Preconfigure.
 my $sysemails =  "$sys_mail_list";
@@ -71,20 +70,13 @@ my $help =
 Include a list of Savannah users in $help_email (emails) and
 $help_email (aliases).
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-      --cron                   Option to set when including this script
-                               in a crontab
-      --debug                  Debug mode: do everything apart from
-                               overwriting system files
-
-Author: loic\@gnu.org";
+  -h, --help                   show this help and exit
+  -v, --version                show Savane version and exit
+      --cron                   ignored
+      --debug                  debug mode: do everything apart from
+                                 overwriting system files";
 PrintVersionOrHelp ($help);
-
 GetOptions ("debug" => \$debug, "cron" => \$cron);
-
-# Test if we should run, according to conffile.
-exit if ($cron && ! $sys_cron_mail);
 
 # Avoid concurrent runs.
 AcquireReplicationLock ();
@@ -148,38 +140,37 @@ if ($sysemails || $debug)
 # /etc/aliases
 # Extract current system addresses not managed by Savane, put them in
 # another temporary file.
-if ($sysaliases || $debug)
+exit (0) unless ($sysaliases || $debug);
+
+my ($tmpfh, $tmpf) = tempfile (UNLINK => 1);
+
+open (IN, "< $sysaliases");
+while (<IN>)
   {
-    my ($tmpfh, $tmpf) = tempfile (UNLINK => 1);
+    next if (/^\# Savannah include start/ .. /^\# Savannah include end/);
+    print $tmpfh $_;
+  }
+close (IN);
 
-    open (IN, "< $sysaliases");
-    while (<IN>)
-      {
-        next if (/^\# Savannah include start/ .. /^\# Savannah include end/);
-        print $tmpfh $_;
-      }
-    close (IN);
+seek ($tempfilefh, 0, 0);
+while (<$tempfilefh>)
+  {
+    print $tmpfh $_;
+  }
 
-    seek ($tempfilefh, 0, 0);
-    while (<$tempfilefh>)
-      {
-        print $tmpfh $_;
-      }
+close ($tmpfh);
+print "$tmpf written\n" if $debug;
 
-    close ($tmpfh);
-    print "$tmpf written\n" if $debug;
-
-    # Overwrite current system aliases with the new file.
-    unless ($debug)
-      {
-        system ("chmod", "a+r", $tmpf);
-        move ($tmpf, $sysaliases)
-            or die "Unable to overwrite $sysaliases with $tmpf, exiting";
-        system ("/usr/bin/newaliases") if -e "/usr/bin/newaliases";
-      }
-    else
-      {
-        print "Would do \"/bin/mv $tmpf $sysaliases\"\n";
-        print "Would run \"/usr/bin/newaliases\"\n" if -e "/usr/bin/newaliases";
-      }
+# Overwrite current system aliases with the new file.
+unless ($debug)
+  {
+    system ("chmod", "a+r", $tmpf);
+    move ($tmpf, $sysaliases)
+        or die "Unable to overwrite $sysaliases with $tmpf, exiting";
+    system ("/usr/bin/newaliases") if -e "/usr/bin/newaliases";
+  }
+else
+  {
+    print "Would do \"/bin/mv $tmpf $sysaliases\"\n";
+    print "Would run \"/usr/bin/newaliases\"\n" if -e "/usr/bin/newaliases";
   }

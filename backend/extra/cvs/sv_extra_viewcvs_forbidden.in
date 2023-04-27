@@ -51,7 +51,6 @@ use Term::ANSIColor qw(:constants);
 use POSIX qw(strftime);
 
 our $sys_viewcvs_conffile;
-our $sys_cron_viewcvs_forbidden;
 
 my $script = "sv_viewcvs_forbidden";
 my $logfile = "/var/log/sv_database2system.log";
@@ -64,23 +63,19 @@ $help =
 
 Update the viewcvs configuration file
 
-  -h, --help                   Show this help and exit
-  -v, --version                Show Savane version and exit
-  -d, --debug                  Do nothing, print everything
-      --cron                   Option to set when including this script
-                               in a crontab
-
-Authors: Mathieu Roy <yeupou\@gnu.org>";
+  -h, --help         show this help and exit
+  -v, --version      show Savane version and exit
+  -d, --debug        do nothing, print everything
+      --cron         ignored
+      --logfile      file for reports [$logfile]";
 PrintVersionOrHelp ($help);
+GetOptions ("cron" => \$cron, "debug" => \$debug, "logfile=s" => \$logfile);
 
 sub PrintLog
 {
   print LOG strftime "[$script] %c - $_[0]\n", localtime;
 }
 
-GetOptions ("cron" => \$cron, "debug" => \$debug);
-
-exit if ($cron && ! $sys_cron_viewcvs_forbidden);
 exit if (!$sys_viewcvs_conffile);
 
 open (LOG, ">>$logfile");

@@ -46,6 +46,9 @@
 
 * sv_cleaner removes irrelevant pieces of news.
 
+* The --cron option in scripts is ignored, --logfile is added when
+  relevant.
+
 Bug fixes:
 
 ** PrintVersionOrHelp emitted spurious error messages.
