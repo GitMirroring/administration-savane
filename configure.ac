@@ -140,8 +140,7 @@ AC_ARG_WITH([db-options], AS_HELP_STRING([--with-db-options],
 AC_SUBST(SV_DB_NAME)
 AC_SUBST(SV_DB_OPTIONS)
 
-sysconfdir="$sysconfdir/savane"
-SV_CONF=$sysconfdir
+SV_CONF="$sysconfdir/savane"
 AC_SUBST(SV_CONF)
 
 AC_CHECKING([for webserver user])

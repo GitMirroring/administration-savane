@@ -48,7 +48,7 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(GetConf);
 
-my $conf_prefix = '@sysconfdir@';
+my $conf_prefix = '@sysconfdir@/savane';
 my $conf_file;
 my $res;
 

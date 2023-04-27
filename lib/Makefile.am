@@ -26,14 +26,17 @@ modules = \
 nobase_libexec_SCRIPTS = $(modules)
 
 install-data-local: savane.conf.pl; \
-  if test -e "$(sysconfdir)/savane.conf.pl"; then\
+  if test -e "$(DESTDIR)$(sysconfdir)/savane/savane.conf.pl"; then\
      echo; echo; \
-     echo "NOTE: $(sysconfdir)/savane.conf.pl exists; not trying "; \
-     echo "      to overwrite it with a new configuration file."; \
+     echo "NOTE: $(DESTDIR)$(sysconfdir)/savane/savane.conf.pl exists;"; \
+     echo "      not trying to overwrite it with a new configuration file."; \
      echo; echo; \
   else \
-    $(INSTALL) -m 644 -D savane.conf.pl "$(sysconfdir)/savane.conf.pl"; \
+    $(INSTALL) -m 644 -D savane.conf.pl \
+      "$(DESTDIR)$(sysconfdir)/savane/savane.conf.pl"; \
   fi
+
+uninstall-local: ; $(RM) "$(DESTDIR)$(sysconfdir)/savane/savane.conf.pl"
 
 substituted = $(modules) savane.conf.pl
 
