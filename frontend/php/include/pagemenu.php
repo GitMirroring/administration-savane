@@ -221,9 +221,11 @@ function pagemenu_submenu_entry ($title, $url, $available = 1, $help = "")
 
   if ($GLOBALS['stone_age_menu'])
     $class = pagemenu_submenu_class ();
-  return "<li class=\"$class\">"
-    . utils_link ($url, $title, '', $available, $help)
-    . "</li>\n";
+  if (empty ($url))
+    $ret = $title;
+  else
+    $ret = utils_link ($url, $title, '', $available, $help);
+  return "<li class=\"$class\">$ret</li>\n";
 }
 
 function pagemenu_submenu_entry_separator ()
@@ -344,12 +346,9 @@ function pagemenu_vcs_browse_entry ($group, $vcs, $name)
       $title = sprintf (_("Browse %s repository"), $name);
       return pagemenu_submenu_entry ($title, $scm_url);
     }
-  $ret = pagemenu_submenu_entry_separator ();
   $title = sprintf (_("Browse %s repositories"), $name);
-  $ret .= pagemenu_submenu_title ("<span>$title</span>", null);
-  $repo_ul = "\n" . vcs_compile_repo_ul ($repos, $scm_url);
-  $ret .= pagemenu_submenu_body ($repo_ul);
-  $ret .= "\n$repo_ul" . pagemenu_submenu_end ();
+  $ret = pagemenu_submenu_entry ("<span>$title</span>", null);
+  $ret .= "\n" . vcs_compile_repo_ul ($repos, $scm_url) . "\n";
   return $ret;
 }
 
@@ -403,7 +402,7 @@ function pagemenu_vcs_append_entry ($func, $group, $vcs, $name, &$count)
 function pagemenu_vcs_entry ($group, &$count, $vcs, $name)
 {
   $ret = '';
-  foreach (['admin', 'use', 'browse', 'web_browse'] as $f)
+  foreach (['use', 'admin', 'browse', 'web_browse'] as $f)
     {
       $func = "pagemenu_vcs_{$f}_entry";
       $ret .= pagemenu_vcs_append_entry ($func, $group, $vcs, $name, $count);
@@ -535,16 +534,18 @@ function pagemenu_group ()
           isset ($vcses[CONTEXT]), 1, _("Source code management")
         );
 
-      $ret = '';
+      $ret = [];
       $count = 0;
 
       foreach ($vcses as $v => $t)
         if ($have_vcs[$v])
-          $ret .= pagemenu_vcs_entry ($project, $count, $v, $t);
+          $ret[] = pagemenu_vcs_entry ($project, $count, $v, $t);
 
       # Add a submenu only if there is more than one item.
       if ($ret && $count > 1)
-        print pagemenu_submenu_body ($ret);
+        print pagemenu_submenu_body (
+          join (pagemenu_submenu_entry_separator (), $ret)
+        );
       print pagemenu_submenu_end ();
     } # if ($count)
 
