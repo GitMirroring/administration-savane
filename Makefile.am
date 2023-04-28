@@ -23,6 +23,7 @@ backend_scripts = \
 	backend/extra/cvs/sv_extra_import_cvs \
 	backend/extra/cvs/sv_extra_pserver_cvsroots \
 	backend/extra/git/sv_cgit.pl \
+	backend/extra/git/sv_cgit_about_filter.pl \
 	backend/misc/sv_reminder \
 	backend/misc/sv_cleaner \
 	backend/accounts/sv_assign_uid_gid

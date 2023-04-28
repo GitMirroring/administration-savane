@@ -1,5 +1,5 @@
 <?php
-# Function to define a generic VCS index.php.
+# Generic VCS-related functions.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
@@ -41,114 +41,117 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function vcs_description_fallback (&$desc, $url)
+require_once (dirname (__FILE__) . '/vcs/git.php');
+
+function vcs_sorting_sequence ($vcs, $group_id)
 {
-  $default_description =
-    "Unnamed repository; edit this file 'description' to name the repository.";
-  if (empty ($desc) || $desc == $default_description)
-    $desc = $url;
+  $pref = group_get_preference ($group_id, "vcs:$vcs:repo-order");
+  if (empty ($pref))
+    return [];
+  return explode (':', $pref);
 }
 
-function vcs_get_list_from_cgitrepos ($group_name)
+function vcs_save_sorting ($vcs, $group_id, &$repos)
 {
-  global $sys_etc_dir;
+  $order = [];
+  foreach ($repos as $r)
+    $order[] = $r['name'];
+  $order = join (':', $order);
+  group_set_preference ($group_id, "vcs:$vcs:repo-order", $order);
+}
 
-  exec (
-    "grep -A 3 '^repo\.url=$group_name\(/\|\.git$\)' $sys_etc_dir/cgitrepos",
-    $output
-  );
-  $n = intval ((count ($output) + 1) / 5);
+function vcs_get_repo_pref ($vcs, $group_id, $pref, $repo)
+{
+  return group_get_preference ($group_id, "vcs:$vcs:$pref:$repo");
+}
+function vcs_set_repo_pref ($vcs, $group_id, $pref, $repo, $val)
+{
+  group_set_preference ($group_id, "vcs:$vcs:$pref:$repo", $val);
+}
+
+function vcs_set_repo_description ($vcs, $group_id, $name, $description)
+{
+  vcs_set_repo_pref ($vcs, $group_id, "desc", $name, $description);
+}
+function vcs_get_repo_description ($vcs, $group_id, $name)
+{
+  return vcs_get_repo_pref ($vcs, $group_id, "desc", $name);
+}
+
+function vcs_tarballs_disabled ($vcs, $group_id, $name)
+{
+  return vcs_get_repo_pref ($vcs, $group_id, "no-tarball", $name);
+}
+function vcs_disable_tarballs ($vcs, $group_id, $name, $val)
+{
+  vcs_set_repo_pref ($vcs, $group_id, "no-tarball", $name, $val);
+}
+
+function vcs_set_repo_readme ($vcs, $group_id, $name, $description)
+{
+  vcs_set_repo_pref ($vcs, $group_id, "readme", $name, $description);
+}
+function vcs_get_repo_readme ($vcs, $group_id, $name)
+{
+  return vcs_get_repo_pref ($vcs, $group_id, "readme", $name);
+}
+
+# Use descriptions from database when available.
+function vcs_override_descriptions ($vcs, $group_id, $repos)
+{
   $ret = [];
-  for ($i = 0; $i < $n; $i++)
+  foreach ($repos as $r)
     {
-      $ret[$i] = [
-        'url' => preg_replace (':^repo[.]url=:', '', $output[$i * 5]),
-        'path' => preg_replace (':repo.path=:', '', $output[$i * 5 + 1]),
-        'desc' => preg_replace (':^repo[.]desc=:', '', $output[$i * 5 + 2])
-      ];
-      vcs_description_fallback ($ret[$i]['desc'], $ret[$i]['url']);
+      $desc = vcs_get_repo_description ($vcs, $group_id, $r['name']);
+      if (!empty ($desc))
+        $r['desc'] = $desc;
+      $ret[] = $r;
     }
   return $ret;
 }
 
-function vcs_make_git_entry ($git_dir, $repo_dir, $clone_path)
+# Sort repos according to group preferences.
+function vcs_sort_repos ($vcs, $group_id, $repos)
 {
-  $dir_name = "$git_dir/$repo_dir";
-  if (!is_dir ($dir_name))
-    return null;
-  $desc = file_get_contents ("$dir_name/description");
-  if ($desc === false)
-    $desc = '';
-  $desc = trim ($desc);
-  vcs_description_fallback ($desc, $repo_dir);
-  return
-    ['url' => $repo_dir, 'desc' => $desc, 'path' => "$clone_path/$repo_dir"];
-}
-
-function vcs_list_git_subdirs ($dir_name)
-{
-  # We don't catch warnings when opening the directory: if the directory
-  # isn't readable, the attributes need fixing in the filesystem.
-  $dir_handle = opendir ($dir_name);
-  if ($dir_handle === false)
-    return null;
+  $seq = vcs_sorting_sequence ($vcs, $group_id);
+  if (empty ($seq))
+    return $repos;
+  $named = [];
+  foreach ($repos as $r)
+    $named[$r['name']] = $r;
   $ret = [];
-  while (($entry = readdir ($dir_handle)) !== false)
-    if (preg_match ('/[.]git$/', $entry))
-      $ret[] = $entry;
-  closedir ($dir_handle);
+  foreach ($seq as $r)
+    if (array_key_exists ($r, $named))
+      {
+        $ret[] = $named[$r];
+        unset ($named[$r]);
+      }
+  foreach ($named as $r)
+    $ret[] = $r;
   return $ret;
-}
-
-function vcs_list_git_repos ($group_name, $git_dir, $clone_path)
-{
-  $ret = [];
-  $entry = vcs_make_git_entry ($git_dir, "$group_name.git", $clone_path);
-  if (!empty ($entry))
-    $ret[] = $entry;
-  $dir_name = "$git_dir/$group_name";
-  if (!is_dir ($dir_name))
-    return $ret;
-  $dir_list = vcs_list_git_subdirs ($dir_name);
-  foreach ($dir_list as $d)
-    {
-      $entry = vcs_make_git_entry ($git_dir, "$group_name/$d", $clone_path);
-      if (!empty ($entry))
-        $ret[] = $entry;
-    }
-  return $ret;
-}
-
-function vcs_get_list_from_dirs ($group_name, $vcs)
-{
-  global $sys_vcs_dir;
-  if ($vcs != 'git')
-    return null;
-  if (empty ($sys_vcs_dir) || !is_array ($sys_vcs_dir))
-    return null;
-  if (
-    empty ($sys_vcs_dir['git']['dir']) || !is_dir ($sys_vcs_dir['git']['dir'])
-  )
-    return null;
-  $git_dir = $sys_vcs_dir['git']['dir'];
-  if (empty ($sys_vcs_dir['git']['clone-path']))
-    $clone_path = $git_dir;
-  else
-    $clone_path = $sys_vcs_dir['git']['clone-path'];
-  return vcs_list_git_repos ($group_name, $git_dir, $clone_path);
 }
 
 # Get array of repository descriptions.
-function vcs_get_repos ($vcs_exfix, $group_id)
+function vcs_get_repos ($vcs, $group_id)
 {
-  if ($vcs_exfix !== 'git')
+  global $sys_vcs_dir;
+  $func = "{$vcs}_list_repos";
+  if (!function_exists ($func))
     return [];
   $group = project_get_object ($group_id);
   $group_name = $group->getUnixName ();
-  $ret = vcs_get_list_from_dirs ($group_name, $vcs_exfix);
-  if (empty ($ret))
-    return vcs_get_list_from_cgitrepos ($group_name);
-  return $ret;
+  if (empty ($sys_vcs_dir) || !is_array ($sys_vcs_dir))
+    return [];
+  if (empty ($sys_vcs_dir[$vcs]['dir']) || !is_dir ($sys_vcs_dir[$vcs]['dir']))
+    return [];
+  $vcs_dir = $sys_vcs_dir[$vcs]['dir'];
+  if (empty ($sys_vcs_dir[$vcs]['clone-path']))
+    $clone_path = $vcs_dir;
+  else
+    $clone_path = $sys_vcs_dir[$vcs]['clone-path'];
+  $repos = $func ($group_name, $vcs_dir, $clone_path);
+  $repos = vcs_override_descriptions ($vcs, $group_id, $repos);
+  return vcs_sort_repos ($vcs, $group_id, $repos);
 }
 
 function vcs_print_browsing_preface ($vcs_name)

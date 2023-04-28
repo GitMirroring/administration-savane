@@ -398,7 +398,7 @@ class Group extends savane_error
 
   function get_vcs_admin_url ($vcs)
   {
-    if ($vcs != 'cvs')
+    if (!in_array ($vcs, ['cvs', 'git']))
       return null;
     return preg_replace (',.*/,', '$0admin/', $this->getArtifactUrl ($vcs));
   }

@@ -20,6 +20,9 @@
 * Absent 'member since' dates are not treated as broken group history
   any more.
 
+* Controls to modify some Git repository settings are added on a new page
+  /git/admin/index.php.
+
 * Bug fixes:
 
 ** In frontend/php/forum/forum.php, one argument of SQL query
@@ -43,6 +46,8 @@
 
 * New script, backend/extra/git/sv_cgit.pl.in (fetched from vcs2
   and heavily rewritten).
+
+* New script, backend/extra/git/sv_cgit_about_filter.pl.in.
 
 * sv_cleaner removes irrelevant pieces of news and orphan user data.
 

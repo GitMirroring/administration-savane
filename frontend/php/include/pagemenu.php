@@ -341,7 +341,7 @@ function pagemenu_vcs_browse_entry ($group, $vcs, $name)
   $repos = vcs_get_repos ($vcs, $group_id);
   $n = count ($repos);
   $scm_url = $group->getUrl ($a_idx);
-  if (count ($repos) < 2)
+  if ($n < 2)
     {
       $title = sprintf (_("Browse %s repository"), $name);
       return pagemenu_submenu_entry ($title, $scm_url);

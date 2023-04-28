@@ -12,6 +12,7 @@
 # Omissions are checked in dist-hook.
 POTFILES = \
 	frontend/php/bug/index.php \
+	frontend/php/git/admin/index.php \
 	frontend/php/git/index.php \
 	frontend/php/docs/index.php \
 	frontend/php/bugs/item.php \
@@ -113,6 +114,7 @@ POTFILES = \
 	frontend/php/include/stats/general.php \
 	frontend/php/include/people/general.php \
 	frontend/php/include/vcs.php \
+	frontend/php/include/vcs/git.php \
 	frontend/php/include/graphs.php \
 	frontend/php/include/trackers/format.php \
 	frontend/php/include/trackers/cookbook.php \

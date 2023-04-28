@@ -460,6 +460,15 @@ $reference = 'forum/message.php';
   test_sane_import ($in, $names, $out);
 }
 
+$reference = 'git/admin/index.php';
+{
+  $names = ['path' => ['readme0', 'readme1', 'readme2', 'readme3']];
+  $in = ['readme2' => 'doc/read-me.md'];
+  $out = $in;
+  $out['readme0'] = $out['readme1'] = $out['readme3'] = null;
+  test_sane_import ($in, $names, $out);
+}
+
 $reference = 'i18n.php';
 {
   $names = [

@@ -1,0 +1,86 @@
+#! @PERL@ -I@libexecdir@
+# Basic Cgit "about filter", see cgitrc (5).
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2023 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use Savane::Version qw (PrintVersionOrHelp);
+use Getopt::Long;
+
+my $help_msg =
+"Usage: $0 [OPTIONS] FILENAME
+
+Basic Cgit 'about filter', see cgitrc (5).
+Files with names ending in '.html' are passed unmodified;
+in other files, HTML special characters are replaced with HTML entities.
+
+  -h, --help                   show this help and exit
+  -v, --version                show Savane version and exit";
+
+PrintVersionOrHelp ($help_msg);
+
+my $file_name = lc ($ARGV[0]);
+my (@filter, @text_filter, @html_filter);
+my ($htmlspecialchars, $pass_as_is);
+
+$htmlspecialchars = sub
+{
+  $_ = $_[0];
+  s/&/&amp;/g;
+  s/</&lt;/g;
+  s/>/&gt;/g;
+  return $_;
+};
+
+$pass_as_is = sub { return $_[0]; };
+
+@text_filter = ("<pre>", $htmlspecialchars, "</pre>\n");
+@html_filter = ("", $pass_as_is, "");
+
+@filter = @text_filter;
+@filter = @html_filter if ($file_name =~ /[.]html$/);
+
+print $filter[0];
+foreach my $line (<STDIN>)
+  {
+    print $filter[1]->($line);
+  }
+print $filter[2];

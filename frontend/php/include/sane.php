@@ -246,6 +246,13 @@ $sane_sanitizers['hash'] = function ($in, &$out, $i, $arg)
   return $sane_sanitizers['preg'] ($in, $out, $i, '/^[a-f\d]+$/');
 };
 
+$sane_sanitizers['path'] = function ($in,  &$out, $i, $arg)
+{
+  global $sane_sanitizers;
+  return $sane_sanitizers['preg'] ($in, $out, $i, ',^[:/[:alnum:]._-]+$,');
+};
+
+
 # Only allow strings without quotes.
 $sane_sanitizers['no_quotes'] = function ($in, &$out, $i, $arg)
 {

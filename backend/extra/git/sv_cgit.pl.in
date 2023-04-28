@@ -82,18 +82,59 @@ sub htmlspecialchars
   return $_;
 }
 
-sub urldecode
+my %group_names;
+my %group_ids;
+
+sub get_group_id
 {
-  my $url = $_[0];
-  $url =~ tr/+/ /;
-  $url =~ s/%([a-fA-F0-9]{2})/chr(hex($1))/eg;
-  return $url;
+  my $group = shift;
+  my $group_id;
+  $group =~ s,/.*,,;
+  return 0 unless exists $group_ids{$group};
+  $group_id = $group_ids{$group};
+}
+
+sub get_repo_name
+{
+  my $name = $_[0];
+  $name =~ s/[.]git$//;
+  return $name;
+}
+
+sub fetch_group_git_pref
+{
+  my ($pref, $group_id, $fallback) = @_;
+  return $fallback unless $group_id;
+  my @req = GetDBLists (
+    "group_preferences",
+    "group_id = $group_id AND preference_name = 'vcs:git:$pref'",
+    "preference_value"
+  );
+  foreach my $line (@req)
+    {
+      my ($val) = @{$line};
+      return $val;
+    }
+  return $fallback;
+}
+
+sub get_repo_order
+{
+  my $group_id = shift;
+  return split (":", fetch_group_git_pref ("repo-order", $group_id, ""));
+}
+
+sub fetch_repo_pref
+{
+  my ($pref, $repo_name, $group_id, $fallback) = @_;;
+  return fetch_group_git_pref ("$pref:$repo_name", $group_id, $fallback);
 }
 
 sub get_desc
 {
-  my $path = $_[0];
-  my $desc = '';
+  my ($path, $url, $repo_name, $group_id) = @_;
+  my $desc = fetch_repo_pref ("desc", $repo_name, $group_id, "");
+  return $desc unless $desc eq "";
   open (DESC, "<:encoding(UTF-8)", "$path/description") or warn "$path/description: $!";
   $desc = <DESC>;
   close (DESC);
@@ -103,9 +144,7 @@ sub get_desc
   return $desc;
 }
 
-my %group_names;
-
-sub output_group_name
+sub output_section
 {
   my $out = shift;
   my $group = shift;
@@ -124,36 +163,84 @@ sub output_group_name
   return 1;
 }
 
-sub output_entry
+sub repo_entry
 {
-  my $dsc = get_desc ($_[2]);
-  print { $_[0] } "repo.url=$_[1]\nrepo.path=$pfx/$_[1]\nrepo.desc=$dsc\n"
-    . "repo.readme=README.html\nrepo.owner=\n";
+  my ($url, $desc_path) = @_;
+  my $repo_name = get_repo_name ($url);
+  my $group_id = get_group_id ($repo_name);
+  my $dsc = get_desc ($desc_path, $url, $repo_name, $group_id);
+  my $no_tarballs = fetch_repo_pref ("no-tarball", $repo_name, $group_id, 0);
+  my $readme = fetch_repo_pref ("readme", $repo_name, $group_id, "");
+  my $out = "repo.url=$url\nrepo.path=$pfx/$url\nrepo.desc=$dsc\n";
+  $out .= "repo.readme=$readme\n" unless $readme eq "";
+  $out .= "repo.snapshots=\n" if $no_tarballs;
+  return $out;
 }
 
 sub enumerate_subrepos
 {
-  my $out = shift;
   my $group = shift;
+  my $names = shift;
+  my @ret;
 
-  return unless -d $group;
+  return () unless -d $group;
   chdir ($group) or die $!;
   foreach my $repo (<*.git>)
     {
       next if ! -d $repo;
-      output_entry ($out, "$group/$repo", $repo);
+      push @{$names}, get_repo_name ("$group/$repo");
+      push @ret, (repo_entry ("$group/$repo", $repo));
     }
   chdir ("..");
+  return @ret;
+}
+
+sub sort_entries
+{
+  my ($ent_ref, $name_ref, $group_id) = @_;
+  my @repo_order = get_repo_order ($group_id);
+  return @{$ent_ref} unless 0 < $#repo_order;
+  my @sorted;
+  my %by_name;
+  foreach my $n (@{$name_ref})
+    {
+      $by_name{$n} = shift @{$ent_ref};
+    }
+  foreach my $n (@repo_order)
+    {
+      next unless exists $by_name{$n};
+      push @sorted, $by_name{$n};
+      delete $by_name{$n};
+    }
+  foreach my $n (@{$name_ref})
+    {
+      next unless exists $by_name{$n};
+      push @sorted, $by_name{$n};
+    }
+  return @sorted;
+}
+
+sub sort_and_output_entries
+{
+  my ($ent_ref, $name_ref, $group, $out) = @_;
+  my $group_id = get_group_id ($group);
+  my @sorted = sort_entries ($ent_ref, $name_ref, $group_id);
+  foreach my $ent (@sorted)
+    {
+      print { $out } $ent;
+    }
 }
 
 my @db = GetDBLists (
-  "groups", "status = 'A' AND use_git = 1", "unix_group_name, group_name"
+  "groups", "status = 'A' AND use_git = 1",
+  "unix_group_name, group_name, group_id"
 );
 
 foreach my $line (@db)
   {
-    my ($unix_group_name, $group_name) = @{$line};
+    my ($unix_group_name, $group_name, $group_id) = @{$line};
     $group_names{$unix_group_name} = $group_name;
+    $group_ids{$unix_group_name} = $group_id;
   }
 
 my $out;
@@ -166,10 +253,14 @@ foreach my $path (<*.git>)
   {
     next if ! -d $path;
     my $group = $path;
+    my @entries;
+    my @names;
     $group =~ s/[.]git$//;
-    next unless output_group_name ($out, $group);
-    output_entry ($out, $path, $path);
-    enumerate_subrepos ($out, $group);
+    next unless output_section ($out, $group);
+    push @names, get_repo_name ($path);
+    push @entries, (repo_entry ($path, $path));
+    push @entries, enumerate_subrepos ($group, \@names);
+    sort_and_output_entries (\@entries, \@names, $group, $out);
   }
 chmod 0644, $out;
 close ($out);
