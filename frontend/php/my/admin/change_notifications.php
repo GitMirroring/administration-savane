@@ -44,10 +44,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-require_once('../../include/init.php');
-require_once('../../include/account.php');
-require_directory("trackers");
+require_once ('../../include/init.php');
+require_once ('../../include/account.php');
+require_directory ("trackers");
 
 $notif_arr = [
   'notify_unless_im_author', 'notify_item_closed',
@@ -70,22 +69,19 @@ function update_subject_line ($form_subject_line)
 {
   if (!preg_replace("/ /", "", $form_subject_line))
     {
-      # Empty line requested? Clear if set.
-      if (user_get_preference("subject_line"))
-        user_unset_preference("subject_line");
+      if (user_get_preference ("subject_line"))
+        user_unset_preference ("subject_line");
       return;
     }
-  if (
-    strspn (
-      $form_subject_line,
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW'
-      . 'XYZ0123456789-_[]()&=$*:!,;?./%$ <>|'
-    )
-    != strlen ($form_subject_line)
-  )
+  $permitted = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW'
+    . 'XYZ0123456789-_[]()&=$*:!,;?./%$ <>|';
+  if (strspn ($form_subject_line, $permitted) != strlen ($form_subject_line))
     {
-      fb(_("Non alphanumeric characters in the proposed subject line, subject
-line configuration skipped."), 1);
+      $msg = sprintf (
+        _("Characters other than '%s' in the proposed subject line,\n"
+        . "subject line configuration skipped."), $permitted
+      );
+      fb ($msg, 1);
       return;
     }
   if (user_set_preference ("subject_line", $form_subject_line))
@@ -102,14 +98,14 @@ if ($update)
         $success += user_unset_preference ($n);
 
     if ($success == count ($notif_arr))
-      fb(_("Successfully set notification exceptions."));
+      fb (_("Successfully set notification exceptions."));
     else
-      fb(_("Failed to set notification exceptions."), 1);
+      fb (_("Failed to set notification exceptions."), 1);
 
-    if (user_set_preference("batch_frequency", $form_frequency))
-      fb(_("Successfully updated reminder settings."));
+    if (user_set_preference ("batch_frequency", $form_frequency))
+      fb (_("Successfully updated reminder settings."));
     else
-      fb(_("Failed to update reminder setting."), 1);
+      fb (_("Failed to update reminder setting."), 1);
 
     if (user_get_preference("batch_lastsent") == "")
       user_set_preference ("batch_lastsent", "0");
@@ -117,20 +113,21 @@ if ($update)
     update_subject_line ($form_subject_line);
   } # if ($update)
 
-site_user_header(array('title'=>_("Mail Notification Settings"),
-                       'context'=>'account'));
+site_user_header (
+  ['title' => _("Mail Notification Settings"), 'context' => 'account']
+);
 
 print '<h2>' . _("Notification Exceptions") . "</h2>\n";
 print '<p>'
-  . _("When you post or update an item, you are automatically added to
-its Carbon-Copy list to receive notifications regarding future updates. You can
-always remove yourself from an item Carbon-Copy list.")
+  . _("When you post or update an item, you are automatically added to\nits "
+      . "Carbon-Copy list to receive notifications regarding future updates. "
+      . "You can\nalways remove yourself from an item Carbon-Copy list.")
   . "</p>\n<p>"
-  . _("If an item is assigned to you, you will receive notifications as long as
-you are the assignee; however, you will not be added to the Carbon-Copy list.
-If you do not post any comment or update to the item while you are the
-assignee, and the item gets reassigned, you will not receive further update
-notifications.")
+  . _("If an item is assigned to you, you will receive notifications as long "
+      . "as\nyou are the assignee; however, you will not be added to the "
+      . "Carbon-Copy list.\nIf you do not post any comment or update to the "
+      . "item while you are the\nassignee, and the item gets reassigned, you "
+      . "nwill not receive further update\notifications.")
   . "</p>\n<p>"
   . _("Here, you can tune your notification settings.") . "</p>\n";
 
@@ -174,40 +171,38 @@ pref_cbox ("removecc_notassignee", _("I am no longer assigned to the item"));
 
 print '<h2>' . _("Subject Line") . "</h2>\n";
 print '<p>';
-printf(_('The header &ldquo;%s&rdquo; will always be included, and when
-applicable, so will &ldquo;%s,&rdquo; &ldquo;%s,&rdquo; and &ldquo;%s.&rdquo;'),
-       "X-Savane-Server", "X-Savane-Project", "X-Savane-Tracker",
-       "X-Savane-Item-ID");
+printf (_("The header &ldquo;%s&rdquo; will always be included, and when\n"
+  . "applicable, so will &ldquo;%s,&rdquo; &ldquo;%s,&rdquo; and "
+  . "&ldquo;%s.&rdquo;"),
+  "X-Savane-Server", "X-Savane-Project", "X-Savane-Tracker", "X-Savane-Item-ID"
+);
 print "</p>\n<p>";
-printf(_('Another option for message filtering is to configure the prefix of
-the subject line with the following form. In this form, you can use the strings
-&ldquo;%s,&rdquo; &ldquo;%s,&rdquo; &ldquo;%s,&rdquo; and &ldquo;%s.&rdquo;
-They will be replaced by the appropriate values. If you leave this form empty,
-you will receive the default subject line.'),
-       "%SERVER", "%PROJECT", "%TRACKER", "%ITEM");
-print '</p>
-';
+printf (_("Another option for message filtering is to configure the prefix "
+  . "of\nthe subject line with the following form. In this form, you can use "
+  . "the strings\n&ldquo;%s,&rdquo; &ldquo;%s,&rdquo; &ldquo;%s,&rdquo; and "
+  . "&ldquo;%s.&rdquo;\nThey will be replaced by the appropriate values. If "
+  . "you leave this form empty,\nyou will receive the default subject line."),
+  "%SERVER", "%PROJECT", "%TRACKER", "%ITEM"
+);
+print "</p>\n";
 
 print '<span class="preinput"><label for="form_subject_line">'
-      ._("Subject Line:").'</label></span><br />
-&nbsp;&nbsp;';
-print
-'<input name="form_subject_line" id="form_subject_line" size="50"
-        type="text" value="'.user_get_preference("subject_line").'" />';
+  . _("Subject Line:") . "</label></span><br />\n&nbsp;&nbsp;";
+print "<input name='form_subject_line' id='form_subject_line' size='50'\n"
+  . "type='text' value=\"" . user_get_preference ("subject_line")
+  . "\" />\n\n";
 
 print '<h2>' . _("Reminder") . "</h2>\n";
-print '<p>'._("You can also receive reminders about opened items assigned to
-you, when their priority is higher than 5. Note that projects administrators
-can also set reminders for you, out of your control, for your activities on the
-project they administer.").'</p>
-';
+print '<p>' . _("You can also receive reminders about opened items assigned to\n"
+  . "you, when their priority is higher than 5. Note that projects administrators\n"
+  . "can also set reminders for you, out of your control, for your activities on the\n"
+  . "project they administer.")
+  . "</p>\n";
 
-$frequency = array("0" =>
-# TRANSLATORS: this is frequency.
-                          _("Never"),
-                   "1" => _("Daily"),
-                   "2" => _("Weekly"),
-                   "3" => _("Monthly"));
+$frequency = [
+  # TRANSLATORS: this is frequency.
+  "0" => _("Never"), "1" => _("Daily"), "2" => _("Weekly"), "3" => _("Monthly")
+];
 
 print '<span class="preinput"><label for="form_frequency">'
   . _("Frequency of reminders:") . "</label></span><br />\n&nbsp;&nbsp;";
@@ -216,5 +211,5 @@ print html_build_select_box_from_array (
   $frequency, "form_frequency", user_get_preference("batch_frequency")
 );
 print "<br />\n" . form_footer (_("Update"));
-site_user_footer(array());
+site_user_footer ([]);
 ?>

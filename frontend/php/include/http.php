@@ -41,22 +41,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function http_exit_if_not_modified($mtime)
+function http_exit_if_not_modified ($mtime)
 {
-  if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
-    {
-      $modified_since = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
-      
-      // remove trailing garbage from IE
-      $pos = strpos($modified_since, ';');
-      if ($pos !== false)
-	$modified_since = substr($modified_since, 0, $pos);
-      
-      $iftime = strtotime($modified_since);
-      if ($iftime != -1 && $mtime <= $iftime)
-	{
-	  header('HTTP/1.0 304 Not Modified');
-	  exit;
-	}
-    }
+  if (empty ($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+    return;
+  # Remove trailing garbage from IE.
+  $date_str = preg_replace ('/;.*$/', '', $_SERVER['HTTP_IF_MODIFIED_SINCE']);
+  $iftime = strtotime ($date_str);
+  if ($iftime == -1 || $mtime > $iftime)
+    return;
+  header ('HTTP/1.0 304 Not Modified');
+  exit;
 }

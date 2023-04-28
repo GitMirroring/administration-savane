@@ -99,27 +99,27 @@ DbdDo (
 );
 DbdDo (
   "INSERT INTO temp_uid_counter (user_id, uidNumber)
-  VALUES (0, $min_uidNumber-1);"
+   VALUES (0, $min_uidNumber-1);"
 );
 
 # Import existing uidNumbers.
 DbdDo (
   "INSERT INTO temp_uid_counter (user_id, uidNumber)
-  SELECT user_id, uidNumber FROM user WHERE uidNumber > 0;"
+   SELECT user_id, uidNumber FROM user WHERE uidNumber > 0;"
 );
 
 # Assign new uidNumbers.
 DbdDo (
   "INSERT INTO temp_uid_counter (user_id)
-   SELECT user_id FROM user WHERE uidNumber IS NULL AND status='A';"
+   SELECT user_id FROM user WHERE uidNumber IS NULL AND status = 'A';"
 );
 
 # Update uidNumbers.
 DbdDo (
   "UPDATE user, temp_uid_counter
-  SET user.uidNumber = temp_uid_counter.uidNumber
-  WHERE user.user_id = temp_uid_counter.user_id
-    AND user.uidNumber IS NULL;"
+   SET user.uidNumber = temp_uid_counter.uidNumber
+   WHERE user.user_id = temp_uid_counter.user_id
+     AND user.uidNumber IS NULL;"
 );
 
 # Generate gidNumbers.
@@ -129,17 +129,17 @@ DbdDo (
 );
 DbdDo (
   "INSERT INTO temp_gid_counter (group_id, gidNumber)
-  VALUES (0, $min_gidNumber-1);"
+   VALUES (0, $min_gidNumber-1);"
 );
 # Import existing gidNumbers.
 DbdDo (
   "INSERT INTO temp_gid_counter (group_id, gidNumber)
-  SELECT group_id, gidNumber FROM groups WHERE gidNumber > 0;"
+   SELECT group_id, gidNumber FROM groups WHERE gidNumber > 0;"
 );
-# Assign new uidNumbers.
+# Assign new gidNumbers.
 DbdDo (
   "INSERT INTO temp_gid_counter (group_id)
-  SELECT group_id FROM groups WHERE gidNumber IS NULL AND status='A';"
+   SELECT group_id FROM groups WHERE gidNumber IS NULL AND status = 'A';"
 );
 
 # Update gidNumbers.
