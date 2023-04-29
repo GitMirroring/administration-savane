@@ -247,7 +247,7 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
     # TRANSLATORS: the argument is site name (like Savannah).
     printf (
       _("Since you are administrator of this group, which one is\n"
-        . "the &ldquo;system group,&rqduo; you are administrator of the "
+        . "the &ldquo;system group,&rdquo; you are administrator of the "
         . "whole %s server."),
       $sys_name
     );
