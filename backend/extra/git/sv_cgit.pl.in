@@ -120,7 +120,7 @@ sub output_group_name
       warn "No group $group using Git in the database.\n" if $verbose;
       return 0;
     }
-  print { $out } "repo.group=$group_name\n";
+  print { $out } "section=$group_name\n";
   return 1;
 }
 
