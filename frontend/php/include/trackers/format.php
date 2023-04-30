@@ -530,6 +530,7 @@ function format_item_changes ($changes, $item_id, $group_id)
   return $out;
 }
 
+# Show the files attached to this tracker item.
 function format_item_attached_files ($item_id, $group_id, $ascii = false)
 {
   global $HTML, $sys_home, $php_self;
@@ -627,7 +628,7 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
   return $out;
 }
 
-# Show the files attached to this bug.
+# Show the notification list for this item.
 function format_item_cc_list ($item_id, $group_id, $ascii = false)
 {
   global $HTML, $php_self;
