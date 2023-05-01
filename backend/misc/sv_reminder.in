@@ -54,78 +54,81 @@ our $sys_name;
 our $sys_https_host;
 our $sys_default_domain;
 our $sys_url_topdir;
+our $dbd;
 
 my $script = "sv_reminder";
 my $logfile = "/var/log/sv_reminder.log";
 my $help;
-my $debug;
+my $verbose;
+my $dry_run;
 my $max = "2000";
 my $max_items = "50";
 my $cron;
 my @trackers  = ("bugs", "task", "support", "patch");
-
 
 $help =
 "Usage: $0 [OPTIONS]
 
 Send reminders to users in some specific cases.
 
-* An item is about to start or finish, all people from the item
-  notification list should be warned. (not implemented)
+1. An item is about to start or finish, all people from the item
+   notification list should be warned. (not implemented)
 
-* Users decided to receive a batch of open items assigned to
-  them each x days, minimum priority being > 5.
-
-* An admin of a group decided that members assigned to some item of
-  should receive a batch each x days, minimum priority > 5.
-
-* (An admin of a group decided that members assigned to some item
-  whose status or resolution haven't changed for some period should receive
-  a batch each x days).
+2. Users decided to receive a batch of open items assigned to
+  them each x days, minimum priority 5.
 
 This script is supposed to run twice a day.
 
   -h, --help       show this help and exit
   -v, --version    show Savane version and exit
-  -d, --debug      do nothing, print everything
+      --cron       ignored
+      --dry-run    don't send emails, log them instead
+      --verbose    log extra information
       --max        maximum number of mails sent by the script; if that number
                      is reached, next mails are discarded and tagged as sent;
                      make sure this parameter fits your
                      number of users and servers possibilities [$max]
       --max-items  maximum number of items mentioned in a mail;
                      set it to avoid sending extremely big mails [$max_items]
-      --cron       ignored
       --logfile    file for reports [$logfile]";
 
 PrintVersionOrHelp ($help);
 
 GetOptions (
   "cron" => \$cron, "max=s" => \$max, "max-items=s" => \$max_items,
-  "debug" => \$debug, "logfile=s" => \$logfile
-);
+  "verbose" => \$verbose, "dry-run" => \$dry_run, "logfile=s" => \$logfile
+) or die "Wrong command line";
+
+$dbd->{mysql_enable_utf8} = 1;
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  my $dr = $dry_run? " (dry run)": "";
+  print LOG strftime "[$script] %c$dr - $_[0]\n", localtime;
 }
 
-open (LOG, ">>$logfile");
+# Values for batch_frequency: 0 = none, 1 = daily, 2 = weekly, 3 = monthly.
+sub decode_freq
+{
+  my $freq = $_[0];
+  # $names[0] may not be correct English, but it shouldn't show up in output,
+  # anyway.
+  my @names = ("neverly", "daily", "weekly", "monthly");
+  return 'unknown' unless $freq >= 0 && $freq <= $#names;
+  return $names[$freq];
+}
+
+open (LOG, ">>:encoding(UTF-8)", "$logfile");
 PrintLog ("starting");
 AcquireReplicationLock();
 
-# - List items + why + user.
-# - Then compile per user, mentionning why+item, adding more info and links.
-# - Send all mails.
-# - Register in the DB with one SQL command would be best (saving
-#   ressource), but painy  if the script is interrupted.
-
-# List of users that is supposed to receive a batch.
+# List of users supposed to receive a batch.
 my %user;
 
-# items{user} = (bugs54212, bugs1321)
+# items{user} = ("bugs,54212", "patch,1321")
 my %items;
 
-# summary{bugs542} = summary of the item.
+# summary{"bugs,542"} = summary of the item.
 my %summary;
 
 # Determine the timestamp of one month ago, one week ago and one day ago.
@@ -146,43 +149,54 @@ my $daybefore = date_before ($date0, 1, 0);
 my $weekbefore = date_before ($date0, 7, 0);
 my $monthbefore = date_before ($date0, 0, 1);
 
-print
-  "DBG time: daybefore:$daybefore, weekbefore:$weekbefore; "
-  . "monthbefore:$monthbefore\n"
-  if $debug;
+PrintLog ("time before: day $daybefore, week $weekbefore; month $monthbefore")
+  if $verbose;
 
-# Case 1: an item is about to start or finish, assignee should be warned.
+PrintLog ("date before: day " . localtime ($daybefore)
+  . ", week " . localtime ($weekbefore) . ", month " . localtime ($monthbefore)
+) if $verbose;
 
-# Not implemented yet.
-
-# Case 2: users decided to receive a batch of open item assigned to them
-# each x days.
-
-# Store user frequency useful to test if they really need to be in user.
 my %user_frequency;
-# Store users that need to receive batch for case 2.
-my @user_case2;
+my %user_email;
+my %user_names;
+my %realnames;
+my %last_sent;
 
-# Find appropriate users; frequency flag:
-# 0 = none, 1 = daily, 2 = weekly, 3 = monthly.
+# Find eligible users.
 foreach my $line
   (
     GetDB (
-      "user_preferences",
-      "preference_name = 'batch_frequency' AND preference_value <> '0'",
-      "user_id, preference_value"
+      "user_preferences p, user u",
+      "preference_name = 'batch_frequency' AND preference_value <> '0'
+       AND u.user_id = p.user_id AND u.status = 'A'",
+      "u.user_id, user_name, realname, email, preference_value"
     )
   )
   {
     chomp ($line);
-    my ($user_id, $frequency) = split (",", $line);
-    print "DBG db user: get $user_id, $frequency from database\n" if $debug;
-    $user_frequency{$user_id} = $frequency;
+    my ($user_id, $user_name, $realname, $email, $freq) = split (",", $line);
+    $user_frequency{$user_id} = $freq;
+    $realname =~ s/\://g;
+    $realnames{$user_id} = $realname;
+    $user_names{$user_id} = $user_name;
+    $user_email{$user_id} = $email;
+    PrintLog ("user #$user_id, frequency $freq: $realname <$email>")
+      if $verbose;
 }
 
-# Get last sent timestamps.
-# People that got batch_frequency set must have batch_lastsent set, otherwise
-# it's a bug in the frontend.
+sub period_expired
+{
+  my ($lastsent, $freq) = @_;
+
+  return 0 unless $freq;
+  return ($lastsent < $monthbefore) if $freq == 3;
+  return ($lastsent < $weekbefore) if $freq == 2;
+  return $lastsent < $daybefore;
+}
+
+# Check if it's time to send a reminder; reset $user_frequency{$user_id}
+# to zero for those who needn't reminders yet.
+# When no batch_lastsent entry is found, assume the reminder is needed.
 foreach my $line
   (
     GetDB (
@@ -193,33 +207,35 @@ foreach my $line
   )
   {
     chomp ($line);
-    my ($user_id, $lastsent) = split (",", $line);
-
-    my $dbg_msg = "DBG case2 valid for monthly/weekly/daily batch: "
-      . "$user_id, $lastsent\n";
-    if ($lastsent < $monthbefore && $user_frequency{$user_id} > 0)
-      {
-        push (@user_case2, $user_id);
-        print $dbg_msg if $debug;
-      }
-    elsif (
-      $lastsent < $weekbefore && $user_frequency{$user_id} > 0
-      && $user_frequency{$user_id} < 3
-    )
-      {
-        push (@user_case2, $user_id);
-        print $dbg_msg if $debug;
-      }
-    elsif ($lastsent < $daybefore && $user_frequency{$user_id} eq 1)
-      {
-        push (@user_case2, $user_id);
-        print $dbg_msg if $debug;
-      }
+    my ($id, $lastsent) = split (",", $line);
+    $last_sent{$id} = $lastsent;
+    PrintLog ("last sent (user #$id): " . localtime ($lastsent)) if $verbose;
+    $user_frequency{$id} = 0
+      unless period_expired ($lastsent, $user_frequency{$id});
   } # foreach my $line...
 
-# Now look out which item are opened an assigned to each user that need
-# to receive a batch.
-# We have to run this command on the 4 trackers.
+# Case 1: an item is about to start or finish, assignee should be warned.
+
+# Not implemented yet.
+
+# Case 2: users decided to receive a batch of open item assigned to them
+# each x days.
+
+my @user_case2;
+
+# Get last sent timestamps.
+foreach my $user_id (keys %user_names)
+  {
+    next unless $user_frequency{$user_id};
+    my $lastsent = "never sent";
+    my $batch = decode_freq ($user_frequency{$user_id});
+    $lastsent = "last sent " . localtime $last_sent{$user_id}
+      if exists $last_sent{$user_id};
+    push (@user_case2, $user_id);
+    PrintLog ("case2 for $batch batch: user #$user_id, $lastsent") if $verbose;
+  } # foreach my $line...
+
+# Look for open items assigned to users who want to receive a batch.
 foreach my $tracker (@trackers)
   {
     foreach my $user_id (@user_case2)
@@ -228,241 +244,117 @@ foreach my $tracker (@trackers)
           (
             GetDB (
               $tracker,
-              "assigned_to='$user_id' AND status_id='1' AND priority > 5",
+              "assigned_to='$user_id' AND status_id = '1' AND priority >= 5",
               "bug_id, summary"
             )
           )
           {
             chomp ($line);
             my ($item_id, $summary) = split (",", $line);
-            print "DBG case2: $user_id, $tracker $item_id $summary\n"
-              if $debug;
-            $user{$user_id} = 1 unless $user{$user_id};
+            PrintLog ("case2: $user_id, $tracker $item_id $summary")
+              if $verbose;
             my $idx = "$tracker,$item_id";
             push (@{$items{$user_id}}, $idx);
-            $summary{$idx} = $summary unless $summary{$idx};
+            $summary{$idx} = $summary;
           }
       }
   }
 
-# Case 3: a group admin decided that anybody on his group that got
-# open item assigned should receive reminders.  The group admin
-# set the frequency.
-
-# User frequency useful to test if they really need to be in user.
-my %group_frequency;
-# Group that needs batch to be sent.
-my @group_case3;
-
-# Make one SQL command to catch appropriate users:
-#   with batch_frequency pref. set (not to zero)
-#   frequency flag: 0 = none, 1 = daily, 2 = weekly, 3 = monthly
-foreach my $line
-  (
-    GetDB (
-      "group_preferences",
-      "preference_name = 'batch_frequency' AND preference_value <> '0'",
-      "group_id, preference_value"
-    )
-  )
-  {
-    chomp ($line);
-    my ($group_id, $frequency) = split (",", $line);
-    print "DBG db group: get $group_id, $frequency from database\n"
-      if $debug;
-    $group_frequency{$group_id} = $frequency;
-  }
-
-foreach my $line
-  (
-    GetDB (
-      "group_preferences",
-      "preference_name = 'batch_lastsent' "
-      . "AND preference_value < '$daybefore'",
-      "group_id, preference_value"
-    )
-  )
-  {
-    chomp ($line);
-    my ($group_id, $lastsent) = split (",", $line);
-
-    my $dbg_msg = "DBG case3 valid for monthly/weekly/daily batch: "
-      . "$group_id, $lastsent\n";
-    if ($lastsent < $monthbefore && $group_frequency{$group_id} > 0)
-      {
-        push (@group_case3, $group_id);
-        print $dbg_msg if $debug;
-      }
-    elsif (
-      $lastsent < $weekbefore && $group_frequency{$group_id} > 0
-      && $group_frequency{$group_id} < 3
-    )
-      {
-        push (@group_case3, $group_id);
-        print $dbg_msg if $debug;
-      }
-    elsif ($lastsent < $daybefore && $group_frequency{$group_id} eq 1)
-      {
-        push (@group_case3, $group_id);
-        print $dbg_msg if $debug;
-      }
-  } # foreach my $line...
-
-# Now look out which item are opened an assigned to each user that need to
-# receive a batch.
-# We have to run this command on the 4 trackers.
-foreach my $tracker (@trackers)
-  {
-    foreach my $group_id (@group_case3)
-      {
-        foreach my $line
-          (
-            GetDB (
-              $tracker,
-              "group_id = '$group_id' AND status_id = '1' AND priority > 5",
-              "bug_id, summary, assigned_to"
-            )
-          )
-          {
-
-            chomp ($line);
-            my ($item_id, $summary, $user_id) = split (",", $line);
-            print "DBG case3: $user_id, $tracker $item_id $summary\n"
-              if $debug;
-            $user{$user_id} = 1 unless $user{$user_id};
-            my $idx = "$tracker,$item_id";
-            push (@{$items{$user_id}}, $idx);
-            $summary{$idx} = $summary unless $summary{$idx};
-          }
-      }
-  }
-
-# Grab DB information related to users - we want to do that
-# in one SQL command.
-
-my %user_email;
-my %user_name;
-foreach my $line
-  (GetDB ("user", "status='A'", "user_id, email, realname"))
-  {
-    chomp ($line);
-    my ($user_id, $email, $realname) = split (",", $line);
-    if ($user{$user_id})
-      {
-        $realname =~ s/\://g;
-        $user_name{$user_id} = $realname;
-        $user_email{$user_id} = $email;
-        print "DBG get from db : $realname <$email>\n" if $debug;
-      }
-  }
-
-# Send mails:
-# Currently the contact is unified.  Later it will probably partly
-# site-specific.
-#
-# Some test needs to be done to be sure the smtp will accept to send
-# a big amount of mails.
-
-my $count;
+my $count = 0;
 my $basepath;
 
-if ($sys_url_topdir ne "/")
-  {
-    $sys_url_topdir .= "/";
-  }
+$sys_url_topdir .= "/" unless $sys_url_topdir =~ m,/$,;
 
 if ($sys_https_host)
   {
-    $basepath .= "https://$sys_https_host$sys_url_topdir";
+    $basepath = "https://$sys_https_host$sys_url_topdir";
   }
 else
   {
-    $basepath .= "http://$sys_default_domain$sys_url_topdir";
+    $basepath = "http://$sys_default_domain$sys_url_topdir";
   }
 
-while (my ($user_id,) = each (%user))
+foreach my $user_id (keys %items)
   {
-    $count++;
-    last if $count > $max;
+    if (++$count > $max)
+      {
+        PrintLog ("mail count $max overflow");
+        last;
+      }
 
     next unless $user_id;
     next unless $user_email{$user_id};
 
-    my $title = "$sys_name Reminder";
+    my $title = "$sys_name reminder";
 
     my $mail = <<"    EOF";
-      Hello $user_name{$user_id},
+      Hello, $realnames{$user_id}!
 
-      This reminder is sent to you because of your personal
-      notification settings or, possibly, configuration settings
-      of groups you are member of.
+      This reminder is sent to you because you requested it
+      in your $sys_name account <$user_names{$user_id}> notification settings.
 
-      Follows items, assigned to you, that require your attention
-      (same status for too long, high priority, etc...).
     EOF
     $mail =~ s/^      //gm;
 
     my $itemcount;
     foreach my $item (@{$items{$user_id}})
       {
-        $itemcount++;
-
-        if ($itemcount > $max_items)
+        if (++$itemcount > $max_items)
           {
              $mail .=
-               "\nThere are others item for you but we won't mention more\n"
+               "\nThere are other items for you but we don't mention more\n"
                . "than $max_items items in a mail.\n";
+             PrintLog ("item count $max_items overflow for user #$user_id");
              last;
           }
 
         my ($tracker, $item_id) = split (",", $item);
-        $mail .= " - $tracker #$item_id: $summary{$item}\n    ";
-        $mail .= "<$basepath$tracker/?func=detailitem&item_id=$item_id>\n";
+        $mail .= "- $tracker #$item_id: $summary{$item}\n    ";
+        $mail .= "<$basepath$tracker/?$item_id>\n";
       }
 
     $mail .= <<"    EOF";
-
 
       You can change your personal notification settings at
       <${basepath}my/admin/change_notifications.php>
     EOF
     $mail =~ s/^      //gm;
 
-    unless ($debug)
-      {
-        MailSend ("", $user_email{$user_id}, $title, $mail);
-      }
-    else
-      {
-        print "--------------------For $user_id----------------------------\n"
-          . "$mail\n";
-      }
-  } # while (my ($user_id,) = each (%user))
+    MailSend ("", $user_email{$user_id}, $title, $mail) unless $dry_run;
+    next unless $verbose;
+    PrintLog (
+      "------------------------------------------------------------\n"
+      . "To:     #$user_id $realnames{$user_id} <$user_email{$user_id}>\n"
+      . "Subject: $title\n"
+      . "$mail"
+    );
+  } # foreach my $user_id (keys %items)
 
-# Reset lastsent value.
-unless ($debug)
+sub reset_lastsent
+{
+  my ($prefix, $id) = @_;
+  return unless $id;
+  if ($dry_run || $verbose)
+    {
+      PrintLog ("resetting batch_lastsent for $prefix #$id");
+      return;
+    }
+  InsertDB (
+     "${prefix}_preferences",
+     "${prefix}_id, preference_name, preference_value",
+     "$id, 'batch_lastsent', 0"
+  ) unless exists $last_sent{$id};
+  SetDBSettings (
+    "${prefix}_preferences",
+    "${prefix}_id = '$id' AND preference_name = 'batch_lastsent'",
+    "preference_value = '$now'"
+  );
+}
+
+foreach my $user_id (@user_case2)
   {
-    foreach my $user_id (@user_case2)
-      {
-        next unless $user_id;
-        SetDBSettings (
-          "user_preferences",
-          "user_id = '$user_id' AND preference_name = 'batch_lastsent'",
-          "preference_value = '$now'"
-        );
-      }
-
-    foreach my $group_id (@group_case3)
-      {
-        next unless $group_id;
-        SetDBSettings (
-          "group_preferences",
-          "group_id = '$group_id' AND preference_name = 'batch_lastsent'",
-          "preference_value = '$now'"
-        );
-      }
+    reset_lastsent ("user", $user_id);
   }
 
-PrintLog ("$count mails sent") if $count;
-PrintLog ("work finished");
+PrintLog ("work finished, mails sent: $count");
 print LOG "[$script] ------------------------------------------------------\n";

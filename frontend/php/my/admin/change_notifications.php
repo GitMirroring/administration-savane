@@ -107,9 +107,6 @@ if ($update)
     else
       fb (_("Failed to update reminder setting."), 1);
 
-    if (user_get_preference("batch_lastsent") == "")
-      user_set_preference ("batch_lastsent", "0");
-
     update_subject_line ($form_subject_line);
   } # if ($update)
 
@@ -127,7 +124,7 @@ print '<p>'
       . "as\nyou are the assignee; however, you will not be added to the "
       . "Carbon-Copy list.\nIf you do not post any comment or update to the "
       . "item while you are the\nassignee, and the item gets reassigned, you "
-      . "nwill not receive further update\notifications.")
+      . "will not receive further update\nnotifications.")
   . "</p>\n<p>"
   . _("Here, you can tune your notification settings.") . "</p>\n";
 
@@ -194,9 +191,7 @@ print "<input name='form_subject_line' id='form_subject_line' size='50'\n"
 
 print '<h2>' . _("Reminder") . "</h2>\n";
 print '<p>' . _("You can also receive reminders about opened items assigned to\n"
-  . "you, when their priority is higher than 5. Note that projects administrators\n"
-  . "can also set reminders for you, out of your control, for your activities on the\n"
-  . "project they administer.")
+  . "you, when their priority is higher than 5.")
   . "</p>\n";
 
 $frequency = [

@@ -45,8 +45,7 @@ require_once ('../../include/init.php');
 require_once ('../../include/form.php');
 require_once ('../../include/vars.php');
 
-require_directory("trackers");
-
+require_directory ("trackers");
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
 extract (sane_import ('post',
@@ -76,19 +75,6 @@ if ($update)
       "UPDATE groups SET new_news_address = ? WHERE group_id = ?",
       [$form_news_address, $group_id]
     );
-
-    if (group_set_preference ($group_id, "batch_frequency", $form_frequency))
-      fb (_("Successfully Updated Reminder Settings"));
-    else
-      fb (_("Failed to Update Reminder Setting"), 1);
-
-    if (group_get_preference ($group_id, "batch_lastsent") == "")
-      {
-        if (group_set_preference($group_id, "batch_lastsent", "0"))
-          fb(_("Successfully set Timestamp of the Latest Reminder"));
-        else
-          fb(_("Failed to Reset Timestamp of the Latest Reminder"), 1);
-      }
   }
 
 $res_grp = db_execute ("SELECT * FROM groups WHERE group_id = ?", [$group_id]);
@@ -121,30 +107,7 @@ print '<span class="preinput">' . _("Carbon-Copy List:")
   . "value=\"{$news_address}\" size=\"40\" maxlength=\"255\" />"
   . "<br /><br />\n";
 
-print_h2 (_("Reminders"));
-print '<p>'
-  . _("You can configure the project so that reminder emails get sent
-to project members who have opened items with priority higher than 5 assigned
-to them.")
-  . "<br/>\n<span class='warn'>"
-  . _("This will be done regardless of the
-fact project members have or have not requested to receive such reminders via
-their personal notification settings!")
-  . "</span></p>\n";
-$frequency = array("0" =>
-# TRANSLATORS: this is frequency.
-                          _("Never"),
-                   "1" => _("Daily"),
-                   "2" => _("Weekly"),
-                   "3" => _("Monthly"));
-
-print '<span class="preinput">' . _("Frequency of reminders:")
-  . "</span>\n&nbsp;&nbsp;";
-print html_build_select_box_from_array($frequency,
-                                       "form_frequency",
-                                       group_get_preference($group_id,
-                                                            "batch_frequency"));
 print "\n<p align='center'><input type='submit' name='update' value='"
   . _("Update") . "' />\n</form>\n";
-site_project_footer(array());
+site_project_footer ([]);
 ?>

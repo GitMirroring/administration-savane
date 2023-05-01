@@ -1,5 +1,8 @@
 ????-??-?? 3.12
 
+* Per-group reminders are not supported any more.  Users shall decide if they
+  want reminders individually.
+
 [FRONTEND]
 
 * The obsolete documentation in userguide/ is removed; links to wiki
@@ -50,6 +53,9 @@
 * New script, backend/extra/git/sv_cgit_about_filter.pl.in.
 
 * sv_cleaner removes irrelevant pieces of news and orphan user data.
+
+* In sv_reminder, the --debug option is replaced with --dry-run
+  and --verbose.
 
 * The --cron option in scripts is ignored, --logfile is added when
   relevant.
