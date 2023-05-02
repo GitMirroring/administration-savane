@@ -44,25 +44,24 @@
 # FIXME: check the drawback explanation below.
 #
 # Drawback: I run here an SQL command to reset the status and to get
-# the admin login for each list. I could be resources consuming, however
+# the admin login for each list. It could be resources consuming, but
 # I think we cannot expect this to be too heavy, not so many list should
 # be created everyday.
 # This scalability issue should be kept in mind, however.
 
-# Note about status of list:
-#   - Status 0: list is deleted (ie, does not exist).
-#   - Status 1: list is marked for creation.
-#   - Status 2: list is marked for reconfiguration.
-#   - Status 5: list has been created (ie, it exists).
+# Status of list:
+# 0: list is deleted (ie, does not exist);
+# 1: list is marked for creation;
+# 2: list is marked for reconfiguration;
+# 5: list has been created (ie, it exists).
 #
-#   The frontend php script sets status to:
-#      0 if user deletes a list before the backend ever actually created it.
-#      1 if user adds a list
-#      2 if user reconfigures an _existing_ list (ie, status was 5)
+# The frontend php script sets status to
+# 0: user deletes a list before the backend ever actually created it;
+# 1: user adds a list;
+# 2: user reconfigures an _existing_ list (ie, status was 5).
 #
-#   This backend sv_mailman.pl script sets status to:
-#      0 when a list is actually deleted
-#      5 when a list is actually created
+# This backend sv_mailman.pl script sets status to
+# 5 when a list is actually created.
 
 use strict;
 use Getopt::Long;
@@ -77,7 +76,8 @@ my $logfile = "/var/log/sv_database2system.log";
 # Import.
 our $sys_mail_domain;
 
-my $debug;
+my $dry_run;
+my $verbose;
 my $cron;
 my $keeparchives;
 my $skipmail;
@@ -89,20 +89,22 @@ Create with mailman shell command a list for each mailing list found in
 the database with status set to 1.
 It will change the status of the created list to 5.
 
-  -h, --help                   show this help and exit
-  -v, --version                show Savane version and exit
-      --cron                   ignored
-      --logfile                file for reports [$logfile]
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+      --dry-run        don't apply changes
+      --verbose        log additional info
+      --cron           ignored
+      --logfile        file for reports [$logfile]
 
-      --keep-archives          when deleting a list, do not ask mailman to
-                                 remove its archives
-      --skip-mail              when creating a list, do not send a mail
-                                 containing list admin password to admins";
+      --keep-archives  when deleting a list, do not ask mailman to
+                         remove its archives
+      --skip-mail      when creating a list, do not send a mail
+                         containing list admin password to admins";
 PrintVersionOrHelp ($help);
 
 GetOptions (
-  "debug" => \$debug, "cron" => \$cron, "keep-archives" => \$keeparchives,
-  "skip-mail" => \$skipmail, "logfile=s" => \$logfile
+  "dry-run" => \$dry_run, "cron" => \$cron, "keep-archives" => \$keeparchives,
+  "skip-mail" => \$skipmail, "logfile=s" => \$logfile, "verbose" => \$verbose
 );
 
 sub Escape
@@ -114,7 +116,35 @@ sub Escape
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  my $dr = $dry_run? " (dry run)": "";
+  print LOG strftime "[$script] %c -$dr $_[0]\n", localtime;
+}
+
+sub send_mail
+{
+  my ($admin, $name, $password, $action) = @_;
+  my $mail = <<"  EOF";
+    Hello,
+
+    You requested the $action of the list $name at $sys_mail_domain.
+
+    The new list administrator password of the mailing list $name is:
+            $password
+
+    You are advised to change the password, and to avoid using a password
+    you use for important accounts, as mailman does not really provide
+    security for these list passwords.
+
+    Regards
+  EOF
+  $mail =~ s/^    //gm;
+  my $dashes = '- - - -';
+  $dashes = "$dashes $dashes $dashes"; $dashes = "$dashes $dashes $dashes";
+  PrintLog ("composed mail\n8< $dashes\n$mail\n$dashes >8") if $verbose;
+  MailSend ("", $admin, "Mailman list $name", $mail)
+    unless ($skipmail || $dry_run);
+  my $action = $skipmail? "skipped": "sent";
+  PrintLog ("mail $action to $admin for list $name");
 }
 
 open (LOG, ">>$logfile");
@@ -124,15 +154,13 @@ AcquireReplicationLock ();
 
 # Create new lists.
 my $lists_ref = GetDBListsRef (
-  "mail_group_list, group_type, groups, user",
-  "(mail_group_list.status = '1' OR mail_group_list.status = '0')
-  AND groups.group_id = mail_group_list.group_id
-  AND group_type.type_id = groups.type
-  AND user.user_id = mail_group_list.list_admin",
-  "list_name, mail_group_list.is_public, password, mail_group_list.description,
-  group_type.mailing_list_virtual_host, user.email"
+  "mail_group_list m, group_type t, groups g, user u",
+  "m.status IN ('0', '1') AND g.group_id = m.group_id AND t.type_id = g.type
+   AND u.user_id = m.list_admin",
+  "list_name, m.is_public, password, m.description,
+   t.mailing_list_virtual_host, u.email"
 );
-# TODO: do not use list_admin, rather add all project admins.
+# TODO: do not use list_admin, rather add all group admins.
 foreach my $line (@$lists_ref)
   {
     chomp ($line);
@@ -145,25 +173,18 @@ foreach my $line (@$lists_ref)
       }
 
     # Create the list.
-    system (
-      "/usr/sbin/newlist", "-q",
-      $complete_name, # Apply virtual_host configuration.
-      $admin, $password
-    );
+    system ("/usr/sbin/newlist", $complete_name, $admin, $password)
+      unless $dry_run;
     PrintLog ("List $name <$admin> newlist.");
 
     # Find out the list of admins emails.
-    # FIXME: group_id is missing up here and I do not want to mess with
-    # such a SQL thing
-    #my $admins = join(", ", GetGroupAdminsMail(GetGroupName($group_id)));
-
     # Configure the list.
     my ($tmpcfgfh, $tmpcfg) = tempfile (UNLINK => 1);
 
     # Always set description.
-    print $tmpcfgfh "description = '".Escape ($description)."'\n";
+    print $tmpcfgfh "description = '" . Escape ($description) . "'\n";
     # mailman is not useful to fight spam, in fact being forced to use
-    # it's interface instead of having a spamassassin doing the job
+    # its interface instead of having a spamassassin doing the job
     # can be seen as a pain.
     print $tmpcfgfh "require_explicit_destination = 0\n";
     # Do not advertise, hide archives, require approval if private list.
@@ -173,38 +194,20 @@ foreach my $line (@$lists_ref)
     # Always give access to the member list only to list admins.
     print $tmpcfgfh "private_roster = 2\n";
     close ($tmpcfgfh);
-    system ("/usr/sbin/config_list", "--inputfile", $tmpcfg, $name);
-    PrintLog ("List $name <$admin> config_list.");
-
-    # Send a mail giving the password.
-    my $mail = <<"    EOF";
-      Hello,
-
-      You requested the creation of the list $name at $sys_mail_domain.
-
-      The list administrator password of the mailing list $name is:
-              $password
-
-      You are advised to change the password, and to avoid at any cost using
-      a password you use for others important account, as mailman does not
-      really provide security for these list passwords.
-
-      Regards
-    EOF
-    $mail =~ s/^      //gm;
-
-    MailSend ("", $admin, "Mailman list $name", $mail)
-        unless $skipmail;
-    PrintLog ("Mail sent to $admin for list $name.");
+    system ("/usr/sbin/config_list", "--inputfile", $tmpcfg, $name)
+      unless $dry_run;
+    PrintLog ("list $name <$admin> config_list");
+    send_mail ($admin, $name, $password, "creation");
 
     # Set password to NULL. We have no reason to store this any longer.
     SetDBSettings (
-      "mail_group_list", "list_name='$name'", "status='5', password=NULL"
-    );
-    PrintLog ("List $name <$admin> created.");
+      "mail_group_list", "list_name = '$name'", "status = '5', password = NULL"
+    )
+      unless $dry_run;
+    PrintLog ("list $name <$admin> created");
   } # foreach my $line (@$lists_ref)
 
-# Delete the lists which are marked for deletion (is_public=9), but haven't
+# Delete the lists which are marked for deletion (is_public = 9), but haven't
 # been deleted yet (status != 0).
 foreach my $line
   (
@@ -218,18 +221,10 @@ foreach my $line
      my ($id, $name, $is_public, $password, $admin, $description) =
        split (",", $line);
 
-     # Remove the list.
-     unless ($keeparchives)
-       {
-         system ("/usr/sbin/rmlist", "-a", $name);
-       }
-     else
-       {
-         system ("/usr/sbin/rmlist", $name);
-       }
-     PrintLog ("List $name removed with mailman rmlist.");
-     DeleteDB ("mail_group_list", "group_list_id = '$id'");
-     PrintLog ("List $name marked deleted from the database.");
+     system ("/usr/sbin/rmlist", $name) unless $dry_run;
+     PrintLog ("list $name removed with mailman rmlist");
+     DeleteDB ("mail_group_list", "group_list_id = '$id'") unless $dry_run;
+     PrintLog ("list $name deleted from the database");
   }
 
 # Reconfigure all lists marked for reconfiguration (status = 2), but
@@ -253,7 +248,7 @@ foreach my $line
     # Always set description.
     print $tmpcfgfh "description = '" . Escape ($description) . "'\n";
     # mailman is not useful to fight spam, in fact being forced to use
-    # it's interface instead of having a spamassassin doing the job
+    # its interface instead of having a spamassassin doing the job
     # can be seen as a pain.
     print $tmpcfgfh "require_explicit_destination = 0\n";
     my ($arch_priv, $adv, $sub_pol) = (1, 0, 3);
@@ -265,19 +260,19 @@ foreach my $line
     print $tmpcfgfh "private_roster = 2\n";
     close ($tmpcfgfh);
 
-    system ("/usr/sbin/config_list", "--inputfile", $tmpcfg, $name);
+    system ("/usr/sbin/config_list", "--inputfile", $tmpcfg, $name)
+      unless $dry_run;
     PrintLog ("List $name <$admin> config_list.");
 
-    SetDBSettings ("mail_group_list", "group_list_id='$id'", "status='5'");
+    SetDBSettings ("mail_group_list", "group_list_id = '$id'", "status = '5'")
+      unless $dry_run;
     PrintLog ("List $name <$admin> reconfigured.");
   } # foreach my $line...
 
-# Reset password for careless admins
-# (well, who is able to remember 1,000 passwords anyway?).
 foreach my $line
   (
     GetDB (
-      "mail_group_list", "password='1'", "group_list_id, list_name, group_id"
+      "mail_group_list", "password = '1'", "group_list_id, list_name, group_id"
     )
   )
   {
@@ -290,38 +285,17 @@ foreach my $line
     # Find out the list of admins emails.
     my $admins = join (", ", GetGroupAdminsMail (GetGroupName ($group_id)));
 
-    # Call the mailman tool to do the change
-    # (hardcoded path is bad: if you need another one, please add
-    # a getopt option, ask savane-dev).
-    system (
-      "/usr/lib/mailman/bin/change_pw", "-l", $name, "-p", $password,
-      "--quiet"
-    );
+    # Call the mailman tool to do the change.
+    system ("/usr/lib/mailman/bin/change_pw", "-l", $name, "-p", $password)
+      unless $dry_run;
 
-    # Impact the change in the database.
-    SetDBSettings ("mail_group_list", "group_list_id='$id'", "password=NULL");
+    # Register the change in the database.
+    SetDBSettings (
+      "mail_group_list", "group_list_id = '$id'", "password = NULL"
+    )
+      unless $dry_run;
     PrintLog ("List $name password was reset.");
-
-    # Send a mail giving the password.
-    my $mail = <<"    EOF";
-      Hello,
-
-      You requested the password of the list $name at $sys_mail_domain to be
-      reset.
-
-      The new list administrator password of the mailing list $name is:
-              $password
-
-      You are advised to change the password, and to avoid at any cost using
-      a password you use for others important account, as mailman does not
-      really provide security for these list passwords.
-
-      Regards,
-    EOF
-    $mail =~ s/^      //gm;
-    MailSend ("", $admins, "Mailman list $name", $mail)
-        unless $skipmail;
-    PrintLog ("Mail sent to $admins for list $name.");
+    send_mail ($admins, $name, $password, "password reset");
   }
 
 PrintLog ("work finished");

@@ -54,13 +54,16 @@ our $sys_mail_aliases;
 # Preconfigure.
 my $sysemails =  "$sys_mail_list";
 my $sysaliases = "$sys_mail_aliases";
-my $debug = 0;
+my $dry_run;
+my $verbose;
 my $cron;
+my $logfile = "/var/log/sv_aliases.log";
 
 my $help_email = $sysemails;
 my $help_aliases = $sysaliases;
 my $unconf = "<unconfigured>";
 
+our $script = "sv_aliases";
 $help_email = $unconf if $help_email eq '';
 $help_aliases = $unconf if $help_aliases eq '';
 
@@ -68,18 +71,45 @@ my $help =
 "Usage: $0 [OPTIONS]
 
 Include a list of Savannah users in $help_email (emails) and
-$help_email (aliases).
+$help_aliases (aliases).
 
-  -h, --help                   show this help and exit
-  -v, --version                show Savane version and exit
-      --cron                   ignored
-      --debug                  debug mode: do everything apart from
-                                 overwriting system files";
+  -h, --help      show this help and exit
+  -v, --version   show Savane version and exit
+      --dry-run   don't apply changes
+      --verbose   log additional info
+      --logfile   file for reports [$logfile]
+      --cron      ignored";
 PrintVersionOrHelp ($help);
-GetOptions ("debug" => \$debug, "cron" => \$cron);
+GetOptions (
+  "dry-run" => \$dry_run, "logfile=s" => \$logfile, "cron" => \$cron,
+  "verbose" => \$verbose
+) or die "Wrong command line";
 
 # Avoid concurrent runs.
 AcquireReplicationLock ();
+
+open (LOG, ">>$logfile") or die "Could not open '$logfile': $!";
+
+sub print_log
+{
+  our $script;
+  my $dr = $dry_run? " (dry run)": "";
+  print LOG strftime "[$script] %c -$dr $_[0]\n", localtime;
+}
+
+sub move_file
+{
+  my ($tmpf, $sysemails) = @_;
+  unless ($dry_run)
+    {
+      system ("chmod", "a+r", $tmpf);
+      move ($tmpf, $sysemails)
+        or die "Unable to overwrite $sysemails with $tmpf, exiting";
+    }
+  print_log ("move $tmpf $sysemails");
+}
+
+print_log ("start");
 
 # /etc/email-addresses
 my ($tempfilefh, $tempfile) = tempfile (UNLINK => 1);
@@ -101,19 +131,31 @@ $msg =~ s/^\s*//gm;
 print $tempfilefh $msg;
 PrintAliasesList ($tempfilefh);
 print $tempfilefh "# Savannah include end\n";
-print "$tempfile written\n" if $debug;
+if ($verbose)
+  {
+    print_log ("aliases list written to $tempfile");
+    seek ($tempfilefh, 0, 0);
+    while (<$tempfilefh>)
+      {
+        chomp;
+        print_log ("alias: $_");
+      }
+  }
 
 # Extract current system addresses not managed by Savane, put them in
 # another temporary file.
-if ($sysemails || $debug)
+if ($sysemails || $dry_run)
   {
     my ($tmpfh, $tmpf) = tempfile (UNLINK => 1);
 
+    print_log ("emails written to $tmpf") if $verbose;
     open (IN, "< $sysemails");
     while (<IN>)
       {
         next if (/^\# Savannah include start/ .. /^\# Savannah include end/);
         print $tmpfh $_;
+        chomp;
+        print_log ("email: $_") if $verbose;
       }
     close (IN);
 
@@ -121,36 +163,29 @@ if ($sysemails || $debug)
     while (<$tempfilefh>)
       {
         print $tmpfh $_;
+        chomp;
+        print_log ("email: $_") if $verbose;
       }
-
     close ($tmpfh);
-    print "$tmpf written\n" if $debug;
 
-    # Overwrite current system emails with the new file.
-    unless ($debug)
-      {
-        system ("chmod", "a+r", $tmpf);
-        move ($tmpf, $sysemails)
-          or die "Unable to overwrite $sysemails with $tmpf, exiting";
-      }
-    else
-      {
-        print "Would do \"/bin/mv $tmpf $sysemails\"\n";
-      }
-  } # if ($sysemails || $debug)
+    move_file ($tmpf, $sysemails);
+  } # if ($sysemails || $dry_run)
 
 # /etc/aliases
 # Extract current system addresses not managed by Savane, put them in
 # another temporary file.
-exit (0) unless ($sysaliases || $debug);
+exit (0) unless ($sysaliases || $dry_run);
 
 my ($tmpfh, $tmpf) = tempfile (UNLINK => 1);
 
+print_log ("aliases written to $tmpf") if $verbose;
 open (IN, "< $sysaliases");
 while (<IN>)
   {
     next if (/^\# Savannah include start/ .. /^\# Savannah include end/);
     print $tmpfh $_;
+    chomp;
+    print_log ("alias: $_") if $verbose;
   }
 close (IN);
 
@@ -158,21 +193,16 @@ seek ($tempfilefh, 0, 0);
 while (<$tempfilefh>)
   {
     print $tmpfh $_;
+    chomp;
+    print_log ("alias: $_") if $verbose;
   }
 
 close ($tmpfh);
-print "$tmpf written\n" if $debug;
 
 # Overwrite current system aliases with the new file.
-unless ($debug)
+move_file ($tmpf, $sysaliases);
+if (-e "/usr/bin/newaliases")
   {
-    system ("chmod", "a+r", $tmpf);
-    move ($tmpf, $sysaliases)
-        or die "Unable to overwrite $sysaliases with $tmpf, exiting";
-    system ("/usr/bin/newaliases") if -e "/usr/bin/newaliases";
-  }
-else
-  {
-    print "Would do \"/bin/mv $tmpf $sysaliases\"\n";
-    print "Would run \"/usr/bin/newaliases\"\n" if -e "/usr/bin/newaliases";
+    system ("/usr/bin/newaliases") unless $dry_run;
+    print_log ("/usr/bin/newaliases");
   }

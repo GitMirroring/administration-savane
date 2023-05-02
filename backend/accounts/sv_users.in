@@ -67,7 +67,8 @@ our $sys_userx_prefix;
 my $script = "sv_users";
 my $logfile = "/var/log/sv_database2system.log";
 my $lockfile = "groups-users.lock";
-my $debug;
+my $dry_run;
+my $verbose;
 my $cron;
 
 my $useradd = "useradd";
@@ -94,7 +95,8 @@ Note that users are associated with the group $svusers.
 
   -h, --help               show this help and exit
   -v, --version            show Savane version and exit
-  -d, --debug              do nothing, print everything
+      --dry-run            don't apply changes
+      --verbose            log additional info
       --cron               ignored
       --one-group          ignored
       --logfile            file for reports [$logfile]
@@ -107,10 +109,10 @@ Note that users are associated with the group $svusers.
 
 PrintVersionOrHelp ($help_msg);
 
-GetOptions ("debug" => \$debug, "userx-prefix=s" => \$userx_prefix,
+GetOptions ("dry-run" => \$dry_run, "userx-prefix=s" => \$userx_prefix,
   "useradd=s" => \$useradd, "usermod=s" => \$usermod,  "userdel=s" => \$userdel,
   "logfile=s" => \$logfile, "cron" => \$cron, "webgroup" => \$webgroup,
-  "one-group" => \$one_group
+  "one-group" => \$one_group, "verbose" => \$verbose
 );
 
 sub assign_binaries
@@ -127,7 +129,8 @@ assign_binaries;
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c $_[0]\n", localtime;
+  my $dr = $dry_run? " (dry run)": "";
+  print LOG strftime "[$script] %c$dr $_[0]\n", localtime;
 }
 
 open (LOG, ">>$logfile");
@@ -141,7 +144,7 @@ AcquireReplicationLock ($lockfile);
 # - db_user_group items
 
 # db_user:
-# Create an hash that contains users infos from the table user,
+# Create an hash that contains user info from the table user,
 # as lists for each user
 # ( @{$db_user{$user}} )
 # Additionally, create a list of users.
@@ -155,19 +158,19 @@ my $lists_ref = GetDBListsRef ("user", "status = 'A' OR status = 'D'",
 foreach my $line (@$lists_ref)
   {
     my ($user, $email, $realname, $authorized_keys, $status) = @$line;
-    print "DBG db: get $user <$email> from database\n" if $debug;
+    PrintLog ("db: get $user <$email> from database") if $verbose;
     $realname =~ s/\://g;
     $db_user{$user} = [ ($user, $email, $realname, $authorized_keys, $status) ];
     push (@db_users, $user);
   }
 
 # db_user_group:
-# Create an hash that contains users groups infos (which user belongs
+# Create an hash that contains user group info (which user belongs
 # which group) from the table user_groups, as lists for each user
 # ( @{$db_user_group{$user}} )
 # We only consider active groups.
 my %db_user_group;
-foreach my $line (GetDB ("user_group,groups,user",
+foreach my $line (GetDB ("user_group, groups, user",
   "groups.group_id = user_group.group_id AND user.user_id = user_group.user_id "
   . "AND groups.status = 'A' AND user_group.admin_flags <> 'P'",
   "user_name,unix_group_name")
@@ -176,7 +179,7 @@ foreach my $line (GetDB ("user_group,groups,user",
     chomp ($line);
     my ($user, $group) = split (",", $line);
 
-    print "DBG db: $user is member of $group\n" if $debug;
+    PrintLog ("db: $user is member of $group") if $verbose;
     my @groups;
     push (@groups, $group);
     push (@groups, "web$group") if $webgroup;
@@ -190,7 +193,7 @@ foreach my $group (GetGroupList (0, "unix_group_name"))
     $db_groups{$group} = 1;
   }
 
-PrintLog ("- database infos grabbed");
+PrintLog ("- database info fetched");
 
 # Grab system information.
 #
@@ -198,7 +201,7 @@ PrintLog ("- database infos grabbed");
 # - etc_group* items
 
 # /etc/passwd (/etc/shadow...):
-# - Create an hash that contains users infos from these files,
+# - Create an hash that contains user info from these files,
 # as lists for each user.
 # ( @{$etc_password{$user}} )
 # - Find what is the maximum id number known.
@@ -222,7 +225,7 @@ while (my @entry = getpwent ())
     # sure no action we be taken related to these accounts.
     if ($grp ne $svusers_gid)
       {
-        print "DBG etc: user $u_id in group $grp\n" if $debug;
+        PrintLog ("etc: user $u_id in group $grp") if $verbose;
         $etc_password_tobeignored{$u_id} = 1;
         next;
       }
@@ -235,21 +238,20 @@ while (my @entry = getpwent ())
     $passwd_maxid = $max_id if $max_id > $passwd_maxid;
 
     $etc_password{$u_id} = [ @entry ];
-    print "DBG etc: user $u_id\t\t maxid $passwd_maxid \t group $grp\n"
-      if $debug;
+    PrintLog ("etc: user $u_id\t\t maxid $passwd_maxid \t group $grp")
+      if $verbose;
 }
 $passwd_maxid++;
 # If we did not reached the minimal uid, set it as maxid.
 $passwd_maxid = $min_uid if $min_uid > $passwd_maxid;
 
 # /etc/group:
-# Create an hash that contains users infos about groups,
-# as lists for each group.
-# ( @{$etc_group_bygroup{$group}} )
-# Create an hash that contains users infos about groups,
-# as lists for each user (which to which groups belongs a user).
-# ( @{$etc_group{$user}} )
-# Find what is the maximum id number known.
+# Create an hash that contains user info about groups
+# as lists for each group, @{$etc_group_bygroup{$group}}.
+# Create an hash that contains user info about groups
+# as lists for each user (which to which groups belongs a user),
+# @{$etc_group{$user}}.
+# Find the maximum id.
 my %etc_group_bygroup;
 my %etc_group;
 my $etc_group_maxid = -1;
@@ -260,7 +262,7 @@ while (my @entry = getgrent ())
     foreach my $user (split ' ', $entry[3])
       {
         next unless $user;
-        print "DBG etc: user $user belongs group $entry[0]\n" if $debug;
+        PrintLog ("etc: user $user belongs group $entry[0]") if $verbose;
         push (@{$etc_group{$user}}, $entry[0]);
       }
 
@@ -268,11 +270,11 @@ while (my @entry = getgrent ())
       {
         $etc_group_maxid = $entry[2] if $entry[2] > $etc_group_maxid;
       }
-    print "DBG etc: group $entry[0]\t\t maxid $etc_group_maxid\n" if $debug;
+    PrintLog ("etc: group $entry[0]\t\t maxid $etc_group_maxid") if $verbose;
   }
 $etc_group_maxid++;
 
-PrintLog ("- system infos grabbed");
+PrintLog ("- system info loaded");
 
 # Do comparisons.
 #
@@ -298,13 +300,13 @@ foreach my $user (@db_users)
     unless ($seen_in_etc{$user})
       {
         push (@only_in_db, $user);
-        print "DBG compare: $user is seen only in database\n" if $debug;
+        PrintLog ("compare: $user is seen only in database") if $verbose;
       }
     else
       {
         push (@well_known, $user);
-        print "DBG compare: $user is known by the database and the system\n"
-          if $debug;
+        PrintLog ("compare: $user is known by the database and the system")
+          if $verbose;
       }
   }
 
@@ -330,11 +332,11 @@ foreach my $user (@only_in_db)
     my ($user_name, $email, $realname, $authorized_keys, $status)
        = @{$db_user{$user}};
     my $home = GetUserHome($user);
-    my $groups = join ",", @{$db_user_group{$user}};
+    my $groups = join ", ", @{$db_user_group{$user}};
     my $ssh_keys_count = 0;
 
-    print "DBG create: $user belongs $groups\n" if $debug;
-    unless ($debug)
+    PrintLog ("create: $user belongs $groups") if $verbose;
+    unless ($dry_run)
       {
         # Make a backup if a home user already exists.
         system ("/bin/rm", "-fr", "$home.old") if -e "$home.old";
@@ -364,7 +366,7 @@ foreach my $user (@only_in_db)
             system ("/bin/chmod", "600", "$home/.ssh/authorized_keys");
           }
         system ("/bin/chown", "-R", "$user:$svusers", $home);
-      } # unless ($debug)
+      } # unless ($dry_run)
     # Increment the uid for the next user, avoid the special value
     # attributed to nobody.
     $passwd_maxid++;
@@ -384,9 +386,9 @@ foreach my $user (@to_be_removed)
     next if $etc_password_tobeignored{$user};
 
     PrintLog ("---- delete $user account");
-    print "DBG delete: $user is marked as D or no longer member of any group\n"
-     if $debug;
-    DeleteUser ($user) unless $debug;
+    PrintLog ("delete: $user is marked as D or no longer member of any group")
+      if $verbose;
+    DeleteUser ($user) unless $dry_run;
   }
 
 PrintLog ("- account deletion done");
@@ -429,17 +431,17 @@ foreach my $user (@well_known)
       {
         my $groups = join(",", @groups_list);
 
-        system ($usermod, "-G", $groups, $user) unless $debug;
+        system ($usermod, "-G", $groups, $user) unless $dry_run;
         PrintLog ("---- update $user groups");
-        print "DBG update: $user belongs \t[db+sys]\t"
+        PrintLog ("update: $user belongs \t[db+sys]\t"
           . join (", ", @groups_list) . "\t[sys]\t"
-          . join (", ", @groups_list_etc) . "\n" if $debug;
+          . join (", ", @groups_list_etc)) if $verbose;
       }
     else
       {
-        print "DBG update: NO UPDATE for user $user that belongs \t[db+sys]\t"
+        PrintLog ("update: NO UPDATE for user $user that belongs \t[db+sys]\t"
           . join (", ", @groups_list) . "\t[sys]\t"
-          . join (", ", @groups_list_etc) . "\n" if $debug;
+          . join (", ", @groups_list_etc)) if $verbose;
       }
 
     # Update name (name, email) if not accurate.
@@ -447,7 +449,7 @@ foreach my $user (@well_known)
     my $expected_realname = $realname;
     if ($password_realname ne $expected_realname)
       {
-        system ($usermod, "-c", $expected_realname, $user) unless $debug;
+        system ($usermod, "-c", $expected_realname, $user) unless $dry_run;
         PrintLog ("---- update $user /etc/passwd realname");
       }
 
@@ -457,11 +459,14 @@ foreach my $user (@well_known)
     my $expected_home = GetUserHome ($user);
     if ($password_home ne $expected_home)
       {
-        system ($usermod, "-d", $expected_home, $user) unless $debug;
-        system ("/bin/mkdir", "-p", $expected_home) unless $debug;
-        system ("/bin/rm", "-rf", $expected_home) unless $debug;
-        system ("/bin/mv", "-f", $password_home, $expected_home) unless $debug;
         PrintLog ("---- update $user /etc/passwd homedir");
+        unless ($dry_run)
+          {
+            system ($usermod, "-d", $expected_home, $user);
+            system ("/bin/mkdir", "-p", $expected_home);
+            system ("/bin/rm", "-rf", $expected_home);
+            system ("/bin/mv", "-f", $password_home, $expected_home);
+          }
       }
 
     # Update SSH public keys if not accurate and only if the user
@@ -472,11 +477,11 @@ foreach my $user (@well_known)
     my $ssh_keys_count = 0;
     if ($etc_password{$user}->[8] eq $sys_shell)
       {
-        print "DBG update: $user ssh key managed by sv\n" if $debug;
-        next unless defined ($authorized_keys);
+        PrintLog ("update: $user ssh key managed by sv") if $verbose;
+        next unless defined $authorized_keys;
         next unless $authorized_keys ne GetUserSSHKeyReal ($user);
         $ssh_keys_count = UserAddSSHKey($user, $authorized_keys)
-          unless ($debug);
+          unless ($dry_run);
         PrintLog ("---- update $ssh_keys_count $user ssh keys");
       }
   } # foreach my $user (@well_known)

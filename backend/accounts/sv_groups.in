@@ -73,7 +73,8 @@ use POSIX qw(strftime);
 our $script = "sv_groups";
 my $logfile = "/var/log/sv_database2system.log";
 my $lockfile = "groups-users.lock";
-my $debug;
+my $dry_run;
+my $verbose;
 my $cron;
 
 my $no_etc = 0;
@@ -109,7 +110,8 @@ Normally, sv_users should run just after.
 
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
-  -d, --debug          do nothing, print everything
+      --dry-run        don't apply changes
+      --verbose        log additional info
       --cron           ignored
       --one-group      ignored
       --logfile        file for reports [$logfile]
@@ -139,7 +141,7 @@ Normally, sv_users should run just after.
 PrintVersionOrHelp ($help_msg);
 
 GetOptions (
-  "cron" => \$cron, "logfile=s" => \$logfile, "debug" => \$debug,
+  "cron" => \$cron, "logfile=s" => \$logfile, "dry-run" => \$dry_run,
   "no-etc" => \$no_etc, "no-cvs" => \$no_cvs, "no-svn" => \$no_svn,
   "no-git" => \$no_git, "no-hg" => \$no_hg, "no-arch" => \$no_arch,
   "no-homepage" => \$no_homepage, "no-download" => \$no_download,
@@ -147,7 +149,7 @@ GetOptions (
   "only-svn" => \$only_svn, "only-git" => \$only_git,
   "only-hg" => \$only_hg, "only-bzr" => \$only_bzr,
   "only-arch" => \$only_arch, "only-homepage" => \$only_homepage,
-  "only-download" => \$only_download,
+  "only-download" => \$only_download, "verbose" => \$verbose,
   "webgroup" => \$webgroup, "one-group" => \$one_group
 );
 
@@ -178,13 +180,13 @@ if ($only_etc || $only_cvs || $only_arch || $only_svn || $only_git
     $no_download = 0 if $only_download;
   }
 
-# Start logging.
 open (LOG, ">>$logfile");
 
 sub PrintLog
 {
   our $script;
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  my $dr = $dry_run? " (dry run)": "";
+  print LOG strftime "[$script] %c -$dr $_[0]\n", localtime;
 }
 
 PrintLog ("starting");
@@ -205,83 +207,49 @@ AcquireReplicationLock ($lockfile);
 # in the group db are only used the ids.
 #
 # To limit the number of requests, we use one very long SQL request.
+my @db_group_type_fields = (
+  "name", "type_id", "dir_type_homepage", "dir_type_cvs", "dir_type_arch",
+  "dir_type_svn", "dir_type_git", "dir_type_hg", "dir_type_bzr",
+  "dir_type_download", "dir_homepage", "dir_cvs", "dir_arch", "dir_svn",
+  "dir_git", "dir_hg", "dir_bzr", "dir_download", "can_use_homepage",
+  "can_use_cvs", "can_use_arch", "can_use_svn", "can_use_git", "can_use_hg",
+  "can_use_bzr", "can_use_download"
+);
 my %db_group_type;
-foreach my $line
-  (
-    GetDB (
-      "group_type", 0,
-      "name, type_id, dir_type_homepage, dir_type_cvs, dir_type_arch, "
-      . "dir_type_svn, dir_type_git, dir_type_hg, dir_type_bzr, "
-      . "dir_type_download, dir_homepage, dir_cvs, dir_arch, dir_svn, "
-      . "dir_git, dir_hg, dir_bzr, dir_download, can_use_homepage, "
-      . "can_use_cvs, can_use_arch, can_use_svn, can_use_git, can_use_hg, "
-      . "can_use_bzr, can_use_download"
-   )
-  )
+foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
   {
     chomp ($line);
-    my
-      (
-        $name, $id, $dir_type_homepage, $dir_type_cvs, $dir_type_arch,
-        $dir_type_svn, $dir_type_git, $dir_type_hg, $dir_type_bzr,
-        $dir_type_download, $dir_homepage, $dir_cvs, $dir_arch, $dir_svn,
-        $dir_git, $dir_hg, $dir_bzr, $dir_download, $can_use_homepage,
-        $can_use_cvs, $can_use_arch, $can_use_svn, $can_use_git, $can_use_hg,
-        $can_use_bzr, $can_use_download
-      )
-      = split(",", $line);
-    print "DBG db: get $line from database\n" if $debug;
-    $db_group_type{$id} = [
-      (
-        $name, $id, $dir_type_homepage, $dir_type_cvs, $dir_type_arch,
-        $dir_type_svn, $dir_type_git, $dir_type_hg, $dir_type_bzr,
-        $dir_type_download, $dir_homepage, $dir_cvs, $dir_arch, $dir_svn,
-        $dir_git, $dir_hg, $dir_bzr, $dir_download, $can_use_homepage,
-        $can_use_cvs, $can_use_arch, $can_use_svn, $can_use_git, $can_use_hg,
-        $can_use_bzr, $can_use_download
-      )
-    ];
+    my @entry = split(",", $line);
+    PrintLog ("db: get $line from database") if $verbose;
+    $db_group_type{$entry[1]} = [@entry];
   }
 
 # db_groups:
-#   Create an hash that contains group infos from the table groups,
-#   as lists for each group (@{$db_group{$name}}).
-#   Additionally, create a list of groups.
-#   Additionally, create an hash to find easily which groups are
-#   in the database.
+# Create an hash that contains group infos from the table groups,
+# as lists for each group (@{$db_group{$name}}).
+# Additionally, create a list of groups.
+# Additionally, create an hash to find easily which groups are
+# in the database.
 #
 # Only groups in Active status will be handled!
 my %db_groups;
 my @db_groups;
+my @db_groups_fields = (
+  "unix_group_name", "type", "is_public", "use_homepage", "use_cvs",
+  "use_arch", "use_svn", "use_git", "use_hg", "use_bzr", "use_download",
+  "dir_homepage", "dir_cvs", "dir_arch", "dir_svn", "dir_git", "dir_hg",
+  "dir_bzr", "dir_download"
+);
 foreach my $line
-  (
-    GetDB (
-      "groups", "status='A'",
-      "unix_group_name, type, is_public, use_homepage, use_cvs, use_arch, "
-      . "use_svn, use_git, use_hg, use_bzr, use_download, dir_homepage, "
-      . "dir_cvs, dir_arch, dir_svn, dir_git, dir_hg, dir_bzr, dir_download"
-   )
-  )
+  (GetDB ("groups", "status = 'A'", join (", ", @db_groups_fields)))
   {
     chomp ($line);
-    my
-      (
-        $name, $type, $is_public, $use_homepage, $use_cvs, $use_arch,
-        $use_svn, $use_git, $use_hg, $use_bzr, $use_download, $dir_homepage,
-        $dir_cvs, $dir_arch, $dir_svn, $dir_git, $dir_hg, $dir_bzr, $dir_download
-      )
-      = split(",", $line);
-    print "DBG db: get group $line from database\n" if $debug;
-    $db_groups{$name} = [
-      (
-        $name, $type, $is_public, $use_homepage, $use_cvs, $use_arch,
-        $use_svn, $use_git, $use_hg, $use_bzr, $use_download, $dir_homepage,
-        $dir_cvs, $dir_arch, $dir_svn, $dir_git, $dir_hg, $dir_bzr, $dir_download
-      )
-    ];
-    push (@db_groups, $name);
+    my @entry = split (",", $line);
+    PrintLog ("db: get group $line from database") if $verbose;
+    $db_groups{$entry[0]} = [ @entry ];
+    push (@db_groups, $entry[0]);
  }
-PrintLog ("database infos grabbed");
+PrintLog ("database info fetched");
 
 # Grab system information, run comparisons.
 #
@@ -294,25 +262,29 @@ PrintLog ("database infos grabbed");
 my @only_in_db;
 foreach my $group (@db_groups)
   {
-    my ($exists) = getgrnam($group);
+    my ($exists) = getgrnam ($group);
     my $predicate = $exists? "present": "missing";
-    print "DBG etc+compare: group $group is $predicate on the system\n"
-      if $debug;
+    PrintLog ("etc+compare: group $group is $predicate on the system")
+      if $verbose;
     push (@only_in_db, $group) unless ($exists);
   }
 
 # /etc/group:
-#   Find what is the maximum id number known.  Save also the nogroup id.
+# Find what is the maximum id number known.  Save also the nogroup id.
 my $etc_group_maxid = -1;
 my $nogroup_gid = 65534;
-while(my @entry = getgrent()) {
-    if($entry[0] ne 'nogroup') {
-        $etc_group_maxid = $entry[2] > $etc_group_maxid ? $entry[2] : $etc_group_maxid;
-    } else {
+while (my @entry = getgrent ())
+  {
+    if($entry[0] ne 'nogroup')
+      {
+        $etc_group_maxid = $entry[2] if $entry[2] > $etc_group_maxid;
+      }
+    else
+      {
         $nogroup_gid = $entry[2];
-    }
-    print "DBG etc: group $entry[0]\t\t maxid $etc_group_maxid\n" if $debug;
-}
+      }
+    PrintLog ("etc: group $entry[0]\t\t maxid $etc_group_maxid") if $verbose;
+  }
 $etc_group_maxid++;
 # If we did not reached the minimal gid, set it as maxid
 $etc_group_maxid = $min_gid if $min_gid > $etc_group_maxid;
@@ -324,18 +296,18 @@ PrintLog ("comparison done");
 
 # Make sure that the group svusers and anoncvs exists
 # sv_users and sv_groups would broke without these groups
-for ("svusers", "anoncvs") {
-    unless (getgrnam($_)) {
-        unless ($debug || $no_etc)        {
-            system("/usr/sbin/groupadd", "-g", $etc_group_maxid, $_);
-        }
+for ("svusers", "anoncvs")
+  {
+    unless (getgrnam($_))
+      {
+        system("/usr/sbin/groupadd", "-g", $etc_group_maxid, $_)
+          unless ($dry_run || $no_etc);
         PrintLog (
           "-- groupadd -g $etc_group_maxid $_ (required by the savane backend)"
         );
         $etc_group_maxid++;
-    }
-}
-
+      }
+  }
 # Add groups missing on the system.
 foreach my $group (@only_in_db)
   {
@@ -345,9 +317,9 @@ foreach my $group (@only_in_db)
         $use_svn, $use_git, $use_hg, $use_bzr, $use_download
       )
       = @{$db_groups{$group}};
-    print "DBG create: $name and web$name\n" if $debug;
+    PrintLog ("create: $name and web$name") if $verbose;
 
-    unless ($debug || $no_etc)
+    unless ($dry_run || $no_etc)
       {
         # Actually add the groups.
         system("/usr/sbin/groupadd", "-g", $etc_group_maxid, $name);
@@ -372,6 +344,40 @@ PrintLog ("account creation done");
 # Update existing groups, including the ones just created
 # These groups are in the database and on the system.
 
+sub make_area
+{
+  my ($func, $name, $dir, $pub) = @_;
+  my $fr = \&$func;
+  PrintLog ("$func ($name, $dir, $pub)") if $verbose;
+  return &$fr ($name, $dir, $pub) unless $dry_run;
+  return '';
+}
+
+sub make_dl_savannah
+{
+  my ($name, $dt, $dir, $pub) = @_;
+  return '' unless $dt eq "savannah-gnu" || $dt eq "savannah-nongnu";
+  return make_area ('DownloadMareAreaSavannah', $name, $dir, $pub);
+}
+
+sub make_vcs_dir
+{
+  my ($name, $dir, $dir_svn, $dir_type, $pub) = @_;
+  my $f = {
+    'basiccvs' => 'CvsMakeArea', 'basicdirectory' => 'DownloadMakeArea',
+    'cvsattic' => 'CvsMakeAreaAttic', 'basicsvn' => 'SvnMakeArea',
+  };
+  return make_area (${$f}{$dir_type}, $name, $dir, $pub)
+    if exists ${$f}{$dir_type};
+  $f = {
+    'svnattic' => 'SvnMakeAreaAttic',
+    "svnatticwebsite" => 'SvnMakeAreaAtticWebsite'
+  };
+  return make_area (${$f}{$dir_type}, $name, $dir_svn, $pub)
+    if exists ${$f}{$dir_type};
+  return '';
+}
+
 foreach my $group (@db_groups)
   {
     # If we run in no etc mode, we cannot handle groups missing on the system.
@@ -383,194 +389,116 @@ foreach my $group (@db_groups)
         );
         next;
       }
-    my
-      (
-        $name, $type, $is_public, $use_homepage, $use_cvs, $use_arch, $use_svn,
-        $use_git, $use_hg, $use_bzr, $use_download, $group_dir_homepage,
-        $group_dir_cvs, $group_dir_arch, $group_dir_svn, $group_dir_git,
-        $group_dir_hg, $group_dir_bzr, $group_dir_download
-      )
-      = @{$db_groups{$group}};
-    my
-      (
-        $type_name, $type_id, $dir_type_homepage, $dir_type_cvs,
-        $dir_type_arch, $dir_type_svn, $dir_type_git, $dir_type_hg,
-        $dir_type_bzr, $dir_type_download, $dir_homepage, $dir_cvs, $dir_arch,
-        $dir_svn, $dir_git, $dir_hg, $dir_bzr, $dir_download,
-        $can_use_homepage, $can_use_cvs, $can_use_arch, $can_use_svn,
-        $can_use_git, $can_use_hg, $can_use_bzr, $can_use_download
-      )
-      = @{$db_group_type{$type}};
-
-    # If a use in the database is empty, set it to the group type can_use.
-    $use_homepage = $can_use_homepage if $use_homepage eq '';
-    $use_cvs = $can_use_cvs if $use_cvs eq '';
-    $use_arch = $can_use_arch if $use_arch eq '';
-    $use_svn = $can_use_svn if $use_svn eq '';
-    $use_git = $can_use_git if $use_git eq '';
-    $use_hg = $can_use_hg if $use_hg eq '';
-    $use_bzr = $can_use_bzr if $use_bzr eq '';
-    $use_download = $can_use_download if $use_download eq '';
-
-    # If a group_dir in the database is not empty, set reset the default
-    # (it means that the group does not respect the group type settings).
-    $dir_homepage = $group_dir_homepage if $group_dir_homepage;
-    $dir_cvs = $group_dir_cvs if $group_dir_cvs;
-    $dir_arch = $group_dir_arch if $group_dir_arch;
-    $dir_svn = $group_dir_svn if $group_dir_svn;
-    $dir_git = $group_dir_git if $group_dir_git;
-    $dir_hg = $group_dir_hg if $group_dir_hg;
-    $dir_bzr = $group_dir_bzr if $group_dir_bzr;
-    $dir_download = $group_dir_download if $group_dir_download;
-
-    print "DBG update: $name, type:$type, public:$is_public, "
-      . "homepage:$use_homepage, cvs:$use_cvs, arch:$use_arch, svn:$use_svn, "
-      . "git:$use_git, hg:$use_hg, hg:$use_bzr, download:$use_download\n"
-      . "\t $dir_homepage $dir_cvs $dir_download\n"
-      if $debug;
+    my @group_entry = @{$db_groups{$group}};
+    my %vars;
+    foreach my $k (@db_groups_fields)
+      {
+        $vars{$k} = shift @group_entry;
+      }
+    my @group_type_entry = @{$db_group_type{$vars{'type'}}};
+    foreach my $k (@db_group_type_fields)
+      {
+        $vars{$k} = shift @group_type_entry;
+      }
+    foreach my $k
+      ("homepage", "cvs", "arch", "svn", "git", "hg", "bzr", "download")
+      {
+        # If a use in the database is empty, set it to the group type can_use.
+        $vars{"use_$k"} = $vars{"can_use_$k"} if $vars{"use_$k"} eq '';
+        # If a group_dir in the database is not empty, set reset the default
+        # (it means that the group does not respect the group type settings).
+        $vars{"dir_$k"} = $vars{"group_dir_$k"} if $vars{"group_dir_$k"};
+      }
+    my $name = $vars{'unix_group_name'};
+    my $msg = "update: $name, ";
+    foreach my $f ("type", "is_public", "use_homepage", "use_cvs", "use_arch",
+      "use_svn", "use_git", "use_hg", "use_download", "dir_homepage",
+      "dir_cvs")
+      {
+        $msg .= "$f: $vars{$f}, "
+      }
+    $msg .= " dir_download: $vars{'dir_download'}";
+    PrintLog ($msg) if $verbose;
 
     my $madesomething;
 
     # FIXME: in a future, we may create a table of method associating
     # method -> perl module -> sub name.
     # Currently it is hardcoded.
-    unless ($debug)
+    next if ($dry_run);
+    my $pub = $vars{'is_public'};
+    my $dis = $vars{'dir_svn'};
+    # Create the cvs area, by relying on the library, that should
+    # make the appropriate decision (i.e. if no %PROJECT string is
+    # provided, nothing should be done; check if the directory does
+    # not already exists).
+    if ($vars{'use_cvs'} && !$no_cvs)
       {
-        # Create the cvs area, by relying on the library, that should
-        # make the appropriate decision (i.e. if no %PROJECT string is
-        # provided, nothing should be done; check if the directory does
-        # not already exists).
-        if ($use_cvs && ! $no_cvs)
-          {
-            $madesomething .= CvsMakeArea ($name, $dir_cvs, $is_public)
-              if ($dir_type_cvs eq "basiccvs");
-            $madesomething .= DownloadMakeArea ($name, $dir_cvs, $is_public)
-              if $dir_type_cvs eq "basicdirectory";
-            $madesomething .= CvsMakeAreaAttic ($name, $dir_cvs, $is_public)
-              if $dir_type_cvs eq "cvsattic";
-            $madesomething .= CvsMakeAreaSavannah ($name, $dir_cvs, $is_public)
-              if (
-                  $dir_type_cvs eq "savannah-gnu"
-                  or $dir_type_cvs eq "savannah-nongnu"
-              );
-            $madesomething .= SvnMakeArea ($name, $dir_cvs, $is_public)
-              if $dir_type_cvs eq "basicsvn";
-            $madesomething .= SvnMakeAreaAttic ($name, $dir_svn, $is_public)
-              if $dir_type_cvs eq "svnattic";
-            $madesomething .=
-              SvnMakeAreaAtticWebsite ($name, $dir_svn, $is_public)
-              if $dir_type_cvs eq "svnatticwebsite";
-          }
+        my $dic = $vars{'dir_cvs'};
+        my $dtc = $vars{'dir_type_cvs'};
+        $madesomething .= make_vcs_dir ($name, $dic, $dis, $dtc, $pub);
+        $madesomething .= make_area ('CvsMakeAreaSavannah', $name, $dic, $pub)
+          if ($dtc eq "savannah-gnu" or $dtc eq "savannah-nongnu");
+      }
 
-        # The web area.
-        if ($use_homepage && ! $no_homepage)
-          {
-            $madesomething .= CvsMakeArea ($name, $dir_homepage, $is_public)
-              if $dir_type_homepage eq "basiccvs";
-            $madesomething .=
-              DownloadMakeArea ($name, $dir_homepage, $is_public)
-              if $dir_type_homepage eq "basicdirectory";
-            $madesomething .=
-              CvsMakeAreaAttic ($name, $dir_homepage, $is_public)
-              if $dir_type_homepage eq "cvsattic";
-            $madesomething .=
-              WebCvsMakeAreaSavannahGNU ($name, $dir_homepage, $is_public)
-              if $dir_type_homepage eq "savannah-gnu";
-            $madesomething .=
-              WebCvsMakeAreaSavannahNonGNU ($name, $dir_homepage, $is_public)
-              if $dir_type_homepage eq "savannah-nongnu";
-            $madesomething .= SvnMakeArea ($name, $dir_homepage, $is_public)
-              if $dir_type_homepage eq "basicsvn";
-            $madesomething .= SvnMakeAreaAttic ($name, $dir_svn, $is_public)
-              if $dir_type_homepage eq "svnattic";
-            $madesomething .=
-              SvnMakeAreaAtticWebsite ($name, $dir_svn, $is_public)
-              if $dir_type_homepage eq "svnatticwebsite";
-          }
+    # The web area.
+    if ($vars{'use_homepage'} && !$no_homepage)
+      {
+        my $dih = $vars{'dir_homepage'};
+        my $dth = $vars{'dir_type_homepage'};
+        $madesomething .= make_vcs_dir ($name, $dih, $dis, $dth, $pub);
+        $madesomething .=
+          make_area ('WebCvsMakeAreaSavannahGNU', $name, $dih, $pub)
+            if $dth eq "savannah-gnu";
+        $madesomething .=
+          make_area ('WebCvsMakeAreaSavannahNonGNU', $name, $dih, $pub)
+            if $dth eq "savannah-nongnu";
+      }
 
-        # The download area.
-        if ($use_download && ! $no_download)
-          {
-            $madesomething .= CvsMakeArea ($name, $dir_download, $is_public)
-              if $dir_type_download eq "basiccvs";
-            $madesomething .=
-              DownloadMakeArea ($name, $dir_download, $is_public)
-              if $dir_type_download eq "basicdirectory";
-            $madesomething .=
-              CvsMakeAreaAttic ($name, $dir_download, $is_public)
-              if $dir_type_download eq "cvsattic";
-            $madesomething .=
-              DownloadMakeAreaSavannah ($name, $dir_download, $is_public)
-              if (
-                $dir_type_download eq "savannah-gnu"
-                or $dir_type_download eq "savannah-nongnu"
-              );
-            $madesomething .= SvnMakeArea ($name, $dir_download, $is_public)
-              if $dir_type_download eq "basicsvn";
-            $madesomething .= SvnMakeAreaAttic ($name, $dir_svn, $is_public)
-              if $dir_type_download eq "svnattic";
-          }
+    # The download area.
+    if ($vars{'use_download'} && !$no_download)
+      {
+        my $did = $vars{'dir_download'};
+         my $dtd = $vars{'dir_type_download'};
+        $madesomething .= make_vcs_dir ($name, $did, $dis, $dtd, $pub);
+        $madesomething .= make_dl_savannah ($name, $dtd, $did, $pub);
+      }
 
-        # The VCS areas follow.
-        if ($use_arch && ! $no_arch)
-          {
-            $madesomething .= CvsMakeArea ($name, $dir_arch, $is_public)
-              if $dir_type_arch eq "basiccvs";
-            $madesomething .= DownloadMakeArea ($name, $dir_arch, $is_public)
-              if $dir_type_arch eq "basicdirectory";
-            $madesomething .= CvsMakeAreaAttic ($name, $dir_arch, $is_public)
-              if $dir_type_arch eq "cvsattic";
-            $madesomething .=
-              DownloadMakeAreaSavannah ($name, $dir_arch, $is_public)
-              if (
-                $dir_type_arch eq "savannah-gnu"
-                or $dir_type_arch eq "savannah-nongnu"
-              );
-            $madesomething .= SvnMakeArea ($name, $dir_arch, $is_public)
-              if $dir_type_arch eq "basicsvn";
-            $madesomething .= SvnMakeAreaAttic ($name, $dir_svn, $is_public)
-              if $dir_type_arch eq "svnattic";
-          }
+    if ($vars{'use_arch'} && !$no_arch)
+      {
+        my $dia = $vars{'dir_arch'};
+        my $dta = $vars{'dir_type_arch'};
+        $madesomething .= make_vcs_dir ($name, $dia, $dis, $dta, $pub);
+        $madesomething .= make_dl_savannah ($name, $dta, $dia, $pub);
+      }
 
-        if ($use_svn && !$no_svn)
-          {
-            $madesomething .= CvsMakeArea ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "basiccvs";
-            $madesomething .= DownloadMakeArea ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "basicdirectory";
-            $madesomething .= CvsMakeAreaAttic ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "cvsattic";
-            $madesomething .= DownloadMakeAreaSavannah ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "savannah-gnu" or $dir_type_svn eq "savannah-nongnu";
-            $madesomething .= SvnMakeArea ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "basicsvn";
-            $madesomething .= SvnMakeAreaAttic ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "svnattic";
-            $madesomething .= SvnMakeAreaAtticWebsite ($name, $dir_svn, $is_public)
-              if $dir_type_svn eq "svnatticwebsite";
-          }
+    if ($vars{'use_svn'} && !$no_svn)
+      {
+        my $dts = $vars{'dir_type_svn'};
+        $madesomething .= make_vcs_dir ($name, $dis, $dis, $dts, $pub);
+        $madesomething .= make_dl_savannah ($name, $dts, $dis, $pub);
+      }
 
-        if ($use_git && !$no_git)
-          {
-            $madesomething .= GitMakeArea ($name, $dir_git, $is_public)
-              if $dir_type_git eq "basicgit";
-          }
+    if ($vars{'use_git'} && !$no_git)
+      {
+        $madesomething .=
+          make_area ('GitMakeArea', $name, $vars{'dir_git'}, $pub)
+            if $vars{'dir_type_git'} eq "basicgit";
+      }
 
-        if ($use_hg && !$no_hg)
-          {
-            $madesomething .= HgMakeArea($name, $dir_hg, $is_public)
-              if $dir_type_hg eq "basichg";
-          }
+    if ($vars{'use_hg'} && !$no_hg)
+      {
+        $madesomething .= make_area ('HgMakeArea', $name, $vars{'dir_hg'}, $pub)
+          if $vars{'dir_type_hg'} eq "basichg";
+      }
 
-        if ($use_bzr && !$no_bzr)
-          {
-            $madesomething .= BzrMakeArea ($name, $dir_bzr, $is_public)
-              if $dir_type_bzr eq "basicbzr";
-          }
-    } # unless ($debug)
-
-    next unless $madesomething;
-    PrintLog ("-- update $name ($madesomething built)");
+    if ($vars{'use_bzr'} && !$no_bzr)
+      {
+        $madesomething .=
+          make_area ('BzrMakeArea', $name, $vars{'dir_bzr'}, $pub)
+            if $vars{'dir_type_bzr'} eq "basicbzr";
+      }
+    PrintLog ("-- update $name ($madesomething built)") if $madesomething;
   } # foreach my $group (@db_groups)
 
 PrintLog ("work finished");
