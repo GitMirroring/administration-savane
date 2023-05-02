@@ -84,7 +84,7 @@ AcquireReplicationLock ($lockfile);
 
 GetOptions (
   "min-uidNumber=i" => \$min_uidNumber, "min-gidNumber=i" => \$min_gidNumber
-);
+) or die "Wrong command line";
 
 sub DbdDo
 {
