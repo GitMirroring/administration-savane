@@ -59,15 +59,21 @@
 
 * sv_cleaner removes irrelevant pieces of news and orphan user data.
 
-* In sv_reminder, the --debug option is replaced with --dry-run
-  and --verbose.
+* sv_mailmain connects lists.gnu.org directly unless --ssh-user is set empty.
 
 * The --cron option in scripts is ignored, --logfile is added when
   relevant.
 
 * --version option in scripts outputs copyright and license notices.
 
-Bug fixes:
+* Replace --debug with --dry-run and --verbose in sv_reminder, sv_mailman,
+  sv_groups, sv_users, sv_aliases.
+
+* Support for unused options is removed:
+
+** --keep-archives and --skip_mail in sv_mailman.
+
+* Bug fixes:
 
 ** PrintVersionOrHelp emitted spurious error messages.
 
@@ -84,7 +90,7 @@ Bug fixes:
 * autotools/m4/nls.m4 and autotools/m4/progtest.m4 are updated
   from gettext-0.21.1.
 
-Bug fixes:
+* Bug fixes:
 
 ** Some images in the OldCERN theme weren't built.
 
