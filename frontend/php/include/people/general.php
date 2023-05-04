@@ -618,42 +618,45 @@ function people_add_to_skill_inventory (
   print db_error ();
 }
 
+function people_print_skill_table ($result)
+{
+  print html_build_list_table_top ([_("Skill"), _("Level"), _("Experience")]);
+  $i = 0;
+  while ($row = db_fetch_array ($result))
+    {
+      foreach (['skill_name', 'level_name', 'year_name'] as $v)
+         $$v = gettext ($row[$v]);
+      print "<tr class=\"" . utils_altrow ($i++) . "\">\n"
+        . "<td>$skill_name</td>\n<td>$level_name</td>\n"
+        . "<td>$year_name</td></tr>\n";
+    }
+  print "</table>\n";
+}
+
 function people_show_skill_inventory ($user_id)
 {
   $result = db_execute ("
-    SELECT
-      s.name AS skill_name, l.name AS level_name, y.name AS year_name
+    SELECT s.name AS skill_name, l.name AS level_name, y.name AS year_name
     FROM
       people_skill_year y, people_skill_level l, people_skill s,
       people_skill_inventory i
     WHERE
-      y.skill_year_id = i.skill_year_id
-      AND l.skill_level_id = i.skill_level_id
-      AND s.skill_id = i.skill_id
-      AND i.user_id = ?",
+      y.skill_year_id = i.skill_year_id AND l.skill_level_id = i.skill_level_id
+      AND s.skill_id = i.skill_id AND i.user_id = ?",
     [$user_id]
   );
-
-  print html_build_list_table_top ([_("Skill"), _("Level"), _("Experience")]);
-
-  $rows = db_numrows ($result);
   if (!$result)
     {
-      print '<tr><td><p class="warn">(' . _("SQL Error:") . ")</p>\n";
+      print '<p class="warn">' . _("SQL Error:") . "</p>\n";
       print db_error ();
-      print "</td></tr>\n";
+      return;
     }
-  elseif ($rows < 1)
-    print '<tr><td><p class="warn">(' . _("No skill inventory set up")
-      . ")</p>\n</td></tr>\n";
-  else
-    for ($i = 0; $i < $rows; $i++)
-      print "<tr class=\"" . utils_altrow ($i) . "\">\n"
-        . "<td>" . db_result ($result, $i, 'skill_name')
-        . "</td>\n<td>" . db_result ($result, $i, 'level_name')
-        . "</td>\n<td>" . db_result ($result, $i, 'year_name')
-        . "</td></tr>\n";
-  print "</table>\n";
+  if (db_numrows ($result) < 1)
+    {
+      print '<p class="warn">' . _("No skill inventory set up") . "</p>\n";
+      return;
+    }
+  people_print_skill_table ($result);
 }
 
 function people_edit_skill_inventory ($user_id)

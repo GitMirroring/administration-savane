@@ -45,6 +45,8 @@
 ** Links to "next results" in tracker item search were incorrect,
    Savannah sr #110869.
 
+** Skillboxes weren't localized.
+
 [BACKEND]
 
 * New script, backend/extra/git/sv_cgit.pl.in (fetched from vcs2
