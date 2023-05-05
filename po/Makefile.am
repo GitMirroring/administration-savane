@@ -103,6 +103,7 @@ POTFILES = \
 	frontend/php/include/features_boxes.php \
 	frontend/php/include/theme.php \
 	frontend/php/include/account.php \
+	frontend/php/include/mailman.php \
 	frontend/php/include/trackers_run/mod.php \
 	frontend/php/include/trackers_run/search.php \
 	frontend/php/include/trackers_run/add.php \

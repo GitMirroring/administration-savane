@@ -14,6 +14,7 @@ backend_scripts = \
 	backend/accounts/sv_users \
 	backend/accounts/sv_membersh \
 	backend/mail/sv_mailman \
+	backend/mail/sv_mailman-wrapper.pl \
 	backend/mail/sv_aliases \
 	backend/mail/sv_mailman_and_mailarchivedotcom \
 	backend/extra/subversion/sv_extra_daily_svn_tarball \

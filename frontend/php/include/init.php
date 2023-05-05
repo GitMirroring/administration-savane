@@ -119,6 +119,8 @@ $pwqcheck_args = 'match=0 max=256 min=24,24,11,8,7';
 # Default uploads directory for './register2/upload.html'.
 $sys_upload_dir = "/var/www/submissions_uploads" ;
 
+$sys_mailman_wrapper = "$bindir/sv_mailman-wrapper.pl";
+
 if (empty ($sys_linguas))
   $sys_linguas = "en:ru";
 

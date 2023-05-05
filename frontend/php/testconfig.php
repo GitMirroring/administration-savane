@@ -44,6 +44,11 @@
 include ("include/ac_config.php");
 $sys_debug_sqlprofiler = false;
 $sys_file_domain = '';
+$sys_linguas = "en:es";
+require_once ("include/i18n.php");
+require_once ("include/utils.php");
+require_once ("include/database.php");
+require_once ("include/mailman.php");
 
 function return_bytes ($v)
 {
@@ -190,7 +195,6 @@ function test_repos ()
   print "<dt id='gitrepos'>git directories</dt>\n<dd>";
   test_git_dirs ();
   print "</dd>\n";
-   
 }
 function test_sys_upload_dir ()
 {
@@ -240,7 +244,56 @@ function test_captcha ()
     . "<p><img id='captcha' src='/captcha.php' alt='CAPTCHA' /></p>";
 }
 
-print "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+function test_mailman_failed ($ver)
+{
+  $fail = false;
+  $dte = "<dt><strong>Error</strong></td><dd>";
+  if (empty ($ver))
+    {
+      print "$dte<strong>No response</strong></dd>\n";
+      return true;
+    }
+  if (array_key_exists ('pipe::error', $ver))
+    {
+      print "$dte<strong>Pipe error:</strong> "
+        . "<pre>{$ver['pipe::error']}</pre></dd>\n";
+      $fail = true;
+    }
+  if (array_key_exists ('error', $ver))
+    {
+      print "$dte<pre>{$ver['error']}</pre></dd>\n";
+      $fail = true;
+    }
+  return $fail;
+}
+
+function output_mailman_test ($ver)
+{
+  if (test_mailman_failed ($ver))
+    return false;
+  if (empty ($ver['version']))
+    return false;
+  print "<dt>Version</dt><dd>{$ver['version']}</dd>\n";
+  print "<dt>Generated password</dt><dd>{$ver['password']}</dd>\n";
+  return true;
+}
+
+function test_mailman ()
+{
+  print "<h2>Mailman connection</h2>";
+  print "<dl>\n";
+  $ver = mailman_get_version ();
+  $success = output_mailman_test ($ver);
+  printf ("<dt>Run time</dt><dd>%.3f ms</dd></dl>\n", $ver['timestamp']);
+  if ($success && preg_match ("/^stub /", $ver['version']))
+    print "<p><strong>This is a stub; write the real command "
+      . "in \$sys_mailman_wrapper.</strong></p>\n";
+}
+
+print "<?xml version=\"1.0\" encoding=\"utf-8\"?"
+  # Separate the previous "?" from ">" to workaround broken syntax
+  # highlighting in some editors.
+  . ">\n";
 print "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
     \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n\n";
 
@@ -366,8 +419,6 @@ foreach ($phpfunctions as $func => $comment)
   }
 print "</p>\n";
 
-$sys_linguas = "en:es";
-require_once ("include/i18n.php");
 function test_i18n ()
 {
   i18n_setup ("es_ES.UTF-8");
@@ -418,8 +469,10 @@ else
       'dbuser', 'dbpasswd', 'www_topdir', 'url_topdir', 'etc_dir', 'incdir',
       'name', 'unix_group_name', 'themedefault', 'mail_domain', 'mail_admin',
       'mail_replyto', 'upload_max', 'watch_anon_posts', 'new_user_watch_days',
-      'localedir', 'linguas'
+      'localedir', 'linguas', 'mailman_wrapper'
     ];
+    if (empty ($inside_siteadmin))
+      utils_set_csp_headers ();
 
     print "<table border=\"1\">\n";
     print "<tr><th>Conf variable</th><th>Current value</th></tr>\n";
@@ -428,7 +481,7 @@ else
         $var = "sys_$tag";
         $value = '<strong>unset</strong>';
         if (isset ($GLOBALS[$var]))
-          $value = htmlentities ($GLOBALS[$var]);
+          $value = htmlentities (print_r ($GLOBALS[$var], true));
         if ($var == "sys_dbpasswd")
           $value = "**************";
 
@@ -442,12 +495,9 @@ else
       . "in the configuration file.</p>\n";
     print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
     test_captcha ();
+    test_mailman ();
 
     print "\n<h2>MySQL configuration</h2>\n\n";
-    require_once ("include/utils.php");
-    require_once ("include/database.php");
-    if (empty ($inside_siteadmin))
-      utils_set_csp_headers ();
     if (!db_connect ())
       print "<blockquote>Can't connect to database.</blockquote>\n";
     else

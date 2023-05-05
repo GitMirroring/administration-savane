@@ -114,6 +114,17 @@ sub PrintLog
   print LOG strftime "[$script] %c -$dr $msg\n", localtime;
 }
 
+my @errors;
+
+sub log_errors
+{
+  foreach my $err (@errors)
+    {
+      PrintLog ($err);
+    }
+  @errors = ();
+}
+
 # Create a new password, random enough, without too weird characters.
 sub make_password
 {
@@ -122,11 +133,11 @@ sub make_password
 
 sub send_mail
 {
-  my ($admin, $name, $password, $action) = @_;
+  my ($admin, $name, $password, $domain, $action) = @_;
   my $mail = <<"  EOF";
     Hello,
 
-    You requested the $action of the list $name at $sys_mail_domain.
+    You requested the $action of the list $name at $domain.
 
     The new list administrator password of the mailing list $name is:
             $password
@@ -145,16 +156,48 @@ sub send_mail
   PrintLog ("mail sent to $admin for list $name");
 }
 
+sub parse_ssh_output
+{
+  my $cmd = shift;
+  @errors = ();
+  my %ret;
+  while (my $line = <$cmd>)
+    {
+      chomp $line;
+      PrintLog ("response: $line") if $verbose;
+      if ($line =~ /^Error/)
+        {
+          push @errors, $line;
+          next;
+        }
+      unless ($line =~ /=/)
+        {
+          push @errors, "no assignment in line $line";
+          next;
+        }
+       my ($k, $v) = split (/=/, $line, 2);
+       $ret{$k} = $v;
+    }
+
+  log_errors () if $#errors >= 0;
+  return %ret;
+}
+
 sub run_ssh_wrapper
 {
   my $msg = shift;
+  my ($fh, $tmp_filename) = tempfile ("sv_mailman-XXXXXXXX", UNLINK => 1);
+  my $dr = $dry_run? "dry_run=yes\n": "";
   $msg =~ s/(^|\n) */$1/g;
-  PrintLog ("running ssh", $msg) if $verbose;
-  return if $dry_run;
+  $msg = "$dr$msg";
+  print { $fh } $msg;
+  PrintLog ("running ssh -T $ssh_user", $msg) if $verbose;
   my $cmd;
-  open ($cmd, '|-', "ssh -T $ssh_user");
-  print $cmd $msg;
+  open ($cmd, '-|', "ssh -T $ssh_user < $tmp_filename");
+  my %ret = parse_ssh_output ($cmd);
   close ($cmd);
+  close ($fh);
+  return %ret;
 }
 
 sub change_pw
@@ -163,14 +206,16 @@ sub change_pw
   unless ($ssh_user)
     {
       system ("$pfx/change_pw", "-l", $name, "-p", $password) unless $dry_run;
-      return;
+      return $password;
     }
   my $msg = << "  EOF";
     COMMAND=change_pw
     LIST_NAME=$name
-    PASSWORD=$password
+    PASSWORD=
   EOF
-  run_ssh_wrapper ($msg);
+  my %res = run_ssh_wrapper ($msg);
+  return '' if $#errors >= 0;
+  return $res{'password'};
 }
 
 sub rm_list
@@ -189,18 +234,35 @@ sub rm_list
 
 sub new_list
 {
-  my ($name, $admin, $password) = @_;
+  my ($name, $admin, $password, $pub) = @_;
+  my $visibility = $pub? 'public': 'private';
   unless ($ssh_user)
     {
       system ("$pfx/newlist", $name, $admin, $password, '--quiet')
         unless $dry_run;
-      return;
+      return $password;
     }
   my $msg = << "  EOF";
     COMMAND=newlist
     LIST_FULL_NAME=$name
     ADMIN_MAIL=$admin
-    PASSWORD=$password
+    PASSWORD=
+    VISIBILITY=$visibility
+  EOF
+  my %res = run_ssh_wrapper ($msg);
+  return '' if $#errors >= 0;
+  return $res{'password'};
+}
+
+sub config
+{
+  my ($name, $pub) = @_;
+  my $visibility = $pub? 'public': 'private';
+  return unless ($ssh_user);
+  my $msg = << "  EOF";
+    COMMAND=config
+    LIST_FULL_NAME=$name
+    VISIBILITY=$visibility
   EOF
   run_ssh_wrapper ($msg);
 }
@@ -215,14 +277,14 @@ my $lists_ref = GetDBListsRef (
   "mail_group_list m, group_type t, groups g, user u",
   "m.status IN ('0', '1') AND g.group_id = m.group_id AND t.type_id = g.type
    AND u.user_id = m.list_admin AND m.is_public != '9'",
-  "list_name, g.group_id, t.mailing_list_virtual_host, u.email"
+  "list_name, g.group_id, t.mailing_list_virtual_host, u.email, m.is_public"
 );
 foreach my $line (@$lists_ref)
   {
     chomp ($line);
-    my ($name, $group_id, $virtual_host, $admin) = @$line;
+    my ($name, $group_id, $virtual_host, $admin, $pub) = @$line;
     my $complete_name = $name;
-    my $password = make_password;
+    my $password = make_password ();
     if ($virtual_host && $virtual_host ne '')
       {
         $complete_name .= '@' . $virtual_host;
@@ -230,9 +292,14 @@ foreach my $line (@$lists_ref)
 
     my $admins = join (", ", GetGroupAdminsMail (GetGroupName ($group_id)));
     $admins = "$admin, $admins";
-    new_list ($complete_name, $admin, $password);
+    $password = new_list ($complete_name, $admin, $password, $pub);
+    if ($password eq '')
+      {
+        PrintLog ("can't create new list $complete_name");
+        next;
+      }
     PrintLog ("list $name; admins $admins; newlist");
-    send_mail ("$admin, $admins", $name, $password, "creation");
+    send_mail ("$admin, $admins", $name, $password, $virtual_host, "creation");
 
     SetDBSettings (
       "mail_group_list", "list_name = '$name'", "status = '5', password = NULL"
@@ -255,6 +322,11 @@ foreach my $line
     my ($id, $name) = split (",", $line);
 
     rm_list ($name);
+    if ($#errors >= 0)
+      {
+        PrintLog ("can't remove list $name");
+        next;
+      }
     PrintLog ("list $name removed with mailman rmlist");
     DeleteDB ("mail_group_list", "group_list_id = '$id'") unless $dry_run;
     PrintLog ("list $name deleted from the database");
@@ -268,41 +340,63 @@ foreach my $line
 foreach my $line
   (
      GetDB (
-       "mail_group_list", "status = '2' AND is_public != '9'",
-       "group_list_id, list_name, list_admin"
+       "mail_group_list m, group_type t, groups g",
+       "m.status = '2' AND m.is_public != '9'
+        AND g.group_id = m.group_id AND t.type_id = g.type",
+       "group_list_id, list_name, mailing_list_virtual_host, list_admin,
+        m.is_public"
     )
   )
   {
     chomp ($line);
-    my ($id, $name, $admin) = split (",", $line);
+    my ($id, $name, $virtual_host, $admin, $pub) = split (",", $line);
     $admin = GetUserName ($admin);
+    my $complete_name = $name;
+    if ($virtual_host && $virtual_host ne '')
+      {
+        $complete_name .= '@' . $virtual_host;
+      }
+
+    config ($complete_name, $pub);
+    if ($#errors >= 0)
+      {
+        PrintLog ("can't config list $name");
+        next;
+      }
 
     SetDBSettings ("mail_group_list", "group_list_id = '$id'", "status = '5'")
       unless $dry_run;
-    PrintLog ("list $name <$admin> supposedly reconfigured");
+    PrintLog ("list $name <$admin> reconfigured");
   } # foreach my $line...
 
 foreach my $line
   (
     GetDB (
-      "mail_group_list", "password = '1'", "group_list_id, list_name, group_id"
+      "mail_group_list m, group_type t, groups g",
+      "password = '1' AND g.group_id = m.group_id AND t.type_id = g.type",
+      "group_list_id, list_name, m.group_id, t.mailing_list_virtual_host"
     )
   )
   {
     chomp ($line);
-    my ($id, $name, $group_id) = split (",", $line);
+    my ($id, $name, $group_id, $domain) = split (",", $line);
 
-    my $password = make_password;
+    my $password = make_password ();
     my $admins = join (", ", GetGroupAdminsMail (GetGroupName ($group_id)));
 
-    change_pw ($name, $password);
+    $password = change_pw ($name, $password);
+    if ($password eq '')
+      {
+        PrintLog ("can't reset password for $name");
+        next;
+      }
     # Register the change in the database.
     SetDBSettings (
       "mail_group_list", "group_list_id = '$id'", "password = NULL"
     )
       unless $dry_run;
     PrintLog ("list $name password was reset");
-    send_mail ($admins, $name, $password, "password reset");
+    send_mail ($admins, $name, $password, $domain, "password reset");
   }
 
 PrintLog ("work finished");

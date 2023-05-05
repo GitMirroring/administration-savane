@@ -41,6 +41,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 $prefix = "@prefix@";
+$exec_prefix = "@exec_prefix@";
+$bindir = "@bindir@";
 $datarootdir = "@datarootdir@";
 $sys_confdir = "@sysconfdir@";
 $sys_localedir = "@localedir@";
