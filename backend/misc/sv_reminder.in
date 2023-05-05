@@ -120,7 +120,7 @@ sub decode_freq
 
 open (LOG, ">>:encoding(UTF-8)", "$logfile");
 PrintLog ("starting");
-AcquireReplicationLock();
+AcquireReplicationLock ();
 
 # List of users supposed to receive a batch.
 my %user;
@@ -145,6 +145,7 @@ sub date_before
   return timelocal ($sec, $mi, $h, $d, $m - 1, $y - 1900);
 }
 
+$date0 += 289; # Allow for differences in script launch time.
 my $daybefore = date_before ($date0, 1, 0);
 my $weekbefore = date_before ($date0, 7, 0);
 my $monthbefore = date_before ($date0, 0, 1);
@@ -194,14 +195,39 @@ sub period_expired
   return $lastsent < $daybefore;
 }
 
+sub delete_db
+{
+  my ($table, $condition) = @_;
+  return DeleteDB ($table, $condition) unless $dry_run;
+  my @ret = GetDB ($table, $condition, "count(*)");
+  return shift @ret;
+}
+
+sub delete_and_log
+{
+  my ($table, $condition, $msg) = @_;
+  my $result = delete_db ($table, $condition);
+  PrintLog ("deleted $result $msg") if $verbose;
+}
+
+sub clear_preferences
+{
+  my $id = $_[0];
+  delete_and_log (
+    "user_preferences",
+    "user_id = $id
+     AND preference_name IN ('batch_frequency', 'batch_lastsent')",
+    "preferences of user #$id"
+  );
+}
+
 # Check if it's time to send a reminder; reset $user_frequency{$user_id}
 # to zero for those who needn't reminders yet.
 # When no batch_lastsent entry is found, assume the reminder is needed.
 foreach my $line
   (
     GetDB (
-      "user_preferences",
-      "preference_name='batch_lastsent' AND preference_value < '$daybefore'",
+      "user_preferences", "preference_name = 'batch_lastsent'",
       "user_id, preference_value"
     )
   )
@@ -210,6 +236,8 @@ foreach my $line
     my ($id, $lastsent) = split (",", $line);
     $last_sent{$id} = $lastsent;
     PrintLog ("last sent (user #$id): " . localtime ($lastsent)) if $verbose;
+    clear_preferences ($id)
+      unless (exists $user_frequency{$id} && $user_frequency{$id});
     $user_frequency{$id} = 0
       unless period_expired ($lastsent, $user_frequency{$id});
   } # foreach my $line...
@@ -240,6 +268,7 @@ foreach my $tracker (@trackers)
   {
     foreach my $user_id (@user_case2)
       {
+        my $no_items = 1;
         foreach my $line
           (
             GetDB (
@@ -256,7 +285,9 @@ foreach my $tracker (@trackers)
             my $idx = "$tracker,$item_id";
             push (@{$items{$user_id}}, $idx);
             $summary{$idx} = $summary;
+            $no_items = 0;
           }
+        PrintLog ("case2: no items for user #$user_id") if ($verbose && $no_items);
       }
   }
 
