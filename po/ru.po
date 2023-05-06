@@ -1202,12 +1202,12 @@ msgstr "Вводное сообщение, появляющееся сверху
 #: frontend/php/bugs/admin/editqueryforms.php:197
 #, php-format
 msgid "Query form '%s' created successfully"
-msgstr "Форма запроса\"%s\" успешно создана"
+msgstr "Форма запроса \"%s\" успешно создана"
 
 #: frontend/php/bugs/admin/editqueryforms.php:199
 #, php-format
 msgid "Query form '%s' updated successfully"
-msgstr "Форма запроса\"%s\" успешно обновлена"
+msgstr "Форма запроса \"%s\" успешно обновлена"
 
 #: frontend/php/bugs/admin/editqueryforms.php:204
 #, php-format
