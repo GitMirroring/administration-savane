@@ -250,8 +250,8 @@ function show_repo_form ($r, $repo_no, $name)
   global $group_id, $vcs;
   $readme = vcs_get_repo_readme ($vcs, $group_id, $name);
   show_edit (
-    "desc", _("Description:"), utils_specialchars_decode ($r['desc']),
-    $repo_no
+    "desc", _("Description:"),
+    utils_specialchars_decode ($r['desc'], ENT_QUOTES), $repo_no
   );
   print "<h3>" . _("Web browsing settings") . "</h3>\n\n";
   show_edit ("readme", _("README file:"), $readme, $repo_no);

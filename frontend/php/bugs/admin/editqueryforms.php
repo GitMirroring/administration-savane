@@ -190,7 +190,7 @@ if ($post_changes)
     $sql = substr ($sql, 0, -1);
 
     $res = db_execute ($sql, $params);
-    $fb_name = utils_specialchars_decode ($rep_name);
+    $fb_name = utils_specialchars_decode ($rep_name, ENT_QUOTES);
     if ($res)
       {
         if ($create_report)

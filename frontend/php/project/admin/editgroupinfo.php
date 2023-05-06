@@ -139,7 +139,8 @@ $print_preinput (_("Group Name:"), 'form_group_name');
 print
   form_input (
     "text", "form_group_name",
-    utils_specialchars_decode ($row_grp['group_name']), 'size="60" maxlen="254"'
+    utils_specialchars_decode ($row_grp['group_name'], ENT_QUOTES),
+   'size="60" maxlen="254"'
   )
   . "</p>\n";
 $print_preinput (

@@ -28,6 +28,9 @@
 
 * Bug fixes:
 
+** Mailing list descriptions with special chars weren't shown correctly
+   in a few places.
+
 ** In frontend/php/forum/forum.php, one argument of SQL query
    had a wrong type.
 

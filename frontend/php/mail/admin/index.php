@@ -337,7 +337,7 @@ while ($row = db_fetch_array ($result))
     print "<br />\n&nbsp;&nbsp;&nbsp;"
      . form_input (
          "text", "description[$id]",
-          utils_specialchars_decode ($row['description']),
+          utils_specialchars_decode ($row['description'], ENT_QUOTES),
           'maxlength="120" size="50"'
       );
 
