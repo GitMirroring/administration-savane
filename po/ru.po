@@ -1806,7 +1806,7 @@ msgstr "Обновить описания"
 
 #: frontend/php/people/editjob.php:232
 msgid "Back to jobs listing"
-msgstr "Вернуться к списко вакансий"
+msgstr "Вернуться к списку вакансий"
 
 #: frontend/php/people/editjob.php:239
 msgid "Looking for a job to Edit"
@@ -4678,7 +4678,7 @@ msgstr "Извлеченный идентификатор ключа GPG нед�
 
 #: frontend/php/include/gpg.php:149
 msgid "Test Encryption"
-msgstr "Проверка описания"
+msgstr "Проверка шифрования"
 
 #: frontend/php/include/gpg.php:155
 msgid ""
@@ -5976,7 +5976,7 @@ msgstr "Ошибка SQL:"
 #: frontend/php/include/people/general.php:345
 #: frontend/php/include/people/general.php:647
 msgid "No skill inventory set up"
-msgstr "Набор навыков не организован"
+msgstr "Набор навыков не задан"
 
 #: frontend/php/include/people/general.php:338
 msgid "Action"
@@ -7187,7 +7187,7 @@ msgstr "заплатки %s"
 
 #: frontend/php/include/search/general.php:188
 msgid "Area to search in"
-msgstr "Облатсь поиска"
+msgstr "Область поиска"
 
 #. TRANSLATORS: this string is used in the context
 #. of "Search [...] in Groups"

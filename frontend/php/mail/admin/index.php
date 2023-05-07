@@ -351,7 +351,7 @@ while ($row = db_fetch_array ($result))
            'id' => "is_public[$id]", 'label' => _("Public List")]);
     print "<br />\n&nbsp;&nbsp;&nbsp;"
       . form_radio ("is_public[$id]", 0,
-          [ 'checked' => $row['is_public'] == "0", 'id' => "'is_private[$id]",
+          [ 'checked' => $row['is_public'] == "0", 'id' => "is_private[$id]",
             'label' =>
               _("Private List (not advertised, subscribing requires approval)")
           ]);
