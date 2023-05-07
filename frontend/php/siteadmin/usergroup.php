@@ -387,7 +387,10 @@ if ($user_id == 100)
 $HTML->header (['title' => no_i18n ('Admin: Manage user')]);
 
 if (in_array ($action, $actions))
-  $action ();
+  {
+    $f = "action_$action";
+    $f ();
+  }
 
 $res_user = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
 $row_user = db_fetch_array ($res_user);
