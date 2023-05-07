@@ -3,6 +3,15 @@
 * Per-group reminders are not supported any more.  Users shall decide if they
   want reminders individually.
 
+* Mailing lists are entirely handled in frontend, without the previously
+  used cron job.  The list descriptions are passed to mailman as well
+  list name, domain, and visibility (public vs. private) when creating
+  and reconfiguring the mailing list.
+
+[REQUIREMENTS]
+
+* Perl String::Random isn't used any more.
+
 [FRONTEND]
 
 * The obsolete documentation in userguide/ is removed; links to wiki
@@ -55,6 +64,11 @@
 
 [BACKEND]
 
+* The backend/mail/sv_mailman.in is removed; the mailing lists are
+  handled entirely in frontend.
+
+* New script, backend/mail/sv_mailman-wrapper.pl.in.
+
 * New script, backend/extra/git/sv_cgit.pl.in (fetched from vcs2
   and heavily rewritten).
 
@@ -69,12 +83,8 @@
 
 * --version option in scripts outputs copyright and license notices.
 
-* Replace --debug with --dry-run and --verbose in sv_reminder, sv_mailman,
+* Replace --debug with --dry-run and --verbose in sv_reminder,
   sv_groups, sv_users, sv_aliases.
-
-* Support for unused options is removed:
-
-** --keep-archives and --skip_mail in sv_mailman.
 
 * Bug fixes:
 

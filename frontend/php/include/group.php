@@ -56,7 +56,7 @@ define ('TRACKER_PERM_NOBODY', 6);
 
 $PROJECT_OBJ = [];
 
-function project_get_object ($group_id)
+function group_get_object ($group_id)
 {
   # Create a common set of group objects,
   # save a little wear on the database.
@@ -66,6 +66,11 @@ function project_get_object ($group_id)
   if (empty ($PROJECT_OBJ[$idx]))
     $PROJECT_OBJ[$idx] = new Group ($group_id);
   return $PROJECT_OBJ[$idx];
+}
+
+function project_get_object ($group_id)
+{
+  return group_get_object ($group_id);
 }
 
 class Group extends savane_error
@@ -137,6 +142,11 @@ class Group extends savane_error
   function getTypeDevelStatusList ()
   {
      return $this->type_data_array['devel_status_array'];
+  }
+
+  function getTypeVirtualHost ()
+  {
+     return $this->type_data_array['mailing_list_virtual_host'];
   }
 
   function getTypeUrl ($artifact)

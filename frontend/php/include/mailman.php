@@ -1,5 +1,5 @@
 <?php
-# Talk to mailman wrapper.
+# Talk to mailman wrapper and update the database.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
@@ -40,24 +40,29 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-require_once ("init.php");
 
+namespace {
+require_once ("init.php");
+require_once ("sendmail.php");
+}
+
+namespace mm_ns {
 if (function_exists ('hrtime'))
   {
-    function mailman_timestamp ()
+    function timestamp ()
     {
       return hrtime (true) / 1000000;
     }
   }
 else
   {
-    function mailman_timestamp ()
+    function timestamp ()
     {
       return microtime (true) / 1000;
     }
   }
 
-function mailman_acquire_lock ()
+function acquire_lock ()
 {
   $tok = ftok (__FILE__, 'a');
   if ($tok === -1)
@@ -69,7 +74,7 @@ function mailman_acquire_lock ()
   return $sem;
 }
 
-function mailman_send_request ($cmd, $args)
+function send_request ($cmd, $args)
 {
   global $sys_mailman_wrapper;
   $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
@@ -81,75 +86,240 @@ function mailman_send_request ($cmd, $args)
     fwrite ($pipes[0], "$k=$v\n");
   fclose ($pipes[0]);
   $ret = explode ("\n", stream_get_contents ($pipes[1]));
-  $errors = stream_get_contents ($pipes[2]);
+  $error = stream_get_contents ($pipes[2]);
+  fclose ($pipes[1]);
   fclose ($pipes[2]);
-  return [$ret, $errors];
+  return [$ret, $error];
 }
 
-function mailman_parse_response ($lines)
+function parse_response ($lines)
 {
-  $ret = ['error' => []];
+  $error = [];
   foreach ($lines as $l)
     {
       if ($l === '')
         continue;
       if (preg_match ("/^Error/", $l))
         {
-          $ret['error'][] = $l;
+          $error[] = $l;
           continue;
         }
       if (false === strpos ($l, '='))
         {
-          $ret['error'][] = "no assignment in $l";
+          $error[] = "no assignment in $l";
           continue;
         }
       $pos = strpos ($l, '=');
       $ret[substr ($l, 0, $pos)] = substr ($l, $pos + 1);
     }
+  $ret['error'] = $error;
   return $ret;
 }
 
-function mailman_run ($cmd, $args)
+function run ($cmd, $args)
 {
-  $t0 = mailman_timestamp ();
-  $lock = mailman_acquire_lock ();
+  $t0 = timestamp ();
+  $lock = acquire_lock ();
   if ($lock === null)
     return ['error' => "Error: can't acquire semaphore",
-        'timestamp' => mailman_timestamp () - $t0
+        'timestamp' => timestamp () - $t0
       ];
-  list ($lines, $errors) = mailman_send_request ($cmd, $args);
+  list ($lines, $error) = send_request ($cmd, $args);
   sem_release ($lock);
-  $t0 = mailman_timestamp () - $t0;
-  $ret = mailman_parse_response ($lines);
+  $t0 = timestamp () - $t0;
+  $ret = parse_response ($lines);
   if (empty ($ret['error']))
     unset ($ret['error']);
   else
     $ret['error'] = join ("\n", $ret['error']);
-  if (!empty ($errors))
-    $ret['pipe::error'] = $errors;
+  if (!empty ($error))
+    $ret['pipe::error'] = $error;
   $ret['timestamp'] = $t0;
   return $ret;
 }
 
-function mailman_get_version ()
+function report_errors ($res)
 {
-  return mailman_run ('version', []);
+  $acc = '';
+  foreach (['error', 'pipe::error'] as $k)
+    if (!empty ($res[$k]))
+      $acc .= " " . $res[$k];
+  if (empty ($acc))
+    return false;
+  fb ($acc, true);
+  return true;
 }
 
-function mailman_change_pw ($name)
+function action_string ($action, $list_name, $domain)
 {
-  return mailman_run ('change_pw', ['list_name' => $name, 'password' => '']);
+  $action_strings = [
+    'change_pw' => _("You requested password reset of the list %1\$s at %2\$s."),
+    'newlist' => _("You requested creation of the list %1\$s at %2\$s."),
+  ];
+  return sprintf ($action_strings[$action], $list_name, $domain);
 }
 
-function mailman_rmlist ($name)
+function format_msg ($group_id, $list_name, $res)
 {
-  return mailman_run ('rmlist', ['list_name' => $name]);
+  $grp = group_get_object ($group_id);
+  $domain = $grp->getTypeVirtualHost ();
+  $msg = _("Hello,") . "\n\n";
+  $msg .= action_string ($res['command'], $list_name, $domain);
+  $msg .= "\n\n";
+  $msg .= sprintf (
+    _("The new list administrator password of the mailing list %s is:"),
+    $list_name
+  );
+  $msg .= "\n          {$res['password']}\n\n";
+  $msg .=
+    _("You are advised to change the password, and to avoid using a password\n"
+      . "you use for important accounts, as mailman does not really provide\n"
+      . "security for these list passwords.");
+  return $msg . sendmail_signature ();
 }
 
-function mailman_newlist ($name, $admin_email)
+function send_ack ($group_id, $list_name, $res)
 {
-  return mailman_run ('newlist',
-    ['list_full_name' => $name, 'amdin_mail' => $admin_mail, 'password' => '']
+  global $sys_mail_replyto, $sys_mail_domain;
+  $uid = user_getid ();
+  $msg = format_msg ($group_id, $list_name, $res);
+  sendmail_encrypt_message ($uid, $msg);
+  sendmail_mail (
+    [ 'from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $uid],
+    # TRANSLATORS: this is a subject line of a message
+    ['subject' => sprintf (_("Mailman list %s"), $list_name), 'body' => $msg],
+    ['skip_format_body' => true]
   );
 }
+
+function report_results ($res, $group_id, $list_name)
+{
+  if (report_errors ($res))
+    return true;
+  send_ack ($group_id, $list_name, $res);
+  return false;
+}
+
+function convert_description ($description)
+{
+  $ret = utils_specialchars_decode ($description, ENT_QUOTES);
+  $ret = preg_replace ('/\s/', ' ', $ret);
+  return $ret;
+}
+
+function create_list ($group_id, $list_name, $public, $description)
+{
+  $grp = group_get_object ($group_id);
+  $domain = $grp->getTypeVirtualHost ();
+  $email = user_getemail ();
+  $args = [ 'list_full_name' => "$list_name@$domain", 'admin_mail' => $email,
+    'description' => convert_description ($description),
+    'visibility' => $public? 'public': 'private', 'password' => '' ];
+  $res = run ('newlist', $args);
+  return report_results ($res, $group_id, $list_name);
+}
+
+function report_db_error ($res, $list_name, $action)
+{
+  $action_list = [
+    # TRANSLATORS: the argument is mailing list name.
+    'add' => [_("List %s added"), _("Error adding list %s")],
+    'delete' => [_("List %s deleted"), _("Error deleting list %s")],
+    'update' => [_("List %s updated"), _("Error updating list %s")]
+    # No i18n: this action is for site admins only.
+    'unlink' => [("List %s unlinked"), ("Error unlinking list %s")],
+  ];
+  $err = $res? 0: 1;
+  $msg = sprintf ($action_list[$action][$err], $list_name);
+  fb ($msg, $err);
+}
+
+function unlink_list ($group_list_id, $list_name, $action)
+{
+  $res = db_execute ("DELETE FROM mail_group_list WHERE group_list_id = ?",
+    [$group_list_id]
+  );
+  report_db_error ($res, $list_name, $action);
+}
+
+function delete_list ($group_list_id, $group_id, $list_name)
+{
+  $res = run ('rmlist', ['list_name' => $list_name]);
+  if (report_errors ($res))
+    return;
+  unlink_list ($group_list_id, $list_name, 'delete');
+}
+
+} # namespace mm_ns
+
+namespace {
+function mailman_get_version ()
+{
+  return mm_ns\run ('version', []);
+}
+
+function mailman_delete_list ($group_list_id, $group_id, $list_name)
+{
+  mm_ns\delete_list ($group_list_id, $group_id, $list_name);
+}
+
+function mailman_reset_password ($group_id, $name)
+{
+  $res = mm_ns\run ('change_pw', ['list_name' => $name, 'password' => '']);
+  mm_ns\report_results ($res, $group_id, $name);
+}
+
+function mailman_make_list ($group_id, $list_name, $public, $description)
+{
+  if (mm_ns\create_list ($group_id, $list_name, $public, $description))
+    return;
+  $result = db_autoexecute ('mail_group_list',
+    [ 'group_id' => $group_id, 'list_name' => $list_name, 'is_public' => $public,
+      'list_admin' => user_getid (), 'description' => $description],
+    DB_AUTOQUERY_INSERT
+  );
+  mm_ns\report_db_error ($result, $list_name, 'add');
+}
+
+function mailman_config_list ($group_list_id, $group_id, $list_name, $public,
+  $desc
+)
+{
+  $grp = group_get_object ($group_id);
+  $domain = $grp->getTypeVirtualHost ();
+  $args = ['list_full_name' => "$list_name@$domain"];
+  if ($public !== null)
+    $args['visibility'] = $public? 'public': 'private';
+  if ($desc !== null)
+    $args['description'] = mm_ns\convert_description ($desc);
+  if (mm_ns\report_errors (mm_ns\run ('config', $args)))
+    return;
+  $res = db_autoexecute ('mail_group_list',
+    ['description' => $desc, 'is_public' => $public], DB_AUTOQUERY_UPDATE,
+    "group_list_id = ?", [$group_list_id]
+  );
+  mm_ns\report_db_error ($res, $list_name, 'update');
+}
+
+# Find the specified list in the database.
+function mailman_find_list ($group_list_id, $group_id, $list_name)
+{
+  # Be sure to match both group_list_id and group_id so that people
+  # avoid configuring lists of other groups.
+  $res = db_execute (
+    "SELECT * FROM mail_group_list WHERE group_list_id = ? AND group_id = ?",
+    [$group_list_id, $group_id]
+  );
+  if (!db_numrows ($res))
+    {
+      fb (sprintf (_("List %s not found in the database"), $list_name), 1);
+      return null;
+    }
+  return db_fetch_array ($res);
+}
+function mailman_unlink_list ($group_list_id, $list_name)
+{
+  mm_ns\unlink_list ($group_list_id, $list_name, 'unlink');
+}
+} # namespace {
 ?>

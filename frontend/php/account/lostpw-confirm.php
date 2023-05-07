@@ -47,7 +47,6 @@ require_once ('../include/sane.php');
 require_once ('../include/session.php');
 require_once ('../include/sendmail.php');
 require_once ('../include/database.php');
-require_once ('../include/gpg.php');
 
 extract (sane_import ('post', ['name' => 'form_loginname']));
 
@@ -148,25 +147,20 @@ $message .=
     . "somebody else, e.g. do not mail this to a public mailinglist!\n\n"
 );
 $message .= sprintf (_("-- the %s team."), $GLOBALS['sys_name'])
-  . "\n";
+  . "\n" . sendmail_signature ();
 
 # We should not add i18n to admin messages.
 $message_for_admin =
-sprintf (
-  ("Someone attempted to change a password via email verification\n"
-   . "on %s\n\nSomeone is maybe trying to steal a user account.\n\n"
-   . "The user affected is %s\n\n"
-   . "Date: %s\n"),
-  $sys_default_domain, $form_loginname, gmdate ('D, d M Y H:i:s \G\M\T')
-);
+  sprintf (
+    ("Someone attempted to change a password via email verification\n"
+     . "on %s\n\nSomeone is maybe trying to steal a user account.\n\n"
+     . "The user affected is %s\n\n"
+     . "Date: %s\n"),
+    $sys_default_domain, $form_loginname, gmdate ('D, d M Y H:i:s \G\M\T')
+  );
 
-$encrypted_message = $gpg_error = $gpg_error = "";
-if (user_get_preference ("email_encrypted", $row_user['user_id']))
-  list ($gpg_error, $gpg_result, $encrypted_message) =
-    encrypt_to_user ($row_user['user_id'], $message);
-
-if($encrypted_message != "")
-  $message = $encrypted_message;
+list ($fail, $gpg_error) =
+  sendmail_encrypt_message ($row_user['user_id'], $message);
 
 sendmail_mail (
   ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $row_user['email']],
@@ -178,7 +172,7 @@ sendmail_mail (
     'to' =>  "$sys_mail_admin@$sys_mail_domain"],
   [ 'subject' => "password change - $sys_default_domain",
     'body' => $message_for_admin],
-  ['tracker' => "lostpw"]
+  ['tracker' => "lostpw", 'skip_format_body' => true]
 );
 
 fb (_("Confirmation mailed"));
@@ -191,7 +185,7 @@ print '<p>'
   . _("Follow the instructions in the email to change your account password.")
   . "</p>\n";
 
-if ($encrypted_message === "")
+if ($fail)
   {
     if (user_get_preference ("email_encrypted", $row_user['user_id']))
       print "<p><strong>$gpg_error<strong></p>";

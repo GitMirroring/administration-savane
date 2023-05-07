@@ -44,6 +44,11 @@
 use strict;
 use Getopt::Long;
 use Savane;
+use POSIX qw(strftime);
+use Time::Local;
+
+my $logfile = "/dev/null";
+my $args = join (' ', @ARGV);
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -51,8 +56,20 @@ my $help =
 Stub mailman wrapper; implements the protocol used with list\@lists.gnu.org.
 
   -h, --help           show this help and exit
-  -v, --version        show Savane version and exit";
+  -v, --version        show Savane version and exit
+      --logfile        log requests in file [$logfile]";
 PrintVersionOrHelp ($help);
+GetOptions ("logfile=s" => \$logfile) or die ("Wrong command line");
+
+my $dry_run = 0;
+my @output_fields = ('version');
+my %ctx;
+$ctx{'version'} = 'stub Savane ' . GetVersion;
+
+open (LOG, ">>:encoding(UTF-8)", $logfile);
+print LOG strftime "--- %c ---\n", localtime;
+print LOG "$0 $args\n";
+print LOG "--- parsing request ---\n";
 
 sub random_string
 {
@@ -70,23 +87,30 @@ sub random_string
     }
   return $ret;
 }
-my %ctx;
+
 # Create a new password, random enough, without too weird characters.
 sub make_password
 {
   my $p = $ctx{'password'};
   $p = random_string ("ssssssss") if $p eq '';
   $ctx{'password'} = $p;
+  exit_error ("Wrong password $ctx{'password'}")
+    unless $p =~ /^[A-Za-z0-9._-]+$/;
 }
 
-my @output_fields = ('version');
-$ctx{'version'} = 'stub Savane ' . GetVersion;
+sub set_dry_run
+{
+  $dry_run = $ctx{'dry_run'} eq 'yes';
+  exit_error ("Wrong dry_run setting $ctx{'dry_run'}") unless $dry_run;
+}
 
 sub print_results
 {
+  print LOG "--- response ---\n";
   foreach my $f (@output_fields)
     {
       print "$f=$ctx{$f}\n";
+      print LOG "$f=$ctx{$f}\n";
     }
 }
 
@@ -99,72 +123,109 @@ sub require_vars
     }
 }
 
+sub optional_vars
+{
+  push @_, 'dry_run';
+  foreach my $v (@_)
+    {
+      push @output_fields, $v if exists $ctx{$v};
+    }
+}
+
 sub exit_error
 {
   print "Error: $_[0]\n";
+  print LOG "Error: $_[0]\n";
   print_results ();
   exit 1;
 }
 
 sub check_visibility
 {
-  require_vars ('visibility');
+  return unless exists $ctx{'visibility'};
   exit_error ("wrong visibility field $ctx{'visibility'}")
     unless ($ctx{'visibility'} =~ m/^(public|private)$/);
 }
 
-my $i = 0;
+sub sanitize_description
+{
+  return unless exists $ctx{'description'};
+  $ctx{'description'} =~ s,\s+, ,g;
+  $ctx{'description'} =~ s,',\\',g;
+}
 
-while (<STDIN>)
-  {
-    my ($key, $val);
-    chomp $_;
-    my $pos = index ($_, '=');
-    $i++;
-    exit_error ("Input line $i has no '=': $_") if $pos < 0;
-    exit_error ("Input line $i defines an empty key: $_") if $pos < 1;
-    $key = lc (substr ($_, 0, $pos));
-    $val = substr ($_, $pos + 1);
-    $key =~ s,\s(\S*)\s,$1,;
-    $val =~ s,\s(\S*)\s,$1,;
-    exit_error ("Input line $i redefines a key: $_") if exists $ctx{$key};
-    $ctx{$key} = $val;
-  }
+sub pre_version
+{
+  push @output_fields, 'password';
+  $ctx{'password'} = '';
+}
+
+sub run_sub
+{
+  my $sub = shift;
+  my $sr = \&$sub;
+  &$sr () unless $dry_run;
+}
+
+sub scan_input
+{
+  my $i = 0;
+
+  binmode STDIN, ":utf8";
+  binmode STDOUT, ":utf8";
+
+  while (<STDIN>)
+    {
+      print LOG $_;
+      my ($key, $val);
+      chomp $_;
+      my $pos = index ($_, '=');
+      $i++;
+      exit_error ("Input line $i has no '=': $_") if $pos < 0;
+      exit_error ("Input line $i defines an empty key: $_") if $pos < 1;
+      $key = lc (substr ($_, 0, $pos));
+      $val = substr ($_, $pos + 1);
+      $key =~ s,^\s*(\S*)\s*$,$1,;
+      $val =~ s,^\s*(\S*)\s*$,$1,;
+      exit_error ("Input line $i redefines a key: $_") if exists $ctx{$key};
+      $ctx{$key} = $val;
+    }
+}
+
+scan_input ();
 
 require_vars ('command');
 my $cmd = $ctx{'command'};
-my $dry_run = exists $ctx{'dry_run'} && $ctx{'dry_run'} eq 'yes';
-push @output_fields, 'dry_run' if $dry_run;
 
-if ($cmd eq 'newlist')
+my %req_vars = (
+  'newlist' => [
+     'list_full_name', 'admin_mail', 'visibility', 'description', 'password'
+  ],
+  'change_pw' => ['list_name', 'password'],
+  'rmlist' => ['list_name'],
+  'config' => ['list_full_name'],
+  'version' => [],
+);
+my %opt_vars = ('config' => ['description', 'visibility']);
+my %sanitizers = (
+  'visibility' => 'check_visibility', 'description' => 'sanitize_description',
+  'password' => 'make_password', 'dry_run' => 'set_dry_run'
+);
+
+my %pre_cmds = ('version' => 'pre_version');
+my %post_cmds = ();
+
+exit_error ("unknown command $cmd") unless exists $req_vars{$cmd};
+
+run_sub ($pre_cmds{$cmd}) if exists $pre_cmds{$cmd};
+require_vars (@{$req_vars{$cmd}});
+optional_vars (@{$opt_vars{$cmd}}) if exists $opt_vars{$cmd};
+
+foreach my $v (@output_fields)
   {
-    require_vars ('list_full_name', 'admin_mail', 'password');
-    check_visibility ();
-    make_password ();
+    run_sub ($sanitizers{$v}) if exists $sanitizers{$v};
   }
-elsif ($cmd eq 'change_pw')
-  {
-    require_vars ('list_name', 'password');
-    make_password ();
-  }
-elsif ($cmd eq 'rmlist')
-  {
-    require_vars ('list_name');
-  }
-elsif ($cmd eq 'config')
-  {
-    require_vars ('list_full_name');
-    check_visibility ();
-  }
-elsif ($cmd eq 'version')
-  {
-    push @output_fields, 'password';
-    $ctx{'password'} = '';
-    make_password ();
-  }
-else
-  {
-    exit_error ("unknown command $cmd");
-  }
+
+run_sub ($post_cmds{$cmd}) if exists $post_cmds{$cmd};
 print_results ();
 exit (0);

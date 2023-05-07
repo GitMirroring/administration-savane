@@ -57,53 +57,54 @@ my $sys_dbparams;
 my $sys_dbpasswd;
 my $exit_code = 0;
 
-eval {
-    $getopt = GetOptions("help" => \$help,
-                         "user=s" => \$user,
-                         "dbname=s" => \$sys_dbname,
-                         "dbhost:s" => \$sys_dbhost,
-                         "dbparams:s" => \$sys_dbparams,
-                         "home=s" => \$gpg_home,
-                         "gpg=s" => \$gpg_name);
+eval
+{
+  $getopt = GetOptions ("help" => \$help, "user=s" => \$user,
+    "dbname=s" => \$sys_dbname, "dbhost:s" => \$sys_dbhost,
+    "dbparams:s" => \$sys_dbparams, "home=s" => \$gpg_home,
+    "gpg=s" => \$gpg_name
+  );
 };
 
-sub print_help {
-    print STDERR <<EOF;
-Usage: $0 [OPTIONS]
+sub print_help
+{
+  my $help = <<"  EOF";
+    Usage: $0 [OPTIONS]
 
-Encrypt a message to user's registered GPG key.
+    Encrypt a message to user's registered GPG key.
 
-  -h, --help            Display this help and exit
-      --user            Savannah user to encrypt to
-      --dbname          Savannah database name
-      --dbhost          Savannah database host
-      --dbparams        Savannah database parameters
-      --gpg             Use specified program as GPG
+      -h, --help            Display this help and exit
+          --user            Savannah user to encrypt to
+          --dbname          Savannah database name
+          --dbhost          Savannah database host
+          --dbparams        Savannah database parameters
+          --gpg             Use specified program as GPG
 
-Database user and password are passed in the first two lines of input.
+    Database user and password are passed in the first two lines of input.
 
-EOF
+  EOF
+  $help =~ s,(^|\n)    ,$1,g;
+  print STDERR $help;
+  exit 0;
 }
 
-if($help) {
-    print_help();
-    exit(0);
-}
+print_help () if $help;
 
 our $dbd;
 
-if (!$gpg_home) {
-  $sys_dbuser = <> or die "No database user is supplied.";
-  $sys_dbpasswd = <> or die "No database password is supplied.";
+if (!$gpg_home)
+  {
+    $sys_dbuser = <> or die "No database user is supplied.";
+    $sys_dbpasswd = <> or die "No database password is supplied.";
 
-  $sys_dbuser =~ s/\n$//;
-  $sys_dbpasswd =~ s/\n$//;
+    $sys_dbuser =~ s/\n$//;
+    $sys_dbpasswd =~ s/\n$//;
 
-  $dbd = DBI->connect('DBI:mysql:database='.$sys_dbname
-                       .':host='.$sys_dbhost.$sys_dbparams,
-                       $sys_dbuser, $sys_dbpasswd,
-                       { RaiseError => 1, AutoCommit => 1});
-}
+    $dbd = DBI->connect ("DBI:mysql:database=$sys_dbname"
+      . ":host=$sys_dbhost$sys_dbparams", $sys_dbuser, $sys_dbpasswd,
+      { RaiseError => 1, AutoCommit => 1}
+    );
+  }
 
 $gpg_name = 'gpg' unless $gpg_name;
 
@@ -119,80 +120,79 @@ $gpg_name = 'gpg' unless $gpg_name;
 #   3 when key selection error occurred,
 #   4 when creating temporary files failed,
 #   5 when extracted key_id is invalid.
-sub UserEncrypt {
-    my $temp_dir = $gpg_home;
-    my ($user, $message) = @_;
+sub UserEncrypt
+{
+  my $temp_dir = $gpg_home;
+  my ($user, $message) = @_;
 
-    $exit_code = 4;
-    my ($mh, $mname) = tempfile(UNLINK => 1);
-    return "" if $mname eq "";
-    my $key;
+  $exit_code = 4;
+  my ($mh, $mname) = tempfile (UNLINK => 1);
+  return "" if $mname eq "";
+  my $key;
 
-    if (!$gpg_home) {
-      $key = $dbd->selectrow_array("SELECT gpg_key FROM user WHERE user_id="
-                                   .$user);
+  if (!$gpg_home)
+    {
+      $key = $dbd->selectrow_array (
+        "SELECT gpg_key FROM user WHERE user_id=$user"
+      );
       $exit_code = 3;
       return "" unless $key ne "";
 
       $exit_code = 4;
-      $temp_dir = tempdir(CLEANUP => 1);
+      $temp_dir = tempdir (CLEANUP => 1);
       return "" if $temp_dir eq "";
     }
 
-    my $input;
-    my $key_id = "";
-    my $msg = "";
+  my $input;
+  my $key_id = "";
+  my $msg = "";
 
-    print $mh $message;
-    $exit_code = 2;
+  print $mh $message;
+  $exit_code = 2;
 
-    if (!$gpg_home) {
-      open($input, '|-', $gpg_name . ' --homedir=' . $temp_dir
-                         .' --batch -q --import');
+  unless ($gpg_home)
+    {
+      open ($input, '|-', "$gpg_name --home='$temp_dir' --batch -q --import");
       print $input $key;
-      close($input) or return "";
+      close ($input) or return "";
     }
 
-# Get the first ID of a public key with encryption capability.
-    open($input, '-|', $gpg_name . ' --homedir=' . $temp_dir
-                       .' --list-keys --with-colons 2> /dev/null');
-    while(<$input>)
-      {
-        if(!/^pub/)
-          {
-            next;
-          }
-        my @fields = split /:/;
-        if(@fields[11] !~ /[eE]/)
-          {
-            next;
-          }
-        $key_id = @fields[4];
-        last unless $key_id eq "";
-      }
-    close($input) or return "";
-    return "" unless $key_id ne "";
-    $exit_code = 5;
-    return "" unless $key_id =~ /^[0-9A-F]*$/;
-    $exit_code = 1;
-    open($input, '-|', $gpg_name . ' --homedir='.$temp_dir
-                       .' --trust-model always --batch -a --encrypt -r '
-                       .$key_id." -o - ".$mname);
-    while(<$input>)
-      {
-        $msg = $msg.$_;
-      }
-    close $input and $exit_code = 0;
-    return $msg;
+  # Get the first ID of a public key with encryption capability.
+  open ($input, '-|',
+    "$gpg_name --home='$temp_dir' --list-keys --with-colons 2> /dev/null"
+  );
+  while (<$input>)
+    {
+      next unless (/^pub/);
+      my @fields = split /:/;
+      next unless ($fields[11] =~ /[eE]/);
+      $key_id = $fields[4];
+      last unless $key_id eq "";
+    }
+  close ($input) or return "";
+  return "" unless $key_id ne "";
+  $exit_code = 5;
+  return "" unless $key_id =~ /^[0-9A-F]*$/;
+  $exit_code = 1;
+  open ($input, '-|',
+    "$gpg_name --home='$temp_dir' --trust-model always --batch -a "
+    . "--encrypt -r $key_id -o - $mname"
+  );
+  while (<$input>)
+    {
+      $msg .= $_;
+    }
+  close $input and $exit_code = 0;
+  return $msg;
 }
 
 my $msg = "";
 
-while(<>)
+while (<>)
   {
-    $msg = $msg.$_;
+    $msg .= $_;
   }
 
-print UserEncrypt($user, $msg);
+print UserEncrypt ($user, $msg);
 
 exit $exit_code;

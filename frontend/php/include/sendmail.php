@@ -41,6 +41,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 require_once (dirname (__FILE__) . '/utils.php');
+require_once (dirname (__FILE__) . '/gpg.php');
 
 function sendmail_signature ()
 {
@@ -52,11 +53,12 @@ function sendmail_signature ()
     # TRANSLATORS: the argument is site name (like Savannah).
     . sprintf (_("Message sent via %s"), $sys_name)
     . "\nhttps://$sys_default_domain$sys_home\n";
-
 }
 
-function sendmail_format_body (&$message)
+function sendmail_format_body (&$message, &$context)
 {
+  if (!empty ($context['skip_format_body']))
+    return;
   $body = $message['body'];
   $body = wordwrap ($body, 78) . sendmail_signature ();
   # Beuc - 20050316
@@ -467,6 +469,17 @@ function sendmail_make_subjects ($to, $message, $context)
   return [$user_subj, $emails];
 }
 
+function sendmail_encrypt_message ($uid, &$msg)
+{
+  $encrypted = $gpg_error = "";
+  if (user_get_preference ("email_encrypted", $uid))
+    list ($gpg_error, $gpg_result, $encrypted) =
+      encrypt_to_user ($uid, $msg);
+  if ($encrypted !== "")
+    $msg = $encrypted;
+  return [$encrypted === '', $gpg_error];
+}
+
 # Send the mail.
 # Every mail sent by Savannah should be using that function which
 # works like mail ().
@@ -474,7 +487,7 @@ function sendmail_make_subjects ($to, $message, $context)
 function sendmail_mail ($addresses, $message, $context = [])
 {
   sendmail_check_displayspamcheck ($context);
-  sendmail_format_body ($message);
+  sendmail_format_body ($message, $context);
   sendmail_format_from ($addresses);
   $to = sendmail_make_to_list ($addresses);
   sendmail_build_headers ($addresses['from'], $context, $message);

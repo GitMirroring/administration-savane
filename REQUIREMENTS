@@ -62,7 +62,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * XML::Writer
 * IO::File
 * Date::Calc.pm (libdate-calc-perl in debian)
-* String::Random (for sv_mailman, libstring-random-perl in debian)
 
 = Optional =
 

@@ -107,7 +107,7 @@ if ($update || $updatefast)
             'dir_cvs' => '', 'dir_arch' => '', 'dir_svn' => '',
             'dir_git' => '', 'dir_hg' => '', 'dir_bzr' => '',
             'dir_homepage' => '', 'dir_download' => ''],
-          DB_AUTOQUERY_UPDATE, "group_id=?", [$group_id]
+          DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
         );
       } # $update
     if ($updatefast)
@@ -117,20 +117,22 @@ if ($update || $updatefast)
     fb (no_i18n ("Updating group info"));
   }
 # Get current information.
-$res_grp = db_execute("SELECT * FROM groups WHERE group_id=?", array($group_id));
+$res_grp = db_execute ("SELECT * FROM groups WHERE group_id=?", [$group_id]);
 
-site_admin_header(array('title'=>no_i18n("Group List"),'context'=>'admgroup'));
+site_admin_header (
+  ['title' => no_i18n ("Group List"), 'context' => 'admgroup']
+);
 
-if (db_numrows($res_grp) < 1)
+if (!db_numrows ($res_grp))
   {
-    fb(no_i18n("Invalid Group: Invalid group was passed in."));
-    site_admin_footer(array());
+    fb (no_i18n ("Invalid Group: Invalid group was passed in."), 1);
+    site_admin_footer ([]);
     exit;
   }
 
-$row_grp = db_fetch_array($res_grp);
+$row_grp = db_fetch_array ($res_grp);
 
-utils_get_content("admin/groupedit_intro");
+utils_get_content ("admin/groupedit_intro");
 
 print '<p>';
 print "<a href='../projects/{$row_grp['unix_group_name']}'>"
@@ -138,27 +140,40 @@ print "<a href='../projects/{$row_grp['unix_group_name']}'>"
 print '</p>
 ';
 
-print '<h2>' . no_i18n("Registration Management Shortcuts") . "</h2>\n";
+print '<h2>' . no_i18n ("Registration Management Shortcuts") . "</h2>\n";
 print "<a href=\"$php_self?status=A&amp;updatefast=1&amp;group_id=$group_id\">"
   . html_image ("bool/ok.orig.png", ['alt' => no_i18n ("Approve")])
-  . '</a>&nbsp;&nbsp;&nbsp;';
-print "<a href=\"$php_self?status=D&amp;updatefast=1&amp;group_id=$group_id\">"
-  . html_image ("bool/wrong.orig.png", ['alt' => no_i18n ("Discard")])
-  . '</a>&nbsp;&nbsp;&nbsp;';
-print "<a href=\"triggercreation.php?group_id=$group_id\">"
-  . html_image (
-      "contexts/preferences.orig.png",
-      ['alt' => no_i18n ("Send new group instruction email and trigger "
-                         . "group creation (should be done only once)")]
-    )
   . '</a>';
+$res = db_execute (
+  "SELECT COUNT(group_list_id) AS cnt FROM mail_group_list WHERE group_id = ?",
+  [$group_id]
+);
+$no_lists = true;
+$list_row = db_fetch_array ($res);
+if (!empty ($list_row))
+  $no_lists = $list_row['cnt'] < 1;
+if ($no_lists)
+  print "&nbsp;&nbsp;&nbsp;<a href=\"$php_self"
+    . "?status=D&amp;updatefast=1&amp;group_id=$group_id\">"
+    . html_image ("bool/wrong.orig.png", ['alt' => no_i18n ("Discard")])
+    . '</a>';
+else
+  {
+    $msg = sprintf (
+      no_i18n ("This group has associated mailing lists;\n"
+        . "<a href='%s'>unlink or remove them</a>\n"
+        . "before discarding the group."),
+      "{$sys_home}mail/admin/?group={$row_grp['unix_group_name']}"
+    );
+    print "<br />\n$msg<br />\n";
+  }
 
 print form_tag ();
 print '<h2>' . no_i18n ("Detailed Interface") . "</h2>\n";
 $HTML->box1_top (no_i18n ("General Settings"));
 
 print '<p><span class="preinput">' . no_i18n ("Group Type:")
- .  " </span><br />\n";
+  . " </span><br />\n";
 print '<em>';
 utils_get_content ("admin/groupedit_grouptype");
 print "</em><br />\n";

@@ -425,8 +425,6 @@ my %dead_group_id_already_found;
 my @tables = ("user_group", "groups_default_permissions", "group_preferences",
   "group_history", "news_bytes", "forum_group_list", "trackers_watcher"
 );
-my @tables_to_check = @tables;
-push @tables_to_check, "mail_group_list";
 
 # Find group ids of orphan items in table $_[0].
 sub mark_dead_groups
@@ -445,7 +443,7 @@ sub mark_dead_groups
     }
 }
 
-foreach my $table (@tables_to_check)
+foreach my $table (@tables)
   {
     mark_dead_groups ($table);
   }
@@ -482,13 +480,6 @@ foreach my $group_id (@dead_group_id)
       {
         DeleteDB ($table, "group_id = '$group_id'");
       }
-    # For mailing lists, we mark the lists as deleted, so sv_mailman
-    # will finish the job, unless their status is 0, which means they
-    # no longer exist already (backward compat case).
-    SetDBSettings (
-      "mail_group_list", "group_id = '$group_id'", "is_public = '9'"
-    );
-    DeleteDB ("mail_group_list", "group_id = '$group_id' AND status = '0'");
   } # foreach my $group_id (@dead_group_id)
 
 foreach my $table (@user_tables)

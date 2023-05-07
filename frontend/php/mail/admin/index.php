@@ -41,37 +41,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Status of list:
-# - 0: list is deleted (i.e. does not exist).
-# - 1: list is marked for creation.
-# - 2: list is marked for reconfiguration.
-# - 5: list has been created (i.e. it exists).
-#
-# This frontend PHP script sets status to:
-#   0 if user deletes a list before the backend ever actually created it.
-#   1 if user adds a list
-#   2 if user reconfigures an _existing_ list (ie, status was 5)
-#
-# The backend sv_mailman.pl script sets status to:
-#   0 when a list is actually deleted
-#   5 when a list is actually created
-#
-# When we create an alias, which mean someone was able, according to
-# group type restriction to add a list that was already
-# inside the database, we add the list inside the database with a status
-# of 5, so sv_mailman does not try to recreate it.
-# In the worse case, if two persons creates the same list at the same.
-
-# The field password will not contact real password, it will contain
-# '1' when the backend is supposed to reset it.
-
-define ('LIST_STATUS_DELETED', 0);
-define ('LIST_STATUS_NEED_CREATION', 1);
-define ('LIST_STATUS_NEED_RECONFIGURATION', 2);
-define ('LIST_STATUS_CREATED', 5);
-
 require_once ('../../include/init.php');
 require_once ('../../include/account.php');
+require_once ('../../include/mailman.php');
+
+define ('PUBLIC_DELETE', 9);
+define ('PUBLIC_UNLINK', 10);
 
 $key_func = ['preg', '/^(\d+|new)$/'];
 extract (sane_import ('post',
@@ -132,8 +107,6 @@ if ($post_changes)
                 # When there's only a single choice, there's no format index.
                 $newlist_format_index = 0;
              }
-            $new_password = substr (md5 (time () . rand (0, 40000)), 0, 16);
-
             # Name shorter than two characters are not acceptable (only
             # check if the chosen format requires %NAME substitution).
             if (
@@ -158,10 +131,11 @@ if ($post_changes)
               }
             # Site may have a strict policy on list names: checks now.
             $new_list_name =
-              $grp->getTypeMailingListFormat(strtolower($list_name['new']),
-                                                        $newlist_format_index);
+              $grp->getTypeMailingListFormat (
+                strtolower ($list_name['new']), $newlist_format_index
+              );
             # Check if it is a valid name.
-            if (!account_namevalid($new_list_name, 1, 1, 1, 80))
+            if (!account_namevalid ($new_list_name, 1, 1, 1, 80))
               {
                 # TRANSLATORS: the argument is the new mailing list name
                 # entered by the user.
@@ -211,103 +185,50 @@ if ($post_changes)
                   $new_list_name
                 );
                 fb ($msg);
-                $status = LIST_STATUS_CREATED;
               }
-            else # !(db_numrows($result))
-              $status = LIST_STATUS_NEED_CREATION;
-            $result = db_autoexecute ('mail_group_list',
-              [ 'group_id' => $group_id, 'list_name' => $new_list_name,
-                'is_public' => $is_public['new'],
-                'password' => $new_password,
-                'list_admin' => user_getid (), 'status' => $status,
-                'description' => $description['new']],
-              DB_AUTOQUERY_INSERT
+            mailman_make_list (
+              $group_id, $new_list_name, $is_public['new'], $description['new']
             );
-
-            if ($result)
-              fb (_("List Added"));
-            else
-              fb (_("Error Adding List"),1);
             continue;
           } # if ($id == 'new')
 
-        # Now get the current database data for this list
-        # (yes, it means one SQL SELECT per list, but we dont expect to
-        # have group with 200 lists so it should scale).
-        $res_status = db_execute ("
-          SELECT * FROM mail_group_list
-          WHERE group_list_id = ? AND group_id = ?",
-          [$id, $group_id]
-        );
-        if (!db_numrows ($res_status))
-          {
-            fb (
-              sprintf(_("List %s not found in the database"), $list_name[$id]),
-              1
-            );
-            continue;
-          }
-        $row_status = db_fetch_array ($res_status);
-
-        # Armando L. Caro, Jr. <acaro--at--bbn--dot--com> 2/23/06
-        # Change the status based on what status is in MySQL and what
-        # is_public is being set to.  We need to account for when
-        # multiple changes are entered into mysql before the backend
-        # has the opportunity to act on them.
-        switch (intval ($row_status['status']))
-          {
-          # Status of 0 or 1, means the mailing list doesnt
-          # exist. So signal to backend to create as long as
-          # is_public is not set to "deleted" (ie, 9).
-          case LIST_STATUS_DELETED:
-          case LIST_STATUS_NEED_CREATION:
-            if ($is_public[$id] != 9)
-              $status = LIST_STATUS_NEED_CREATION;
-            else
-              $status = LIST_STATUS_DELETED;
-            break;
-
-          # Status of 2 or 5, means the mailing list does exist,
-          # and user is making a change. The change has to be
-          # signaled to backend no matter what.
-          case LIST_STATUS_NEED_RECONFIGURATION:
-          case LIST_STATUS_CREATED:
-            $status = LIST_STATUS_NEED_RECONFIGURATION;
-            break;
-          }
-
-        if (empty ($reset_password[$id]))
-          $reset_password[$id] = '';
-        # We need an update only if there is at least one change.
-        util_debug ("{$list_name[$id]}: $status == {$row_status['status']}");
-        if ($description[$id] == $row_status['description']
-            && $is_public[$id] == $row_status['is_public']
-            && (($reset_password[$id] == $row_status['password'])
-                || ($row_status['password'] != 1
-                    && empty ($reset_password[$id]))))
+        $row_status = mailman_find_list ($id, $group_id, $list_name[$id]);
+        if (empty ($row_status))
           continue;
 
-        $result = db_autoexecute ('mail_group_list',
-          [ 'status' => $status, 'description' => $description[$id],
-            'is_public' => $is_public[$id], 'password' => $reset_password[$id]
-          ], DB_AUTOQUERY_UPDATE,
-          # list_id is enough, but group_id prevents users from
-          # modifying other people's lists:
-          "group_list_id = ? AND group_id = ?",
-          [$id, $group_id]
-        );
+        if ($is_public[$id] == PUBLIC_DELETE)
+          {
+            mailman_delete_list ($id, $group_id, $list_name[$id]);
+            continue;
+          }
+        if (user_is_superuser() && $is_public[$id] == PUBLIC_UNLINK)
+          {
+            mailman_unlink_list ($id, $group_id, $list_name[$id]);
+            continue;
+          }
 
-        if ($result)
-          # TRANSLATORS: the argument is list name.
-          fb (sprintf (_("List %s updated"), $list_name[$id]));
-        else
-          # TRANSLATORS: the argument is list name.
-          fb (sprintf (_("Error updating list %s"), $list_name[$id]), 1);
+        if (!empty ($reset_password[$id]))
+          {
+            mailman_reset_password ($group_id, $list_name[$id]);
+            continue;
+          }
+
+        # We need an update only if there is at least one change.
+        if ($description[$id] == $row_status['description']
+            && $is_public[$id] == $row_status['is_public'])
+          continue;
+        $pub = $is_public[$id];
+        if ($pub === $row_status['is_public'])
+          $pub = null;
+        $desc = $description[$id];
+        if ($desc === $row_status['description'])
+          $desc = null;
+        mailman_config_list ($id, $group_id, $list_name[$id], $pub, $desc);
       } # foreach ($list_name as $id => $ignored)
   }
 
 $result = db_execute ("
-  SELECT list_name, group_list_id, is_public, description, password, status
+  SELECT list_name, group_list_id, is_public, description
   FROM mail_group_list
   WHERE group_id = ? ORDER BY list_name ASC", [$group_id]
 );
@@ -318,11 +239,14 @@ site_project_header (['title' => _("Update Mailing List"),
 );
 
 print '<p>';
+print _("You can administer list information from here.\n"
+  . "Public lists are visible to non-members; private lists\n"
+  . "are not advertised, subscribing requires approval.");
+print "</p>\n<p>";
 print
- _("You can administer list information from here. Please note that\n"
-   . "private lists are only displayed for members of your group, but not "
-   . "for\nvisitors who are not logged in.")
- . "<br />\n</p>\n";
+  _("Note that changes made with Mailman web interface are not "
+    . "reflected here.");
+print "</p>\n";
 
 print form_header ($_SERVER['PHP_SELF']);
 print form_hidden (["post_changes" => "y", "group_id" => $group_id]);
@@ -334,7 +258,7 @@ while ($row = db_fetch_array ($result))
 
     print '<span class="preinput">'
       . html_label ("description[$id]", _("Description:")) . '</span>';
-    print "<br />\n&nbsp;&nbsp;&nbsp;"
+    print "\n&nbsp;&nbsp;&nbsp;"
      . form_input (
          "text", "description[$id]",
           utils_specialchars_decode ($row['description'], ENT_QUOTES),
@@ -348,40 +272,29 @@ while ($row = db_fetch_array ($result))
     print "<br />\n&nbsp;&nbsp;&nbsp;"
       . form_radio ("is_public[$id]", 1,
          [ 'checked' =>  $row['is_public'] == "1",
-           'id' => "is_public[$id]", 'label' => _("Public List")]);
+           'id' => "is_public[$id]", 'label' => _("public")]);
     print "<br />\n&nbsp;&nbsp;&nbsp;"
       . form_radio ("is_public[$id]", 0,
           [ 'checked' => $row['is_public'] == "0", 'id' => "is_private[$id]",
-            'label' =>
-              _("Private List (not advertised, subscribing requires approval)")
+            'label' => _("private")
           ]);
     print "<br />\n&nbsp;&nbsp;&nbsp;"
-      . form_radio ("is_public[$id]", 9,
-          [ 'checked' => $row['is_public'] == "9", 'id' => "to_be_deleted[$id]",
-            'label' => _("To be deleted (this cannot be undone!)")]);
+      . form_radio ("is_public[$id]", PUBLIC_DELETE,
+          [ 'checked' => $row['is_public'] == PUBLIC_DELETE,
+            'id' => "to_be_deleted[$id]",
+            'label' => _("Delete (this cannot be undone!)")]);
+    if (user_is_super_user ())
+      print "<br />\n&nbsp;&nbsp;&nbsp;"
+        . form_radio ("is_public[$id]", PUBLIC_UNLINK,
+            [ 'checked' => $row['is_public'] == PUBLIC_UNLINK,
+              'id' => "to_be_unlinked[$id]",
+              'label' => no_i18n ("Unlink from database")]);
 
-    # At this point we have no way to know if the backend brigde to
-    # mailman is used or not. We will propose the password change only
-    # if the list is marked as created.
-    # Do not heavily check this, just skip this in the form.
-    if ($row['status'] == LIST_STATUS_CREATED
-        || $row['status'] == LIST_STATUS_NEED_RECONFIGURATION)
-      {
-        print "<br />\n<span class='preinput'>"
-          . html_label ("reset_password[$id]", _("Reset List Admin Password:"))
-          . '</span>';
-        print "<br />\n&nbsp;&nbsp;&nbsp;"
-          . form_checkbox (
-              "reset_password[$id]", $row['password'] == "1"
-            )
-          . "\n"
-          # TRANSLATORS: this string relates to the previous, it means
-          # [checkbox] "request resetting admin password".
-          . _("Requested - <em> this will have no effect if this list is not "
-              . "managed by\nMailman via Savane</em>");
-      }
-    else
-      print form_hidden (["reset_password[$id]" => $row['password']]);
+    print "<br />\n&nbsp;&nbsp;&nbsp;"
+      . form_checkbox ("reset_password[$id]", 0)
+      . "\n"
+      . html_label ("reset_password[$id]", _("Reset list admin password"))
+      . "\n";
     print form_hidden (["list_name[$id]" => $row['list_name']]);
   } # while ($row = db_fetch_array($result))
 
@@ -389,10 +302,11 @@ while ($row = db_fetch_array ($result))
 utils_get_content ("mail/about_list_creation");
 
 print "</p>\n<h2>" . _('Create a new mailing list:') . "</h2>\n";
-
 $formats = explode (',', $grp->getTypeMailingListFormat ());
 $i = 0;
 $add_radio = count ($formats) > 1;
+if (count ($formats))
+  print "<p>";
 foreach ($formats as $fmt)
   {
     $input = str_replace ('%NAME',
@@ -408,17 +322,21 @@ foreach ($formats as $fmt)
     print "$addr_line<br />\n";
     $i++;
   }
-print "<p>\n"
+if (count ($formats))
+  print "</p>\n";
+print "<p><span class='preinput'>"
+  . html_label ("description_new", _('Description:')) . '</span>'
+  . "&nbsp;\n<input type='text' name='description[new]' id='description_new' "
+  . "value='' size='40' maxlength='80'></p>\n";
+print "<p><span class='preinput'>" . _("Status:") . "</span><br />\n"
   . form_radio ('is_public[new]', 1,
-      [ 'id' => 'is_public_new', 'checked' => true,
-        'label' => _('Public (visible to non-members)')])
+      ['id' => 'is_public_new', 'checked' => true, 'label' => _('public')]
+    )
   . "<br />\n"
   . form_radio ('is_public[new]', 0,
-     ['id' => 'is_not_public_new', 'label' => _('Private')])
-  . "</p>\n<p><strong>" . html_label ("description_new", _('Description:'))
-  . "</strong><br />\n"
-  . "<input type='text' name='description[new]' id='description_new' "
-  . "value='' size='40' maxlength='80'>\n<br />\n";
+      ['id' => 'is_not_public_new', 'label' => _('private')]
+    )
+  . "</p>\n";
 
 print form_footer ();
 site_project_footer ([]);
