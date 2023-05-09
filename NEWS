@@ -26,6 +26,9 @@
 * Controls to modify some Git repository settings are added on a new page
   /git/admin/index.php.
 
+* A new error handler is installed, logging more necessary information
+  to track the bugs.
+
 * Bug fixes:
 
 ** Mailing list descriptions with special chars weren't shown correctly

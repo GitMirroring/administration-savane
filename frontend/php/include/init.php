@@ -43,6 +43,7 @@
 
 $file_dir = dirname (__FILE__);
 
+require_once ("$file_dir/error.php");
 # Autoconf-based:
 require_once ("$file_dir/ac_config.php");
 
@@ -175,97 +176,6 @@ $php_self = htmlentities ($_SERVER['PHP_SELF']);
 # this, make the banner work with the headers instead.
 utils_set_csp_headers ();
 utils_update_decimal_separator ();
-
-# Debug initialization.
-if ($sys_debug_on == true)
-  {
-    # Initialize the variable (avoid later warnings).
-    $GLOBALS['debug'] = '';
-    $GLOBALS['debug_query_count'] = 0;
-    $GLOBALS['debug_queries'] = [];
-
-    # Save the input arrays in case they are emptied
-    # (e.g. trackers_run/index.php).
-    $GLOBALS['INPUT_SAVE'] = [
-      'get' => $_GET, 'post' => $_POST,
-      'cookie' => $_COOKIE, 'files' => $_FILES
-    ];
-    function debug_dump ()
-    {
-      global $INPUT_SAVE;
-
-      print "<pre>\n<hr />\n";
-      print utils_size_readable (memory_get_usage (false)) . '/'
-        . utils_size_readable (memory_get_peak_usage (false))
-        . ' now/peak memory usage<br />';
-      print utils_size_readable (memory_get_usage (true))  . '/'
-        . utils_size_readable (memory_get_peak_usage (true))
-        . " now/peak real memory usage<br />\n<hr />\n";
-
-      # SQL query counter.
-      print "{$GLOBALS['debug_query_count']} database queries used:<br/>\n";
-      foreach ($GLOBALS['debug_queries'] as $query_data)
-        {
-          list ($query, $location) = $query_data;
-          print "$query [$location]<br />\n";
-        }
-      foreach (['GET', 'POST', 'COOKIE', 'FILES'] as $key)
-        {
-          print "<hr />\n$key:<br />\n";
-          print
-            utils_specialchars (
-              print_r ($INPUT_SAVE[strtolower ($key)], true), ENT_QUOTES
-            );
-        }
-      print "<hr />\n";
-
-      # All debug messages.
-      if ($GLOBALS['debug'])
-        print "DEBUG information:<br />\n{$GLOBALS['debug']}";
-      print "</pre>\n";
-    }
-    register_shutdown_function ("debug_dump");
-
-    # Alternate PHP error handler that prints a backtrace.
-    function btErrorHandler ($errno, $errstr, $errfile, $errline, $context)
-    {
-      print '<strong>';
-      switch ($errno)
-        {
-        case E_ERROR:             print "Error";                  break;
-        case E_WARNING:           print "Warning";                break;
-        case E_PARSE:             print "Parse Error";            break;
-        case E_NOTICE:            print "Notice";                 break;
-        case E_CORE_ERROR:        print "Core Error";             break;
-        case E_CORE_WARNING:      print "Core Warning";           break;
-        case E_COMPILE_ERROR:     print "Compile Error";          break;
-        case E_COMPILE_WARNING:   print "Compile Warning";        break;
-        case E_USER_ERROR:        print "User Error";             break;
-        case E_USER_WARNING:      print "User Warning";           break;
-        case E_USER_NOTICE:       print "User Notice";            break;
-        case E_STRICT:            print "Strict Notice";          break;
-        case E_RECOVERABLE_ERROR: print "Recoverable Error";      break;
-        /* E_DEPRECATED - PHP >= 5.3 : */
-        case 8192:                return false; // too much noise
-        default:                  print "Unknown error ($errno)"; break;
-        }
-      print '</strong>';
-      print ": $errstr in <strong>$errfile</strong> on line "
-        . "<strong>$errline</strong><br />\n";
-      print '<pre>';
-
-      # Write my own backtrace function to avoid printing
-      # btErrorHandler () in the stack trace.
-      $bt = debug_backtrace ();
-      array_shift ($bt); # Remove this very function.
-      utils_debug_print_mybacktrace ($bt);
-      print '</pre>';
-      # Don't execute PHP internal error handler.
-      return true;
-    }
-  # Set to the user-defined error handler.
-  $old_error_handler = set_error_handler ("btErrorHandler");
-}
 
 # Stop a failed assertion.  We don't use much assertions though,
 # because you can't provide additional feedback for debugging (like

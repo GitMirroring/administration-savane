@@ -701,83 +701,14 @@ function temp_dbg ($msg)
 # Die with debug information.
 function util_die ($msg)
 {
-  $backtrace = debug_backtrace ();
-  array_shift ($backtrace);
-  error_log ( "util_die: $msg ::: backtrace: "
-    . utils_debug_print_mybacktrace ($backtrace, false)
-  );
-  if (!$GLOBALS['sys_debug_on'])
+  trigger_error ($msg);
+  if (empty ($GLOBALS['sys_debug_on']))
     die ($msg);
   print "<strong>Fatal error:</strong> $msg<br />";
   print '<pre>';
   debug_print_backtrace ();
   print '</pre>';
   die ();
-}
-
-#  Modified to print any given backtrace.
-#  Original comments:
-#  Replace debug_print_backtrace()
-#
-#  @category    PHP
-#  @package     PHP_Compat
-#  @license     LGPL - http://www.gnu.org/licenses/lgpl.html
-#  @copyright   2004-2007 Aidan Lister <aidan@php.net>, Arpad Ray <arpad@php.net>
-#  @link        http://php.net/function.debug_print_backtrace
-#  @author      Laurent Laville <pear@laurent-laville.org>
-#  @author      Aidan Lister <aidan@php.net>
-#  @version     $Revision: 1.6 $
-#  @since       PHP 5
-#  @require     PHP 4.3.0 (debug_backtrace)
-function utils_debug_print_mybacktrace ($backtrace = null, $print = true)
-{
-  # Get backtrace.
-  if ($backtrace === null)
-    {
-      $backtrace = debug_backtrace ();
-      # Unset call to debug_print_backtrace.
-      array_shift ($backtrace);
-    }
-
-  if (empty ($backtrace))
-    return '';
-
-  $calls = [];
-  foreach ($backtrace as $i => $call)
-    {
-      if (!isset ($call['file']))
-        $call['file'] = '(null)';
-      if (!isset ($call['line']))
-        $call['line'] = '0';
-      $location = $call['file'] . ':' . $call['line'];
-      $function = (isset ($call['class'])) ?
-      $call['class'] . (isset ($call['type']) ? $call['type'] : '.')
-        . $call['function'] :
-      $call['function'];
-
-      $params = '';
-      if (isset ($call['args']))
-        {
-          $args = [];
-          foreach ($call['args'] as $arg)
-            {
-              if (is_array ($arg))
-                $args[] = print_r ($arg, true);
-              elseif (is_object ($arg))
-                $args[] = get_class ($arg);
-              else
-                $args[] = $arg;
-            }
-          $params = implode (', ', $args);
-        }
-      $calls[] = sprintf (
-        '#%d  %s(%s) called at [%s]', $i, $function, $params, $location
-      );
-    }
-  $ret = join ("\n", $calls) . "\n";
-  if ($print)
-    print $ret;
-  return $ret;
 }
 
 function util_feedback ($msg, $error = 0)

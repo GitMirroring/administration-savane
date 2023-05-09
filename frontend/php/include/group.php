@@ -44,6 +44,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/savane_error.php');
+require_once (dirname (__FILE__) . '/utils.php');
 
 define ('TRACKER_EVENT_NEW_ITEM', 1);
 define ('TRACKER_EVENT_COMMENT', 2);
@@ -561,7 +562,7 @@ function group_get_perm_flags ($group_id, $artifact, $prefix = '')
   if (!$artifact)
     return null;
   if (!preg_match ('/^[a-z]+$/', $artifact))
-    die ('group_getpermissions: unvalid argument artifact');
+    util_die ('group_getpermissions: unvalid argument artifact');
   $field = "{$artifact}_{$prefix}flags";
   $res =
     db_execute ("

@@ -109,7 +109,7 @@ if (isset ($log_accum))
             WHERE
               cvs_hooks.id = cvs_hooks_log_accum.hook_id
               AND group_id = ? AND id = ?",
-            [$group_id, $hook_id]) or die (db_error ());
+            [$group_id, $hook_id]) or util_die (db_error ());
           if ($have_arr_id)
             unset ($arr_id[$hook_id]);
         }
@@ -150,7 +150,7 @@ if (isset ($log_accum))
                   'dir_list' => $dir_list,
                   'hook_name' => 'log_accum'
                 ],
-                DB_AUTOQUERY_INSERT) or die (db_error ());
+                DB_AUTOQUERY_INSERT) or util_die (db_error ());
               $new_hook_id = db_insertid (NULL);
               db_autoexecute ('cvs_hooks_log_accum',
                 [
@@ -160,7 +160,7 @@ if (isset ($log_accum))
                   'enable_diff' => $enable_diff,
                   'emails_diff' => $emails_diff
                 ],
-                DB_AUTOQUERY_INSERT) or die (db_error ());
+                DB_AUTOQUERY_INSERT) or util_die (db_error ());
               continue;
             }
           db_autoexecute ('cvs_hooks, cvs_hooks_log_accum',
@@ -173,7 +173,7 @@ if (isset ($log_accum))
             DB_AUTOQUERY_UPDATE,
             "cvs_hooks.id = cvs_hooks_log_accum.hook_id
             AND group_id = ? AND id = ?",
-            [$group_id, $hook_id]) or die (db_error ());
+            [$group_id, $hook_id]) or util_die (db_error ());
         } # foreach ($arr_id as $hook_id => $ignored)
   } # if (isset($log_accum))
 site_project_header (['group' => $group_id, 'context' => 'ahome']);

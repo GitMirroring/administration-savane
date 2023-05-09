@@ -187,7 +187,7 @@ function member_array_getpermissions ($group_id, $flags, $user_ids)
       return $ret;
     }
   if (!preg_match ('/^[a-z]+$/', $flags))
-    die ('group_getpermissions: unvalid argument flags');
+    util_die ('group_getpermissions: unvalid argument flags');
   if (!count ($user_ids))
     return [];
   $flags .= '_flags';

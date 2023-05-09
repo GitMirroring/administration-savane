@@ -453,7 +453,7 @@ class GPLQuickForm
                 $rule_is_valid = ($value == $value2);
                 break;
               default:
-                die("Unsupported rule type: $type");
+                util_die ("Unsupported rule type: $type");
               }
             if (!$rule_is_valid)
               {

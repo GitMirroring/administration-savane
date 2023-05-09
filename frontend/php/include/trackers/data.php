@@ -59,7 +59,7 @@ function trackers_data_get_all_fields ($group_id = false, $reload = false)
   global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME, $AT_START;
 
   if (!ctype_alnum (strval (ARTIFACT)))
-    die ("Invalid ARTIFACT name: " . utils_specialchars (ARTIFACT));
+    util_die ("Invalid ARTIFACT name: " . utils_specialchars (ARTIFACT));
 
   # Do nothing if already set and reload not forced.
   if (isset ($BF_USAGE_BY_ID) && !$reload)
@@ -491,7 +491,7 @@ function trackers_data_get_all_report_fields ($report_id = 100)
   if (!$have_bug_id)
     {
       if (db_numrows ($res) > 0)
-        error_log ("No bug it found in query form #$report_id");
+        trigger_error ("No bug it found in query form #$report_id");
       $field = 'bug_id';
       $id = trackers_data_get_field_id ($field);
       foreach ($flags as $f => $v)
@@ -1216,7 +1216,7 @@ function trackers_data_get_history ($item_id)
 function trackers_data_get_attached_files ($item_id = false, $order = 'DESC')
 {
   if ($order != 'DESC' && $order != 'ASC')
-    die (
+    util_die (
       "trackers_data_get_attached_files: invalid \$order '"
       . htmlescape ($order) . "')"
     );

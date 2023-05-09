@@ -135,14 +135,14 @@ function theme_validate ($user_theme)
 
   if ($forbidden)
     {
-      error_log ("Forbidden theme '$user_theme', user " . user_getname ());
+      trigger_error ("Forbidden theme '$user_theme', user " . user_getname ());
       return $GLOBALS['sys_themedefault'];
     }
 
   if (file_exists ($GLOBALS['sys_www_topdir'] . "/css/$user_theme.css"))
     return $user_theme;
   if ($user_theme != '')
-    error_log ("Invalid theme '$user_theme', user " . user_getname ());
+    trigger_error ("Invalid theme '$user_theme', user " . user_getname ());
   return $GLOBALS['sys_themedefault'];
 }
 

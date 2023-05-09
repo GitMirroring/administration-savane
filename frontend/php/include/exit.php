@@ -108,7 +108,7 @@ function exit_log ($message)
   $username = "anonymous user";
   if (user_isloggedin ())
     $username = "user " . user_getname ();
-  error_log("$message - $username at " . $_SERVER['REQUEST_URI']);
+  trigger_error ("$message - $username at " . $_SERVER['REQUEST_URI']);
 }
 
 # Standardize the HTTP error head

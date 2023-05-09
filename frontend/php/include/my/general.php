@@ -177,7 +177,7 @@ function my_item_list_buildsql (
   global $items_per_groups, $usersquads;
 
   if (!ctype_alnum (strval ($tracker)))
-    die (_("Invalid tracker name:") . " " . utils_specialchars ($tracker));
+    util_die (_("Invalid tracker name:") . " " . utils_specialchars ($tracker));
 
   # status: 1 = open, 3 = closed
   if ($openclosed == "open")
