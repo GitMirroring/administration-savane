@@ -4,8 +4,6 @@
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2002-2006 Tobias Toedter <t.toedter--gmx.net>
-# Copyright (C) 2004-2007 Aidan Lister <aidan@php.net>
-# Copyright (C) 2004-2007 Arpad Ray <arpad@php.net>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2013, 2014, 2017-2023 Ineiev
@@ -43,7 +41,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+namespace {
 # Clean initialization for globals.
 $GLOBALS['feedback_count'] = 0;
 $GLOBALS['feedback'] = '';
@@ -804,24 +802,61 @@ function utils_set_csp_headers ()
   header ($policy);
 }
 
-# Run a command $cmd, return its exit code; put its output and error streams
-# to $out and $err.
-function utils_run_proc ($cmd, &$out, &$err)
-{
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+} # namespace {
 
+namespace utils_run_proc {
+function dispatch_error ($cmd, $code, $err, $log_error, $in)
+{
+  if (!$code || !$log_error)
+    return;
+  $msg = "$cmd failed ($code): $err";
+  if (!empty ($in))
+    $msg .= "\n  with input:\n$in";
+  trigger_error ($msg);
+}
+
+function init_aux ($aux)
+{
+  $in = $my_env = null; $log_error = false;
+  if (!empty ($aux['in']))
+    $in = $aux['in'];
+  if (!empty ($aux['env']))
+    $env = $aux['env'];
+  if (!empty ($aux['log_error']))
+    $log_error = true;
+  $my_env = $_ENV;
+  if (!empty ($env))
+    foreach ($env as $k => $v)
+      $my_env[$k] = $v;
+  return  [$in, $my_env, $log_error];
+}
+} # namespace utils_run_proc
+
+namespace {
+# Run a command $cmd, return its exit code; put its output and error streams
+# to $out and $err; in $aux, ['in'] enters to stdin, ['env'] modifies
+# the environment, if ['log_error'], errors are logged.
+function utils_run_proc ($cmd, &$out, &$err, $aux = [])
+{
+  list ($in, $my_env, $log_error) = utils_run_proc\init_aux ($aux);
   $out = null;
-  $proc = proc_open ($cmd, $d_spec, $pipes, NULL, $_ENV);
+  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+  $proc = proc_open ($cmd, $d_spec, $pipes, NULL, $my_env);
   if ($proc === false)
     {
       $err = "can't run $cmd\n";
+      utils_run_proc\dispatch_error ($cmd, -1, $err, $log_error, $in);
       return -1;
     }
+  if (!empty ($in))
+    fwrite ($pipes[0], $in);
   fclose ($pipes[0]);
   $out = stream_get_contents ($pipes[1]);
   $err = stream_get_contents ($pipes[2]);
   fclose ($pipes[1]); fclose ($pipes[2]);
-  return proc_close ($proc);
+  $res = proc_close ($proc);
+  utils_run_proc\dispatch_error ($cmd, $res, $err, $log_error, $in);
+  return $res;
 }
 
 # Try to move $tmp_path to $path without overwriting if the latter exists;
@@ -839,6 +874,34 @@ function utils_try_move ($tmp_path, $path)
     return $tmp_path;
   unlink ($tmp_path);
   return $path;
+}
+
+function utils_mktemp ($template, $type = 'file')
+{
+  $cmd = "mktemp --tmpdir ";
+  if ($type !== 'file')
+    {
+      $type = 'dir';
+      $cmd .= "-d ";
+    }
+  $is_func = "is_$type";
+  $cmd .= $template;
+  $res = utils_run_proc ($cmd, $out, $err);
+  if ($res)
+    {
+      trigger_error ("$cmd failed, $res: $err");
+      return null;
+    }
+  $out = trim ($out);
+  if ($is_func ($out))
+    return $out;
+  trigger_error ("$cmd failed: no $out $type");
+  return null;
+}
+
+function utils_rm_fr ($dir)
+{
+  exec ("rm -fr $dir");
 }
 
 # Make a file with a name based on $tarball_name in $sys_upload_dir without
@@ -931,4 +994,5 @@ function utils_urlencode ($string)
     $string = '';
   return urlencode ($string);
 }
+} # namespace {
 ?>

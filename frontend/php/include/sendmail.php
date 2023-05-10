@@ -474,7 +474,7 @@ function sendmail_encrypt_message ($uid, &$msg)
   $encrypted = $gpg_error = "";
   if (user_get_preference ("email_encrypted", $uid))
     list ($gpg_error, $gpg_result, $encrypted) =
-      encrypt_to_user ($uid, $msg);
+      gpg_encrypt_to_user ($uid, $msg);
   if ($encrypted !== "")
     $msg = $encrypted;
   return [$encrypted === '', $gpg_error];

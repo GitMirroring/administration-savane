@@ -100,7 +100,7 @@ $message = format_item_details ($item_id, $group_id, true);
 if ($data_are_private)
   {
     list ($exit_code, $error_msg, $encrypted_message) =
-      encrypt_to_user ($user_id, $message);
+      gpg_encrypt_to_user ($user_id, $message);
     if ($exit_code)
       exit_error ($error_msg);
     $message = $encrypted_message;

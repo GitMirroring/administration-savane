@@ -587,7 +587,7 @@ elseif ($item == "gpgkey")
       . "\n<hr />\n";
     $input_specific .= $gpg_gnu_maintainers_note;
     if ($test_gpg_key)
-      $input_specific .= run_gpg_checks ($newvalue);
+      $input_specific .= gpg_run_checks ($newvalue);
   }
 elseif ($item == "email")
   {

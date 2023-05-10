@@ -101,7 +101,7 @@ if ($update)
   }
 
 if ($test_keyring)
-  $gpg_checks = run_gpg_checks ($new_keyring, false, '3');
+  $gpg_checks = gpg_run_checks ($new_keyring, false, '3');
 
 if ($update_keyring)
   {

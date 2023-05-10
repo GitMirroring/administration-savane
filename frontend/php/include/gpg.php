@@ -41,35 +41,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function gpg_version ($gpg_name)
-{
-  $cmd = "$gpg_name --version";
-  $d_spec =
-    [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["file", "/dev/null", "a"]];
+namespace {
+require_once (dirname (__FILE__) . "/utils.php");
+require_once (dirname (__FILE__) . "/user.php");
+}
 
-  $gpg_proc = proc_open ($cmd, $d_spec, $pipes);
-  fclose ($pipes[0]);
-  $output = stream_get_contents ($pipes[1]);
-  fclose ($pipes[1]);
-  proc_close ($gpg_proc);
+namespace gpg {
+function gpg_name ()
+{
+  return "'{$GLOBALS['sys_gpg_name']}'";
+}
+function gpg_version ()
+{
+  utils_run_proc (gpg_name () . " --version", $output, $err);
   return $output;
 }
 
-function test_gpg_listing ($gpg_name, $temp_dir, $level, &$ret)
+function test_listing ($temp_dir, $level, &$ret)
 {
+  $gpg_name = gpg_name ();
   $ret .= "<h$level>" . _("Listing key") . "</h$level>\n"
     . "<p>" . _("Output:") . "</p>\n";
   $cmd = "$gpg_name --home $temp_dir --list-keys --fingerprint ";
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
   $my_env = $_ENV;
   # Let non-ASCII user IDs show up in a readable way.
   $my_env['LC_ALL'] = "C.UTF-8";
-  $gpg_proc = proc_open ($cmd, $d_spec, $pipes, NULL, $my_env);
-  fclose ($pipes[0]);
-  $gpg_output = stream_get_contents ($pipes[1]);
-  $gpg_errors = stream_get_contents ($pipes[2]);
-  fclose ($pipes[1]); fclose ($pipes[2]);
-  $gpg_result = proc_close ($gpg_proc);
+  $gpg_result =
+    utils_run_proc ($cmd, $gpg_output, $gpg_errors, ['env' => $my_env]);
   $ret .= "<pre>\n";
   $ret .= utils_specialchars ($gpg_output);
   $ret .= "</pre>\n";
@@ -82,19 +80,17 @@ function test_gpg_listing ($gpg_name, $temp_dir, $level, &$ret)
   return $gpg_result;
 }
 
-function test_gpg_import ($gpg_name, $key, $temp_dir, $level, &$output)
+function test_import ($key, $temp_dir, $level, &$output)
 {
+  $gpg_name = gpg_name ();
   $output .= "<h$level>" . _("Importing keyring") . "</h$level>\n";
   $cmd = "$gpg_name --home '$temp_dir' --batch --import";
   $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
   $my_env = $_ENV;
   $my_env['LC_ALL'] = "C.UTF-8";
-  $gpg_proc = proc_open ($cmd, $d_spec, $pipes, NULL, $my_env);
-  fwrite ($pipes[0], $key);
-  fclose ($pipes[0]);
-  $gpg_errors = stream_get_contents ($pipes[2]);
-  fclose ($pipes[1]); fclose ($pipes[2]);
-  $gpg_result = proc_close ($gpg_proc);
+  $gpg_result = utils_run_proc ($cmd, $gpg_output, $gpg_errors,
+    ['in' => $key, 'env' => $my_env]
+  );
   $output .= "<pre>\n";
   $output .= utils_specialchars ($gpg_errors);
   $output .= "</pre>\n";
@@ -103,18 +99,9 @@ function test_gpg_import ($gpg_name, $key, $temp_dir, $level, &$output)
   return $gpg_result;
 }
 
-function gpg_encrypt_cmd ($user_id)
+function test_encryption ($temp_dir, $level, &$output)
 {
-  global $sys_gpg_name, $sys_dbname, $sys_dbhost;
-
-  return "perl '" . dirname (__FILE__)
-    . "/../../perl/encrypt-to-user/index.pl' --gpg='$sys_gpg_name' "
-    . "--user='$user_id' --dbname='$sys_dbname' --dbhost='$sys_dbhost'";
-}
-
-function test_gpg_encryption ($gpg_name, $temp_dir, $level, &$output)
-{
-  global $sys_dbuser, $sys_dbpasswd;
+  $gpg_name = gpg_name ();
   # The message is a slightly modified ASCII art
   # from https://www.gnu.org/graphics/gnu-ascii2.html .
   $message = "
@@ -122,34 +109,15 @@ function test_gpg_encryption ($gpg_name, $temp_dir, $level, &$output)
  ((_/)o o(\\_))
   `-'(. .)`-'
       \\_/\n";
-  $cmd = gpg_encrypt_cmd (user_getid ());
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
-  $gpg_proc = proc_open ($cmd, $d_spec, $pipes);
-
-  fwrite ($pipes[0], "$sys_dbuser\n");
-  fwrite ($pipes[0], "$sys_dbpasswd\n");
-  fwrite ($pipes[0], $message);
-  fclose ($pipes[0]);
-  $encrypted_message = stream_get_contents ($pipes[1]);
-  $gpg_stderr = stream_get_contents ($pipes[2]);
-  fclose ($pipes[1]); fclose ($pipes[2]);
-  $gpg_result = proc_close ($gpg_proc);
-  $gpg_error = "";
-  if ($gpg_result != 0 or $encrypted_message === false or $encrypted_message === "")
+  list ($key_id, $gpg_result) = find_enc_key ($temp_dir);
+  if ($gpg_result)
     {
-      $encrypted_message = "";
-      if ($gpg_result == 1)
-        $gpg_error = _("Encryption failed.");
-      elseif ($gpg_result == 2)
-        $gpg_error = _("No key for encryption found.");
-      elseif ($gpg_result == 3)
-        $gpg_error = _("Can't extract user_id from database.");
-      elseif ($gpg_result == 4)
-        $gpg_error = _("Can't create temporary files.");
-      elseif ($gpg_result == 5)
-        $gpg_error = _("Extracted GPG key ID is invalid.");
-      $encrypted_message = "";
+      $gpg_result = 2;
+      $gpg_error = error_str ($gpg_result);
     }
+  else
+    list ($gpg_result, $gpg_error, $gpg_out) =
+      run_encryption ($key_id, $message, $temp_dir);
   $output .= "<h$level>" . _("Test Encryption") . "</h$level>\n";
   if ($gpg_result)
     $output .= "<p>" . _("Errors:") . " " . $gpg_error . "</p>\n";
@@ -158,63 +126,80 @@ function test_gpg_encryption ($gpg_name, $temp_dir, $level, &$output)
       $output .= "<p>"
        . _("Encryption succeeded; you should be able to decrypt this with\n"
            . "<em>gpg --decrypt</em>:") . "</p>\n";
-      $output .= "<pre>" . $encrypted_message . "</pre>\n";
+      $output .= "<pre>" . $gpg_out . "</pre>\n";
     }
   return $gpg_result;
 }
 
-function run_gpg_tests ($gpg_name, $key, $temp_dir, &$output,
-  $run_encryption = true, $level = '2'
-)
+function run_tests ($key, $temp_dir, &$output, $run_encryption, $level)
 {
-  if (test_gpg_import ($gpg_name, $key, $temp_dir, $level, $output))
+  if (test_import ($key, $temp_dir, $level, $output))
     return;
-  if (test_gpg_listing ($gpg_name, $temp_dir, $level, $output))
+  if (test_listing ($temp_dir, $level, $output))
     return;
-  if (!$run_encryption)
-    return;
-  test_gpg_encryption ($gpg_name, $temp_dir, $level, $output);
+  if ($run_encryption)
+    test_encryption ($temp_dir, $level, $output);
 }
 
-function run_gpg_checks ($key, $run_encryption = true, $level = '2')
+function import_key ($key, $home)
 {
-  $ret = "";
-  $ret .= "<h$level>" . _("GnuPG version") . "</h$level>\n";
-  $gpg_name = "'" . $GLOBALS['sys_gpg_name'] . "'";
+  global $sys_gpg_name;
+  $cmd = "$sys_gpg_name --home '$home' --batch -q --import";
+  return utils_run_proc ($cmd, $out, $err, ['in' => $key]);
+}
 
-  $ret .= "<pre>\n";
-  $ret .= utils_specialchars (gpg_version ($gpg_name));
-  $ret .= "</pre>\n";
+function list_keys ($home)
+{
+  global $sys_gpg_name;
+  $cmd = "$sys_gpg_name --home='$home' --list-keys --with-colons";
+  $res = utils_run_proc ($cmd, $out, $err);
+  if ($res)
+    return null;
+  return explode ("\n", $out);
+}
 
-  $temp_dir = exec ("mktemp -d");
-  if (is_dir ($temp_dir))
+# Find first encryption-capable key listed; this doesn't take into account
+# expiry dates etc.
+function find_enc_key ($home)
+{
+  $key_list = list_keys ($home);
+  if (empty ($key_list))
+    return [null, 2];
+  foreach ($key_list as $line)
     {
-      run_gpg_tests ($gpg_name, $key, $temp_dir, $ret, $run_encryption);
-      system ("rm -r '" . $temp_dir . "'");
+      $fields = explode (':', $line);
+      if (empty ($fields[11]))
+        continue;
+      if ($fields[0] !== 'pub')
+        continue;
+      if (false === stripos ($fields[11], 'e'))
+        continue;
+      $key_id = $fields[4];
+      if (preg_match ("/^[0-9A-F]*$/", $key_id))
+        return [$key_id, 0];
     }
-  else
-    $ret .= "<p>" . _("Can't create temporary directory.") . "</p>\n";
-  $ret .= "\n<hr />\n";
-  return $ret;
+  return [null, 2];
 }
 
-function encrypt_to_user ($user_id, $message)
+function get_enc_key ($user_id)
 {
-  global $sys_dbuser, $sys_dbpasswd;
-  $cmd = gpg_encrypt_cmd ($user_id);
+  $key = user_get_field ($user_id, 'gpg_key');
+  if (empty ($key))
+    return [null, null, 3];
+  $temp_dir = utils_mktemp ("sv-gpg.XXXXXXXXX", 'dir');
+  if (empty ($temp_dir))
+    return [null, null, 4];
+  if (import_key ($key, $temp_dir))
+    list ($key_id, $error) = ['', 2];
+  else
+    list ($key_id, $error) = find_enc_key ($temp_dir);
+  if ($error)
+    utils_rm_fr ($temp_dir);
+  return [$key_id, $temp_dir, $error];
+}
 
-  $d_spec = [
-    0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["file", "/dev/null", "a"]
-  ];
-  $gpg_proc = proc_open ($cmd, $d_spec, $pipes);
-  fwrite ($pipes[0], "$sys_dbuser\n");
-  fwrite ($pipes[0], "$sys_dbpasswd\n");
-  fwrite ($pipes[0], $message);
-  fclose ($pipes[0]);
-  $encrypted = stream_get_contents ($pipes[1]);
-  fclose ($pipes[1]);
-  $error_msg = '';
-  $error_code = proc_close ($gpg_proc);
+function error_str ($code)
+{
   $codes = [
     1 => _("Encryption failed."),
     2 => _("No key for encryption found."),
@@ -222,15 +207,69 @@ function encrypt_to_user ($user_id, $message)
     4 => _("Can't create temporary files."),
     5 => _("Extracted GPG key ID is invalid.")
   ];
+  if (array_key_exists ($code, $codes))
+    return $codes[$code];
+  return '';
+}
 
-  if ($error_code != 0 || $encrypted === false || $encrypted === "")
+function run_encryption ($key, $message, $home)
+{
+  global $sys_gpg_name;
+  $error_code = 0;
+  $error_msg = '';
+  $cmd = "$sys_gpg_name --home='$home' --trust-model always --batch "
+    . "-a --encrypt -r $key";
+  $res = utils_run_proc ($cmd, $encrypted, $err, ['in' => $message]);
+  if ($res)
+    {
+      $error_code = 1;
+      $encrypted = '';
+    }
+  if ($error_code != 0 || $encrypted === "")
     {
       $encrypted = $error_msg = "";
-      if (array_key_exists ($error_code, $codes))
-        $error_msg = $codes[$error_code];
-      elseif (!$error_code) # Unknown error, strangely coded as zero.
-        $error_code = -1;
+      $error_msg = error_str ($error_code);
+      if ($error_msg === '')
+        {
+          trigger_error ("Unknown error code $error_code");
+          $error_code = -1;
+        }
     }
   return [$error_code, $error_msg, $encrypted];
 }
+} # namespace gpg {
+
+namespace {
+function gpg_run_checks ($key, $run_encryption = true, $level = '2')
+{
+  $ret = "";
+  $ret .= "<h$level>" . _("GnuPG version") . "</h$level>\n";
+
+  $ret .= "<pre>\n";
+  $ret .= utils_specialchars (gpg\gpg_version ());
+  $ret .= "</pre>\n";
+
+  $temp_dir = utils_mktemp ("sv-gpg.XXXXXXXXX", 'dir');
+  if (empty ($temp_dir))
+    $ret .= "<p>" . _("Can't create temporary directory.") . "</p>\n";
+  else
+    {
+      gpg\run_tests ($key, $temp_dir, $ret, $run_encryption, $level);
+      utils_rm_fr ($temp_dir);
+    }
+  $ret .= "\n<hr />\n";
+  return $ret;
+}
+
+function gpg_encrypt_to_user ($user_id, $message)
+{
+  global $sys_gpg_name;
+  list ($key, $temp_dir, $error) = gpg\get_enc_key ($user_id);
+  if ($error)
+    return [$error, gpg\error_str ($error), ''];
+  $ret = gpg\run_encryption ($key, $message, $temp_dir);
+  utils_rm_fr ($temp_dir);
+  return $ret;
+}
+} # namespace {
 ?>
