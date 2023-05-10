@@ -43,5 +43,5 @@
 
 require_once ('../include/init.php');
 require_once ('../include/session.php');
-session_redirect ("${sys_home}my/admin/");
+session_redirect ("{$sys_home}my/admin/");
 ?>

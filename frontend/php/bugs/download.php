@@ -100,7 +100,7 @@ $prot = 'http';
 if (session_issecure ())
   $prot = 'https';
 session_redirect (
-  "$prot://$sys_file_domain${sys_home}file/"
+  "$prot://$sys_file_domain{$sys_home}file/"
   . rawurlencode (db_result ($result, 0, 'filename')) . "?file_id=$file_id"
 );
 ?>

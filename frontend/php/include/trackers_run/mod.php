@@ -75,7 +75,7 @@ $item_discussion_lock = $res_arr['discussion_lock'];
 $enable_comments = !$item_discussion_lock || $is_trackeradmin;
 $preambles = [];
 foreach (['comment', 'file'] as $pre)
-  $preambles[] = ARTIFACT . "_${pre}_preamble";
+  $preambles[] = ARTIFACT . "_{$pre}_preamble";
 
 $preambles = group_get_preference  ($group_id, $preambles);
 

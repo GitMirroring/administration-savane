@@ -141,7 +141,7 @@ function context_guess_from_url ($page)
   foreach (['project', 'my', 'siteadmin'] as $f)
     if ($context == $f)
       {
-        $fnc = "context_guess_${f}_context";
+        $fnc = "context_guess_{$f}_context";
         $ret = $fnc ($page_basename, $func);
         if ($ret !== null)
           return [$context, $ret];
@@ -252,7 +252,7 @@ function context_title ()
   $title = null;
   foreach (['list', 'conf', 'custom'] as $f)
     {
-      $func = "context_cont_${f}_title";
+      $func = "context_cont_{$f}_title";
       $title = $func ();
       if ($title !== null)
         break;

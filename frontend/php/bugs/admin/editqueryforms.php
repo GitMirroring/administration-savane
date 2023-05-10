@@ -404,7 +404,7 @@ if ($show_report)
             'colwidth' => 'col_width',
           ] as $k => $v
         )
-        ${"tf_${k}_val"} = (empty ($fld[$field][$v])? '': $fld[$field][$v]);
+        ${"tf_{$k}_val"} = (empty ($fld[$field][$v])? '': $fld[$field][$v]);
 
         print '<tr class="' . utils_altrow ($i) . '">';
         $cb_attr = ['title' => _("Use as a Search Criterion")];

@@ -190,7 +190,7 @@ function require_directory ($module)
 {
   if ($module=="")
     return;
-  if (!empty ($GLOBALS["directory_${module}_is_loaded"]))
+  if (!empty ($GLOBALS["directory_{$module}_is_loaded"]))
     return;
 
   $dir = dirname (__FILE__) . "/$module";
@@ -208,7 +208,7 @@ function require_directory ($module)
         }
       closedir ($odir);
     }
-  $GLOBALS["directory_${module}_is_loaded"] = 1;
+  $GLOBALS["directory_{$module}_is_loaded"] = 1;
 }
 
 $tracker_list = ['bugs', 'patch', 'task', 'cookbook', 'support'];

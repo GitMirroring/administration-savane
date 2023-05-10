@@ -63,8 +63,8 @@ foreach (
   as $k => $v
 )
   {
-    $$k = "${box_id}$v$suffix";
-    ${"${k}_el"} = "document.getElementById('{$$k}')";
+    $$k = "{$box_id}$v$suffix";
+    ${"{$k}_el"} = "document.getElementById('{$$k}')";
   }
 
 $sign_func = function ($sign, $id, $legend)

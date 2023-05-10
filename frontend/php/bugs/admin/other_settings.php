@@ -58,7 +58,7 @@ $pref_preamble_titles = [
 
 function pref_name ($name, $artifact)
 {
-  return "${artifact}_${name}_preamble";
+  return "{$artifact}_{$name}_preamble";
 }
 function form_pref_name ($x)
 {
@@ -100,7 +100,7 @@ function fetch_preamble ($group_id, $artifact)
   if (db_numrows ($res_grp) < 1)
     exit_no_group ();
   $row_grp = db_fetch_array ($res_grp);
-  return $row_grp["${artifact}_preamble"];
+  return $row_grp["{$artifact}_preamble"];
 }
 
 $current_preamble = fetch_preamble ($group_id, $artifact);
@@ -133,7 +133,7 @@ if ($submit && ($changed || $pref_changed))
     if ($changed)
       {
         $result = db_execute (
-          "UPDATE groups SET ${artifact}_preamble = ?  WHERE group_id = ?",
+          "UPDATE groups SET {$artifact}_preamble = ?  WHERE group_id = ?",
           [$form_preamble, $group_id]
         );
         if ($result)

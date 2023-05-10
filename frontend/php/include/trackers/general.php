@@ -163,7 +163,7 @@ function trackers_field_label_display (
       if (!$ascii)
         $output .= '&nbsp;';
       else
-        $output .= sprintf ("%${tab}s", $label) . ' ';
+        $output .= sprintf ("%{$tab}s", $label) . ' ';
     }
   return $output;
 }
@@ -313,7 +313,7 @@ function trackers_field_date (
 
   $html = calendar_select_date (
     $day, $month, $year,
-    ["${field}_dayfd", "${field}_monthfd", "${field}_yearfd"]
+    ["{$field}_dayfd", "{$field}_monthfd", "{$field}_yearfd"]
   );
   return $html;
 }
@@ -338,7 +338,7 @@ function trackers_multiple_field_date (
     . "\" size=\"$size\" maxlength=\"$maxlength\" value=\"$date_begin\">"
     . _('(yyyy-mm-dd)') . "</td></tr>\n<tr><td>"
     . _('End:') . "<br />\n"
-    . "<input type='text' name=\"${field_name}_end\" id=\"${field_name}_end"
+    . "<input type='text' name=\"{$field_name}_end\" id=\"{$field_name}_end"
     . "\" size=\"$size\" maxlength=\"$maxlength\" value=\"$date_end\">"
     . _('(yyyy-mm-dd)');
 
@@ -358,7 +358,7 @@ function trackers_field_date_operator ($field_name, $value = '', $ro = false)
   foreach (trackers_date_op_list () as $v)
     $options .= form_option ($v, $value, utils_specialchars ($v));
   return '<select title="' . _("comparison operator")
-    . "\" name=\"${field_name}_op\">$options</select>\n";
+    . "\" name=\"{$field_name}_op\">$options</select>\n";
 }
 
 function trackers_field_text (
@@ -948,7 +948,7 @@ function trackers_exclude_list ($artifact, $group_id, $force_exclude, $privacy)
         SELECT ${artifact}_private_exclude_address
         FROM groups WHERE group_id = ?", [$group_id]
       );
-      $exclude = db_result ($result, 0, "${artifact}_private_exclude_address");
+      $exclude = db_result ($result, 0, "{$artifact}_private_exclude_address");
     }
   return trim ("$exclude,$force_exclude", ',');
 }

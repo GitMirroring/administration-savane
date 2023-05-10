@@ -52,7 +52,7 @@ require_once ('../include/form.php');
 $digit_names = [];
 foreach (['day', 'month', 'year'] as $term)
   foreach (['since', 'until'] as $prep)
-    $digit_names[] = "${prep}_$term";
+    $digit_names[] = "{$prep}_$term";
 
 extract (sane_import ('get', ['true' => 'update', 'digits' => $digit_names]));
 

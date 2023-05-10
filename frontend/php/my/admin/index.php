@@ -245,7 +245,7 @@ print '<p class="smaller">'
 
 $i++;
 print_box_next_item ();
-print "<p><a href=\"${sys_home}users/{$row_user['user_name']}\">"
+print "<p><a href=\"{$sys_home}users/{$row_user['user_name']}\">"
   . _("View your Public Profile") . "</a></p>\n";
 print '<p class="smaller">' . _("Your profile can be viewed by everybody.")
  . "</p>\n";
@@ -373,7 +373,7 @@ if (!theme_guidelines_check (SV_THEME))
             $sys_name
           );
         print utils_link (
-          "${sys_home}support/?group=$sys_unix_group_name",
+          "{$sys_home}support/?group=$sys_unix_group_name",
           $link_text, "warn"
         );
       }

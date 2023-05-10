@@ -139,7 +139,7 @@ $start_div ($j);
 
 print '['
   . utils_link (
-     "${sys_home}project/memberlist.php?group=$group", _("View Members")
+     "{$sys_home}project/memberlist.php?group=$group", _("View Members")
     )
   . ']';
 $end_div ();
@@ -269,11 +269,11 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
     print $HTML->box_nextitem (utils_altrow ($odd));
     $img = proj_home_img ("contexts/admin.png");
     print utils_link (
-      "${sys_home}siteadmin/", $img . _("Server Main Administration Page")
+      "{$sys_home}siteadmin/", $img . _("Server Main Administration Page")
     );
     print $HTML->box_nextitem (utils_altrow ($even));
     print utils_link (
-      "${sys_home}task/?group={$sys_unix_group_name}"
+      "{$sys_home}task/?group={$sys_unix_group_name}"
       . '&amp;category_id=1&amp;status_id=1&amp;set=custom',
       $img . _("Pending Group List")
     );
@@ -303,7 +303,7 @@ if (member_check (0, $group_id, 'A'))
     print $HTML->box_nextitem (utils_altrow ($odd));
     $img = proj_home_img ("contexts/main.png");
     print utils_link (
-      "${sys_home}project/admin/?group=$group",
+      "{$sys_home}project/admin/?group=$group",
        $img . _("Group Main Administration Page")
     );
     print $HTML->box_bottom();
@@ -377,7 +377,7 @@ if ($project->Uses ("extralink_documentation"))
 
 specific_makesep ();
 print utils_link(
-  "${sys_home}project/memberlist.php?group=$group",
+  "{$sys_home}project/memberlist.php?group=$group",
   proj_home_img ("contexts/people.png") . _("Memberlist")
 );
 
@@ -392,7 +392,7 @@ if (group_get_preference ($group_id, 'gpg_keyring'))
   {
     specific_makesep ();
     print utils_link (
-      "${sys_home}project/release-gpgkeys.php?group=$group",
+      "{$sys_home}project/release-gpgkeys.php?group=$group",
       proj_home_img ("contexts/keys.png") . _("Group release GPG keyring")
     );
     $i++;
@@ -478,7 +478,7 @@ if ($sys_unix_group_name == $group
       {
         specific_makesep ();
         print utils_link (
-          "${sys_home}people/?group=$group",
+          "{$sys_home}people/?group=$group",
           proj_home_img ("contexts/people.png")
           . _("This group is looking for people")
         ) . ' ';
@@ -512,7 +512,7 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
   if ($admin_url != '')
     print "<li><a href=\"$admin_url\">" . _("Administer") . "</a></li>\n";
 
-  $scm_url = $group->getUrl ("${scm}_viewcvs");
+  $scm_url = $group->getUrl ("{$scm}_viewcvs");
   if (
     $group->Uses ($scm) && $scm_url != 'http://' && $scm_url != ''
   )

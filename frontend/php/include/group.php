@@ -62,7 +62,7 @@ function project_get_object ($group_id)
   # save a little wear on the database.
 
   global $PROJECT_OBJ;
-  $idx = "_${group_id}_";
+  $idx = "_{$group_id}_";
   if (empty ($PROJECT_OBJ[$idx]))
     $PROJECT_OBJ[$idx] = new Group ($group_id);
   return $PROJECT_OBJ[$idx];
@@ -192,12 +192,12 @@ class Group extends savane_error
 
   function getTypePermissions ($flags)
   {
-    return $this->get_flags ("${flags}_flags");
+    return $this->get_flags ("{$flags}_flags");
   }
 
   function getTypeRestrictions ($flags)
   {
-    return $this->get_flags ("${flags}_rflags");
+    return $this->get_flags ("{$flags}_rflags");
   }
 
   function getTypeMailingListHost ()

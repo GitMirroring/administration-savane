@@ -160,7 +160,7 @@ function watched_link ($this_user, $m, $group_id, $sys_home)
   $is_watched = trackers_data_is_watched ($this_user, $m['user_id'], $group_id);
   if ($m['user_id'] == $this_user || $is_watched)
     return "---";
-  return "<a href=\"${sys_home}my/groups.php?"
+  return "<a href=\"{$sys_home}my/groups.php?"
     . "func=addwatchee&amp;group_id=$group_id&amp;watchee_id="
     . $m['user_id'] . "\">" . _("Watch partner") . "</a>";
 }
@@ -213,7 +213,7 @@ else
   printf (
     _("If you would like to contribute to this project by\nbecoming a member, "
       . "use the <a href=\"%s\">request for inclusion</a> form."),
-    "${sys_home}my/groups.php?words=" . group_getname ($group_id)
+    "{$sys_home}my/groups.php?words=" . group_getname ($group_id)
     . '#searchgroup'
   );
 print "</p>\n";

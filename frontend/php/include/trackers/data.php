@@ -190,19 +190,19 @@ function trackers_data_show_notification_settings (
                 . "depend on item categories, and provide the respective "
                 . "email addresses (comma-separated list).")
              . "</p>\n";
-      print "<input type='radio' name=\"${tracker}_notif_scope\" "
+      print "<input type='radio' name=\"{$tracker}_notif_scope\" "
         . "value='global'$glob_ck/>&nbsp;&nbsp;<span class='preinput'>"
         . _("Notify persons in the global list only") . "</span><br />\n"
-        . "<input type='radio' name=\"${tracker}_notif_scope\" "
+        . "<input type='radio' name=\"{$tracker}_notif_scope\" "
         . "value='category'$cat_ck/>&nbsp;&nbsp;<span class='preinput'>"
         . _("Notify persons in the category related list "
             . "instead of the global list") . "</span><br />\n"
-        . "<input type='radio' name=\"${tracker}_notif_scope\" "
+        . "<input type='radio' name=\"{$tracker}_notif_scope\" "
         . "value='both'$both_ck/>&nbsp;&nbsp;<span class='preinput'>"
         . _("Notify persons in the category related list in addition to "
             . "the global list")
         . "</span><br />\n<h2>" . _("Category related lists") . "</h2>\n";
-      print "<input type='hidden' name=\"${tracker}_nb_categories\" "
+      print "<input type='hidden' name=\"{$tracker}_nb_categories\" "
         . "value=\"$cat_n\" />\n";
 
       for ($i = 0; $i < $cat_n ; $i++)
@@ -212,10 +212,10 @@ function trackers_data_show_notification_settings (
           $settings = $grtrsettings['category'][$i];
           print '<input type="hidden" name="' . $tr_cat . '_bug_fv_id" value="'
             . $settings['fv_id'] . '" />';
-          print "<span class='preinput'><label for=\"${tr_cat}_email\">"
+          print "<span class='preinput'><label for=\"{$tr_cat}_email\">"
             . $settings['name']
             . "</span><br />\n&nbsp;&nbsp;<input type='text' id=\""
-            . "${tr_cat}_email\" name=\"${tr_cat}_email\" value=\""
+            . "{$tr_cat}_email\" name=\"{$tr_cat}_email\" value=\""
             . utils_specialchars ($settings['email'])
             . "\" size='50' maxlength='255' />\n"
             . "&nbsp;&nbsp;<span class='preinput'>("
@@ -252,7 +252,7 @@ function trackers_data_show_notification_settings (
           . "mail\nnotification for private items.")
       . "</p>\n";
 
-  $txt_name = "${tracker}_private_exclude_address";
+  $txt_name = "{$tracker}_private_exclude_address";
   print "<span class='preinput'><label for=\"$txt_name\">"
     . _("Exclude List:") . "</label></span><br />\n&nbsp;&nbsp;"
     . "<input type='text' id=\"$txt_name\" name=\"$txt_name\" value=\""
@@ -1299,7 +1299,7 @@ function trackers_data_add_history (
     }
 
   $result = db_autoexecute (
-    "${artifact}_history",
+    "{$artifact}_history",
     [
       'bug_id' => $item_id, 'field_name' => $field_name,
       'old_value' => $old_value, 'new_value' => $new_value,
@@ -1340,7 +1340,7 @@ function trackers_data_add_history (
           if ($prev_old_value != $old_value
               || $prev_new_value != $new_value)
           $res = db_autoexecute (
-            "${artifact}_history",
+            "{$artifact}_history",
             ['new_value' => $new_value, 'old_value' => $old_value],
             DB_AUTOQUERY_UPDATE, "bug_history_id = ?", [$insert_id]
           );

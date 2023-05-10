@@ -55,7 +55,7 @@ print "</div><!-- end indexright -->\n";
 print '<div class="indexcenter">';
 utils_get_content ("homepage");
 print "\n<p>&nbsp;</p>\n";
-print $HTML->box_top ("<a href=\"${sys_home}news/\" class='sortbutton'>"
+print $HTML->box_top ("<a href=\"{$sys_home}news/\" class='sortbutton'>"
   . _("Latest News") . '</a>'
 );
 print news_show_latest ($sys_group_id);

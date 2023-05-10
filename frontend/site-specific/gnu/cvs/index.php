@@ -146,7 +146,7 @@ print "</p>\n<p>";
 printf (
   _("The basic information described further on this page is detailed in\n"
     . "the <a href=\"%s\">Savannah user doc</a>."),
-  "${sys_home}faq/?group=$sys_unix_group_name"
+  "{$sys_home}faq/?group=$sys_unix_group_name"
 );
 
 print "</p>\n";

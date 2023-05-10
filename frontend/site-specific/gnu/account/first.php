@@ -49,13 +49,13 @@ print '<p>';
 printf (
   _("You should take some time to read the <a href=\"%1\$s\">Savane User\n"
     . "Guide</a> so that you may take full advantage of %2\$s."),
-    "${sys_home}/maintenance/back-page/", $sys_name
+    "{$sys_home}/maintenance/back-page/", $sys_name
 );
 print "</p>\n<p>";
 printf (
   _("Note that <a href=\"%s\">unused accounts</a>\n"
     . "may be removed without notice."),
-  "${sys_home}maintenance/IdleAccounts/"
+  "{$sys_home}maintenance/IdleAccounts/"
 );
 print "</p>\n";
 ?>

@@ -443,7 +443,7 @@ function utils_user_link ($username, $realname = false, $noneisanonymous = false
       # TRANSLATORS: anonymous user.
       return _("Anonymous");
     }
-  $re = "<a href=\"${sys_home}users/$username\">";
+  $re = "<a href=\"{$sys_home}users/$username\">";
   if ($realname)
     $re .= "$realname &lt;$username&gt;";
   else

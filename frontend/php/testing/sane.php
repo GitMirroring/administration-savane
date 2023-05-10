@@ -2190,7 +2190,7 @@ $reference = 'siteadmin/group_type.php';
   foreach ($hm_dw as $hd)
     $names['specialchars'][] = "url_$hd";
   foreach ($vcs_list as $vcs)
-    $names['specialchars'][] = "url_${vcs}_viewcvs";
+    $names['specialchars'][] = "url_{$vcs}_viewcvs";
   $names['specialchars'][] = "url_cvs_virecvs_homepage";
   foreach (
     [
@@ -2214,7 +2214,7 @@ $reference = 'siteadmin/group_type.php';
   foreach ($conf as $art)
     $names['true'][] = "is_menu_configurable_$art";
   foreach ($vcs_list as $vcs)
-    $names['true'][] = "is_menu_configurable_${vcs}_viewvcs";
+    $names['true'][] = "is_menu_configurable_{$vcs}_viewvcs";
   $names['true'][] = "is_configurable_download_dir";
   $in = $out = [];
   foreach ($names['true'] as $n)
@@ -2305,7 +2305,7 @@ $reference = 'stats/index.php';
   $digit_names = [];
   foreach (['day', 'month', 'year'] as $term)
     foreach (['since', 'until'] as $prep)
-      $digit_names[] = "${prep}_$term";
+      $digit_names[] = "{$prep}_$term";
   $names = ['true' => 'update', 'digits' => $digit_names];
   $in = $out = ['update' => true];
   foreach ($digit_names as $n)

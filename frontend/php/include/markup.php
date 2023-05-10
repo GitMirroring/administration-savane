@@ -677,7 +677,7 @@ function markup_parse_list ($ch, &$stack, &$prev)
   if ($token === false)
     return array_merge (markup_close_lists ($stack, $prev), [$ch]);
   $c = substr ($next, -1, 1);
-  $item = ["${c}li", $matches[2]];
+  $item = ["{$c}li", $matches[2]];
   $ret = [$item];
   if ($token == 'end')
     return array_merge (markup_close_lists ($stack, $prev, $next), $ret);
@@ -686,7 +686,7 @@ function markup_parse_list ($ch, &$stack, &$prev)
   if ($token == 'start')
     array_unshift ($ret, ["$c-start"]);
   elseif ($pr == $next)
-    array_unshift ($ret, ["${c}li-end"]);
+    array_unshift ($ret, ["{$c}li-end"]);
   return $ret;
 }
 

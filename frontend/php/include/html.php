@@ -149,7 +149,7 @@ function html_splitpage ($how)
 function html_image_dir ($theme, $suffix = null)
 {
   global $sys_home;
-  $ret = "${sys_home}images$theme.theme/";
+  $ret = "{$sys_home}images$theme.theme/";
   if ($suffix)
     $ret .= "$suffix/";
   return $ret;
@@ -158,9 +158,9 @@ function html_image_dir ($theme, $suffix = null)
 function html_nextprev_link ($search_url, $varprefix, $offset)
 {
   global $max_rows;
-  print "<a href=\"$search_url&amp;${varprefix}offset="
-    . "$offset&amp;${varprefix}max_rows="
-    . utils_specialchars ($max_rows) . "#${varprefix}results\">";
+  print "<a href=\"$search_url&amp;{$varprefix}offset="
+    . "$offset&amp;{$varprefix}max_rows="
+    . utils_specialchars ($max_rows) . "#{$varprefix}results\">";
 }
 
 function html_nextprev ($search_url, $rows, $rows_returned, $varprefix = false)
@@ -620,13 +620,13 @@ function html_select_permission_box ($artifact, $row, $level = "member")
   else
     {
       $num = $row['user_id'];
-      $value = $row["${artifact}_flags"];
+      $value = $row["{$artifact}_flags"];
       $default = _("Group Default");
     }
 
   print "<td align=\"center\">\n"
     . '<select title="' . _("Roles of members")
-    . "\" name=\"${artifact}_user_$num\">\n";
+    . "\" name=\"{$artifact}_user_$num\">\n";
   if ($default)
     {
       $sel = ' selected="selected"';
@@ -687,7 +687,7 @@ function html_select_restriction_box (
     print "<td align='center'>\n";
 
   print '<select title="' . _("Permission level")
-    . "\" name=\"${artifact}_restrict_event$event\">\n";
+    . "\" name=\"{$artifact}_restrict_event$event\">\n";
 
   if ($default)
     {

@@ -153,7 +153,7 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
         foreach ($trackers as $flag)
           {
             $var = $flag . '_flags';
-            $names[] = $$var = "${flag}_user_{$row_uid}";
+            $names[] = $$var = "{$flag}_user_{$row_uid}";
           }
         $names[] = $perm_regexp;
 
@@ -351,7 +351,7 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
     $names = [];
     foreach ($trackers as $art)
       foreach ([1, 2] as $ev_no)
-        $names[] = "${art}_restrict_event$ev_no";
+        $names[] = "{$art}_restrict_event$ev_no";
     $names[] = $perm_regexp;
     extract (sane_import ('post', ['preg' => [$names]]));
     foreach ($trackers as $art)

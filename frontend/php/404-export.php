@@ -57,7 +57,7 @@ printf (
     . "that there's a broken link on %s that must be repaired, "
     . "<a href=\"%s\">\nfile a support request</a>, mentioning the URL you "
     . "tried to access (%s)."),
-  $sys_name, "${sys_home}support/?group=$sys_unix_group_name",
+  $sys_name, "{$sys_home}support/?group=$sys_unix_group_name",
   utils_specialchars ($_SERVER['REQUEST_URI']));
 print "</p>\n<p>";
 

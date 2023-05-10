@@ -348,7 +348,7 @@ function news_format_item ($row, $show_details, $i)
     }
   $uname = $row['user_name'];
   $return .= ' <span class="smaller"><em>' . _("posted by")
-    . " <a href=\"${sys_home}users/$uname\">$uname</a>, "
+    . " <a href=\"{$sys_home}users/$uname\">$uname</a>, "
     . utils_format_date ($row['date']) . "$reply</em></span>\n$det";
   return $return;
 }

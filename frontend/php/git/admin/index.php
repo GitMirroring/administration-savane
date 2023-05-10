@@ -201,9 +201,9 @@ function show_repo_title ($r)
   if (count ($repos) < 2)
     return;
   print "<p>";
-  print "<a href=\"${url_base}up#$anchor\">" . _("Move up") . "</a>";
+  print "<a href=\"{$url_base}up#$anchor\">" . _("Move up") . "</a>";
   print " &nbsp; ";
-  print "<a href=\"${url_base}down#$anchor\">" . _("Move down") . "</a>";
+  print "<a href=\"{$url_base}down#$anchor\">" . _("Move down") . "</a>";
   print "</p>";
 }
 

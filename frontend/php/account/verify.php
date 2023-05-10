@@ -58,7 +58,7 @@ extract (sane_import ('post',
 
 # Logged users have no business here.
 if (user_isloggedin ())
-  session_redirect ("${sys_home}my/");
+  session_redirect ("{$sys_home}my/");
 
 if (!empty ($update))
   {
@@ -87,7 +87,7 @@ if (!empty ($update))
           "UPDATE user SET status = 'A' WHERE user_name = ?",
           [$form_loginname]
         );
-        session_redirect ("${sys_home}account/first.php");
+        session_redirect ("{$sys_home}account/first.php");
       }
   }
 site_header (['title' => _("Login")]);

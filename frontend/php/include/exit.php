@@ -88,7 +88,7 @@ function exit_not_logged_in ()
   if (!empty ($sys_https_host))
     $domain = "https://$sys_https_host";
 
-  header ("Location: $domain${sys_home}account/login.php?uri=$uri");
+  header ("Location: $domain{$sys_home}account/login.php?uri=$uri");
   exit;
 }
 

@@ -176,13 +176,13 @@ foreach ($url_params as $field => $value_id)
       {
         if ($advsrch)
           {
-            $co_field = "${field}_end";
+            $co_field = "{$field}_end";
             $names =
               ['preg' => [[$field, $co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
           }
         else
           {
-            $co_field = "${field}_op";
+            $co_field = "{$field}_op";
             $names = ['strings' => [[$co_field, trackers_date_op_list ()]]];
           }
         $in = sane_import ('request', $names);
@@ -215,9 +215,9 @@ if ($history_search)
 # $msort = 1 if multicolumn sort activated.
 #
 # if morder not defined then reuse the one in preferences.
-$order_pref = "${preference_prefix}_browse_order$group_id";
-$report_pref = "${preference_prefix}_browse_report$group_id";
-$cust_pref = "${preference_prefix}_brow_cust$group_id";
+$order_pref = "{$preference_prefix}_browse_order$group_id";
+$report_pref = "{$preference_prefix}_browse_report$group_id";
+$cust_pref = "{$preference_prefix}_brow_cust$group_id";
 if (user_isloggedin () && !isset ($morder))
   $morder = user_get_preference ($order_pref);
 
@@ -254,7 +254,7 @@ if (user_isloggedin ())
 
 # If the report type is not defined then get it from group preferences.
 if (!$report_id)
-  $report_id = group_get_preference ($group_id, "${art}_default_query");
+  $report_id = group_get_preference ($group_id, "{$art}_default_query");
 
 if (!$report_id)
   $report_id = 100; # Fallback to 'Basic' report.
@@ -467,7 +467,7 @@ foreach ($url_params as $field => $value_id)
         if ($advsrch)
           {
             list ($time_end, $ok_end) =
-              utils_date_to_unixtime ($url_params["${field}_end"]);
+              utils_date_to_unixtime ($url_params["{$field}_end"]);
             if ($ok)
               {
                 $where .= " AND $art.$field >= ?";
@@ -483,7 +483,7 @@ foreach ($url_params as $field => $value_id)
           }
         else
           {
-            $operator = $url_params["${field}_op"][0];
+            $operator = $url_params["{$field}_op"][0];
             if ($operator == '*')
               $field_defined = ''; # Allow undefined dates in this case.
             elseif ($operator == '=')
@@ -629,13 +629,13 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
     elseif (trackers_data_is_date_field ($field))
       {
         $end_value = '';
-        if (isset ($url_params["${field}_end"]))
-          $end_value = $url_params["${field}_end"];
+        if (isset ($url_params["{$field}_end"]))
+          $end_value = $url_params["{$field}_end"];
 
         $op_value = '';
-        if (isset ($url_params["${field}_op"])
-            && isset ($url_params["${field}_op"][0]))
-          $op_value = $url_params["${field}_op"][0];
+        if (isset ($url_params["{$field}_op"])
+            && isset ($url_params["{$field}_op"][0]))
+          $op_value = $url_params["{$field}_op"][0];
 
         $value = '';
         if (isset ($url_params[$field]) && isset ($url_params[$field][0]))
@@ -805,7 +805,7 @@ while ($field = trackers_list_all_fields ('cmp_place_result'))
     $where .= " AND user_$field.user_id = $art.$field ";
   } # while ($field = trackers_list_all_fields ('cmp_place_result'))
 
-$art_h = "${art}_history";
+$art_h = "{$art}_history";
 
 $froms_count = $froms;
 $froms_count[] = $art;

@@ -42,7 +42,7 @@
 
 ** Multiple PHP notices and warnings were fixed.
 
-** PHP 8.0 => 8.1 incompatibilities were resolved.
+** PHP 8.0 => 8.1 => 8.2 incompatibilities were resolved.
 
 ** Fix regression in markup added in 3.11 (commit e61f3ec357d5a): links
    to image files (file #47102) translated to HTML incorrectly,

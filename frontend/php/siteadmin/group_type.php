@@ -133,7 +133,7 @@ $name_matching = function ($trackers, $vcs_list)
   foreach ($hm_dw as $hd)
     $names['specialchars'][] = "url_$hd";
   foreach ($vcs_list as $vcs)
-    $names['specialchars'][] = "url_${vcs}_viewcvs";
+    $names['specialchars'][] = "url_{$vcs}_viewcvs";
   $names['specialchars'][] = "url_cvs_viewcvs_homepage";
   foreach (
     [
@@ -158,7 +158,7 @@ $name_matching = function ($trackers, $vcs_list)
     if ($art != 'cookbook' && $art != 'news')
       $names['true'][] = "is_menu_configurable_$art";
   foreach ($vcs_list as $vcs)
-    $names['true'][] = "is_menu_configurable_${vcs}_viewcvs";
+    $names['true'][] = "is_menu_configurable_{$vcs}_viewcvs";
   $names['true'][] = "is_configurable_download_dir";
   return $names;
 };
@@ -188,18 +188,18 @@ if ($update)
     $names = [];
     foreach ($trackers as $art)
       {
-        $names[] = "${art}_user_";
-        $names[] = "${art}_restrict_event1";
+        $names[] = "{$art}_user_";
+        $names[] = "{$art}_restrict_event1";
       }
     $names[] = '/^(\d+|NULL)$/';
     extract (sane_import ('post', ['preg' => [$names]]));
     $arg_arr = [];
     foreach ($trackers as $art)
       {
-        $var = "${art}_user_";
-        $arg_arr["${art}_flags"] = $$var;
-        $var = "${art}_restrict_event1";
-        $arg_arr["${art}_rflags"] = $$var;
+        $var = "{$art}_user_";
+        $arg_arr["{$art}_flags"] = $$var;
+        $var = "{$art}_restrict_event1";
+        $arg_arr["{$art}_rflags"] = $$var;
       }
 
     $result = db_autoexecute (
@@ -707,7 +707,7 @@ print '<p>'
 $list_head = html_build_list_table_top ($tracker_labels) . "<tr>\n";
 print $list_head;
 foreach ($trackers as $art)
-  html_select_permission_box ($art, $row_grp["${art}_flags"], "type");
+  html_select_permission_box ($art, $row_grp["{$art}_flags"], "type");
 
 print "</tr>\n</table>\n";
 
@@ -724,7 +724,7 @@ print '<p>'
 
 print $list_head;
 foreach ($trackers as $art)
-  html_select_restriction_box ($art, $row_grp["${art}_rflags"], "type");
+  html_select_restriction_box ($art, $row_grp["{$art}_rflags"], "type");
 print "</tr>\n</table>\n";
 
 $HTML->box1_bottom ();

@@ -58,7 +58,7 @@ if (!empty ($cancel))
     $whichgroup = $cancel;
     foreach ($trackers as $tracker)
       {
-        $tr_cc = "${tracker}_cc";
+        $tr_cc = "{$tracker}_cc";
         if ($whichgroup == 'any')
           {
             # If it all groups, go the easy way

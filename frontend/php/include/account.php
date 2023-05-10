@@ -260,7 +260,7 @@ function account_namevalid ($name, $allow_dashes=0, $allow_underscores=1,
       return 0;
     }
 
-  $char_set = "${alphabet}0123456789$underscore$dash$dot";
+  $char_set = "{$alphabet}0123456789$underscore$dash$dot";
   # Must contain only allowed characters, depending on the arguments.
   if (strspn ($name, $char_set) != strlen ($name))
     {
