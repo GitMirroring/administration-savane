@@ -520,14 +520,10 @@ function account_genunixpw ($plainpw)
 function account_encryptpw ($plainpw)
 {
   $salt = account_gensalt (16);
-  $pfx = '$6$';
   # rounds=5000 is the 2010 glibc default, possibly we'll upgrade in
   # the future, better have this explicit.
   # Cf. http://www.akkadia.org/drepper/sha-crypt.html
-  if (version_compare (PHP_VERSION, '5.3.2', '>='))
-    $ptx = '$6$rounds=5000$';
-  # The PHP version in Lenny 5.2.6 has troubles with the above
-  # (truncated hash at 9 chars).
+  $pfx = '$6$rounds=5000$';
   return crypt ($plainpw, "$pfx$salt");
 }
 
@@ -555,6 +551,10 @@ function account_shellselects ($current)
 
 function account_validpw ($stored_pw, $plain_pw)
 {
-  return (crypt ($plain_pw, $stored_pw) == $stored_pw);
+  if (empty ($stored_pw) || empty ($plain_pw))
+    return false;
+  if (strlen ($stored_pw) < 2) # Disabled account, for sure.
+    return false;
+  return crypt ($plain_pw, $stored_pw) == $stored_pw;
 }
 ?>
