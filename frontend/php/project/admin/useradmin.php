@@ -68,32 +68,37 @@ session_require (['group' => $group_id, 'admin_flags' => 'A']);
 if (!$group_id)
   exit_no_group();
 
+function usr_string ($usr)
+{
+  return "{$usr['realname']} &lt;{$usr['user_name']}&gt;";
+}
+
 function show_pending_users_list ($result, $group_id)
 {
-  print "<h2>" . _("Users Pending for Group") . "</h2>\n<p>"
-    . _("Users that have requested to be member of the group are listed\n"
-        . "here. To approve their requests, select their names and push "
-        . "the button\nbelow. To discard requests, go to the next section "
-        . "called &ldquo;Removing users\nfrom group.&rdquo;")
-    . "</p>\n";
+  print "<h2>" . _("Users Pending for Group") . "</h2>\n<p>";
+  print html_label ('pending_user_list',
+    _("Users that have requested to be member of the group are listed\n"
+      . "here. To approve their requests, select their names and push "
+      . "the button\nbelow. To discard requests, go to the next section "
+      . "called &ldquo;Removing users\nfrom group.&rdquo;")
+  );
+  print "</p>\n";
 
-  print form_tag () . form_hidden (['action' => "approve_for_group"])
-    . "<select title=\"" . _("Users")
-    . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
+  $select = form_tag () . form_hidden (['action' => "approve_for_group"])
+    . "<select id='pending_user_list' name='user_ids[]' size='10' "
+    . "multiple='multiple'>\n";
 
-  $exists = false;
+  $options = '';
   while ($usr = db_fetch_array ($result))
+    $options .= form_option ($usr['user_id'], null, usr_string ($usr));
+
+  if (empty ($options))
     {
-      print "<option value='{$usr['user_id']}'>{$usr['realname']}"
-        . " &lt;{$usr['user_name']}&gt;</option>\n";
-      $exists = true;
+      print '<p id="pending_user_list">' . _("None found") . "</p>\n";
+      return;
     }
 
-  if (!$exists)
-    print '<option>' . _("None found") . "</option>\n";
-
-  print "</select>\n"
-    . "<input type=\"hidden\" name=\"group_id\" value=\"$group_id\" />\n"
+  print "$select$options</select>\n" . form_hidden (['group_id' => $group_id])
     . "<p>\n<input type=\"submit\" name=\"Submit\" value=\""
     . _("Approve users for group") . "\" />\n</p>\n</form>\n";
 }
@@ -101,79 +106,73 @@ function show_pending_users_list ($result, $group_id)
 function show_all_users_remove_list ($result, $result2, $group_id)
 {
   $exists = false;
-  print "<h2>" . _("Removing users from group") . "</h2>\n<p>"
-    . _("To remove users, select their names and push the button\nbelow. "
-        . "The administrators of a project cannot be removed unless they "
-        . "quit.\nPending users are at the bottom of the list.")
-    . "</p>\n";
-  print form_tag () . form_hidden (['action' => "remove_from_group"])
-    . "<select title=\"" . _("Users")
-    . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
+  print "<h2>" . _("Removing users from group") . "</h2>\n<p>";
+  print html_label ('rm_user_list',
+    _("To remove users, select their names and push the button\nbelow. "
+      . "The administrators of a project cannot be removed unless they "
+      . "quit.\nPending users are at the bottom of the list.")
+  );
+  print "</p>\n";
+  $select = form_tag () . form_hidden (['action' => "remove_from_group"])
+    . "<select id='rm_user_list' name='user_ids[]' size='10'"
+    . " multiple='multiple'>\n";
 
-  while ($usr = db_fetch_array($result))
+  $options = '';
+  while ($usr = db_fetch_array ($result))
+    $options .= form_option ($usr['user_id'], null, usr_string ($usr));
+
+  while ($usr = db_fetch_array ($result2))
+    $options .= form_option ($usr['user_id'], null,
+      _("Pending:") . " " . usr_string ($usr)
+    );
+
+  if (empty ($options))
     {
-      if (member_check ($usr['user_id'], $group_id, "A"))
-        continue;
-      print "<option value='{$usr['user_id']}'>{$usr['realname']}"
-        . " &lt;{$usr['user_name']}&gt;</option>\n";
-      $exists = true;
+      print '<p id="rm_user_list">' . _("None found") . "</p>\n";
+      return;
     }
-
-  while ($usr = db_fetch_array($result2))
-    {
-      if (member_check($usr['user_id'], $group_id, "A"))
-        continue;
-      print "<option value='{$usr['user_id']}'>" . _("Pending:") . " "
-        . "{$usr['realname']} &lt;{$usr['user_name']}&gt;</option>\n";
-      $exists = true;
-    }
-
-  if (!$exists)
-    print '<option>' . _("None found") . "</option>\n";
-
-  print "</select>\n<br />\n"
-    . "<input type=\"hidden\" name=\"group_id\" value=\"$group_id\" />\n"
+  print "$select$options</select>\n<br />\n";
+  print form_hidden (['group_id', $group_id])
     . "<p>\n<input type=\"submit\" name=\"Submit\" value=\""
     . _("Remove users from group") . "\" />\n</p></form>\n";
 }
 
 function show_all_users_add_searchbox ($group_id, $previous_search)
 {
-  print '<h2 id="searchuser">' . _("Adding users to group") . "</h2>\n<p>"
-    . _("You can search one or several users to add in the whole users\n"
-        . "database with the following search tool. A list of users, "
-        . "depending on the\nnames you'll type in this form, will be "
-        . "generated.")
-    . "</p>\n" . form_tag ([], "#searchuser")
-    . form_hidden (['action' => 'add_to_group_list'])
-    . "<input type='text' size='35' title=\"" . _("Search users")
-    . '" name="words" value="' . utils_specialchars ($previous_search)
-    . "\" /><br />\n<p>\n<input type='hidden' name='group_id' value='"
-    . "$group_id' />\n<input type='submit' name='Submit' value=\""
+  print '<h2 id="searchuser">' . _("Adding users to group") . "</h2>\n<p>";
+  print html_label ('words',
+    _("You can search one or several users to add in the whole users\n"
+      . "database with the following search tool. A list of users, "
+      . "depending on the\nnames you'll type in this form, will be "
+      . "generated.")
+  );
+  print "</p>\n" . form_tag ([], "#searchuser")
+    . form_hidden (['action' => 'add_to_group_list', 'group_id' => $group_id])
+    . form_input ('text', 'words', $previous_search, "size='35'")
+    . "<br />\n<p>\n<input type='submit' name='Submit' value=\""
     . _("Search users") . "\" />\n</p>\n</form>\n";
 }
 
 function show_all_users_add_list ($result, $group_id)
 {
-  print _("Below is the result of your search in the users database.")
-    . "\n";
-  print form_tag () . form_hidden (['action' => 'add_to_group'])
-    . "<select title=\"" . _("Users")
-    . "\" name=\"user_ids[]\" size=\"10\" multiple>\n";
-  $exists = false;
+  print "<p>"
+    . html_label ('user_add_list', _("Below is the result of your search."))
+    . "</p>\n";
+  $select = form_tag () . form_hidden (['action' => 'add_to_group'])
+    . "<select id='user_add_list' name=\"user_ids[]\" size='10' "
+    . "multiple='multiple'>\n";
+  $options = '';
+  while ($usr = db_fetch_array ($result))
+    $options .= form_option ($usr['user_id'], null, usr_string ($usr));
 
-  while ($usr = db_fetch_array($result))
+  if (empty ($options))
     {
-      print "<option value='{$usr['user_id']}'>{$usr['realname']}"
-        . " &lt;{$usr['user_name']}&gt;</option>\n";
-      $exists = true;
+      print '<p id="user_add_list">' . _("None found") . "</p>\n";
+      return;
     }
-
-  if (!$exists)
-    print '<option>' . _("None found") . "</option>\n";
-
-  print "</select>\n<br />\n<input type=\"hidden\" name=\"group_id\" value=\""
-    . "$group_id\" />\n<p>\n<input type=\"submit\" name=\"Submit\" value=\""
+  print "$select$options</select>\n";
+  print "<p>" . form_hidden (['group_id' => $group_id])
+    . "<input type=\"submit\" name=\"Submit\" value=\""
     . _("Add users to group") . "\" />\n</p>\n</form>\n";
 }
 
@@ -225,56 +224,40 @@ site_project_header (
   ['title' => _("Manage Members"), 'group' => $group_id, 'context' => 'ahome']
 );
 
-$result =  db_execute ("
-  SELECT user.user_id, user.user_name, user.realname
-  FROM user, user_group
-  WHERE
-    user.user_id = user_group.user_id
-    AND user_group.group_id = ? AND admin_flags = 'P'
-  ORDER BY user.user_name", array($group_id));
+function user_admin_query ($cond)
+{
+  global $group_id;
+  return db_execute ("
+    SELECT u.user_id, u.user_name, u.realname
+    FROM user u, user_group g
+    WHERE u.user_id = g.user_id AND g.group_id = ? AND $cond
+    ORDER BY u.user_name", [$group_id]
+  );
+}
 
-show_pending_users_list ($result, $group_id);
+$res_pending = user_admin_query ("admin_flags = 'P'");
+
+show_pending_users_list ($res_pending, $group_id);
+db_data_seek ($res_pending);
 print "<br />\n";
 
-$result =  db_execute ("
-  SELECT
-    user.user_id, user.user_name, user.realname
-  FROM user, user_group
-  WHERE
-    user.user_id = user_group.user_id
-    AND user_group.group_id = ? AND admin_flags <> 'A'
-    AND admin_flags <> 'P' AND admin_flags <> 'SQD'
-  ORDER BY user.user_name",
-  array($group_id)
-);
+$res_active = user_admin_query ("NOT admin_flags IN ('A', 'P', 'SQD')");
 
-$result2 =  db_execute ("
-  SELECT
-    user.user_id, user.user_name, user.realname
-  FROM user, user_group
-  WHERE
-    user.user_id = user_group.user_id
-    AND user_group.group_id = ? AND admin_flags = 'P'
-    AND admin_flags <> 'SQD'
-  ORDER BY user.user_name",
-  array($group_id)
-);
+show_all_users_remove_list ($res_active, $res_pending, $group_id);
 
-show_all_users_remove_list ($result, $result2, $group_id);
 print "<br />\n";
 
 if ($words)
   {
-    $keywords = explode(' ',$words);
-    list($kw_sql, $kw_sql_params) =
+    $keywords = explode (' ', $words);
+    list ($kw_sql, $kw_sql_params) =
       search_keywords_in_fields (
-        $keywords,['user_name', 'realname', 'user_id'], 'OR'
+        $keywords, ['user_name', 'realname', 'user_id'], 'OR'
       );
     $result = db_execute ("
       SELECT user_id, user_name, realname
-      FROM user
-      WHERE $kw_sql AND (status = 'A')
-      ORDER BY user_name LIMIT 0,26",
+      FROM user WHERE $kw_sql AND status = 'A'
+      ORDER BY user_name LIMIT 26",
       $kw_sql_params
     );
   }

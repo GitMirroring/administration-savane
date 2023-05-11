@@ -605,9 +605,9 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
         $boxes .= "\n<tr align=\"$align\" valign='top'>";
       }
 
-    $labels .= '<td>'
-      . trackers_field_label_display ($field, $group_id, false, false)
-      . "</td>\n";
+    $labels .= '<td><span class="smaller">'
+      . trackers_field_label_display ($field, $group_id)
+      . "</span></td>\n";
     $boxes .= '<td><span class="smaller">';
 
     if (trackers_data_is_select_box ($field))

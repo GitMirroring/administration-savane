@@ -41,33 +41,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function bookmark_add ($bookmark_url, $bookmark_title='')
+function bookmark_add ($bookmark_url, $bookmark_title = null)
 {
-  if (!$bookmark_title)
-    { $bookmark_title = $bookmark_url; }
+  if (empty ($bookmark_title))
+    $bookmark_title = $bookmark_url;
 
-  $result = db_autoexecute('user_bookmarks',
-    array('user_id' => user_getid(),
-	  'bookmark_url' => $bookmark_url,
-	  'bookmark_title' => $bookmark_title),
-    DB_AUTOQUERY_INSERT);
+  $result = db_autoexecute ('user_bookmarks',
+    [ 'user_id' => user_getid (), 'bookmark_url' => $bookmark_url,
+      'bookmark_title' => $bookmark_title],
+    DB_AUTOQUERY_INSERT
+  );
   if (!$result)
-    { print db_error(); }
+    print db_error ();
 }
 
 function bookmark_edit ($bookmark_id, $bookmark_url, $bookmark_title)
 {
   db_autoexecute('user_bookmarks',
-    array('bookmark_url' => $bookmark_url,
-	  'bookmark_title' => $bookmark_title),
-    DB_AUTOQUERY_UPDATE,
-    "bookmark_id=? AND user_id=?",
-    array($bookmark_id, user_getid()));
+    ['bookmark_url' => $bookmark_url, 'bookmark_title' => $bookmark_title],
+    DB_AUTOQUERY_UPDATE, "bookmark_id = ? AND user_id = ?",
+    [$bookmark_id, user_getid ()]
+  );
 }
 
 function bookmark_delete ($bookmark_id)
 {
-  db_execute("DELETE from user_bookmarks WHERE bookmark_id=? AND user_id=?",
-	     array($bookmark_id, user_getid()));
+  db_execute (
+    "DELETE from user_bookmarks WHERE bookmark_id = ? AND user_id = ?",
+    [$bookmark_id, user_getid ()]
+  );
 }
 ?>

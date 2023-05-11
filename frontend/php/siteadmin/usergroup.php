@@ -159,7 +159,7 @@ function entry_text ($entry)
   elseif ($entry['spamscore'] < 0)
     $details = markup_rich ($details);
   elseif ($details !== null)
-    $details = htmlentities ($details);
+    $details = utils_specialchars ($details);
   return $details;
 }
 

@@ -117,7 +117,7 @@ if (user_ismember ($group_id, 'A'))
   trackers_data_show_notification_settings ($group_id, ARTIFACT, 1);
 
 print "\n<p align='center'><input type='submit' name='submit' class='bold' "
-  . 'value="' . _("Submit Changes") . "\" />\n</form>\n";
+  . 'value="' . _("Submit Changes") . "\" /></p>\n</form>\n";
 
 trackers_footer ([]);
 ?>

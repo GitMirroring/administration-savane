@@ -301,21 +301,20 @@ while ($field_name = trackers_list_all_fields ())
     # assigned_to, status_id and priority too, for technicians
     # (if super_user, do nothing).
     if (!$is_manager
-        && ($field_name == 'status_id'
-            || $field_name == 'assigned_to'
-            || $field_name == 'priority'
-            || $field_name == 'originator_email'))
+        && (in_array ($field_name,
+            ['status_id', 'assigned_to', 'priority', 'originator_email'])))
       {
         $value = trackers_field_display ($field_name, $group_id, $field_value,
-                                        false, false, true);
+          false, false, true
+        );
         if ($field_name == 'originator_email')
           $value = utils_email_basic ($value);
       }
     else
       $value = trackers_field_display ($field_name, $group_id, $field_value,
-                                      false, false, $ro_fields, false, false,
-                                      _("None"), false,
-                                      _("Any"), true);
+        false, false, $ro_fields, false, false, _("None"), false, _("Any"),
+        true
+      );
 
     # Check if the field is mandatory.
     $star = '';
@@ -798,13 +797,13 @@ if (user_isloggedin() && !$item_discussion_lock)
       . "<p class='noprint'><span class='preinput'><label for='add_cc'>"
       . _("Add Email Addresses (comma as separator):")
       . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" id="add_cc" name="add_cc" size="40" value="'
-      . utils_specialchars ($add_cc) . '" />&nbsp;&nbsp;&nbsp;'
+      . form_input ('text', 'add_cc', $add_cc,  'size="40"')
+      . '&nbsp;&nbsp;&nbsp;'
       . "\n<br />\n<span class='preinput'><label for='cc_comment'>"
       . _("Comment:") . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" id="cc_comment" name="cc_comment" '
-      . 'size="40" maxlength="255" value="'
-      . utils_specialchars ($cc_comment) . '" />';
+      . form_input ('text', "cc_comment", $cc_comment,
+          'size="40" maxlength="255"')
+      . "\n";
     print "<p>&nbsp;</p>\n";
   }
 show_item_cc_list ($item_id, $group_id);

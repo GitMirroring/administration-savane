@@ -72,7 +72,7 @@ function form_header (
     fb (_("System error while creating the form, report it to admins"), 1);
 
   return "\n<form action=\""
-    . htmlentities ($action) . "\" method=\"$method\"$extra>"
+    . utils_specialchars ($action) . "\" method=\"$method\"$extra>"
     . form_hidden (["form_id" => $form_id]);
 }
 
@@ -97,7 +97,7 @@ function form_tag ($args = [], $action_suffix = '')
 function form_input ($type, $name, $value = "", $extra = false)
 {
   if ($value !== "")
-    $value = 'value="' . htmlentities ($value) . '"';
+    $value = 'value="' . utils_specialchars ($value) . '"';
   if ($extra)
     $extra = " $extra";
   $id_attr = " id=\"$name\"";
@@ -111,7 +111,9 @@ function form_radio ($name, $value, $attr)
   $extra = '';
   if (!empty ($attr['checked']))
     $extra .= "checked='checked' ";
-  if (!empty ($attr['id'] !== false))
+  if (empty ($attr['id']) && !empty ($attr['label']))
+    $attr['id'] = "val_{$value}_$name";
+  if (!empty ($attr['id']))
     $extra .= "id=\"{$attr['id']}\"";
   $ret = form_input ('radio', $name, $value, $extra);
   if (empty ($attr['label']) || empty ($attr['id']))

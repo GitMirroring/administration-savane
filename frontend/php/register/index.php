@@ -203,7 +203,7 @@ $group_type = $form_values['group_type'];
 db_autoexecute ('groups',
   [
     'group_name' => utils_specialchars ($form_full_name),
-    'unix_group_name' => strtolower($form_values['unix_name']),
+    'unix_group_name' => strtolower ($form_values['unix_name']),
     'status' => 'P', 'is_public' => 1, 'register_time' => time(),
     'register_purpose' => utils_specialchars ($form_purpose),
     'required_software' => utils_specialchars ($form_required_sw),

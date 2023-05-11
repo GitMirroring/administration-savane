@@ -131,8 +131,7 @@ function account_password_help ()
   $help .= " " . sprintf (_("For instance: %s."), utils_specialchars ($pwqgen));
   $help .= " <br />\n"
     . sprintf (
-        _("pwqcheck options are '%s':"),
-        utils_specialchars ($pwqcheck_args)
+        _("pwqcheck options are '%s':"), utils_specialchars ($pwqcheck_args)
       );
   $help .= expand_pwqcheck_options ();
   return $help;

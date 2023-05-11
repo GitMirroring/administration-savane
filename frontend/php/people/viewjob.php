@@ -111,7 +111,7 @@ if ($project->getTypeDescription())
   print "<p>" . markup_full ($project->getTypeDescription()) . "</p>\n";
 print "<p>";
 if ($project->getLongDescription())
-  print markup_full (utils_specialchars ($project->getLongDescription()));
+  print markup_full (utils_specialchars ($project->getLongDescription ()));
 elseif ($project->getDescription())
   print $project->getDescription();
 print "</p>\n";

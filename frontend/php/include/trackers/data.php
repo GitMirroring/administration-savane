@@ -59,7 +59,7 @@ function trackers_data_get_all_fields ($group_id = false, $reload = false)
   global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME, $AT_START;
 
   if (!ctype_alnum (strval (ARTIFACT)))
-    util_die ("Invalid ARTIFACT name: " . utils_specialchars (ARTIFACT));
+    util_die ("Invalid ARTIFACT name: " . ARTIFACT);
 
   # Do nothing if already set and reload not forced.
   if (isset ($BF_USAGE_BY_ID) && !$reload)
@@ -172,14 +172,13 @@ function trackers_data_show_notification_settings (
   );
   if (!(user_ismember ($group_id, 'A')))
     return;
-  $check = ' checked="checked" ';
-  $cat_ck = $glob_ck = $both_ck ='';
+  $cat_ck = $glob_ck = $both_ck = false;
   if ($grtrsettings['glnotif'] == 0)
-    $cat_ck = $check;
+    $cat_ck = true;
   if ($grtrsettings['glnotif'] == 1)
-    $glob_ck = $check;
+    $glob_ck = true;
   if ($grtrsettings['glnotif'] == 2)
-    $both_ck = $check;
+    $both_ck = true;
   $cat_n = $grtrsettings['nb_categories'];
   if ($cat_n > 0)
     {
@@ -190,38 +189,41 @@ function trackers_data_show_notification_settings (
                 . "depend on item categories, and provide the respective "
                 . "email addresses (comma-separated list).")
              . "</p>\n";
-      print "<input type='radio' name=\"{$tracker}_notif_scope\" "
-        . "value='global'$glob_ck/>&nbsp;&nbsp;<span class='preinput'>"
-        . _("Notify persons in the global list only") . "</span><br />\n"
-        . "<input type='radio' name=\"{$tracker}_notif_scope\" "
-        . "value='category'$cat_ck/>&nbsp;&nbsp;<span class='preinput'>"
-        . _("Notify persons in the category related list "
-            . "instead of the global list") . "</span><br />\n"
-        . "<input type='radio' name=\"{$tracker}_notif_scope\" "
-        . "value='both'$both_ck/>&nbsp;&nbsp;<span class='preinput'>"
-        . _("Notify persons in the category related list in addition to "
-            . "the global list")
-        . "</span><br />\n<h2>" . _("Category related lists") . "</h2>\n";
-      print "<input type='hidden' name=\"{$tracker}_nb_categories\" "
-        . "value=\"$cat_n\" />\n";
+      $cases = [
+        'global' => [$glob_ck, _("Notify persons in the global list only")],
+        'category' => [
+            $cat_ck,
+            _("Notify persons in the category-related list "
+              . "instead of the global list")
+          ],
+         'both' => [
+            $both_ck,
+            _("Notify persons in the category-related list "
+              . "in addition to the global list")]
+      ];
+      foreach ($cases as $val => $data)
+        print form_radio ("{$tracker}_notif_scope", $val,
+          ['checked' => $data[0], 'label' => $data[1]]
+        )
+        . "<br />\n";
+      print "\n<h2>" . _("Category-related lists") . "</h2>\n";
+      print form_hidden (["{$tracker}_nb_categories" => $cat_n]);
 
       for ($i = 0; $i < $cat_n ; $i++)
         {
-          $tr_cat = $tracker . '_cat_' . $i;
+          $tr_cat = "{$tracker}_cat_$i";
           $cb_name = $tr_cat . '_send_all_flag';
           $settings = $grtrsettings['category'][$i];
-          print '<input type="hidden" name="' . $tr_cat . '_bug_fv_id" value="'
-            . $settings['fv_id'] . '" />';
-          print "<span class='preinput'><label for=\"{$tr_cat}_email\">"
-            . $settings['name']
-            . "</span><br />\n&nbsp;&nbsp;<input type='text' id=\""
-            . "{$tr_cat}_email\" name=\"{$tr_cat}_email\" value=\""
-            . utils_specialchars ($settings['email'])
-            . "\" size='50' maxlength='255' />\n"
+          print form_hidden (["{$tr_cat}_bug_fv_id" => $settings['fv_id']]);
+          print "<span class='preinput'>"
+            . html_label ("{$tr_cat}_email", $settings['name'])
+            . "</span><br />\n&nbsp;&nbsp;"
+            . form_input ('text', "{$tr_cat}_email", $settings['email'],
+                "size='50' maxlength='255'")
             . "&nbsp;&nbsp;<span class='preinput'>("
             . form_checkbox ($cb_name, $settings['send_all_flag'])
-            . "<label for=\"$cb_name\">" . _("Send on all updates")
-            . ")</label></span><br />\n";
+            . html_label ($cb_name, _("Send on all updates"))
+            . ")</span><br />\n";
         }
       print '<h2>' . _("Global list") . "</h2>\n";
     }
@@ -235,17 +237,15 @@ function trackers_data_show_notification_settings (
 
   $cb_name = "{$tracker}_send_all_changes";
   $txt_name = "{$tracker}_new_item_address";
-  print "<span class='preinput'><label for=\"$txt_name\">"
-    . _("Global List:") . "</label></span><br />\n&nbsp;&nbsp;"
-    . "<input type='text' id=\"$txt_name\" name=\"$txt_name\""
-    . 'value="' . utils_specialchars ($grtrsettings['glnewad'])
-    . '" size="50" maxlength="255" />
-      &nbsp;&nbsp;<span class="preinput">('
+  print "<span class='preinput'>" . html_label ($txt_name, _("Global List:"))
+    . "</span><br />\n&nbsp;&nbsp;"
+    . form_input ('text', $txt_name, $grtrsettings['glnewad'],
+        'size="50" maxlength="255"')
+    . ' &nbsp;&nbsp;<span class="preinput">('
     . form_checkbox ($cb_name, $grtrsettings['glsendall'])
-    . "<label for=\"$cb_name\">"
-    . _("Send on all updates") . '</label>)</span>';
+    . html_label ($cb_name, _("Send on all updates")). ")</span>\n";
 
-  print '<h2>' . _("Private items exclude list") . "</h2>\n";
+  print "\n<h2>" . _("Exclusions for private items") . "</h2>\n";
   if ($show_intro_msg != 0)
     print '<p>'
       . _("Addresses registered in this list will be excluded from default "
@@ -255,9 +255,9 @@ function trackers_data_show_notification_settings (
   $txt_name = "{$tracker}_private_exclude_address";
   print "<span class='preinput'><label for=\"$txt_name\">"
     . _("Exclude List:") . "</label></span><br />\n&nbsp;&nbsp;"
-    . "<input type='text' id=\"$txt_name\" name=\"$txt_name\" value=\""
-    . utils_specialchars ($grtrsettings['private_exclude'])
-    . "\" size='50' maxlength='255' /><br />\n";
+    . form_input ('text', $txt_name, $grtrsettings['private_exclude'],
+        "size='50' maxlength='255'")
+    . "<br />\n";
 }
 
 function trackers_data_post_notification_settings ($group_id, $tracker)
@@ -1217,8 +1217,7 @@ function trackers_data_get_attached_files ($item_id = false, $order = 'DESC')
 {
   if ($order != 'DESC' && $order != 'ASC')
     util_die (
-      "trackers_data_get_attached_files: invalid \$order '"
-      . htmlescape ($order) . "')"
+      "trackers_data_get_attached_files: invalid \$order '$order')"
     );
 
   return db_execute ("
@@ -2466,7 +2465,7 @@ function trackers_data_count_field_value_usage (
   if (!preg_match ('/^[a-z0-9_]+$/', $field))
     util_die (
       'trackers_data_count_field_value_usage: invalid $field <em>'
-      . utils_specialchars ($field) . '</em>'
+      . $field . '</em>'
     );
   $res = db_execute ("
     SELECT COUNT(*) AS count FROM " . ARTIFACT . "

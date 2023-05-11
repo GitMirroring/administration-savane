@@ -100,11 +100,11 @@ foreach ($artifacts as $art => $label)
     $show_intro = 0;
     print "<br />\n";
   }
-$news_address = utils_specialchars ($row_grp['new_news_address']);
 print_h2 (_("News Manager Email Notification Settings"));
 print '<span class="preinput">' . _("Carbon-Copy List:")
-  . "</span><br />\n&nbsp;&nbsp;<input type='text' name='form_news_address' "
-  . "value=\"{$news_address}\" size=\"40\" maxlength=\"255\" />"
+  . "</span><br />\n&nbsp;&nbsp;"
+  . form_input ('text', 'form_news_address', $row_grp['new_news_address'],
+      "size='40' maxlength='255'")
   . "<br /><br />\n";
 
 print "\n<p align='center'><input type='submit' name='update' value='"

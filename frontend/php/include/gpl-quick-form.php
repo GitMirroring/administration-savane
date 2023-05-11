@@ -136,7 +136,7 @@ class GPLQuickForm_Element
       $title = $this->title;
     $label = '';
     if ($title)
-      $label = 'title="' . utils_specialchars ($title, ENT_QUOTES) . '" ';
+      $label = 'title="' . utils_specialchars ($title) . '" ';
     return $label;
   }
 
@@ -172,10 +172,10 @@ class GPLQuickForm_Element
     print '<p>';
     print "<b><label $for_attr>{$this->title}</label></b>&nbsp;\n&nbsp;";
     if ($this->frozen)
-      print "$value<input type='hidden' $name_attr value='$esc_val' />\n";
+      print "$value<input type='hidden' $name_attr value=\"$esc_val\" />\n";
     else
       print "<input type='text' " . $this->title_attr ()
-        . "$name_attr value='$esc_val' />\n";
+        . "$name_attr value=\"$esc_val\" />\n";
     if (!empty ($this->error))
       print "&nbsp;&nbsp; <span class='error'>$this->error</span>";
     if (!$this->frozen && !empty ($this->label))
@@ -209,7 +209,7 @@ class GPLQuickForm_Element
         print "<input type='hidden' $name_attr value='$value' />";
         return;
       }
-    $esc_val = utils_specialchars ($value, ENT_QUOTES);
+    $esc_val = utils_specialchars ($value);
     if ($this->type == 'checkbox')
       {
         $this->display_checkbox ($value);
@@ -230,7 +230,7 @@ class GPLQuickForm_Element
         if ($this->frozen)
           print "*****";
         else
-          print "<input type='password' $name_attr value='$esc_val' />\n";
+          print "<input type='password' $name_attr value=\"$esc_val\" />\n";
         break;
 
       case 'select':
@@ -459,19 +459,20 @@ class GPLQuickForm
               {
                 $form_is_valid = false;
                 $elt_is_valid[$name] = false;
-                $elt->setError($error_message);
+                $elt->setError ($error_message);
               }
           }
       }
     return $form_is_valid;
   }
 
-  public function display()
+  public function display ()
   {
-    print "<form class='gpl-quick-form' id='$this->name' action='"
-      . htmlentities ($_SERVER['PHP_SELF']) . "' method='$this->method'>\n";
+    print "<form class='gpl-quick-form' id='{$this->name}' action=\""
+      . utils_specialchars ($_SERVER['PHP_SELF'])
+      . "\" method='{$this->method}'>\n";
     foreach ($this->elements as $element)
-      $element->display();
+      $element->display ();
     print "\n</form>\n";
   }
 }

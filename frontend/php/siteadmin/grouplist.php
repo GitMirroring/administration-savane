@@ -120,9 +120,9 @@ print "<br />\n"
   . no_i18n ("or search by group_id, group_unix_name or group_name:");
 
 print "\n"
-  . "<form name='gpsrch' action='grouplist.php' method='POST'>\n"
-  . "<input type='text' title=\"" . no_i18n ("Group name")
-  . "\" name='search' value =\"" . utils_specialchars ($search) . "\" />\n"
+  . form_tag (['name' => 'gpsrch'])
+  . form_input ('text', 'search', $search,
+     'title="' . no_i18n ("Group name") . '"') . "\n"
   . form_hidden (['groupsearch' => '1'])
   . "<input type='submit' value=\"" . no_i18n ("Search") . "\" />\n"
   . "</form>\n</p>\n";
@@ -150,8 +150,8 @@ elseif (!empty ($status_arr[$status]))
   }
 elseif ($groupsearch)
 {
-  $msg = no_i18n ("Groups that match") . " <strong>'"
-    . utils_specialchars ($search) . "'</strong>\n";
+  $msg = no_i18n ("Groups that match") . " <b>'"
+    . utils_specialchars ($search) . "'</b>\n";
   $where = "group_id LIKE '%$search%' OR unix_group_name "
     . "LIKE '%$search%' OR group_name LIKE '%$search%'";
   $search_url = "&groupsearch=1&search=" . utils_urlencode ($search);

@@ -152,9 +152,9 @@ function trackers_field_label_display (
   $output = '';
 
   if (!$ascii)
-    $output .= '<span class="preinput"><span class="help" title="'
+    $output .= "<span class='preinput help' title=\""
       . trackers_data_get_description ($field_name) . '">'
-      . "$label</span></span>";
+      . "$label</span>";
 
   if ($break)
     $output .= ($ascii? "\n": '<br />');
@@ -735,9 +735,8 @@ function trackers_artifact_is_sane (&$artifact)
   if (ctype_alnum (strval ($artifact)))
     return true;
 
-  $arg = '<em>' . utils_specialchars ($artifact) . '</em>';
   # TRANSLATORS: the argument is name of artifact (like bugs or patches).
-  util_die (sprintf (_('Invalid artifact %s'), $arg));
+  util_die (sprintf (_('Invalid artifact %s'), "<em>$artifact</em>"));
   return false; # Just in case.
 }
 

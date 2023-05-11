@@ -406,7 +406,8 @@ function utils_unconvert_htmlspecialchars ($string)
   if (strlen ($string) < 1)
     return '';
   return str_replace (
-    ['&nbsp;', '&quot;', '&gt;', '&lt;', '&amp;'], [' ', '"', '>', '<', '&',],
+    ['&nbsp;', '&quot;', '&gt;', '&lt;', '&#039;', '&apos;',  '&amp;'],
+    [' ',      '"',      '>',    '<',     "'",      "'",      '&'],
     $string
   );
 }
@@ -423,7 +424,7 @@ function utils_result_column_to_array ($result, $col = 0, $localize = false)
     {
       $val = db_result ($result, $i, $col);
       if ($localize)
-        $val = utils_htmlentities (gettext ($val));
+        $val = utils_specialchars (gettext ($val));
       $arr[$i] = $val;
     }
   return $arr;
@@ -702,6 +703,7 @@ function temp_dbg ($msg)
 function util_die ($msg)
 {
   trigger_error ($msg);
+  $msg = utils_specialchars ($msg);
   if (empty ($GLOBALS['sys_debug_on']))
     die ($msg);
   print "<strong>Fatal error:</strong> $msg<br />";
@@ -909,7 +911,7 @@ function utils_specialchars ($string, $flags = ENT_COMPAT)
 {
   if ($string === null)
     $string = '';
-  return htmlspecialchars ($string, $flags);
+  return htmlspecialchars ($string, $flags, 'UTF-8');
 }
 function utils_specialchars_decode ($string, $flags = ENT_COMPAT)
 {
@@ -921,7 +923,7 @@ function utils_htmlentities ($string, $flags = ENT_COMPAT)
 {
   if ($string === null)
     $string = '';
-  return htmlentities ($string, $flags);
+  return htmlentities ($string, $flags, 'UTF-8');
 }
 function utils_urlencode ($string)
 {

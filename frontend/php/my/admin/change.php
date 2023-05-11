@@ -576,9 +576,11 @@ elseif ($item == "gpgkey")
     if (!$newvalue)
       $newvalue = $row_user['gpg_key'];
 
-    $input_specific .= '<textarea title="' . _("New GPG key")
-      . '" cols="70" rows="20" wrap="virtual" name="newvalue">'
-      . utils_specialchars ($newvalue) . "</textarea>\n";
+    $input_specific .= form_textarea (
+      'newvalue', utils_specialchars ($newvalue),
+      'title="' . _("New GPG key") . '" cols="70" rows="20" wrap="virtual"'
+    );
+    $input_specific .= "\n";
     $input_specific .= '<p><input type="submit" name="test_gpg_key" value="'
       . _("Test GPG keys") . '" /> '
       . _("(Testing is recommended before updating.)") . "</p>\n"

@@ -73,8 +73,7 @@ if ($preamble)
 print '<h2>' . _("Details") . "</h2>\n";
 
 # Beginning of the submission form with fixed fields.
-print form_header (
-  $_SERVER['PHP_SELF'], $form_id, "post",
+print form_header ($php_self, $form_id, "post",
   'enctype="multipart/form-data" name="trackers_form"'
 );
 print form_hidden (["func" => "postadditem", 'group_id' => $group_id]);
@@ -246,31 +245,26 @@ if (user_isloggedin ())
     print '<p><span class="preinput">'
       . _("Add Email Addresses (use comma as separator):")
       . "</span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" name="add_cc" size="40" value="'
-      . utils_specialchars ($add_cc) . "\" />&nbsp;&nbsp;&nbsp;\n"
+      . form_input ('text', 'add_cc', $add_cc, 'size="40"')
+      . "&nbsp;&nbsp;&nbsp;\n"
       . "<br />\n<span class='preinput'>" . _("Comment:")
       . "</span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" name="cc_comment" value="'
-      . utils_specialchars ($cc_comment) . '" size="40" maxlength="255" />';
+      . form_input ('text', "cc_comment", $cc_comment,
+          'size="40" maxlength="255"');
     print "</p>\n";
   }
 
-# Minimal anti-spam.
 if (empty ($fields['check']))
   $check = '';
 else
-  $check = utils_specialchars ($fields['check']);
+  $check = $fields['check'];
 if (!user_isloggedin ())
   print '<p class="noprint">'
     . _("Please enter the title of <a\n"
         . "href=\"https://en.wikipedia.org/wiki/George_Orwell\">George "
         . "Orwell</a>'s famous\ndystopian book (it's a date):")
-    . "\n<input type='text' value=\"$check\" name='check' /></p>\n";
+    . "\n" . form_input ('text', 'check', $check) . "</p>\n";
 
-print "<p>&nbsp;</p>\n";
-print '<p><span class="warn">'
-  . _("Did you check to see if this item has already been submitted?")
-  . "</span></p>\n";
 print '<div align="center">';
 print form_submit (false, "submit", 'class="bold"');
 print "</div>\n";

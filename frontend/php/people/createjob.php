@@ -55,30 +55,23 @@ site_project_header (
     'group' => $group_id,'context' => 'ahome']
 );
 
-utils_get_content("people/createjob");
+utils_get_content ("people/createjob");
 
-print '
-<form action="' . $GLOBALS['sys_home'] . 'people/editjob.php" method="POST">
-<input type="hidden" name="group_id" value="'
-  . utils_specialchars ($group_id) . '" />
-<strong>'
- . _("Category:") . "</strong><br />\n"
- .  people_job_category_box ('category_id') . '
-<p><strong><label for="title">'
- . _("Summary:") . '</label></strong><br />
-<input type="text" id="title" name="title" value="" size="40" maxlength="60" />
-</p>
-<p>'
-  . _("Your project description will be inserted on the announce.") . '
-<p><strong><label for="description">'
-  . _("Details (job description, contact...):") . '</label></strong><br />
-<textarea name="description" id="description" rows="10" cols="60"
-          wrap="soft"></textarea>
-</p>
-<p><input type="submit" name="add_job" value="'
-  . _("continue >>") . '" />
-</p>
-</form>
-';
+print form_tag (['action' => $GLOBALS['sys_home'] . 'people/editjob.php'])
+  . form_hidden (['group_id' => $group_id])
+  . '<b>' . _("Category:") . "</b><br />\n"
+  .  people_job_category_box ('category_id')
+  . "\n<p><b>" . html_label ('title', _("Summary:"))
+  . "</b><br />\n"
+  . form_input ('text', 'title', '', 'size="40" maxlength="60"')
+  . "</p>\n<p>"
+  . _("Your group description will be inserted on the announce.")
+  . "</p>\n<p>"
+  . html_label ('description', _("Details (job description, contact...):"))
+  . "</b><br />\n"
+  . form_textarea ('description', '', 'rows="10" cols="60" wrap="soft"')
+  . "</p>\n<p>"
+  . '<input type="submit" name="add_job" value="'
+  . _("continue >>") . "\" />\n</p>\n</form>\n";
 site_project_footer ([]);
 ?>

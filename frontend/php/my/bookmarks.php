@@ -71,25 +71,18 @@ if ($edit)
         );
         if ($result)
           {
-            $title = utils_specialchars (
-              db_result ($result, 0, 'bookmark_title')
-            );
-            $url = utils_specialchars (
-               db_result ($result, 0, 'bookmark_url')
-            );
+            $title = db_result ($result, 0, 'bookmark_title');
+            $url = db_result ($result, 0, 'bookmark_url');
 
             print form_tag ();
             print '<span class="preinput">' . _("Title:") . "</span><br />\n";
-            print '&nbsp;&nbsp;&nbsp;<input type="text" '
-              . 'name="title" value="' . $title . '" size="50" />';
+            print '&nbsp;&nbsp;&nbsp;'
+              . form_input ('text', 'title', $title, 'size="50"');
             print "<br />\n" . '<span class="preinput">';
-            print  _("Address:") . "</span><br />\n";
-            print '&nbsp;&nbsp;&nbsp;<input type="text" name="url" value="'
-              . $url .'" size="50" />' . "\n";
-            print '<p><input type="hidden" name="edit" value="'
-              . $edit . '" /></p>' . "\n";
-            print '<p><input type="submit" name="update" value="'
-              . _("Update") . '" /></p>' . "\n";
+            print  _("Address:") . "</span><br />\n&nbsp;&nbsp;&nbsp;";
+            print form_input ('text', "url",  $url, 'size="50"') . "\n";
+            print form_hidden (['edit' => $edit]) . "\n<p>";
+            print form_submit (_("Update"), 'update', false, true) . "</p>\n";
             print "</form>\n";
           }
         else
@@ -103,29 +96,31 @@ $result = db_execute ("
   [user_getid ()]
 );
 $rows = db_numrows ($result);
-if (!$result || $rows < 1)
-  print _("There is no bookmark saved");
-else
+if (!$rows)
   {
-    print "<br />\n";
-    print $HTML->box_top (_("Saved Bookmarks"), '', 1);
-    print "\n<ul>\n";
-    for ($i = 0; $i < $rows; $i++)
-      {
-        $url = utils_specialchars (db_result ($result, $i, 'bookmark_url'));
-        $title = utils_specialchars (db_result ($result, $i,'bookmark_title'));
-        $bm_id = db_result ($result, $i, 'bookmark_id');
-        print '<li class="' . utils_altrow($i) . '">';
-        print '<span class="trash"><a href="?edit=' . $bm_id . '">'
-          . html_image ('misc/edit.png', ['alt' => _("Edit this bookmark")])
-          . '</a>' . '<a href="?delete=' . $bm_id . '">'
-          . html_image_trash (['alt' => _("Delete this bookmark")])
-          . "</a></span>\n";
-        print "<a href=\"$url\">$title</a><br />\n";
-        print "<span class='smaller'>$url</span></li>\n";
-      }
-    print "</ul>\n";
-    print $HTML->box_bottom (1);
+    print _("There is no bookmark saved");
+    site_user_footer ([]);
+    exit (0);
   }
+print "<br />\n";
+print $HTML->box_top (_("Saved Bookmarks"), '', 1);
+print "\n<ul>\n";
+$i = 0;
+while ($row = db_fetch_array ($result))
+  {
+    $url = utils_specialchars ($row['bookmark_url']);
+    $title = utils_specialchars ($row['bookmark_title']);
+    $bm_id = $row['bookmark_id'];
+    print '<li class="' . utils_altrow ($i++) . '">';
+    print "<span class='trash'><a href=\"?edit=$bm_id\">"
+      . html_image ('misc/edit.png', ['alt' => _("Edit this bookmark")])
+      . "</a> <a href=\"?delete=$bm_id\">"
+      . html_image_trash (['alt' => _("Delete this bookmark")])
+      . "</a></span>\n";
+    print "<a href=\"$url\">$title</a><br />\n";
+    print "<span class='smaller'>$url</span></li>\n";
+  }
+print "</ul>\n";
+print $HTML->box_bottom (1);
 site_user_footer ([]);
 ?>

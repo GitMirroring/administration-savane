@@ -72,7 +72,7 @@ function return_bytes ($v)
   return $val;
 }
 
-function test_gpg()
+function test_gpg ()
 {
   print "\n<h3>GnuPG</h3>\n\n";
 
@@ -85,11 +85,10 @@ function test_gpg()
   print "<dl><dt>GPG command</dt>\n<dd><code>" . $GLOBALS['sys_gpg_name']
         . "</code></dd>\n";
 
-  $d_spec = array (0 => array("pipe", "r"), 1 => array("pipe", "w"),
-                   2 => array("pipe", "w"));
+  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
 
   $gpg_proc = proc_open ("'" . $GLOBALS['sys_gpg_name'] . "' --version",
-                         $d_spec, $pipes, NULL, $_ENV);
+     $d_spec, $pipes, NULL, $_ENV);
   if ($gpg_proc === false)
     {
       print "</dl>\n\n<p><strong>Can't run GPG.</strong></p>\n";
@@ -103,10 +102,10 @@ function test_gpg()
   $dd_pre = "<dd style='border: thin dashed black; border-right: none'>"
             ."<pre style='padding-left: 1em'>\n";
   print "<dt><code>--version</code> output</dt>\n";
-  print $dd_pre . htmlentities ($gpg_output) . "</pre></dd>\n";
+  print $dd_pre . utils_specialchars ($gpg_output) . "</pre></dd>\n";
   print "<dt>Exit code</dt><dd><code>" . $gpg_result . "</code></dd>\n";
   print "<dt><code>stderr</code> output</dt>\n";
-  print $dd_pre . htmlentities ($gpg_stderr) . "</pre></dd>\n";
+  print $dd_pre . utils_specialchars ($gpg_stderr) . "</pre></dd>\n";
   print "</dl>\n";
 }
 
@@ -317,14 +316,12 @@ print "\n<h2>Basic PHP configuration</h2>\n\n";
 print "<p>PHP version: " . phpversion() . "</p>\n";
 
 # cf. http://php.net/manual/en/ini.php
-$phptags = array (
-        'register_globals' => 0,
-        'file_uploads' => 1,
-        'magic_quotes_gpc' => 0,
-);
+$phptags = [
+  'register_globals' => 0, 'file_uploads' => 1, 'magic_quotes_gpc' => 0
+];
 
 # Get all php.ini values.
-$all_inis = ini_get_all();
+$all_inis = ini_get_all ();
 # Define missing constant to interpret the 'access' field.
 define('PHP_INI_SYSTEM', 4);
 # Cf. http://www.php.net/manual/en/ini.core.php
@@ -336,14 +333,14 @@ $unset = 0;
 ksort($phptags);
 foreach ($phptags as $tag => $goodval)
   {
-    if ((htmlentities(ini_get($tag)) == htmlentities($goodval))
-        or ($goodval==0 and !(bool)ini_get($tag)))
-      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n",
-              $tag, htmlentities(ini_get($tag)), htmlentities($goodval));
+    $t = utils_specialchars (ini_get ($tag));
+    $gv = utils_specialchars ($goodval);
+    if ($t == $gv && ($goodval == 0 && !(bool) ini_get ($tag)))
+      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
     elseif (isset($all_inis[$tag]))
       {
         printf ("<tr><td>%s</td><td class=\"different\">%s</td><td>%s",
-                $tag, htmlentities(ini_get($tag)), htmlentities($goodval));
+          $tag, $t, $gv);
         if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
           echo " (can be set in php.ini, .htaccess or httpd.conf)";
         else
@@ -352,10 +349,9 @@ foreach ($phptags as $tag => $goodval)
       }
     else
       {
-        # non-existing ini value
         printf ("<tr><td>%s</td><td class=\"unset\">Unknown</td>"
-                . "<td>%s</td></tr>\n",
-                $tag, htmlentities($goodval));
+          . "<td>%s</td></tr>\n", $tag, $gv
+        );
         $unset = 1;
       }
   }
@@ -365,18 +361,20 @@ $phptags = ['post_max_size' => '3M', 'upload_max_filesize' => '2M'];
 ksort ($phptags);
 foreach ($phptags as $tag => $goodval)
   {
+    $t = utils_specialchars (ini_get ($tag));
+    $gv = utils_specialchars ($goodval);
     if (return_bytes(ini_get($tag)) >= return_bytes($goodval))
       printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n",
-              $tag, htmlentities(ini_get($tag)), htmlentities($goodval));
-    elseif (isset($all_inis[$tag]))
+              $tag, $t, $gv);
+    elseif (isset ($all_inis[$tag]))
       printf ("<tr><td>%s</td><td class=\"different\">%s</td>"
-              . "<td>%s</td></tr>\n",
-              $tag, htmlentities(ini_get($tag)), htmlentities($goodval));
+        . "<td>%s</td></tr>\n", $tag, $t, $gv
+      );
     else
       {
         printf ("<tr><td>%s</td><td class=\"unset\">Unknown*</td>"
-                . "<td>%s</td></tr>\n",
-                $tag,htmlentities($goodval));
+          . "<td>%s</td></tr>\n", $tag, $gv
+        );
         $unset = 1;
       }
   }
@@ -481,7 +479,7 @@ else
         $var = "sys_$tag";
         $value = '<strong>unset</strong>';
         if (isset ($GLOBALS[$var]))
-          $value = htmlentities (print_r ($GLOBALS[$var], true));
+          $value = utils_specialchars (print_r ($GLOBALS[$var], true));
         if ($var == "sys_dbpasswd")
           $value = "**************";
 
@@ -577,14 +575,15 @@ $unset = 0;
 ksort($phptags);
 foreach ($phptags as $tag => $goodval)
   {
-    if (htmlentities(ini_get($tag)) == htmlentities($goodval))
-      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n",
-              $tag, htmlentities(ini_get($tag)), htmlentities($goodval));
-    elseif (isset($all_inis[$tag]))
+    $t = utils_specialchars (ini_get ($tag));
+    $gv = utils_specialchars ($goodval);
+    if ($t == $gv)
+      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
+    elseif (isset ($all_inis[$tag]))
       {
         printf ("<tr><td>%s</td><td class=\"different\">%s</td>"
-                . "<td><code>%s</code>",
-                $tag, htmlentities(ini_get($tag)) ,htmlentities($goodval));
+          . "<td><code>%s</code>", $tag, $t, $gv
+        );
         if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
           echo " (can be set in php.ini, .htaccess or httpd.conf)";
         else
@@ -593,10 +592,9 @@ foreach ($phptags as $tag => $goodval)
       }
     else
       {
-        # non-existing ini value
         printf ("<tr><td>%s</td><td class=\"unset\">Unknown*</td>"
-                . "<td>%s</td></tr>\n",
-                $tag, htmlentities($goodval));
+          . "<td>%s</td></tr>\n", $tag, $gv
+        );
         $unset = 1;
       }
   }

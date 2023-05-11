@@ -176,127 +176,92 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
         . "\" />&nbsp;</span>\n";
     }
 
-  $ret .= '<input type="text" title="' . _("Terms to look for") . '" '
-    . "size=\"$size\" name=\"words\" value=\""
-    . utils_specialchars ($searched_words) . "\" />\n";
+  $title = false;
+  if ($is_small)
+    $title = "title=\"" . utils_specialchars (_("Terms to look for")) . '"';
+  else
+    $ret .= "<br />\n"
+      . html_label ("words$is_small", _("Terms to look for")) . " ";
+  $ret .= form_input ('text', "words$is_small", $searched_words, $title);
 
   if ($is_small)
     $ret .= "<br />\n";
+  else
+    $ret .= "&nbsp;&nbsp;\n";
 
   if (empty ($scope))
     {
-      $sel = '<select title="' . _("Area to search in") . '" '
-        . "name='type_of_search'>\n";
+      $sel = html_label ("type_of_search$is_small", _("Area to search in"));
+      $sel .= "\n<select name='type_of_search' id='type_of_search$is_small'>\n";
 
       # If the search is restricted to a given group, remove the possibility
       # to search another group, unless we're showing the left box.
       if (empty ($gid))
         {
-          $sel .= '<option value="soft"'
-            . (($type_of_search == "soft")||($type_of_search == "") ?
-               ' selected="selected"' : "")
-            . '>'
-            # TRANSLATORS: this string is used in the context
-            # of "Search [...] in Groups"
-            . _("Groups") . "</option>\n";
-
-          $sel .= '<option value="people"'
-            . (($type_of_search == "people") ? ' selected="selected"' : "")
-            . '>'
-            # TRANSLATORS: this string is used in the context
-            # of "Search [...] in People"
-            . _("People") . "</option>\n";
+          $ck = in_array ($type_of_search, ["soft", ""])? 'soft': 'hard';
+          # TRANSLATORS: this is search area.
+          $sel .= form_option ('soft', $ck, _("Groups"));
+          # TRANSLATORS: this is search area.
+          $sel .= form_option ("people", $type_of_search, _("People"));
         }
       $sel .=
         search_list_tracker_options ($gid, $type_of_search, $is_small)
         . "</select>\n";
 
-      # TRANSLATORS: this word is used in the phrase "Search [...] in
-      # [Groups|People|Support|Bugs|Tasks|Patches]"
-      # in the main menu on the left side.
-      # Make sure to put this piece in agreement with the following strings.
-      $ret .= sprintf (' ' . _("in %s"), $sel);
+      $ret .= " $sel";
     }
   else # !empty ($scope)
-    {
-      $ret .= '<input type="hidden" name="type_of_search" value="'
-        . "$scope\" />\n";
-    }
-  if ($is_small)
-    $ret .= "<br />\n";
+    $ret .= form_hidden (['type_of_search' => $scope]);
 
   if (isset ($gid))
-    $ret .= "<input type='hidden' value='$gid' name='only_group_id' />\n";
+    $ret .= form_hidden (['only_group_id' => $gid]);
 
   if ($is_small)
-    {
-      # If it's a small form, the submit button has not already been inserted.
-      $ret .= '&nbsp;&nbsp;&nbsp;<input type="submit" name="Search" value="'
-        . _("Search") . "\" />&nbsp;\n";
-    }
+    # If it's a small form, the submit button has not already been inserted.
+    $ret .= "<br />\n<input type='submit' "
+      . "name='Search' value=\"" . _("Search") . "\" />&nbsp;\n";
 
   if ($is_small)
-    $ret .= "<input type='hidden' name='exact' value='1' />\n";
-  else
+    return $ret . form_hidden (['exact' => 1]) . "</form>\n";
+  $ret .= "<br />\n&nbsp;";
+  $ret .= form_radio ('exact', 0,
+    ['checked' => !$exact, 'label' => _("with at least one of the words")]
+  );
+  $ret .= "<br />\n&nbsp;";
+  $ret .= form_radio ('exact', 1,
+    ['checked' => $exact, 'label' => _("with all of the words")]
+  );
+  $ret .= "<br />\n&nbsp;";
+  $ret .= html_label ('max_rows', _("Number of items to show per page"))
+    . "\n";
+  $ret .= form_input ('text', 'max_rows', $max_rows, 'size="4"') . "\n";
+  if (!isset ($gid))
     {
-      $ck_mark = " checked='checked'";
-      $ck = $exact? '': $ck_mark;
-      $ret .= "<br />\n&nbsp;<input type='radio' name='exact' value='0'$ck/>"
-        . _("with at least one of the words") . "\n";
-      $ck = $exact? $ck_mark: '';
-      $ret .= "<br />\n&nbsp;<input type='radio' name='exact' value='1'$ck/>"
-        . _("with all of the words") . "\n";
-      $ret .= "<br />\n&nbsp;"
-        . sprintf (
-            ngettext (
-              "%s result per page", "%s results per page", intval ($max_rows)
-            ),
-            "<input type='text' name='max_rows' value='$max_rows' title=\""
-            . _("Number of items to show per page") . '" size="4" />'
-          )
-        . "\n";
-      if (!isset ($gid))
-        {
-          # Add the functionality to restrict the search to a group type.
-          $ret .= "<br />\n&nbsp;";
+      # Add the functionality to restrict the search to a group type.
+      $ret .= "<br />\n&nbsp;";
 
-          $select = '<select name="type" title="' . _("Group type to search in")
-            . '" size="1"><option value="">'
-            # TRANSLATORS: this string is used in the context
-            # of "Search [...] in any group type"
-            . _("any") . "</option>\n";
-          $result =
-            db_query ("SELECT type_id, name FROM group_type ORDER BY type_id");
-          while ($eachtype = db_fetch_array ($result))
-            {
-              $sel_attr = '';
-              if ($type == $eachtype['type_id'])
-                 $sel_attr = ' selected="selected"';
-              $val = $eachtype['type_id'];
-              $name = gettext ($eachtype['name']);
-              $select .= "<option value=\"$val\"$sel_attr>$name</option>\n";
-            }
-          $select .= "</select>\n";
-
-          # TRANSLATORS: the argument is group type
-          # (like Official GNU software).
-          $ret .=
-             sprintf (
-               _("Search in %s group type, when searching for a group."),
-               $select
-             );
-        } # !isset ($gid)
-      $ret .= '<p>'
-        . _("Notes: You can use the wildcard *, standing for everything. "
-            . "You can also\nsearch items by number.")
-        . "</p>\n";
-    } # !$is_small
+      $ret .= html_label ('type',
+        _("Group type to search in, when searching for a group")
+      );
+      $ret .= "\n<select name='type'>" . form_option ('', NULL, _("any"));
+      $result =
+        db_query ("SELECT type_id, name FROM group_type ORDER BY type_id");
+      while ($eachtype = db_fetch_array ($result))
+        $ret .= form_option ($eachtype['type_id'], $type,
+          gettext ($eachtype['name'])
+        );
+      $ret .= "</select>\n";
+    } # !isset ($gid)
+  $ret .= '<p>'
+    . _("Notes: You can use the wildcard *, standing for everything. "
+        . "You can also\nsearch items by number.")
+    . "</p>\n";
   return "$ret</form>\n";
 }
 
 function search_send_header ()
 {
-  global $words,$type_of_search,$only_group_id;
+  global $words, $type_of_search, $only_group_id;
 
   if ($type_of_search == "soft" || $type_of_search == "people")
     {
@@ -304,16 +269,16 @@ function search_send_header ()
       # group id is meaningless when looking for someone.
       $group_id = 0;
     }
-  site_header(array('title'=>_("Search"),'context'=>'search'));
-# Print the form.
+  site_header (['title' => _("Search"), 'context' => 'search']);
+  # Print the form.
   if (!$only_group_id)
     $title = _("Search Criteria:");
   else
-# TRANSLATORS: the argument is group name (like GNU Coreutils).
-    $title = sprintf(_("New search criteria for the Group %s:"),
-                     group_getname($only_group_id));
+    # TRANSLATORS: the argument is group name (like GNU Coreutils).
+    $title = sprintf (_("New search criteria for the Group %s:"),
+      group_getname ($only_group_id));
 
-  print html_show_boxoptions($title, search_box($words, '', 45));
+  print html_show_boxoptions ($title, search_box ($words, '', 45));
 }
 
 # Search results for XXX (in YYY):
@@ -348,7 +313,7 @@ function print_search_heading ()
     # TRANSLATORS: the first argument is string to look for,
     # the second argument is section (Group|Support|Bugs|Task|Patch|People).
     printf (_('Search results for %1$s in %2$s:'),
-      '<strong>' . utils_specialchars ($words) . '</strong>',
+      '<b>' . utils_specialchars ($words) . '</b>',
       $type_of_search_real
     );
   else
@@ -356,7 +321,7 @@ function print_search_heading ()
     # argument is section (Support|Bugs|Task|Patch|People), the third argument
     # is group name (like GNU Coreutils).
     printf (_('Search results for %1$s in %2$s, for the Group %3$s:'),
-      '<strong>' . utils_specialchars ($words) . '</strong>',
+      '<b>' . utils_specialchars ($words) . '</b>',
       $type_of_search_real, group_getname ($only_group_id)
     );
   print "</p>\n";
@@ -373,8 +338,8 @@ function search_failed ()
   $no_rows = 1 ;
   search_send_header ();
   print '<span class="warn">';
-  print _("None found. Please note that only search words of more than two
-characters are valid.");
+  print _("None found. Please note that only search words of more than two\n"
+          . "characters are valid.");
   print '</span>';
   print db_error();
 }
@@ -557,7 +522,7 @@ function search_exact ($keywords)
   print _("Unique group search result");
   print "</h2>\n<p>";
   printf (_("Search string was: %s."),
-    '<strong>' . utils_specialchars ($keywords) . '</strong>'
+    '<b>' . utils_specialchars ($keywords) . '</b>'
   );
   print "</p>\n";
   print html_build_list_table_top ([_("Group"), _("Description"), _("Type")]);

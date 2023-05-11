@@ -423,7 +423,9 @@ margins present in many themes).  */
   font-size: smaller;
 }
 
-.menusearch input[name=words]
+.menusearch input[name=words],
+.menusearch input[name=words0],
+.menusearch input[name=words1]
 {
   width: 100%;
   box-sizing: border-box;
@@ -660,6 +662,8 @@ properly with or without JavaScript.  */
   text-align: right;
   float: right;
   height: 1em;
+  padding-left: 2em;
+  padding-right: 2em;
 }
 
 .boxhighlight

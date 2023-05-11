@@ -59,11 +59,12 @@ function html_show_displayoptions ($content, $form_opening=0, $submit=0)
   );
 }
 
-function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
+function html_show_boxoptions ($legend, $text, $form_opening = 0,
+  $submit = 0
+)
 {
   $ret = "\n";
-
-  extract(sane_import('request', ['true' => 'boxoptionwanted']));
+  extract (sane_import ('request', ['true' => 'boxoptionwanted']));
 
   if ($boxoptionwanted != 1)
     $boxoptionwanted = 0;
@@ -71,12 +72,12 @@ function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
     $boxoptionwanted = 1;
 
   $ret .= "\n<script type='text/javascript' src=\"/js/show-hide.php?"
-  . "deploy=$boxoptionwanted&amp;legend=" . utils_urlencode ($legend)
-  . "&amp;box_id=boxoptions&amp;suffix=\"></script>";
+    . "deploy=$boxoptionwanted&amp;legend=" . utils_urlencode ($legend)
+    . "&amp;box_id=boxoptions&amp;suffix=\"></script>";
   $ret .= "\n<noscript>\n<span id='boxoptionslinkshow'>$legend</span>\n"
     . "</noscript>\n";
 
-  $ret .= "<span id='boxoptionscontent'>\n";
+  $ret .= "<div id='boxoptionscontent'>\n";
   if ($boxoptionwanted != 1)
     $ret .= "\n<script type=\"text/javascript\" "
       . "src=\"/js/hide-span.php?box_id=boxoptionscontent\"></script>\n";
@@ -86,14 +87,14 @@ function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
 
   # We add boxoptionwanted to be able to determine if a boxoption was used
   # to update the page, in which case the boxoption must appear deployed.
-  $ret .= "<span class='smaller'>$content"
+  $ret .= "$text"
      . form_input ("hidden", "boxoptionwanted", "1")
-     . '</span>';
+     . '</div>';
 
   if ($form_opening && $submit)
     $ret .= "\n</form>\n";
 
-  return "$ret\n</span>\n";
+  return "$ret\n";
 }
 
 # Function to create a an area in the page that can be hidden or shown

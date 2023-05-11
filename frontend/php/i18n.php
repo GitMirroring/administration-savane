@@ -99,50 +99,47 @@ if (!empty ($language)
   }
 
 if (!empty ($language))
-  fb (
-    sprintf (
-      _("Requested language code '%s' is unknown."),
-     utils_htmlentities ($language)),
-    1
-  );
+  fb (sprintf (_("Requested language code '%s' is unknown."), $language), 1);
 
 $checked_language = "en";
-if (isset($_COOKIE['LANGUAGE']))
+if (isset ($_COOKIE['LANGUAGE']))
   $checked_language = $_COOKIE['LANGUAGE'];
 
 site_header (['title' => _("Set language")]);
 
-print "<p>" . _("Savane uses language negotiation to automatically
-select the translation the visitor prefers, and this is what we
-generally recommend. In order to use this feature, you should
-configure your preferred languages in your browser. However, this page
-offers a way to override the mechanism of language negotiation for the
-cases where configuring browser is hard or impossible. Note that each
-domain (like savannah.gnu.org vs. savannah.nongnu.org) has its own
-setting.") . "</p>\n";
+print "<p>";
+print
+  _("Savane uses language negotiation to automatically\nselect "
+    . "the translation the visitor prefers, and this is what we\ngenerally "
+    . "recommend. In order to use this feature, you should\nconfigure your "
+    . "preferred languages in your browser. However, this page\noffers "
+    . "a way to override the mechanism of language negotiation for the\n"
+    . "cases where configuring browser is hard or impossible. Note that each\n"
+    . "domain (like savannah.gnu.org vs. savannah.nongnu.org) has its own\n"
+    . "setting.");
+print "</p>\n";
 
-print '<form action="' . $GLOBALS['sys_https_url'] . $GLOBALS['sys_home']
-  . 'i18n.php" method="post">';
-print '<input type="hidden" name="lang_uri" value="'
-  . utils_specialchars ($lang_uri, ENT_QUOTES) . '" />';
+print form_tag ();
+print form_hidden (['lang_uri' => utils_specialchars ($lang_uri)]);
 
 print '<p>'
   . form_checkbox ('cookie_for_a_year', $cookie_for_a_year, ['tabindex' => 1])
   . '<span class="preinput"><label for="cookie_for_a_year">'
   . _("Keep for a year") . "</label></span><br />\n";
 print '<span class="text">'
-  . _("Your language choice will be stored in a cookie for a year.
-When unchecked, it will be cleared at the end of browser session.")
+  . _("Your language choice will be stored in a cookie for a year.\n"
+      . "When unchecked, it will be cleared at the end of browser session.")
   . "</span></p>\n";
 
-print "<p>\n&nbsp;&nbsp;<label for=\"language\">".("Language:")."</label>";
+print "<p>\n&nbsp;&nbsp;<label for=\"language\">" . ("Language:") . "</label>";
 print html_build_select_box_from_arrays (
   array_keys ($locale_names), array_values ($locale_names),
   "language", $checked_language, true, _("Reset")
 );
 print "</p>\n<p><span class=\"text\">"
-  . _("Use the topmost item (&ldquo;Reset&rdquo;) to clear the cookie
-immediately.") . "</span></p>\n";
+  . _("Use the topmost item (&ldquo;Reset&rdquo;) to clear the cookie\n"
+      . "immediately.")
+  . "</span></p>\n";
 
 print '<div class="center"><input type="submit" name="set" value="'
   . _("Set language") . '" tabindex="1" /></div>';

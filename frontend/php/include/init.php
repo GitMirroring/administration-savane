@@ -170,7 +170,7 @@ if (isset ($GLOBALS['sys_https_host']))
 else
   $sys_https_url = 'http://' . $GLOBALS['sys_default_domain'];
 
-$php_self = htmlentities ($_SERVER['PHP_SELF']);
+$php_self = utils_specialchars ($_SERVER['PHP_SELF']);
 
 # Security issues apply even during fundrasing periods.  Please don't disable
 # this, make the banner work with the headers instead.

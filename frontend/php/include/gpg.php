@@ -73,11 +73,11 @@ function test_gpg_listing ($gpg_name, $temp_dir, $level, &$ret)
   fclose ($pipes[1]); fclose ($pipes[2]);
   $gpg_result = proc_close ($gpg_proc);
   $ret .= "<pre>\n";
-  $ret .= htmlentities ($gpg_output);
+  $ret .= utils_specialchars ($gpg_output);
   $ret .= "</pre>\n";
   $ret .= "<p>" . _("Errors:") . "</p>\n";
   $ret .= "<pre>\n";
-  $ret .= htmlentities ($gpg_errors);
+  $ret .= utils_specialchars ($gpg_errors);
   $ret .= "</pre>\n";
   $ret .= "<p>" . _("Exit status:") . " ";
   $ret .= $gpg_result . "</p>\n";
@@ -99,7 +99,7 @@ function test_gpg_import ($gpg_name, $key, $temp_dir, $level, &$output)
   fclose ($pipes[1]); fclose ($pipes[2]);
   $gpg_result = proc_close ($gpg_proc);
   $output .= "<pre>\n";
-  $output .= htmlentities ($gpg_errors);
+  $output .= utils_specialchars ($gpg_errors);
   $output .= "</pre>\n";
   $output .= "<p>" . _("Exit status:") . " ";
   $output .= $gpg_result . "</p>\n";
@@ -178,7 +178,7 @@ function run_gpg_checks ($key, $run_encryption = true, $level = '2')
   $gpg_name = "'" . $GLOBALS['sys_gpg_name'] . "'";
 
   $ret .= "<pre>\n";
-  $ret .= htmlentities (gpg_version ($gpg_name));
+  $ret .= utils_specialchars (gpg_version ($gpg_name));
   $ret .= "</pre>\n";
 
   $temp_dir = exec ("mktemp -d");

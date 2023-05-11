@@ -70,8 +70,7 @@ foreach (
 $sign_func = function ($sign, $id, $legend)
 {
   return "<span class=\"show-hide\" id=\"$id\">"
-   . "<span class=\"minusorplus\">($sign)</span>"
-   . utils_specialchars ($legend, ENT_QUOTES) . "</span>";
+   . "<span class=\"minusorplus\">($sign)</span>$legend</span>";
 };
 print "document.write('"
   .  $sign_func ('-', $hide, $legend) .  $sign_func ('+', $show, $legend)

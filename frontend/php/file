@@ -84,13 +84,8 @@ $in = [0 => $artifact];
 $out = [];
 
 if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
-  exit_error (
-    sprintf (
-      # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
-      _('Invalid artifact %s'),
-      "<em>" . utils_specialchars ($artifact) . "</em>"
-    )
-  );
+  # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
+  exit_error (sprintf (_('Invalid artifact %s'), "<em>$artifact</em>"));
 
 $result = db_execute ("
   SELECT group_id, privacy FROM $artifact WHERE bug_id = ?",
@@ -111,61 +106,50 @@ $result = db_execute ("
   [$file_id]
 );
 
-$vex = db_numrows ($result) > 0;
-
-if ($vex && db_result ($result, 0, 'filesize') >= 0)
-  {
-    $mtime = db_result ($result, 0, 'date');
-    http_exit_if_not_modified ($mtime);
-    header ('Last-Modified: ' . date ('r', $mtime));
-
-    # Check if the file is not empty.
-    # This should have been checked before, but it is harmless to check it
-    # one more time.
-    if (db_result ($result, 0, 'filesize') == 0)
-      exit_error (_("Nothing in here, file is empty"));
-
-    # Check if the filename in database match with the one in the URL.
-    # We do not want to allow broken URL that may make a user download
-    # a file with a given name like "myimage.png" when actually downloading
-    # something completely different like "mystupidvirus.scr".
-    if (db_result ($result, 0, 'filename')
-        != basename (rawurldecode ($_SERVER['PHP_SELF'])))
-      exit_error (_("The filename in the URL does not match the filename "
-                    . "registered in the database")
-     );
-
-    $path = $sys_trackers_attachments_dir . '/' . $file_id;
-    if (!is_readable($path))
-      exit_error (_("No access to the file."));
-
-    # Download the patch with the correct filetype.
-    $headers = [
-      'filetype' => 'Content-Type: ', 'filesize' => 'Content-Length: ',
-      'filename' => 'Content-Disposition: attachment; filename=',
-      'description' => 'Content-Description: '
-    ];
-    foreach ($headers as $field => $h)
-      {
-        $val = str_replace (['\n', '\r'], ' ', db_result ($result, 0, $field));
-        header ("$h$val");
-      }
-    # Dump file to the browser.
-    readfile ("$sys_trackers_attachments_dir/$file_id");
-    exit (0);
-  }
-
-if (!$vex)
+if (!db_numrows ($result))
   exit_error (sprintf (_("Couldn't find attached file #%s."), $file_id));
 
-exit_error (
-  sprintf (_("Attached file #%s was lost."), $file_id) . " "
-  . sprintf (
-      _("File attributes: name '%s', size %s, type '%s', date %s."),
-      utils_specialchars (db_result ($result, 0, 'filename')),
-      utils_specialchars (db_result ($result, 0, 'filesize')),
-      utils_specialchars (db_result ($result, 0, 'filetype')),
-      utils_format_date (db_result ($result, 0, 'date'))
-    )
-);
+$row = db_fetch_array ($result);
+
+if ($row['filesize'] < 0)
+  exit_error (
+    sprintf (_("Attached file #%s was lost."), $file_id) . " "
+    . sprintf (
+        _("File attributes: name '%s', size %s, type '%s', date %s."),
+        $row['filename'], $row['filesize'], $row['filetype'],
+        utils_format_date ($row['date'])
+      )
+  );
+$mtime = $row['date'];
+http_exit_if_not_modified ($mtime);
+header ('Last-Modified: ' . date ('r', $mtime));
+
+# Check if the filename in database matches the one in the URL.
+# We do not want to allow broken URL that may make a user download
+# a file with a given name like "myimage.png" when actually downloading
+# something completely different like "mystupidvirus.scr".
+if ($row['filename'] != basename (rawurldecode ($_SERVER['PHP_SELF'])))
+  exit_error (
+    _("The filename in the URL does not match the filename "
+      . "registered in the database")
+  );
+
+$path = $sys_trackers_attachments_dir . '/' . $file_id;
+if (!is_readable ($path))
+  exit_error (_("No access to the file."));
+
+# Download the patch with the correct filetype.
+$headers = [
+  'filetype' => 'Content-Type: ', 'filesize' => 'Content-Length: ',
+  'filename' => 'Content-Disposition: attachment; filename=',
+  'description' => 'Content-Description: '
+];
+foreach ($headers as $field => $h)
+  {
+    $val = str_replace (['\n', '\r'], ' ', $row[$field]);
+    header ("$h$val");
+  }
+# Dump file to the browser.
+readfile ("$sys_trackers_attachments_dir/$file_id");
+exit (0);
 ?>

@@ -104,11 +104,11 @@ function sitemenu_extraurl ($only_with_post = false)
   if ($_SERVER["REQUEST_METHOD"] == "POST")
     {
       if (!empty($group_name))
-        $extraurl .= "&amp;group=" . utils_specialchars ($group_name)
+        $extraurl .= "&amp;group=" . utils_urlencode ($group_name)
           . "&amp;";
       if (!empty ($item_id))
         $extraurl .= "&amp;func=detailitem&amp;item_id="
-          . utils_specialchars ($item_id) . "&amp;";
+          . utils_urlencode ($item_id) . "&amp;";
       return $extraurl;
     }
   $query_string = '';
@@ -118,10 +118,10 @@ function sitemenu_extraurl ($only_with_post = false)
     {
       # Short link case (like /bugs/?212).
       $extraurl .= "&amp;func=detailitem&amp;item_id="
-        . utils_specialchars ($item_id);
+        . utils_urlencode ($item_id);
       return $extraurl;
     }
-  $extraurl = utils_specialchars ($query_string);
+  $extraurl = utils_urlencode ($query_string);
   $extraurl = str_replace ("reload=1&amp;", "", $extraurl);
   $extraurl = "&amp;$extraurl";
   return $extraurl;

@@ -282,35 +282,29 @@ if ($form_is_valid)
 site_header (
   ['title' => _("User account registration"), 'context' => 'account']
 );
-print form_header (
-  $_SERVER['PHP_SELF'], htmlentities ($form_id, ENT_QUOTES, 'UTF-8')
-);
+print form_header ($php_self, $form_id);
 $br = "</span><br />\n&nbsp;&nbsp;";
 $pre = '<p><span class="preinput">';
 print $pre . _("Login Name:") . $br;
-print form_input("text", "form_loginname", $form_loginname);
+print form_input ("text", "form_loginname", $form_loginname);
 print $pre . account_password_help () . '</span></p>';
 print $pre . _("Password / passphrase:") . $br;
-print form_input("password", "form_pw", $form_pw) . "</p>\n";
+print form_input ("password", "form_pw", $form_pw) . "</p>\n";
 print $pre . _("Re-type Password:") . $br;
-print form_input("password", "form_pw2", $form_pw2) . "</p>\n";
+print form_input ("password", "form_pw2", $form_pw2) . "</p>\n";
 print $pre . _("Real Name:") . $br;
-print '<input size="30" type="text" name="form_realname" value="'
-  . htmlentities ($form_realname, ENT_QUOTES , 'UTF-8') . "\" /></p>\n";
+print form_input ('text', 'form_realname', $form_realname, 'size="30"');
+print "</p>\n";
 print $pre . _("Email Address:") . $br;
-print '<input size="30" type="text" name="form_email" value="'
-  . htmlentities ($form_email, ENT_QUOTES , 'UTF-8') . '" />';
+print form_input ('text', "form_email", $form_email, 'size="30"');
 print "<br />\n" . '<span class="text">'
-  . _("This email address will be verified before account activation. "
-      . "Check your\nspam filters. Do not use a hotmail or comcast "
-      . "address here.")
+  . _("This email address will be verified before account activation.")
   . "</span></p>\n";
 
 if ($sys_registration_text_spam_test)
   {
     print $pre . _("Antispam test:") . $br;
-    print '<input size="30" type="text" name="form_year" value="'
-      . htmlentities ($form_year, ENT_QUOTES, 'UTF-8') . '" />';
+    print form_input ('text', "form_year", $form_year, 'size="30"');
     print "<br />\n<span class='text'>";
     printf (
       _("In what year was the GNU project announced? "

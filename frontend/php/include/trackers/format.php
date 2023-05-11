@@ -562,20 +562,17 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
       . "Date: %s  Name: %s  Size: %s   By: %s\n%s\n%s";
 
   # Loop throuh the attached files and format them.
-  for ($i = 0; $i < $rows; $i++)
+  $i = 0;
+  while ($row = db_fetch_array ($result))
     {
-      $item_file_id = db_result ($result, $i, 'file_id');
+      $item_file_id = $row['file_id'];
       $href = $sys_home . ARTIFACT . "/download.php?file_id=$item_file_id";
 
       if ($ascii)
         $out .= sprintf (
-          $fmt,
-          utils_format_date (db_result ($result, $i, 'date')),
-          db_result ($result, $i, 'filename'),
-          utils_filesize (0, intval (db_result ($result, $i, 'filesize'))),
-          db_result ($result, $i, 'user_name'),
-          db_result ($result, $i, 'description'),
-          '<http://' . $GLOBALS['sys_default_domain']
+          $fmt, utils_format_date ($row['date']), $row['filename'],
+          utils_filesize (0, intval ($row['filesize'])), $row['user_name'],
+          $row['description'], '<http://' . $GLOBALS['sys_default_domain']
           . utils_unconvert_htmlspecialchars ($href) . '>'
         );
       else
@@ -593,32 +590,26 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
                 . '</a></span>';
             }
 
-          $out .= '<div class="' . utils_altrow($i) . '">' . $html_delete;
+          $out .= '<div class="' . utils_altrow ($i++) . '">' . $html_delete;
           $out .= "<a href=\"$href\">file #$item_file_id: &nbsp;";
 
           # TRANSLATORS: the first argument is file name, the second
           # is user's name.
           $out .= sprintf (
             _('<!-- file -->%1$s added by %2$s'),
-            utils_specialchars (db_result ($result, $i, 'filename'))
-            . '</a>',
-            utils_user_link (db_result ($result, $i, 'user_name'))
+            utils_specialchars ($row['filename']) . '</a>',
+            utils_user_link ($row['user_name'])
           );
 
           $out .= ' <span class="smaller">('
-            . utils_filesize (0, db_result ($result, $i, 'filesize'));
-
-          if (db_result ($result, $i, 'filetype'))
-            $out .= ' - ' . db_result ($result, $i, 'filetype');
-
-          if (db_result ($result, $i, 'description'))
-            {
-              $out .= ' - '
-                . markup_basic (db_result ($result, $i, 'description'));
-            }
+            . utils_filesize (0, $row['filesize']);
+          if ($row['filetype'])
+            $out .= ' - ' . $row['filetype'];
+          if ($row['description'])
+            $out .= ' - ' . markup_basic ($row['description']);
           $out .= ")</span></div>\n";
         }
-    } # for ($i = 0; $i < $rows; $i++)
+    } # while ($row = db_fetch_array ($result))
 
   if ($ascii)
     $out .= "\n";

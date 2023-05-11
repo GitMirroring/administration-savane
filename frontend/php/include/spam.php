@@ -230,7 +230,7 @@ function spam_unflag ($item_id, $comment_id, $tracker, $group_id)
 
   if (!ctype_alnum (strval ($tracker)))
     util_die (sprintf (_('Tracker &ldquo;%s&rdquo; is not valid (not alnum).'),
-      htmlescape ($tracker))
+      $tracker)
     );
 
   # Update the item spamscore fields.

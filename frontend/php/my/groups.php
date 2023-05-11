@@ -280,9 +280,8 @@ print
 print "</p>\n\n";
 
 print form_tag () . form_hidden (['action' => 'searchgroup']);
-print "<input type='text' title=\""
-  . _("Group to look for") . "\" size='35' name='words' value=\""
-  . utils_specialchars ($words) . "\" /><br />\n";
+print form_input ('text', 'words', $words,
+  "title=\"" . _("Group to look for") . "\" size='35'");
 print "<br /><br />\n";
 print form_submit (_("Search Groups"), "Submit", false, true);
 print "</form>\n\n</div><!-- end boxitem -->\n";

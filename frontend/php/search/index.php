@@ -55,7 +55,7 @@ extract (sane_import ('request',
         ['soft', 'people', 'bugs', 'support', 'patch', 'cookbook', 'task'],
       ],
     ],
-    'pass' => 'words',
+    'pass' => ['words0', 'words1', 'words'],
   ]
 ));
 
@@ -64,6 +64,12 @@ if (empty ($offset))
 
 if (empty ($max_rows))
   $max_rows = 25;
+
+foreach ([0, 1] as $n)
+  if (!empty (${"words$n"}))
+    $words = ${"words$n"};
+if (empty ($words))
+  $words = NULL;
 
 if (!$words || !is_scalar ($words))
   {

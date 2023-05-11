@@ -110,8 +110,8 @@ for ($i = 0; $i < $rows; $i++)
         if ($i != 0 && $val == $prev_bug[$j])
           continue;
         $prev_bug[$j] = $val;
-        print "<h3>" . htmlentities ($field_name) . "</h3>\n";
-        print "<p>" . htmlentities ($val) . "</p>\n";
+        print "<h3>" . utils_specialchars ($field_name) . "</h3>\n";
+        print "<p>" . utils_specialchars ($val) . "</p>\n";
       }
     if ($bug_id === "")
       continue;
@@ -137,8 +137,9 @@ for ($i = 0; $i < $rows; $i++)
             if (($k != 0 || $i != 0) && $val == $prev_comment[$l])
               continue;
             $prev_comment[$l] = $val;
-            print "<h5>" . htmlentities (db_fieldname ($res, $l)) . "</h5>\n";
-            print "<p>" . htmlentities ($val) . "</p>\n";
+            print "<h5>" . utils_specialchars (db_fieldname ($res, $l))
+              . "</h5>\n";
+            print "<p>" . utils_specialchars ($val) . "</p>\n";
           }
       }
   }
