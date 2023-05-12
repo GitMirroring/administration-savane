@@ -61,7 +61,7 @@ function html_show_displayoptions ($content, $form_opening=0, $submit=0)
 
 function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
 {
-  $ret = "\n<fieldset id='options' class='boxoptions'>\n<legend>";
+  $ret = "\n";
 
   extract(sane_import('request', ['true' => 'boxoptionwanted']));
 
@@ -74,7 +74,7 @@ function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
   . "deploy=$boxoptionwanted&amp;legend=" . utils_urlencode ($legend)
   . "&amp;box_id=boxoptions&amp;suffix=\"></script>";
   $ret .= "\n<noscript>\n<span id='boxoptionslinkshow'>$legend</span>\n"
-    . "</noscript>\n</legend>\n";
+    . "</noscript>\n";
 
   $ret .= "<span id='boxoptionscontent'>\n";
   if ($boxoptionwanted != 1)
@@ -93,7 +93,7 @@ function html_show_boxoptions ($legend, $content, $form_opening=0, $submit=0)
   if ($form_opening && $submit)
     $ret .= "\n</form>\n";
 
-  return "$ret\n</span>\n</fieldset>\n";
+  return "$ret\n</span>\n";
 }
 
 # Function to create a an area in the page that can be hidden or shown

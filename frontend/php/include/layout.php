@@ -259,6 +259,8 @@ class Layout extends savane_error
     print "</p>\n<div align='right'><p>"
       . utils_link ($url, sprintf (_("Powered by Savane %s"), $savane_version))
       . "</p></div>\n";
+    print "</div> <!-- class='main' -->\n";
+    print "</div> <!-- class='realbody' -->\n";
     print "\n</body>\n</html>\n";
   }
 
@@ -280,8 +282,6 @@ class Layout extends savane_error
           html_image ('arrows/top.orig.png', ['alt' => _("Back to the top")])
         )
       . "\n</p>\n";
-
-    print "\n<!-- not closing yet main and realbody -->\n";
     $this->generic_footer ($params);
   }
 
