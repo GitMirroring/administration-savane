@@ -79,38 +79,8 @@ if ($update)
         $thiskey = str_replace ("\n", "", $thiskey);
         if ($thiskey != '')
           {
-            # Test the key with ssh-vulnkey.
-            $descriptorspec = [
-              0 => ['pipe', 'r'], 1 => ['pipe', 'w'],
-              2 => ['file', '/dev/null', 'a'],
-            ];
-            $process = proc_open ('ssh-vulnkey -', $descriptorspec, $pipes);
-
-            $return_value = 1;
-            if (is_resource($process))
-              {
-                fwrite ($pipes[0], $thiskey);
-                fclose ($pipes[0]);
-                stream_get_contents ($pipes[1]); # empty pipe
-                fclose ($pipes[1]);
-                $return_value = proc_close ($process);
-              }
-            if ($return_value != 0)
-              {
-                fb (sprintf (_("Key #%s seen"), $i + 1));
-                $keys .= $thiskey . $key_separator;
-              }
-            else
-              # TRANSLATORS: the argument is a link to a page.
-              fb (
-                sprintf (
-                  _("Error: ssh-vulnkey detected key #%s as compromised.\n"
-                    . "Please upgrade your system and regenerate it\n"
-                    . "(see %s for more information)."),
-                  $i + 1, '//wiki.debian.org/SSLkeys'
-                ),
-                1
-              );
+            fb (sprintf (_("Key #%s seen"), $i + 1));
+            $keys .= $thiskey . $key_separator;
           }
       }
     # Grab original keys from the database for comparison.
