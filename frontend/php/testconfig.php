@@ -57,7 +57,7 @@ function return_bytes ($v)
     return $val;
   $last = strtolower (substr ($val, -1));
   $val = substr ($val, 0, -1);
-  if (!is_int ($val) || !in_array ($last, ['g', 'm', 'k']))
+  if (!preg_match ('/^\d*$/', $val) || !in_array ($last, ['g', 'm', 'k']))
     return ">$v<";
   switch ($last)
     {
@@ -69,7 +69,7 @@ function return_bytes ($v)
       case 'k':
         $val *= 1024;
     }
-  return $val;
+  return (int) $val;
 }
 
 function test_gpg ()
@@ -85,20 +85,10 @@ function test_gpg ()
   print "<dl><dt>GPG command</dt>\n<dd><code>" . $GLOBALS['sys_gpg_name']
         . "</code></dd>\n";
 
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
-
-  $gpg_proc = proc_open ("'" . $GLOBALS['sys_gpg_name'] . "' --version",
-     $d_spec, $pipes, NULL, $_ENV);
-  if ($gpg_proc === false)
-    {
-      print "</dl>\n\n<p><strong>Can't run GPG.</strong></p>\n";
-      return;
-    }
-  fclose ($pipes[0]);
-  $gpg_output = stream_get_contents ($pipes[1]);
-  $gpg_stderr = stream_get_contents($pipes[2]);
-  fclose ($pipes[1]); fclose ($pipes[2]);
-  $gpg_result = proc_close($gpg_proc);
+  $gpg_result = utils_run_proc  (
+    "'" . $GLOBALS['sys_gpg_name'] . "' --version", $gpg_output,
+     $gpg_stderr
+  );
   $dd_pre = "<dd style='border: thin dashed black; border-right: none'>"
             ."<pre style='padding-left: 1em'>\n";
   print "<dt><code>--version</code> output</dt>\n";
@@ -109,7 +99,7 @@ function test_gpg ()
   print "</dl>\n";
 }
 
-function test_cgitrepos()
+function test_cgitrepos ()
 {
   if (!isset ($GLOBALS['sys_etc_dir']))
     {
@@ -313,76 +303,66 @@ information, since it could give details about your setup to anybody.</p>\n";
 
 print "\n<h2>Basic PHP configuration</h2>\n\n";
 
-print "<p>PHP version: " . phpversion() . "</p>\n";
+print "<p>PHP version: " . phpversion () . "</p>\n";
 
 # cf. http://php.net/manual/en/ini.php
-$phptags = [
-  'register_globals' => 0, 'file_uploads' => 1, 'magic_quotes_gpc' => 0
-];
+$phptags = ['file_uploads' => '1'];
 
 # Get all php.ini values.
 $all_inis = ini_get_all ();
 # Define missing constant to interpret the 'access' field.
-define('PHP_INI_SYSTEM', 4);
+define ('PHP_INI_SYSTEM', 4);
 # Cf. http://www.php.net/manual/en/ini.core.php
 
 print "\n<table border=\"1\" summary=\"PHP configuration\">\n";
 print "<tr><th>PHP Tag name</th><th>Local value</th>"
-    . "<th>Suggested/Required value</th></tr>\n";
-$unset = 0;
-ksort($phptags);
-foreach ($phptags as $tag => $goodval)
-  {
-    $t = utils_specialchars (ini_get ($tag));
-    $gv = utils_specialchars ($goodval);
-    if ($t == $gv && ($goodval == 0 && !(bool) ini_get ($tag)))
+    . "<th>Suggested value</th></tr>\n";
+$have_unset = false;
+ksort ($phptags);
+function compare_ini_vals ($tag, $good, $cmp)
+{
+  global $all_inis;
+  $gv = utils_specialchars ($good);
+  if (!array_key_exists ($tag, $all_inis))
+    {
+      printf (
+        "<tr><td>%s</td><td class=\"unset\">Unknown*</td><td>%s</td></tr>\n",
+        $tag, $gv
+      );
+      return true;
+    }
+  $ini_val = ini_get ($tag);
+  $t = utils_specialchars ($ini_val);
+  if ($cmp ($ini_val, $good))
+    {
       printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
-    elseif (isset($all_inis[$tag]))
-      {
-        printf ("<tr><td>%s</td><td class=\"different\">%s</td><td>%s",
-          $tag, $t, $gv);
-        if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
-          echo " (can be set in php.ini, .htaccess or httpd.conf)";
-        else
-          echo " (can be set in php.ini or httpd.conf - but not in .htaccess)";
-        echo "</td></tr>\n";
-      }
-    else
-      {
-        printf ("<tr><td>%s</td><td class=\"unset\">Unknown</td>"
-          . "<td>%s</td></tr>\n", $tag, $gv
-        );
-        $unset = 1;
-      }
-  }
+      return false;
+    }
+  printf ("<tr><td>%s</td><td class=\"different\">%s</td><td>%s",
+    $tag, $t, $gv);
+  if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
+    print " (can be set in php.ini, .htaccess or httpd.conf)";
+  else
+    print " (can be set in php.ini or httpd.conf, but not in .htaccess)";
+  print "</td></tr>\n";
+  return false;
+}
 
+$cmp = function ($a, $b) { return $a === $b; };
+foreach ($phptags as $tag => $good)
+  if (compare_ini_vals ($tag, $good, $cmp))
+    $have_unset = true;
 # Check against minimum sizes.
 $phptags = ['post_max_size' => '3M', 'upload_max_filesize' => '2M'];
-ksort ($phptags);
-foreach ($phptags as $tag => $goodval)
-  {
-    $t = utils_specialchars (ini_get ($tag));
-    $gv = utils_specialchars ($goodval);
-    if (return_bytes(ini_get($tag)) >= return_bytes($goodval))
-      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n",
-              $tag, $t, $gv);
-    elseif (isset ($all_inis[$tag]))
-      printf ("<tr><td>%s</td><td class=\"different\">%s</td>"
-        . "<td>%s</td></tr>\n", $tag, $t, $gv
-      );
-    else
-      {
-        printf ("<tr><td>%s</td><td class=\"unset\">Unknown*</td>"
-          . "<td>%s</td></tr>\n", $tag, $gv
-        );
-        $unset = 1;
-      }
-  }
+$cmp = function ($a, $b) { return return_bytes ($a) >= return_bytes ($b); };
+foreach ($phptags as $tag => $good)
+  if (compare_ini_vals ($tag, $good, $cmp))
+    $have_unset = true;
 print "</table>\n\n";
-if ($unset)
-  echo "<blockquote>* This tag was not found at all. It is probably "
-       . "irrelevant to your PHP version so you may ignore this "
-       . "entry.</blockquote>\n";
+if ($have_unset)
+  print "<blockquote>* This tag was not found at all. It is probably "
+    . "irrelevant to your PHP version so you may ignore this "
+    . "entry.</blockquote>\n";
 
 print "\n<h2>PHP functions</h2>\n\n";
 
@@ -560,47 +540,24 @@ print "<p>The following is not required to run Savane, but could enhance\n"
   . "they may annoy the user with warnings, but allow you to spot "
   . "and report\npotentially harmful bugs.</p>\n";
 
-$phptags = array (
-        'display_errors' => '1',
-        'log_errors' => '1',
-        'error_reporting' => E_ALL|E_STRICT,
-        'allow_url_fopen' => '0',
-        'disable_functions' => 'exec,passthru,popen,shell_exec,system',
-);
+$phptags = [
+  'allow_url_fopen' => '0',
+  'disable_functions' => 'exec,passthru,popen,shell_exec,system',
+  'display_errors' => '1',
+  'error_reporting' => (string)(E_ALL | E_STRICT), 'log_errors' => '1',
+];
 
 print "\n<table border=\"1\">\n"
 . "<tr><th>PHP Tag name</th><th>Local value</th>"
-. "<th>Suggested/Required value</th></tr>\n";
-$unset = 0;
-ksort($phptags);
-foreach ($phptags as $tag => $goodval)
-  {
-    $t = utils_specialchars (ini_get ($tag));
-    $gv = utils_specialchars ($goodval);
-    if ($t == $gv)
-      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
-    elseif (isset ($all_inis[$tag]))
-      {
-        printf ("<tr><td>%s</td><td class=\"different\">%s</td>"
-          . "<td><code>%s</code>", $tag, $t, $gv
-        );
-        if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
-          echo " (can be set in php.ini, .htaccess or httpd.conf)";
-        else
-          echo " (can be set in php.ini or httpd.conf - but not in .htaccess)";
-        echo "</td></tr>\n";
-      }
-    else
-      {
-        printf ("<tr><td>%s</td><td class=\"unset\">Unknown*</td>"
-          . "<td>%s</td></tr>\n", $tag, $gv
-        );
-        $unset = 1;
-      }
-  }
+. "<th>Suggested value</th></tr>\n";
+$have_unset = false;
+$cmp = function ($a, $b) { return $a === $b; };
+foreach ($phptags as $tag => $good)
+  if (compare_ini_vals ($tag, $good, $cmp))
+    $have_unset = true;
 print "</table>\n\n";
-if ($unset)
-  echo "<blockquote>* This tag was not found at all. It is probably irrelevant "
+if ($have_unset)
+  print "<blockquote>* This tag was not found at all. It is probably irrelevant "
        . "to your PHP version so you may ignore this entry.</blockquote>\n\n";
 
 print "</body>\n<html>\n";
