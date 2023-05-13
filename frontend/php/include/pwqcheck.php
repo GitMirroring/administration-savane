@@ -54,6 +54,7 @@
 #
 # Author: Alexander Peslyak (original pwqcheck())
 # Author: Ineiev (i18n).
+# 2023, Ineiev: rewrite with utils_run_proc.
 
 # The original pwqcheck is not internationalized. Strings to localize
 # are taken from passwdqc_check.c (the 1.3.1 release); they are copyrighted
@@ -76,6 +77,8 @@
 # SUCH DAMAGE.
 
 $pwqcheck_messages_for_i18n = [
+  # Can't actually run pwqcheck.
+  _('Bad passphrase (check failed)'),
   # Available in passwdqc-1.3.0 and passwdqc-1.3.1.
   _("Bad passphrase (is the same as the old one)"),
   _("Bad passphrase (is based on the old one)"),
@@ -97,10 +100,7 @@ $pwqcheck_messages_for_i18n = [
 function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = '')
 {
   # pwqcheck(1) itself returns the same message on internal error.
-  $retval = _('Bad passphrase (check failed)');
-
-  $descriptorspec = [0 => ['pipe', 'r'], 1 => ['pipe', 'w']];
-  # Leave stderr (fd 2) pointing to where it is, likely to error_log.
+  $retval = 'Bad passphrase (check failed)';
 
   # Replace characters that would violate the protocol.
   $newpass = strtr ($newpass, "\n", '.');
@@ -117,31 +117,27 @@ function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = '')
   if (!$user)
     $args = " -2 $args"; # passwdqc 1.2.0+
 
-  $command = 'exec '; # No need to keep the shell process around on Unix.
-  $command .= "pwqcheck$args";
-  if (!($process = @proc_open ($command, $descriptorspec, $pipes)))
-    return $retval;
-
+  $command = "pwqcheck$args";
   $err = 0;
-  fwrite ($pipes[0], "$newpass\n$oldpass\n") || $err = 1;
+  $in = "$newpass\n$oldpass\n";
   if ($user)
-    fwrite ($pipes[0], "$user::::$aux:/:\n") || $err = 1;
-  fclose ($pipes[0]) || $err = 1;
-  ($output = stream_get_contents ($pipes[1])) || $err = 1;
-  fclose ($pipes[1]);
-
-  $status = proc_close ($process);
+    $in .= "$user::::$aux:/:\n";
+  $status = utils_run_proc (
+    $command, $output, $e, ['in' => $in, 'env' => ['LC_ALL' => 'C.UTF-8']]
+  );
+  if ($status === 'fail')
+    return gettext ($retval);
 
   # There must be a linefeed character at the end.  Remove it.
   if (substr ($output, -1) === "\n")
-    $output = substr($output, 0, -1);
+    $output = substr ($output, 0, -1);
   else
     $err = 1;
 
   if ($err === 0 && ($status === 0 || $output !== 'OK'))
     $retval = $output;
 
-  if ($retval == 'OK')
+  if ($retval === 'OK')
     return 0;
   return gettext ($retval);
 }

@@ -76,20 +76,17 @@ function acquire_lock ()
 
 function send_request ($cmd, $args)
 {
-  global $sys_mailman_wrapper;
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
-  $proc = proc_open ("$sys_mailman_wrapper", $d_spec, $pipes);
-  if (false === $proc)
-    return ['', "can't open pipe"];
-  fwrite ($pipes[0], "command=$cmd\n");
+  $in = "command=$cmd\n";
   foreach ($args as $k => $v)
-    fwrite ($pipes[0], "$k=$v\n");
-  fclose ($pipes[0]);
-  $ret = explode ("\n", stream_get_contents ($pipes[1]));
-  $error = stream_get_contents ($pipes[2]);
-  fclose ($pipes[1]);
-  fclose ($pipes[2]);
-  return [$ret, $error];
+    $in .= "$k=$v\n";
+
+  $ret = utils_run_proc (
+    $GLOBALS['sys_mailman_wrapper'], $output, $error, ['in' => $in]
+  );
+  if ($ret === 'fail')
+    $error = "Error: $error\n";
+  $output = explode ("\n", $output);
+  return [$output, $error];
 }
 
 function parse_response ($lines)

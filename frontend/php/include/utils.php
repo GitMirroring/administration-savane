@@ -233,6 +233,15 @@ function utils_cutstring ($string, $length = 35)
   return $string;
 }
 
+function utils_utils_strftime ($timestamp, $format)
+{
+  $env['LC_ALL'] = setlocale (LC_TIME, 0);
+  $cmd = "date +$format -d @$timestamp";
+  utils_run_proc ($cmd, $output, $error, ['env' => $env]);
+  $output = substr ($output, 0, -1); # Drop trailing "\n".
+  return $output;
+}
+
 if (function_exists ("strftime"))
   {
     # Used until strftime is dropped from PHP.
@@ -249,19 +258,7 @@ else # !function_exists ("strftime")
     # Fallback for the PHP versions (> 8.1) when no strftime is provided.
     function utils_strftime ($timestamp, $format)
     {
-      $env = $_ENV;
-      $env['LC_ALL'] = setlocale (LC_TIME, 0);
-      $d_spec = [
-        0 => array ("pipe", "r"), 1 => array ("pipe", "w"),
-        2 => array ("pipe", "w")
-      ];
-      $cmd = "date +$format -d @$timestamp";
-      $date_proc = proc_open ($cmd, $d_spec, $pipes, NULL, $env);
-      $output = stream_get_contents ($pipes[1]);
-      fclose ($pipes[1]); fclose ($pipes[2]);
-      proc_close ($date_proc);
-      $output = substr ($output, 0, strlen ($output) - 1); # Drop trailing "\n".
-      return $output;
+      return utils_utils_strftime ($timestamp, $format);
     }
   } # !function_exists ("strftime")
 
@@ -804,7 +801,7 @@ function utils_set_csp_headers ()
 
 } # namespace {
 
-namespace utils_run_proc {
+namespace utils_run_proc_ns {
 function dispatch_error ($cmd, $code, $err, $log_error, $in)
 {
   if (!$code || !$log_error)
@@ -817,20 +814,51 @@ function dispatch_error ($cmd, $code, $err, $log_error, $in)
 
 function init_aux ($aux)
 {
-  $in = $my_env = null; $log_error = false;
+  $in = null; $log_error = false;
   if (!empty ($aux['in']))
     $in = $aux['in'];
-  if (!empty ($aux['env']))
-    $env = $aux['env'];
   if (!empty ($aux['log_error']))
     $log_error = true;
-  $my_env = $_ENV;
-  if (!empty ($env))
-    foreach ($env as $k => $v)
-      $my_env[$k] = $v;
-  return  [$in, $my_env, $log_error];
+  $env = $_ENV;
+  if (!empty ($aux['env']))
+    foreach ($aux['env'] as $k => $v)
+      $env[$k] = $v;
+  return  [$in, $env, $log_error];
 }
-} # namespace utils_run_proc
+
+function close_pipes ($pipes, $proc)
+{
+  for ($i = 0; $i < 3; $i++)
+    fclose ($pipes[$i]);
+  proc_close ($proc);
+}
+
+function p_open ($cmd, $env, $log_error)
+{
+  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+  $proc = proc_open ($cmd, $d_spec, $pipes, NULL, $env);
+  if ($proc !== false)
+    return [null, '', $pipes, $proc];
+  $err = "can't run $cmd\n";
+  utils_run_proc_ns\dispatch_error ($cmd, -1, $err, $log_error);
+  return ['fail', $err, null, null];
+}
+
+function write ($fd, $in, $cmd, $log_error)
+{
+  if (empty ($in))
+    return [null, ''];
+  $ns = fwrite ($fd, $in);
+  $len = strlen ($in);
+  if ($ns === $len)
+    return [null, ''];
+  if ($ns === false)
+    $err = "$cmd: can't pass input data\n";
+  else
+    $err = "$cmd: can't pass input data; wrote $ns of $len bytes\n";
+  return ['fail', $err];
+}
+} # namespace utils_run_proc_ns
 
 namespace {
 # Run a command $cmd, return its exit code; put its output and error streams
@@ -838,24 +866,25 @@ namespace {
 # the environment, if ['log_error'], errors are logged.
 function utils_run_proc ($cmd, &$out, &$err, $aux = [])
 {
-  list ($in, $my_env, $log_error) = utils_run_proc\init_aux ($aux);
+  list ($in, $env, $log_error) = utils_run_proc_ns\init_aux ($aux);
   $out = null;
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
-  $proc = proc_open ($cmd, $d_spec, $pipes, NULL, $my_env);
-  if ($proc === false)
+  list ($ret, $err, $pipes, $proc) =
+    utils_run_proc_ns\p_open ($cmd, $env, $log_error);
+  if (!empty ($ret))
+    return $ret;
+  list ($ret, $err) =
+    utils_run_proc_ns\write ($pipes[0], $in, $cmd, $log_error);
+  if (!empty ($ret))
     {
-      $err = "can't run $cmd\n";
-      utils_run_proc\dispatch_error ($cmd, -1, $err, $log_error, $in);
-      return -1;
+      utils_run_proc_ns\close_pipes ($pipes, $proc);
+      return $ret;
     }
-  if (!empty ($in))
-    fwrite ($pipes[0], $in);
   fclose ($pipes[0]);
   $out = stream_get_contents ($pipes[1]);
   $err = stream_get_contents ($pipes[2]);
   fclose ($pipes[1]); fclose ($pipes[2]);
   $res = proc_close ($proc);
-  utils_run_proc\dispatch_error ($cmd, $res, $err, $log_error, $in);
+  utils_run_proc_ns\dispatch_error ($cmd, $res, $err, $log_error, $in);
   return $res;
 }
 
