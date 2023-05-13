@@ -139,6 +139,28 @@ function account_password_help ()
 
 # Modified from
 # http://www.openwall.com/articles/PHP-Users-Passwords#enforcing-password-policy
+function account_pwcheck ($newpass, $oldpass, $user)
+{
+  # Some really trivial and obviously-insufficient password strength
+  # checks - we ought to use the pwqcheck(1) program instead.
+  # TRANSLATORS: this string in used in the context "Bad password (%s)".
+  if (strlen ($newpass) < 7)
+    return _('way too short');
+  if (
+    stristr ($oldpass, $newpass)
+    || (strlen ($oldpass) >= 4 && stristr ($newpass, $oldpass))
+  )
+    # TRANSLATORS: this string in used in the context "Bad password (%s)".
+    return _('based on the old one');
+  if (
+    stristr ($user, $newpass)
+    || (strlen ($user) >= 4 && stristr ($newpass, $user))
+  )
+    # TRANSLATORS: this string in used in the context "Bad password (%s)".
+    return _('based on the username');
+  return 0;
+}
+
 function account_pwvalid ($newpass, $oldpass = '', $user = '')
 {
   global $use_pwqcheck, $pwqcheck_args;
@@ -146,30 +168,14 @@ function account_pwvalid ($newpass, $oldpass = '', $user = '')
     $check = pwqcheck ($newpass, $oldpass, $user, '', $pwqcheck_args);
   else
     {
-      # Some really trivial and obviously-insufficient password strength
-      # checks - we ought to use the pwqcheck(1) program instead.
-      $check = 0;
-      # TRANSLATORS: this string in used in the context "Bad password (%s)".
-      if (strlen ($newpass) < 7)
-        $check = _('way too short');
-      elseif (
-        stristr ($oldpass, $newpass)
-        || (strlen ($oldpass) >= 4 && stristr ($newpass, $oldpass))
-      )
-        # TRANSLATORS: this string in used in the context "Bad password (%s)".
-        $check = _('based on the old one');
-      elseif (
-        stristr ($user, $newpass)
-        || (strlen ($user) >= 4 && stristr ($newpass, $user))
-      )
-        # TRANSLATORS: this string in used in the context "Bad password (%s)".
-        $check = _('based on the username');
+      $check = account_pwcheck ($newpass, $oldpass, $user);
+      # TRANSLATORS: the argument explains the reason why the password is bad.
+      if ($check !== 0)
+        $check = sprintf (_("Bad password (%s)"), $check);
     }
 
   if ($check === 0)
     return 1;
-  # TRANSLATORS: the argument explains the reason why the password is bad.
-  $check = sprintf (_("Bad password (%s)"), $check);
   fb ($check, 1);
   return 0;
 }
