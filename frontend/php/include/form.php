@@ -60,7 +60,7 @@ function form_header (
   # Keep previous form id, in case of form that are recreated on failure.
   if (!$form_id)
     {
-      mt_srand ((double)microtime () * 1000000);
+      utils_srand ();
       $form_id = md5 (mt_rand (0, 1000000));
     }
   $result = db_autoexecute ('form',

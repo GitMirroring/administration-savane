@@ -871,6 +871,11 @@ function utils_str_join ($separator, $str, $n)
   return str_repeat ("$str$separator", $n - 1) . $str;
 }
 
+function utils_srand ()
+{
+  mt_srand ((int)((double)microtime () * 1000000));
+}
+
 function utils_placeholders ($array)
 {
   return utils_str_join (', ', '?', count ($array));
