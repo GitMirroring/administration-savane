@@ -134,13 +134,14 @@ function show_sitestats ()
   $result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
   while ($eachtype = db_fetch_array ($result))
     {
+      $n = stats_getprojects_bytype_active ($eachtype['type_id']);
+      if ($n < 1)
+        continue;
       $return .= show_altrow ($i++);
       $return .= "&nbsp;&nbsp;- <a href=\"{$sys_home}search/"
         . '?type_of_search=soft&amp;words=%%%&amp;type='
         . $eachtype['type_id'] . '" class="center">';
-      $return .= ' ' . gettext ($eachtype['name']) . ": ";
-      $return .= stats_getprojects_bytype_active ($eachtype['type_id']);
-      $return .= "</a></span></div>\n";
+      $return .= ' ' . gettext ($eachtype['name']) . ": $n</a></span></div>\n";
     }
   $pending = stats_getprojects_pending ();
   $return .= show_altrow ($i++) . '&nbsp;&nbsp;';
