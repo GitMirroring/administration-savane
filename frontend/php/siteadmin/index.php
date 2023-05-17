@@ -92,6 +92,11 @@ if (!$func || $func == "configure")
       . no_i18n ("Here you can define skills for users to select in their "
           . "resume and type of jobs for contribution requests.")
       . "</p>\n";
+    print $HTML->box_nextitem ($even);
+    print '<a href="mailman.php">' . no_i18n ("Assign mailing lists") . '</a>';
+    print '<p class="smaller">'
+      . no_i18n ("Move mailing lists from one group to another.");
+    print "</p>\n";
     print $HTML->box_bottom ();
     print "<br />\n";
   }
@@ -109,15 +114,16 @@ if (!$func || $func == "manage")
     print '<a href="' . $GLOBALS['sys_home'] . 'task/?group='
       . $GLOBALS['sys_unix_group_name']
       . '&amp;category_id=1&amp;status_id=1&amp;set=custom#results">'
-      . no_i18n ("Browse pending project registrations") . '</a>';
+      . no_i18n ("Browse pending registrations") . '</a>';
     print '<p class="smaller">'
       . no_i18n ("This will show the list of open task related to pending "
-          . "registrations.");
+          . "group registrations.");
     print "</p>\n";
 
     print $HTML->box_nextitem ($even);
     print '<a href="' . $GLOBALS['sys_home'] . 'news/approve.php?group='
-      . $GLOBALS['sys_unix_group_name'] . '">' . no_i18n("Approve news") . '</a>';
+      . $GLOBALS['sys_unix_group_name'] . '">'
+      . no_i18n ("Approve news") . '</a>';
     print '<p class="smaller">';
     printf (
       no_i18n ("You can browse the list of recent news posted on "
@@ -136,14 +142,16 @@ if (!$func || $func == "manage")
     print '<a href="grouplist.php">' . no_i18n ("Browse group list") . '</a>';
     print '<p class="smaller">'
       . no_i18n ("From there, you can see the complete list of groups and "
-          . "edit them (change status, etc).")
-      . "</p>\n";
+          . "edit them (change status, etc).");
+    print "</p>\n";
 
     print $HTML->box_nextitem ($even);
     print '<a href="userlist.php">' . no_i18n ("Browse user list") . '</a>';
     print '<p class="smaller">'
       . no_i18n ("From there, you can see the complete list of user and edit "
           . "them (change status, email, etc).");
+    print "</p>\n";
+
     print $HTML->box_bottom ();
     print "<br />\n";
 

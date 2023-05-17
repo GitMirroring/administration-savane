@@ -256,7 +256,7 @@ function test_mailman_failed ($ver)
   return $fail;
 }
 
-function output_mailman_test ($ver)
+function output_mailman_version ($ver)
 {
   if (test_mailman_failed ($ver))
     return false;
@@ -264,6 +264,18 @@ function output_mailman_test ($ver)
     return false;
   print "<dt>Version</dt><dd>{$ver['version']}</dd>\n";
   print "<dt>Generated password</dt><dd>{$ver['password']}</dd>\n";
+  print "<dt>Timestamp</dt><dd>{$ver['timestamp']}</dd>\n";
+  return true;
+}
+function output_mailman_query ($q)
+{
+  if (test_mailman_failed ($q))
+    return false;
+  print "<dt>Query results</dt>\n<dd><dl>\n";
+  foreach ($q as $k => $v)
+    print "<dt>" . utils_specialchars ($k) . "</dt>\n"
+      . "<dd>" . utils_specialchars ($v) . "</dd>\n";
+  print "</dl>\n</dd>\n";
   return true;
 }
 
@@ -272,9 +284,12 @@ function test_mailman ()
   print "<h2>Mailman connection</h2>";
   print "<dl>\n";
   $ver = mailman_get_version ();
-  $success = output_mailman_test ($ver);
-  printf ("<dt>Run time</dt><dd>%.3f ms</dd></dl>\n", $ver['timestamp']);
-  if ($success && preg_match ("/^stub /", $ver['version']))
+  $have_version = output_mailman_version ($ver);
+  if ($have_version)
+    output_mailman_query (mailman_query_list ('savannah-users'));
+  else
+    printf ("<dt>Run time</dt><dd>%s ms</dd></dl>\n", $ver['timestamp']);
+  if ($have_version && preg_match ("/^stub /", $ver['version']))
     print "<p><strong>This is a stub; write the real command "
       . "in \$sys_mailman_wrapper.</strong></p>\n";
 }

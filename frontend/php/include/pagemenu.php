@@ -728,13 +728,14 @@ function pagemenu_siteadmin ()
 {
   global $sys_home, $group_name, $sys_unix_group_name;
   $root = $sys_home . "siteadmin";
-  print pagemenu_submenu_title ("Configuration", "root/?func=configure",
+  print pagemenu_submenu_title ("Configuration", "$root/?func=configure",
     SUBCONTEXT == 'configure'
   );
   $titles = [
-    "$root/retestconfig.php" => "Test System Configuration",
-    "$root/group_type.php" => "Configure Group Types",
-    "{$sys_home}people/admin/" => "Configure People Area"];
+    "$root/retestconfig.php" => "Test system configuration",
+    "$root/group_type.php" => "Configure group types",
+    "{$sys_home}people/admin/" => "Configure people area",
+    "$root/mailman.php" => "Assign mailing lists"];
   $txt = "";
   foreach ($titles as $u => $t)
     $txt .= pagemenu_submenu_entry ($t, $u);

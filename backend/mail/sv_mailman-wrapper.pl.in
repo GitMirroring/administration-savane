@@ -160,6 +160,24 @@ sub pre_version
   $ctx{'password'} = '';
 }
 
+sub push_output_field
+{
+  my ($k, $v) = @_;
+  push @output_fields, $k;
+  $ctx{$k} = $v;
+}
+
+sub post_query
+{
+  my $list = $ctx{'list_name'};
+  my $domain = 'test.net';
+  return if $list =~ /fnord/;
+  push_output_field ('qry::host_name', $domain);
+  push_output_field ('qry::advertised', 1);
+  push_output_field ('qry::description', "description for $list\@$domain");
+  push_output_field ('qry::owner', "example\@$domain");
+}
+
 sub run_sub
 {
   my $sub = shift;
@@ -204,6 +222,7 @@ my %req_vars = (
   'change_pw' => ['list_name', 'password'],
   'rmlist' => ['list_name'],
   'config' => ['list_full_name'],
+  'query' => ['list_name'],
   'version' => [],
 );
 my %opt_vars = ('config' => ['description', 'visibility']);
@@ -213,7 +232,7 @@ my %sanitizers = (
 );
 
 my %pre_cmds = ('version' => 'pre_version');
-my %post_cmds = ();
+my %post_cmds = ('query' => 'post_query');
 
 exit_error ("unknown command $cmd") unless exists $req_vars{$cmd};
 

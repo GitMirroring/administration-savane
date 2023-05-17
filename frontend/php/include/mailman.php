@@ -119,7 +119,7 @@ function run ($cmd, $args)
   $lock = acquire_lock ();
   if ($lock === null)
     return ['error' => "Error: can't acquire semaphore",
-        'timestamp' => timestamp () - $t0
+        'timestamp' => sprintf ("%.3f", timestamp () - $t0)
       ];
   list ($lines, $error) = send_request ($cmd, $args);
   sem_release ($lock);
@@ -131,7 +131,7 @@ function run ($cmd, $args)
     $ret['error'] = join ("\n", $ret['error']);
   if (!empty ($error))
     $ret['pipe::error'] = $error;
-  $ret['timestamp'] = $t0;
+  $ret['timestamp'] = sprintf ("%.3f", $t0);
   return $ret;
 }
 
@@ -175,9 +175,11 @@ function format_msg ($group_id, $list_name, $res)
   return $msg . sendmail_signature ();
 }
 
-function send_ack ($group_id, $list_name, $res)
+function report_results ($res, $group_id, $list_name)
 {
   global $sys_mail_replyto, $sys_mail_domain;
+  if (report_errors ($res))
+    return true;
   $uid = user_getid ();
   $msg = format_msg ($group_id, $list_name, $res);
   sendmail_encrypt_message ($uid, $msg);
@@ -187,13 +189,6 @@ function send_ack ($group_id, $list_name, $res)
     ['subject' => sprintf (_("Mailman list %s"), $list_name), 'body' => $msg],
     ['skip_format_body' => true]
   );
-}
-
-function report_results ($res, $group_id, $list_name)
-{
-  if (report_errors ($res))
-    return true;
-  send_ack ($group_id, $list_name, $res);
   return false;
 }
 
@@ -222,7 +217,7 @@ function report_db_error ($res, $list_name, $action)
     # TRANSLATORS: the argument is mailing list name.
     'add' => [_("List %s added"), _("Error adding list %s")],
     'delete' => [_("List %s deleted"), _("Error deleting list %s")],
-    'update' => [_("List %s updated"), _("Error updating list %s")]
+    'update' => [_("List %s updated"), _("Error updating list %s")],
     # No i18n: this action is for site admins only.
     'unlink' => [("List %s unlinked"), ("Error unlinking list %s")],
   ];
@@ -239,7 +234,7 @@ function unlink_list ($group_list_id, $list_name, $action)
   report_db_error ($res, $list_name, $action);
 }
 
-function delete_list ($group_list_id, $group_id, $list_name)
+function delete_list ($group_list_id, $list_name)
 {
   $res = run ('rmlist', ['list_name' => $list_name]);
   if (report_errors ($res))
@@ -255,9 +250,9 @@ function mailman_get_version ()
   return mm_ns\run ('version', []);
 }
 
-function mailman_delete_list ($group_list_id, $group_id, $list_name)
+function mailman_delete_list ($group_list_id, $list_name)
 {
-  mm_ns\delete_list ($group_list_id, $group_id, $list_name);
+  mm_ns\delete_list ($group_list_id, $list_name);
 }
 
 function mailman_reset_password ($group_id, $name)
@@ -266,16 +261,21 @@ function mailman_reset_password ($group_id, $name)
   mm_ns\report_results ($res, $group_id, $name);
 }
 
+function mailman_add_list_to_db ($fields)
+{
+  $result = db_autoexecute ('mail_group_list', $fields, DB_AUTOQUERY_INSERT);
+  mm_ns\report_db_error ($result, $fields['list_name'], 'add');
+}
+
 function mailman_make_list ($group_id, $list_name, $public, $description)
 {
   if (mm_ns\create_list ($group_id, $list_name, $public, $description))
     return;
-  $result = db_autoexecute ('mail_group_list',
-    [ 'group_id' => $group_id, 'list_name' => $list_name, 'is_public' => $public,
-      'list_admin' => user_getid (), 'description' => $description],
-    DB_AUTOQUERY_INSERT
+  mailman_add_list_to_db (
+    [ 'group_id' => $group_id, 'list_name' => $list_name,
+      'is_public' => $public, 'list_admin' => user_getid (),
+      'description' => $description]
   );
-  mm_ns\report_db_error ($result, $list_name, 'add');
 }
 
 function mailman_config_list ($group_list_id, $group_id, $list_name, $public,
@@ -285,15 +285,23 @@ function mailman_config_list ($group_list_id, $group_id, $list_name, $public,
   $grp = group_get_object ($group_id);
   $domain = $grp->getTypeVirtualHost ();
   $args = ['list_full_name' => "$list_name@$domain"];
+  $brgs = [];
   if ($public !== null)
-    $args['visibility'] = $public? 'public': 'private';
+    {
+      $args['visibility'] = $public? 'public': 'private';
+      $brgs['is_public'] = $public;
+    }
   if ($desc !== null)
-    $args['description'] = mm_ns\convert_description ($desc);
+    {
+      $args['description'] = mm_ns\convert_description ($desc);
+      $brgs['description'] = $desc;
+    }
+  if (empty ($brgs))
+    return;
   if (mm_ns\report_errors (mm_ns\run ('config', $args)))
     return;
   $res = db_autoexecute ('mail_group_list',
-    ['description' => $desc, 'is_public' => $public], DB_AUTOQUERY_UPDATE,
-    "group_list_id = ?", [$group_list_id]
+    $brgs, DB_AUTOQUERY_UPDATE, "group_list_id = ?", [$group_list_id]
   );
   mm_ns\report_db_error ($res, $list_name, 'update');
 }
@@ -317,6 +325,14 @@ function mailman_find_list ($group_list_id, $group_id, $list_name)
 function mailman_unlink_list ($group_list_id, $list_name)
 {
   mm_ns\unlink_list ($group_list_id, $list_name, 'unlink');
+}
+
+function mailman_query_list ($list_name)
+{
+  $response = mm_ns\run ('query', ['list_name' => $list_name]);
+  if (mm_ns\report_errors ($response))
+    return null;
+  return $response;
 }
 } # namespace {
 ?>

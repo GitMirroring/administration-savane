@@ -79,6 +79,7 @@ POTFILES = \
 	frontend/php/siteadmin/lastlogins.php \
 	frontend/php/siteadmin/user_changepw.php \
 	frontend/php/siteadmin/index.php \
+	frontend/php/siteadmin/mailman.php \
 	frontend/php/siteadmin/spamlist.php \
 	frontend/php/siteadmin/groupedit.php \
 	frontend/php/siteadmin/userlist.php \

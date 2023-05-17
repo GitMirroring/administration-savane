@@ -38,10 +38,24 @@
 * A new error handler is installed, logging more necessary information
   to track the bugs.
 
+* A facility to reassign mailing lists from one group to another is
+  added, /siteadmin/mailman.php.  When superusers visit mail configuration
+  page of a group, /mail/admin/?group=<unix_group_name>, they are
+  additionally offered controls to unlink, i.e. remove the list from
+  the database without deleting it on the Mailman srever, and to create
+  a list with an arbitrary name (the template is just '%NAME') and associate
+  it with that group.
+
+* /siteadmin/groupedit.php checks if any mailing lists are associated
+  with the group, and when they are, it suggests rearranging them
+  instead of the "Remove group" link.
+
 * Bug fixes:
 
 ** Mailing list descriptions with special chars weren't shown correctly
    in a few places.
+
+** Mailing list creation form didn't support multiple templates with %NAME.
 
 ** In frontend/php/forum/forum.php, one argument of SQL query
    had a wrong type.
@@ -75,6 +89,9 @@
 * New script, backend/extra/git/sv_cgit_about_filter.pl.in.
 
 * sv_cleaner removes irrelevant pieces of news and orphan user data.
+
+* sv_cleaner doesn't check for mailing lists of removed groups any more;
+  they should be managed on the frontend before the group is deleted.
 
 * sv_mailmain connects lists.gnu.org directly unless --ssh-user is set empty.
 

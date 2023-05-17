@@ -49,21 +49,17 @@ define ('PUBLIC_DELETE', 9);
 define ('PUBLIC_UNLINK', 10);
 
 $key_func = ['preg', '/^(\d+|new)$/'];
+$list_name_func = ['name', ['min_len' => 0, 'max_len' => 80]];
 extract (sane_import ('post',
   [
-    'true' => 'post_changes',
+    'true' => ['post_changes', 'add_list'],
     'digits' => 'newlist_format_index',
     'array' =>
       [
-        [
-          'list_name',
-          [
-            $key_func,
-            ['name', ['min_len' => 0, 'max_len' => 80, 'allow_dots' => true]]
-          ]
-        ],
+        ['list_name', ['digits', $list_name_func]],
+        ['new_list_name', ['digits', $list_name_func]],
         ['description', [$key_func, 'specialchars']],
-        ['reset_password', [$key_func, 'true']],
+        ['reset_password', ['digits', 'true']],
         ['is_public', [$key_func, 'digits']],
       ],
   ]
@@ -78,6 +74,9 @@ if (!member_check (0, $group_id))
 exit_test_usesmail ($group_id);
 
 $grp = project_get_object ($group_id);
+$formats = explode (',', $grp->getTypeMailingListFormat ());
+if (user_is_super_user () && !in_array ('%NAME', $formats))
+  $formats[] = '%NAME';
 
 # Check first if the group type set up is acceptable. Otherwise, the form
 # will probably be puzzling to the user (ex: no input text for the list
@@ -92,140 +91,135 @@ if (!$ml_address || $ml_address == "@")
       . "your site administrator to review group type setup.")
   );
 
+# Find the filled part of the templated list name and the respective
+# $newlist_format_index.  Return an empty string when none found.
+function find_out_new_list_name ()
+{
+  global $new_list_name, $newlist_format_index, $formats;
+  if ($newlist_format_index !== null)
+    {
+      if (empty ($new_list_name[$newlist_format_index]))
+        return '';
+      return $new_list_name[$newlist_format_index];
+   }
+  # No radio button selected: take the lowest filled entry.
+  for ($i = count ($formats) - 1; $i > 0 && empty ($new_list_name[$i]); $i--)
+    ; # Empty cycle body.
+  if (empty ($new_list_name[$i]))
+    return '';
+  $newlist_format_index = $i;
+  return $new_list_name[$i];
+}
+
+function add_new_list ()
+{
+  global $newlist_format_index, $list_name, $formats, $grp, $group_id;
+  global $is_public, $description;
+  if ($newlist_format_index >= count ($formats))
+    return;
+  $new_list_name = find_out_new_list_name ();
+  if ($newlist_format_index === null) # At this point, it should be set.
+    return;
+  # Names less than two characters long are not acceptable (only
+  # check if the chosen format requires %NAME substitution).
+  if (
+    strpos ($formats[$newlist_format_index], "%NAME") !== false
+    && strlen ($new_list_name) < 2
+  )
+    {
+      # TRANSLATORS: the argument is the new mailing list
+      # name entered by the user.
+      $msg = sprintf (
+        _("You must provide list name that is two or more "
+          . "characters long: %s"),
+        $new_list_name
+      );
+      fb ($msg, 1);
+      return;
+    }
+  $new_list_name = strtolower ($new_list_name);
+  # Site may have a strict policy on list names: checks now.
+  if ($formats[$newlist_format_index] !== '%NAME')
+    $new_list_name =
+      $grp->getTypeMailingListFormat ($new_list_name, $newlist_format_index);
+  # Check if it is a valid name.
+  if (!account_namevalid ($new_list_name, 1, 1, 1, 80))
+    {
+      # TRANSLATORS: the argument is the new mailing list name
+      # entered by the user.
+      fb (sprintf (_("Invalid list name: %s"), $new_list_name), 1);
+      return;
+    }
+  # Check on the list_name: must not be equal to a user account,
+  # otherwise it can mess up the mail develivery for the list/user.
+  $res = db_execute (
+    "SELECT user_id FROM user WHERE user_name LIKE ?", [$new_list_name]
+  );
+  if (db_numrows ($res))
+    {
+      $msg = sprintf (
+        _("List name %s is reserved to avoid conflicts with "
+          . "user accounts."), $new_list_name
+      );
+      fb ($msg, 1);
+      return;
+    }
+  # Check if the list does not exists already.
+  $result = db_execute (
+    "SELECT group_id FROM mail_group_list WHERE lower(list_name) = ?",
+    [$new_list_name]
+  );
+  if (db_numrows ($result))
+    {
+      $msg = sprintf (_("The list %s already exists."), $new_list_name);
+      fb ($msg, 1);
+      return;
+    }
+  mailman_make_list (
+    $group_id, $new_list_name, $is_public['new'], $description['new']
+  );
+}
+
+if ($add_list)
+  add_new_list ();
+
+function update_list ($id, $name, $group_id)
+{
+  global $is_public, $reset_password, $description;
+  $row_status = mailman_find_list ($id, $group_id, $name);
+  if (empty ($row_status))
+    return;
+
+  if ($is_public[$id] == PUBLIC_DELETE)
+    {
+      mailman_delete_list ($id, $name);
+      return;
+    }
+  if ($is_public[$id] == PUBLIC_UNLINK)
+    {
+      if (user_is_super_user ())
+        mailman_unlink_list ($id, $name);
+      return;
+    }
+  if (!empty ($reset_password[$id]))
+    {
+      mailman_reset_password ($group_id, $name);
+      return;
+    }
+
+  # We update only when it change.
+  $pub = $is_public[$id];
+  if ($pub === $row_status['is_public'])
+    $pub = null;
+  $desc = $description[$id];
+  if ($desc === $row_status['description'])
+    $desc = null;
+  mailman_config_list ($id, $group_id, $name, $pub, $desc);
+}
+
 if ($post_changes)
-  {
-    foreach ($list_name as $id => $ignored)
-      {
-        if ($id == 'new')
-          {
-            # Add a new list.
-            if (!isset ($newlist_format_index))
-             {
-                if (!isset ($list_name['new']) || strlen ($list_name['new']) < 1)
-                  # User didn't fill the form.
-                  continue;
-                # When there's only a single choice, there's no format index.
-                $newlist_format_index = 0;
-             }
-            # Name shorter than two characters are not acceptable (only
-            # check if the chosen format requires %NAME substitution).
-            if (
-              strpos (
-                $grp->getTypeMailingListFormat ("%NAME", $newlist_format_index),
-                "%NAME"
-              ) !== false
-              && (strlen ($list_name['new']) < 2)
-            )
-              {
-                # TRANSLATORS: the argument is the new mailing list
-                # name entered by the user.
-                fb (
-                  sprintf (
-                    _("You must provide list name that is two or more "
-                      . "characters long: %s"),
-                    $list_name['new']
-                  ),
-                  1
-                );
-                continue;
-              }
-            # Site may have a strict policy on list names: checks now.
-            $new_list_name =
-              $grp->getTypeMailingListFormat (
-                strtolower ($list_name['new']), $newlist_format_index
-              );
-            # Check if it is a valid name.
-            if (!account_namevalid ($new_list_name, 1, 1, 1, 80))
-              {
-                # TRANSLATORS: the argument is the new mailing list name
-                # entered by the user.
-                fb (sprintf (_("Invalid list name: %s"), $new_list_name), 1);
-                continue;
-              }
-            # Check on the list_name: must not be equal to a user account,
-            # otherwise it can mess up the mail develivery for the list/user.
-            $res = db_execute (
-              "SELECT user_id FROM user WHERE user_name LIKE ?",
-              [$new_list_name]
-            );
-            if (db_numrows ($res))
-              {
-                fb (
-                  sprintf (
-                    _("List name %s is reserved to avoid conflicts with user "
-                      . "accounts."),
-                    $new_list_name
-                  ), 1
-                );
-                continue;
-              }
-            # Check if the list does not exists already.
-            $result = db_execute (
-              "SELECT group_id FROM mail_group_list WHERE lower(list_name) = ?",
-              [$new_list_name]
-            );
-            if (db_numrows ($result))
-              {
-                $row = db_fetch_array ($result);
-                if ($row['group_id'] == $group_id)
-                  {
-                    $msg = sprintf (
-                      _("The list %s already exists."), $new_list_name);
-                    fb ($msg, 1);
-                    continue;
-                  }
-                # If the list exists already, we create an alias
-                # (same name but attached to a different group),
-                # assuming that group type configuration is well-done
-                # and disallow list name to persons not supposed to
-                # use some names.
-                $msg = sprintf (
-                  _("List %s is already in the database. We will create "
-                    . "an alias."),
-                  $new_list_name
-                );
-                fb ($msg);
-              }
-            mailman_make_list (
-              $group_id, $new_list_name, $is_public['new'], $description['new']
-            );
-            continue;
-          } # if ($id == 'new')
-
-        $row_status = mailman_find_list ($id, $group_id, $list_name[$id]);
-        if (empty ($row_status))
-          continue;
-
-        if ($is_public[$id] == PUBLIC_DELETE)
-          {
-            mailman_delete_list ($id, $group_id, $list_name[$id]);
-            continue;
-          }
-        if (user_is_superuser() && $is_public[$id] == PUBLIC_UNLINK)
-          {
-            mailman_unlink_list ($id, $group_id, $list_name[$id]);
-            continue;
-          }
-
-        if (!empty ($reset_password[$id]))
-          {
-            mailman_reset_password ($group_id, $list_name[$id]);
-            continue;
-          }
-
-        # We need an update only if there is at least one change.
-        if ($description[$id] == $row_status['description']
-            && $is_public[$id] == $row_status['is_public'])
-          continue;
-        $pub = $is_public[$id];
-        if ($pub === $row_status['is_public'])
-          $pub = null;
-        $desc = $description[$id];
-        if ($desc === $row_status['description'])
-          $desc = null;
-        mailman_config_list ($id, $group_id, $list_name[$id], $pub, $desc);
-      } # foreach ($list_name as $id => $ignored)
-  }
+  foreach ($list_name as $id => $name)
+    update_list ($id, $name, $group_id);
 
 $result = db_execute ("
   SELECT list_name, group_list_id, is_public, description
@@ -284,11 +278,18 @@ while ($row = db_fetch_array ($result))
             'id' => "to_be_deleted[$id]",
             'label' => _("Delete (this cannot be undone!)")]);
     if (user_is_super_user ())
-      print "<br />\n&nbsp;&nbsp;&nbsp;"
-        . form_radio ("is_public[$id]", PUBLIC_UNLINK,
-            [ 'checked' => $row['is_public'] == PUBLIC_UNLINK,
-              'id' => "to_be_unlinked[$id]",
-              'label' => no_i18n ("Unlink from database")]);
+      {
+        print "<br />\n&nbsp;&nbsp;&nbsp;";
+        print form_radio ("is_public[$id]", PUBLIC_UNLINK,
+          [ 'checked' => $row['is_public'] == PUBLIC_UNLINK,
+            'id' => "to_be_unlinked[$id]",
+            'label' => no_i18n ("Unlink from database")]
+        );
+        print "<br />\n&nbsp;&nbsp;&nbsp;"
+          . "<a href='../../siteadmin/mailman.php?"
+          . "list_name={$row['list_name']}'>"
+          . no_i18n ('Reassign to another group') . "</a>";
+      }
 
     print "<br />\n&nbsp;&nbsp;&nbsp;"
       . form_checkbox ("reset_password[$id]", 0)
@@ -297,23 +298,22 @@ while ($row = db_fetch_array ($result))
       . "\n";
     print form_hidden (["list_name[$id]" => $row['list_name']]);
   } # while ($row = db_fetch_array($result))
+print form_footer ();
 
 # New list form.
 utils_get_content ("mail/about_list_creation");
 
-print "</p>\n<h2>" . _('Create a new mailing list:') . "</h2>\n";
-$formats = explode (',', $grp->getTypeMailingListFormat ());
+print "<h2>" . _('Create a new mailing list:') . "</h2>\n";
 $i = 0;
 $add_radio = count ($formats) > 1;
 if (count ($formats))
-  print "<p>";
+  print form_tag () . "<p>";
 foreach ($formats as $fmt)
   {
-    $input = str_replace ('%NAME',
-      '<input type="text" title="' . _("Name of new mailing list")
-      . '" name="list_name[new]" value="" size="25" maxlength="70" />',
-      $fmt
+    $input = form_input ('text', "new_list_name[$i]", '',
+      'title="' . _("Name of new mailing list") . '" size="25" maxlength="70"'
     );
+    $input = str_replace ('%NAME', $input, $fmt);
     $addr_line = $grp->getTypeMailingListAddress ($input);
     if ($add_radio)
       $addr_line = form_radio ('newlist_format_index', $i,
@@ -337,7 +337,10 @@ print "<p><span class='preinput'>" . _("Status:") . "</span><br />\n"
       ['id' => 'is_not_public_new', 'label' => _('private')]
     )
   . "</p>\n";
-
-print form_footer ();
+if (count ($formats))
+  {
+    print form_hidden (['add_list' => 'y', 'group_id' => $group_id]);
+    print form_footer ();
+  }
 site_project_footer ([]);
 ?>
