@@ -45,8 +45,7 @@
 # A note on cookies.
 #
 # A feature is to set the cookies for the domain and subdomains.
-# This allows to reuse authentication in subdomains. Check
-# frontend/perl for an example.
+# This allows to reuse authentication in subdomains.
 #
 # Setting the domain is a little bit tricky. Tests:
 #
@@ -75,8 +74,6 @@
 # http://wp.netscape.com/newsref/std/cookie_spec.html (?)
 # http://www.ietf.org/rfc/rfc2109.txt (obsoleted by 2965)
 # http://www.ietf.org/rfc/rfc2965.txt (status: proposed standard)
-# https://gna.org/support/?func=detailitem&item_id=886 (pb with local domains)
-# https://gna.org/bugs/?6694 (first discussion, some mistakes in Beuc's comments)
 # https://savannah.gnu.org/task/?6800 (don't use a leading dot)
 
 require_once (dirname (__FILE__) . '/sane.php');
