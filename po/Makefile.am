@@ -98,6 +98,7 @@ POTFILES = \
 	frontend/php/my/admin/sessions.php \
 	frontend/php/my/admin/index.php \
 	frontend/php/my/votes.php \
+	frontend/php/include/error.php \
 	frontend/php/include/gpg.php \
 	frontend/php/include/context.php \
 	frontend/php/include/features_boxes.php \
