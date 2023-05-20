@@ -44,7 +44,6 @@
 
 use strict;
 use Term::ANSIColor qw(:constants);
-use DBI;
 use POSIX qw(strftime);
 use File::Basename;
 use Text::Wrap qw(&wrap $columns);

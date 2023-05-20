@@ -44,6 +44,8 @@
 # Usually used in other subs.
 
 use strict;
+use DBI;
+require Savane::Conf;
 require Exporter;
 
 our @ISA = qw(Exporter);
