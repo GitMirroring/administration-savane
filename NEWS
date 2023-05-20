@@ -14,6 +14,8 @@
 
 [FRONTEND]
 
+* Duplicate SSH keys are not added to account any more.
+
 * The obsolete documentation in userguide/ is removed; links to wiki
   are added instead.
 

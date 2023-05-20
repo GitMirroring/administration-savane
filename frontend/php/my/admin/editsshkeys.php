@@ -66,7 +66,7 @@ if ($update)
     if (!form_check ($form_id))
       exit_error (_("Exiting"));
 
-    $keys = '';
+    $keys = [];
     # Build the key string.
     for ($i = 0; $i < $key_limit; $i++)
       {
@@ -75,14 +75,14 @@ if ($update)
         $thiskey = $form_authorized_keys[$i];
         # Remove useless blank spaces.
         $thiskey = trim ($thiskey);
-        # Remove line breaks.
         $thiskey = str_replace ("\n", "", $thiskey);
-        if ($thiskey != '')
+        if ($thiskey !== '' && !in_array ($thiskey, $keys, true))
           {
             fb (sprintf (_("Key #%s seen"), $i + 1));
-            $keys .= $thiskey . $key_separator;
+            $keys[] = $thiskey;
           }
       }
+    $keys = join ($key_separator, $keys);
     # Grab original keys from the database for comparison.
     $res_orig_keys = db_execute (
       "SELECT authorized_keys FROM user WHERE user_id = ?", [user_getid ()]
