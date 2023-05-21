@@ -73,7 +73,7 @@ GetOptions ("cron" => \$cron, "debug" => \$debug, "logfile=s" => \$logfile);
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c", localtime) . " $_[0]\n";
 }
 
 exit if (!$sys_viewcvs_conffile);

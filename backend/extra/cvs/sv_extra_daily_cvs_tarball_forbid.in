@@ -77,7 +77,7 @@ GetOptions ("debug" => \$debug, "cvs" => \$cvs, "svn" => \$svn);
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c", localtime) . " $_[0]\n";
 }
 
 # Log: Starting logging.

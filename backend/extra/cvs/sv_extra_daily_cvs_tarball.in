@@ -82,7 +82,7 @@ GetOptions (
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c", localtime) . " $_[0]\n";
 }
 
 open (LOG, ">>$logfile");

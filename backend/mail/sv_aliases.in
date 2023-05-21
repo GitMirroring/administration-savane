@@ -94,7 +94,7 @@ sub print_log
 {
   our $script;
   my $dr = $dry_run? " (dry run)": "";
-  print LOG strftime "[$script] %c -$dr $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c -$dr", localtime) . " $_[0]\n";
 }
 
 sub move_file

@@ -180,13 +180,13 @@ if ($only_etc || $only_cvs || $only_arch || $only_svn || $only_git
     $no_download = 0 if $only_download;
   }
 
-open (LOG, ">>$logfile");
+open (LOG, ">>:encoding(UTF-8)", $logfile);
 
 sub PrintLog
 {
   our $script;
   my $dr = $dry_run? " (dry run)": "";
-  print LOG strftime "[$script] %c -$dr $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c -$dr", localtime) . " $_[0]\n";
 }
 
 PrintLog ("starting");

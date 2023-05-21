@@ -103,7 +103,7 @@ die "Not able to read $in, exiting" unless -r $in;
 
 sub PrintLog
 {
-  print LOG strftime "[$script] %c - $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c", localtime) . " $_[0]\n";
 }
 
 sub file_mtime

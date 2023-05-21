@@ -130,7 +130,7 @@ assign_binaries;
 sub PrintLog
 {
   my $dr = $dry_run? " (dry run)": "";
-  print LOG strftime "[$script] %c$dr $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c$dr", localtime) . " $_[0]\n";
 }
 
 open (LOG, ">>$logfile");

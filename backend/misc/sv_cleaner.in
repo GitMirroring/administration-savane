@@ -51,7 +51,6 @@
 use strict;
 use Savane;
 use Getopt::Long;
-use Term::ANSIColor qw(:constants);
 use POSIX qw(strftime);
 use Time::Local;
 
@@ -98,7 +97,7 @@ GetOptions (
 open (LOG, ">>$logfile") or die $!;
 sub add_to_log
 {
-  print LOG strftime "[$script] %c $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c", localtime) . " $_[0]\n";
 }
 
 sub log_with_dr

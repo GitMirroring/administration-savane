@@ -45,7 +45,6 @@ use strict;
 use Savane;
 use Savane::Mail;
 use Getopt::Long;
-use Term::ANSIColor qw(:constants);
 use POSIX qw(strftime);
 use Time::Local;
 use Date::Calc qw(Add_Delta_YMD);
@@ -104,7 +103,7 @@ $dbd->{mysql_enable_utf8} = 1;
 sub PrintLog
 {
   my $dr = $dry_run? " (dry run)": "";
-  print LOG strftime "[$script] %c$dr - $_[0]\n", localtime;
+  print LOG (strftime "[$script] %c$dr -", localtime) . " $_[0]\n";
 }
 
 # Values for batch_frequency: 0 = none, 1 = daily, 2 = weekly, 3 = monthly.
@@ -118,7 +117,7 @@ sub decode_freq
   return $names[$freq];
 }
 
-open (LOG, ">>:encoding(UTF-8)", "$logfile");
+open (LOG, ">>:encoding(UTF-8)", $logfile);
 PrintLog ("starting");
 AcquireReplicationLock ();
 
