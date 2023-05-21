@@ -43,10 +43,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 require_once('../../include/init.php');
 
-session_require(array('group'=>$group_id,'admin_flags'=>'A'));
+session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
 # Labels are used as keys because they are used less often.
 $trackers = [
@@ -58,34 +57,34 @@ $trackers = [
 $perm_regexp = '/^(\d+|NULL)$/';
 
 # Internal function to determine if a squad permission must override user perm
-# or not
-#  * If user got lower rights, we override, because we assume that user has
-# been added to obtain at least the rights given the squad
-#  * If user got higher rights, we let as it is because the user may be
-# member of a squad that provides somes rights to its members but being
-# himself someone that have other duties requiring in some cases more
-# rights.
-function _compare_perms ($squad_perm, $user_perm)
+# or not.
+# * If user got lower rights, we override, because we assume that user has
+#   been added to obtain at least the rights given the squad.
+# * If user got higher rights, we let as it is because the user may be
+#   member of a squad that provides somes rights to its members but being
+#   himself someone that have other duties requiring in some cases more
+#   rights.
+function compare_perms ($squad_perm, $user_perm)
 {
   # We have to do some subtle comparisons because, unfortunately, perms
   # flags have a long history and are not completely consistant: higher does
-  # not always mean better
+  # not always mean better.
   #   NULL = use default (group or group type)
   #   9 = none
   #   1 = technician
   #   3 = manager
   #   2 = technician & manager
 
-  # if both perms are equal, dont bother checking further
+  # If both perms are equal, dont bother checking further.
   if ($squad_perm == $user_perm)
-    { return $user_perm; }
+    return $user_perm;
 
-  # if squad perm is 9 (none), keep user perm anyway
+  # If squad perm is 9 (none), keep user perm anyway.
   if ($squad_perm == "9")
-    { return $user_perm; }
+    return $user_perm;
 
   # if user perm is 9 (none) or NULL (group default), take it squad perm
-  # (that cannot be 9, excluded already)
+  # (that cannot be 9, excluded already).
   if ($user_perm == "9")
     {
       $GLOBALS['did_squad_override'] = true;
@@ -93,29 +92,28 @@ function _compare_perms ($squad_perm, $user_perm)
     }
 
   # If user perm or squad perm is 2 (techn and manager),
-  # there is nothing higher, take it
+  # there is nothing higher, take it.
   if ($user_perm == "2" || $squad_perm == "2")
     {
       if ($squad_perm == "2")
-        { $GLOBALS['did_squad_override'] = true; }
+        $GLOBALS['did_squad_override'] = true;
       return "2";
     }
 
   # if user perm and squad perm are 1 (techician) and  3 (manager), assume
-  # that the result is that the user should be 2 (both technician and manager)
+  # that the result is that the user should be 2 (both technician and manager).
   if (($user_perm == "1" && $squad_perm == "3") ||
       ($squad_perm == "1" && $user_perm == "3"))
     {
       $GLOBALS['did_squad_override'] = true;
       return "2";
     }
-
-  # If we end here, nothing conclusive, keep the user perm
+  # If we end here, nothing conclusive, keep the user perm.
   return $user_perm;
 }
 
 extract (sane_import ('post', ['true' => 'update']));
-$project = project_get_object($group_id);
+$project = project_get_object ($group_id);
 
 if ($update)
   {
@@ -124,14 +122,16 @@ if ($update)
     $feedback_squad_override = null;
 
     # Get the members list, taking first the squads.
-    $res_dev = db_execute("SELECT user_id,admin_flags FROM user_group "
-                          ."WHERE group_id=? AND admin_flags<>'P' "
-                          ."ORDER BY admin_flags DESC", array($group_id));
+    $res_dev = db_execute ("
+      SELECT user_id, admin_flags FROM user_group
+      WHERE group_id = ? AND admin_flags <> 'P'
+      ORDER BY admin_flags DESC", [$group_id]
+    );
 
     # Save the squads permissions to override users permissions if necessary.
-    $squad_permissions = array();
+    $squad_permissions = [];
 
-    while ($row_dev = db_fetch_array($res_dev))
+    while ($row_dev = db_fetch_array ($res_dev))
       {
         $row_uid = $row_dev['user_id'];
         $name = user_getname ($row_uid);
@@ -140,12 +140,15 @@ if ($update)
         # on a project they are member of.
         # It creates issues (flags erroneously set).
         # They should use admin interface instead or end su session.
-        if (user_is_super_user() && $row_dev['user_id'] == user_getid())
+        if (user_is_super_user () && $row_dev['user_id'] == user_getid ())
           {
-# TRANSLATORS: the argument is user's number in the database.
-            fb(sprintf(_("Configuration for user #%s (you!) ignored to avoid
-incoherent flags status. End the superuser session to change your settings in
-this group or use the admin user interface."), $row_dev['user_id']), 1);
+            # TRANSLATORS: the argument is user's number in the database.
+            $msg = sprintf ("Configuration for user #%s (you!) is ignored to "
+              . "avoid\nincoherent flags status. End the superuser session "
+              . "to change your settings in\nthis group or use the admin user "
+              . "interface.", $row_dev['user_id']
+            );
+            fb ($msg, 1);
             continue;
           }
 
@@ -177,7 +180,7 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
 
         # Admin are not allowed to turn off their own admin flag.
         # It is too dangerous -- set it back to 'A'.
-        if (user_getid() == $row_uid)
+        if (user_getid () == $row_uid)
           $permissions[$admin_flags] = 'A';
         $is_squad = $row_dev['admin_flags'] == 'SQD';
         # Squads flag cannot be changed, squads should not be turned into normal
@@ -207,7 +210,7 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
           {
             # If it is not a squad, we then have to check if the user is
             # member of any squad, and if he is, we have to check which
-            # setting must be kept (see _compare_perms comments).
+            # setting must be kept (see compare_perms comments).
             $result_user_squads = db_execute ("
               SELECT squad_id FROM user_squad
               WHERE user_id=? AND group_id = ?",
@@ -215,7 +218,7 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
             );
             if (db_numrows ($result_user_squads))
               {
-                while ($thissquad = db_fetch_array($result_user_squads))
+                while ($thissquad = db_fetch_array ($result_user_squads))
                   {
                     $thesquad = $thissquad['squad_id'];
                     $GLOBALS['did_squad_override'] = false;
@@ -225,7 +228,7 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
                         $perm =
                           $squad_permissions[$thesquad . $flag];
                         $out[$$var] =
-                          _compare_perms ($perm, $permissions[$$var]);
+                          compare_perms ($perm, $permissions[$$var]);
                       }
 
                     if ($squad_permissions[$thesquad . 'privacy']
@@ -246,13 +249,13 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
                         ) . "\n";
                   }
               }
-          }
+          } # !$is_squad
 
-        $fields_values = array(
+        $fields_values = [
           'admin_flags' => $permissions[$admin_flags],
           'privacy_flags' => $permissions[$privacy_flags],
           'onduty' => $permissions[$onduty],
-        );
+        ];
 
         foreach ($trackers as $art)
           {
@@ -260,52 +263,49 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
             if (tracker_uses ($project, $art))
               $fields_values[$var] = $permissions[$$var];
           }
-        $result = db_autoexecute('user_group',
-                                 $fields_values,
-                                 DB_AUTOQUERY_UPDATE,
-                                 "user_id=? AND group_id=?",
-                                 array($row_dev['user_id'], $group_id));
+        $result = db_autoexecute ('user_group', $fields_values,
+          DB_AUTOQUERY_UPDATE, "user_id = ? AND group_id = ?",
+          [$row_dev['user_id'], $group_id]
+        );
 
-      # Notice any change, yell on error, keep silent if no changes was
-      # necessary (if db_affected_rows works normally, which does not seems
-      # to always be the case).
-        if ($result && db_affected_rows($result))
+        # Notice any change, yell on error, keep silent if no changes was
+        # necessary (if db_affected_rows works normally, which does not seem
+        # to always be the case).
+        if ($result && db_affected_rows ($result))
           {
             if ($is_squad)
               {
                 $string = 'Changed Squad Permissions';
-                $feedback_able .= sprintf(_('Changed Squad %s Permissions')."\n",
-                                          $name);
+                $feedback_able .=
+                  sprintf (_('Changed Squad %s Permissions'), $name);
               }
             else
               {
                 $string = 'Changed User Permissions';
-                $feedback_able .= sprintf(_('Changed User %s Permissions')."\n",
-                                          $name);
+                $feedback_able .=
+                  sprintf (_('Changed User %s Permissions'), $name);
               }
-            group_add_history($string,
-                              $name,
-                              $group_id);
+            $feedback_able .= "\n";
+            group_add_history ($string, $name, $group_id);
           }
         elseif (!$result)
           {
             if ($is_squad)
-              $feedback_able .= sprintf(_('Unable to change squad %s permissions')
-                                        ."\n",
-                                        $name);
+              $feedback_able .=
+                sprintf (_('Unable to change squad %s permissions'), $name);
             else
-              $feedback_able .= sprintf(_('Unable to change user %s permissions')
-                                        ."\n",
-                                        $name);
+              $feedback_able .=
+                sprintf (_('Unable to change user %s permissions'), $name);
+            $feedback_able .= "\n";
           }
       } # while ($row_dev = db_fetch_array($res_dev))
 
     if ($feedback_able)
-      fb($feedback_able);
+      fb ($feedback_able);
     if ($feedback_squad_override)
-      fb($feedback_squad_override);
+      fb ($feedback_squad_override);
     if ($feedback_unable)
-      fb($feedback_unable);
+      fb ($feedback_unable);
 
     # Update group default permissions.
     $names = [];
@@ -338,13 +338,13 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
       $fields_values, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
     );
 
-    if ($result && db_affected_rows($result))
+    if ($result && db_affected_rows ($result))
       {
-        group_add_history('Changed Group Default Permissions','',$group_id);
-        fb(_("Permissions for the group updated."));
+        group_add_history('Changed Group Default Permissions', '', $group_id);
+        fb (_("Permissions for the group updated."));
       }
     elseif (!$result)
-      fb(_("Unable to change group default permissions."), 1);
+      fb (_("Unable to change group default permissions."), 1);
 
     # Update posting restrictions
     # (if equal to 0, manually set to NULL, since 0 have a different meaning).
@@ -373,18 +373,18 @@ this group or use the admin user interface."), $row_dev['user_id']), 1);
       "group_id = ?", [$group_id]
     );
 
-    if ($result && db_affected_rows($result))
+    if ($result && db_affected_rows ($result))
       {
         group_add_history ('Changed Posting Restrictions', '', $group_id);
-        fb(_("Posting restrictions updated."));
+        fb (_("Posting restrictions updated."));
       }
     elseif (!$result)
-      fb(_("Unable to change posting restrictions."), 1);
+      fb (_("Unable to change posting restrictions."), 1);
   } # if ($update)
 
 function finish_page ()
 {
-  site_project_footer(array());
+  site_project_footer ([]);
   exit (0);
 }
 
@@ -401,11 +401,11 @@ function add_used_tracker_titles (&$title_arr, $project)
       $title_arr[] = $title;
 }
 
-site_project_header(array('title'=>_("Set Permissions"),'group'=>$group_id,
-                          'context'=>'ahome'));
+site_project_header (
+  ['title' => _("Set Permissions"), 'group' => $group_id, 'context'=>'ahome']
+);
 
-print form_header($_SERVER['PHP_SELF']).
-form_input("hidden", "group", $group);
+print form_header ($_SERVER['PHP_SELF']) . form_hidden (["group" => $group]);
 
 # Posting restrictions.
 # Exists also in trackers config (missing for news).
@@ -462,20 +462,20 @@ foreach ($trackers as $art)
   if ($art != 'news')
     select_box_if_uses ($project, $art, $group_id, 'restriction', 2);
 
-if ($project->Uses("news"))
-# Not yet effective!
+if ($project->Uses ("news"))
+  # Not yet effective!
   print '<td align="center">---</td>';
 print "</tr>\n";
 
 print "</table>\n<p class='center'>"
-  . form_submit(_("Update Permissions")). "</p>\n";
+  . form_submit (_("Update Permissions")) . "</p>\n";
 
 # Group defaults.
 $title_arr = [];
 add_used_tracker_titles ($title_arr, $project);
 
 print "<p>&nbsp;</p>\n<h2>" . _("Group Default Permissions") . "</h2>\n";
-member_explain_roles();
+member_explain_roles ();
 print html_build_list_table_top ($title_arr);
 
 print "<tr>\n";
@@ -497,8 +497,7 @@ $result = db_execute ("
     user_group.support_flags
   FROM user JOIN user_group ON user.user_id = user_group.user_id
   WHERE user_group.group_id = ? AND user_group.admin_flags = 'SQD'
-  ORDER BY user.user_name",
-  array($group_id)
+  ORDER BY user.user_name", [$group_id]
 );
 
 print "<p>&nbsp;</p>\n<h2>" . _("Permissions per squad") . "</h2>\n";
@@ -591,10 +590,10 @@ while ($row = db_fetch_array ($result))
     $row_uid = $row['user_id'];
     if ($reprinttitle == 9)
       {
-        print html_build_list_table_top($title_arr, 0, 0);
+        print html_build_list_table_top ($title_arr, 0, 0);
         $reprinttitle = 0;
       }
-    print " <tr class=\"" . utils_altrow($i) . "'\">\n"
+    print " <tr class=\"" . utils_altrow ($i) . "'\">\n"
       . "<td align='center' id=\"{$row['user_name']}\">"
       . utils_user_link ($row['user_name'], $row['realname']) . "</td>\n";
     print '<td class="smaller">';
@@ -619,7 +618,7 @@ while ($row = db_fetch_array ($result))
          . _("Private Items") . '</label>';
       }
     else
-      print form_input("hidden", "privacy_user_$row_uid", 1);
+      print form_hidden (["privacy_user_$row_uid" => 1]);
     print "</td>\n";
     print '<td align="center">';
     print form_checkbox (
@@ -629,7 +628,7 @@ while ($row = db_fetch_array ($result))
     print "</td>\n";
     foreach ($trackers as $art)
       if (tracker_uses ($project, $art))
-        html_select_permission_box($art, $row);
+        html_select_permission_box ($art, $row);
     print "</tr>\n";
   } # while ($row = db_fetch_array($result))
 
