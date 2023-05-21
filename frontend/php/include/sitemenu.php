@@ -400,7 +400,7 @@ function sitemenu_help ()
   $HTML->menu_entry ("/maintenance/back-page/", _("User Docs: In Depth Guide"),
     1,
     _("In-depth Documentation dedicated to any users, including "
-      . "Project Admins")
+      . "group admins")
   );
 
     # TRANSLATORS: the argument is site name (like Savannah).

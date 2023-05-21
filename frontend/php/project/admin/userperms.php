@@ -136,22 +136,6 @@ if ($update)
         $row_uid = $row_dev['user_id'];
         $name = user_getname ($row_uid);
 
-        # Site admins are not allowed to changer their own user rights
-        # on a project they are member of.
-        # It creates issues (flags erroneously set).
-        # They should use admin interface instead or end su session.
-        if (user_is_super_user () && $row_dev['user_id'] == user_getid ())
-          {
-            # TRANSLATORS: the argument is user's number in the database.
-            $msg = sprintf ("Configuration for user #%s (you!) is ignored to "
-              . "avoid\nincoherent flags status. End the superuser session "
-              . "to change your settings in\nthis group or use the admin user "
-              . "interface.", $row_dev['user_id']
-            );
-            fb ($msg, 1);
-            continue;
-          }
-
         $names = [];
         foreach ($trackers as $flag)
           {
@@ -566,7 +550,7 @@ print "<p>&nbsp;</p>\n<h2>" . _("Permissions per member") . "</h2>\n";
 
 if (db_numrows ($result) < 1)
   {
-    # No point in changing permissions of an orphaned project.
+    # No point in changing permissions of an orphaned group.
     print '<p class="warn">' . _("No Members Found") . "</p>\n";
     finish_page ();
   }
@@ -575,7 +559,7 @@ $title_arr = [_("Member"), _("General Permissions"), _("On Duty")];
 add_used_tracker_titles ($title_arr, $project);
 
 print '<p class="warn">';
-print _("Projects Admins are always allowed to read private items.");
+print _("Group admins are always allowed to read private items.");
 print "</p>\n";
 
 print html_build_list_table_top ($title_arr);
@@ -597,7 +581,7 @@ while ($row = db_fetch_array ($result))
       . "<td align='center' id=\"{$row['user_name']}\">"
       . utils_user_link ($row['user_name'], $row['realname']) . "</td>\n";
     print '<td class="smaller">';
-    if ($row_uid == user_getid())
+    if ($row_uid == user_getid () && !user_is_super_user ())
       print '<em>' . _("You are Admin") . '</em>';
     else
       {

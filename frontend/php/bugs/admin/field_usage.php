@@ -290,7 +290,7 @@ if ($update_field)
 
     if ($checkbox_members)
       print "<br />\n&nbsp;&nbsp;&nbsp;$checkbox_members "
-        . _("<!-- present this field to --> Project Members");
+        . _("<!-- present this field to --> Group Members");
     if ($checkbox_loggedin)
       print "<br />\n&nbsp;&nbsp;&nbsp;$checkbox_loggedin "
         . _("<!-- present this field to --> Logged-in Users");

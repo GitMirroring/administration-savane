@@ -73,7 +73,7 @@ print '<p>'._("Typically, you'll want to use <tt>trunk</tt> for
 you're unsure, or browse the repository with ViewVC.").'</p>
 
 
-<h3>'._('Project member Subversion access via SSH').'</h3>
+<h3>'._('Group member Subversion access via SSH').'</h3>
 
 <p>'
 ._('Member access is performed using the Subversion over SSH method.')

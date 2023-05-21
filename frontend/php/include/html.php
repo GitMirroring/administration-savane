@@ -698,7 +698,7 @@ function html_select_restriction_box (
       print "<option value='NULL'$sel>$default</option>\n";
     }
   $labels = [
-    [6, _("Nobody")], [5, _("Project Member")],  [3, _("Logged-in User")],
+    [6, _("Nobody")], [5, _("Group Member")],  [3, _("Logged-in User")],
     [2, _("Anonymous")],
   ];
   foreach ($labels as $vl)
@@ -925,7 +925,7 @@ function html_member_explain_roles ()
           . "and projects,\nchanging priority and status of items&mdash;but "
           . "they cannot configure the\ntrackers.");
   print "</p>\n<p>";
-  print _("Project Admins can manage members, configure the trackers, post\n"
+  print _("Group admins can manage members, configure the trackers, post\n"
           . "jobs, and add mailing lists. They actually also have manager "
           . "rights on every\ntracker and are allowed to read private items.");
   print "</p>\n";

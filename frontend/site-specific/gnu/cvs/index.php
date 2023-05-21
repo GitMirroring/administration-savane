@@ -87,7 +87,7 @@ print "</pre>\n\n";
 
 print "<p>" . _('to preview and status check.') . "</p>\n";
 
-print '<h3>' . _('Project Member CVS Access via SSH') . "</h3>\n";
+print '<h3>' . _('Group member CVS access via SSH') . "</h3>\n";
 
 print "<p>"
   . _("Member access is performed using the CVS over SSH method. The\n"

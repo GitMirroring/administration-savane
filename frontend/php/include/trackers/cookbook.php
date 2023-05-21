@@ -47,17 +47,17 @@ function cookbook_audience_possiblevalues()
 {
   return array("anonymous" => _("Anonymous Users"),
                "loggedin" => _("Logged-in Users"),
-               "members" => _("All Project Members"),
-               "technicians" => _("Project Members who are technicians"),
-               "managers" => _("Project Members who are managers"));
+               "members" => _("All Group Members"),
+               "technicians" => _("Group Members who are technicians"),
+               "managers" => _("Group Members who are managers"));
 }
 
 # Same for context.
 # Guess all the possible values in theory on the site for a project.
 function cookbook_context_project_possiblevalues()
 {
-  return array("project" => _("Project Main Pages"),
-               "homepage" => _("Project Homepage"),
+  return array("project" => _("Group Main Pages"),
+               "homepage" => _("Group Homepage"),
                "cookbook" => _("Cookbook"),
                "download" => _("Download Area"),
                "support" => _("Support Tracker"),
@@ -97,7 +97,7 @@ function cookbook_context_project_impossiblevalues()
       if ($feature == 'cookbook')
         continue;
 
-      # Project main pages cannot be deactivated.
+      # Group main pages cannot be deactivated.
       if ($feature == 'project')
         continue;
 

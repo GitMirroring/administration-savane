@@ -57,7 +57,7 @@ print '<h3>'._('Anonymous Arch Access').'</h3>
 print '<pre>tla register-archive http://arch.savannah.gnu.org/archives/'
         .$project->getUnixName().'</pre>
 
-<h3>'._('Project Member Arch Access').'</h3>
+<h3>'._('Group member Arch access').'</h3>
 <p>'
 ._("This project's Arch repository can be accessed throgh SFTP for project members.")
 .'</p>

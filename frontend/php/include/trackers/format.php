@@ -318,14 +318,14 @@ function format_item_details (
               else
                 {
                   $icon = "project-admin";
-                  $icon_alt = _("Project Administrator");
+                  $icon_alt = _("Group administrator");
                 }
             }
           elseif (member_check ($poster_id, $group_id))
             {
               # Simple project member.
               $icon = "project-member";
-              $icon_alt = _("Project Member");
+              $icon_alt = _("Group Member");
             }
         } # if ($poster_id != 100)
 

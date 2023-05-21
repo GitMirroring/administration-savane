@@ -125,11 +125,11 @@ function role_icon ($flags, $group_id)
     {
       if ($group_id == $sys_group_id)
         return ["site-admin",  _("Site Administrator")];
-      return ["project-admin", _("Project Administrator")];
+      return ["project-admin", _("Group administrator")];
     }
   if ($flags == 'SQD')
     return ["people", _("Squad")];
-  return ["project-member", _("Project Member")];
+  return ["project-member", _("Group member")];
 }
 
 function print_role_icon ($m, $group_id)
@@ -173,7 +173,7 @@ if ((!$group_id) && $form_grp)
 
 site_project_header (
   [
-    'title' => _("Project Memberlist"), 'group' => $group_id,
+    'title' => _("Group memberlist"), 'group' => $group_id,
     'context' => 'people'
   ]
 );
