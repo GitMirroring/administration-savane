@@ -567,21 +567,40 @@ function group_getid ($group_name)
   return null;
 }
 
+function group_trimmed_array ($res, $suff)
+{
+  $a = db_fetch_array ($res);
+  $ret = []; $len = strlen ($suff);
+  foreach ($a as $k => $v)
+    {
+      if (is_int ($k))
+        continue;
+      $ret[substr ($k, 0, -$len)] = $v;
+    }
+  return $ret;
+}
+
 function group_get_perm_flags ($group_id, $artifact, $prefix = '')
 {
-  if (!$artifact)
+  if (empty ($artifact))
     return null;
-  if (!preg_match ('/^[a-z]+$/', $artifact))
-    util_die ('group_getpermissions: unvalid argument artifact');
-  $field = "{$artifact}_{$prefix}flags";
-  $res =
-    db_execute ("
-      SELECT $field as f FROM groups_default_permissions WHERE group_id = ?",
-      [$group_id]
-    );
-  if (db_numrows ($res))
-    return db_result ($res, 0, "f");
-  return null;
+  $art = $artifact;
+  if (is_scalar ($artifact))
+    $art = [$art];
+  $suff = "_{$prefix}flags";
+  foreach ($art as $a)
+    if (!preg_match ('/^[a-z]+$/', $a))
+      util_die ('group_getpermissions: unvalid argument artifact');
+  $fields = join ("$suff, ", $art) . $suff;
+  $res = db_execute (
+    "SELECT $fields FROM groups_default_permissions WHERE group_id = ?",
+    [$group_id]
+  );
+  if (!db_numrows ($res))
+    return null;
+  if (is_scalar ($artifact))
+    return db_result ($res, 0, "$artifact$suff");
+  return group_trimmed_array ($res, $suff);
 }
 
 function group_getpermissions ($group_id, $artifact)
@@ -589,11 +608,8 @@ function group_getpermissions ($group_id, $artifact)
   return group_get_perm_flags ($group_id, $artifact);
 }
 
-function group_getrestrictions (
-  $group_id, $artifact, $event = TRACKER_EVENT_NEW_ITEM
-)
+function group_flag_value ($flag, $event)
 {
-  $flag = group_get_perm_flags ($group_id, $artifact, 'r');
   if ($flag === null)
     return $flag;
 
@@ -603,6 +619,24 @@ function group_getrestrictions (
     $flag = (int)($flag / TRACKER_FLAG_FACTOR);
   # We really want group restrictions here, not group type ones if missing.
   return $flag;
+}
+
+function group_getrestrictions (
+  $group_id, $artifact, $event = TRACKER_EVENT_NEW_ITEM
+)
+{
+  $flag = group_get_perm_flags ($group_id, $artifact, 'r');
+  if ($flag === null)
+    return $flag;
+  $f = $flag;
+  if (is_scalar ($f))
+    $f = [$f];
+  $ret = [];
+  foreach ($f as $k => $v)
+    $ret[$k] = group_flag_value ($v, $event);
+  if (is_scalar ($flag))
+    return $ret[0];
+  return $ret;
 }
 
 function group_restriction_flag ($group_id, $artifact, $event)

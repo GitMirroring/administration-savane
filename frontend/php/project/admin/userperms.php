@@ -1,5 +1,5 @@
 <?php
-# Modify user permissions.
+# Modify user permissions, including squads and defaults.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Free Software Foundation, Inc.
@@ -43,18 +43,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-
+require_once ('../../include/init.php');
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
-
-# Labels are used as keys because they are used less often.
-$trackers = [
-  _("Support Tracker") => 'support', _("Bug Tracker") => 'bugs',
-  _("Task Tracker") => 'task', _("Patch Tracker") => 'patch',
-  _("Cookbook Manager") => 'cookbook', _("News Manager") => 'news'
-];
-
-$perm_regexp = '/^(\d+|NULL)$/';
 
 # Internal function to determine if a squad permission must override user perm
 # or not.
@@ -64,307 +54,378 @@ $perm_regexp = '/^(\d+|NULL)$/';
 #   member of a squad that provides somes rights to its members but being
 #   himself someone that have other duties requiring in some cases more
 #   rights.
-function compare_perms ($squad_perm, $user_perm)
+# Return true in the first item when squad permissions will be used.
+# The second item is the actual value.
+function effective_permissions ($squad_perm, $user_perm)
 {
   # We have to do some subtle comparisons because, unfortunately, perms
-  # flags have a long history and are not completely consistant: higher does
-  # not always mean better.
-  #   NULL = use default (group or group type)
-  #   9 = none
-  #   1 = technician
-  #   3 = manager
-  #   2 = technician & manager
+  # have a long history and are not completely consistent.
+  #   'NULL': group default
+  #   9: none
+  #   1: technician
+  #   3: manager
+  #   2: technician & manager
 
-  # If both perms are equal, dont bother checking further.
+  # If perms are equal, don't bother checking further.
   if ($squad_perm == $user_perm)
-    return $user_perm;
+    return [false, $user_perm];
 
-  # If squad perm is 9 (none), keep user perm anyway.
-  if ($squad_perm == "9")
-    return $user_perm;
+  # If squad perm is 9 (none) or default, keep user's perm.
+  if ($squad_perm == "9" || $squad_perm == 'NULL')
+    return [false, $user_perm];
 
-  # if user perm is 9 (none) or NULL (group default), take it squad perm
-  # (that cannot be 9, excluded already).
+  if ($squad_perm == "2") # Highest possible, therefore higher than $user_perm.
+    return [true, $squad_perm];
+
+  # If user's perm is 9 (none), take squad perm.
   if ($user_perm == "9")
-    {
-      $GLOBALS['did_squad_override'] = true;
-      return $squad_perm;
-    }
+    return [true, $squad_perm];
 
-  # If user perm or squad perm is 2 (techn and manager),
-  # there is nothing higher, take it.
-  if ($user_perm == "2" || $squad_perm == "2")
-    {
-      if ($squad_perm == "2")
-        $GLOBALS['did_squad_override'] = true;
-      return "2";
-    }
-
-  # if user perm and squad perm are 1 (techician) and  3 (manager), assume
-  # that the result is that the user should be 2 (both technician and manager).
-  if (($user_perm == "1" && $squad_perm == "3") ||
-      ($squad_perm == "1" && $user_perm == "3"))
-    {
-      $GLOBALS['did_squad_override'] = true;
-      return "2";
-    }
-  # If we end here, nothing conclusive, keep the user perm.
-  return $user_perm;
+  # If user's perm and squad perm are 1 (techician) and  3 (manager), assume
+  # that the user should be both technician and manager.
+  if (($user_perm == "1" && $squad_perm == "3")
+      || ($squad_perm == "1" && $user_perm == "3"))
+    return [true, "2"];
+  # If we end here, nothing conclusive, keep the user's perm.
+  return [false, $user_perm];
 }
 
-extract (sane_import ('post', ['true' => 'update']));
-$project = project_get_object ($group_id);
+function merge_user_squad_permissions ($user_id, $row, &$perms, &$sq_perms)
+{
+  global $trackers, $user_list;
+  $squad_id = $row['squad_id']; $squad_perm_used = false;
+  foreach ($trackers as $flag)
+    {
+      $perm = $sq_perms[$squad_id . $flag];
+      list ($used, $perms[$flag]) =
+        effective_permissions ($perm, $perms[$flag]);
+      $squad_perm_used = $squad_perm_used || $used;
+    }
 
-if ($update)
-  {
-    $feedback_able = null;
-    $feedback_unable = null;
-    $feedback_squad_override = null;
+  if ($sq_perms[$squad_id . 'privacy'] > $perms['privacy'])
+    {
+      $squad_perm_used = true;
+      $perms['privacy'] = $sq_perms[$squad_id . 'privacy'];
+    }
+  if (!$squad_perm_used)
+    return '';
+  # TRANSLATORS: the argument is user's name.
+  return sprintf (
+    _("Personal permissions of %s were overridden "
+      . "by squad permissions"), $user_list[$user_id]['user_name']
+  ) . "\n";
+}
 
-    # Get the members list, taking first the squads.
-    $res_dev = db_execute ("
-      SELECT user_id, admin_flags FROM user_group
-      WHERE group_id = ? AND admin_flags <> 'P'
-      ORDER BY admin_flags DESC", [$group_id]
+function find_out_user_permissions ($user_id, $group_id, &$perms, &$sq_perms)
+{
+  $result = db_execute (
+    "SELECT squad_id FROM user_squad WHERE user_id = ? AND group_id = ?",
+    [$user_id, $group_id]
+  );
+  if (!db_numrows ($result))
+    return '';
+  $ret = '';
+  while ($row = db_fetch_array ($result))
+    $ret .= merge_user_squad_permissions ($user_id, $row, $perms, $sq_perms);
+  return $ret;
+}
+
+function report_update_failed ($result, $is_squad, $name)
+{
+  if ($result)
+    return null;
+  if ($is_squad)
+    return sprintf (_('Unable to change squad %s permissions'), $name) . "\n";
+  return sprintf (_('Unable to change user %s permissions'), $name) . "\n";
+}
+
+function update_member_permissions (
+  &$fld_val, $uid, $is_squad, $name, $group_id
+)
+{
+  $result = db_autoexecute ('user_group', $fld_val, DB_AUTOQUERY_UPDATE,
+    "user_id = ? AND group_id = ?", [$uid, $group_id]
+  );
+  if (null !== ($ret = report_update_failed ($result, $is_squad, $name)))
+    return $ret;
+  if ($is_squad)
+    {
+      $string = 'Changed Squad Permissions';
+      $msg = sprintf (_('Changed Squad %s Permissions'), $name);
+    }
+  else
+    {
+      $string = 'Changed User Permissions';
+      $msg = sprintf (_('Changed User %s Permissions'), $name);
+    }
+  group_add_history ($string, $name, $group_id);
+  return "$msg\n";
+}
+
+function no_member_changes ($uid, &$fields, $is_squad)
+{
+  $lst = $is_squad? 'squad_list': 'user_list';
+  foreach ($fields as $k => $v)
+    {
+      if ($v === 'NULL')
+        $v = null;
+      if (empty ($v) && empty ($GLOBALS[$lst][$uid][$k]))
+        continue;
+      if ($GLOBALS[$lst][$uid][$k] != $v)
+        return false;
+    }
+  return true;
+}
+
+function compile_member_fields_values (&$permissions)
+{
+  global $trackers;
+  $fields = [
+    'admin_flags' => $permissions['admin'],
+    'privacy_flags' => $permissions['privacy'],
+    'onduty' => $permissions['onduty'],
+  ];
+
+  foreach ($trackers as $art)
+    $fields[$art . '_flags'] = $permissions[$art];
+  return $fields;
+}
+
+function import_member_permissions ($row)
+{
+  global $trackers, $perm_regexp;
+  $uid = $row['user_id']; $ret = $names = [];
+  foreach ($trackers as $flag)
+    $names[] = "{$flag}_user_$uid";
+  $names[] = $perm_regexp;
+  $checkbox_names = ["onduty_user_$uid"];
+  $checkbox_names[] = "privacy_user_$uid";
+
+  $imported = sane_import ('post',
+    [
+      'preg' => [$names], 'true' => $checkbox_names,
+      'strings' =>  [["admin_user_$uid", ['A', 'SQD', 'P']]],
+    ]
+  );
+  $len = strlen ("_user_$uid");
+  foreach ($imported as $k => $v)
+    $ret [substr ($k, 0, -$len)] = $v;
+  return $ret;
+}
+
+function fetch_user_list  ($group_id)
+{
+  global $user_list, $squad_list;
+  $res = query_members ($group_id, "NOT g.admin_flags IN ('P', 'SQD')");
+  $user_list = [];
+  while ($row = db_fetch_array ($res))
+    $user_list[$row['user_id']] = $row;
+  $res = query_members ($group_id, "g.admin_flags = 'SQD'");
+  $squad_list = [];
+  while ($row = db_fetch_array ($res))
+    $squad_list[$row['user_id']] = $row;
+}
+
+function fetch_group_data ($group_id)
+{
+  global $group_permissions, $group_post_restrictions,
+    $group_comment_restrictions, $trackers;
+  $group_permissions = group_getpermissions ($group_id, $trackers);
+  $group_post_restrictions = group_getrestrictions ($group_id, $trackers);
+  $group_comment_restrictions = group_getrestrictions ($group_id, $trackers, 2);
+}
+
+function sanitize_permissions ($uid, $is_squad)
+{
+  global $permissions;
+  # Admins are not allowed to turn off their own admin flag.
+  # It is too dangerous---set it back to 'A'.
+  if (user_getid () == $uid && !user_is_super_user ())
+    $permissions['admin'] = 'A';
+  # Squads flag cannot be changed, squads should not be turned into normal
+  # users.
+  if ($is_squad)
+    $permissions['admin'] = 'SQD';
+  if (empty ($permissions['admin']))
+    $permissions['admin'] = '';
+
+  # Admins have the access to the private items.
+  if ($permissions['admin'] == "A")
+    $permissions['privacy'] = '1';
+}
+
+function change_member ($row_dev, &$permissions, &$squad_permissions)
+{
+  global $group_id, $feedback_squad_override, $feedback_able, $squad_flags;
+  $uid = $row_dev['user_id']; $name = $row_dev['user_name'];
+  $is_squad = $row_dev['admin_flags'] == 'SQD';
+  $permissions = import_member_permissions ($row_dev);
+  sanitize_permissions ($uid, $is_squad);
+
+  if ($is_squad)
+    foreach ($squad_flags as $flag)
+      $squad_permissions[$uid . $flag] = $permissions[$flag];
+  else
+    $feedback_squad_override .= find_out_user_permissions (
+      $uid, $group_id, $permissions, $squad_permissions
     );
+  $fld_val = compile_member_fields_values ($permissions);
+  if (no_member_changes ($uid, $fld_val, $is_squad))
+    return '';
+  $feedback_able .= update_member_permissions (
+    $fld_val, $uid, $is_squad, $name, $group_id
+  );
+}
 
-    # Save the squads permissions to override users permissions if necessary.
-    $squad_permissions = [];
+function push_member_feedback ()
+{
+  global $feedback_able, $feedback_squad_override, $feedback_unable;
+  if ($feedback_able)
+    fb ($feedback_able);
+  if ($feedback_squad_override)
+    fb ($feedback_squad_override);
+  if ($feedback_unable)
+    fb ($feedback_unable, 1);
+}
 
-    while ($row_dev = db_fetch_array ($res_dev))
-      {
-        $row_uid = $row_dev['user_id'];
-        $name = user_getname ($row_uid);
-
-        $names = [];
-        foreach ($trackers as $flag)
-          {
-            $var = $flag . '_flags';
-            $names[] = $$var = "{$flag}_user_{$row_uid}";
-          }
-        $names[] = $perm_regexp;
-
-        $onduty = "onduty_user_{$row_uid}";
-        $cb_names = [$onduty];
-        $cb_names[] = $privacy_flags = "privacy_user_{$row_uid}";
-        $admin_flags = "admin_user_$row_uid";
-
-        $permissions =
-          sane_import ('post',
-            [
-              'preg' => [$names],
-              'strings' =>  [[$admin_flags, ['A', 'SQD', 'P']]],
-              'true' => $cb_names,
-            ]
-          );
-
-        $sq_flag_arr = $trackers;
-        $sq_flag_arr[] = 'privacy';
-        $sq_flag_arr[] = 'admin';
-
-        # Admin are not allowed to turn off their own admin flag.
-        # It is too dangerous -- set it back to 'A'.
-        if (user_getid () == $row_uid)
-          $permissions[$admin_flags] = 'A';
-        $is_squad = $row_dev['admin_flags'] == 'SQD';
-        # Squads flag cannot be changed, squads should not be turned into normal
-        # users.
-        if ($is_squad)
-          $permissions[$admin_flags] = 'SQD';
-        if ($permissions[$admin_flags] === null)
-          $permissions[$admin_flags] = '';
-
-        # Admins have the access to the private items.
-        if ($permissions[$admin_flags] == "A")
-          $permissions[$privacy_flags] = '1';
-
-        if ($is_squad)
-          {
-            # If it is a squad, save every setting even if useless, it costs
-            # nothing.
-            $squad_id = $row_dev['user_id'];
-            foreach ($sq_flag_arr as $flag)
-              {
-                $var = $flag . '_flags';
-                $squad_permissions[$squad_id . $flag]
-                  = $permissions[$$var];
-              }
-          }
-        else
-          {
-            # If it is not a squad, we then have to check if the user is
-            # member of any squad, and if he is, we have to check which
-            # setting must be kept (see compare_perms comments).
-            $result_user_squads = db_execute ("
-              SELECT squad_id FROM user_squad
-              WHERE user_id=? AND group_id = ?",
-              [$row_dev['user_id'], $group_id]
-            );
-            if (db_numrows ($result_user_squads))
-              {
-                while ($thissquad = db_fetch_array ($result_user_squads))
-                  {
-                    $thesquad = $thissquad['squad_id'];
-                    $GLOBALS['did_squad_override'] = false;
-                    foreach ($trackers as $flag)
-                      {
-                        $var = $flag . '_flags';
-                        $perm =
-                          $squad_permissions[$thesquad . $flag];
-                        $out[$$var] =
-                          compare_perms ($perm, $permissions[$$var]);
-                      }
-
-                    if ($squad_permissions[$thesquad . 'privacy']
-                         > $permissions[$privacy_flags])
-                      {
-                        $GLOBALS['did_squad_override'] = true;
-                        $permissions[$privacy_flags] =
-                          $squad_permissions[$thesquad . 'privacy'];
-                      }
-                    # Record any squad override for later generated feedback.
-                    if ($GLOBALS['did_squad_override'])
-                      $feedback_squad_override =
-                        # TRANSLATORS: the argument is user's name.
-                        sprintf (
-                          _("Personal permissions of %s were overridden "
-                            . "by squad permissions"),
-                          $name
-                        ) . "\n";
-                  }
-              }
-          } # !$is_squad
-
-        $fields_values = [
-          'admin_flags' => $permissions[$admin_flags],
-          'privacy_flags' => $permissions[$privacy_flags],
-          'onduty' => $permissions[$onduty],
-        ];
-
-        foreach ($trackers as $art)
-          {
-            $var = $art . '_flags';
-            if (tracker_uses ($project, $art))
-              $fields_values[$var] = $permissions[$$var];
-          }
-        $result = db_autoexecute ('user_group', $fields_values,
-          DB_AUTOQUERY_UPDATE, "user_id = ? AND group_id = ?",
-          [$row_dev['user_id'], $group_id]
-        );
-
-        # Notice any change, yell on error, keep silent if no changes was
-        # necessary (if db_affected_rows works normally, which does not seem
-        # to always be the case).
-        if ($result && db_affected_rows ($result))
-          {
-            if ($is_squad)
-              {
-                $string = 'Changed Squad Permissions';
-                $feedback_able .=
-                  sprintf (_('Changed Squad %s Permissions'), $name);
-              }
-            else
-              {
-                $string = 'Changed User Permissions';
-                $feedback_able .=
-                  sprintf (_('Changed User %s Permissions'), $name);
-              }
-            $feedback_able .= "\n";
-            group_add_history ($string, $name, $group_id);
-          }
-        elseif (!$result)
-          {
-            if ($is_squad)
-              $feedback_able .=
-                sprintf (_('Unable to change squad %s permissions'), $name);
-            else
-              $feedback_able .=
-                sprintf (_('Unable to change user %s permissions'), $name);
-            $feedback_able .= "\n";
-          }
-      } # while ($row_dev = db_fetch_array($res_dev))
-
-    if ($feedback_able)
-      fb ($feedback_able);
-    if ($feedback_squad_override)
-      fb ($feedback_squad_override);
-    if ($feedback_unable)
-      fb ($feedback_unable);
-
-    # Update group default permissions.
-    $names = [];
-    foreach ($trackers as $art)
-      $names[] = $art . "_user_";
-    $names[] = $perm_regexp;
-    extract (sane_import ('post', ['preg' => [$names]]));
-
-    # If the group entry do not exists, create it.
-    $res = db_execute ("
-      SELECT groups_default_permissions_id
-      FROM groups_default_permissions WHERE group_id = ?", [$group_id]
+# Make sure that default permissions for the group exist.
+function assert_default_permissions ($group_id)
+{
+  $res = db_execute (
+    "SELECT * FROM groups_default_permissions WHERE group_id = ?", [$group_id]
+  );
+  if (!db_numrows ($res))
+    db_execute (
+      "INSERT INTO groups_default_permissions (group_id) VALUES (?)",
+      [$group_id]
     );
-    if (!db_numrows ($res))
-      db_execute (
-        "INSERT INTO groups_default_permissions (group_id) VALUES (?)",
-        [$group_id]
-      );
+}
 
-    # Update the table.
-    $fields_values = [];
-    foreach ($trackers as $art)
-      {
-        $var = $art . '_user_';
-        if (tracker_uses ($project, $art))
-          $fields_values[$art . '_flags'] = $$var;
-      }
+function import_group_defaults ()
+{
+  global $trackers;
+  $names = [];
+  foreach ($trackers as $art)
+    $names[] = "{$art}_user_";
+  $names[] = $GLOBALS['perm_regexp'];
+  return sane_import ('post', ['preg' => [$names]]);
+}
 
-    $result = db_autoexecute ('groups_default_permissions',
-      $fields_values, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
-    );
+function complile_group_default_values ()
+{
+  global $trackers;
+  $fields = [];
+  foreach ($trackers as $art)
+    {
+      $var = $art . '_user_';
+      $fields[$art . '_flags'] = $GLOBALS[$var];
+    }
+  return $fields;
+}
 
-    if ($result && db_affected_rows ($result))
-      {
-        group_add_history('Changed Group Default Permissions', '', $group_id);
-        fb (_("Permissions for the group updated."));
-      }
-    elseif (!$result)
-      fb (_("Unable to change group default permissions."), 1);
+# Build reference list of fields from data fetched from the database
+# to compare against the values submitted by the user.
+function group_field_reference ()
+{
+  global $group_permissions, $group_post_restrictions,
+    $group_comment_restrictions;
+  $reference = [];
+  foreach ($group_permissions as $k => $v)
+    $reference["{$k}_flags"] = $v;
+  foreach ($group_post_restrictions as $k => $v)
+    $reference["{$k}_rflags"] = $v;
+  foreach ($group_comment_restrictions as $k => $v)
+    {
+      $k1 = "{$k}_rflags";
+      if (!array_key_exists ($k1, $reference))
+        $reference[$k1] = 0;
+      $reference[$k1] += $v * 100;
+    }
+  return $reference;
+}
 
-    # Update posting restrictions
-    # (if equal to 0, manually set to NULL, since 0 have a different meaning).
-    $names = [];
-    foreach ($trackers as $art)
-      foreach ([1, 2] as $ev_no)
-        $names[] = "{$art}_restrict_event$ev_no";
-    $names[] = $perm_regexp;
-    extract (sane_import ('post', ['preg' => [$names]]));
-    foreach ($trackers as $art)
-      {
-        $flags = $art . '_flags';
-        $ev1 = $art . '_restrict_event1'; $ev2 = $art . '_restrict_event2';
-        $$flags  = intval ($$ev2) * 100 + intval ($$ev1);
-        if (!$$flags)
-          $$flags = 'NULL';
-      }
-    $fields = [];
-    foreach ($trackers as $art)
-      {
-        $var = $art . '_flags';
-        $fields[$art . '_rflags'] = $$var;
-      }
-    $result = db_autoexecute (
-      'groups_default_permissions', $fields, DB_AUTOQUERY_UPDATE,
-      "group_id = ?", [$group_id]
-    );
+function no_group_changes (&$fields)
+{
+  $reference = group_field_reference ();
+  foreach ($fields as $k => $v)
+    {
+      if ($v === 'NULL')
+        $v = 0;
+      if (!array_key_exists ($k, $reference))
+        $reference[$k] = 0;
+      if ($v != $reference[$k])
+        return false;
+    }
+  return true;
+}
 
-    if ($result && db_affected_rows ($result))
-      {
-        group_add_history ('Changed Posting Restrictions', '', $group_id);
-        fb (_("Posting restrictions updated."));
-      }
-    elseif (!$result)
-      fb (_("Unable to change posting restrictions."), 1);
-  } # if ($update)
+function update_group (&$fields, $group_id, $titles)
+{
+  if (no_group_changes ($fields))
+    return;
+  $result = db_autoexecute ('groups_default_permissions',
+    $fields, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
+  );
+  if (!$result)
+    {
+      fb ($titles[0], 1);
+      return;
+    }
+  group_add_history ($titles[1], '', $group_id);
+  fb ($titles[2]);
+}
+
+function update_group_defaults (&$fields, $group_id)
+{
+  update_group ($fields, $group_id, [
+      _("Unable to change group default permissions."),
+      'Changed Group Default Permissions',
+      _("Permissions for the group updated.")
+    ]
+  );
+}
+
+function import_posting_restrictions ()
+{
+  global $trackers;
+  $names = [];
+  foreach ($trackers as $art)
+    foreach ([1, 2] as $ev_no)
+      $names[] = "{$art}_restrict_event$ev_no";
+  $names[] = $GLOBALS['perm_regexp'];
+  return sane_import ('post', ['preg' => [$names]]);
+}
+
+function compile_posting_restrictions ()
+{
+  global $trackers;
+  foreach ($trackers as $art)
+    {
+      $flags = $art . '_flags';
+      $ev1 = $art . '_restrict_event1'; $ev2 = $art . '_restrict_event2';
+      $GLOBALS[$flags] = intval ($GLOBALS[$ev2]) * 100
+        + intval ($GLOBALS[$ev1]);
+      if (!$GLOBALS[$flags])
+        $GLOBALS[$flags] = 'NULL';
+    }
+  $fields = [];
+  foreach ($trackers as $art)
+    {
+      $var = $art . '_flags';
+      $fields[$art . '_rflags'] = $GLOBALS[$var];
+    }
+  return $fields;
+}
+
+function update_posting_restrictions ($fields, $group_id)
+{
+  update_group ($fields, $group_id, [
+      _("Unable to change posting restrictions."),
+      'Changed Posting Restrictions',
+      _("Posting restrictions updated.")
+    ]
+  );
+}
 
 function finish_page ()
 {
@@ -372,251 +433,295 @@ function finish_page ()
   exit (0);
 }
 
-function tracker_uses ($project, $art)
+function append_tracker_titles (&$titles, $project)
 {
-  return $art == 'cookbook' || $project->Uses ($art);
+  global $tracker_titles;
+  foreach ($tracker_titles as $art => $title)
+    $titles[] = $title;
 }
 
-function add_used_tracker_titles (&$title_arr, $project)
+function query_members ($group_id, $cond)
 {
   global $trackers;
-  foreach ($trackers as $title => $art)
-    if (tracker_uses ($project, $art))
-      $title_arr[] = $title;
+  $tr = '';
+  foreach ($trackers as $k)
+    $tr .= " g.{$k}_flags,";
+  return db_execute ("
+    SELECT
+      u.user_name, u.realname, u.user_id, g.admin_flags, g.onduty,
+      g.onduty as onduty_flags,$tr g.privacy_flags
+    FROM user u JOIN user_group g ON u.user_id = g.user_id
+    WHERE g.group_id = ? AND $cond ORDER BY u.user_name", [$group_id]
+  );
 }
 
+function print_squad_list_title ($project, $titles)
+{
+  print '<p>'
+    . _("Squad members will automatically obtain their squad permissions.")
+    . "</p>\n";
+  print html_build_list_table_top ($titles);
+}
+
+function print_squad_entry ($row, $project, $class)
+{
+  global $trackers;
+  $uid = $row['user_id']; $name = $row['user_name'];
+  print "<tr class=\"$class\">\n<td align=\"center\" id=\"$name\">"
+    . utils_user_link ($name, $row['realname']) . "</td>\n";
+  print "<td class='smaller'>\n";
+  print form_checkbox ("privacy_user_$uid", $row['privacy_flags'] == '1',
+    ['label' => _("Private Items")]
+  );
+  print "\n</td>\n";
+
+  foreach ($trackers as $art)
+    html_select_permission_box ($art, $row);
+  print "</tr>\n";
+}
+
+function print_squad_rows ($project, $titles)
+{
+  global $squad_list;
+  $reprinttitle = $i = 0;
+  foreach ($squad_list as $row)
+    {
+      if (++$reprinttitle >= 9)
+        {
+          print html_build_list_table_top ($titles, 0, 0);
+          $reprinttitle = 0;
+        }
+      print_squad_entry ($row, $project, utils_altrow (++$i));
+   }
+}
+
+function list_squads ($group_id, $project)
+{
+  global $squad_list;
+  print "<h2>" . _("Permissions per squad") . "</h2>\n";
+  if (empty ($squad_list))
+    {
+      print '<p class="warn">' . _("No Squads Found") . "</p>\n";
+      return;
+    }
+  $titles = [_("Squad"), _("General Permissions")];
+  append_tracker_titles ($titles, $project);
+  print_squad_list_title ($project, $titles);
+  print_squad_rows ($project, $titles);
+
+  print "</table>\n"
+    . "<p class='center'>" . form_submit (_("Update Permissions")) . "</p>\n";
+}
+
+function print_member_list_title ($titles)
+{
+  print '<p class="warn">';
+  print _("Group admins are always allowed to read private items.");
+  print "</p>\n";
+  print html_build_list_table_top ($titles);
+}
+
+function print_member_rank ($row)
+{
+  $uid = $row['user_id']; $admin = $row['admin_flags'];
+  print '<td class="smaller">';
+  if ($uid == user_getid () && !user_is_super_user ())
+    print '<em>' . _("You are Admin") . '</em>';
+  else
+    print form_checkbox ("admin_user_$uid", $admin == 'A',
+      ['value' => 'A', 'label' => _("Admin")]
+    );
+  if ($admin != 'A')
+   {
+     print "<br />\n";
+     print form_checkbox ("privacy_user_$uid", $row['privacy_flags'] == '1',
+       ['label' => _("Private Items")]
+     );
+   }
+  else
+    print form_hidden (["privacy_user_$uid" => 1]);
+  print "</td>\n";
+}
+
+function print_member_entry ($row, $project, $class)
+{
+  global $trackers;
+  $uid = $row['user_id']; $name = $row['user_name'];
+  print " <tr class=\"$class\">\n" . "<td align='center' id=\"$name}\">"
+    . utils_user_link ($name, $row['realname']) . "</td>\n";
+  print_member_rank ($row);
+  print '<td align="center">';
+  print form_checkbox (
+    "onduty_user_$uid", $row['onduty'] == '1', ['label' => _("On Duty")]
+  );
+  print "</td>\n";
+  foreach ($trackers as $art)
+    html_select_permission_box ($art, $row);
+  print "</tr>\n";
+}
+
+function print_member_rows ($project, $titles)
+{
+  global $user_list;
+  $reprinttitle = $i = 0;
+  foreach ($user_list as $row)
+    {
+      if (++$reprinttitle == 9)
+        {
+          print html_build_list_table_top ($titles, 0, 0);
+          $reprinttitle = 0;
+        }
+      print_member_entry ($row, $project, utils_altrow (++$i));
+    }
+}
+
+function list_members ($group_id, $project)
+{
+  global $user_list;
+  print "<h2>" . _("Permissions per member") . "</h2>\n";
+  if (empty ($user_list))
+    {
+      print '<p class="warn">' . _("No Members Found") . "</p>\n";
+      # No point in changing permissions of an orphan group.
+      finish_page ();
+    }
+  $titles = [_("Member"), _("General Permissions"), _("On Duty")];
+  append_tracker_titles ($titles, $project);
+  print_member_list_title ($titles);
+  print_member_rows ($project, $titles);
+  print "</table>\n";
+}
+
+function print_group_posting_title ($project)
+{
+  print '<h2>' . _("Group trackers posting restrictions") . "</h2>\n";
+  $titles = [
+    # TRANSLATORS: this is the header for a column with two rows,
+    # "Posting new items" and "Posting comments".
+    _("Applies when ...")
+  ];
+  append_tracker_titles ($titles, $project);
+
+  print '<p>' . _("Here you can set the minimal authentication level required "
+    . "in order to\npost on the trackers.");
+  print "</p>\n";
+  if (!empty ($GLOBALS['trackers']))
+    print html_build_list_table_top ($titles);
+}
+
+function print_group_post_restrictions ($i)
+{
+  global $trackers, $group_post_restrictions;
+  print "\n<tr class=\"" . utils_altrow ($i) . "\">\n";
+  # TRANSLATORS: this is a column row whose header says "Applies when ...".
+  print "<td>" . _("Posting new items") . "</td>\n";
+
+  foreach ($trackers as $art)
+    html_select_restriction_box (
+      $art, $group_post_restrictions[$art], 'group'
+    );
+  print "</tr>\n";
+}
+
+function print_group_comment_restrictions ($i)
+{
+  global $trackers, $group_comment_restrictions;
+  print '<tr class="' . utils_altrow (++$i) . "\">\n";
+  # TRANSLATORS: this is a column row whose header says "Applies when ...".
+  print "<td>" . _("Posting comments") . "</td>\n";
+
+  foreach ($trackers as $art)
+    if ($art != 'news')
+       html_select_restriction_box (
+         $art, $group_comment_restrictions[$art], '', '', 2
+       );
+    else # No comments in news.
+      print '<td align="center">---</td>';
+  print "</tr>\n";
+}
+
+function print_group_posting_defaults ($group_id, $project)
+{
+  global $trackers, $titles;
+  print_group_posting_title ($project);
+  if (empty ($trackers))
+    return;
+  $i = 0;
+  print_group_post_restrictions (++$i);
+  print_group_comment_restrictions (++$i);
+  print "</table>\n";
+  print "<p class='center'>" . form_submit (_("Update Permissions")) . "</p>\n";
+}
+
+function print_member_defaults ($group_id, $project)
+{
+  global $trackers, $group_permissions;
+  print "<h2>" . _("Group Default Permissions") . "</h2>\n";
+  $titles = [];
+  append_tracker_titles ($titles, $project);
+  member_explain_roles ();
+  print html_build_list_table_top ($titles);
+  print "<tr>\n";
+  foreach ($trackers as $art)
+    html_select_permission_box ($art, $group_permissions[$art], 'group');
+  print "</tr>\n</table>\n<p class='center'>"
+    . form_submit (_("Update Permissions")) . "</p>\n";
+}
+
+function init_data ()
+{
+  global $trackers, $tracker_titles, $project, $squad_flags, $group_id;
+  $all_trackers = [
+    'support' => _("Support Tracker"), 'bugs' => _("Bug Tracker"),
+    'task' => _("Task Tracker"), 'patch' => _("Patch Tracker"),
+    'cookbook' => _("Cookbook Manager"), 'news' => _("News Manager")
+  ];
+  $GLOBALS['perm_regexp'] = '/^(\d+|NULL)$/';
+  $project = project_get_object ($group_id);
+  $tracker_titles = [];
+  foreach ($all_trackers as $k => $v)
+    if ($k == 'cookbook' || $project->Uses ($k))
+      $tracker_titles[$k] = $v;
+  $trackers = array_keys ($tracker_titles);
+  fetch_user_list ($group_id);
+  fetch_group_data ($group_id);
+  $squad_flags = array_merge ($trackers, ['privacy', 'admin']);
+}
+
+init_data ();
+
+extract (sane_import ('post', ['true' => 'update']));
+if ($update)
+  {
+    $feedback_able = $feedback_unable = $feedback_squad_override = '';
+    $squad_permissions = [];
+    foreach (array_merge ($squad_list, $user_list) as $row_dev)
+      change_member ($row_dev, $permissions, $squad_permissions);
+    push_member_feedback ();
+
+    extract (import_group_defaults ());
+    assert_default_permissions ($group_id);
+    $fields = complile_group_default_values ();
+    update_group_defaults ($fields, $group_id);
+
+    extract (import_posting_restrictions ());
+    $fields = compile_posting_restrictions ();
+    update_posting_restrictions ($fields, $group_id);
+
+    fetch_user_list ($group_id);
+    fetch_group_data ($group_id);
+  } # if ($update)
+
+
 site_project_header (
-  ['title' => _("Set Permissions"), 'group' => $group_id, 'context'=>'ahome']
+  ['title' => _("Set Permissions"), 'group' => $group_id, 'context' => 'ahome']
 );
 
 print form_header ($_SERVER['PHP_SELF']) . form_hidden (["group" => $group]);
-
-# Posting restrictions.
-# Exists also in trackers config (missing for news).
-
-$i = 0;
-$title_arr = [
-  # TRANSLATORS: this is the header for a column with two rows,
-  # "Posting new items" and "Posting comments".
-  _("Applies when ...")
-];
-add_used_tracker_titles ($title_arr, $project);
-
-print '<h2>' . _("Group trackers posting restrictions") . "</h2>\n<p>";
-print _("Here you can set the minimal authentication level required in order to
-post on the trackers.");
-print "</p>\n";
-
-print html_build_list_table_top ($title_arr);
-
-$i++;
-print "\n<tr class=\"" . utils_altrow ($i) . "\">\n<td>"
-  # TRANSLATORS: this is a column row which header says "Applies when ...".
-  . _("Posting new items") . "</td>\n";
-
-function select_box_if_uses (
-  $project, $tracker, $group_id, $infix, $extra = null
-)
-{
-  if (!tracker_uses ($project, $tracker))
-    return;
-  $perm_func = 'group_get' . $infix . 's';
-  $func = 'html_select_' . $infix . '_box';
-  if ($extra === null)
-    {
-      $perm = $perm_func ($group_id, $tracker);
-      $func ($tracker, $perm, 'group');
-      return;
-    }
-  $perm = $perm_func ($group_id, $tracker, $extra);
-  $func ($tracker, $perm, '', '', $extra);
-}
-
-foreach ($trackers as $art)
-  select_box_if_uses ($project, $art, $group_id, 'restriction');
-
-print "</tr>\n";
-
-$i++;
-print '<tr class="' . utils_altrow ($i) . "\">\n<td>"
-  # TRANSLATORS: this is a column row which header says "Applies when ...".
-  . _("Posting comments") . "</td>\n";
-
-foreach ($trackers as $art)
-  if ($art != 'news')
-    select_box_if_uses ($project, $art, $group_id, 'restriction', 2);
-
-if ($project->Uses ("news"))
-  # Not yet effective!
-  print '<td align="center">---</td>';
-print "</tr>\n";
-
-print "</table>\n<p class='center'>"
-  . form_submit (_("Update Permissions")) . "</p>\n";
-
-# Group defaults.
-$title_arr = [];
-add_used_tracker_titles ($title_arr, $project);
-
-print "<p>&nbsp;</p>\n<h2>" . _("Group Default Permissions") . "</h2>\n";
-member_explain_roles ();
-print html_build_list_table_top ($title_arr);
-
-print "<tr>\n";
-
-foreach ($trackers as $art)
-  select_box_if_uses ($project, $art, $group_id, 'permission');
-
-print "</tr>\n</table>\n<p class='center'>"
-  . form_submit (_("Update Permissions")) . "</p>\n";
-
-# Get squad list.
-$result = db_execute ("
-  SELECT
-    user.user_name, user.realname, user.user_id,
-    user_group.admin_flags, user_group.privacy_flags,
-    user_group.bugs_flags, user_group.cookbook_flags,
-    user_group.forum_flags, user_group.task_flags,
-    user_group.patch_flags, user_group.news_flags,
-    user_group.support_flags
-  FROM user JOIN user_group ON user.user_id = user_group.user_id
-  WHERE user_group.group_id = ? AND user_group.admin_flags = 'SQD'
-  ORDER BY user.user_name", [$group_id]
-);
-
-print "<p>&nbsp;</p>\n<h2>" . _("Permissions per squad") . "</h2>\n";
-
-if (db_numrows ($result) < 1)
-  print '<p class="warn">' . _("No Squads Found") . "</p>\n";
-else
-  {
-    $title_arr = [_("Squad"), _("General Permissions")];
-    add_used_tracker_titles ($title_arr, $project);
-
-    print '<p>'
-      . _("Squad members will automatically obtain their squad permissions.")
-      . "</p>\n";
-    print html_build_list_table_top ($title_arr);
-
-    $reprinttitle = 0;
-    $i = 0;
-    while ($row = db_fetch_array($result))
-      {
-        $i++;
-        $reprinttitle++;
-        if ($reprinttitle == 9)
-          {
-            print html_build_list_table_top($title_arr, 0, 0);
-            $reprinttitle = 0;
-          }
-        $row_uname = $row['user_name'];
-        $row_uid = $row['user_id'];
-        print "<tr class=\"" . utils_altrow ($i)
-          . "\">\n<td align=\"center\" id=\"$row_uname\">"
-          . utils_user_link ($row_uname, $row['realname']) . "</td>\n";
-        print "<td class='smaller'>\n";
-        print form_checkbox (
-                "privacy_user_$row_uid", $row['privacy_flags'] == '1'
-              );
-        print "&nbsp;<label for=\"privacy_user_$row_uid\"> "
-          . _("Private Items") . "</label>\n</td>\n";
-
-       foreach ($trackers as $art)
-         if (tracker_uses ($project, $art))
-           html_select_permission_box ($art, $row);
-       print "</tr>\n";
-     }
-
-    print "</table>\n<p class='center'>"
-      . form_submit (_("Update Permissions")) . "</p>\n";
-  }
-
-$result = db_execute ("
-  SELECT
-    user.user_name, user.realname, user.user_id,
-    user_group.admin_flags, user_group.onduty, user_group.privacy_flags,
-    user_group.bugs_flags, user_group.cookbook_flags, user_group.forum_flags,
-    user_group.task_flags, user_group.patch_flags, user_group.news_flags,
-    user_group.support_flags
-  FROM user JOIN user_group ON user.user_id = user_group.user_id
-  WHERE
-    user_group.group_id = ?
-    AND user_group.admin_flags <> 'P' AND user_group.admin_flags <> 'SQD'
-  ORDER BY user.user_name",
-  [$group_id]
-);
-
-print "<p>&nbsp;</p>\n<h2>" . _("Permissions per member") . "</h2>\n";
-
-if (db_numrows ($result) < 1)
-  {
-    # No point in changing permissions of an orphaned group.
-    print '<p class="warn">' . _("No Members Found") . "</p>\n";
-    finish_page ();
-  }
-
-$title_arr = [_("Member"), _("General Permissions"), _("On Duty")];
-add_used_tracker_titles ($title_arr, $project);
-
-print '<p class="warn">';
-print _("Group admins are always allowed to read private items.");
-print "</p>\n";
-
-print html_build_list_table_top ($title_arr);
-
-$reprinttitle = 0;
-$i = 0;
-
-while ($row = db_fetch_array ($result))
-  {
-    $i++;
-    $reprinttitle++;
-    $row_uid = $row['user_id'];
-    if ($reprinttitle == 9)
-      {
-        print html_build_list_table_top ($title_arr, 0, 0);
-        $reprinttitle = 0;
-      }
-    print " <tr class=\"" . utils_altrow ($i) . "'\">\n"
-      . "<td align='center' id=\"{$row['user_name']}\">"
-      . utils_user_link ($row['user_name'], $row['realname']) . "</td>\n";
-    print '<td class="smaller">';
-    if ($row_uid == user_getid () && !user_is_super_user ())
-      print '<em>' . _("You are Admin") . '</em>';
-    else
-      {
-        print
-          form_checkbox (
-            "admin_user_$row_uid", $row['admin_flags'] == 'A', ['value' => 'A']
-          )
-          . "&nbsp;<label for=\"admin_user_$row_uid\">"
-          . _("Admin") . "</label>\n";
-      }
-    if ($row['admin_flags'] != 'A')
-     {
-       print "<br />\n"
-         . form_checkbox (
-             "privacy_user_$row_uid", $row['privacy_flags'] == '1'
-           )
-         . "&nbsp;<label for=\"privacy_user_$row_uid\">"
-         . _("Private Items") . '</label>';
-      }
-    else
-      print form_hidden (["privacy_user_$row_uid" => 1]);
-    print "</td>\n";
-    print '<td align="center">';
-    print form_checkbox (
-            "onduty_user_$row_uid", $row['onduty'] == '1',
-            ['title' => _("On Duty")]
-          );
-    print "</td>\n";
-    foreach ($trackers as $art)
-      if (tracker_uses ($project, $art))
-        html_select_permission_box ($art, $row);
-    print "</tr>\n";
-  } # while ($row = db_fetch_array($result))
-
-print "</table>\n" . form_footer (_("Update Permissions"));
-
+print_group_posting_defaults ($group_id, $project);
+print_member_defaults ($group_id, $project);
+list_squads ($group_id, $project);
+list_members ($group_id, $project);
+print form_footer (_("Update Permissions"));
 finish_page ();
 ?>

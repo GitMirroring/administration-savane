@@ -106,23 +106,34 @@ function form_input ($type, $name, $value = "", $extra = false)
   return "<input type=\"$type\"$id_attr name=\"$name\" $value$extra />";
 }
 
+function form_set_label_attr (&$attr)
+{
+  if (!array_key_exists ('label', $attr))
+    return null;
+  $ret = $attr['label'];
+  unset ($attr['label']);
+  return $ret;
+}
+
 function form_radio ($name, $value, $attr)
 {
+  $label = form_set_label_attr ($attr);
   $extra = '';
   if (!empty ($attr['checked']))
     $extra .= "checked='checked' ";
-  if (empty ($attr['id']) && !empty ($attr['label']))
+  if (empty ($attr['id']) && !$label)
     $attr['id'] = "val_{$value}_$name";
   if (!empty ($attr['id']))
     $extra .= "id=\"{$attr['id']}\"";
   $ret = form_input ('radio', $name, $value, $extra);
-  if (empty ($attr['label']) || empty ($attr['id']))
+  if (null === $label || empty ($attr['id']))
     return $ret;
-  return $ret . html_label ($attr['id'], $attr['label']);
+  return $ret . html_label ($attr['id'], $label);
 }
 
 function form_checkbox ($name, $is_checked = 0, $attr = [])
 {
+  $label = form_set_label_attr ($attr);
   $extra = '';
   if ($is_checked)
     $extra .= ' checked="checked"';
@@ -132,7 +143,10 @@ function form_checkbox ($name, $is_checked = 0, $attr = [])
   $val = '1';
   if (isset ($attr['value']))
     $val = '';
-  return form_input ('checkbox', $name, $val, $extra);
+  $ret = form_input ('checkbox', $name, $val, $extra);
+  if (null === $label)
+    return $ret;
+  return $ret . html_label ($name, $label);
 }
 
 function form_option ($value, $selected_value = NULL, $label = NULL)
