@@ -208,6 +208,12 @@ function html_anchor ($content, $name)
   return "<a id=\"$name\" href=\"#$name\">$content</a>";
 }
 
+function html_format_feedback ($f)
+{
+  $f = preg_replace ('/\n*$/', '', $f);
+  return nl2br (markup_basic (utils_specialchars ($f)));
+}
+
 # Print out the feedback.
 function html_feedback ($bottom)
 {
@@ -225,8 +231,8 @@ function html_feedback ($bottom)
   if (!($ffeedback || $feedback))
     return;
 
-  $feedback = markup_basic (utils_specialchars ($feedback));
-  $ffeedback = markup_basic (utils_specialchars ($ffeedback));
+  $feedback = html_format_feedback ($feedback);
+  $ffeedback = html_format_feedback ($ffeedback);
 
   $suffix = '';
   if ($bottom)
