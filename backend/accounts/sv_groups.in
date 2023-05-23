@@ -151,7 +151,7 @@ GetOptions (
   "only-arch" => \$only_arch, "only-homepage" => \$only_homepage,
   "only-download" => \$only_download, "verbose" => \$verbose,
   "webgroup" => \$webgroup, "one-group" => \$one_group
-);
+) or die "Wrong command line";
 
 # If we are asked to create only a few services, set everything to "no"
 # and later add the only one(s) asked for.
@@ -289,7 +289,6 @@ $etc_group_maxid++;
 # If we did not reached the minimal gid, set it as maxid
 $etc_group_maxid = $min_gid if $min_gid > $etc_group_maxid;
 
-PrintLog ("system infos grabbed");
 PrintLog ("comparison done");
 
 # Update the system.
@@ -348,15 +347,24 @@ sub make_area
 {
   my ($func, $name, $dir, $pub) = @_;
   my $fr = \&$func;
-  PrintLog ("$func ($name, $dir, $pub)") if $verbose;
-  return &$fr ($name, $dir, $pub) unless $dry_run;
-  return '';
+  my $ret = 0;
+  $ret = &$fr ($name, $dir, $pub) unless $dry_run;
+  unless ($ret)
+    {
+      PrintLog ("$func ($name, $dir, $pub) made nothing") if $verbose;
+      return '';
+    }
+  return "$func ($name, $dir, $pub): $ret";
 }
 
 sub make_dl_savannah
 {
   my ($name, $dt, $dir, $pub) = @_;
-  return '' unless $dt eq "savannah-gnu" || $dt eq "savannah-nongnu";
+  unless ($dt eq "savannah-gnu" || $dt eq "savannah-nongnu")
+    {
+      PrintLog ("skipping make_dl_savannah: wrong dt = $dt") if $verbose;
+      return '' ;
+    }
   return make_area ('DownloadMareAreaSavannah', $name, $dir, $pub);
 }
 
@@ -425,7 +433,6 @@ foreach my $group (@db_groups)
     # FIXME: in a future, we may create a table of method associating
     # method -> perl module -> sub name.
     # Currently it is hardcoded.
-    next if ($dry_run);
     my $pub = $vars{'is_public'};
     my $dis = $vars{'dir_svn'};
     # Create the cvs area, by relying on the library, that should
