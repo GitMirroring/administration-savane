@@ -39,24 +39,45 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Subs that may be useful in very rare cases.
+# Miscellaneous subs.
 
-use strict "vars";
-use Fcntl ':flock';
+use strict;
 require Exporter;
+require Savane::Conf;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(SQLStringEscape );
+our @ISA = qw (Exporter);
+our @EXPORT = qw (SQLStringEscape MakeDir ExpandDirTemplate);
+# Escape arg0 to be sent in a SQL string.
+sub SQLStringEscape
+{
+  my $str = $_[0];
+  $str =~ s/\\/\\\\/g;
+  $str =~ s/\'/\'\'/g;
+  $str =~ s/\n/\\n/g;
+  return $str;
+}
 
-# Escapes data to be sent in a SQL string.
-# Returns a copy of the string, escaped.
-# arg0 : the string to escape
-sub SQLStringEscape {
-    my $str = $_[0];
-    $str =~ s/\\/\\\\/g;
-    $str =~ s/\'/\'\'/g;
-    $str =~ s/\n/\\n/g;
-    return $str;
+# Expand group area template.
+sub ExpandDirTemplate
+{
+  our $sys_dir_prefix;
+  my ($dir, $name) = @_;
+  my $warning = " (The string \%PROJECT was not found in $dir, there may be "
+    . "a serious misconfiguration in group type)";
+  $warning = '' if $dir =~ s/\%PROJECT/$name/;
+  $dir = "$sys_dir_prefix$dir" if defined ($sys_dir_prefix);
+  return ($warning, $dir);
+}
+
+# Make a specific group area and apply $func to it unless it already exists.
+sub MakeDir
+{
+  my ($func, $name, $dir, $is_public, $repo_type) = @_;
+  my $warning;
+  ($warning, $dir) = ExpandDirTemplate ($dir, $name);
+  return 0 if -e $dir;
+  $warning .= &$func ($name, $dir, $is_public, $repo_type);
+  return " $dir$warning";
 }
 
 return "true";

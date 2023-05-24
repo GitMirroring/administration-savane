@@ -45,42 +45,27 @@ use strict;
 use warnings;
 
 require Exporter;
+require Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(BzrMakeArea);
 our $version = 1;
 
-sub BzrMakeArea {
-    my ($name,$dir_bzr) = @_;
-    my $warning = '';
+sub make_bzr_area
+{
+  my ($name, $dir_bzr) = @_;
+  my $old_umask = umask (0002);
 
-    # %PROJECT is not mandatory, but if it is missing, it may well be
-    # a major misconfiguration.
-    # It should only happen if a directory has been set for a specific
-    # project.
-    unless ($dir_bzr =~ s/\%PROJECT/$name/) {
-	$warning = " (The string \%PROJECT was not found, there may be a group type serious misconfiguration)";
-    }
+  system ('mkdir', '-m', '2775', '-p', $dir_bzr);
+  system ('chgrp', $name, $dir_bzr);
 
-    unless (-e $dir_bzr) {
-	# Layout: /srv/bzr/sources/project_name
-        #         /srv/bzr/sources/project_name/other_module
-	
-	# Create a repository.
-	my $old_umask = umask(0002);
+  # Clean up environment.
+  umask ($old_umask);
+  return '';
+}
 
-	system('mkdir', '-m', '2775', '-p', $dir_bzr);
-	system('chgrp', $name, $dir_bzr);
-
-	# Create folder for subrepositories (need to code multi-repo support first).
-	# TODO: precise directory location
-	#system('mkdir', '-m', '2775', ".../$name/");
-	#system('chown', "root:$name", ".../$name/");
-
-	# Clean up environment.
-	umask($old_umask);
-
-	return ' '.$dir_bzr.$warning;	
-    }
-    return 0;
+sub BzrMakeArea
+{
+  my ($name, $dir_bzr) = @_;
+  return MakeDir (\&make_bzr_area, $name, $dir_bzr);
 }
 return "true";

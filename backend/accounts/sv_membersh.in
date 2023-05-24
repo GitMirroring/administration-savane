@@ -108,14 +108,8 @@ Restricted shell to be used as login shell for Savane system users.
 ";
 PrintVersionOrHelp ($help);
 
-my $conf_file = "@sysconfdir@/membersh-conf.pl";
-
-# Open configuration file.
-die "System misconfiguration, contact administrators. Exiting"
-  unless (-e $conf_file and do $conf_file);
-
-# A configuration file /etc/membersh-conf.pl must exists.
-# Here come an example:
+# A configuration file @sysconfdir@/membersh-conf.pl must exist.
+# Example:
 #
 # $use_cvs = "1";
 # $bin_cvs = "/usr/bin/cvs";
@@ -136,70 +130,63 @@ die "System misconfiguration, contact administrators. Exiting"
 # # For read-only rsync:
 # #$regexp_rsync = '^rsync --server --sender ';
 
+my $conf_file = "@sysconfdir@/membersh-conf.pl";
+
+die "System misconfiguration, contact administrators. Exiting"
+  unless (-e $conf_file && do $conf_file);
+
 sub OutputErrorMsg
 {
-  unless (-e "/etc/membersh-errormsg")
-    {
-      print STDERR "You tried to execute: @ARGV[1..$#ARGV]\n";
-      print STDERR "Sorry, you are not allowed to execute that command.\n";
-    }
-  else
-    {
-      open (ERRORMSG, "< /etc/membersh-errormsg");
-      while (<ERRORMSG>)
-        {
-          print STDERR $_;
-        }
-      close (ERRORMSG);
-    }
+  print STDERR "You tried to execute: @ARGV[1..$#ARGV]\n";
+  print STDERR "Sorry, you are not allowed to execute that command.\n";
   exit (1);
 }
 
-OutputErrorMsg unless ($#ARGV == 1 and $ARGV[0] eq "-c");
+OutputErrorMsg unless ($#ARGV == 1 && $ARGV[0] eq "-c");
 
-if ($use_cvs and $ARGV[1] eq 'cvs server')
+if ($use_cvs && $ARGV[1] eq 'cvs server')
   {
     # Run a cvs server command.
-    exec($bin_cvs, 'server') or die("Failed to exec $bin_cvs: $!");
+    exec ($bin_cvs, 'server') or die "Failed to exec $bin_cvs: $!";
   }
-elsif ($use_scp and $ARGV[1] =~ m:$regexp_scp:)
+elsif ($use_scp && $ARGV[1] =~ m:$regexp_scp:)
   {
     # Authorize scp command.
-    my (@args) = split(' ', $ARGV[1]);
-    shift(@args);
-    exec($bin_scp, @args);
+    my (@args) = split (' ', $ARGV[1]);
+    shift (@args);
+    exec ($bin_scp, @args);
   }
-elsif ($use_sftp and $ARGV[1] =~ m:$regexp_sftp:)
+elsif ($use_sftp && $ARGV[1] =~ m:$regexp_sftp:)
   {
     # Authorize sftp login.
-    exec($bin_sftp) or die("Failed to exec $bin_sftp: $!");
+    exec ($bin_sftp) or die "Failed to exec $bin_sftp: $!";
   }
-elsif ($use_rsync and $ARGV[1] =~ m:$regexp_rsync:)
+elsif ($use_rsync && $ARGV[1] =~ m:$regexp_rsync:)
   {
-    my ($rsync, @rest) = split(' ', $ARGV[1]);
+    my ($rsync, @rest) = split (' ', $ARGV[1]);
     my ($dir) = $rest[$#rest];
 
     # Authorize rsync command, if the directory is acceptable.
     if ($dir =~ m:$regexp_dir_rsync:)
       {
-        exec($bin_rsync, @rest) or die("Failed to exec $bin_rsync: $!");
+        exec($bin_rsync, @rest) or die "Failed to exec $bin_rsync: $!";
       }
   }
-elsif ($use_svn and $ARGV[1] =~ m:$regexp_svn:)
+elsif ($use_svn && $ARGV[1] =~ m:$regexp_svn:)
   {
     # Authorize svnserve in tunnel mode, with the svn root prepended.
     my (@args) = @prepend_args_svn;
-    my (@args_user) = split(' ', $ARGV[1]);
-    shift( @args_user );
-    push( @args, @args_user );
-    exec($bin_svn, @args) or die("Failed to exec $bin_svn: $!");
+    my (@args_user) = split (' ', $ARGV[1]);
+    shift (@args_user);
+    push (@args, @args_user);
+    exec ($bin_svn, @args) or die "Failed to exec $bin_svn: $!";
   }
-elsif ($use_git and $ARGV[1] =~ m/^git-/)
+elsif ($use_git && $ARGV[1] =~ m/^git-/)
   {
     # Delegate filtering to git-shell.
-    exec($bin_git, @ARGV) or die("Failed to exec $bin_git: $!");
+    exec ($bin_git, @ARGV) or die "Failed to exec $bin_git: $!";
   }
-elsif ($use_bzr and $ARGV[1] =~ m:$regexp_bzr:)
+elsif ($use_bzr && $ARGV[1] =~ m:$regexp_bzr:)
   {
     # rgm@gnu 2013/06/06. Let's try logging + logrotate to limit the size.
     $ENV{'BZR_LOG'} = '/var/log/bzr/bzr.log';
@@ -219,12 +206,12 @@ elsif ($use_bzr and $ARGV[1] =~ m:$regexp_bzr:)
          . "--directory=$dir_bzr --allow-writes': $!"
        );
   }
-elsif ($use_hg and $ARGV[1] =~ m:$regexp_hg:)
+elsif ($use_hg && $ARGV[1] =~ m:$regexp_hg:)
   {
     # Get path to repository.
     my $repo_path = $1; # Get repo_path from $regexp_hg.
     # Run in $dir_hg to get rid of the path prefix (e.g. /srv/hg).
     exec ($bin_hg, '--cwd', $dir_hg, '-R', $repo_path, 'serve', '--stdio')
-      or die ("Failed to exec $bin_hg -R $repo_path serve --stdio: $!");
+      or die "Failed to exec $bin_hg -R $repo_path serve --stdio: $!";
   }
 OutputErrorMsg;

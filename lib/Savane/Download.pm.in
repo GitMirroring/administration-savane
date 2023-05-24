@@ -40,38 +40,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Subs related to Download area.
+# Initialize download areas.
 
 use strict;
 use warnings;
 
 require Exporter;
+require Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(DownloadMakeArea);
 our $version = 1;
 
-## Make a download area.
-sub DownloadMakeArea {
-    my ($name,$dir_download,$is_public) = @_;
-    my $warning = "";
-
-    # %PROJECT is not mandatory, but if it is missing, it may well be
-    # a major misconfiguration.
-    # It should only happen if a directory has been set for a specific
-    # project.
-    unless ($dir_download =~ s/\%PROJECT/$name/) {
-	$warning = " (The string \%PROJECT was not found, there may be a group type serious misconfiguration)";
-    }
-
-    unless (-e $dir_download) {
-	
-	my $mode = $is_public ? 2775 : 2770;
-	system("mkdir", "-p", $dir_download);
-	system("chmod", $mode, $dir_download);
-	system("chgrp", $name, $dir_download);
-	return " ".$dir_download.$warning;
-    }
-    return;
+sub make_download_area
+{
+  my ($name, $dir, $is_public) = @_;
+  my $mode = $is_public? 2775: 2770;
+  system ("mkdir", '-m', $mode, "-p", $dir);
+  system ("chgrp", $name, $dir);
+  return '';
 }
 
+sub DownloadMakeArea
+{
+  my ($name, $dir, $is_public) = @_;
+  return MakeDir (\&make_download_area, $name, $dir, $is_public);
+}
 return "true";

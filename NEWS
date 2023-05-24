@@ -107,7 +107,19 @@
 * New option in sv_aliases, --suffix.
 
 * Replace --debug with --dry-run and --verbose in sv_reminder,
-  sv_groups, sv_users, sv_aliases.
+  sv_groups, sv_aliases.
+
+* Remove unused scripts:
+  backend/account/sv_users.in
+  backend/extra/cvs/sv_extra_daily_cvs_tarball.in
+  backend/extra/cvs/sv_extra_daily_cvs_tarball_forbid.in
+  backend/extra/cvs/sv_extra_import_cvs.in
+  backend/extra/cvs/sv_extra_pserver_cvsroots.in
+  backend/extra/cvs/sv_extra_viewcvs_forbidden.in
+  backend/extra/subversion/sv_extra_daily_svn_tarball.in.
+
+* New configuration variable, $sys_dir_prefix, to prepend to paths of group
+  areas (download and repositories).
 
 * Bug fixes:
 

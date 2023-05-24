@@ -48,15 +48,9 @@
 # This script should be used via a cronjob to update the system
 # by reading the database about groups.
 #
-# It will add create/update a group for each group.
-# It will also create a download area, a web area, and a cvs repository
-# if in the database the fields dir_cvs dir_homepage and dir_download
-# contains the string %PROJECT
-# (if they don't, it means that no group specific directories like that
-# are desired).
-# (the web area can be also a cvs repository
-#
-# WARNING: sv_groups should run before sv_users.
+# It will add create and update a local group for each Savane group.
+# It will also create a download area, a web area, and vcs repositories
+# if needed.
 
 use strict;
 use Savane;
@@ -67,7 +61,6 @@ use Savane::Git;
 use Savane::Hg;
 use Savane::Bzr;
 use Getopt::Long;
-use Term::ANSIColor qw(:constants);
 use POSIX qw(strftime);
 
 our $script = "sv_groups";
@@ -219,7 +212,7 @@ my %db_group_type;
 foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
   {
     chomp ($line);
-    my @entry = split(",", $line);
+    my @entry = split (",", $line);
     PrintLog ("db: get $line from database") if $verbose;
     $db_group_type{$entry[1]} = [@entry];
   }
@@ -299,7 +292,7 @@ for ("svusers", "anoncvs")
   {
     unless (getgrnam($_))
       {
-        system("/usr/sbin/groupadd", "-g", $etc_group_maxid, $_)
+        system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, $_)
           unless ($dry_run || $no_etc);
         PrintLog (
           "-- groupadd -g $etc_group_maxid $_ (required by the savane backend)"
@@ -316,16 +309,17 @@ foreach my $group (@only_in_db)
         $use_svn, $use_git, $use_hg, $use_bzr, $use_download
       )
       = @{$db_groups{$group}};
-    PrintLog ("create: $name and web$name") if $verbose;
+    my $and_web = $webgroup? " and web$name": '';
+    PrintLog ("create: $name$and_web") if $verbose;
 
     unless ($dry_run || $no_etc)
       {
         # Actually add the groups.
-        system("/usr/sbin/groupadd", "-g", $etc_group_maxid, $name);
+        system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, $name);
         if ($webgroup)
           {
             $etc_group_maxid++;
-            system("/usr/sbin/groupadd", "-g", $etc_group_maxid, "web$name");
+            system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, "web$name");
           }
         # We do not at that moment create the directories, we just relying
         # on the next step.
@@ -335,7 +329,8 @@ foreach my $group (@only_in_db)
     $etc_group_maxid++;
     $etc_group_maxid++ if $etc_group_maxid == $nogroup_gid;
 
-    PrintLog ("-- groupadd $name,web$name");
+    $and_web = ",web$name" if $webgroup;
+    PrintLog ("-- groupadd $name$and_web");
   }
 
 PrintLog ("account creation done");
@@ -354,36 +349,17 @@ sub make_area
       PrintLog ("$func ($name, $dir, $pub) made nothing") if $verbose;
       return '';
     }
-  return "$func ($name, $dir, $pub): $ret";
-}
-
-sub make_dl_savannah
-{
-  my ($name, $dt, $dir, $pub) = @_;
-  unless ($dt eq "savannah-gnu" || $dt eq "savannah-nongnu")
-    {
-      PrintLog ("skipping make_dl_savannah: wrong dt = $dt") if $verbose;
-      return '' ;
-    }
-  return make_area ('DownloadMareAreaSavannah', $name, $dir, $pub);
+  return "$func ($name, $dir, $pub): $ret | ";
 }
 
 sub make_vcs_dir
 {
   my ($name, $dir, $dir_svn, $dir_type, $pub) = @_;
   my $f = {
-    'basiccvs' => 'CvsMakeArea', 'basicdirectory' => 'DownloadMakeArea',
-    'cvsattic' => 'CvsMakeAreaAttic', 'basicsvn' => 'SvnMakeArea',
+    'basicdirectory' => 'DownloadMakeArea', 'basicsvn' => 'SvnMakeArea'
   };
+  return '' unless exists ${$f}{$dir_type};
   return make_area (${$f}{$dir_type}, $name, $dir, $pub)
-    if exists ${$f}{$dir_type};
-  $f = {
-    'svnattic' => 'SvnMakeAreaAttic',
-    "svnatticwebsite" => 'SvnMakeAreaAtticWebsite'
-  };
-  return make_area (${$f}{$dir_type}, $name, $dir_svn, $pub)
-    if exists ${$f}{$dir_type};
-  return '';
 }
 
 foreach my $group (@db_groups)
@@ -430,9 +406,6 @@ foreach my $group (@db_groups)
 
     my $madesomething;
 
-    # FIXME: in a future, we may create a table of method associating
-    # method -> perl module -> sub name.
-    # Currently it is hardcoded.
     my $pub = $vars{'is_public'};
     my $dis = $vars{'dir_svn'};
     # Create the cvs area, by relying on the library, that should
@@ -468,7 +441,6 @@ foreach my $group (@db_groups)
         my $did = $vars{'dir_download'};
          my $dtd = $vars{'dir_type_download'};
         $madesomething .= make_vcs_dir ($name, $did, $dis, $dtd, $pub);
-        $madesomething .= make_dl_savannah ($name, $dtd, $did, $pub);
       }
 
     if ($vars{'use_arch'} && !$no_arch)
@@ -476,14 +448,12 @@ foreach my $group (@db_groups)
         my $dia = $vars{'dir_arch'};
         my $dta = $vars{'dir_type_arch'};
         $madesomething .= make_vcs_dir ($name, $dia, $dis, $dta, $pub);
-        $madesomething .= make_dl_savannah ($name, $dta, $dia, $pub);
       }
 
     if ($vars{'use_svn'} && !$no_svn)
       {
         my $dts = $vars{'dir_type_svn'};
         $madesomething .= make_vcs_dir ($name, $dis, $dis, $dts, $pub);
-        $madesomething .= make_dl_savannah ($name, $dts, $dis, $pub);
       }
 
     if ($vars{'use_git'} && !$no_git)
@@ -505,7 +475,8 @@ foreach my $group (@db_groups)
           make_area ('BzrMakeArea', $name, $vars{'dir_bzr'}, $pub)
             if $vars{'dir_type_bzr'} eq "basicbzr";
       }
-    PrintLog ("-- update $name ($madesomething built)") if $madesomething;
+    $madesomething =~ s, [|] $,,;
+    PrintLog ("-- update $name: $madesomething") if $madesomething;
   } # foreach my $group (@db_groups)
 
 PrintLog ("work finished");

@@ -9,23 +9,16 @@ ACLOCAL_AMFLAGS = -I autotools/m4
 SUBDIRS = etc frontend lib autotools/m4 po local
 
 backend_scripts = \
-	backend/accounts/sv_groups \
+	backend/accounts/sv_assign_uid_gid \
 	backend/accounts/sv_get_authorized_keys \
-	backend/accounts/sv_users \
+	backend/accounts/sv_groups \
 	backend/accounts/sv_membersh \
-	backend/mail/sv_mailman-wrapper.pl \
-	backend/mail/sv_aliases \
-	backend/extra/subversion/sv_extra_daily_svn_tarball \
-	backend/extra/cvs/sv_extra_daily_cvs_tarball \
-	backend/extra/cvs/sv_extra_viewcvs_forbidden \
-	backend/extra/cvs/sv_extra_daily_cvs_tarball_forbid \
-	backend/extra/cvs/sv_extra_import_cvs \
-	backend/extra/cvs/sv_extra_pserver_cvsroots \
 	backend/extra/git/sv_cgit.pl \
 	backend/extra/git/sv_cgit_about_filter.pl \
-	backend/misc/sv_reminder \
+	backend/mail/sv_aliases \
+	backend/mail/sv_mailman-wrapper.pl \
 	backend/misc/sv_cleaner \
-	backend/accounts/sv_assign_uid_gid
+	backend/misc/sv_reminder
 
 bin_SCRIPTS = $(backend_scripts)
 
