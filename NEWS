@@ -104,6 +104,8 @@
 
 * --version option in scripts outputs copyright and license notices.
 
+* New option in sv_aliases, --suffix.
+
 * Replace --debug with --dry-run and --verbose in sv_reminder,
   sv_groups, sv_users, sv_aliases.
 
