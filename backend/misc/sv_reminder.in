@@ -44,8 +44,8 @@
 use strict;
 use Savane;
 use Savane::Mail;
+use Savane::Util;
 use Getopt::Long;
-use POSIX qw(strftime);
 use Time::Local;
 use Date::Calc qw(Add_Delta_YMD);
 
@@ -100,11 +100,7 @@ GetOptions (
 
 $dbd->{mysql_enable_utf8} = 1;
 
-sub PrintLog
-{
-  my $dr = $dry_run? " (dry run)": "";
-  print LOG (strftime "[$script] %c$dr -", localtime) . " $_[0]\n";
-}
+open_log ($logfile, $script, $dry_run);
 
 # Values for batch_frequency: 0 = none, 1 = daily, 2 = weekly, 3 = monthly.
 sub decode_freq
@@ -117,8 +113,6 @@ sub decode_freq
   return $names[$freq];
 }
 
-open (LOG, ">>:encoding(UTF-8)", $logfile);
-PrintLog ("starting");
 AcquireReplicationLock ();
 
 # List of users supposed to receive a batch.
@@ -149,10 +143,10 @@ my $daybefore = date_before ($date0, 1, 0);
 my $weekbefore = date_before ($date0, 7, 0);
 my $monthbefore = date_before ($date0, 0, 1);
 
-PrintLog ("time before: day $daybefore, week $weekbefore; month $monthbefore")
+print_log ("time before: day $daybefore, week $weekbefore; month $monthbefore")
   if $verbose;
 
-PrintLog ("date before: day " . localtime ($daybefore)
+print_log ("date before: day " . localtime ($daybefore)
   . ", week " . localtime ($weekbefore) . ", month " . localtime ($monthbefore)
 ) if $verbose;
 
@@ -180,7 +174,7 @@ foreach my $line
     $realnames{$user_id} = $realname;
     $user_names{$user_id} = $user_name;
     $user_email{$user_id} = $email;
-    PrintLog ("user #$user_id, frequency $freq: $realname <$email>")
+    print_log ("user #$user_id, frequency $freq: $realname <$email>")
       if $verbose;
 }
 
@@ -206,7 +200,7 @@ sub delete_and_log
 {
   my ($table, $condition, $msg) = @_;
   my $result = delete_db ($table, $condition);
-  PrintLog ("deleted $result $msg") if $verbose;
+  print_log ("deleted $result $msg") if $verbose;
 }
 
 sub clear_preferences
@@ -234,7 +228,7 @@ foreach my $line
     chomp ($line);
     my ($id, $lastsent) = split (",", $line);
     $last_sent{$id} = $lastsent;
-    PrintLog ("last sent (user #$id): " . localtime ($lastsent)) if $verbose;
+    print_log ("last sent (user #$id): " . localtime ($lastsent)) if $verbose;
     clear_preferences ($id)
       unless (exists $user_frequency{$id} && $user_frequency{$id});
     $user_frequency{$id} = 0
@@ -259,7 +253,8 @@ foreach my $user_id (keys %user_names)
     $lastsent = "last sent " . localtime $last_sent{$user_id}
       if exists $last_sent{$user_id};
     push (@user_case2, $user_id);
-    PrintLog ("case2 for $batch batch: user #$user_id, $lastsent") if $verbose;
+    print_log ("case2 for $batch batch: user #$user_id, $lastsent")
+      if $verbose;
   } # foreach my $line...
 
 # Look for open items assigned to users who want to receive a batch.
@@ -279,14 +274,15 @@ foreach my $tracker (@trackers)
           {
             chomp ($line);
             my ($item_id, $summary) = split (",", $line);
-            PrintLog ("case2: $user_id, $tracker $item_id $summary")
+            print_log ("case2: $user_id, $tracker $item_id $summary")
               if $verbose;
             my $idx = "$tracker,$item_id";
             push (@{$items{$user_id}}, $idx);
             $summary{$idx} = $summary;
             $no_items = 0;
           }
-        PrintLog ("case2: no items for user #$user_id") if ($verbose && $no_items);
+        print_log ("case2: no items for user #$user_id")
+          if ($verbose && $no_items);
       }
   }
 
@@ -308,7 +304,7 @@ foreach my $user_id (keys %items)
   {
     if (++$count > $max)
       {
-        PrintLog ("mail count $max overflow");
+        print_log ("mail count $max overflow");
         last;
       }
 
@@ -334,7 +330,7 @@ foreach my $user_id (keys %items)
              $mail .=
                "\nThere are other items for you but we don't mention more\n"
                . "than $max_items items in a mail.\n";
-             PrintLog ("item count $max_items overflow for user #$user_id");
+             print_log ("item count $max_items overflow for user #$user_id");
              last;
           }
 
@@ -352,7 +348,7 @@ foreach my $user_id (keys %items)
 
     MailSend ("", $user_email{$user_id}, $title, $mail) unless $dry_run;
     next unless $verbose;
-    PrintLog (
+    print_log (
       "------------------------------------------------------------\n"
       . "To:     #$user_id $realnames{$user_id} <$user_email{$user_id}>\n"
       . "Subject: $title\n"
@@ -366,7 +362,7 @@ sub reset_lastsent
   return unless $id;
   if ($dry_run || $verbose)
     {
-      PrintLog ("resetting batch_lastsent for $prefix #$id");
+      print_log ("resetting batch_lastsent for $prefix #$id");
       return;
     }
   InsertDB (
@@ -386,5 +382,4 @@ foreach my $user_id (@user_case2)
     reset_lastsent ("user", $user_id);
   }
 
-PrintLog ("work finished, mails sent: $count");
-print LOG "[$script] ------------------------------------------------------\n";
+finalize_log ("mails sent: $count");

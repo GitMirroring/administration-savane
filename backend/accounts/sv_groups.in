@@ -61,7 +61,6 @@ use Savane::Git;
 use Savane::Hg;
 use Savane::Bzr;
 use Getopt::Long;
-use POSIX qw(strftime);
 
 our $script = "sv_groups";
 my $logfile = "/var/log/sv_database2system.log";
@@ -133,56 +132,43 @@ Normally, sv_users should run just after.
                        including one with the prefix web";
 PrintVersionOrHelp ($help_msg);
 
-GetOptions (
+my $artifacts = (
+  'etc', 'cvs', 'arch', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'
+);
+
+my %options = {
   "cron" => \$cron, "logfile=s" => \$logfile, "dry-run" => \$dry_run,
-  "no-etc" => \$no_etc, "no-cvs" => \$no_cvs, "no-svn" => \$no_svn,
-  "no-git" => \$no_git, "no-hg" => \$no_hg, "no-arch" => \$no_arch,
-  "no-homepage" => \$no_homepage, "no-download" => \$no_download,
-  "only-etc" => \$only_etc, "only-cvs" => \$only_cvs,
-  "only-svn" => \$only_svn, "only-git" => \$only_git,
-  "only-hg" => \$only_hg, "only-bzr" => \$only_bzr,
-  "only-arch" => \$only_arch, "only-homepage" => \$only_homepage,
-  "only-download" => \$only_download, "verbose" => \$verbose,
   "webgroup" => \$webgroup, "one-group" => \$one_group
-) or die "Wrong command line";
+};
+
+for my $art ($artifacts)
+{
+  my ($var, $covar) = ("no_$art", "only_$art");
+  $options{"no-$art"} = \$$var; $options{"only-$art"} = \$$covar;
+}
+
+GetOptions (%options) or die "Wrong command line";
+
+my $only_any = 0;
+for my $art ($artifacts)
+  {
+    my $var = "only_$art";
+    $only_any = 1 if $$var;
+    last if $only_any;
+  }
 
 # If we are asked to create only a few services, set everything to "no"
 # and later add the only one(s) asked for.
-if ($only_etc || $only_cvs || $only_arch || $only_svn || $only_git
-    || $only_hg || $only_bzr || $only_homepage || $only_download
-  )
+if ($only_any)
   {
-    $no_etc = 1;
-    $no_cvs = 1;
-    $no_arch = 1;
-    $no_svn = 1;
-    $no_git = 1;
-    $no_hg = 1;
-    $no_bzr = 1;
-    $no_homepage = 1;
-    $no_download = 1;
-
-    $no_etc = 0 if $only_etc;
-    $no_cvs = 0 if $only_cvs;
-    $no_arch = 0 if $only_arch;
-    $no_svn = 0 if $only_svn;
-    $no_git = 0 if $only_git;
-    $no_hg = 0 if $only_hg;
-    $no_bzr = 0 if $only_bzr;
-    $no_homepage = 0 if $only_homepage;
-    $no_download = 0 if $only_download;
+    for my $art ($artifacts)
+      {
+        my ($var, $covar) = ("no_$art", "only_$art");
+        $$var = !$$covar;
+      }
   }
 
-open (LOG, ">>:encoding(UTF-8)", $logfile);
-
-sub PrintLog
-{
-  our $script;
-  my $dr = $dry_run? " (dry run)": "";
-  print LOG (strftime "[$script] %c -$dr", localtime) . " $_[0]\n";
-}
-
-PrintLog ("starting");
+open_log ($logfile, $script, $dry_run);
 
 # Locks: There are several sv_db2sys scripts,
 # but they should not run concurrently.
@@ -213,7 +199,7 @@ foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
   {
     chomp ($line);
     my @entry = split (",", $line);
-    PrintLog ("db: get $line from database") if $verbose;
+    print_log ("db: get $line from database") if $verbose;
     $db_group_type{$entry[1]} = [@entry];
   }
 
@@ -238,11 +224,11 @@ foreach my $line
   {
     chomp ($line);
     my @entry = split (",", $line);
-    PrintLog ("db: get group $line from database") if $verbose;
+    print_log ("db: get group $line from database") if $verbose;
     $db_groups{$entry[0]} = [ @entry ];
     push (@db_groups, $entry[0]);
  }
-PrintLog ("database info fetched");
+print_log ("database info fetched");
 
 # Grab system information, run comparisons.
 #
@@ -257,7 +243,7 @@ foreach my $group (@db_groups)
   {
     my ($exists) = getgrnam ($group);
     my $predicate = $exists? "present": "missing";
-    PrintLog ("etc+compare: group $group is $predicate on the system")
+    print_log ("etc+compare: group $group is $predicate on the system")
       if $verbose;
     push (@only_in_db, $group) unless ($exists);
   }
@@ -276,13 +262,13 @@ while (my @entry = getgrent ())
       {
         $nogroup_gid = $entry[2];
       }
-    PrintLog ("etc: group $entry[0]\t\t maxid $etc_group_maxid") if $verbose;
+    print_log ("etc: group $entry[0]\t\t maxid $etc_group_maxid") if $verbose;
   }
 $etc_group_maxid++;
 # If we did not reached the minimal gid, set it as maxid
 $etc_group_maxid = $min_gid if $min_gid > $etc_group_maxid;
 
-PrintLog ("comparison done");
+print_log ("comparison done");
 
 # Update the system.
 
@@ -294,7 +280,7 @@ for ("svusers", "anoncvs")
       {
         system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, $_)
           unless ($dry_run || $no_etc);
-        PrintLog (
+        print_log (
           "-- groupadd -g $etc_group_maxid $_ (required by the savane backend)"
         );
         $etc_group_maxid++;
@@ -310,7 +296,7 @@ foreach my $group (@only_in_db)
       )
       = @{$db_groups{$group}};
     my $and_web = $webgroup? " and web$name": '';
-    PrintLog ("create: $name$and_web") if $verbose;
+    print_log ("create: $name$and_web") if $verbose;
 
     unless ($dry_run || $no_etc)
       {
@@ -330,10 +316,10 @@ foreach my $group (@only_in_db)
     $etc_group_maxid++ if $etc_group_maxid == $nogroup_gid;
 
     $and_web = ",web$name" if $webgroup;
-    PrintLog ("-- groupadd $name$and_web");
+    print_log ("-- groupadd $name$and_web");
   }
 
-PrintLog ("account creation done");
+print_log ("account creation done");
 
 # Update existing groups, including the ones just created
 # These groups are in the database and on the system.
@@ -346,7 +332,7 @@ sub make_area
   $ret = &$fr ($name, $dir, $pub) unless $dry_run;
   unless ($ret)
     {
-      PrintLog ("$func ($name, $dir, $pub) made nothing") if $verbose;
+      print_log ("$func ($name, $dir, $pub) made nothing") if $verbose;
       return '';
     }
   return "$func ($name, $dir, $pub): $ret | ";
@@ -368,7 +354,7 @@ foreach my $group (@db_groups)
     my ($exists) = getgrnam ($group);
     if ($no_etc && !$exists)
       {
-        PrintLog (
+        print_log (
           "-- no way to update $group, the group is missing on the system"
         );
         next;
@@ -402,7 +388,7 @@ foreach my $group (@db_groups)
         $msg .= "$f: $vars{$f}, "
       }
     $msg .= " dir_download: $vars{'dir_download'}";
-    PrintLog ($msg) if $verbose;
+    print_log ($msg) if $verbose;
 
     my $madesomething;
 
@@ -476,8 +462,7 @@ foreach my $group (@db_groups)
             if $vars{'dir_type_bzr'} eq "basicbzr";
       }
     $madesomething =~ s, [|] $,,;
-    PrintLog ("-- update $name: $madesomething") if $madesomething;
+    print_log ("-- update $name: $madesomething") if $madesomething;
   } # foreach my $group (@db_groups)
 
-PrintLog ("work finished");
-print LOG "[$script] ------------------------------------------------------\n";
+finalize_log;

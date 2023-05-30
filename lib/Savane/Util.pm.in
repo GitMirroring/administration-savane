@@ -44,9 +44,14 @@
 use strict;
 require Exporter;
 require Savane::Conf;
+use POSIX qw (strftime);
 
 our @ISA = qw (Exporter);
-our @EXPORT = qw (SQLStringEscape MakeDir ExpandDirTemplate);
+our @EXPORT = qw (
+  SQLStringEscape
+  MakeDir ExpandDirTemplate
+  open_log print_log finalize_log
+);
 # Escape arg0 to be sent in a SQL string.
 sub SQLStringEscape
 {
@@ -78,6 +83,32 @@ sub MakeDir
   return 0 if -e $dir;
   $warning .= &$func ($name, $dir, $is_public, $repo_type);
   return " $dir$warning";
+}
+
+# Handle logs.
+my ($util_log_fd, $log_script, $dry_run);
+
+sub open_log
+{
+  my ($file, $script, $dr) = @_;
+  $log_script = $script;
+  $dry_run = $dr? ' (dry_run)': '';
+  open ($util_log_fd, ">>:encoding(UTF-8)", $file)
+    or die "$log_script: Can't open log file $file: $!";
+  print_log ("start");
+}
+
+sub print_log
+{
+  my $timestamp = strftime "%c", localtime;
+  print { $util_log_fd } "[$log_script] $timestamp$dry_run $_[0]\n";
+}
+
+sub finalize_log
+{
+  print_log ($_[0]) if (defined $_[0]);
+  print_log ("------------------------------------------------------");
+  close ($util_log_fd);
 }
 
 return "true";

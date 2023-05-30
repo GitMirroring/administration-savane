@@ -49,7 +49,6 @@ use Savane::User;
 use Savane::Locks;
 use File::Copy;
 use File::Temp qw(tempfile);
-use POSIX qw(strftime);
 
 # Imports (needed for strict).
 our $sys_mail_list;
@@ -95,14 +94,7 @@ GetOptions (
 # Avoid concurrent runs.
 AcquireReplicationLock ();
 
-open (LOG, ">>$logfile") or die "Could not open '$logfile': $!";
-
-sub print_log
-{
-  our $script;
-  my $dr = $dry_run? " (dry run)": "";
-  print LOG (strftime "[$script] %c -$dr", localtime) . " $_[0]\n";
-}
+open_log ($logfile, $script, $dry_run);
 
 sub move_file
 {
@@ -177,7 +169,11 @@ sub fetch_sv_aliases
   return $sv_mails;
 }
 
-print_log ("start");
+sub finish
+{
+  finalize_log;
+  exit (0);
+}
 
 unless ($sysemails || $sysaliases)
   {
@@ -189,10 +185,11 @@ my $sv_mails = fetch_sv_aliases ();
 update_email_list ($sysemails, $sv_mails);
 update_email_list ($sysaliases, $sv_mails);
 close ($sv_mails);
-exit (0) unless $sysaliases;
+finish () unless $sysaliases;
 
 if (-e "/usr/bin/newaliases")
   {
     system ("/usr/bin/newaliases") unless $dry_run;
     print_log ("/usr/bin/newaliases");
   }
+finish;

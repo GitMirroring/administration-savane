@@ -50,8 +50,8 @@
 
 use strict;
 use Savane;
+use Savane::Util;
 use Getopt::Long;
-use POSIX qw(strftime);
 use Time::Local;
 
 our $dbd;
@@ -94,25 +94,14 @@ GetOptions (
   "logfile=s" => \$logfile
 ) or die ("Wrong command line.");
 
-open (LOG, ">>$logfile") or die $!;
-sub add_to_log
-{
-  print LOG (strftime "[$script] %c", localtime) . " $_[0]\n";
-}
-
-sub log_with_dr
-{
-  my $dr_str = $dry_run? " (dry run)": "";
-  add_to_log ("---- $_[0]$dr_str");
-}
+open_log ($logfile, $script, $dry_run);
+print_log ("start");
 
 sub log_result
 {
   my ($msg, $result) = @_;
-  log_with_dr ($msg) if $result > 0;
+  print_log ("- $msg") if $result > 0;
 }
-
-add_to_log ("- starting");
 
 sub delete_db
 {
@@ -201,7 +190,7 @@ sub purge_account
 sub suspend_account
 {
   my ($id, $name, $email) = @_;
-  log_with_dr ("suspended account #$id <$name>");
+  print_log ("- suspended account #$id <$name>");
   return if $dry_run;
   $dbd->do ("UPDATE group_history"
     . " SET old_value = '_$id' WHERE old_value = '$name'"
@@ -313,7 +302,7 @@ sub clean_account
   return if ($ut > $t1 && !domain_is_banned ($email));
   $active = account_is_active ($id, $name);
   return if $active > 1;
-  add_to_log ("---- removing $user: $active");
+  print_log ("- removing $user: $active");
   remove_account ($id, $name, $email, $active);
 }
 
@@ -322,7 +311,7 @@ sub clean_idle_accounts
   my $t1 = `date +%s` - 17 * 24 * 3600;
   my $t0 = $t1 - 24 * 3600;
 
-  add_to_log ("---- clean idle; banned domains: ($sys_banned_email_domains)");
+  print_log ("- clean idle; banned domains: ($sys_banned_email_domains)");
   foreach my $user (
     GetDB (
       "user", "status = 'A' AND add_date > $t0",
@@ -339,8 +328,7 @@ clean_idle_accounts;
 
 sub finish_work
 {
-  add_to_log ("- work finished");
-  print LOG "[$script] ------------------------------------------------------\n";
+  finalize_log;
   exit 0;
 }
 
@@ -391,8 +379,8 @@ foreach my $tracker (@trackers)
 
         next if $group_exists{$group_id};
         push (@items_to_delete, $item_id);
-        log_with_dr (
-          "deleted $tracker #$item_id from dead group #$group_id"
+        print_log (
+          "- deleted $tracker #$item_id from dead group #$group_id"
         );
       }
 
@@ -471,8 +459,8 @@ foreach my $tracker (@trackers)
 foreach my $group_id (@dead_group_id)
   {
     die "Strange group id found for dead group, exiting" if $group_id eq "";
-    log_with_dr (
-      "delete anything else that belong in dead group #$group_id"
+    print_log (
+      "- delete anything else that belong in dead group #$group_id"
     );
     next if $dry_run;
     foreach my $table (@table_list)
