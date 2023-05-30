@@ -109,6 +109,9 @@
 * Replace --debug with --dry-run and --verbose in sv_reminder,
   sv_groups, sv_aliases.
 
+* In sv_groups, the unused --no-etc and --only-etc options are replaced
+  with --no-group-check.
+
 * Remove unused scripts:
   backend/account/sv_users.in
   backend/extra/cvs/sv_extra_daily_cvs_tarball.in

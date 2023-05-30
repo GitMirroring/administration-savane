@@ -63,34 +63,30 @@ use Savane::Bzr;
 use Getopt::Long;
 
 our $script = "sv_groups";
-my $logfile = "/var/log/sv_database2system.log";
 my $lockfile = "groups-users.lock";
 my $dry_run;
 my $verbose;
-my $cron;
 
-my $no_etc = 0;
-my $no_cvs = 0;
-my $no_arch = 0;
-my $no_svn = 0;
-my $no_git = 0;
-my $no_hg = 0;
-my $no_bzr = 0;
-my $no_homepage = 0;
-my $no_download = 0;
+my @opt_list = ("cron", "logfile=s", "dry-run", "webgroup", "one-group",
+  'verbose', 'no-group-check'
+);
+my %options = ("logfile" => "/var/log/sv_database2system.log");
 
-my $only_etc;
-my $only_cvs;
-my $only_arch;
-my $only_svn;
-my $only_git;
-my $only_hg;
-my $only_bzr;
-my $only_homepage;
-my $only_download;
+my @artifacts = (
+  'cvs', 'arch', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'
+);
 
-my $one_group;
-my $webgroup = 0;
+for my $art (@artifacts)
+  {
+    push @opt_list, ("no-$art", "only-$art");
+  }
+
+for my $opt (@opt_list)
+  {
+    my $o = $opt;
+    $o =~ s,[=+].*$,,;
+    $options{$o} = 0 unless defined $options{$o};
+  }
 
 my $min_gid = "5000";
 
@@ -106,9 +102,9 @@ Normally, sv_users should run just after.
       --verbose        log additional info
       --cron           ignored
       --one-group      ignored
-      --logfile        file for reports [$logfile]
+      --logfile        file for reports [$options{'logfile'}]
+      --no-group-check do not check if local group exists
 
-      --no-etc         do not update system groups
       --no-cvs         do not update CVS trees
       --no-arch        do not update GNU Arch trees
       --no-svn         do not update Subversion trees
@@ -118,7 +114,6 @@ Normally, sv_users should run just after.
       --no-homepage    do not update homepage dirs
       --no-download    do not update download dirs
 
-      --only-etc       only update system groups
       --only-cvs       only update CVS trees
       --only-arch      only update GNU Arch trees
       --only-svn       only update Subversion trees
@@ -131,44 +126,29 @@ Normally, sv_users should run just after.
       --webgroup       for each Savane group, add users in two groups,
                        including one with the prefix web";
 PrintVersionOrHelp ($help_msg);
-
-my $artifacts = (
-  'etc', 'cvs', 'arch', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'
-);
-
-my %options = {
-  "cron" => \$cron, "logfile=s" => \$logfile, "dry-run" => \$dry_run,
-  "webgroup" => \$webgroup, "one-group" => \$one_group
-};
-
-for my $art ($artifacts)
-{
-  my ($var, $covar) = ("no_$art", "only_$art");
-  $options{"no-$art"} = \$$var; $options{"only-$art"} = \$$covar;
-}
-
-GetOptions (%options) or die "Wrong command line";
-
-my $only_any = 0;
-for my $art ($artifacts)
-  {
-    my $var = "only_$art";
-    $only_any = 1 if $$var;
-    last if $only_any;
-  }
+unshift @opt_list, \%options;
+GetOptions (@opt_list) or die "Wrong command line";
 
 # If we are asked to create only a few services, set everything to "no"
-# and later add the only one(s) asked for.
+# and later add the only ones asked for.
+my $only_any = 0;
+for my $art (@artifacts)
+  {
+    $only_any = 1 if $options{"only-$art"};
+    last if $only_any;
+  }
 if ($only_any)
   {
-    for my $art ($artifacts)
+    for my $art (@artifacts)
       {
-        my ($var, $covar) = ("no_$art", "only_$art");
-        $$var = !$$covar;
+        $options{"no-$art"} = !$options{"only-$art"};
       }
   }
 
-open_log ($logfile, $script, $dry_run);
+$verbose = $options{'verbose'};
+$dry_run = $options{'dry-run'};
+
+open_log ($options{'logfile'}, $script, $dry_run);
 
 # Locks: There are several sv_db2sys scripts,
 # but they should not run concurrently.
@@ -186,14 +166,14 @@ AcquireReplicationLock ($lockfile);
 # in the group db are only used the ids.
 #
 # To limit the number of requests, we use one very long SQL request.
-my @db_group_type_fields = (
-  "name", "type_id", "dir_type_homepage", "dir_type_cvs", "dir_type_arch",
-  "dir_type_svn", "dir_type_git", "dir_type_hg", "dir_type_bzr",
-  "dir_type_download", "dir_homepage", "dir_cvs", "dir_arch", "dir_svn",
-  "dir_git", "dir_hg", "dir_bzr", "dir_download", "can_use_homepage",
-  "can_use_cvs", "can_use_arch", "can_use_svn", "can_use_git", "can_use_hg",
-  "can_use_bzr", "can_use_download"
-);
+my @db_group_type_fields = ("name", "type_id");
+for my $art (@artifacts)
+  {
+    for my $pfx ('dir_type_', 'dir_', 'can_use_')
+      {
+        push @db_group_type_fields, "$pfx$art";
+      }
+  }
 my %db_group_type;
 foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
   {
@@ -213,113 +193,23 @@ foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
 # Only groups in Active status will be handled!
 my %db_groups;
 my @db_groups;
-my @db_groups_fields = (
-  "unix_group_name", "type", "is_public", "use_homepage", "use_cvs",
-  "use_arch", "use_svn", "use_git", "use_hg", "use_bzr", "use_download",
-  "dir_homepage", "dir_cvs", "dir_arch", "dir_svn", "dir_git", "dir_hg",
-  "dir_bzr", "dir_download"
-);
-foreach my $line
-  (GetDB ("groups", "status = 'A'", join (", ", @db_groups_fields)))
+my @db_groups_fields = ("unix_group_name", "type", "is_public");
+for my $art (@artifacts)
   {
-    chomp ($line);
-    my @entry = split (",", $line);
-    print_log ("db: get group $line from database") if $verbose;
+    for my $pfx ('use_', 'dir_')
+      {
+        push @db_groups_fields, "$pfx$art";
+      }
+  }
+foreach (GetDB ("groups", "status = 'A'", join (", ", @db_groups_fields)))
+  {
+    chomp;
+    my @entry = split ",";
+    print_log ("db: get group $_ from database") if $verbose;
     $db_groups{$entry[0]} = [ @entry ];
     push (@db_groups, $entry[0]);
  }
 print_log ("database info fetched");
-
-# Grab system information, run comparisons.
-#
-# - etc_group* items
-
-# /etc/group:
-#   Create a list of groups which are missing on the the system. We ignore
-#   groups that are not in the database.
-#   Find what is the maximum id number known.
-my @only_in_db;
-foreach my $group (@db_groups)
-  {
-    my ($exists) = getgrnam ($group);
-    my $predicate = $exists? "present": "missing";
-    print_log ("etc+compare: group $group is $predicate on the system")
-      if $verbose;
-    push (@only_in_db, $group) unless ($exists);
-  }
-
-# /etc/group:
-# Find what is the maximum id number known.  Save also the nogroup id.
-my $etc_group_maxid = -1;
-my $nogroup_gid = 65534;
-while (my @entry = getgrent ())
-  {
-    if($entry[0] ne 'nogroup')
-      {
-        $etc_group_maxid = $entry[2] if $entry[2] > $etc_group_maxid;
-      }
-    else
-      {
-        $nogroup_gid = $entry[2];
-      }
-    print_log ("etc: group $entry[0]\t\t maxid $etc_group_maxid") if $verbose;
-  }
-$etc_group_maxid++;
-# If we did not reached the minimal gid, set it as maxid
-$etc_group_maxid = $min_gid if $min_gid > $etc_group_maxid;
-
-print_log ("comparison done");
-
-# Update the system.
-
-# Make sure that the group svusers and anoncvs exists
-# sv_users and sv_groups would broke without these groups
-for ("svusers", "anoncvs")
-  {
-    unless (getgrnam($_))
-      {
-        system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, $_)
-          unless ($dry_run || $no_etc);
-        print_log (
-          "-- groupadd -g $etc_group_maxid $_ (required by the savane backend)"
-        );
-        $etc_group_maxid++;
-      }
-  }
-# Add groups missing on the system.
-foreach my $group (@only_in_db)
-  {
-    my
-      (
-        $name, $type, $is_public, $use_homepage, $use_cvs, $use_arch,
-        $use_svn, $use_git, $use_hg, $use_bzr, $use_download
-      )
-      = @{$db_groups{$group}};
-    my $and_web = $webgroup? " and web$name": '';
-    print_log ("create: $name$and_web") if $verbose;
-
-    unless ($dry_run || $no_etc)
-      {
-        # Actually add the groups.
-        system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, $name);
-        if ($webgroup)
-          {
-            $etc_group_maxid++;
-            system ("/usr/sbin/groupadd", "-g", $etc_group_maxid, "web$name");
-          }
-        # We do not at that moment create the directories, we just relying
-        # on the next step.
-      }
-    # Increment the gid for the next group, avoid the special value
-    # attributed to nogroup.
-    $etc_group_maxid++;
-    $etc_group_maxid++ if $etc_group_maxid == $nogroup_gid;
-
-    $and_web = ",web$name" if $webgroup;
-    print_log ("-- groupadd $name$and_web");
-  }
-
-print_log ("account creation done");
 
 # Update existing groups, including the ones just created
 # These groups are in the database and on the system.
@@ -351,8 +241,9 @@ sub make_vcs_dir
 foreach my $group (@db_groups)
   {
     # If we run in no etc mode, we cannot handle groups missing on the system.
-    my ($exists) = getgrnam ($group);
-    if ($no_etc && !$exists)
+    my $exists = $options{'no-group-check'};
+    ($exists) = getgrnam ($group) unless $exists;
+    if (!$exists)
       {
         print_log (
           "-- no way to update $group, the group is missing on the system"
@@ -370,8 +261,7 @@ foreach my $group (@db_groups)
       {
         $vars{$k} = shift @group_type_entry;
       }
-    foreach my $k
-      ("homepage", "cvs", "arch", "svn", "git", "hg", "bzr", "download")
+    foreach my $k (@artifacts)
       {
         # If a use in the database is empty, set it to the group type can_use.
         $vars{"use_$k"} = $vars{"can_use_$k"} if $vars{"use_$k"} eq '';
@@ -381,13 +271,14 @@ foreach my $group (@db_groups)
       }
     my $name = $vars{'unix_group_name'};
     my $msg = "update: $name, ";
+    my @lines;
     foreach my $f ("type", "is_public", "use_homepage", "use_cvs", "use_arch",
       "use_svn", "use_git", "use_hg", "use_download", "dir_homepage",
-      "dir_cvs")
+      "dir_cvs", 'dir_download')
       {
-        $msg .= "$f: $vars{$f}, "
+        push @lines, "$f: $vars{$f}";
       }
-    $msg .= " dir_download: $vars{'dir_download'}";
+    $msg .= join (', ', @lines);
     print_log ($msg) if $verbose;
 
     my $madesomething;
@@ -398,7 +289,7 @@ foreach my $group (@db_groups)
     # make the appropriate decision (i.e. if no %PROJECT string is
     # provided, nothing should be done; check if the directory does
     # not already exists).
-    if ($vars{'use_cvs'} && !$no_cvs)
+    if ($vars{'use_cvs'} && !$options{'no-cvs'})
       {
         my $dic = $vars{'dir_cvs'};
         my $dtc = $vars{'dir_type_cvs'};
@@ -408,7 +299,7 @@ foreach my $group (@db_groups)
       }
 
     # The web area.
-    if ($vars{'use_homepage'} && !$no_homepage)
+    if ($vars{'use_homepage'} && !$options{'no-homepage'})
       {
         my $dih = $vars{'dir_homepage'};
         my $dth = $vars{'dir_type_homepage'};
@@ -422,40 +313,40 @@ foreach my $group (@db_groups)
       }
 
     # The download area.
-    if ($vars{'use_download'} && !$no_download)
+    if ($vars{'use_download'} && !$options{'no-download'})
       {
         my $did = $vars{'dir_download'};
          my $dtd = $vars{'dir_type_download'};
         $madesomething .= make_vcs_dir ($name, $did, $dis, $dtd, $pub);
       }
 
-    if ($vars{'use_arch'} && !$no_arch)
+    if ($vars{'use_arch'} && !$options{'no-arch'})
       {
         my $dia = $vars{'dir_arch'};
         my $dta = $vars{'dir_type_arch'};
         $madesomething .= make_vcs_dir ($name, $dia, $dis, $dta, $pub);
       }
 
-    if ($vars{'use_svn'} && !$no_svn)
+    if ($vars{'use_svn'} && !$options{'no-svn'})
       {
         my $dts = $vars{'dir_type_svn'};
         $madesomething .= make_vcs_dir ($name, $dis, $dis, $dts, $pub);
       }
 
-    if ($vars{'use_git'} && !$no_git)
+    if ($vars{'use_git'} && !$options{'no-git'})
       {
         $madesomething .=
           make_area ('GitMakeArea', $name, $vars{'dir_git'}, $pub)
             if $vars{'dir_type_git'} eq "basicgit";
       }
 
-    if ($vars{'use_hg'} && !$no_hg)
+    if ($vars{'use_hg'} && !$options{'no-hg'})
       {
         $madesomething .= make_area ('HgMakeArea', $name, $vars{'dir_hg'}, $pub)
           if $vars{'dir_type_hg'} eq "basichg";
       }
 
-    if ($vars{'use_bzr'} && !$no_bzr)
+    if ($vars{'use_bzr'} && !$options{'no-bzr'})
       {
         $madesomething .=
           make_area ('BzrMakeArea', $name, $vars{'dir_bzr'}, $pub)
