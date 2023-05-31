@@ -113,6 +113,11 @@
 * In sv_groups, the unused --no-etc and --only-etc options are replaced
   with --no-group-check.
 
+* In sv_membersh, configuration code and command line parsing is rewritten;
+  substantial documentation is added to --help; the configuration is now
+  loaded from @sysconfdir@/savane/membersh-conf.pl rather than
+  @sysconfdir@/membersh-conf.pl.
+
 * Remove unused scripts:
   backend/account/sv_users.in
   backend/extra/cvs/sv_extra_daily_cvs_tarball.in
@@ -136,6 +141,9 @@
 
 ** In sv_cleaner, user's auxiliary data like preferences and bookmarks
    weren't removed when removing the account.
+
+** In sv_membersh, the allowed paths weren't really asserted
+   (e.g. /srv/download/../../tmp/foo).
 
 [BUILD]
 

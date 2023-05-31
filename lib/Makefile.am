@@ -25,20 +25,27 @@ modules = \
 
 nobase_libexec_SCRIPTS = $(modules)
 
-install-data-local: savane.conf.pl; \
-  if test -e "$(DESTDIR)$(sysconfdir)/savane/savane.conf.pl"; then\
-     echo; echo; \
-     echo "NOTE: $(DESTDIR)$(sysconfdir)/savane/savane.conf.pl exists;"; \
-     echo "      not trying to overwrite it with a new configuration file."; \
-     echo; echo; \
-  else \
-    $(INSTALL) -m 644 -D savane.conf.pl \
-      "$(DESTDIR)$(sysconfdir)/savane/savane.conf.pl"; \
-  fi
+initial_configs = savane.conf.pl membersh-conf.pl
 
-uninstall-local: ; $(RM) "$(DESTDIR)$(sysconfdir)/savane/savane.conf.pl"
+install-data-local: $(initial_configs); \
+  for i in $(initial_configs); do \
+    if test -e "$(DESTDIR)$(sysconfdir)/savane/$$i"; then\
+       echo; echo; \
+       echo "NOTE: $(DESTDIR)$(sysconfdir)/savane/$$i exists;"; \
+       echo "      not trying to overwrite it with a new configuration file."; \
+       echo; echo; \
+    else \
+      $(INSTALL) -m 644 -D $$i \
+        "$(DESTDIR)$(sysconfdir)/savane/$$i"; \
+    fi; \
+  done
 
-substituted = $(modules) savane.conf.pl
+uninstall-local: ; \
+ for i in $(initial_configs); do \
+   $(RM) "$(DESTDIR)$(sysconfdir)/savane/$$i"; \
+ done
+
+substituted = $(modules) $(initial_configs)
 
 subst_pm = sed \
 	-e 's,[@]libexecdir[@],$(libexecdir),' \
@@ -53,4 +60,4 @@ $(substituted): %: %.in
 
 CLEANFILES = $(substituted)
 
-EXTRA_DIST = README $(modules:%=%.in) savane.conf.pl.in
+EXTRA_DIST = README $(modules:%=%.in) $(initial_configs:%=%.in)

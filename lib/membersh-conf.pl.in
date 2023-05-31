@@ -1,0 +1,2 @@
+# Initial configuration for membersh.
+1; # Make 'do membersh-conf.pl' return true.
