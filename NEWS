@@ -10,7 +10,8 @@
 
 [REQUIREMENTS]
 
-* Perl String::Random isn't used any more.
+* Perl modules File::Find::Rule, IO::File, String::Random, XML::Writer
+  aren't used any more.
 
 [FRONTEND]
 

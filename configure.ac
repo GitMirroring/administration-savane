@@ -48,13 +48,6 @@ AC_INIT([GNU Savannah],
 	[savannah-hackers-public@gnu.org], [savane],
 	[https://savannah.gnu.org/projects/administration])
 
-# We expect to use Bash for our build scripts - it's widespread
-# enough, not need to write portable shell in this case, I'd say.
-if test -z "$BASH"; then
-  AC_MSG_ERROR([*** Essential program Bash not found])
-fi
-SHELL=$BASH
-
 AC_CONFIG_AUX_DIR(autotools)
 # For future version of aclocal:
 AC_CONFIG_MACRO_DIR(autotools/m4)
