@@ -87,7 +87,7 @@ make[2]: Leaving directory '/home/dti/sv/savane'
 make[1]: Leaving directory '/home/dti/sv/savane'
 $
 
-Write a sample ~/sv/etc/savane/cgitrepos:
+Write a sample ~/sv/install/etc/savane/cgitrepos:
 
 8< - - - - - - - - - -
 repo.group=GNU Core Utilities
@@ -147,8 +147,7 @@ to something like
 
   [mysqld]
 
-  sql_mode = \
-    ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+  sql_mode = ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
 Then restart the database server (requires root privileges):
 
@@ -221,7 +220,7 @@ ServerName 127.0.0.1
   php_admin_flag log_errors on
   php_admin_flag display_errors on
 
-  # Include decperation warnings, set the value to E_ALL (32767).
+  # Include deprecation warnings, set the value to E_ALL (32767).
   # see http://php.net/manual/en/errorfunc.constants.php .
   php_admin_value error_reporting 32767
 
@@ -236,7 +235,7 @@ $ sed -i "s,@pref@,$HOME/sv,g" savane.conf
 
 Create used directories:
 
-$ mkdir -p $HOME/sv/etc/savane \
+$ mkdir -p $HOME/sv/install/etc/savane \
   $HOME/sv/var/{logs,www/submissions_uploads/trackers_attachments}
 
 Make var directories writeable for www-data (uses root privileges
@@ -244,7 +243,7 @@ via sudo):
 
 $ sudo chgrp -R www-data $HOME/sv/var
 
-Write in $HOME/sv/etc/savane/.savane.conf.php:
+Write in $HOME/sv/install/etc/savane/.savane.conf.php:
 8< - - - - - - - - - -
 <?php
 $sys_default_domain = "127.0.0.51";
@@ -290,7 +289,7 @@ $sys_debug_sqlprofiler = false;
 
 Substitute your path:
 
-$ sed -i "s,@pref@,$HOME/sv,g" ~/sv/etc/savane/.savane.conf.php
+$ sed -i "s,@pref@,$HOME/sv,g" ~/sv/install/etc/savane/.savane.conf.php
 
 Copy to Apache configuration directory, add a link, restart Apache
 (requires root privileges):
