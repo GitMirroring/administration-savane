@@ -132,7 +132,7 @@ function show_all_users_remove_list ($result, $result2, $group_id)
       return;
     }
   print "$select$options</select>\n<br />\n";
-  print form_hidden (['group_id', $group_id])
+  print form_hidden (['group_id' => $group_id])
     . "<p>\n<input type=\"submit\" name=\"Submit\" value=\""
     . _("Remove users from group") . "\" />\n</p></form>\n";
 }
