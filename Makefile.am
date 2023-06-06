@@ -35,9 +35,11 @@ $(backend_scripts): %: %.in
 
 EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
 	REQUIREMENTS db tests $(backend_scripts:%=%.in) \
-	backend/README
+	backend/README \
+	caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
+	caboose/parse-files.awk
 
-CLEANFILES=$(backend_scripts)
+CLEANFILES = $(backend_scripts)
 
 dist-hook:
 	find $(distdir) -type d -name '.svn' -o -name '*~' | xargs -r rm -rf
@@ -46,6 +48,6 @@ distcheck-hook:
 	if grep -q '^This is a stub' $(distdir)/ChangeLog; then \
 	  echo; echo; \
 	  echo "ChangeLog hasn't been generated.  " \
-            "Configure with --enable-changelog."; \
+	    "Configure with --enable-changelog."; \
 	  echo; echo; false; \
 	fi
