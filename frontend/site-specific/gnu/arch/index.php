@@ -1,5 +1,4 @@
 <?php
-
 # Instructions about Arch usage.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
@@ -44,42 +43,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include dirname (__FILE__) . '/../fingerprints.php';
-
 global $project;
 
-print '<h3>'._('Anonymous Arch Access').'</h3>
-<p>'
-._("This project's Arch repository can be accessed through HTTP.")
-.'</p>
+print "<p>"
+  . "GNU Arch is obsolete.  You can download the repository through rsync:"
+  . "</p>\n";
 
-';
+print "<pre>"
+  . "rsync -avz user_name@arch.savannah.gnu.org/srv/arch/"
+  . $project->getUnixName () . " ."
+  . "</pre>\n";
 
-print '<pre>tla register-archive http://arch.savannah.gnu.org/archives/'
-        .$project->getUnixName().'</pre>
-
-<h3>'._('Group member Arch access').'</h3>
-<p>'
-._("This project's Arch repository can be accessed throgh SFTP for project members.")
-.'</p>
-
-<p>'
-._('The SSHv2 public key fingerprints for the machine hosting the Arch
-trees are:').'</p>'.$vcs_fingerprints;
-
-$username = user_getname();
-if ($username == "NA")
-  # For anonymous user.
-  $username = '&lt;<i>'._('membername').'</i>&gt;';
-
-print '<pre>tla register-archive sftp://'
-      .$username.'@arch.sv.gnu.org/archives/'.$project->getUnixName()
-      .'</pre>
-
-';
-
-print '<h3>'._('More Information').'</h3>
-
-';
-printf ('<p>'._('For more information, see %s.').'</p>',
-   '<a href="//arch.sv.gnu.org/">https://arch.sv.gnu.org/</a>');
+print "<p>"
+  . _("The SSHv2 public key fingerprints for the machine hosting the Arch\n"
+      . "trees are:")
+  . "</p>\n" . $vcs_fingerprints;
 ?>

@@ -1,3 +1,9 @@
+????-??-?? 3.13
+
+[BACKEND]
+
+* sv_groups doesn't create GNU Arch directories any more.
+
 2023-06-06 3.12
 
 * Per-group reminders are not supported any more.  Users shall decide if they

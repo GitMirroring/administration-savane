@@ -73,7 +73,7 @@ my @opt_list = ("cron", "logfile=s", "dry-run", "webgroup", "one-group",
 my %options = ("logfile" => "/var/log/sv_database2system.log");
 
 my @artifacts = (
-  'cvs', 'arch', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'
+  'cvs', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'
 );
 
 for my $art (@artifacts)
@@ -106,7 +106,6 @@ Normally, sv_users should run just after.
       --no-group-check do not check if local group exists
 
       --no-cvs         do not update CVS trees
-      --no-arch        do not update GNU Arch trees
       --no-svn         do not update Subversion trees
       --no-git         do not update Git trees
       --no-hg          do not update Mercurial trees
@@ -115,7 +114,6 @@ Normally, sv_users should run just after.
       --no-download    do not update download dirs
 
       --only-cvs       only update CVS trees
-      --only-arch      only update GNU Arch trees
       --only-svn       only update Subversion trees
       --only-git       only update Git trees
       --only-hg        only update Mercurial trees
@@ -272,7 +270,7 @@ foreach my $group (@db_groups)
     my $name = $vars{'unix_group_name'};
     my $msg = "update: $name, ";
     my @lines;
-    foreach my $f ("type", "is_public", "use_homepage", "use_cvs", "use_arch",
+    foreach my $f ("type", "is_public", "use_homepage", "use_cvs",
       "use_svn", "use_git", "use_hg", "use_download", "dir_homepage",
       "dir_cvs", 'dir_download')
       {
@@ -318,13 +316,6 @@ foreach my $group (@db_groups)
         my $did = $vars{'dir_download'};
          my $dtd = $vars{'dir_type_download'};
         $madesomething .= make_vcs_dir ($name, $did, $dis, $dtd, $pub);
-      }
-
-    if ($vars{'use_arch'} && !$options{'no-arch'})
-      {
-        my $dia = $vars{'dir_arch'};
-        my $dta = $vars{'dir_type_arch'};
-        $madesomething .= make_vcs_dir ($name, $dia, $dis, $dta, $pub);
       }
 
     if ($vars{'use_svn'} && !$options{'no-svn'})
