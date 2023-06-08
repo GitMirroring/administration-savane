@@ -9,16 +9,12 @@ modules = \
 	Savane/Cvs.pm \
 	Savane/DB.pm \
 	Savane/Download.pm \
-	Savane/Frontend.pm \
-	Savane/Frontend/Exit.pm \
 	Savane/Git.pm \
 	Savane/Groups.pm \
 	Savane/Hg.pm \
 	Savane/Locks.pm \
 	Savane/Mail.pm \
-	Savane/Session.pm \
 	Savane/Svn.pm \
-	Savane/Trackers.pm \
 	Savane/User.pm \
 	Savane/Util.pm \
 	Savane/Version.pm
@@ -60,4 +56,4 @@ $(substituted): %: %.in
 
 CLEANFILES = $(substituted)
 
-EXTRA_DIST = README $(modules:%=%.in) $(initial_configs:%=%.in)
+EXTRA_DIST = $(modules:%=%.in) $(initial_configs:%=%.in)
