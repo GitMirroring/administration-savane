@@ -16,6 +16,7 @@ dnl They are *not* in the public domain.
 dnl Authors:
 dnl   Ulrich Drepper <drepper@cygnus.com>, 1995-2000.
 dnl   Bruno Haible <haible@clisp.cons.org>, 2000-2003.
+dnl   Modified by Ineiev in 2023 to omit *.gmo files from the distribution.
 
 AC_PREREQ([2.60])
 
@@ -354,7 +355,7 @@ changequote([,])dnl
     POFILES="$POFILES $srcdirpre$lang.po"
     UPDATEPOFILES="$UPDATEPOFILES $lang.po-update"
     DUMMYPOFILES="$DUMMYPOFILES $lang.nop"
-    GMOFILES="$GMOFILES $srcdirpre$lang.gmo"
+    GMOFILES="$GMOFILES $lang.gmo"
     PROPERTIESFILES="$PROPERTIESFILES \$(srcdir)/\$(DOMAIN)_$lang.properties"
     CLASSFILES="$CLASSFILES \$(srcdir)/\$(DOMAIN)_$lang.class"
     QMFILES="$QMFILES $srcdirpre$lang.qm"

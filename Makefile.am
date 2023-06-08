@@ -20,6 +20,8 @@ backend_scripts = \
 	backend/misc/sv_cleaner \
 	backend/misc/sv_reminder
 
+directories = backend/accounts backend/extra/git backend/mail backend/misc
+
 bin_SCRIPTS = $(backend_scripts)
 
 subst_in_scripts = \
@@ -29,13 +31,13 @@ subst_in_scripts = \
 	-e 's,[@]sysconfdir[@],$(sysconfdir),'
 
 $(backend_scripts): %: %.in
-	$(MKDIR_P) $(dir $@)
+	$(MKDIR_P) $(directories)
 	$(subst_in_scripts) < $^ > $@
 	chmod +x $@
 
 EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
 	REQUIREMENTS db tests $(backend_scripts:%=%.in) \
-	backend/README \
+	backend/README autotools/README \
 	caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
 	caboose/parse-files.awk
 

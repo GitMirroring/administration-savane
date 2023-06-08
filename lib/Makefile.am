@@ -19,6 +19,8 @@ modules = \
 	Savane/Util.pm \
 	Savane/Version.pm
 
+directories = Savane
+
 nobase_libexec_SCRIPTS = $(modules)
 
 initial_configs = savane.conf.pl membersh-conf.pl
@@ -50,7 +52,7 @@ subst_pm = sed \
 	-e 's,[@]VERSION[@],$(VERSION),'
 
 $(substituted): %: %.in
-	$(MKDIR_P) $(dir $@)
+	$(MKDIR_P) $(directories)
 	$(subst_pm) < $^ > $@
 	chmod +x $@
 

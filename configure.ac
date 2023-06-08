@@ -40,9 +40,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Based on gettext-0.16.1/gettext-tools/examples/hello-php
-# (public domain)
-
 AC_INIT([GNU Savannah],
 	[3.12],
 	[savannah-hackers-public@gnu.org], [savane],
@@ -52,6 +49,9 @@ AC_CONFIG_AUX_DIR(autotools)
 # For future version of aclocal:
 AC_CONFIG_MACRO_DIR(autotools/m4)
 AM_INIT_AUTOMAKE([1.11.1])
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_REQUIRE_VERSION(0.16.1)
+AM_GNU_GETTEXT_NEED([need-ngettext])
 AC_PROG_INSTALL
 
 # The installed program must know where to find its message catalogs.
@@ -68,9 +68,6 @@ prefix="$final_prefix"
 eval "datarootdir=\"${datarootdir}\""
 eval "localedir=\"${datadir}/locale\""
 prefix="$save_prefix"
-
-# Support for the po directory.
-AM_PO_SUBDIRS
 
 if test -z "$MSGFMT" || test "x$MSGFMT" = "x:"; then
   AC_MSG_ERROR([msgfmt not found; please install GNU gettext])
@@ -136,7 +133,7 @@ AC_SUBST(SV_DB_OPTIONS)
 SV_CONF="$sysconfdir/savane"
 AC_SUBST(SV_CONF)
 
-AC_CHECKING([for webserver user])
+AC_MSG_NOTICE([checking for webserver user])
 if test -e  "/etc/debian_version"; then
     # Debian-based
     GUESS_WWW_SERVER_USER="www-data"
@@ -157,28 +154,23 @@ AC_MSG_RESULT([$GUESS_WWW_SERVER_USER])
 # TODO: ps aux | grep -E 'http|apache' | parse_uid_field...
 # TODO: else { echo "Couldn't guess Apache user"; exit 1}
 
-AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([ \
-autotools/m4/Makefile \
-etc/Makefile \
-frontend/Makefile \
-frontend/php/images/Makefile \
-lib/Makefile \
-local/Makefile])
+AC_CONFIG_FILES([
+  Makefile autotools/m4/Makefile etc/Makefile frontend/Makefile
+  frontend/php/images/Makefile lib/Makefile local/Makefile
+  frontend/php/include/ac_config.php
+])
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
-AC_CONFIG_FILES([frontend/php/include/ac_config.php])
-
 AC_OUTPUT
 
 AS_ECHO([])
-AS_ECHO(["Configuration directory: " `eval echo $SV_CONF`])
+AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Guessed HTTPd/PHP user: $GUESS_WWW_SERVER_USER"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
-if test ! -z "$SV_DB_OPTIONS"; then
-  AS_ECHO(["Database options: $SV_DB_OPTIONS"])
-fi
+AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
+  [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]
+)
 
 AS_ECHO([])
 AS_ECHO(["Now you can run"])
-AS_ECHO(["  make all install"])
-AS_ECHO(["to install the backend scripts and their Savane Perl library."])
+AS_ECHO(["  make all install installcheck"])
+AS_ECHO(["to install and check the backend scripts and their Savane library."])

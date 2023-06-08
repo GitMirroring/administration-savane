@@ -325,16 +325,13 @@ SUFFIXES = .po .gmo .sed .sin .nop .po-create .po-update
 # .pot file has changed, which would be troublesome if the .po files are put
 # under version control.
 $(GMOFILES): $(srcdir)/$(DOMAIN).pot
-.po.gmo:
-	@lang=`echo $* | sed -e 's,.*/,,'`; \
-	test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
-	echo "$${cdcmd}rm -f $${lang}.gmo && $(MSGMERGE) $(MSGMERGE_FOR_MSGFMT_OPTION) -o $${lang}.1po $${lang}.po $(DOMAIN).pot && $(GMSGFMT) -c --statistics --verbose -o $${lang}.gmo $${lang}.1po && rm -f $${lang}.1po"; \
-	cd $(srcdir) && \
-	rm -f $${lang}.gmo && \
-	$(MSGMERGE) $(MSGMERGE_FOR_MSGFMT_OPTION) -o $${lang}.1po $${lang}.po $(DOMAIN).pot && \
-	$(GMSGFMT) -c --statistics --verbose -o t-$${lang}.gmo $${lang}.1po && \
-	mv t-$${lang}.gmo $${lang}.gmo && \
-	rm -f $${lang}.1po
+.po.gmo: ; \
+  lang=`echo $* | sed -e 's,.*/,,'`; \
+  rm -f $${lang}.gmo \
+    && $(MSGMERGE) $(MSGMERGE_FOR_MSGFMT_OPTION) \
+        -o $${lang}.1po $(srcdir)/$${lang}.po $(srcdir)/$(DOMAIN).pot \
+    && $(GMSGFMT) -c --statistics --verbose -o t-$${lang}.gmo $${lang}.1po \
+    && mv t-$${lang}.gmo $${lang}.gmo && rm -f $${lang}.1po
 
 .sin.sed:
 	sed -e '/^#/d' $< > t-$@
@@ -561,15 +558,17 @@ uninstall-local-yes:
 
 html ID:
 
+CLEANFILES = $(GMOFILES)
+
 MOSTLYCLEANFILES =
 MOSTLYCLEANFILES += remove-potcdate.sed
 MOSTLYCLEANFILES += stamp-poT
 MOSTLYCLEANFILES += core core.* *.stackdump $(DOMAIN).po $(DOMAIN).1po $(DOMAIN).2po *.new.po
 MOSTLYCLEANFILES += *.o
 
-MAINTAINERCLEANFILES = $(DOMAIN).pot stamp-po $(GMOFILES)
+MAINTAINERCLEANFILES = $(DOMAIN).pot stamp-po
 
-EXTRA_DIST = remove-potcdate.sin LINGUAS $(POFILES) $(GMOFILES)
+EXTRA_DIST = remove-potcdate.sin LINGUAS $(POFILES)
 
 # Hidden from automake, but really activated. Works around an automake-1.5 bug.
 #distdir: distdir1

@@ -4,6 +4,15 @@
 
 * sv_groups doesn't create GNU Arch directories any more.
 
+[BUILD]
+
+* i18n-related code is updated.  *.gmo files don't come with the distribution
+  any more.
+
+[REQUIREMENTS]
+
+* GNU gettext version 0.16.1 or later is required.
+
 2023-06-06 3.12
 
 * Per-group reminders are not supported any more.  Users shall decide if they
