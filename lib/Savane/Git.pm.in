@@ -66,10 +66,10 @@ sub make_git_area
   print HOOK "#!/bin/sh\n";
   print HOOK "exec git update-server-info\n";
   close (HOOK);
-  system ('chmod', '+x', $dir_git.'/hooks/post-update');
+  system ('chmod', '+x', "$dir_git/hooks/post-update");
   # Forbid access to hooks.
-  system ('chown', '-R', 'root:', $dir_git.'/hooks');
-  system ('chattr', '+i', $dir_git.'/hooks');
+  system ('chown', '-R', 'root:', "$dir_git/hooks");
+  system ('chmod', '-R', 'a-w', "$dir_git/hooks");
 
   # 'git-cvsserver' support
   system ('git', 'config', 'gitcvs.pserver.enabled', 1);

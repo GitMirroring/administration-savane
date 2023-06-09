@@ -4,6 +4,9 @@
 
 * sv_groups doesn't create GNU Arch directories any more.
 
+* sv_groups invoked 'chattr +i' when creating CVS and Git areas,
+  and it didn't work in Savannah setup; replace it with 'chmod -R a-w'.
+
 [BUILD]
 
 * i18n-related code is updated.  *.gmo files don't come with the distribution

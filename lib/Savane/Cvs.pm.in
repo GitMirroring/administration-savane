@@ -451,7 +451,7 @@ sub setup_cvs_permissions
   # Seal CVSROOT dir; 2775 on the top dir allows group members
   # with local access to rename CVSROOT and replace it with
   # their own.
-  system ('chattr', '+i', "$dir_cvs/CVSROOT/");
+  system ('chmod', '-R', 'a-w', "$dir_cvs/CVSROOT/");
 }
 
 sub make_cvs_area
