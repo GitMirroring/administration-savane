@@ -4,64 +4,80 @@ Copyright (C) 2014, 2016, 2017 Assaf Gordon
 Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 Copyright (C) 2013, 2014, 2017-2023 Ineiev
 
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+
 This file is part of Savane.
 
-Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
-under the terms of the GNU General Public license version 3 or (at your
-option) any later version; further contributions are covered by
-the GNU Affero General Public license version 3 or (at your option)
-any later version.  The license notices for the AGPL and the GPL follow.
+Backend scripts
+===============
 
-Savane is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+This directory contains Perl scripts supporting Savane.  Unless noted
+otherwise, they depend on the Perl library of Savane (Savane.pm,
+Savane/*.pm).
 
-Savane is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
+This document shortly describes these scripts and Savannah hosts
+they are installed on.
 
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+accounts/sv_assign_uid_gid
+==========================
 
-Savane is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+Links Savane users and groups to Unix uid and gid numbers.
+Runs every 5 minutes on mgt0.
 
-Savane is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+accounts/sv_groups
+==================
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Creates VCS repositories and download areas when the features are
+enabled in Savane Web UI.
+Runs twice an hour on download0 (download areas), vcs1 (CVS repositories),
+vcs0 (all other repositories).
 
-The Savane Backend:
--------------------
+accounts/sv_get_authorized_keys
+===============================
 
-This part of Savane is a set of scripts that permits to synchronize the 
-Savane database with the system.
+Invoked by SSH daemon to fetch user's authorized keys from the database.
+Used on download0, vcs0, vcs1, vcs2.
 
-Usually, the backend relies on perl scripts and the Savane lib (Savannah.pm).
+accounts/sv_membersh
+====================
 
-Most of these scripts provide a --help option.
+Restricted shell provided to Savane users who connect through SSH.
+Used on download0, vcs0, vcs1, vcs2.
 
-Description of the subdirectories:
-----------------------------------
+extra/git/sv_cgit_about_filter.pl
+=================================
 
-accounts:
-	Scripts related to accounts managements. These scripts can be used
-	to create unix groups and users on a system with the info in the
-	database.
-	It can also build repositories of different kind.
+Basic "about filter" for Cgit.
+Used on vcs2.
 
-extra:
-	Scripts providing extra features.
+extra/git/sv_cgit.pl
+====================
 
-mail:
-	Scripts related to mail management.
+Updates lists of repositories for Cgit.
+Runs twice an hour on vcs2.
 
-misc:
-	Other scripts.
+mail/sv_aliases
+===============
+
+Maintains the list of Savane users in Unix email aliases tables.
+Runs every 10 minutes on vcs0, vcs1, vcs2.
+
+mail/sv_mailman-wrapper.pl
+==========================
+
+Stub mailman wrapper, it's only used for testing purposes.
+
+misc/sv_cleaner
+===============
+
+Removes parts of the database that belong to removed entities.
+Runs twice an hour on mgt0.
+
+misc/sv_reminder
+================
+
+Sends sheduled notifications for users.
+Runs twice a day on mgt0.
