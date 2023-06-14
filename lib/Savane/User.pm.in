@@ -43,8 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict "vars";
-use English;
+use strict;
 require Exporter;
 
 use Savane::Util;
@@ -52,7 +51,7 @@ use Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw (GetUserSettings GetUserPrefs PrintUserSettings
   PrintUserPrefs SetUserSettings SetUserPrefs GetUserGroups GetUserList
-  GetUserName GetUserHome GetUserSSHKeyReal PrintAliasesList UserAddSSHKey
+  GetUserName PrintAliasesList
 );
 our $version = 1;
 
@@ -153,165 +152,11 @@ sub GetUserName
   );
 }
 
-# Get system uid and gid.
-sub GetUserUidGid
-{
-  my $user = $_[0];
-  my ($name, $passwd, $uid, $gid,
-    $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam ($user);
-  return ($uid, $gid);
-}
-
-# Become effective user (EUID/EGID) and perform this action.
-#
-# This protects against symlink attacks; they are inevitable when
-# working in a directory owned by a local user.  We could naively
-# check for the presence of symlinks, but then we'd still be
-# vulnerable to a symlink race attack.
-#
-# We'll use set_e_uid/set_e_gid for efficiency and simplicity
-# (e.g. we can get the return value directly), which is enough for
-# opening files and similar basic operations.  When calling external
-# programs, you should use fork & exec & setuid & setgid.
-#
-# arg1: username
-# arg2: a Perl sub{}
-sub SudoEffectiveUser
-{
-  my $user = $_[0];
-  my $sub_unprivileged = $_[1];
-
-  my ($uid, $gid) = GetUserUidGid ($user);
-  if ($uid eq "" or $gid eq "")
-    {
-      print "Unknown user: $user";
-      return;
-    }
-
-  my $old_GID = $GID; # Save additional groups.
-  $! = '';
-  $EGID = "$gid $gid"; # Set egid and additional groups.
-  if ($! ne '')
-    {
-      warn "Cannot setegid ($gid $gid): $!";
-      return;
-    }
-  $EUID = $uid;
-  if ($! ne '')
-    {
-      warn "Cannot seteuid ($uid): $!";
-      return;
-    }
-
-  # Perform the action under this effective user.
-  my $ret = &$sub_unprivileged ();
-
-  # Back to root.
-  undef($EUID);     # restore euid==uid
-  $EGID = $old_GID; # restore egid==gid + additional groups
-
-  return $ret;
-}
-
-# Fork, become this user (UID/GID) and run this command. Return a
-# file handle to the child process's pipe.
-#
-# arg1: username
-# arg2 & next: an array (command + params) to pass to exec()
-sub SudoForkPipe
-{
-  my $user = shift(@_);
-  my @command_args = @_;
-
-  my ($uid, $gid) = GetUserUidGid ($user);
-  if ($uid eq "" or $gid eq "")
-    {
-      print "Unknown user: $user";
-      return;
-    }
-
-  local *INOUT;
-  my $pid = open (*INOUT, "|-");
-
-  if ($pid)
-    {
-      return *INOUT; # parent
-    }
-  # child
-  $! = '';
-  $GID = $EGID = "$gid $gid"; # Set gid and additional groups.
-  if ($! ne '')
-    {
-      warn "Cannot setegid ($gid $gid): $!";
-      exit 1;
-    }
-  $UID = $EUID = $uid;
-  if ($! ne '')
-    {
-      warn "Cannot seteuid ($uid): $!";
-      exit 1;
-    }
-
-  # Also change the home directory
-  $ENV{'HOME'} = GetUserHome ($user);
-  exec (@command_args) or exit 1;
-}
-
-# From the system.
-
-# Frequently we need the theorical home directory for a user,
-# according to the configuration.
-# Normally, sv_users should make sure that users got their home
-# according to the theorical setting.
-sub GetUserHome
-{
-  # Get the level of subdir for home:
-  #   0. Home is like /home/user
-  #   1. Home is like /home/u/user
-  #   2. Home is like /home/us/user
-  my $user = $_[0];
-  my $ret = $sys_homedir;
-
-  if ($sys_homedir_subdirs && $sys_homedir_subdirs ne '0')
-    {
-      $ret .= "/" . substr ($user, 0, 1);
-      if ($sys_homedir_subdirs eq '2')
-        {
-          $ret .= "/" . substr ($user, 0, 2);
-        }
-    }
-  # Always in lowercase, even if the database information accepted uppercase.
-  return lc ("$ret/$user");
-}
-
-# Return keys written in ~/.ssh/authorized_keys.
-# Line breaks are replaced with ### to conform with the database
-# way to store these data.
-# arg1: user name
-sub GetUserSSHKeyReal
-{
-  my $file = GetUserHome ($_[0]) . "/.ssh/authorized_keys";
-  my $ret;
-  return unless -e $file;
-  open(SSH_KEY, "< $file");
-  while (<SSH_KEY>)
-    {
-      s/\n/###/g; #'
-      $ret .= $_;
-    }
-  close (SSH_KEY);
-  # No return? Return a numeric false.
-  $ret = 0 unless $ret;
-  return $ret;
-}
-
-# Do a specific task.
-
 # Print a list of username:mail for users, for instance for /etc/aliases.
 # arg1: output file handle
 sub PrintAliasesList
 {
-  my $handle = STDOUT;
+  my $handle = *STDOUT;
   $handle = $_[0] if $_[0];
 
   my %email_by_uid;
@@ -349,47 +194,6 @@ sub PrintAliasesList
       next unless $email;
       print $handle "$squad_name: $email\n";        
   }
-}
-
-# Set SSH authorized keys for a user.
-# arg1: username
-# arg2: '###'-separated list of keys
-# return the number of keys registered.
-sub UserAddSSHKey
-{
-  my $user = $_[0];
-  my $home = GetUserHome ($user);
-  my $authorized_keys = $_[1];
-  my $key_count = 0;
-
-  # If the authorized key entry is NULL, it means that we want to actually
-  # simply remove the SSH file, so we dont even touch the file.
-  if ($authorized_keys ne '')
-    {
-      my $authorized_keys_file = "$home/.ssh/authorized_keys";
-      SudoEffectiveUser ($user,
-        sub
-          {
-            if (open(SSH_KEY, "> $authorized_keys_file"))
-              {
-                # In the database, linebreak are ###
-                $key_count = ($authorized_keys =~ s/###/\n/g);
-                print SSH_KEY $authorized_keys;
-                close (SSH_KEY);
-              }
-            else
-              {
-                warn("Cannot write $authorized_keys_file: " . $!);
-              }
-          }
-      );
-    }
-  # Store the information in the database, an interface the frontend could
-  # (but does not currently) use to tell the user if all this keys are
-  # registered on the system of pending registration.
-  SetUserSettings ($user, "authorized_keys_count", $key_count);
-
-  return $key_count;
 }
 
 return 1;
