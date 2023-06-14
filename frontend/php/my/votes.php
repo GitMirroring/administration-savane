@@ -51,15 +51,15 @@ extract (sane_import ('post',
   ]
 ));
 
-if (!user_isloggedin())
-  exit_not_logged_in();
-$remaining_votes = trackers_votes_user_remains_count(user_getid());
+if (!user_isloggedin ())
+  exit_not_logged_in ();
+$remaining_votes = trackers_votes_user_remains_count (user_getid ());
 
 if ($submit)
   {
     $result = db_execute ("
        SELECT vote_id, tracker, item_id FROM user_votes
-       WHERE user_id = ?  ORDER BY howmuch DESC, item_id ASC LIMIT 100",
+       WHERE user_id = ? ORDER BY howmuch DESC, item_id ASC LIMIT 100",
        [user_getid ()]
     );
     unset($count);
@@ -126,16 +126,15 @@ if ($remaining_votes < 100)
           util_die ($msg);
         $res_item = db_execute ("
           SELECT summary, vote, status_id, priority, group_id
-          FROM $tr WHERE bug_id = ? LIMIT 1",
-          [$row['item_id']]
+          FROM $tr WHERE bug_id = ? LIMIT 1", [$row['item_id']]
         );
+        $res_row = db_fetch_array ($res_item);
 
         $prefix = utils_get_tracker_prefix ($tr);
         $icon = utils_get_tracker_icon ($tr);
-        $vote = db_result ($res_item, 0, 'vote');
+        $vote = $res_row['vote'];
         $color = utils_get_priority_color (
-          db_result ($res_item, 0, 'priority'),
-          db_result ($res_item, 0, 'status_id')
+          $res_row['priority'], $res_row['status_id']
         );
 
         print "<div class=\"$color\">\n"
@@ -148,17 +147,16 @@ if ($remaining_votes < 100)
           . html_image ("contexts/$icon.png",
               ['class' => "icon", 'alt' => $tr]
             )
-          . db_result ($res_item, 0, 'summary') . ', '
+          . $res_row['summary'] . ', '
           . sprintf (ngettext ("%s vote", "%s votes", $vote), $vote)
           . "&nbsp;<span class=\"xsmall\">($prefix #{$row['item_id']}, "
-          . group_getname (db_result ($res_item, 0, 'group_id'))
-          . ")</span></a></div>\n";
+          . group_getname ($res_row['group_id']) . ")</span></a></div>\n";
       }
 
     print "<br />\n<div align=\"center\" class=\"noprint\">"
       . '<input type="submit" name="submit" class="bold" value="'
       . _("Submit Changes") . "\" /></div>\n</form>\n";
-    print "\n\n" . show_priority_colors_key();
+    print "\n\n" . show_priority_colors_key ();
   }
 $HTML->footer ([]);
 ?>

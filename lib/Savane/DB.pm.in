@@ -48,8 +48,10 @@ use DBI;
 require Savane::Conf;
 require Exporter;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(GetDBDescribe GetDBSettings GetDBList GetDBAsIs GetDB GetDBAlt GetDBHash GetDBLists GetDBListsRef SetDBSettings DeleteDB InsertDB );
+our @ISA = qw (Exporter);
+our @EXPORT = qw (GetDBDescribe GetDBSettings GetDBList GetDBAsIs GetDB
+  GetDBAlt GetDBHash GetDBLists GetDBListsRef SetDBSettings DeleteDB InsertDB
+);
 our $version = 1;
 
 our $sys_dbname;
@@ -68,213 +70,165 @@ $dbd =
   unless ($sys_db_skip_init);
 
 # Return the name and type of every field of the table.
-# arg0 : table
-sub GetDBDescribe {
-    my $table = $_[0];
-    my $hop;
-    my @ret;
+# arg0: table
+sub GetDBDescribe
+{
+  my $table = $_[0];
+  my $hop;
+  my @ret;
 
-    $hop = $dbd->prepare("DESCRIBE ".$table);
-    $hop->execute;
-    while (my (@line) = $hop->fetchrow_array) {
-        push(@ret, join(",", map {defined $_ ? $_ : "0"} @line));
-
+  $hop = $dbd->prepare ("DESCRIBE $table");
+  $hop->execute;
+  while (my (@line) = $hop->fetchrow_array)
+    {
+      push (@ret, join (",", map {defined $_? $_: "0"} @line));
     }
-    $hop->finish;
-    return @ret;
+  $hop->finish;
+  return @ret;
 }
 
-## Returns all settings  for a group, user (a row)..
-# arg0 : table
-# arg1 : criterion
-# arg2 : fields to show (* for all)
-sub GetDBSettings {
-    my $table = $_[0];
-    my $criterion;
-    my $fields = "*";
+# Format query string.
+# arg0: table
+# arg1: criterion
+# arg2: fields to show (* for all)
+sub parse_db_args
+{
+  my $table = $_[0];
+  my $crit;
+  my $fields = "*";
 
-    $criterion = "WHERE ".$_[1] if $_[1];
-    $fields = $_[2] if $_[2];
-
-    return $dbd->selectrow_array("SELECT ".$fields." FROM ".$table." ".$criterion);
+  $crit = " WHERE $_[1]" if $_[1];
+  $fields = $_[2] if $_[2];
+  return "SELECT $fields FROM $table$crit";
 }
 
-## Returns a list of entries
-# arg0 : table
-# arg1 : criterion
-# arg2 : fields to show (* for all)
-sub GetDBList {
-    my $table = $_[0];
-    my $criterion;
-    my $fields = "*";
-
-    $criterion = "WHERE ".$_[1] if $_[1];
-    $fields = $_[2] if $_[2];
-
-    my $list = $dbd->selectcol_arrayref("SELECT ".$fields." FROM ".$table." ".$criterion);
-
-    return @$list;
-
+# Return all settings  for a group, user (a row).
+sub GetDBSettings
+{
+  return $dbd->selectrow_array (parse_db_args (@_));
 }
 
-## Returns a list of entries
-# arg0 : sql command
-sub GetDBAsIs {
-    my $sql = $_[0];
-    my $hop;
-    my @ret;
+# Return a list of entries.
+sub GetDBList
+{
+  my $list = $dbd->selectcol_arrayref (parse_db_args (@_));
+  return @$list;
+}
 
-    $hop = $dbd->prepare($sql);
-    $hop->execute;
-    while (my (@line) = $hop->fetchrow_array) {
-        push(@ret, join(",", map {defined $_ ? $_ : "0"} @line));
+# Return a list of entries.
+# arg0: SQL command
+sub GetDBAsIs
+{
+  my $sql = $_[0];
+  my $hop;
+  my @ret;
+
+  $hop = $dbd->prepare ($sql);
+  $hop->execute;
+  while (my (@line) = $hop->fetchrow_array)
+    {
+      push (@ret, join (",", map {defined $_? $_: "0"} @line));
     }
-    $hop->finish;
-    return @ret;
+  $hop->finish;
+  return @ret;
 }
 
-## Returns a list of entries
-# arg0 : table
-# arg1 : criterion
-# arg2 : fields to show (* for all)
-sub GetDB {
-    my $table = $_[0];
-    my $criterion;
-    my $fields = "*";
-    my $hop;
-    my @ret;
+sub get_db_separated
+{
+  my $sep = $_[3];
+  my $hop;
+  my @ret;
 
-    $criterion = "WHERE ".$_[1] if $_[1];
-    $fields = $_[2] if $_[2];
-
-    $hop = $dbd->prepare("SELECT ".$fields." FROM ".$table." ".$criterion);
-    $hop->execute;
-    while (my (@line) = $hop->fetchrow_array) {
-	push(@ret, join(",", map {defined $_ ? $_ : "0"} @line));
-	
+  $hop = $dbd->prepare (parse_db_args (@_));
+  $hop->execute;
+  while (my (@line) = $hop->fetchrow_array)
+    {
+      push (@ret, join ($sep, map {defined $_? $_: "0"} @line));
     }
-    $hop->finish;
-    return @ret;
+  $hop->finish;
+  return @ret;
 }
 
-## Returns a list of entries, like GetDB but with an unusual separator
-# arg0 : table
-# arg1 : criterion
-# arg2 : fields to show (* for all)
-sub GetDBAlt {
-    my $table = $_[0];
-    my $criterion;
-    my $fields = "*";
-    my $hop;
-    my @ret;
+# Return a list of entries.
+sub GetDB
+{
+  push (@_, ",");
+  return get_db_separated (@_);
+}
 
-    $criterion = "WHERE ".$_[1] if $_[1];
-    $fields = $_[2] if $_[2];
+# Return a list of entries like GetDB, but with an unusual separator.
+sub GetDBAlt
+{
+  push (@_, "------SPLIT------");
+  return get_db_separated (@_);
+}
 
-    $hop = $dbd->prepare("SELECT ".$fields." FROM ".$table." ".$criterion);
-    $hop->execute;
-    while (my (@line) = $hop->fetchrow_array) {
-	push(@ret, join("------SPLIT------", map {defined $_ ? $_ : "0"} @line));
-	
+# Return a hash of lists of entries.
+sub GetDBHash
+{
+  my $hop;
+  my %ret;
+
+  $hop = $dbd->prepare (parse_db_args (@_));
+  $hop->execute;
+  my $count;
+  while (my (@line) = $hop->fetchrow_array)
+    {
+      $ret{$count} = [@line];
+      $count++;
     }
-    $hop->finish;
-    return @ret;
+  $hop->finish;
+  return %ret;
 }
 
-## Returns a hash of lists of entries
-# arg0 : table
-# arg1 : criterion
-# arg2 : fields to show (* for all)
-sub GetDBHash {
-    my $table = $_[0];
-    my $criterion;
-    my $fields = "*";
-    my $hop;
-    my %ret;
-
-    $criterion = "WHERE ".$_[1] if $_[1];
-    $fields = $_[2] if $_[2];
-
-    $hop = $dbd->prepare("SELECT ".$fields." FROM ".$table." ".$criterion);
-    $hop->execute;
-    my $count;
-    while (my (@line) = $hop->fetchrow_array) {
-	$ret{$count} = [@line];
-	$count++;
-    }
-    $hop->finish;
-    return %ret;
+# Same purpose, but return true list.
+sub GetDBLists
+{
+  return @{GetDBListsRef (@_)};
 }
 
-
-
-## Same purpose, but return true list
-# arg0 : table
-# arg1 : criterion
-# arg2 : fields to show (* for all)
-sub GetDBLists {
-    return @{GetDBListsRef(@_)};
-}
-
-## This one is faster, since it returns a reference to the array and
+# This one is faster, since it returns a reference to the array and
 # hence doesn't make a copy of the array. It is a bit less intuitive
 # to manipulate on the calling side, and is not consistent with other
 # GetDB* functions, so it is a separate function.
-sub GetDBListsRef {
-    my $table = $_[0];
-    my $criterion;
-    my $fields = "*";
-    my $hop;
-    my @ret;
+sub GetDBListsRef
+{
+  my $hop;
+  my @ret;
 
-    $criterion = "WHERE ".$_[1] if $_[1];
-    $fields = $_[2] if $_[2];
+  $hop = $dbd->prepare (parse_db_args (@_));
+  $hop->execute;
+  my $ret = $hop->fetchall_arrayref ();
+  $hop->finish;
 
-    $hop = $dbd->prepare("SELECT ".$fields." FROM ".$table." ".$criterion);
-    $hop->execute;
-    my $ret = $hop->fetchall_arrayref();
-    $hop->finish;
-
-    # fetchall_arrayref does not reuse the data pointed by the
-    # reference in later calls (unlike fetchrow_arrayref), so it is
-    # safe to use it.
-    return $ret;
+  # fetchall_arrayref does not reuse the data pointed by the
+  # reference in later calls (unlike fetchrow_arrayref), so it is
+  # safe to use it.
+  return $ret;
 }
 
-## Update settings for a group, user..
-# arg0 : table
-# arg1 : criterion
-# arg2 : new values
-sub SetDBSettings {
-    my $table = $_[0];
-    my $criterion = $_[1];
-    my $value = $_[2];
-
-    return $dbd->do("UPDATE ".$table." SET ".$value." WHERE ".$criterion);
+# Update settings for a group, user.
+sub SetDBSettings
+{
+  my ($table, $criterion, $value) = @_;
+  return $dbd->do ("UPDATE $table SET $value WHERE $criterion");
 }
 
-
-## Delete entries in database
-# Use carefully
-sub DeleteDB {
-    my $table = $_[0];
-    my $criterion = $_[1];
-
-    unless ($table || $criterion) {
-	return 0;
-    }
-
-    return $dbd->do("DELETE FROM ".$table." WHERE ".$criterion);
+# Delete entries in database.
+# Use carefully.
+sub DeleteDB
+{
+  my ($table, $criterion) = @_;
+  return 0 unless ($table && $criterion);
+  return $dbd->do ("DELETE FROM $table WHERE $criterion");
 }
 
-## Insert in database
-# Use carefully
-sub InsertDB {
-    my $table = $_[0];
-    my $fields = $_[1];
-    my $values = $_[2];
-
-    return $dbd->do("INSERT INTO ".$table." (".$fields.") VALUES (".$values.")");
+# Insert in database.
+# Use carefully.
+sub InsertDB
+{
+  my ($table, $fields, $values) = @_;
+  return $dbd->do ("INSERT INTO $table ($fields) VALUES ($values)");
 }
 
 return "true";

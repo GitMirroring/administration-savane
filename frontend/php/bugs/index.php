@@ -294,7 +294,7 @@ switch ($func)
         list ($changed,) =
           trackers_attach_several_files ($item_id, $group_id, $changes);
         # Add new cc if any.
-        if ($add_cc && user_isloggedin())
+        if ($add_cc)
           trackers_add_cc ($item_id, $add_cc, $cc_comment, $changes);
 
         # Originator Email:
@@ -445,7 +445,7 @@ switch ($func)
                 . "item should maybe reassigned to. Below, in the section\n"
                 . "[%s Reassign this item], you can now select the "
                 . "appropriate\nproject and submit the form."),
-              $sys_https_url . $_SERVER['SCRIPT_NAME'] .'#reassign'
+              $sys_https_url . $_SERVER['SCRIPT_NAME'] . '#reassign'
             );
             fb ($msg);
           }
@@ -463,7 +463,9 @@ switch ($func)
     $vfl = trackers_extract_field_list();
 
     $changed = 0;
-    if (!$process_comment)
+    if ($process_comment)
+      warn_about_uploads ();
+    else
       {
         fb_anon_check_failed ($anon_check_failed);
         if (!$anon_check_failed)
@@ -500,22 +502,13 @@ switch ($func)
             exit (0);
           }
 
-        # Add new cc if any.
         if ($add_cc)
-          {
-            # No notification needs to be sent when a cc is added,
-            # it is irrelevant to the item itself.
-            trackers_add_cc ($item_id, $add_cc, $cc_comment, $changes);
-          }
-
-        # Update vote (will do the necessary checks itself).
-        # Currently votes does not influence notifications
-        # (that could harass developers).
+          # No notification needs to be sent when a CC is added,
+          # it is irrelevant to the item itself.
+          trackers_add_cc ($item_id, $add_cc, $cc_comment, $changes);
         if (trackers_data_is_used ("vote"))
           trackers_votes_update ($item_id, $new_vote);
       } # !$process_comment
-    else
-      warn_about_uploads ();
 
     # Now handle notification, after all necessary actions has been.
     if ($changed)
