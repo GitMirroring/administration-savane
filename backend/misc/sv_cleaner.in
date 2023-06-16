@@ -95,7 +95,6 @@ GetOptions (
 ) or die ("Wrong command line.");
 
 open_log ($logfile, $script, $dry_run);
-print_log ("start");
 
 sub log_result
 {
