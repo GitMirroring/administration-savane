@@ -39,63 +39,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Subs related to mail sending.
-# This module is not loaded by Savannah.pm.
+# Send notifications.
 
 use strict;
 require Mail::Send;
 require Exporter;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(MailSend );
+our @ISA = qw (Exporter);
+our @EXPORT = qw (MailSend);
 our $version = 1;
 
-# FIXME: for now, there's only very limited testing here, it should in the
-# end looks like sendmail.php.
-
-# Note: don't forget to escape @, otherwise address will be treated as list.
-# arg0: from
-# arg1: to
-# arg2: subject
-# arg3: message
-# arg4: Cc
-# arg5: list of headers (can override previously set ones)
 sub MailSend
 {
+  my ($to, $subject, $message) = @_;
   my $msg = new Mail::Send;
-  my $from = $_[0];
 
-  $msg->to ($_[1]);
-  $msg->subject ($_[2]);
-  $from = GetConf ("sys_mail_replyto") if ($from eq "");
-  $msg->add ("From", $from);
-  $msg->add ("Cc", $_[4]) if $_[4];
+  $msg->to ($to);
+  $msg->subject ($subject);
+  $msg->add ("From", GetConf ("sys_mail_replyto"));
   $msg->add ("X-Savane-Server", GetConf ("sys_default_domain"));
   $msg->add ("User-Agent", "Savane::Mail.pm");
 
-  if (@_[5])
-    {
-      for (@_[5])
-        {
-          my ($header, $value) = split (": ", $_);
-
-          # Override previously set headers (apart the ones that identifies
-          # the sender (like X-Savane-Server).
-          $msg->delete ($header) if
-          $header eq "Cc" or
-          $header eq "From" or
-          $header eq "Subject" or
-          $header eq "To";
-
-          # FIXME: unable to force the msg-id.
-          $msg->add ($header, $value);
-        }
-    }
-
   my $fh = $msg->open;
   my $url = GetConf ("sys_default_domain") . GetConf ("sys_url_topdir");
-  print $fh $_[3] . "\n\n_______________________________________________\n"
-    .  "Message sent via/by " . GetConf ("sys_name") . "\nhttp://$url\n";
+  print $fh "$message\n\n-- \n"
+    .  "Message sent by " . GetConf ("sys_name") . "\nhttps://$url\n";
   $fh->close;
 }
 

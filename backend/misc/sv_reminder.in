@@ -43,7 +43,6 @@
 
 use strict;
 use Savane;
-use Savane::Mail;
 use Savane::Util;
 use Getopt::Long;
 use Time::Local;
@@ -346,7 +345,7 @@ foreach my $user_id (keys %items)
     EOF
     $mail =~ s/^      //gm;
 
-    MailSend ("", $user_email{$user_id}, $title, $mail) unless $dry_run;
+    MailSend ($user_email{$user_id}, $title, $mail) unless $dry_run;
     next unless $verbose;
     print_log (
       "------------------------------------------------------------\n"

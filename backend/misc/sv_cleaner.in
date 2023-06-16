@@ -117,7 +117,7 @@ sub delete_and_log
   log_result ("deleted $result $msg", $result);
 }
 
-AcquireReplicationLock;
+AcquireReplicationLock ();
 
 # Normal cleanup.
 
@@ -150,19 +150,13 @@ delete_and_log ("user_lostpw", "TIMESTAMPDIFF(hour, date, now()) > 23",
 sub send_notification
 {
   my ($name, $email) = @_;
-  my $input;
-  open ($input, '|-', 'sendmail -t');
-  print $input
-    "From: <INVALID.NOREPLY\@gnu.org>\n"
-    . "To: <$email>\n"
-    . "Subject: Your Savannah account <$name>\n"
-    . "\n"
-    . "Your Savannah account <$name> is automatically\n"
-    . "removed due to inactivity.\n"
-    . "\n"
+  my $sys = GetConf ("sys_name");
+  my $body = "Your $sys account <$name> is automatically\n"
+    . "removed due to inactivity.\n\n"
     . "For criteria of removing idle accounts, please check\n"
-    . "https://savannah.gnu.org/maintenance/IdleAccounts/ .\n";
-  close ($input);
+    . "<https://savannah.gnu.org/maintenance/IdleAccounts/>.\n";
+
+  MailSend ($email, "Your $sys account <$name>", $body);
 }
 
 my @user_tables = (
