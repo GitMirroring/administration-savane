@@ -67,7 +67,10 @@ our $dir_hg = "/srv/hg"; # Only access existing directories within $dir_hg.
 
 our $bin_rsync = "rsync";
 our $allowed_paths =
-  '^/net/(audio-video(/|$)|(download|(vcs/(arch|bzr|cvs|git|hg|svn))/))';
+  '^/('
+      . 'net/(audio-video(/|$)|(download|(vcs/(arch|bzr|cvs|git|hg|svn))/))'
+      . '|opt/src/'
+  . ')';
 our $bin_scp = "scp";
 our $bin_sftp = "/usr/lib/openssh/sftp-server";
 our $bin_svn = "svnserve";
@@ -84,6 +87,7 @@ our %commands_available = (
   'svn' => '^svnserve -t( |$)'
 );
 our @commands_enabled = ();
+our $source_code_url = '';
 
 my $conf_file = "@sysconfdir@/savane/membersh-conf.pl";
 
@@ -95,8 +99,14 @@ unless (do $conf_file)
   }
 
 process_help_and_version () unless ($ARGV[0] eq "-c");
+# When this script is invoked through the network, $ARGV[0]
+# is set to '-c', so we may offer the source code after
+# checking if --help is requested; if we did that before,
+# make installcheck would require setting $source_code_url
+# in the stub membersh-conf.pl.
+offer_source_code ();
 
-OutputErrorMsg () unless ($#ARGV == 1 && $ARGV[0] eq "-c");
+output_error_msg () unless ($#ARGV == 1 && $ARGV[0] eq "-c");
 
 for my $cmd (@commands_enabled)
   {
@@ -107,7 +117,24 @@ for my $cmd (@commands_enabled)
     &$sr (split (' ', $ARGV[1]));
   }
 
-OutputErrorMsg ();
+output_error_msg ();
+
+sub offer_source_code ()
+{
+  die "Source code URL isn't defined in configuration file\n\n"
+    . "\t$conf_file\n\nExiting" if $source_code_url eq '';
+  my $script = $0;
+  $script =~ s,.*/,,;
+  my $msg = <<"    EOF";
+    $script is part of Savane.
+    In order to download the corresponding source code of Savane, run
+
+      rsync -avz --cvs-exclude $ENV{'USER'}\@$source_code_url .
+
+    EOF
+  $msg =~ s, {4},,gm;
+  print STDERR $msg;
+}
 
 sub run_command
 {
@@ -195,7 +222,7 @@ sub run_svn
   run_command ($bin_svn, @_);
 }
 
-sub OutputErrorMsg
+sub output_error_msg
 {
   print STDERR "You tried to execute: @ARGV[1..$#ARGV]\n";
   print STDERR "Sorry, you are not allowed to execute that command.\n";
