@@ -1,4 +1,4 @@
-#! @PERL@ -I@libexecdir@
+#! @PERL@ -I@pkgdatadir@
 # -*-Perl-*-
 # Assign uidNumber and gidNumber in the database.
 #

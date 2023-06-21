@@ -1,4 +1,4 @@
-#! @PERL@ -I@libexecdir@
+#! @PERL@ -I@pkgdatadir@
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2003-2006 BBN Technologies Corp

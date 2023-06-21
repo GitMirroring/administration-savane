@@ -1,4 +1,3 @@
-# @PERL@
 # Dummy configuration file for Savane Perl scripts.
 our $sys_db_skip_init = 1; # Allow runing distcheck even with unconfigured DB.
 return 1;

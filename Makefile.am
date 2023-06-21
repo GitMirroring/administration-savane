@@ -27,7 +27,7 @@ bin_SCRIPTS = $(backend_scripts)
 subst_in_scripts = \
 	sed \
 	-e 's,[@]PERL[@],$(PERL),' \
-	-e 's,[@]libexecdir[@],$(libexecdir),' \
+	-e 's,[@]pkgdatadir[@],$(pkgdatadir),' \
 	-e 's,[@]sysconfdir[@],$(sysconfdir),'
 
 $(backend_scripts): %: %.in

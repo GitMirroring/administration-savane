@@ -1,4 +1,3 @@
-#! @libexecdir@/sv_pm_true
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
@@ -90,10 +89,10 @@ sub print_license_notice
 
 sub print_legal_notices
 {
-  my $libexec = '@libexecdir@';
+  my $libdir = '@pkgdatadir@';
   my $line;
   my $fh;
-  my $path = "$libexec/Savane/Version.pm";
+  my $path = "$libdir/Savane/Version.pm";
   open ($fh, "<:encoding(UTF-8)", $path) or die $!;
   print_copyright_notice ($path, $fh);
   print_license_notice ($fh);

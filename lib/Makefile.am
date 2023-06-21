@@ -1,7 +1,5 @@
 # Public domain.  Originally written by Ineiev from the scratch.
 
-dist_libexec_SCRIPTS = sv_pm_true
-
 modules = \
 	Savane.pm \
 	Savane/Bzr.pm \
@@ -21,32 +19,32 @@ modules = \
 
 directories = Savane
 
-nobase_libexec_SCRIPTS = $(modules)
+nobase_pkgdata_DATA = $(modules)
 
 initial_configs = savane.conf.pl membersh-conf.pl
 
 install-data-local: $(initial_configs); \
   for i in $(initial_configs); do \
-    if test -e "$(DESTDIR)$(sysconfdir)/savane/$$i"; then\
+    if test -e "$(DESTDIR)$(sysconfdir)/$(PACKAGE)/$$i"; then\
        echo; echo; \
-       echo "NOTE: $(DESTDIR)$(sysconfdir)/savane/$$i exists;"; \
+       echo "NOTE: $(DESTDIR)$(sysconfdir)/$(PACKAGE)/$$i exists;"; \
        echo "      not trying to overwrite it with a new configuration file."; \
        echo; echo; \
     else \
       $(INSTALL) -m 644 -D $$i \
-        "$(DESTDIR)$(sysconfdir)/savane/$$i"; \
+        "$(DESTDIR)$(sysconfdir)/$(PACKAGE)/$$i"; \
     fi; \
   done
 
 uninstall-local: ; \
  for i in $(initial_configs); do \
-   $(RM) "$(DESTDIR)$(sysconfdir)/savane/$$i"; \
+   $(RM) "$(DESTDIR)$(sysconfdir)/$(PACKAGE)/$$i"; \
  done
 
 substituted = $(modules) $(initial_configs)
 
 subst_pm = sed \
-	-e 's,[@]libexecdir[@],$(libexecdir),' \
+	-e 's,[@]pkgdatadir[@],$(pkgdatadir),' \
 	-e 's,[@]sysconfdir[@],$(sysconfdir),' \
 	-e 's,[@]PERL[@],$(PERL),' \
 	-e 's,[@]VERSION[@],$(VERSION),'
@@ -54,7 +52,6 @@ subst_pm = sed \
 $(substituted): %: %.in
 	$(MKDIR_P) $(directories)
 	$(subst_pm) < $^ > $@
-	chmod +x $@
 
 CLEANFILES = $(substituted)
 

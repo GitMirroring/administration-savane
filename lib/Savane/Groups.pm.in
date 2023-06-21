@@ -1,4 +1,3 @@
-#! @libexecdir@/sv_pm_true
 # Subs related to groups.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
@@ -45,163 +44,197 @@ use strict;
 require Exporter;
 
 use Savane::Util;
-use File::Temp qw(tempdir);
+use File::Temp qw (tempdir);
 use English;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(GetGroupSettings PrintGroupSettings SetGroupSettings GetGroupList DeleteGroup DeleteGroups GetGroupName GetGroupUsers PrintGroupUsers GetGroupAdmins PrintGroupAdmins GetGroupAdminsMail PrintGroupAdminsMail GetGroupType PrintGroupType GetGroupTypeSettings PrintGroupTypeSettings GetGroupTypeName );
+our @ISA = qw (Exporter);
+our @EXPORT = qw (GetGroupSettings PrintGroupSettings SetGroupSettings
+  GetGroupList DeleteGroup DeleteGroups GetGroupName GetGroupUsers
+  PrintGroupUsers GetGroupAdmins PrintGroupAdmins GetGroupAdminsMail
+  PrintGroupAdminsMail GetGroupType PrintGroupType GetGroupTypeSettings
+  PrintGroupTypeSettings GetGroupTypeName
+);
 our $version = 1;
 
 # Imports (needed for strict).
 our $dbd;
 
 # Get any settings for any users.
-# arg0 : group name
-# arg1 : setting (none for all)
-sub GetGroupSettings {
-    GetDBSettings("groups", "unix_group_name='" . SQLStringEscape($_[0]) . "'",
-                   $_[1]);
+# arg0: group name
+# arg1: setting (none for all)
+sub GetGroupSettings
+{
+  GetDBSettings ("groups",
+    "unix_group_name='" . SQLStringEscape ($_[0]) . "'", $_[1]
+  );
 }
 
 # On Groups.
 
 # Show in a convenient way settings for a user.
-# arg1 : which group name
-sub PrintGroupSettings {
-    print join " | ", GetGroupSettings($_[0]);
+# arg1: group name
+sub PrintGroupSettings
+{
+  print join " | ", GetGroupSettings ($_[0]);
 }
 
 
 # Update in a convenient way settings for a group.
-# arg1 : which group name
-# arg2 : which field
-# arg3 : new value
-sub SetGroupSettings {
-    SetDBSettings("groups", "unix_group_name='" . SQLStringEscape($_[0]) . "'",
-		  "$_[1]='" . SQLStringEscape($_[2]) . "'");
+# arg1: group name
+# arg2: field
+# arg3: new value
+sub SetGroupSettings
+{
+  SetDBSettings ("groups",
+    "unix_group_name = '" . SQLStringEscape ($_[0]) . "'",
+    "$_[1] = '" . SQLStringEscape ($_[2]) . "'"
+  );
 }
 
 # Get a list of groups.
-# arg0 : which criterion
-# arg1 : which field to be returned
+# arg0: criterion
+# arg1: field to return
 sub GetGroupList {
     return GetDBList("groups", $_[0], $_[1]);
 }
 
 
 # Delete a group account. This function should be used carrefully.
-# arg1 : which group name
+# arg1: group name
 # returns: 1 if the group was deleted, 0 if it was not
-sub DeleteGroup {
-    return ($dbd->do("DELETE FROM groups WHERE unix_group_name='"
-                     . SQLStringEscape($_[0]) . "'") >= 1) if $_[0];
+sub DeleteGroup
+{
+  return 0 unless $_[0];
+  my $sql =
+    "DELETE FROM groups WHERE unix_group_name = '"
+      . SQLStringEscape ($_[0]) . "'";
+  return ($dbd->do ($sql) >= 1);
 }
 
 # Delete several group accounts. This function should be used carrefully.
-# arg1 : a criterion
+# arg1: criterion
 # returns: the number (real) of deleted rows, undef on error - check
-#          the DBI documentation
-sub DeleteGroups {
-    return $dbd->do("DELETE FROM groups WHERE " . $_[0]) if $_[0];
+#   the DBI documentation
+sub DeleteGroups
+{
+  return $dbd->do ("DELETE FROM groups WHERE " . $_[0]) if $_[0];
 }
-
-
 
 # In many case, we have to deal with group_id but I find
 # easier to deal directly with user_name.
-# arg1 : which group id
-sub GetGroupName {
-    return $dbd->selectrow_array("SELECT unix_group_name FROM groups WHERE group_id='"
-                                 . $_[0] . "'");
+# arg1: group id
+sub GetGroupName
+{
+  return $dbd->selectrow_array (
+    "SELECT unix_group_name FROM groups WHERE group_id = '" . $_[0] . "'"
+  );
 }
 
 # Get list of group's users.
-# arg1 : which group name
-sub GetGroupUsers {
-    return GetDBList("user_group", "group_id='" . GetGroupSettings($_[0], "group_id")
-                                   . "' AND admin_flags<>'P'", "user_id");
+# arg1: group name
+sub GetGroupUsers
+{
+  return GetDBList ("user_group",
+    "group_id = '" . GetGroupSettings ($_[0], "group_id")
+    . "' AND admin_flags <> 'P'", "user_id"
+  );
 }
 
 # Show in a convenient way group's users.
-sub PrintGroupUsers {
-    foreach my $user (GetGroupUsers($_[0])) {
-	print GetUserName($user) . " | ";
+sub PrintGroupUsers
+{
+  foreach my $user (GetGroupUsers ($_[0]))
+    {
+      print GetUserName($user) . " | ";
     }
 }
 
 # Get list of group's admin.
-# arg1 : which group name
-sub GetGroupAdmins {
-    return GetDBList("user_group", "group_id='" . GetGroupSettings($_[0], "group_id")
-                                   . "' AND admin_flags='A'", "user_id");
+# arg1: group name
+sub GetGroupAdmins
+{
+    return GetDBList ("user_group",
+      "group_id='" . GetGroupSettings ($_[0], "group_id")
+        . "' AND admin_flags = 'A'",
+       "user_id"
+   );
 }
 
 # Show in a convenient way group's admin.
-sub PrintGroupAdmins {
-    foreach my $user (GetGroupAdmins($_[0])) {
-	print GetUserName($user)." | ";
+sub PrintGroupAdmins
+{
+  foreach my $user (GetGroupAdmins ($_[0]))
+    {
+      print GetUserName($user)." | ";
     }
 }
 
 # Get list of group's admin emails.
-# arg1 : which group name
-sub GetGroupAdminsMail {
-    return GetDBList("user,user_group", "user_group.user_id=user.user_id AND user_group.group_id='"
-                                        . GetGroupSettings($_[0], "group_id")
-                                        . "' AND user_group.admin_flags='A'",
-                     "user.email");
+# arg1: group name
+sub GetGroupAdminsMail
+{
+  return GetDBList ("user,user_group",
+    "user_group.user_id = user.user_id AND user_group.group_id = '"
+      . GetGroupSettings ($_[0], "group_id")
+      . "' AND user_group.admin_flags = 'A'",
+    "user.email"
+  );
 }
 
 # Show in a convenient way group's admin emails.
-sub PrintGroupAdminsMail {
-    print join " | ", GetGroupAdminsMail($_[0]);
+sub PrintGroupAdminsMail
+{
+  print join " | ", GetGroupAdminsMail ($_[0]);
 }
 
 # On Group Types.
 
 # Get the group type, very frequent.
-# arg1 : which group name
-sub GetGroupType {
-    return GetGroupTypeName(GetGroupSettings($_[0], 'type'));
+# arg1: group name
+sub GetGroupType
+{
+  return GetGroupTypeName (GetGroupSettings ($_[0], 'type'));
 }
 
 # Show in a convenient way group's type.
-# arg1 : which group name
-sub PrintGroupType {
-    print GetGroupTypeName(GetGroupType($_[0]));
+# arg1: group name
+sub PrintGroupType
+{
+  print GetGroupTypeName (GetGroupType ($_[0]));
 }
 
 # Get any settings for any users.
-# arg1 : which group name
-# arg2 : which setting (none for all)
-sub GetGroupTypeSettings {
-    my $arg_group;
-    my $arg_field = "*";
+# arg1: group name
+# arg2: setting (none for all)
+sub GetGroupTypeSettings
+{
+  my $arg_group;
+  my $arg_field = "*";
 
-    if ($_[0] ne '') {
-	unless ($_[0] eq '*') {
-	    $arg_group = " WHERE name='" . SQLStringEscape($_[0]) . "'";
-	}
-	if ($_[1] ne '') {
-	    $arg_field = $_[1];
-	}
+  if ($_[0] ne '')
+    {
+      $arg_group = " WHERE name = '" . SQLStringEscape ($_[0]) . "'"
+        unless ($_[0] eq '*');
+      $arg_field = $_[1] if ($_[1] ne '');
     }
-
-    return $dbd->selectrow_array("SELECT ".$arg_field." FROM group_type".$arg_group);
+  return $dbd->selectrow_array ("SELECT $arg_field FROM group_type$arg_group");
 }
 
 # Show in a convenient way settings for a user.
-# arg1 : which group name
-sub PrintGroupTypeSettings {
-    print join " | ", GetGroupTypeSettings($_[0]);
+# arg1: group name
+sub PrintGroupTypeSettings
+{
+  print join " | ", GetGroupTypeSettings ($_[0]);
 }
 
 # In many case, we have to deal with group_id but I find
 # easier to deal directly with user_name.
-# arg1 : which group id
-sub GetGroupTypeName {
-    return $dbd->selectrow_array("SELECT name FROM group_type WHERE type_id='"
-                                 . $_[0] . "'");
+# arg1: group id
+sub GetGroupTypeName
+{
+  return $dbd->selectrow_array (
+    "SELECT name FROM group_type WHERE type_id='" . $_[0] . "'"
+  );
 }
 
 return "true";

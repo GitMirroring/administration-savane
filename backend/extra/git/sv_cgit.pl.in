@@ -1,4 +1,4 @@
-#! @PERL@ -I@libexecdir@
+#! @PERL@ -I@pkgdatadir@
 # Generate the list of Git repositories for CGit.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

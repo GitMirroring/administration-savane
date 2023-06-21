@@ -37,6 +37,9 @@
 * i18n-related code is updated.  *.gmo files don't come with the distribution
   any more.
 
+* Perl library is installed to $(pkgdatadir) rather than $(libexecdir);
+  this makes lib/sv_pm_true unneeded.
+
 * Bug fixes:
 
 ** Gettext autoconf macro invocations were wrong.

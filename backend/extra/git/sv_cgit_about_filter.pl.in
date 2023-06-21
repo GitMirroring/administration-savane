@@ -1,4 +1,4 @@
-#! @PERL@ -I@libexecdir@
+#! @PERL@ -I@pkgdatadir@
 # Basic Cgit "about filter", see cgitrc (5).
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
