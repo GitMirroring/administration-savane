@@ -42,12 +42,20 @@ require_once ('../include/init.php');
 require_once ('../include/form.php');
 require_once ('../include/news/general.php');
 
-if (!$group_id)
-  $group_id = $sys_group_id;
-
 extract (sane_import ('request',
   ['pass' => 'feedback', 'digits' => ['id', 'limit']])
 );
+
+if ($id)
+  $news_item = news_fetch_item ($id);
+
+if (!$group_id)
+  {
+    if (!empty ($news_item))
+      $group_id = $news_item['group_id'];
+    if (!$group_id)
+      $group_id = $sys_group_id;
+  }
 
 if (empty ($limit))
   $limit = 10;
@@ -60,9 +68,9 @@ if (!$project->Uses ("news"))
 
 site_project_header (['group' => $group_id, 'context' => 'news']);
 
-if ($id)
+if (!empty ($news_item))
   {
-    news_show_news_item ($id);
+    news_show_news_item ($news_item);
     site_project_footer ([]);
     exit;
   }

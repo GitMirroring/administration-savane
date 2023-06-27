@@ -1,5 +1,12 @@
 ????-??-?? 3.13
 
+[FRONTEND]
+
+* Bug fixes:
+
+** Links in news lists and atom feeds were broken
+   since 2023-03 (c53ccf168a9).
+
 [BACKEND]
 
 * sv_groups doesn't create GNU Arch directories any more.

@@ -43,6 +43,7 @@
 
 require_once ('../include/init.php');
 require_once ('../include/http.php');
+require_once ('../include/news/general.php');
 
 if (empty ($group_id))
 {
@@ -64,11 +65,10 @@ if ($row = db_fetch_array ($result))
 http_exit_if_not_modified ($mtime);
 header ('Last-Modified: ' . date ('r', $mtime));
 
-require_once ('../include/news/general.php');
 $group_obj = project_get_object ($group_id);
 
 $result = db_execute ("
-  SELECT forum_id, summary, date, details, user.realname
+  SELECT id, summary, date, details, user.realname
   FROM news_bytes, user
   WHERE
     is_approved NOT IN (4, 5) AND group_id = ?
@@ -104,26 +104,6 @@ print "<?xml version=\"1.0\" encoding=\"utf-8\"?>
   <updated>$last_updated</updated>\n\n";
 
 while ($row = db_fetch_array ($result))
-  {
-    $id = "https://$sys_default_domain{$sys_home}"
-      . "forum/forum.php?forum_id={$row['forum_id']}";
-    $title = $row['summary'];
-    $updated = date ('c', $row['date']);
-    $author = $row['realname'];
-    $text = str_replace ('&nbsp;', ' ', markup_full (trim ($row['details'])));
-    print "
-  <entry>
-    <id>$id</id>
-    <link rel='alternate' href='$id'/>
-    <title>$title</title>
-    <updated>$updated</updated>
-    <author>
-      <name>$author</name>
-    </author>
-    <content type='xhtml' xml:base='$id'>
-      <div xmlns='http://www.w3.org/1999/xhtml'>$text</div>
-    </content>
-  </entry>\n";
-  }
+  print news_format_atom_entry ($row);
 print "</feed>\n";
 ?>

@@ -48,6 +48,29 @@
 # 1 - approved for forge front page (obsolete, should be 0)
 # 0 - approved for group main page
 
+function news_format_atom_entry ($row)
+{
+  global $sys_default_domain, $sys_home;
+  $id = "https://$sys_default_domain{$sys_home}news/?id={$row['id']}";
+  $title = $row['summary'];
+  $updated = date ('c', $row['date']);
+  $author = $row['realname'];
+  $text = str_replace ('&nbsp;', ' ', markup_full (trim ($row['details'])));
+  return "
+  <entry>
+    <id>$id</id>
+    <link rel='alternate' href='$id'/>
+    <title>$title</title>
+    <updated>$updated</updated>
+    <author>
+      <name>$author</name>
+    </author>
+    <content type='xhtml' xml:base='$id'>
+      <div xmlns='http://www.w3.org/1999/xhtml'>$text</div>
+    </content>
+  </entry>\n";
+}
+
 function news_fetch_item ($news_id)
 {
   $result = db_execute ("SELECT * from news_bytes WHERE id = ?", [$news_id]);
@@ -60,9 +83,8 @@ function news_fetch_item ($news_id)
   return $row;
 }
 
-function news_show_news_item ($news_id)
+function news_show_news_item ($item)
 {
-  $item = news_fetch_item ($news_id);
   if (empty ($item))
     {
       fb (_("No news item found"), 1);
