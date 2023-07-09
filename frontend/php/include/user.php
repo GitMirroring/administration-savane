@@ -335,7 +335,7 @@ function user_get_preference ($preference_name, $user_id = false)
 }
 
 # Find out if the user use the vote, very similar to
-# trackers_votes_user_remains_count.
+# trackers_votes_remaining.
 function user_use_votes ($user_id = false)
 {
   if (!$user_id)

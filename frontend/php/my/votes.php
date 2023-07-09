@@ -54,7 +54,7 @@ extract (sane_import ('post',
 
 if (!user_isloggedin ())
   exit_not_logged_in ();
-$remaining_votes = trackers_votes_user_remains_count (user_getid ());
+$remaining_votes = trackers_votes_remaining ();
 
 if ($submit)
   {
@@ -87,7 +87,7 @@ if ($submit)
         trackers_votes_update ($new_votes_list_item_id[$vote_id],
           $new_vote, $new_votes_list_tracker[$vote_id]
         );
-    $remaining_votes = trackers_votes_user_remains_count (user_getid ());
+    $remaining_votes = trackers_votes_remaining ();
   }
 site_user_header (['context' => 'votes']);
 # Simple listing. No need of anything really fancy, there will be no more

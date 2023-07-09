@@ -456,7 +456,7 @@ function print_comment_types ($group_id, $comment_type_id)
       unset ($GLOBALS['comment_type_id']);
       return;
     }
-  print "<label for='comment_type_id'>". _("Comment type:") . "</label>\n";
+  print html_label ('comment_type_id', _("Comment type:")) . "\n";
 
   $checked = '';
   if (($preview || !empty ($anon_check_failed)) && !empty ($comment_type_id))
@@ -468,7 +468,7 @@ function print_comment_types ($group_id, $comment_type_id)
 function print_canned_box ($group_id, $canned)
 {
   global $sys_home;
-  print "<label for='canned_response'>" . _("Canned response:") . "</label>\n";
+  print html_label ('canned_response', _("Canned response:")) . "\n";
   print trackers_canned_response_box ($group_id, 'canned_response', $canned);
   if (!user_ismember ($group_id, 'A'))
     return;
@@ -794,13 +794,13 @@ if ($is_trackeradmin)
     );
 
     print "</p>\n"
-      . "<p class='noprint'><span class='preinput'><label for='add_cc'>"
-      . _("Add Email Addresses (comma as separator):")
-      . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
+      . "<p class='noprint'><span class='preinput'>"
+      . html_label ('add_cc', _("Add Email Addresses (comma as separator):"))
+      . "</span><br />\n&nbsp;&nbsp;&nbsp;"
       . form_input ('text', 'add_cc', $add_cc,  'size="40"')
-      . '&nbsp;&nbsp;&nbsp;'
-      . "\n<br />\n<span class='preinput'><label for='cc_comment'>"
-      . _("Comment:") . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
+      . "&nbsp;&nbsp;&nbsp;\n<br />\n<span class='preinput'>"
+      . html_label ('cc_comment', _("Comment:"))
+      . "</span><br />\n&nbsp;&nbsp;&nbsp;"
       . form_input ('text', "cc_comment", $cc_comment,
           'size="40" maxlength="255"')
       . "\n";
@@ -848,20 +848,16 @@ $display_votes = function ($group_id, $item_id, $votes,  $new_vote, $lock)
          . "</span>$end";
        return;
     }
-  $votes_given = trackers_votes_user_giventoitem_count (
-    user_getid (), ARTIFACT, $item_id
-  );
-  $votes_remaining =
-    trackers_votes_user_remains_count (user_getid ()) + $votes_given;
+  $votes_given = trackers_get_user_votes (ARTIFACT, $item_id);
+  $votes_remaining = trackers_votes_remaining () + $votes_given;
   if (!$new_vote)
     $new_vote = $votes_given;
 
   # Show how many vote he already gave and allows to remove
   # or give more votes.
   # The number of remaining points must be 100 - others votes.
-  print '<span class="preinput"><label for="new_vote">'
-    . _("Your vote:")
-    . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
+  print '<span class="preinput">' . html_label ('new_vote', _("Your vote:"))
+    . "</span><br />\n&nbsp;&nbsp;&nbsp;"
     . '<input type="text" name="new_vote" id="new_vote" '
     . "size='3' maxlength='3' value='$new_vote' /> ";
   printf (
@@ -989,11 +985,13 @@ if ($enable_comments)
   {
     # Minimal anti-spam.
     if (!user_isloggedin ())
-      print '<p class="noprint"><label for="check">'
-        . _("Please enter the title of <a\n"
-            . "href=\"https://en.wikipedia.org/wiki/George_Orwell\">"
-            . "George Orwell</a>'s famous\ndystopian book (it's a date):")
-        . "</label> <input type='text' id='check' name='check' /></p>\n";
+      print '<p class="noprint">'
+        . html_label ("check",
+            _("Please enter the title of <a\n"
+              . "href=\"https://en.wikipedia.org/wiki/George_Orwell\">"
+              . "George Orwell</a>'s famous\ndystopian book (it's a date):")
+          )
+        . " <input type='text' id='check' name='check' /></p>\n";
 
     print "<p>&nbsp;</p>\n";
     print '<div align="center" class="noprint">'
