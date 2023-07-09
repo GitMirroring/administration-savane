@@ -135,23 +135,22 @@ function trackers_votes_update ($item_id, $new_vote, $tracker = null)
   if ($old_votes)
     $res_insert = db_execute ("
       UPDATE user_votes SET howmuch = ?
-      WHERE user_id=? AND tracker = ? AND item_id = ?",
-      [$new_vote, user_getid(), $tracker, $item_id]
+      WHERE user_id = ? AND tracker = ? AND item_id = ?",
+      [$new_vote, user_getid (), $tracker, $item_id]
     );
   else
-    $res_insert = db_autoexecute (
-      'user_votes',
-      [
-        'user_id' => user_getid (),
-        'tracker' => $tracker,
-        'item_id' => $item_id,
-        'howmuch' => $new_vote
-      ], DB_AUTOQUERY_INSERT
-    );
+    {
+      $res_insert = db_autoexecute (
+        'user_votes',
+        [
+          'user_id' => user_getid (), 'tracker' => $tracker,
+          'item_id' => $item_id, 'howmuch' => $new_vote
+        ], DB_AUTOQUERY_INSERT
+      );
+      trackers_add_cc ($item_id, user_getname (), "-VOT-");
+    }
 
-  trackers_add_cc ($item_id, user_getname (), "-VOT-");
-
-  if (db_affected_rows($res_insert) < 1)
+  if (db_affected_rows ($res_insert) < 1)
     {
       # In case of problem, kept unmodified the item proper info.
       fb (_("Unable to record the vote, please report to admins"), 1);

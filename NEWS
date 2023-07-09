@@ -7,6 +7,9 @@
 ** Links in news lists and atom feeds were broken
    since 2023-03 (c53ccf168a9).
 
+** Updating votes in my/votes.php tried to write in non-existing my_cc
+   table since 2022-11 (d7b66a1be).
+
 [BACKEND]
 
 * sv_groups doesn't create GNU Arch directories any more.
