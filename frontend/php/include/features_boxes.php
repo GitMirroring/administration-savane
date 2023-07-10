@@ -191,63 +191,56 @@ function show_newest_groups ($group_type, $limit)
   return $return;
 }
 
-# Find out interesting bugs and return a string listing them.
-# Closed and private items are ignored.
-function show_votes ($limit = 10)
+function get_top_votes ($limit)
 {
-  global $sys_home;
-  $vote = $summary = [];
-
+  $tables = [];
   foreach (["bugs", "task", "support", "patch"] as $tracker)
     {
-      $result = db_execute ("
-        SELECT bug_id, group_id, summary,vote
-        FROM $tracker WHERE vote >= 35 AND privacy = 1 AND status_id = 1
-        ORDER BY vote DESC LIMIT ?", [$limit]
-      );
-      $rows = db_numrows ($result);
-      if ($rows <= 0)
-        continue;
-      for ($j = 0; $j < $rows; $j++)
-        {
-          $item = "$tracker#" . db_result ($result, $j, 'bug_id');
-          $vote[$item] = db_result ($result, $j, 'vote');
-          $summary[$item] = db_result ($result, $j, 'summary');
-        }
+      $tables[] = "
+        (SELECT '$tracker' AS tracker, bug_id, group_id, summary, vote
+        FROM $tracker
+        WHERE vote >= 35 AND privacy = 1 AND status_id = 1 AND spamscore < 5)
+      ";
     }
-  if (empty ($vote))
-    return false;
+  $sql = join ("UNION ALL", $tables) . " ORDER BY vote DESC LIMIT ?";
+  return db_execute ($sql, [$limit]);
+}
 
-  # Sort items in rank and print the first $limit ones or less.
+# If the summary of the item is large, only show the first 30 characters.
+function trim_summary ($summary)
+{
+  if (strlen ($summary <= 30))
+    return $summary;
+  $summary = substr ($summary, 0, 30);
+  $summary = substr ($summary, 0, strrpos ($summary, ' '));
+  return "$summary...";
+}
+
+function format_vote_item ($count, $v)
+{
+  global $sys_home;
+  $tracker = $v['tracker'];
+  $item_id = $v['bug_id'];
+  $prefix = utils_get_tracker_prefix ($tracker);
+  $summary = trim_summary ($v['summary']);
+
+  $url = "$sys_home$tracker/?$item_id";
+  return show_altrow ($count) . '&nbsp;&nbsp;- '
+    . "<a href=\"$url\">$prefix #$item_id</a>: &nbsp;"
+    . "<a href=\"$url\">$summary</a>,&nbsp;"
+    . sprintf (ngettext ("%s vote", "%s votes", $v['vote']), $v['vote'])
+    . "</span></div>\n";
+}
+
+# Find out most popular items and return a string listing them.
+# Closed, private and spam items are ignored.
+function show_votes ($limit = 10)
+{
+  $votes = get_top_votes ($limit);
   $return = '';
   $count = 0;
-  arsort ($vote);
-  foreach ($vote as $item => $vote)
-    {
-      $count++;
-      if ($count > $limit)
-        break;
-
-      list ($tracker, $item_id) = explode ("#", $item);
-      $prefix = utils_get_tracker_prefix ($tracker);
-
-      # If the summar item is large (>30), only show the first
-      # 30 characters of the story.
-      if (strlen ($summary[$item]) > 30)
-        {
-          $summary[$item] = substr ($summary[$item], 0, 30);
-          $summary[$item] = substr (
-            $summary[$item], 0, strrpos ($summary[$item], ' ')
-          );
-          $summary[$item] .= "...";
-        }
-      $url = "$sys_home$tracker/?$item_id";
-      $return .= show_altrow ($count) . '&nbsp;&nbsp;- '
-        . "<a href=\"$url\">$prefix #$item_id</a>: &nbsp;"
-        . "<a href=\"$url\">{$summary[$item]}</a>,"
-        . '&nbsp;' . sprintf (ngettext ("%s vote", "%s votes", $vote), $vote)
-        . '</span></div>';
-    }
+  while ($v = db_fetch_array ($votes))
+    $return .= format_vote_item (++$count, $v);
   return $return;
 }
 ?>
