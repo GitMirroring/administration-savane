@@ -95,7 +95,8 @@ extract (sane_import ('request',
 extract (sane_import ('post',
   [
     'hash' => 'form_id', 'true' => ['submitreturn', 'preview'],
-    'digits' => ['comment_type_id', 'quote_no'], 'pass' => 'comment',
+    'digits' => ['comment_type_id', 'quote_no', 'new_vote'],
+    'pass' => 'comment',
     'preg' =>
       [
         ['canned_response', '/^(\d+|!multiple!)$/'],
@@ -110,7 +111,7 @@ extract (sane_import ('post',
 # Assign null to the fields that only tracker admins may modify.
 foreach (
   [
-    'depends_search', 'reassign_change_project_search', 'new_vote',
+    'depends_search', 'reassign_change_project_search',
     'cc_comment', 'add_cc', 'reassign_change_project',
     'depends_search_only_artifact', 'reassign_change_artifact',
     'depends_search_only_project', 'dependent_on_task', 'dependent_on_bugs',
@@ -123,7 +124,7 @@ if ($is_trackeradmin)
   extract (sane_import ('post',
     [
       'pass' => ['depends_search', 'reassign_change_project_search'],
-      'digits' => 'new_vote', 'specialchars' => 'cc_comment',
+      'specialchars' => 'cc_comment',
       'preg' =>
         [
           ['add_cc', '/^[-+_@.,;\s\da-zA-Z]*$/'],

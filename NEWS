@@ -10,6 +10,9 @@
 ** Updating votes in my/votes.php tried to write in non-existing my_cc
    table since 2022-11 (d7b66a1be).
 
+** In bugs/index.php, voting only worked for tracker admins,
+   broken since 2022-04 (302fce4c); Savannah sr #110896.
+
 [BACKEND]
 
 * sv_groups doesn't create GNU Arch directories any more.
