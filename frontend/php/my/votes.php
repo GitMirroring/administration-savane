@@ -42,7 +42,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 require_once ('../include/init.php');
 require_once ('../include/html.php');
-require_directory ("trackers");
+require_once ('../include/trackers/general.php');
+require_once ('../include/trackers/votes.php');
 
 extract (sane_import ('post',
   [
