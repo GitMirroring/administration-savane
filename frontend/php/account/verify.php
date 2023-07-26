@@ -77,11 +77,7 @@ if (!empty ($update))
       exit_error (_("Invalid confirmation hash"));
 
     # Then check valid login.
-    if (
-      session_login_valid (
-        $form_loginname, $form_pw, 1, 0, 0, session_issecure ()
-      )
-    )
+    if (session_login_valid ($form_loginname, $form_pw, 0, 1))
       {
         $res = db_execute (
           "UPDATE user SET status = 'A' WHERE user_name = ?",

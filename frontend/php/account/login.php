@@ -40,19 +40,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/account.php');
-require_once('../include/sane.php');
+require_once ('../include/init.php');
+require_once ('../include/account.php');
+require_once ('../include/sane.php');
 
-Header("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
-Header("Cache-Control: no-cache");
-Header("Cache-Control: must-revalidate");
+Header ("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
+Header ("Cache-Control: no-cache");
+Header ("Cache-Control: must-revalidate");
 
 extract (sane_import ('request', ['true' => 'from_brother']));
 
 # Logged users have no business here.
-if (user_isloggedin() && !$from_brother)
-  session_redirect ($GLOBALS['sys_home'] . "my/");
+if (user_isloggedin () && !$from_brother)
+  session_redirect ("{$sys_home}my/");
 
 # Input checks.
 extract(sane_import('request',
@@ -64,7 +64,7 @@ extract(sane_import('request',
   ]
 ));
 
-$stay_in_ssl = isset ($GLOBALS['sys_https_host']);
+$stay_in_ssl = session_stay_in_ssl ();
 $uri_enc = utils_urlencode ($uri);
 
 # Check cookie support.
@@ -72,17 +72,16 @@ if (!$from_brother && !isset ($_COOKIE["cookie_probe"]))
   {
     if ($cookie_test)
       {
+        # TRANSLATORS: the first argument is a domain (like
+        # "savannah.gnu.org" vs. "savannah.nongnu.org");
+        # the second argument is a URL ("[URL label]" transforms to a link).
         $msg =
           sprintf (
-            # TRANSLATORS: the first argument is a domain (like
-            # "savannah.gnu.org" vs. "savannah.nongnu.org");
-            # the second argument is a URL ("[URL label]" transforms to a link).
-            _("Savane thinks your cookies are not activated for %s.
-Please activate cookies in your web browser for this website
-and [%s try to login again]."),
+            _("Savane thinks your cookies are not activated for %s.\nPlease "
+              . "activate cookies in your web browser for this website\n"
+              . "and [%s try to login again]."),
             $sys_default_domain,
-            $GLOBALS['sys_https_url'] . $GLOBALS['sys_home']
-            . "account/login.php?uri=$uri"
+            "$sys_https_url{$sys_home}account/login.php?uri=$uri"
           );
         fb ($msg, 1);
       }
@@ -92,7 +91,7 @@ and [%s try to login again]."),
         # if the client will indeed send that cookie.
         session_cookie ('cookie_probe', 1);
         # $uri used to be not url-encoded, it caused login problems,
-        # see sr#108277 (https://savannah.gnu.org/support/?108277).
+        # see Savannah sr #108277.
         header ("Location: login.php?uri=$uri_enc&cookie_test=1");
       }
   }
@@ -108,13 +107,12 @@ if (!empty ($login))
 
     if (isset ($session_uid) && session_exists ($session_uid, $session_hash))
       {
-        $GLOBALS['session_hash'] = $session_hash;
-        session_set_new_cookies ($session_uid, $cookie_for_a_year, $stay_in_ssl);
+        session_set_new_cookies ($session_uid, $cookie_for_a_year);
         $success = 1;
       }
     else
-      $success = session_login_valid ($form_loginname, $form_pw, 0,
-                                      $cookie_for_a_year, 0, $stay_in_ssl);
+      $success =
+        session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
     if ($success)
       {
         # Set up the theme, if the user has selected any in the user
@@ -124,29 +122,29 @@ if (!empty ($login))
             $theme_result = user_get_result_set (user_getid ());
             $theme = db_result ($theme_result, 0, 'theme');
             if (strlen ($theme) > 0)
-              utils_setcookie ('SV_THEME', $theme, time () + 60*60*24);
+              utils_setcookie ('SV_THEME', $theme, time () + 60 * 60 * 24);
           }
         # We return to our brother 'my', where we login originally,
         # unless we are request to go to an uri.
         if (!$uri)
           {
-            $uri = $GLOBALS['sys_home'] . 'my/';
+            $uri = "{$sys_home}my/";
             $uri_enc = utils_urlencode ($uri);
           }
         # If a brother server exists, login there too, if we are not
         # already coming from there.
-        if (!empty ($GLOBALS['sys_brother_domain']) && $brotherhood)
+        if (!empty ($sys_brother_domain) && $brotherhood)
           {
             $root_url = session_issecure ()? "https": "http";
-            $root_url .= '://' . $GLOBALS['sys_brother_domain'];
+            $root_url .= "://$sys_brother_domain";
 
             if (!$from_brother)
               {
                 # Go there saying hello to your brother.
                 header (
-                  "Location: $root_url{$GLOBALS['sys_home']}"
-                  . "/account/login.php?session_uid=" . user_getid()
-                  . "&session_hash={$GLOBALS['session_hash']}&login=1"
+                  "Location: $root_url{$sys_home}"
+                  . "account/login.php?session_uid=" . user_getid ()
+                  . "&session_hash={$session_hash}&login=1"
                   . "&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
                   . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_enc"
                 );
@@ -162,44 +160,35 @@ if (!empty ($login))
           {
             # If No brother server exists, just go to 'my' page
             # unless we are request to go to an uri.
-
-            # Optionally stay in TLS mode.
-            if ($stay_in_ssl)
-              {
-                # Switch to requested HTTPs mode.
-                header ("Location: {$GLOBALS['sys_https_url']}$uri");
-              }
-            else
-              {
-                # Stay in current http mode (also avoids mentioning
-                # hostname&port, which can be useful in test
-                # environments with port forwarding).
-                header ("Location: $uri");
-              }
+            $url = $uri;
+            if ($stay_in_ssl) # Enforce HTTPS mode.
+              $url = "$sys_https_url$url";
+            header ("Location: $url");
             exit;
           }
-      } # if ($success)
-  } # if (!empty($login))
+      } # $success
+  } # !empty ($login)
 
-if (isset($session_hash))
+if (isset ($session_hash))
   {
     # Nuke their old session securely.
     session_delete_cookie ('session_hash');
     if (isset ($user_id))
-      db_execute ("DELETE FROM session WHERE session_hash=? AND user=?",
-                  array($session_hash, $user_id));
+      db_execute ("DELETE FROM session WHERE session_hash = ? AND user = ?",
+        [$session_hash, $user_id]
+      );
   }
 
 site_header (['title' => _("Login")]);
 if (!empty ($login) && !$success)
   {
-    if (isset ($GLOBALS['signal_pending_account'])
-        && $GLOBALS['signal_pending_account'] == 1)
+    if (isset ($signal_pending_account) && $signal_pending_account == 1)
       {
         print '<h2>' . _("Pending Account") . "</h2>\n";
         print '<p>'
-          . _("Your account is currently pending your email confirmation.
-Visiting the link sent to you in this email will activate your account.")
+          . _("Your account is currently pending your email confirmation.\n"
+              . "Visiting the link sent to you in this email will activate "
+              . "your account.")
           . "</p>\n";
         print '<p><a href="pending-resend.php?form_user='
           . "$form_loginname\">["
@@ -211,7 +200,8 @@ Visiting the link sent to you in this email will activate your account.")
         print '<div class="splitright"><div class="boxitem">';
         print '<div class="warn">' . _("Troubleshooting:")
           . "</div></div>\n<ul class='boxli'><li class='boxitemalt'>"
-. _("Is the &ldquo;Caps Lock&rdquo; or &ldquo;A&rdquo; light on your keyboard on?")
+          . _("Is the &ldquo;Caps Lock&rdquo; or &ldquo;A&rdquo; light on "
+              . "your keyboard on?")
           . "<br />\n"
           . _("If so, hit &ldquo;Caps Lock&rdquo; key before trying again.")
           . "</li>\n<li class='boxitem'>"
@@ -224,8 +214,7 @@ Visiting the link sent to you in this email will activate your account.")
           . "</li>\n"
           .'<li class="boxitemalt">' . _("Still having trouble?") . "<br />\n"
           . utils_link (
-              "{$GLOBALS['sys_home']}support/?group="
-              . $GLOBALS['sys_unix_group_name'],
+              "{$sys_home}support/?group=$sys_unix_group_name",
               _("Fill a support request.")
             )
           . "</li>\n";
@@ -233,16 +222,15 @@ Visiting the link sent to you in this email will activate your account.")
       }
   }
 
-if (isset($GLOBALS['sys_https_host']))
-  utils_get_content("account/login");
-print "<form action=\"{$GLOBALS['sys_https_url']}{$GLOBALS['sys_home']}"
+if (isset ($sys_https_host))
+  utils_get_content ("account/login");
+print "<form action=\"$sys_https_url$sys_home"
   . 'account/login.php" method="post">';
 print form_input ('hidden', 'uri', $uri);
 
 # Shortcuts to New Account and Lost Password have a tabindex superior to
-# the rest of form,
-# so they dont mess with the normal order when you press TAB on the keyboard
-# (login -> password -> post).
+# the rest of form, so they don't mess with the normal order when you
+# press TAB on the keyboard (login -> password -> post).
 print '<p><span class="preinput">' . _("Login Name:")
   . "</span><br />&nbsp;&nbsp;\n";
 print "<input type='text' name='form_loginname' value=\"$form_loginname"
@@ -257,29 +245,32 @@ print '<input type="password" name="form_pw" tabindex="1" /> '
 
 $attr_list = ['tabindex' => '1'];
 
-if (!isset ($GLOBALS['sys_https_host']))
+if (!isset ($sys_https_host))
   {
     print '<p class="warn">';
-    print _("This server does not encrypt data (no https), so the password you
-sent may be viewed by other people. Do not use any important
-passwords.") . "</p>\n";
+    print
+      _("This server does not encrypt data (no https), so the password you\n"
+        . "sent may be viewed by other people. Do not use any important\n"
+        . "passwords.")
+      . "</p>\n";
   }
 
 print '<p>'
   . form_checkbox ('cookie_for_a_year', $cookie_for_a_year, $attr_list)
   . '<span class="preinput">' . _("Remember me") . "</span><br />\n";
 print '<span class="text">'
-  . _("For a year, your login information will be stored in a cookie. Use
-this only if you are using your own computer.") . '</span>';
+  . _("For a year, your login information will be stored in a cookie. Use\n"
+      . "this only if you are using your own computer.")
+  . '</span>';
 
-if (!empty ($GLOBALS['sys_brother_domain']))
+if (!empty ($sys_brother_domain))
   {
     print '<p>'
       .  form_checkbox ('brotherhood', $brotherhood || !$login, $attr_list)
       . '<span class="preinput">';
     # TRANSLATORS: the argument is a domain (like "savannah.gnu.org"
     # vs. "savannah.nongnu.org").
-    printf (_("Login also in %s"), $GLOBALS['sys_brother_domain']);
+    printf (_("Login also in %s"), $sys_brother_domain);
     print  "</span><br />\n";
   }
 print form_footer (_("Login"), 'login');

@@ -81,13 +81,16 @@ require_once (dirname (__FILE__) . '/account.php');
 
 $G_SESSION = $G_USER = [];
 
+function session_stay_in_ssl ()
+{
+  return isset ($GLOBALS['sys_https_host']);
+}
+
 function session_login_valid (
-  $form_loginname, $form_pw, $allowpending = 0, $cookie_for_a_year = 0,
-  $crypted_pw = 0, $stay_in_ssl = 1
+  $form_loginname, $form_pw, $cookie_for_a_year = 0,
+  $allowpending = 0
 )
 {
-  global $session_hash;
-
   if (!$form_loginname || !$form_pw)
     {
       fb (_('Missing Password Or User Name'), 1);
@@ -107,7 +110,7 @@ function session_login_valid (
   $usr = db_fetch_array ($resq);
   $GLOBALS['signal_pending_account'] = 0;
 
-  # Check status first:
+  # Check status first.
   # if allowpending (for verify.php) then allow.
   if ($allowpending && ($usr['status'] == 'P'))
     {
@@ -139,36 +142,12 @@ function session_login_valid (
         }
     }
 
-  if ($usr['user_pw'] == 'SSH')
+  if (!account_validpw ($usr['user_pw'], $form_pw))
     {
-      fb (_("This user is known, but cannot be authenticated.\n"
-          . "Please ask site administrators for a password."), 1
-      );
+      fb (_('Invalid Password'), 1);
       return false;
     }
-  else
-    {
-      # For this authentication method we enable a brother site
-      # login mechanism:
-      # Password is crypted (crypt()) if we are coming from the brother site.
-      # Normally, users shouldn't use this feature
-      # unless they login at brother site one time.
-      if ($crypted_pw)
-        {
-          if (crypt ($usr['user_pw'], $form_pw) != $form_pw)
-            {
-              fb (_('Invalid Password'), 1);
-              return false;
-            }
-        }
-      elseif (!account_validpw ($usr['user_pw'], $form_pw))
-        {
-          fb (_('Invalid Password'), 1);
-          return false;
-        }
-    }
-  # Create a new session.
-  session_set_new ($usr['user_id'], $cookie_for_a_year, $stay_in_ssl);
+  session_set_new ($usr['user_id'], $cookie_for_a_year);
   return true;
 }
 
@@ -259,10 +238,10 @@ function session_setglobals ($user_id)
     $G_USER = db_fetch_array ($result);
 }
 
-function session_set_new ($user_id, $cookie_for_a_year = 0, $stay_in_ssl = 1)
+function session_set_new ($user_id, $cookie_for_a_year)
 {
   global $G_SESSION, $session_hash;
-
+  $stay_in_ssl = session_stay_in_ssl ();
   # Concatinate current time, and random seed for MD5 hash
   # continue until unique hash is generated (SHOULD only be once).
   do
@@ -277,8 +256,6 @@ function session_set_new ($user_id, $cookie_for_a_year = 0, $stay_in_ssl = 1)
   while (db_numrows ($result) > 0); # do
 
   # Make new session entries into DB.
-  if (!isset ($stay_in_ssl))
-    $stay_in_ssl = 0; # Avoid passing NULL.
   db_autoexecute ('session',
     [
       'session_hash' => $session_hash, 'ip_addr' => $_SERVER['REMOTE_ADDR'],
@@ -309,14 +286,14 @@ function session_set_new ($user_id, $cookie_for_a_year = 0, $stay_in_ssl = 1)
     db_execute ("DELETE FROM session WHERE session_hash <> ? AND user_id = ?",
       [$session_hash, $user_id]
     );
-  session_set_new_cookies ($user_id, $cookie_for_a_year, $stay_in_ssl);
+  session_set_new_cookies ($user_id, $cookie_for_a_year);
 }
 
 # Set session cookies.
-function session_set_new_cookies (
-  $user_id, $cookie_for_a_year = 0, $stay_in_ssl = 1
-)
+function session_set_new_cookies ($user_id, $cookie_for_a_year = 0)
 {
+  $stay_in_ssl = session_stay_in_ssl ();
+  # Concatinate current time, and random seed for MD5 hash.
   # Set a non-secure cookie so that Savane automatically redirects to HTTPS.
   if ($stay_in_ssl)
     session_cookie ('redirect_to_https', 1, $cookie_for_a_year, 0);
@@ -340,7 +317,7 @@ function session_set ()
 
   # Here also check for good hash, set if new session is needed.
   extract (sane_import ('cookie',
-    ['hash' =>'session_hash', 'digits' => 'session_uid'])
+    ['hash' => 'session_hash', 'digits' => 'session_uid'])
   );
   if ($session_hash && $session_uid)
     {
