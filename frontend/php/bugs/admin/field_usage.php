@@ -65,8 +65,8 @@ extract (sane_import ('post',
      'strings' =>
        [
          ['form_transition_default_auth', ['A', 'F']],
-         ['show_on_add','show_on_add_members',  ['1']],
-         ['show_on_add_logged', ['2']]
+         ['show_on_add_logged','show_on_add_mem',  ['1']],
+         ['show_on_add_anon', ['2']]
        ]
   ]
 ));
@@ -91,34 +91,31 @@ if ($post_changes)
           {
             # Do not let the user change these field settings
             # if the field is required.
-            $show_on_add_members =
+            $show_on_add_mem =
               trackers_data_is_showed_on_add_members ($field);
-            $show_on_add = trackers_data_is_showed_on_add ($field);
-            $show_on_add_logged =
+            $show_on_add_logged = trackers_data_is_showed_on_add ($field);
+            $show_on_add_anon =
               trackers_data_is_showed_on_add_nologin ($field);
           }
-        else
+        elseif ($field == "vote")
           {
-             # Vote must be possible for members.
-             # Vote cannot be possible for non-logged in.
-            if ($field == "vote")
-              {
-                $show_on_add_logged = 0;
-                $show_on_add_members = 1;
-              }
+            # Members always may vote.
+            $show_on_add_mem = 1;
+            # Anonymous visitors can't vote.
+            $show_on_add_anon = 0;
           }
 
-        # The additional possibility of differently treating non-project
+        # The additional possibility of differently treating non-group
         # members who have accounts and anonymous visitors demanded
-        # a new handling of the values of the show_on_add field:
-        # bit 1 set: show for logged in non project members
-        # bit 2 set: show for non logged in users.
-        $show_on_add = $show_on_add | $show_on_add_logged;
+        # a new handling of the values of the show_on_add_logged field:
+        # bit (1 << 0) set: show for logged-in non-group members
+        # bit (1 << 1) set: show for anonymous users.
+        $show_on_add_logged = $show_on_add_logged | $show_on_add_anon;
 
         trackers_data_update_usage (
           $field, $group_id, $label, $description, $status, $place,
-          $display_size, $mandatory_flag, $keep_history, $show_on_add_members,
-          $show_on_add, $form_transition_default_auth
+          $display_size, $mandatory_flag, $keep_history, $show_on_add_mem,
+          $show_on_add_logged, $form_transition_default_auth
         );
       }
     elseif ($reset)
@@ -158,11 +155,11 @@ if ($update_field)
       {
         print '<input type="text" title="' . _("Field Label")
           . '" name="label" value="'
-          . trackers_data_get_label( $field) . '" size="20" maxlength="85">'
+          . trackers_data_get_label ($field) . '" size="20" maxlength="85">'
           . $closetag;
-        print '<span class="preinput"><label for="description">'
-          . _("Description:") . '</label> </span>';
-        print "<br />\n&nbsp;&nbsp;&nbsp;<input type='text' id='description'> "
+        print '<span class="preinput">'
+          . html_label ("description", _("Description:")) . ' </span>';
+        print "<br />\n&nbsp;&nbsp;&nbsp;<input type='text' id='description' "
           . "name='description' value=\""
           . trackers_data_get_description ($field)
           . "\" size='70' maxlength='255' /><br />\n";
@@ -170,32 +167,26 @@ if ($update_field)
     else
       print trackers_data_get_label ($field) . $closetag;
 
-    print '<span class="preinput">' . _("Status:") . ' </span>&nbsp;&nbsp;';
+    print "<dl>";
+    print '<dt><span class="preinput">' . html_label ('status', _("Status:"))
+      . "</span></dt>\n<dd>";
 
     # Display the Usage box (Used, Unused select box  or hardcoded
     # "required").
-    $sel = ' selected="selected"';
     if (trackers_data_is_required ($field))
-      {
-        print "<br />\n&nbsp;&nbsp;&nbsp;" . _("Required");
-        print form_hidden (["status" => "1"]);
-      }
+      print _("Required") . form_hidden (["status" => "1"]);
     else
-      {
-        $ck = trackers_data_is_used ($field)? $sel: '';
-        print "<br />&nbsp;&nbsp;&nbsp;\n"
-          . ' <select title="' . _("Usage status") . "\" name='status'>\n"
-          . "<option value='1'$ck>" . _("Used") . "</option>\n";
-        $ck = trackers_data_is_used ($field)? '': $sel;
-        print "<option value='0'$ck>" . _("Unused")
-          . "</option>\n<select>\n";
-      }
+      print form_checkbox (
+        'status', trackers_data_is_used ($field), ['label'=> _("Used")]
+      );
+    print "</dd>\n";
 
+    $sel = ' selected="selected"';
     # Ask they want to save the history of the item.
     if (!trackers_data_is_special ($field))
       {
-        print "<br />\n<span class='preinput'>" . _("Item History:")
-          . "</span>\n<br />&nbsp;&nbsp;&nbsp;\n"
+        print "<dt>\n<span class='preinput'>" . _("Item History:")
+          . "</span>\n<dt>\n<dd>"
           . "<select title=\"" . _("whether to keep in history")
           . "\" name='keep_history'>\n";
         $ck = trackers_data_do_keep_history ($field)? $sel: '';
@@ -206,9 +197,11 @@ if ($update_field)
           . _("Ignore field value changes in history")
           . "</option>\n</select>\n";
         }
+    print "</dd>\n</dl>\n";
 
-    print "\n\n<p>&nbsp;</p><h2>" . _("Access:") . "</h2>\n";
+    print "\n\n<h2>" . _("Access:") . "</h2>\n";
 
+    print "<dl>\n";
     # Set mandatory bit: if the field is special, meaning it is entered
     # by the system, or if it is "priority", assume the
     # admin is not entitled to modify this behavior.
@@ -218,8 +211,8 @@ if ($update_field)
         # for a user to fill the entry.
         # It is "Mandatory whenever possible".
         $mandatory_flag = trackers_data_mandatory_flag ($field);
-        print '<span class="preinput">' . _("This field is:")
-          . "</span>\n<br />&nbsp;&nbsp;&nbsp;\n"
+        print '<dt><span class="preinput">' . _("This field is:")
+          . "</span></dt>\n<dd>\n"
           . "<select title=\"" . _("whether the field is mandatory")
           . "\" name='mandatory_flag'>\n";
         $ck =($mandatory_flag == 1)? $sel: '';
@@ -233,21 +226,30 @@ if ($update_field)
           . "</option>\n</select><br />\n";
      }
 
-    print '<span class="preinput">'
-      . _("On new item submission, present this field to:") . '</span> ';
-    $checkbox_members = $checkbox_loggedin = $checkbox_anonymous = '';
+    print "</dd>\n<dt>";
+    print '<span class="preinput">' . _("On new item submission:") . '</span>';
+    print "</dt>\n";
     $sh_add_mem = trackers_data_is_showed_on_add_members ($field);
     $sh_add = trackers_data_is_showed_on_add ($field);
     $sh_anon = trackers_data_is_showed_on_add_nologin ($field);
+    $anon_label = _("Show field to anonymous users");
+    $logged_label = _("Show field to logged-in users");
+    $member_label = _("Show field to members");
+    $checkboxes = [];
     if (trackers_data_is_required ($field))
       {
-        # Do not let the user change these field settings.
-        if ($sh_add_mem)
-          $checkbox_members = '+';
-        if ($sh_add)
-          $checkbox_loggedin = '+';
-        if ($sh_anon)
-          $checkbox_anonymous = '+';
+        # Do not let the user change field settings.
+        $checkboxes[] = form_checkbox ('show_on_add_mem', $sh_add_mem,
+          ['label' => $member_label, 'disabled' => 'disabled']
+        );
+        $checkboxes[] = form_checkbox ('show_on_add_logged', $sh_add,
+          ['label' => $logged_label, 'disabled' => 'disabled']
+        );
+        $checkboxes[] = form_checkbox ('show_on_add_anon', $sh_anon,
+          ['value' => 2, 'label' => $anon_label, 'disabled' => 'disabled']
+        );
+        foreach (array_keys ($checkboxes) as $k)
+          $checkboxes[$k] = "<del class='preinput'>{$checkboxes[$k]}</del>";
       }
     else
       {
@@ -256,61 +258,53 @@ if ($update_field)
           {
             # Vote is always available for members.
             # Vote is impossible unless logged in.
-            $checkbox_members = '+';
-            $checkbox_anonymous = 0;
-            $checkbox_loggedin = form_checkbox ("show_on_add", $sh_add);
+            $checkboxes[] =
+              '<del class="preinput">'
+              . form_checkbox ('show_on_add_mem',
+                  1, ['label' => $member_label, 'disabled' => 'disabled']
+                )
+              . '</del>';
+            $checkboxes[] = form_checkbox ("show_on_add_logged",
+              $sh_add, ['label' => $logged_label]
+            );
           }
         elseif ($field == "originator_email")
           {
             # Originator email is, by the code, available only to anonymous.
-            $checkbox_members = 0;
-            $checkbox_loggedin = 0;
-            $checkbox_anonymous =
-              form_checkbox ("show_on_add_logged", $sh_anon, ['value' => "2"]);
+            $checkboxes[] =
+              form_checkbox ("show_on_add_anon", $sh_anon,
+                ['value' => "2", 'label' => $anon_label]
+              );
           }
         else
           {
-            $checkbox_members =
-              form_checkbox (
-                "show_on_add_members", $sh_add_mem,
-                ['title' => _("Show field to members")]
-              );
-            $checkbox_anonymous =
-              form_checkbox (
-                "show_on_add_logged", $sh_anon,
-                ['title' => _("Show field to logged-in users"), 'value' => "2"]
-              );
-            $checkbox_loggedin =
-              form_checkbox (
-                "show_on_add_members", $sh_add,
-                ['title' => _("Show field to anonymous users")]
-              );
+            $checkboxes[] = form_checkbox (
+              "show_on_add_mem", $sh_add_mem, ['label' => $member_label]
+            );
+            $checkboxes[] = form_checkbox (
+              "show_on_add_logged", $sh_add, ['label' => $logged_label]
+            );
+            $checkboxes[] = form_checkbox ("show_on_add_anon", $sh_anon,
+              ['label' => $anon_label, 'value' => "2"]
+            );
           }
       } # !trackers_data_is_required ($field)
 
-    if ($checkbox_members)
-      print "<br />\n&nbsp;&nbsp;&nbsp;$checkbox_members "
-        . _("<!-- present this field to --> Group Members");
-    if ($checkbox_loggedin)
-      print "<br />\n&nbsp;&nbsp;&nbsp;$checkbox_loggedin "
-        . _("<!-- present this field to --> Logged-in Users");
-    if ($checkbox_anonymous)
-      print "<br />\n&nbsp;&nbsp;&nbsp;$checkbox_anonymous "
-         . _("<!-- present this field to --> Anonymous Users");
+    print "<dd>" . join ("<br />", $checkboxes) . "</dd>\n</dl>\n";
 
     if (trackers_data_is_special ($field))
       print '<input type="hidden" name="place" value="'
         . trackers_data_get_place ($field) . '" />';
     else
       {
-        print "\n\n<p>&nbsp;</p>\n<h2>" . _("Display:") . "</h2>\n";
+        print "\n\n<h2>" . _("Display:") . "</h2>\n";
 
-        print '<span class="preinput"><label for="place">'
-          . _("Rank on page:")
-          . "</label></span><br />\n&nbsp;&nbsp;&nbsp;";
+        print "<dl>\n<dt><span class='preinput'>"
+          . html_label ("place", _("Rank on page:"))
+          . "</span></dt>\n<dd>";
         print '<input type="text" id="place" name="place" value="'
           . trackers_data_get_place ($field)
-          . "\" size='6' maxlength='6' /><br />\n";
+          . "\" size='6' maxlength='6' /></dd>\n</dl>\n";
       }
 
     # Customize field size only for text fields and text areas.
@@ -318,31 +312,31 @@ if ($update_field)
       {
         list ($size, $maxlength) = trackers_data_get_display_size ($field);
 
-        print '<span class="preinput"><label for="n1">'
-          . _("Visible size of the field:")
-          . "</label> </span><br />&nbsp;&nbsp;&nbsp;\n";
+        print "<dl>\n<dt><span class='preinput'>"
+          . html_label ("n1", _("Visible size of the field:"))
+          . "</span></dt>\n<dd>";
         print '<input type="text" id="n1" name="n1" value="' . $size
-          . "\" size='3' maxlength='3' /><br />\n";
-        print '<span class="preinput"><label for="n2">'
-          . _("Maximum size of field text (up to 255):")
-          . "</label></span>\n<br />&nbsp;&nbsp;&nbsp;\n";
+          . "\" size='3' maxlength='3' /></dd>\n";
+        print "<dt><span class='preinput'>"
+          . html_label ("n2", _("Maximum size of field text (up to 255):"))
+          . "</span></dt>\n<dd>";
         print '<input type="text" id="n2" name="n2" value="' . $maxlength
-          . "\" size='3' maxlength='3' /><br />\n";
+          . "\" size='3' maxlength='3' /></dd>\n</dl>\n";
       }
-    else if (trackers_data_is_text_area($field))
+    elseif (trackers_data_is_text_area ($field))
       {
         list ($rows, $cols) = trackers_data_get_display_size ($field);
 
-        print '<span class="preinput"><label for="n1">'
-          ._ ("Number of columns of the field:")
-          . "</label></span>\n<br />&nbsp;&nbsp;&nbsp;\n";
+        print "<dl>\n<dt><span class='preinput'>"
+          . html_label ("n1", _("Number of columns of the field:"))
+          . "</span></dt>\n><dd>";
         print '<input type="text" id="n1" name="n1" value="' . $rows
-          . "\" size='3' maxlength='3' /><br />\n";
-        print '<span class="preinput"><label for="n2">'
-          . _("Number of rows  of the field:")
-          . "</label></span>\n<br />&nbsp;&nbsp;&nbsp;\n";
+          . "\" size='3' maxlength='3' /></dd>\n";
+        print "<dt><span class='preinput'>"
+          . html_label ("n2", _("Number of rows  of the field:"))
+          . "</span></dt>\n<dd>";
         print '<input type="text" id="n2" name="n2" value="' . $cols
-          . "\" size='3' maxlength='3' /><br />\n";
+          . "\" size='3' maxlength='3' /></dd>\n</dl>\n";
       }
 
     # Transitions.
@@ -367,15 +361,19 @@ if ($update_field)
         print "\n\n<p>&nbsp;</p>\n<h2>"
           . _("By default, transitions (from one value to another) are:")
           . "</h2>\n";
-        print '&nbsp;&nbsp;&nbsp;<input type="radio" '
+        print '<input type="radio" '
           . "name='form_transition_default_auth'\n"
           . "id='form_transition_default_auth_allowed' value='A'$ck1"
-          . ' /><label for="form_transition_default_auth_allowed">'
-          . _("Allowed") . "</label><br />\n&nbsp;&nbsp;&nbsp;<input "
+          . ' />'
+          . html_label ("form_transition_default_auth_allowed", _("Allowed"))
+          . "<br />\n<input "
           . "type='radio' id='form_transition_default_auth_forbidden'\n"
           . "name='form_transition_default_auth' value='F'$ck2"
-          . ' /><label for="form_transition_default_auth_forbidden">'
-          . _("Forbidden") . "</label>\n";
+          . ' />'
+          . html_label (
+              "form_transition_default_auth_forbidden", _("Forbidden")
+            )
+          . "\n";
       }
     print "\n<p align='center'>"
       . "<input type='submit' name='submit' value=\""
@@ -427,8 +425,7 @@ while ($field_name = trackers_list_all_fields ())
       $is_required? _("Required"): ($is_used? _("Used"): _("Unused"));
 
     $scope_label  =
-      trackers_data_get_scope ($field_name) == 'S'?
-      _("System"): _("Project");
+      trackers_data_get_scope ($field_name) == 'S'? _("System"): _("Group");
     $place_label = $is_used? trackers_data_get_place ($field_name): '-';
 
     $html = "<td><a href=\"$php_self?group_id=$group_id"
@@ -436,41 +433,22 @@ while ($field_name = trackers_list_all_fields ())
       . trackers_data_get_label ($field_name) . "</a></td>\n"
       . "\n<td>" . trackers_data_get_display_type_in_clear ($field_name)
       . "</td>\n<td>" . trackers_data_get_description ($field_name)
-      . (($is_custom && $is_used)?
-         ' - <strong>[' . _("Custom Field") . ']</strong>':
-         '')
+      . (($is_custom && $is_used)? ' - <b>[' . _("Custom Field") . ']</b>': '')
       . "</td>\n"
       . "\n<td align =\"center\">$place_label</td>\n"
       . "\n<td align =\"center\">$scope_label</td>\n"
       . "\n<td align =\"center\">$status_label</td>\n";
 
     if ($is_used)
-      {
-        $html = '<tr class="' . utils_altrow ($iu) . "\">$html</tr>\n";
-        $iu++;
-        $hu .= $html;
-      }
+      $hu .= '<tr class="' . utils_altrow ($iu++) . "\">$html</tr>\n";
+    elseif ($is_custom)
+      $hnc .= '<tr class="' . utils_altrow ($inc++) . "\">$html</tr>\n";
     else
-      {
-        if ($is_custom)
-          {
-            $html = '<tr class="' . utils_altrow ($inc)
-              . "\">$html</tr>\n";
-            $inc++;
-            $hnc .= $html;
-          }
-        else
-          {
-            $html = '<tr class="'
-              . utils_altrow ($in) . "\">$html</tr>\n";
-            $in++;
-            $hn .= $html;
-          }
-      }
+      $hn .= '<tr class="' . utils_altrow ($in++) . "\">$html</tr>\n";
   } #  while ($field_name = trackers_list_all_fields())
 
-$rule0 = '<tr><td colspan="5"><center><strong>---- ';
-$rule1 = " ----</strong></center></tr>\n";
+$rule0 = '<tr><td colspan="5"><center><b>---- ';
+$rule1 = " ----</b></center></tr>\n";
 $tr = "<tr><td colspan='5'> &nbsp;</td></tr>\n$rule0";
 $hu =  $rule0 . _("USED FIELDS") . "$rule1$hu";
 if ($in)
