@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* Support for authentication via Kerberos is dropped.
+
 * Spam is excluded from 'Most Popular Items'.
 
 * Broken themes Sad and Right are removed, sr #110921.

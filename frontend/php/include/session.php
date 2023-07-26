@@ -139,36 +139,7 @@ function session_login_valid (
         }
     }
 
-  if ($usr['user_pw'] == '')
-    {
-      # Authentication method: Kerberos
-      # If both user_pw and unix_pw are empty the user might
-      # be able to login if she/he has a Kerberos account.
-      # Update unix_pw and user_pw.
-      if ($GLOBALS['sys_use_krb5'])
-        $ret = krb5_login ($form_loginname, $form_pw);
-
-      if($ret == KRB5_NOTOK)
-        {
-          fb (_("phpkrb5 module failure"), 1);
-          return false;
-        }
-      if($ret == KRB5_BAD_USER)
-        {
-          fb (_("user is not a kerberos principal"), 1);
-          return false;
-        }
-      if($ret == KRB5_BAD_PASSWORD)
-        {
-          fb (_("user is a kerberos principal but passwords do not match"), 1);
-          return false;
-        }
-      $stored_pw = account_encryptpw ($form_pw);
-      db_execute ("UPDATE user SET user_pw = ? WHERE user_id = ?",
-        [$stored_pw, $usr['user_id']]
-      );
-    }
-  elseif ($usr['user_pw'] == 'SSH')
+  if ($usr['user_pw'] == 'SSH')
     {
       fb (_("This user is known, but cannot be authenticated.\n"
           . "Please ask site administrators for a password."), 1

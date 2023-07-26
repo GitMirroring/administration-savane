@@ -64,7 +64,6 @@ $sys_name = "Change-This-Site-Name-with-\$sys_name";
 $sys_logo_name = 'floating.png';
 $stone_age_menu = false;
 $sys_spamcheck_spamassassin = false;
-$sys_use_krb5 = false;
 $sys_upload_max = 512;
 
 $sys_dbhost = 'localhost';

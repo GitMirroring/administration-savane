@@ -145,35 +145,6 @@ if (!empty ($update) && form_check ($form_id))
     else
       $realname_is_valid = true;
     $form_realname = account_sanitize_realname ($form_realname);
-
-    $krb5ret = '';
-    if ($sys_use_krb5 == "yes")
-      {
-        $krb5ret = krb5_login ($form_loginname, $form_pw);
-        if ($krb5ret == -1)
-          { # KRB5_NOTOK
-            fb (_("phpkrb5 module failure"), 1);
-            $pw_is_valid = false;
-          }
-        elseif ($krb5ret == 1) # KRB5_BAD_PASSWORD
-          {
-            # TRANSLATORS: the argument is the name of the system
-            # (like "Savannah").
-            $msg = sprintf (
-              _("User is a kerberos principal but password do not\nmatch. "
-                . "Please use your kerberos password for the first login and "
-                . "then change\nyour %s password. This is necessary to "
-                . "prevent someone from stealing your\naccount name."),
-              $sys_name
-            );
-            fb ($msg, 1);
-            $pw_is_valid = false;
-          }
-        elseif ($krb5ret == "2")
-          {
-            # KRB5_BAD_USER
-          }
-      }
   } # if (!empty($update) && form_check($form_id))
 elseif ($sys_registration_captcha)
   {
@@ -229,22 +200,6 @@ if ($form_is_valid)
     $message_tail .= sprintf (_("-- the %s team.") . "\n\n", $sys_name);
     $message = "$message_head$confirm_hash$message_tail";
 
-    if ($krb5ret == 0) #KRB5_OK
-      {
-        # TRANSLATORS: the argument is the name of the system
-        # (like "Savannah").
-        $message .= sprintf (
-          _("P.S. Your password is now stored in hashed form\n"
-            . "in the %s database."),
-          $sys_name
-        );
-        $message .= " "
-         . _("For better security we advise you to register\nan "
-         . "encryption-capable GPG key and enable encryption when "
-         . "sending password reset\nmessages (if you do, please request "
-         . "password reset and make sure that you\n"
-         . "actually can read those messages).") . "\n";
-      }
     sendmail_mail (
       ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $form_email],
       [ 'subject' => "$sys_name " . _("Account Registration"),
