@@ -86,14 +86,31 @@ See https://savannah.gnu.org/contact.php
 Dependencies
 ============
 
-Current version of Savane depends on:
+Build Time
+----------
 
-* PHP
-* Apache
+* ImageMagic (resizing images for icons)
+* GNU Make
+* Sed
+
+Run Time
+--------
+
+* Grep
+* GNU coreutils
+* GNU gettext 0.16.1 or later
+* GnuPG
+* PHP (5.4, 5.5, 5.6, 7.0, 7.2, 7.4, 8.0, 8.1 or 8.2)
+** Text_CAPTCHA (php-text-captcha, php-image-text in Trisquel)
+* Perl >= 5.6
+** DBI (libdbi-perl in Trisquel)
+** DBD::mysql (libdbd-mysql-perl, depends on libdbi-perl in Trisquel)
+** Mail::Send (libmailtools-perl in Trisquel)
+** Date::Calc (libdate-calc-perl in Trisquel)
+** Digest::MD5 (in an unmaintained test suite)
 * MySQL or MariaDB
-* Perl
-
-For more details, see REQUIREMENTS.
+* Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel)
+* pwqcheck (handling new passwords in frontend, passwdqc in Trisquel)
 
 Documentation
 =============

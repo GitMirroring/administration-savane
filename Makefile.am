@@ -36,7 +36,7 @@ $(backend_scripts): %: %.in
 	chmod +x $@
 
 EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
-	REQUIREMENTS db tests $(backend_scripts:%=%.in) \
+	db tests $(backend_scripts:%=%.in) \
 	backend/README autotools/README \
 	caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
 	caboose/parse-files.awk
