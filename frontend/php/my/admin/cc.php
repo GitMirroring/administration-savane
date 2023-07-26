@@ -101,7 +101,7 @@ foreach ($trackers as $tracker)
   {
     $result = db_execute ("
       SELECT g.unix_group_name, g.group_name, t.group_id
-      FROM groups g, $tracker t, ${tracker}_cc cc
+      FROM groups g, $tracker t, {$tracker}_cc cc
       WHERE
         g.group_id = t.group_id AND t.bug_id = cc.bug_id
         AND cc.email IN (?, ?, ?)

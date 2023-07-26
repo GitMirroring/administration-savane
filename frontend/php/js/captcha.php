@@ -41,14 +41,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-header('Content-Type: text/javascript');
+require_once ('../include/init.php');
+header ('Content-Type: text/javascript');
 
 print
 "document.getElementById('captcha_js_link').onclick =
 function ()
 {
   document.getElementById('captcha').src =
-    '${GLOBALS['sys_home']}captcha.php?' + Math.random();
+    '{$sys_home}captcha.php?' + Math.random();
 }\n";
 ?>

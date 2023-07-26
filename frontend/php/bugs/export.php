@@ -116,7 +116,7 @@ for ($i = 0; $i < $rows; $i++)
     if ($bug_id === "")
       continue;
     $res = db_execute ("
-      SELECT * FROM ${art}_history WHERE bug_id = ? ORDER BY bug_history_id",
+      SELECT * FROM {$art}_history WHERE bug_id = ? ORDER BY bug_history_id",
       [$bug_id]
     );
     if (!$res)

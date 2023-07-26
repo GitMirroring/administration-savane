@@ -112,7 +112,7 @@ function tracker_query ($user_id, $tracker)
         '$tracker #', bug_id, ' (', field_name, ')</a>')
       as summary,
       old_value as details, spamscore, bug_history_id as comment_id, date
-    FROM ${tracker}_history
+    FROM {$tracker}_history
     WHERE mod_by = $user_id";
 }
 

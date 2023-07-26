@@ -79,7 +79,7 @@ if ($func == "digestselectfield")
         $res_deps =
           db_execute ("
             SELECT is_dependent_on_item_id
-            FROM ${dependencies_of_tracker}_dependencies
+            FROM {$dependencies_of_tracker}_dependencies
             WHERE item_id = ? AND is_dependent_on_item_id_artifact = ?
             ORDER by is_dependent_on_item_id",
             [$dependencies_of_item, ARTIFACT]

@@ -76,7 +76,7 @@ function trackers_data_get_all_fields ($group_id = false, $reload = false)
       group_id, use_it, show_on_add, show_on_add_members, place, custom_label,
       custom_description, custom_display_size, custom_empty_ok,
       custom_keep_history
-    FROM $art_field af, ${art_field}_usage afu
+    FROM $art_field af, {$art_field}_usage afu
     WHERE group_id = ? AND af.bug_field_id = afu.bug_field_id";
 
   $res_defaults = db_execute ($sql, [100]);
@@ -389,7 +389,7 @@ function trackers_data_get_item_notification_info (
 
       $result = db_execute ("
         SELECT v.email_ad, v.send_all_flag
-        FROM ${artifact}_field_value v, ${artifact}_field f, $artifact a
+        FROM {$artifact}_field_value v, {$artifact}_field f, $artifact a
         WHERE
           a.bug_id = ?  AND f.field_name = ? AND v.group_id = a.group_id
         AND v.bug_field_id = f.bug_field_id AND v.value_id = a.category_id",
@@ -1171,14 +1171,14 @@ function trackers_data_get_followups ($item_id)
           SELECT
             b.bug_history_id, b.field_name, b.old_value, b.spamscore,
             b.new_value, b.date, b.mod_by, b.type, t.group_id AS grp
-          FROM ${tracker}_history b, $tracker t
+          FROM {$tracker}_history b, $tracker t
           WHERE
             t.bug_id = ? AND b.bug_id = t.bug_id AND b.field_name = 'details'
         ) bhi
         LEFT JOIN
         (
           SELECT DISTINCT v.value, v.value_id, v.group_id
-          FROM ${tracker}_field_value v, ${tracker}_field f
+          FROM {$tracker}_field_value v, {$tracker}_field f
           WHERE
             v.bug_field_id = f.bug_field_id
             AND f.field_name = 'comment_type_id'
@@ -1309,7 +1309,7 @@ function trackers_data_add_history (
 
       $read_result = db_execute ("
         SELECT old_value, new_value
-        FROM ${artifact}_history WHERE bug_history_id = ?",
+        FROM {$artifact}_history WHERE bug_history_id = ?",
         [$insert_id]
       );
 

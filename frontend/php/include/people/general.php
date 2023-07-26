@@ -511,7 +511,7 @@ function people_show_jobs ($categories, $types)
        ON j.category_id = c.category_id)
       JOIN groups ON j.group_id = groups.group_id
     WHERE groups.is_public = 1 AND j.status_id = 1
-    ${cat_ids} ${type_ids} ORDER BY date DESC",
+    {$cat_ids} {$type_ids} ORDER BY date DESC",
     $sql_args
   );
   return people_show_job_list ($result);

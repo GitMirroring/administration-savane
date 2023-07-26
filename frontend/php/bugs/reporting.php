@@ -240,11 +240,11 @@ if ($field != 'status_id')
       {
         # Check if the project has its own instance of the value set.
         $result = db_execute ("
-          SELECT ${artifact}_field_value.value
-          FROM ${artifact}_field_value
+          SELECT {$artifact}_field_value.value
+          FROM {$artifact}_field_value
           WHERE
-            ${artifact}_field_value.bug_field_id = ?
-            AND ${artifact}_field_value.group_id = ?",
+            {$artifact}_field_value.bug_field_id = ?
+            AND {$artifact}_field_value.group_id = ?",
           [trackers_data_get_field_id ($field), $group_id]
         );
         if (db_numrows ($result) > 0)
@@ -256,7 +256,7 @@ if ($field != 'status_id')
 
         $sql = "
           SELECT fv.value, count(*) AS Count
-          FROM ${artifact}_field_value fv, ${artifact} ar
+          FROM {$artifact}_field_value fv, {$artifact} ar
           WHERE
             fv.value_id = ar.$field
             AND fv.bug_field_id = ? AND fv.group_id = ?
@@ -290,7 +290,7 @@ if ($field == 'assigned_to')
 else
   {
     $result = db_execute ("
-      SELECT fv.value FROM ${artifact}_field_value fv
+      SELECT fv.value FROM {$artifact}_field_value fv
       WHERE fv.bug_field_id = ? AND fv.group_id = ?",
       [trackers_data_get_field_id ($field), $group_id]
     );
@@ -301,7 +301,7 @@ else
 
     $sql = "
       SELECT fv.value, count(*) AS Count
-      FROM ${artifact}_field_value fv, $artifact ar
+      FROM {$artifact}_field_value fv, $artifact ar
       WHERE
         fv.value_id = ar.$field AND spamscore < 5
         AND fv.bug_field_id = ?  AND fv.group_id = ? AND ar.group_id = ?

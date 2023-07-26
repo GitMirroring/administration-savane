@@ -944,7 +944,7 @@ function trackers_exclude_list ($artifact, $group_id, $force_exclude, $privacy)
   if ($privacy == '2')
     {
       $result = db_execute ("
-        SELECT ${artifact}_private_exclude_address
+        SELECT {$artifact}_private_exclude_address
         FROM groups WHERE group_id = ?", [$group_id]
       );
       $exclude = db_result ($result, 0, "{$artifact}_private_exclude_address");
