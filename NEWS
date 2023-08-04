@@ -31,6 +31,10 @@
 * i18n-related code is updated.  *.gmo files don't come with the distribution
   any more.
 
+* Bug fixes:
+
+** Gettext autoconf macro invocations were wrong.
+
 [REQUIREMENTS]
 
 * GNU gettext version 0.16.1 or later is required.

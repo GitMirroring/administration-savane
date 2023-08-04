@@ -40,66 +40,39 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([GNU Savannah],
-	[3.12],
-	[savannah-hackers-public@gnu.org], [savane],
-	[https://savannah.gnu.org/projects/administration])
+AC_INIT([GNU Savannah], [3.12], [savannah-hackers-public@gnu.org], [savane],
+  [https://savannah.gnu.org/projects/administration])
 
 AC_CONFIG_AUX_DIR(autotools)
 # For future version of aclocal:
 AC_CONFIG_MACRO_DIR(autotools/m4)
 AM_INIT_AUTOMAKE([1.11.1])
-AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_REQUIRE_VERSION(0.16.1)
-AM_GNU_GETTEXT_NEED([need-ngettext])
+AM_PO_SUBDIRS
 AC_PROG_INSTALL
 
-# The installed program must know where to find its message catalogs.
-# Unfortunately, prefix gets only finally determined at the end of configure.
-# i.e. otherwise you'll get @localedir@ => ${datarootdir}/locale
-# (litterally).
-if test "X$prefix" = "XNONE"; then
-  final_prefix="$ac_default_prefix"
-else
-  final_prefix="$prefix"
-fi
-save_prefix="$prefix"
-prefix="$final_prefix"
-eval "datarootdir=\"${datarootdir}\""
-eval "localedir=\"${datadir}/locale\""
-prefix="$save_prefix"
+AC_PATH_PROG(PERL, [perl])
+AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
 
-if test -z "$MSGFMT" || test "x$MSGFMT" = "x:"; then
-  AC_MSG_ERROR([msgfmt not found; please install GNU gettext])
-fi
+AC_PATH_PROG(SV_DB_CMD, [mysql])
+AS_CASE(["x$SV_DB_CMD"], [x], [AC_MSG_ERROR([MySQL client not found])])
 
-AC_PATH_PROG(PERL, perl)
-if test -z "$PERL"; then
-  AC_MSG_ERROR([perl not found])
-fi
-
-AC_PATH_PROG(SV_DB_CMD, mysql)
-if test -z "$SV_DB_CMD"; then
-  AC_MSG_ERROR([mysql client not found])
-fi
-
-# Look for Apache2 and Mysqlserver, needed for local testing.
-AC_PATH_PROG([APACHE2_SERVER_BIN],[apache2],[],
-	     [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
+# Look for Apache2 and MySQL server, needed for local testing.
+AC_PATH_PROG([APACHE2_SERVER_BIN], [apache2], [],
+  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([APACHE2_SERVER_BIN])
-AC_PATH_PROG([MYSQLD_SAFE_BIN],[mysqld_safe],[],
-	     [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
+AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
+  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQLD_SAFE_BIN])
-AC_PATH_PROG([MYSQL_INSTALLDB_BIN],[mysql_install_db],[],
-	     [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
+AC_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db], [],
+  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQL_INSTALLDB_BIN])
-AC_PATH_PROG([MYSQLADMIN_BIN],[mysqladmin],[],
-	     [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
+AC_PATH_PROG([MYSQLADMIN_BIN], [mysqladmin], [],
+  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQLADMIN_BIN])
-AC_PATH_PROG([MYSQL_BIN],[mysql],[],
-	     [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
+AC_PATH_PROG([MYSQL_BIN], [mysql], [],
+  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQL_BIN])
-AC_PATH_PROG(GIT, git)
+AC_PATH_PROG(GIT, [git])
 
 AC_ARG_ENABLE([changelog],
   [AS_HELP_STRING([--enable-changelog], [update ChangeLog from git logs])],
