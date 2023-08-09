@@ -74,10 +74,12 @@ AC_PATH_PROG([MYSQL_BIN], [mysql], [],
 AC_SUBST([MYSQL_BIN])
 AC_PATH_PROG(GIT, [git])
 
+AC_MSG_CHECKING([whether to regenerate ChangeLog])
 AC_ARG_ENABLE([changelog],
   [AS_HELP_STRING([--enable-changelog], [update ChangeLog from git logs])],
-  [], [enable_changelog=no]
-)
+  [], [enable_changelog=no])
+AC_MSG_RESULT([$enable_changelog])
+
 AS_CASE(["x$GIT"], [x], [], [
   AS_IF([test -d "$srcdir/.git"], [
     AS_CASE(["x$enable_changelog"], [xyes], [
@@ -139,6 +141,7 @@ AS_ECHO([])
 AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Guessed HTTPd/PHP user: $GUESS_WWW_SERVER_USER"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
+AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
   [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]
 )
