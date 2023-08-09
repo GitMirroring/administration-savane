@@ -94,40 +94,36 @@ AS_CASE(["x$GIT"], [x], [], [
   ])
 ])
 
-AC_ARG_WITH([db-name], AS_HELP_STRING([--with-db-name],
-  [name of the database (default: 'savane')]),
-  SV_DB_NAME="$withval",
-  SV_DB_NAME="savane")
-AC_ARG_WITH([db-options], AS_HELP_STRING([--with-db-options],
-  [parameters to give MySQL when initializing the database (default: empty)]),
+AC_MSG_CHECKING([for database name])
+AC_ARG_WITH([db-name],
+  AS_HELP_STRING([--with-db-name], [name of the database [savane]]),
+  SV_DB_NAME="$withval", SV_DB_NAME="savane")
+AC_MSG_RESULT([$SV_DB_NAME])
+
+AC_MSG_CHECKING([for database options])
+AC_ARG_WITH([db-options],
+  AS_HELP_STRING([--with-db-options],
+    [parameters to give MySQL when initializing the database []]),
   SV_DB_OPTIONS="$withval")
-# Add these vars in the Makefile's:
+AC_MSG_RESULT([$SV_DB_OPTIONS])
+
 AC_SUBST(SV_DB_NAME)
 AC_SUBST(SV_DB_OPTIONS)
 
 SV_CONF="$sysconfdir/savane"
 AC_SUBST(SV_CONF)
 
-AC_MSG_NOTICE([checking for webserver user])
-if test -e  "/etc/debian_version"; then
-    # Debian-based
-    GUESS_WWW_SERVER_USER="www-data"
-    GUESS_PERL_INC="/usr/lib/perl5"
-elif test -e "/etc/redhat-release"; then
-    # Fedora- or RedHat-based
-    GUESS_WWW_SERVER_USER="apache"
-    GUESS_PERL_INC="/usr/lib/perl5/site_perl"
-elif test -e "/etc/gentoo-release"; then
-    # Gentoo-based
-    GUESS_WWW_SERVER_USER="apache"
-elif test -e "/etc/slackware-version"; then
-    # Slackware-based"
-    GUESS_WWW_SERVER_USER="nobody"
-fi
-AC_MSG_RESULT([$GUESS_WWW_SERVER_USER])
-# TODO: --with-php-uid=... (AC_ARG_ENABLE)
-# TODO: ps aux | grep -E 'http|apache' | parse_uid_field...
-# TODO: else { echo "Couldn't guess Apache user"; exit 1}
+AC_MSG_CHECKING([for Apache user])
+AC_ARG_WITH([apache-user],
+  AS_HELP_STRING([--with-apache-user], [webserver user [current user]]),
+  [WWW_SERVER_USER="$withval"], [WWW_SERVER_USER=`whoami`])
+AC_MSG_RESULT([$WWW_SERVER_USER])
+
+AC_MSG_CHECKING([for Apache group])
+AC_ARG_WITH([apache-group],
+  AS_HELP_STRING([--with-apache-user], [webserver group [the same as user]]),
+  [WWW_SERVER_GROUP="$withval"], [WWW_SERVER_GROUP="$WWW_SERVER_USER"])
+AC_MSG_RESULT([$WWW_SERVER_GROUP])
 
 AC_CONFIG_FILES([
   Makefile autotools/m4/Makefile etc/Makefile frontend/Makefile
@@ -139,7 +135,8 @@ AC_OUTPUT
 
 AS_ECHO([])
 AS_ECHO(["Configuration directory: $SV_CONF"])
-AS_ECHO(["Guessed HTTPd/PHP user: $GUESS_WWW_SERVER_USER"])
+AS_ECHO(["Apache user: $WWW_SERVER_USER"])
+AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
 AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
