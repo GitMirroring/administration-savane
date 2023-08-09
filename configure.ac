@@ -49,6 +49,7 @@ AC_CONFIG_MACRO_DIR(autotools/m4)
 AM_INIT_AUTOMAKE([1.11.1])
 AM_PO_SUBDIRS
 AC_PROG_INSTALL
+AC_PROG_LN_S
 
 AC_PATH_PROG(PERL, [perl])
 AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
@@ -94,6 +95,21 @@ AS_CASE(["x$GIT"], [x], [], [
   ])
 ])
 
+AC_MSG_CHECKING([for Git commit])
+SV_GIT_COMMIT=`sed 's,^commit ,,;q' $srcdir/ChangeLog`
+commit_source='guessed from ChangeLog'
+AS_IF([test -d "$srcdir/.git"], [
+  head=`sed 's,^ref: ,,;q' $srcdir/.git/HEAD`
+  SV_GIT_COMMIT=`cat $srcdir/.git/$head`
+  commit_source='extracted from Git repository'
+])
+AC_MSG_RESULT([$SV_GIT_COMMIT])
+AS_IF([echo $SV_GIT_COMMIT | grep -q ['^[a-f0-9]\{40,\}$']],
+  [],
+  [AC_MSG_ERROR([Failed to identify Git commit of the source code.])
+])
+AC_SUBST([SV_GIT_COMMIT])
+
 AC_MSG_CHECKING([for database name])
 AC_ARG_WITH([db-name],
   AS_HELP_STRING([--with-db-name], [name of the database [savane]]),
@@ -107,8 +123,8 @@ AC_ARG_WITH([db-options],
   SV_DB_OPTIONS="$withval")
 AC_MSG_RESULT([$SV_DB_OPTIONS])
 
-AC_SUBST(SV_DB_NAME)
-AC_SUBST(SV_DB_OPTIONS)
+AC_SUBST([SV_DB_NAME])
+AC_SUBST([SV_DB_OPTIONS])
 
 SV_CONF="$sysconfdir/savane"
 AC_SUBST(SV_CONF)
@@ -134,6 +150,8 @@ AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
 AC_OUTPUT
 
 AS_ECHO([])
+AS_ECHO(["Configured $PACKAGE_STRING"])
+AS_ECHO(["Git commit: $SV_GIT_COMMIT ($commit_source)"])
 AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Apache user: $WWW_SERVER_USER"])
 AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
@@ -146,4 +164,4 @@ AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
 AS_ECHO([])
 AS_ECHO(["Now you can run"])
 AS_ECHO(["  make all install installcheck"])
-AS_ECHO(["to install and check the backend scripts and their Savane library."])
+AS_ECHO(["to install and check the package."])

@@ -148,18 +148,19 @@ class Layout extends savane_error
   }
   function get_git_commit ()
   {
+    $default_val = $GLOBALS['sys_git_commit'];
     $git_dir = dirname (__FILE__) . "/../../../.git";
     if (!is_dir ($git_dir))
-      return null;
+      return $default_val;
     $ref_file = "$git_dir/HEAD";
     if (!is_file ($ref_file) || !is_readable ($ref_file))
-      return null;
+      return $default_val;
     $ref = file_get_contents ($ref_file);
     if (!preg_match ("/^ref: ([^\n]*)\n$/", $ref, $matches))
-      return null;
+      return $default_val;
     $ref_file = "$git_dir/{$matches[1]}";
     if (!is_file ($ref_file) || !is_readable ($ref_file))
-      return null;
+      return $default_val;
     return trim (file_get_contents ($ref_file));
   }
   function get_savane_url ($commit)

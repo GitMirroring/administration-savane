@@ -95,16 +95,19 @@ Bootstrapping from Git checkout
 Build Time
 ----------
 
-* ImageMagic (resizing images for icons)
+* GNU Coreutils
+* GNU Gettext 0.16.1 or later
 * GNU Make
+* Grep
 * Sed
+* Find
+* ImageMagic (resizing images for icons)
 
 Run Time
 --------
 
+* GNU Coreutils
 * Grep
-* GNU coreutils
-* GNU gettext 0.16.1 or later
 * GnuPG
 * PHP (5.4, 5.5, 5.6, 7.0, 7.2, 7.4, 8.0, 8.1 or 8.2)
 ** Text_CAPTCHA (php-text-captcha, php-image-text in Trisquel)
@@ -116,7 +119,7 @@ Run Time
 ** Digest::MD5 (in an unmaintained test suite)
 * MySQL or MariaDB
 * Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel)
-* pwqcheck (handling new passwords in frontend, passwdqc in Trisquel)
+* Pwqcheck (handling new passwords in frontend, passwdqc in Trisquel)
 
 Documentation
 =============

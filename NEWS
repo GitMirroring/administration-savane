@@ -54,6 +54,8 @@
 
 [BUILD]
 
+* frontend part is installed to $(pkgdatadir).
+
 * i18n-related code is updated.  *.gmo files don't come with the distribution
   any more.
 
