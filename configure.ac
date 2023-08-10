@@ -54,6 +54,8 @@ AC_PROG_LN_S
 AC_PATH_PROG(PERL, [perl])
 AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
 
+AC_PATH_PROG(PHP, [php])
+
 AC_PATH_PROG(SV_DB_CMD, [mysql])
 AS_CASE(["x$SV_DB_CMD"], [x], [AC_MSG_ERROR([MySQL client not found])])
 
@@ -94,6 +96,15 @@ AS_CASE(["x$GIT"], [x], [], [
     ])
   ])
 ])
+
+AC_MSG_CHECKING([whether to install frontend part])
+AC_ARG_ENABLE([frontend],
+  [AS_HELP_STRING([--disable-frontend], [skip frontend (PHP) part])],
+  [], [enable_frontend=yes])
+AS_CASE(["x$enable_frontend"], [xno], [], [enable_frontend=yes])
+AC_MSG_RESULT([$enable_frontend])
+AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
+AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
 AC_MSG_CHECKING([for Git commit])
 SV_GIT_COMMIT=`sed 's,^commit ,,;q' $srcdir/ChangeLog`
@@ -156,6 +167,7 @@ AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Apache user: $WWW_SERVER_USER"])
 AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
+AS_ECHO(["Install frontend (PHP) part: $enable_frontend"])
 AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
   [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]

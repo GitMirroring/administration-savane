@@ -54,7 +54,9 @@
 
 [BUILD]
 
-* frontend part is installed to $(pkgdatadir).
+* frontend part is installed to $(pkgdatadir); a few PHP checks are run
+  in configure and installcheck time.  New configure option to control
+  this, --disable-frontend.
 
 * i18n-related code is updated.  *.gmo files don't come with the distribution
   any more.

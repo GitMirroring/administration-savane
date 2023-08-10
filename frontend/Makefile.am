@@ -46,6 +46,7 @@ EXTRA_DIST = . php/link-to-file.php php/link-to-projects.php php/link-to-users.p
 
 frontenddir = $(pkgdatadir)/frontend
 dest_dir = $(DESTDIR)$(frontenddir)
+if HAVE_FRONTEND
 install-data-hook:
 	find $(srcdir) ! -type d ! -type l ! -name 'Makefile*' -print \
 	  | while read f; do \
@@ -71,3 +72,11 @@ install-data-hook:
 
 nobase_frontend_DATA = php/include/ac_config.php
 uninstall-hook: ; rm -fr $(dest_dir)
+
+installcheck-local: ; cd $(dest_dir)/php; \
+  for t in markup sane format_date; do \
+    res=`$(PHP) testing/$$t.php`; \
+    if test "x$$res" = x; then continue; fi; \
+    echo $$t failed: ; echo $$res; exit 1; \
+  done
+endif # HAVE_FRONTEND
