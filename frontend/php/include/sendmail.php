@@ -333,25 +333,41 @@ function sendmail_addr_is_account_name ($a)
   return !(sendmail_addr_is_uid ($a) || sendmail_addr_is_email ($a));
 }
 
+# Normalize account names in the address lists to lower case.
+# Return extracted set of account names.
+function sendmail_extract_account_names (&$to, &$exclude)
+{
+  $lowered_names = [];
+  foreach ([$to, $exclude] as $arr)
+    {
+      $names = [];
+      foreach ($arr as $k => $ignored)
+        if (sendmail_addr_is_account_name ($k))
+          {
+            $names[$k] = true;
+            $lowered_names[strtolower ($k)] = true;
+          }
+       foreach ($names as $k => $ignored)
+         {
+           unset ($arr[$k]);
+           $arr[strtolower ($k)] = true;
+         }
+    }
+  return array_keys ($lowered_names);
+}
+
 function sendmail_reduce_names_to_uids ($to, $exclude)
 {
-  $names = [];
-  foreach ([$to, $exclude] as $arr)
-    foreach ($arr as $k => $ignored)
-      if (sendmail_addr_is_account_name ($k))
-        $names[$k] = true;
-   if (empty ($names))
-     return [$to, $exclude];
-   $names = array_keys ($names);
+   $names = sendmail_extract_account_names ($to, $exclude);
    $ph = utils_in_placeholders ($names);
    $res = db_execute (
      "SELECT user_id, user_name FROM user WHERE user_name $ph", $names
    );
    while ($row = db_fetch_array ($res))
      foreach (['to', 'exclude'] as $a)
-       if (!empty ($$a[$row['user_name']]))
+       if (!empty ($$a[strtolower ($row['user_name'])]))
          {
-           unset ($$a[$row['user_name']]);
+           unset ($$a[strtolower ($row['user_name'])]);
            $$a[$row['user_id']] = true;
          }
    return [$to, $exclude];
