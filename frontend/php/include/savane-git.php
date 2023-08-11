@@ -1,8 +1,9 @@
 <?php
-# Basic directory configuration, depending on autoconfigured values.
+# URLs related to offering the corresponding source code (via Cgit).
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
-# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Tobias Toedter <t.toedter--gmx.net>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2013, 2014, 2017-2023 Ineiev
@@ -40,39 +41,55 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-$prefix = "@prefix@";
-$exec_prefix = "@exec_prefix@";
-$bindir = "@bindir@";
-$datarootdir = "@datarootdir@";
-$sys_confdir = "@sysconfdir@";
-$sys_localedir = "@localedir@";
-unset ($prefix, $datarootdir);
-$savane_version = "@VERSION@";
-$sys_conf_file_name = '.savane.conf.php';
-$sys_conf_file = null;
-$ac_git_commit = "@SV_GIT_COMMIT@";
-$ac_package_tarname = "@PACKAGE_TARNAME@";
 
-if (empty ($sys_confdir))
-  $sys_etc_dir = '/etc';
-else
-  $sys_etc_dir = $sys_confdir;
+# Figure out the commit of the corresponding source code.
+function git_get_commit ()
+{
+  $default_val = $GLOBALS['ac_git_commit'];
+  $git_dir = dirname (__FILE__) . "/../../../.git";
+  if (!is_dir ($git_dir))
+    return $default_val;
+  $ref_file = "$git_dir/HEAD";
+  if (!is_file ($ref_file) || !is_readable ($ref_file))
+    return $default_val;
+  $ref = file_get_contents ($ref_file);
+  if (!preg_match ("/^ref: ([^\n]*)\n$/", $ref, $matches))
+    return $default_val;
+  $ref_file = "$git_dir/{$matches[1]}";
+  if (!is_file ($ref_file) || !is_readable ($ref_file))
+    return $default_val;
+  return trim (file_get_contents ($ref_file));
+}
+function git_get_savane_url ($commit)
+{
+  global $sys_savane_url, $sys_savane_cgit;
+  if (empty ($commit))
+    return $sys_savane_url;
+  return "$sys_savane_cgit/commit/?id=$commit";
+}
 
-$sys_etc_dir .= '/savane/';
+function git_get_tarball_name ()
+{
+  $commit = git_get_commit ();
+  return "{$GLOBALS['ac_package_tarname']}-$commit.tar.gz";
+}
 
-foreach (
-  [getenv ('SAVANE_CONF'), getenv ('SV_LOCAL_INC_PREFIX'), $sys_etc_dir] as $d
-)
-  {
-    if (!$d)
-      continue;
-    if (!preg_match (',/$,', $d))
-      $d .= '/';
-    $conf_file = "$d$sys_conf_file_name";
-    if (!file_exists ($conf_file) || !is_readable ($conf_file))
-      continue;
-    $sys_conf_file = $conf_file;
-    break;
-  }
-unset ($conf_file);
+function git_get_tarball_url ()
+{
+  $tarball_name = git_get_tarball_name ();
+  $prot = 'http';
+  if (isset ($GLOBALS['sys_https_host']))
+    $prot .= 's';
+  return "$prot:{$GLOBALS['sys_savane_cgit']}/snapshot/$tarball_name";
+}
+
+# Return non-zero when tarball URL results in an error.
+function git_check_tarball ()
+{
+  $f = fopen (git_get_tarball_url (), 'r');
+  if ($f === false)
+    return 1;
+  fclose ($f);
+  return 0;
+}
 ?>

@@ -171,7 +171,7 @@ ServerName 127.0.0.1
     php_admin_flag magic_quotes_gpc off
     php_admin_flag file_uploads on
 
-    php_admin_flag allow_url_fopen off
+    php_admin_flag allow_url_fopen on
     php_admin_value disable_functions exec,passthru,popen,shell_exec,system
 
     DirectoryIndex index.php index.html

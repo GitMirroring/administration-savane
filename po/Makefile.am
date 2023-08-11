@@ -114,6 +114,7 @@ POTFILES = \
 	frontend/php/include/http.php \
 	frontend/php/include/member.php \
 	frontend/php/include/sane.php \
+	frontend/php/include/savane-git.php \
 	frontend/php/include/stats/general.php \
 	frontend/php/include/people/general.php \
 	frontend/php/include/vcs.php \

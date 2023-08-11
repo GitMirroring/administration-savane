@@ -55,6 +55,7 @@ require_once ("$dir_name/pagemenu.php");
 require_once ("$dir_name/i18n.php");
 require_once ("$dir_name/theme.php");
 require_once ("$dir_name/utils.php");
+require_once ("$dir_name/savane-git.php");
 
 class Layout extends savane_error
 {
@@ -146,37 +147,13 @@ class Layout extends savane_error
     else
       return $return;
   }
-  function get_git_commit ()
-  {
-    $default_val = $GLOBALS['sys_git_commit'];
-    $git_dir = dirname (__FILE__) . "/../../../.git";
-    if (!is_dir ($git_dir))
-      return $default_val;
-    $ref_file = "$git_dir/HEAD";
-    if (!is_file ($ref_file) || !is_readable ($ref_file))
-      return $default_val;
-    $ref = file_get_contents ($ref_file);
-    if (!preg_match ("/^ref: ([^\n]*)\n$/", $ref, $matches))
-      return $default_val;
-    $ref_file = "$git_dir/{$matches[1]}";
-    if (!is_file ($ref_file) || !is_readable ($ref_file))
-      return $default_val;
-    return trim (file_get_contents ($ref_file));
-  }
-  function get_savane_url ($commit)
-  {
-    global $sys_savane_url, $sys_savane_cgit;
-    if (empty ($commit))
-      return $sys_savane_url;
-    return "$sys_savane_cgit/commit/?id=$commit";
-  }
 
   function generic_header_start ($params)
   {
     global $G_USER, $G_SESSION, $sys_name, $savane_version;
     global $sys_home, $stone_age_menu;
 
-    $url = $this->get_savane_url ($this->get_git_commit ());
+    $url = git_get_savane_url (git_get_commit ());
 
     # Avoid any cache by setting an expire time in the past, without
     # distinction.
@@ -242,8 +219,8 @@ class Layout extends savane_error
   function generic_footer ($params)
   {
     global $savane_version;
-    $commit = $this->get_git_commit ();
-    $url = $this->get_savane_url ($commit);
+    $commit = git_get_commit ();
+    $url = git_get_savane_url ($commit);
     print '<p class="footer">';
     utils_get_content ("page_footer");
     $root = realpath (dirname (__FILE__) . "/../../..");

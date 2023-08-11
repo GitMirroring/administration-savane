@@ -48,6 +48,7 @@ $sys_linguas = "en:es";
 require_once ("include/i18n.php");
 require_once ("include/database.php");
 require_once ("include/mailman.php");
+require_once ("include/savane-git.php");
 
 function return_bytes ($v)
 {
@@ -315,12 +316,38 @@ if (empty($inside_siteadmin))
 installation is properly configured. It shouldn't display any sensitive
 information, since it could give details about your setup to anybody.</p>\n";
 
+print "\n<h2>Savane source code</h2>\n\n";
+function check_source_code ()
+{
+  $commit = git_get_commit ();
+  $cgit_url = git_get_savane_url ($commit);
+  $tarball_name = git_get_tarball_name ();
+  $tarball_url = git_get_tarball_url ();
+  print "<dl>\n";
+  print "<dt>Configured Git commit</dt>\n";
+  print "<dd>{$GLOBALS['ac_git_commit']}</dd>\n";
+  print "<dt>Computed Git commit</dt>\n";
+  print "<dd><a href='$cgit_url'>$commit</a></dd>\n";
+  print "<dt>Tarball</dt>\n";
+  print "<dd><a href='$tarball_url'>$tarball_name</a></dd>\n";
+  print "<dt>Availability</dt>\n<dd>";
+  if (git_check_tarball ())
+    print "<strong>Fail.  You must make sure you offer the source code "
+      . "correctly before making the website available to other "
+      . "users.</strong>";
+  else
+    print "OK";
+  print "</dd>\n</dl>\n";
+}
+
+check_source_code ();
+
 print "\n<h2>Basic PHP configuration</h2>\n\n";
 
 print "<p>PHP version: " . phpversion () . "</p>\n";
 
 # cf. http://php.net/manual/en/ini.php
-$phptags = ['file_uploads' => '1'];
+$phptags = ['file_uploads' => '1', 'allow_url_fopen' => '1'];
 
 # Get all php.ini values.
 $all_inis = ini_get_all ();
@@ -457,17 +484,19 @@ else
   {
     include $sys_conf_file;
     $variables = [
-      'default_domain', 'https_host', 'file_domain', 'dbhost', 'dbname',
-      'dbuser', 'dbpasswd', 'www_topdir', 'url_topdir', 'etc_dir', 'incdir',
-      'name', 'unix_group_name', 'themedefault', 'mail_domain', 'mail_admin',
-      'mail_replyto', 'upload_max', 'watch_anon_posts', 'new_user_watch_days',
-      'localedir', 'linguas', 'mailman_wrapper'
+      'dbhost', 'dbname', 'dbpasswd', 'dbuser', 'default_domain',
+      'etc_dir', 'file_domain', 'https_host', 'incdir',
+      'url_topdir', 'www_topdir',
+      'linguas', 'localedir',
+      'mail_admin', 'mail_domain', 'mail_replyto', 'name',
+      'themedefault', 'unix_group_name', 'upload_max',
+      'watch_anon_posts', 'new_user_watch_days',
+      'mailman_wrapper', 'savane_url', 'savane_cgit'
     ];
     if (empty ($inside_siteadmin))
       utils_set_csp_headers ();
 
-    print "<table border=\"1\">\n";
-    print "<tr><th>Conf variable</th><th>Current value</th></tr>\n";
+    print "<dl>\n";
     foreach ($variables as $tag)
       {
         $var = "sys_$tag";
@@ -477,13 +506,13 @@ else
         if ($var == "sys_dbpasswd")
           $value = "**************";
 
-        printf ("<tr><td>%s</td><td>%s</td></tr>\n", $var, $value);
+        printf ("<dt>%s</dt>\n<dd>%s</dd>\n", $var, $value);
       }
     if (!isset ($GLOBALS['sys_debug_on']))
       $GLOBALS['sys_debug_on'] = false;
 
-    print "</table>\n";
-    print "<p>Savane uses safe defaults values when variables are not set "
+    print "</dl>\n";
+    print "<p>Savane uses safe default values when variables are not set "
       . "in the configuration file.</p>\n";
     print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
     test_captcha ();
@@ -555,7 +584,6 @@ print "<p>The following is not required to run Savane, but could enhance\n"
   . "and report\npotentially harmful bugs.</p>\n";
 
 $phptags = [
-  'allow_url_fopen' => '0',
   'disable_functions' => 'exec,passthru,popen,shell_exec,system',
   'display_errors' => '1',
   'error_reporting' => (string)(E_ALL | E_STRICT), 'log_errors' => '1',
