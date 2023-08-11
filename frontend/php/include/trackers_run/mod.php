@@ -783,7 +783,7 @@ print html_hidsubpart_footer ();
 
 print
   html_hidsubpart_header ("cc", _("Mail Notification Carbon-Copy List"));
-if (user_isloggedin() && !$item_discussion_lock)
+if ($is_trackeradmin)
   {
     print '<p class="noprint">';
     # TRANSLATORS: the argument is site name (like Savannah).

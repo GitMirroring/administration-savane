@@ -4,6 +4,9 @@
 
 * Bug fixes:
 
+** The input to add CC was shown to all visitors, even though
+   it's ignored for non-admins of the tracker; Savannah sr #110918.
+
 ** User names with uppercase letters weren't handled correctly
    in tracker CC lists since 2023-02 (46de0a4ca34).
 

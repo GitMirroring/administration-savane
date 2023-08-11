@@ -228,7 +228,7 @@ print '<span class="preinput">' . _("Comment:") . "</span><br />\n"
   . "\n</p>\n";
 
 # Cc addresses.
-if (user_isloggedin ())
+if ($is_trackeradmin)
   {
     print "<p>&nbsp;</p>\n";
     print '<h2>' . _("Mail Notification CC") . "</h2>\n";
