@@ -359,6 +359,8 @@ function sendmail_extract_account_names (&$to, &$exclude)
 function sendmail_reduce_names_to_uids ($to, $exclude)
 {
    $names = sendmail_extract_account_names ($to, $exclude);
+   if (empty ($names))
+     return [$to, $exclude];
    $ph = utils_in_placeholders ($names);
    $res = db_execute (
      "SELECT user_id, user_name FROM user WHERE user_name $ph", $names
