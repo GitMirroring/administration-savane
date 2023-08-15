@@ -10,6 +10,8 @@
 
 * Bug fixes:
 
+** Deprecation messages in the captcha library broke the resulting image.
+
 ** The input to add CC was shown to all visitors, even though
    it's ignored for non-admins of the tracker; Savannah sr #110918.
 

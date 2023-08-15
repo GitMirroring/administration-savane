@@ -44,6 +44,7 @@
 # We don't include init.php because we test this feature in testconfig.php,
 # so we should only rely on ac_config.php.
 include_once ('include/ac_config.php');
+include_once ('include/error.php');
 if (!empty ($sys_conf_file) && is_readable ($sys_conf_file))
   include_once $sys_conf_file;
 
@@ -76,17 +77,16 @@ function random_color ($dark)
   return $ret;
 }
 
-function run_image ()
+function fill_options ()
 {
-  global $sys_captcha_font_path, $sys_captcha_font_file;
   $bg_dark = rand (0, 255) < 128;
   $chars = 'abcdefghijklmnopqrstuvxyz346789';
   $options = [
     'width' => 215, 'height' => 80, 'output' => 'png',
     'imageOptions' => [
       'font_size' => 24,
-      'font_path' => $sys_captcha_font_path,
-      'font_file' => $sys_captcha_font_file,
+      'font_path' => $GLOBALS['sys_captcha_font_path'],
+      'font_file' => $GLOBALS['sys_captcha_font_file'],
       'text_color' => random_color (!$bg_dark),
       'background_color' => random_color ($bg_dark)
     ],
@@ -96,9 +96,13 @@ function run_image ()
 
   if (isset ($_SESSION['captcha_code']))
     $options['phrase'] = $_SESSION['captcha_code'];
+  return $options;
+}
 
+function run_image ()
+{
+  $options = fill_options ();
   $captcha_class = 'Image';
-
   $captcha = Text_CAPTCHA::factory ($captcha_class);
   $captcha->init ($options);
   if (!isset ($_SESSION['captcha_code']))
