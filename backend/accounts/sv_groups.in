@@ -1,4 +1,4 @@
-#! @PERL@ -I@pkgdatadir@
+#! @PERL@ -I@pkgdatadir@/lib
 # -*-Perl-*-
 # Replicate groups and group repositories on the system.
 #

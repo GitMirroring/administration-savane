@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* New script, sv_frontendctl.pl.
+
 * New configuration file name, savane.conf.php; when looking
   for the configuration file, it's checked before .savane.conf.php.
   The old location is deprecated.

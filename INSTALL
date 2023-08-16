@@ -13,13 +13,13 @@ into Savannah wiki (https://savannah.gnu.org/maintenance/).
 The commands are run from a non-root account unless specifically
 noted for the command in question.
 
-Install dependencies (plus Git, GNU Autotools, GNU gettext).
-If you are going to use localizations, make sure they are listed
-when running locale -a (in Trisquel, look for language-pack-*).
+Install dependencies.  If you are going to use localizations, make
+sure the languages are listed when running locale -a (in Trisquel,
+look for language-pack-*).
 
 Download and gpg --verify savane_demo-$latest.sql.gz{.sig,}
 from Savannah administration group download area
-(as of 2023-02, $latest is 2022-05).
+(as of 2023-08, $latest is 2022-05).
 
 With root privileges, create a database and a user;
 grant proper permissions:
@@ -64,82 +64,37 @@ remote: Total 14454 (delta 10514), reused 14454 (delta 10514)
 Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
 Resolving deltas: 100% (10514/10514), done.
 
-Bootstrap, configure and build:
+Bootstrap, write database password file, configure and build:
 
 $ cd savane; ./bootstrap
 autoreconf: Entering directory `.'
 ...
 autoreconf: Leaving directory `.'
-$ ./configure --prefix=$HOME/sv/install
+
+$ echo 'password=sv' > ../passwd.mysql
+$ cd ..; mkdir build; cd build
+$ ../savane/configure --prefix=$HOME/sv/install \
+  --with-db-credentials=../passwd.mysql
 checking for a BSD-compatible install... /usr/bin/install -c
 ...
-Now you can run:
-  make
-  make install
-to install the backend scripts, their Savane Perl library,
-and language files for the web interface
-$ make && make install
+Now you can run
+  make all install installcheck
+to install and check the package.
+$ make all install installcheck
 Making all in etc
 make[1]: Entering directory '/home/dti/sv/savane/etc'
 ...
 make[2]: Nothing to be done for 'install-data-am'.
 make[2]: Leaving directory '/home/dti/sv/savane'
 make[1]: Leaving directory '/home/dti/sv/savane'
+...
 $
 
-Write a sample ~/sv/install/etc/savane/cgitrepos:
+Start web server:
 
-8< - - - - - - - - - -
-repo.group=GNU Core Utilities
-repo.url=coreutils.git
-repo.path=/srv/git/coreutils.git
-repo.desc=GNU coreutils
-repo.readme=README.html
-repo.owner=
-repo.group=emacs
-repo.url=emacs.git
-repo.path=/srv/git/emacs.git
-repo.desc=Emacs source repository
-repo.readme=README.html
-repo.owner=
-repo.url=emacs/elpa.git
-repo.path=/srv/git/emacs/elpa.git
-repo.desc=GNU ELPA
-repo.readme=README.html
-repo.owner=
-repo.url=emacs/nongnu.git
-repo.path=/srv/git/emacs/nongnu.git
-repo.desc=NonGNU ELPA
-repo.readme=README.html
-repo.owner=
-repo.url=emacs/org-mode.git
-repo.path=/srv/git/emacs/org-mode.git
-repo.desc=Emacs Org mode
-repo.readme=README.html
-repo.owner=
-repo.group=GNU sed
-repo.url=sed.git
-repo.path=/srv/git/sed.git
-repo.desc=GNU stream editor
-repo.readme=README.html
-repo.owner=
-repo.url=sed/sed-history.git
-repo.path=/srv/git/sed/sed-history.git
-repo.desc=
-repo.readme=README.html
-repo.owner=
-- - - - - - - - - - >8
+$ $HOME/sv/install/sbin/sv_frontendctl -k graceful
 
-Fill local2/etc-savane/savane-dev-db.php:
-
-$ echo '<?php' > local2/etc-savane/savane-dev-db.php
-$ echo '$sys_dbhost="localhost";' >> local2/etc-savane/savane-dev-db.php
-$ echo '$sys_dbname="sv_demo";' >> local2/etc-savane/savane-dev-db.php
-$ echo '$sys_dbuser="sv";' >> local2/etc-savane/savane-dev-db.php
-$ echo '$sys_dbpasswd="sv";' >> local2/etc-savane/savane-dev-db.php
-$ echo '?>";' >> local2/etc-savane/savane-dev-db.php
-
-Run ./run-local-dev.sh and visit <http://127.0.0.1:7890/testconfig.php>.
+Visit <http://127.0.0.85:4913/testconfig.php>.
 
 Check "MySQL configuration" and disable flags like STRICT_TRANS_TABLES
 in database configuration: set sql_mode in the right file from /etc/mysql
@@ -153,154 +108,7 @@ Then restart the database server (requires root privileges):
 
 # service mariadb restart
 
-Write savane.conf:
+Visit <http://127.0.0.85:4913/testconfig.php>, look for errors.
 
-8< - - - - - - - - - -
-ServerName 127.0.0.1
-
-<VirtualHost 127.0.0.51:80>
-  ServerAdmin webmasters@localhost
-  ServerName 127.0.0.1
-
-  DocumentRoot @pref@/savane/frontend/php
-
-  SetEnv SAVANE_CONF @pref@/etc/savane
-
-  <Directory "@pref@/savane/frontend/php/">
-    php_admin_flag register_globals off
-    php_admin_flag magic_quotes_gpc off
-    php_admin_flag file_uploads on
-
-    php_admin_flag allow_url_fopen on
-    php_admin_value disable_functions exec,passthru,popen,shell_exec,system
-
-    DirectoryIndex index.php index.html
-    Require all granted
-  </Directory>
-
-  <Files ~ "^(users|us|u|projects|pr|p|file)$">
-    SetHandler application/x-httpd-php
-  </Files>
-  ErrorDocument 404 /404.php
-
-  # Restrict access into include/
-  <Directory "@pref@/savane/frontend/php/include/">
-   Require all denied
-  </Directory>
-
-  <Location "/register">
-    php_admin_value post_max_size 52428800
-    php_admin_value upload_max_filesize 52428800
-  </Location>
-
-  # Uploads for new project registrations and bug-report attachments.
-  # This directory must be writable by 'www-data' user.
-  # NOTE: Ensure this directory matches the '$sys_upload_dir' value
-  #       in the custom savanne configuration file
-  #       ($SAVANE_CONF/.savane.conf.php).
-  Alias /submissions_uploads @pref@/var/www/submissions_uploads/
-  <Directory "@pref@/var/www/submissions_uploads/">
-    Options Indexes
-    AllowOverride None
-
-    # Tested with Apache2 + mod-php7
-    php_admin_flag engine off
-
-    # Method 3:
-    <FilesMatch ".">
-      SetHandler default-handler
-    </FilesMatch>
-  </Directory>
-
-  # Apache Logs for development site
-  CustomLog @pref@/var/logs/sv.access.log combined
-  ErrorLog @pref@/var/logs/sv.error.log
-
-  # PHP logs for development site.
-  php_admin_flag log_errors on
-  php_admin_flag display_errors on
-
-  # Include deprecation warnings, set the value to E_ALL (32767).
-  # see http://php.net/manual/en/errorfunc.constants.php .
-  php_admin_value error_reporting 32767
-
-  php_admin_value error_log @pref@/var/logs/sv.php-error.log
-
-</VirtualHost>
-- - - - - - - - - - >8
-
-Substitute your path:
-
-$ sed -i "s,@pref@,$HOME/sv,g" savane.conf
-
-Create used directories:
-
-$ mkdir -p $HOME/sv/install/etc/savane \
-  $HOME/sv/var/{logs,www/submissions_uploads/trackers_attachments}
-
-Make var directories writeable for www-data (uses root privileges
-via sudo):
-
-$ sudo chgrp -R www-data $HOME/sv/var
-
-Write in $HOME/sv/install/etc/savane/.savane.conf.php:
-8< - - - - - - - - - -
-<?php
-$sys_default_domain = "127.0.0.51";
-#$sys_https_host = "$sys_default_domain";
-$sys_brother_domain = "127.0.0.51";
-$sys_file_domain = $sys_default_domain;
-
-$sys_debug_nobasehost = true;
-$sys_debug_email_override_address = "webmasters@localhost";
-
-$sys_dbhost = "localhost";
-$sys_dbname = "sv_demo";
-$sys_dbuser = "sv";
-$sys_dbpasswd = 'sv';
-$sys_incdir = "gnu";
-$sys_name = "Savannah-dev";
-$sys_unix_group_name = "administration";
-$sys_themedefault = "Savannah";
-
-# Directory for group registration uploads.
-$sys_upload_dir = "@pref@/var/www/submissions_uploads/";
-$sys_trackers_attachments_dir = "{$sys_upload_dir}trackers_attachments";
-
-$sys_logo_name = "floating.png";
-$sys_logo_name_width = "148";
-$sys_logo_name_height = "125";
-$sys_mail_domain = "localhost";
-$sys_mail_admin = "savannah-reports-private";
-$sys_mail_replyto = "INVALID.NOREPLY";
-$sys_mail_list = "/etc/email-addresses";
-$sys_mail_aliases = "/etc/aliases";
-$sys_enable_forum_comments = 0;
-$sys_registration_text_spam_test = 0;
-$sys_registration_captcha = 1;
-$sys_userx_prefix = "/usr/sbin";
-$sys_upload_max = 16384;
-
-$sys_etc_dir = "@pref@/etc/savane";
-
-$sys_debug_sqlprofiler = false;
-?>
-- - - - - - - - - - >8
-
-Substitute your path:
-
-$ sed -i "s,@pref@,$HOME/sv,g" ~/sv/install/etc/savane/.savane.conf.php
-
-Copy to Apache configuration directory, add a link, restart Apache
-(requires root privileges):
-
-# cp savane.conf /etc/apache2/sites-available
-# cd /etc/apache2/sites-enabled; ln -s ../sites-available/savane.conf .
-# apachectl -k graceful
-# exit
-$
-
-Visit <http://127.0.0.51/testconfig.php>.
-
-At this point, it should work: visit <http://127.0.0.51>,
+At this point, it should work: visit <http://127.0.0.85:4913>,
 login as 'agn' using password '12345'.

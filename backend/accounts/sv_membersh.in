@@ -1,4 +1,4 @@
-#! @PERL@ -I@pkgdatadir@
+#! @PERL@ -I@pkgdatadir@/lib
 # Restricted shell to be used as the login shell for Savane users.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

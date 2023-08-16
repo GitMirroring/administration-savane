@@ -1,4 +1,4 @@
-#! @PERL@ -I@pkgdatadir@
+#! @PERL@ -I@pkgdatadir@/lib
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -45,7 +45,7 @@ use strict;
 use Savane::Version;
 use Savane::DB;
 
-my $help_msg = 
+my $help_msg =
 "Usage: $0 [OPTIONS] USER
 
 Print SSH keys for the user from the Savane database.

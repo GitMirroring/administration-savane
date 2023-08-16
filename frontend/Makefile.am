@@ -40,8 +40,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = . php/file php/projects php/users
-
 basic_png = \
   php/images/mime_type/blank.png \
   php/images/OldCERN.theme/floating.png \
@@ -322,47 +320,463 @@ derived_png = \
 
 png_src = $(derived_png:%.png=%.orig.png)
 
+ordinary_files = \
+  php/404-export.php \
+  php/404.php \
+  php/account/first.php \
+  php/account/impersonate.php \
+  php/account/index.php \
+  php/account/login.php \
+  php/account/logout.php \
+  php/account/lostlogin.php \
+  php/account/lostpw-confirm.php \
+  php/account/lostpw.php \
+  php/account/pending-resend.php \
+  php/account/register.php \
+  php/account/su.php \
+  php/account/verify.php \
+  php/arch/index.php \
+  php/bug/index.php \
+  php/bugs/admin/conf-copy.php \
+  php/bugs/admin/editqueryforms.php \
+  php/bugs/admin/field_usage.php \
+  php/bugs/admin/field_values.php \
+  php/bugs/admin/field_values_reset.php \
+  php/bugs/admin/field_values_transition-ofields-update.php \
+  php/bugs/admin/index.php \
+  php/bugs/admin/notification_settings.php \
+  php/bugs/admin/other_settings.php \
+  php/bugs/admin/userperms.php \
+  php/bugs/dependencies.php \
+  php/bugs/download.php \
+  php/bugs/export.php \
+  php/bugs/index.php \
+  php/bugs/item.php \
+  php/bugs/reporting.php \
+  php/bzr/index.php \
+  php/captcha.php \
+  php/contact.php \
+  php/css/Cafe.css \
+  php/css/Cappuccino.css \
+  php/css/CERN.css \
+  php/css/CodeX.css \
+  php/css/DarkSlate.css \
+  php/css/Elessar.css \
+  php/css/Emeraud.css \
+  php/css/Forest.css \
+  php/css/Gna.css \
+  php/css/graph-widths.php \
+  php/css/internal/base.css \
+  php/css/internal/stone-age-menu.css \
+  php/css/internal/testconfig.css \
+  php/css/LCD.css \
+  php/css/Light2.css \
+  php/css/Light.css \
+  php/css/LinuxfrPointOrg.css \
+  php/css/OldCERN.css \
+  php/css/pllx.css \
+  php/css/README \
+  php/css/Reverse.css \
+  php/css/Savanedu.css \
+  php/css/Savannah.css \
+  php/css/SlashD.css \
+  php/css/SoftGreen.css \
+  php/css/UGent.css \
+  php/css/Water.css \
+  php/css/www.gnu.org.css \
+  php/cvs/admin/index.php \
+  php/cvs/index.php \
+  php/docs/index.php \
+  php/file \
+  php/file.php \
+  php/files/index.php \
+  php/forum/forum.php \
+  php/forum/message.php \
+  php/git/admin/index.php \
+  php/git/index.php \
+  php/hg/index.php \
+  php/i18n.php \
+  php/images/common/COPYING.CC0 \
+  php/images/common/COPYING.GPL \
+  php/images/common/icon.xcf \
+  php/images/common/logo-fsf.org.svg \
+  php/images/common/meditate.tar.xz \
+  php/images/common/README \
+  php/images/Elessar.theme/README \
+  php/images/Forest.theme/README \
+  php/images/Light.theme/README \
+  php/images/LinuxfrPointOrg.theme/README \
+  php/images/mime_type/README \
+  php/images/misc/README \
+  php/images/pllx.theme/README \
+  php/images/README \
+  php/images/README.tangoset \
+  php/images/Reverse.theme/README \
+  php/images/SlashD.theme/README \
+  php/images/Water.theme/README \
+  php/images/www.gnu.org.theme/README \
+  php/include/ac_config.php.in \
+  php/include/account.php \
+  php/include/calendar.php \
+  php/include/context.php \
+  php/include/database.php \
+  php/include/error.php \
+  php/include/exit.php \
+  php/include/features_boxes.php \
+  php/include/form.php \
+  php/include/gpg.php \
+  php/include/gpl-quick-form.php \
+  php/include/graphs.php \
+  php/include/group.php \
+  php/include/.htaccess \
+  php/include/html.php \
+  php/include/http.php \
+  php/include/i18n.php \
+  php/include/init.php \
+  php/include/layout.php \
+  php/include/mailman.php \
+  php/include/markup.php \
+  php/include/member.php \
+  php/include/my/bookmarks.php \
+  php/include/my/general.php \
+  php/include/news/forum.php \
+  php/include/news/general.php \
+  php/include/pagemenu.php \
+  php/include/people/general.php \
+  php/include/project/admin.php \
+  php/include/project_home.php \
+  php/include/proj_email.php \
+  php/include/pwqcheck.php \
+  php/include/random-bytes.php \
+  php/include/sane.php \
+  php/include/savane_error.php \
+  php/include/savane-git.php \
+  php/include/search/general.php \
+  php/include/sendmail.php \
+  php/include/session.php \
+  php/include/sitemenu.php \
+  php/include/spam.php \
+  php/include/stats/general.php \
+  php/include/theme.php \
+  php/include/timezones.php \
+  php/include/trackers/conf.php \
+  php/include/trackers/cookbook.php \
+  php/include/trackers/data.php \
+  php/include/trackers/format.php \
+  php/include/trackers/general.php \
+  php/include/trackers_run/add.php \
+  php/include/trackers_run/browse.php \
+  php/include/trackers_run/digest.php \
+  php/include/trackers_run/mod.php \
+  php/include/trackers_run/README \
+  php/include/trackers_run/search.php \
+  php/include/trackers/show.php \
+  php/include/trackers/transition.php \
+  php/include/trackers/votes.php \
+  php/include/trackers/view-dependencies.php \
+  php/include/user.php \
+  php/include/utils.php \
+  php/include/vars.php \
+  php/include/vcs/git.php \
+  php/include/vcs.php \
+  php/index.php \
+  php/js/captcha.php \
+  php/js/hide-feedback.php \
+  php/js/hide-span.php \
+  php/js/show-feedback.php \
+  php/js/show-hide.php \
+  php/mail/admin/index.php \
+  php/mail/index.php \
+  php/markup-test.php \
+  php/my/admin/cc.php \
+  php/my/admin/change_notifications.php \
+  php/my/admin/change.php \
+  php/my/admin/editsshkeys.php \
+  php/my/admin/index.php \
+  php/my/admin/resume.php \
+  php/my/admin/sessions.php \
+  php/my/bookmarks.php \
+  php/my/groups.php \
+  php/my/index.php \
+  php/my/items.php \
+  php/my/quitproject.php \
+  php/my/votes.php \
+  php/news/admin/index.php \
+  php/news/approve.php \
+  php/news/atom.php \
+  php/news/index.php \
+  php/news/submit.php \
+  php/p \
+  php/people/admin/index.php \
+  php/people/createjob.php \
+  php/people/editjob.php \
+  php/people/index.php \
+  php/people/resume.php \
+  php/people/viewgpg.php \
+  php/people/viewjob.php \
+  php/pr \
+  php/project/admin/conf-copy.php \
+  php/project/admin/editgroupfeatures.php \
+  php/project/admin/editgroupinfo.php \
+  php/project/admin/editgroupnotifications.php \
+  php/project/admin/history.php \
+  php/project/admin/index.php \
+  php/project/admin/squadadmin.php \
+  php/project/admin/useradmin.php \
+  php/project/admin/userperms.php \
+  php/project/index.php \
+  php/project/memberlist-gpgkeys.php \
+  php/project/memberlist.php \
+  php/project/release-gpgkeys.php \
+  php/project/search.php \
+  php/projects \
+  php/projects.php \
+  php/project/stats/.htaccess \
+  php/recipe/index.php \
+  php/register/index.php \
+  php/register/requirements.php \
+  php/register/upload.php \
+  php/robots.txt \
+  php/search/index.php \
+  php/sendmessage.php \
+  php/siteadmin/groupedit.php \
+  php/siteadmin/grouplist.php \
+  php/siteadmin/group_type.php \
+  php/siteadmin/index.php \
+  php/siteadmin/lastlogins.php \
+  php/siteadmin/mailman.php \
+  php/siteadmin/retestconfig.php \
+  php/siteadmin/spamlist.php \
+  php/siteadmin/triggercreation.php \
+  php/siteadmin/user_changepw.php \
+  php/siteadmin/usergroup.php \
+  php/siteadmin/userlist.php \
+  php/sr/index.php \
+  php/stats/index.php \
+  php/svn/index.php \
+  php/testconfig.php \
+  php/testing/format_date.php \
+  php/testing/index.php \
+  php/testing/markup.php \
+  php/testing/sane.php \
+  php/testing/test.php \
+  php/.topdir \
+  php/u \
+  php/us \
+  php/users \
+  php/users.php \
+  site-specific/gnu/account/editsshkeys.php \
+  site-specific/gnu/account/first.php \
+  site-specific/gnu/account/index_gpg.php \
+  site-specific/gnu/account/index_ssh.php \
+  site-specific/gnu/admin/groupedit_grouptype.php \
+  site-specific/gnu/admin/groupedit_intro.php \
+  site-specific/gnu/admin/proj_email.php \
+  site-specific/gnu/arch/index.php \
+  site-specific/gnu/bzr/index.php \
+  site-specific/gnu/contact.php \
+  site-specific/gnu/cvs/index.php \
+  site-specific/gnu/fingerprints.php \
+  site-specific/gnu/forbidden_group_names.php \
+  site-specific/gnu/forbidden_mail_domains.php \
+  site-specific/gnu/forbidden_realnames.php \
+  site-specific/gnu/forbidden_theme.php \
+  site-specific/gnu/git/index.php \
+  site-specific/gnu/gpg-sample.php \
+  site-specific/gnu/hashes.php \
+  site-specific/gnu/hg/index.php \
+  site-specific/gnu/homepage.php \
+  site-specific/gnu/mail/about_list_creation.php \
+  site-specific/gnu/menu.php \
+  site-specific/gnu/my/groups.php \
+  site-specific/gnu/my/request_for_inclusion.php \
+  site-specific/gnu/page_footer.php \
+  site-specific/gnu/page_header.php \
+  site-specific/gnu/people/createjob.php \
+  site-specific/gnu/people/editjob.php \
+  site-specific/gnu/people/editresume.php \
+  site-specific/gnu/people/index_group.php \
+  site-specific/gnu/people/index.php \
+  site-specific/gnu/project/admin/index_misc.php \
+  site-specific/gnu/register/confirmation_mail.php \
+  site-specific/gnu/register/confirmation.php \
+  site-specific/gnu/register/index.php \
+  site-specific/gnu/register/requirements.php \
+  site-specific/gnu/svn/index.php \
+  site-specific/nongnu/admin/groupedit_grouptype.php \
+  site-specific/nongnu/admin/groupedit_intro.php \
+  site-specific/nongnu/admin/proj_email.php \
+  site-specific/nongnu/contact.php \
+  site-specific/nongnu/fingerprints.php \
+  site-specific/nongnu/forbidden_group_names.php \
+  site-specific/nongnu/forbidden_mail_domains.php \
+  site-specific/nongnu/forbidden_realnames.php \
+  site-specific/nongnu/forbidden_theme.php \
+  site-specific/nongnu/gpg-sample.php \
+  site-specific/nongnu/hashes.php \
+  site-specific/nongnu/homepage.php \
+  site-specific/nongnu/menu.php \
+  site-specific/nongnu/page_footer.php \
+  site-specific/nongnu/page_header.php \
+  site-specific/nongnu/project/admin/index_misc.php
+
+dir_links = \
+  php/cookbook \
+  php/images/Cafe.theme \
+  php/images/Cappuccino.theme \
+  php/images/CERN.theme \
+  php/images/CodeX.theme \
+  php/images/DarkSlate.theme/arrows \
+  php/images/DarkSlate.theme/bool \
+  php/images/DarkSlate.theme/contexts \
+  php/images/DarkSlate.theme/misc \
+  php/images/DarkSlate.theme/roles \
+  php/images/Elessar.theme/arrows \
+  php/images/Elessar.theme/bool \
+  php/images/Elessar.theme/contexts \
+  php/images/Elessar.theme/misc \
+  php/images/Elessar.theme/roles \
+  php/images/Emeraud.theme/arrows \
+  php/images/Emeraud.theme/bool \
+  php/images/Emeraud.theme/contexts \
+  php/images/Emeraud.theme/misc \
+  php/images/Emeraud.theme/roles \
+  php/images/Forest.theme/arrows \
+  php/images/Forest.theme/bool \
+  php/images/Forest.theme/contexts \
+  php/images/Forest.theme/misc \
+  php/images/Forest.theme/roles \
+  php/images/Gna.theme/arrows \
+  php/images/Gna.theme/bool \
+  php/images/Gna.theme/contexts \
+  php/images/Gna.theme/misc \
+  php/images/Gna.theme/roles \
+  php/images/LCD.theme \
+  php/images/Light.theme/arrows \
+  php/images/Light.theme/bool \
+  php/images/Light.theme/contexts \
+  php/images/Light.theme/misc \
+  php/images/Light.theme/roles \
+  php/images/Light2.theme \
+  php/images/LinuxfrPointOrg.theme/arrows \
+  php/images/LinuxfrPointOrg.theme/bool \
+  php/images/LinuxfrPointOrg.theme/contexts \
+  php/images/LinuxfrPointOrg.theme/misc \
+  php/images/LinuxfrPointOrg.theme/roles \
+  php/images/OldCERN.theme/arrows \
+  php/images/OldCERN.theme/bool \
+  php/images/OldCERN.theme/contexts \
+  php/images/OldCERN.theme/misc \
+  php/images/OldCERN.theme/roles \
+  php/images/pllx.theme/arrows \
+  php/images/pllx.theme/bool \
+  php/images/pllx.theme/contexts \
+  php/images/pllx.theme/misc \
+  php/images/pllx.theme/roles \
+  php/images/printer.theme \
+  php/images/Reverse.theme/arrows \
+  php/images/Reverse.theme/bool \
+  php/images/Reverse.theme/contexts \
+  php/images/Reverse.theme/misc \
+  php/images/Reverse.theme/roles \
+  php/images/Savanedu.theme \
+  php/images/Savannah.theme/arrows \
+  php/images/Savannah.theme/bool \
+  php/images/Savannah.theme/contexts \
+  php/images/Savannah.theme/misc \
+  php/images/Savannah.theme/roles \
+  php/images/SlashD.theme/arrows \
+  php/images/SlashD.theme/bool \
+  php/images/SlashD.theme/contexts \
+  php/images/SlashD.theme/misc \
+  php/images/SlashD.theme/roles \
+  php/images/SoftGreen.theme \
+  php/images/UGent.theme \
+  php/images/Water.theme/arrows \
+  php/images/Water.theme/bool \
+  php/images/Water.theme/contexts \
+  php/images/Water.theme/misc \
+  php/images/Water.theme/roles \
+  php/images/www.gnu.org.theme/arrows \
+  php/images/www.gnu.org.theme/bool \
+  php/images/www.gnu.org.theme/contexts \
+  php/images/www.gnu.org.theme/misc \
+  php/images/www.gnu.org.theme/roles \
+  php/patch \
+  php/support \
+  php/task \
+  site-specific/gnu-content \
+  site-specific/nongnu-content \
+  site-specific/nongnu/people \
+  site-specific/nongnu/account \
+  site-specific/nongnu/arch \
+  site-specific/nongnu/bzr \
+  site-specific/nongnu/cvs \
+  site-specific/nongnu/git \
+  site-specific/nongnu/hg \
+  site-specific/nongnu/mail \
+  site-specific/nongnu/my \
+  site-specific/nongnu/register \
+  site-specific/nongnu/svn
+
 frontenddir = $(pkgdatadir)/frontend
 dest_dir = $(DESTDIR)$(frontenddir)
 
+extra_dist = $(basic_png) $(ordinary_files) $(png_src)
+
+EXTRA_DIST = $(extra_dist)
+
 if HAVE_FRONTEND
 $(derived_png): %.png: %.orig.png
-	$(MKDIR_P) `dirname $@`
+	$(MKDIR_P) `echo "$@" | ${DIRNAME}`
 	convert -resize 24x24 -background white -antialias $< $@
 
-install-data-hook:
-	find $(srcdir) ! -type d ! -type l ! -name 'Makefile*' \
-	  ! -name '*.orig.png' -print \
-	  | while read f; do \
-	      dir=`echo "$$f" \
-	        | ${SED} 's,$(srcdir),$(dest_dir),;s,/[^/]*$$,,'`; \
-	      $(INSTALL_DATA) -D -t $$dir $$f || exit 1; \
-	    done
-	for pass in dir file; do \
-	  find $(srcdir) -type l -print \
-	    | while read l; do \
-	        if test -d "$$l/"; then type=dir; else type=file; fi; \
-	        if test $$pass != $$type; then continue; fi; \
-	        dir=`echo "$$l" \
-	          | ${SED} 's,$(srcdir),$(dest_dir),;s,/[^/]*$$,,'`; \
-	        source=`readlink "$$l"`; \
-	        base=`basename $$l`; \
-	        test -d "$$dir" || $(INSTALL) -d $$dir; \
-	        saved_pwd=`pwd`; cd "$$dir"; \
-	        $(LN_S) -f "$$source" $$base || exit 1; \
-	        cd $$saved_pwd; \
-	      done \
-	done
+nobase_nodist_frontend_DATA = php/include/ac_config.php $(derived_png)
 
-nobase_frontend_DATA = \
-  php/include/ac_config.php $(derived_png) $(png_src) $(basic_png)
+nobase_frontend_DATA = $(extra_dist)
+
 CLEANFILES = $(derived_png)
 uninstall-hook: ; rm -fr $(dest_dir)
 
-installcheck-local: ; cd $(dest_dir)/php; \
+install-data-hook: ; \
+  saved_pwd=`pwd`; \
+  for l in $(dir_links); do \
+    test -h "$(srcdir)/$$l" || continue; \
+    source=`readlink "$(srcdir)/$$l"`; \
+    dir=`echo "$(dest_dir)/$$l" | ${DIRNAME}`; \
+    base=`echo " $$l" | ${SED} 's,.*/,,;s,^ ,,'`; \
+    cd "$$dir"; \
+    test -e "$$base" && { cd $$saved_pwd; continue; } ; \
+    $(LN_S) -f "$$source" $$base || exit 1; \
+    cd $$saved_pwd; \
+  done
+
+installcheck_local_targets = installcheck-run-tests installcheck-test-symlinks
+
+.PHONY: $(installcheck_local_targets)
+installcheck-local: $(installcheck_local_targets)
+
+installcheck-run-tests: ; \
+  cd $(dest_dir)/php; \
   for t in markup sane format_date; do \
     res=`$(PHP) testing/$$t.php`; \
     if test "x$$res" = x; then continue; fi; \
     echo $$t failed: ; echo $$res; exit 1; \
   done
+
+installcheck-test-symlinks: ; \
+  cd $(srcdir); \
+  find . -type l \
+    | while read l; do \
+        test -d "$$l" || continue; \
+        found=no; \
+        for d in $(dir_links); do \
+          test ./$$d == "$$l" || continue; \
+          found=yes; break; \
+        done; \
+        test $$found == no || continue; \
+        echo link "$$l" not found in the installed tree; \
+        exit 1; \
+      done
+
 endif # HAVE_FRONTEND

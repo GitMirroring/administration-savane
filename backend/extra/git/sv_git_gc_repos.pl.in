@@ -1,4 +1,4 @@
-#! @PERL@ -I@pkgdatadir@
+#! @PERL@ -I@pkgdatadir@/lib
 # Run git-gc for every Git repository, update Cgit last-modified info.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

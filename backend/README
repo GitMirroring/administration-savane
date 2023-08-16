@@ -11,8 +11,8 @@ without any warranty.
 
 This file is part of Savane.
 
-Backend scripts
-===============
+"Backend" scripts
+=================
 
 This directory contains Perl scripts supporting Savane.  Unless noted
 otherwise, they depend on the Perl library of Savane (Savane.pm,
@@ -81,3 +81,8 @@ misc/sv_reminder
 
 Sends sheduled notifications for users.
 Runs twice a day on mgt0.
+
+sbin/sv_frontendctl.pl
+======================
+
+Runs Apache and a local web server on top it.

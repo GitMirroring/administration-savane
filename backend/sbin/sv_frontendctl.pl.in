@@ -1,3 +1,8 @@
+#! @PERL@ -I@pkgdatadir@/lib
+#
+# Script for running Savane frontend locally.
+# Invoke apache2 with proper environment.
+#
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
@@ -38,87 +43,51 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Report package version.
-
 use strict;
-use Getopt::Long qw(GetOptionsFromArray);
-require Exporter;
+use Savane::Version;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(GetVersion PrintVersionOrHelp);
+my $port = "@WWW_SERVER_PORT@";
+my $host = "@WWW_SERVER_HOST@";
 
-# Return Savane version.
-sub GetVersion
-{
-  return '@VERSION@';
-}
+my $pid_dir = "@runstatedir@/@PACKAGE@/apache";
+my $log_dir = "@localstatedir@/lib/@PACKAGE@/apache";
+my $pid_file = "$pid_dir/pid";
+my $lock_dir = "$pid_dir/lock";
 
-sub print_copyright_notice
-{
-  my $line;
-  my ($path, $fh) = @_;
-  while ($line = <$fh>)
-    {
-      last if $line =~ m/Copyright/;
-    }
-  die "Copyright notice not found in $path"
-    if $line !~ m/Copyright/;
-  $line =~ s,^# ,,;
-  print "\n$line";
-  while ($line = <$fh>)
-    {
-      $line =~ s,^# ?,,;
-      last if $line eq "\n";
-      print $line;
-    }
-}
+my $help =
+"Usage: $0 [OPTIONS]
 
-sub print_license_notice
-{
-  my $fh = shift;
-  my $line;
-  $line = <$fh>;
-  while ($line = <$fh>)
-    {
-      last if $line eq "\n";
-      $line =~ s,^# ?,,;
-      print $line;
-    }
-}
+Invoke Apache2 with proper environment.
 
-sub print_legal_notices
-{
-  my $libdir = '@pkgdatadir@/lib';
-  my $line;
-  my $fh;
-  my $path = "$libdir/Savane/Version.pm";
-  open ($fh, "<:encoding(UTF-8)", $path) or die $!;
-  print_copyright_notice ($path, $fh);
-  print_license_notice ($fh);
-  close ($fh);
-}
+  -h, --help         show this help and exit
+  -v, --version      show Savane version and exit
 
-# Parse command line, check if help or version options are present,
-# print the requested info and exit.
+Other options are passed to Apache2 (typically, -k graceful).
 
-# $_[0] is help string.
-sub PrintVersionOrHelp
-{
-  my $help;
-  my $version;
-  my $getopt;
-  my @my_argv = @ARGV;
-  Getopt::Long::Configure ("pass_through");
-  GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
-  Getopt::Long::Configure ("no_pass_through");
-  return unless $help || $version;
-  $version = 0 if $help;
+Configuration:
 
-  print "$_[0]\n\n" if $help;
-  print "$0 is part of Savane.\n\n" if $version;
-  print "Savane version: @VERSION@\n";
-  print_legal_notices if $version;
-  exit (0);
-}
+Host: $host
+Port: $port
 
-return "true";
+APACHE_RUN_USER: @WWW_SERVER_USER@
+APACHE_RUN_GROUP: @WWW_SERVER_GROUP@
+APACHE_LOG_DIR: $log_dir
+APACHE_LOCK_DIR: $lock_dir
+APACHE_PID_FILE: $pid_file";
+
+$help .= "\n\nNote: Port is less than 1024; this script needs root privileges"
+  if $port < 1024;
+
+PrintVersionOrHelp ($help);
+
+mkdir $pid_dir unless -d $pid_dir;
+mkdir $log_dir unless -d $log_dir;
+
+$ENV{'LANG'} = 'C';
+$ENV{'APACHE_PID_FILE'} = "$pid_file";
+$ENV{'APACHE_RUN_USER'} = "@WWW_SERVER_USER@";
+$ENV{'APACHE_RUN_GROUP'} = "@WWW_SERVER_GROUP@";
+$ENV{'APACHE_LOCK_DIR'} = "$lock_dir";
+$ENV{'APACHE_LOG_DIR'} = "$log_dir";
+
+system ('@WWW_SERVER_BIN@', '-f', '@sysconfdir@/@PACKAGE@/apache.conf', @ARGV);

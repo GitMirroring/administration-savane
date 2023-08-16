@@ -52,6 +52,10 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_SED
 
+AC_SUBST([DIRNAME],
+  [['${SED} -e "s,\([^/]\)/*$$,\1,;tb;:b;s,^[^/]*$$,.,;tq;" \
+    -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']])
+
 AC_PATH_PROG(PERL, [perl])
 AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
 
@@ -61,9 +65,9 @@ AC_PATH_PROG(SV_DB_CMD, [mysql])
 AS_CASE(["x$SV_DB_CMD"], [x], [AC_MSG_ERROR([MySQL client not found])])
 
 # Look for Apache2 and MySQL server, needed for local testing.
-AC_PATH_PROG([APACHE2_SERVER_BIN], [apache2], [],
+AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
-AC_SUBST([APACHE2_SERVER_BIN])
+AC_SUBST([WWW_SERVER_BIN])
 AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQLD_SAFE_BIN])
@@ -126,18 +130,44 @@ AC_SUBST([SV_GIT_COMMIT])
 
 AC_MSG_CHECKING([for database name])
 AC_ARG_WITH([db-name],
-  AS_HELP_STRING([--with-db-name], [name of the database [savane]]),
-  SV_DB_NAME="$withval", SV_DB_NAME="savane")
+  AS_HELP_STRING([--with-db-name], [name of the database [sv_demo]]),
+  [SV_DB_NAME="$withval"], [SV_DB_NAME=sv_demo])
 AC_MSG_RESULT([$SV_DB_NAME])
+
+AC_MSG_CHECKING([for database user])
+AC_ARG_WITH([db-name],
+  AS_HELP_STRING([--with-db-name], [name of the database [sv]]),
+  [SV_DB_USER="$withval"], [SV_DB_USER=sv])
+AC_MSG_RESULT([$SV_DB_USER])
+
+AC_MSG_CHECKING([for database host])
+AC_ARG_WITH([db-host],
+  AS_HELP_STRING([--with-db-host], [host of the database [127.0.0.1]]),
+  [SV_DB_HOST="$withval"], [SV_DB_HOST=127.0.0.1])
+AC_MSG_RESULT([$SV_DB_HOST])
 
 AC_MSG_CHECKING([for database options])
 AC_ARG_WITH([db-options],
   AS_HELP_STRING([--with-db-options],
     [parameters to give MySQL when initializing the database []]),
-  SV_DB_OPTIONS="$withval")
+  [SV_DB_OPTIONS="$withval"])
 AC_MSG_RESULT([$SV_DB_OPTIONS])
 
+AC_MSG_CHECKING([for database credentials])
+AC_ARG_WITH([db-credentials],
+  AS_HELP_STRING([--with-db-credentials],
+    [path to the file with MySQL credentials in form password=_PASSWD_]))
+AC_MSG_RESULT([$with_db_credentials])
+AS_CASE(["x$with_db_credentials"], [xno], [],
+  [
+    SV_DB_PASSWORD=`
+      "$SED" ['/^password=/!d;s,[^=]*=,,;q'] < "$with_db_credentials"`
+  ])
+
+AC_SUBST([SV_DB_HOST])
 AC_SUBST([SV_DB_NAME])
+AC_SUBST([SV_DB_USER])
+AC_SUBST([SV_DB_PASSWORD])
 AC_SUBST([SV_DB_OPTIONS])
 
 SV_CONF="$sysconfdir/savane"
@@ -148,15 +178,29 @@ AC_ARG_WITH([apache-user],
   AS_HELP_STRING([--with-apache-user], [webserver user [current user]]),
   [WWW_SERVER_USER="$withval"], [WWW_SERVER_USER=`whoami`])
 AC_MSG_RESULT([$WWW_SERVER_USER])
+AC_SUBST([WWW_SERVER_USER])
 
 AC_MSG_CHECKING([for Apache group])
 AC_ARG_WITH([apache-group],
   AS_HELP_STRING([--with-apache-group], [webserver group [the same as user]]),
   [WWW_SERVER_GROUP="$withval"], [WWW_SERVER_GROUP="$WWW_SERVER_USER"])
 AC_MSG_RESULT([$WWW_SERVER_GROUP])
+AC_SUBST([WWW_SERVER_GROUP])
+AC_MSG_CHECKING([for Apache host])
+AC_ARG_WITH([apache-host],
+  AS_HELP_STRING([--with-apache-host], [webserver host [127.0.0.85]]),
+  [WWW_SERVER_HOST="$withval"], [WWW_SERVER_HOST="127.0.0.85"])
+AC_MSG_RESULT([$WWW_SERVER_HOST])
+AC_SUBST([WWW_SERVER_HOST])
+AC_MSG_CHECKING([for Apache port])
+AC_ARG_WITH([apache-port],
+  AS_HELP_STRING([--with-apache-port], [webserver port [4913]]),
+  [WWW_SERVER_PORT="$withval"], [WWW_SERVER_PORT="4913"])
+AC_MSG_RESULT([$WWW_SERVER_PORT])
+AC_SUBST([WWW_SERVER_PORT])
 
 AC_CONFIG_FILES([
-  Makefile etc/Makefile frontend/Makefile lib/Makefile local/Makefile
+  Makefile etc/Makefile frontend/Makefile
   frontend/php/include/ac_config.php
 ])
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
@@ -168,12 +212,30 @@ AS_ECHO(["Git commit: $SV_GIT_COMMIT ($commit_source)"])
 AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Apache user: $WWW_SERVER_USER"])
 AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
+AS_ECHO(["Apache host: $WWW_SERVER_HOST"])
+AS_ECHO(["Apache port: $WWW_SERVER_PORT"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
+AS_ECHO(["Database user: $SV_DB_USER"])
 AS_ECHO(["Install frontend (PHP) part: $enable_frontend"])
 AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
   [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]
 )
+
+AS_IF([test "$WWW_SERVER_PORT" -lt 1024],
+  [
+    AS_ECHO(["Note: Apache port is less than 1024;"])
+    AS_ECHO(["      sv_frontendctl will require root privileges."])
+  ])
+AS_CASE(["x$SV_DB_USER"], [x],
+  [AS_ECHO(["Note: Database user is unconfigured"])])
+AS_CASE(["x$SV_DB_PASSWORD"], [x],
+  [AS_ECHO(["Note: Database password is empty"])])
+
+AS_CASE(["x$SV_DB_NAME"], [x],
+  [AS_ECHO(["Note: Database name is unconfigured"])])
+AS_CASE(["x$SV_DB_HOST"], [x],
+  [AS_ECHO(["Note: Database host is unconfigured"])])
 
 AS_CASE(["x$GRAPHVIZ_BIN"], [x],
   [

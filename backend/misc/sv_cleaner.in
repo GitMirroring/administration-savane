@@ -1,4 +1,4 @@
-#! @PERL@ -I@pkgdatadir@
+#! @PERL@ -I@pkgdatadir@/lib
 #
 # Run cleanup tasks: remove obsolete database entries.
 #

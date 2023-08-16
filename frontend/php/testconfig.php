@@ -450,7 +450,10 @@ function test_i18n ()
   $str = 'Any';
   $res = gettext ($str);
   if ($res == $str)
-    print "<strong>fail</strong>";
+    {
+      print "<strong>Fail.</strong> Check <code>locale -a</code> output,\n";
+      print "be sure to install language-pack-* in Trisquel";
+    }
   else
     print "$str => $res";
   i18n_setup ("en_US.UTF-8");

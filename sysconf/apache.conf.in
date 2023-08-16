@@ -1,0 +1,116 @@
+# Apache2 configuration for running Savane locally.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+PidFile ${APACHE_PID_FILE}
+Timeout 300
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 5
+User ${APACHE_RUN_USER}
+Group ${APACHE_RUN_GROUP}
+HostnameLookups Off
+ErrorLog ${APACHE_LOG_DIR}/error.log
+LogLevel warn
+IncludeOptional mods-enabled/*.load
+IncludeOptional mods-enabled/*.conf
+Listen @WWW_SERVER_HOST@:@WWW_SERVER_PORT@
+IncludeOptional conf-enabled/*.conf
+
+ServerName @WWW_SERVER_HOST@
+<VirtualHost @WWW_SERVER_HOST@>
+  DocumentRoot @pkgdatadir@/frontend/php
+  SetEnv SAVANE_CONF @SV_CONF@
+  <Directory "@pkgdatadir@/frontend/php/">
+    php_admin_flag register_globals off
+    php_admin_flag magic_quotes_gpc off
+    php_admin_flag file_uploads on
+
+    php_admin_flag allow_url_fopen on
+    # NOTE: the next line seems to have no effect, actually.
+    php_admin_value disable_functions passthru,popen,shell_exec,system
+
+    DirectoryIndex index.php
+    Require all granted
+  </Directory>
+  <Files ~ "^(users|us|u|projects|pr|p|file)$">
+    SetHandler application/x-httpd-php
+  </Files>
+  ErrorDocument 404 /404.php
+
+  # Restrict access into include/
+  <Directory "@pkgdatadir@/frontend/php/include/">
+   Require all denied
+  </Directory>
+
+  <Location "/register">
+    php_admin_value post_max_size 52428800
+    php_admin_value upload_max_filesize 52428800
+  </Location>
+
+  # Uploads for new project registrations and bug-report attachments.
+  # This directory must be writable by Apache user.
+  # NOTE: Ensure this directory matches the '$sys_upload_dir' value
+  #       in the custom savanne configuration file
+  #       ($SAVANE_CONF/savane.conf.php).
+  Alias /submissions_uploads @localstatedir@/lib/@PACKAGE@/submissions_uploads/
+  <Directory "@localstatedir@/lib/@PACKAGE@/submissions_uploads/">
+    Options Indexes
+    AllowOverride None
+    php_admin_flag engine off
+
+    <FilesMatch ".">
+      SetHandler default-handler
+    </FilesMatch>
+  </Directory>
+
+  ErrorLog ${APACHE_LOG_DIR}/error.log
+  CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+  # PHP logs for development site.
+  php_admin_flag log_errors on
+  php_admin_flag display_errors on
+
+  # Include deprecation warnings, set the value to E_ALL (32767).
+  php_admin_value error_reporting 32767
+  php_admin_value error_log ${APACHE_LOG_DIR}/sv.php-error.log
+
+</VirtualHost>
