@@ -54,8 +54,8 @@ use strict;
 use Cwd 'abs_path';
 use Savane::Version;
 
-$ENV{PATH}="/usr/local/bin:/usr/bin:/bin";
-$ENV{CVSEDITOR}="/bin/false";
+$ENV{'PATH'}="/usr/local/bin:/usr/bin:/bin";
+$ENV{'CVSEDITOR'}="/bin/false";
 
 our $bin_bzr = "bzr";
 our $dir_bzr = "/srv/bzr";

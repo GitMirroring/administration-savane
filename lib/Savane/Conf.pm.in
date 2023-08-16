@@ -51,7 +51,7 @@ my $conf_prefix = '@sysconfdir@/savane';
 my $conf_file;
 my $res;
 
-$conf_prefix = $ENV{SAVANE_CONF} if $ENV{SAVANE_CONF};
+$conf_prefix = $ENV{'SAVANE_CONF'} if $ENV{'SAVANE_CONF'};
 
 $conf_file = "$conf_prefix/savane.conf.pl";
 die "Configuration file $conf_file not found" unless (-e $conf_file);
