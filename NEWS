@@ -38,6 +38,9 @@
 
 ** sv_membersh didn't offer the corresponding source code.
 
+** ChangeLog could be generated with branch names which broke Git commit
+   detection in configure.
+
 [BUILD]
 
 * i18n-related code is updated.  *.gmo files don't come with the distribution

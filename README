@@ -86,6 +86,12 @@ See https://savannah.gnu.org/contact.php
 Dependencies
 ============
 
+Bootstrapping from Git checkout
+-------------------------------
+
+* GNU Autotools and their dependencies
+* Git (generating ChangeLog)
+
 Build Time
 ----------
 

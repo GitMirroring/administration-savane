@@ -85,7 +85,7 @@ AS_CASE(["x$GIT"], [x], [], [
     AS_CASE(["x$enable_changelog"], [xyes], [
       AS_ECHO(["Updating ChangeLog..."])
       sed '1,/^=\{51\}/{/^=\{51\}/p;d}' "$srcdir/ChangeLog" > ChangeLog.git
-      "$GIT" --git-dir="$srcdir/.git" log --numstat \
+      "$GIT" --git-dir="$srcdir/.git" log --no-decorate --numstat \
         | sed "s,[[[:space:]]]*$,," > "$srcdir/ChangeLog"
       echo >> "$srcdir/ChangeLog"
       cat ChangeLog.git >> "$srcdir/ChangeLog"
