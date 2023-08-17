@@ -331,13 +331,27 @@ function show_item_history ($item_id, $group_id, $no_limit = false)
 }
 
 function show_item_details (
-  $item_id, $group_id, $ascii = false, $item_assigned_to = false,
+  $item_id, $group_id, $item_assigned_to = false,
   $new_comment = false, $allow_quote = true
 )
 {
-  return format_item_details (
-    $item_id, $group_id, $ascii, $item_assigned_to, $new_comment, $allow_quote
+  list ($text, $item_no, $comment_order) = format_details (
+    $item_id, $group_id, false, $item_assigned_to, $new_comment, $allow_quote
   );
+  if ($item_no < 1)
+    return $text;
+  $ctl = form_submit (_('Revert comment order'), 'revert_bis');
+  if ($item_no > 5 && !$comment_order)
+    {
+      $jumpto_text = _("Jump to the original submission");
+      if (ARTIFACT == "cookbook")
+        $jumpto_text = _("Jump to the recipe preview");
+
+      $ctl .= " <a href='#comment0'>"
+        . html_image ("arrows/bottom.png", ['class' => 'icon'])
+        . " $jumpto_text</a>";
+    }
+  return "<p>$ctl</p>\n$text";
 }
 
 function show_item_attached_files ($item_id, $group_id, $ascii = false)

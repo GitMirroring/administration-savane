@@ -44,11 +44,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 require_once (dirname (__FILE__) . '/../utils.php');
 
-function format_item_details (
+function format_details (
   $item_id, $group_id, $ascii = false, $item_assigned_to = false,
   $preview = [], $allow_quote = true
 )
 {
+  global $revert_comment_order;
   # Format the details rows from trackers_history.
   $data = [];
   $i = $max_entries = $hist_id = 0;
@@ -103,11 +104,13 @@ function format_item_details (
     $add_comment_item ($preview, true);
 
   # Sort entries according to user config.
-  $user_pref_fromoldertonewer = user_get_preference ("reverse_comments_order");
-  if (!$ascii && $user_pref_fromoldertonewer)
-    ksort($data);
+  $comment_order = user_get_preference ("reverse_comments_order");
+  if ($revert_comment_order)
+    $comment_order = !$comment_order;
+  if (!$ascii && $comment_order)
+    ksort ($data);
   else
-    krsort($data);
+    krsort ($data);
 
   $out = '';
   if ($ascii)
@@ -127,23 +130,7 @@ function format_item_details (
         [$assignee_id, $group_id]
       );
       while ($row_assignee_squad = db_fetch_array ($result_assignee_squad))
-        {
-          $assignees_id[$row_assignee_squad['user_id']] = true;
-        }
-    }
-
-  # Provide a shortcut to the original submission, if more than 5 comments
-  # and not in reversed order.
-  if (!$ascii && $max_entries > 5 && !$user_pref_fromoldertonewer)
-    {
-      $jumpto_text = _("Jump to the original submission");
-      if (ARTIFACT == "cookbook")
-        $jumpto_text = _("Jump to the recipe preview");
-
-      $out = '<p class="center"><span class="xsmall">'
-        . "(<a href='#comment0'>"
-        . html_image ("arrows/bottom.png", ['class' => 'icon'])
-        . " $jumpto_text </a>)</span></p>\n" . $out;
+        $assignees_id[$row_assignee_squad['user_id']] = true;
     }
 
   # Loop throuh the follow-up comments and format them.
@@ -175,7 +162,7 @@ function format_item_details (
       $class = utils_altrow (++$j);
 
       # Find out what would be this comment number.
-      if ($user_pref_fromoldertonewer)
+      if ($comment_order)
         $comment_number = $i;
       else
         $comment_number = ($max_entries - $i);
@@ -384,8 +371,19 @@ function format_item_details (
         }
       $out .= "</td></tr>\n";
     } # foreach ($data as $entry)
-  $out .= ($ascii ? "\n\n\n" : "</table>\n");
+  $out .= $ascii? "\n\n\n": "</table>\n";
 
+  return [$out, $max_entries, $comment_order];
+}
+
+function format_item_details (
+  $item_id, $group_id, $ascii = false, $item_assigned_to = false,
+  $preview = [], $allow_quote = true
+)
+{
+  list ($out, , ) = format_details (
+    $item_id, $group_id, $ascii, $item_assigned_to, $preview, $allow_quote
+  );
   return $out;
 }
 

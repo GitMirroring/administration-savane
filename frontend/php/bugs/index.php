@@ -54,6 +54,19 @@ if (!$group_id)
 $is_trackeradmin =
   member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '2');
 
+function extract_revert_order ()
+{
+  global $revert_comment_order, $order_reverted;
+  $revert_comment_order = false;
+  $revert = sane_import ('request', ['true' => ['revert_order', 'revert_bis']]);
+  $revert_comment_order = isset ($revert['revert_order']);
+  $order_reverted = isset ($revert['revert_bis']);
+  if ($order_reverted)
+    $revert_comment_order = !$revert_comment_order;
+}
+
+extract_revert_order ();
+
 # Mention if there was an attached file: we cannot pre-fill an HTML input file.
 function warn_about_uploads ()
 {
@@ -191,7 +204,7 @@ if (!$func)
   $func = 'browse';
 
 $process_comment = false;
-if ($preview || isset($quote_no))
+if ($preview || isset ($quote_no) || $order_reverted)
   $process_comment = true;
 if ($process_comment)
   $submitreturn = 1;

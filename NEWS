@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* A control to revert comment order in trackers for anonymous visitors is added.
+
 * More preview buttons are added next to 'Submit'.
 
 * Support for authentication via Kerberos is dropped.

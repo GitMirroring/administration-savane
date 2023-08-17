@@ -551,6 +551,8 @@ if ($item_discussion_lock)
   }
 
 print html_hidsubpart_header ("discussion", _("Discussion"));
+if ($revert_comment_order)
+  print form_hidden (['revert_order' => 1]);
 
 $new_comment = false;
 if ($preview)
@@ -574,7 +576,7 @@ if ($preview)
     $new_comment['spamscore'] = '0';
   }
 print show_item_details (
-  $item_id, $group_id, 0, $item_assigned_to, $new_comment, $enable_comments
+  $item_id, $group_id, $item_assigned_to, $new_comment, $enable_comments
 );
 print "<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();
