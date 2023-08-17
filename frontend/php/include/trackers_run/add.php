@@ -266,6 +266,7 @@ if (!user_isloggedin ())
     . "\n" . form_input ('text', 'check', $check) . "</p>\n";
 
 print '<div align="center">';
+print form_submit (_('Preview'), 'preview', false, true) . '&nbsp;&nbsp;';
 print form_submit (false, "submit", 'class="bold"');
 print "</div>\n";
 print "</form>\n";

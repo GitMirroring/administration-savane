@@ -190,31 +190,33 @@ if ($enable_comments)
 #
 #  So we have 4 column large via colspan.
 
+$button_attr =
+  "colspan='$fields_per_line' width='50%' align='center' valign='top'";
+
 print "\n\n<table cellpadding='0' width='100%'>\n"
   . "<tr>\n<td class='preinput' width='15%'>"
   . _("Submitter:") . "&nbsp;</td>\n<td width='35%'>"
   . utils_user_link (user_getname ($submitter), user_getrealname ($submitter))
-  . "</td>\n<td colspan=\"" . ($fields_per_line)
-  . '" width="50%" align="center" valign="top"><span class="noprint">'
-  . form_submit (_("Submit Changes and Browse Items"), "submit", 'class="bold"')
+  . "</td>\n<td $button_attr><span class='noprint'>"
+  . form_submit (_("Submit changes and browse items"), "submit", 'class="bold"')
   . "</span></td>\n</tr>\n<tr>\n"
   . '<td class="preinput" width="15%">'
   # TRANSLATORS: This is a label for dates.
   . _("Submitted:") . "&nbsp;</td>\n<td width='35%'>"
   . utils_format_date ($res_arr['date'])
-  . "</td>\n<td colspan=\"" . ($fields_per_line)
-  . '" width="50%" align="center" valign="top"><span class="noprint">'
-  . form_submit (_("Submit Changes and Return to this Item"), "submitreturn")
+  . "</td>\n<td $button_attr><span class='noprint'>"
+  . form_submit (_("Submit changes and return to this item"), "submitreturn")
   . "</span></td>\n</tr>\n";
 
+print "\n<tr>\n<td class='preinput' width='15%'>";
 $votes = $res_arr['vote'];
 if ($votes)
-  # Display vote here if any, anything else is handled below.
-  print "\n<tr>\n"
-    . '<td class="preinput" width="15%">' . _("Votes:")
-    . "&nbsp;</td>\n<td width='35%'><a href='#votes'>"
-    . "$votes</a></td>\n<td colspan=\""
-    . ($fields_per_line) . "\" width='50%'>&nbsp;</td>\n</tr>\n";
+  print _("Votes:")
+    . "</td>\n<td width='35%'><a href='#votes'>$votes</a></td>\n";
+else
+  print "&nbsp;</td>\n<td width='35%'>&nbsp;</td>\n";
+print "<td $button_attr><span class='noprint'>"
+  . form_submit (_('Preview'), 'preview') . "</span></td>\n</tr>\n";
 
 print '<tr><td colspan="' . ($fields_per_line * 2) . "\">&nbsp;</td></tr>\n";
 
@@ -993,14 +995,14 @@ if ($enable_comments)
           )
         . " <input type='text' id='check' name='check' /></p>\n";
 
-    print "<p>&nbsp;</p>\n";
     print '<div align="center" class="noprint">'
-      . form_submit (_("Submit Changes and Browse Items"), "submit", 'class="bold"')
+      . form_submit (_("Preview"), "preview")
       . ' '
-      . form_submit (_("Submit Changes and Return to this Item"), "submitreturn")
+      . form_submit (_("Submit changes and browse items"), "submit", 'class="bold"')
+      . ' '
+      . form_submit (_("Submit changes and return to this item"), "submitreturn")
       . "</div>\n</form>\n";
   }
-print "<p>&nbsp;</p><p>&nbsp;</p>\n";
 print html_hidsubpart_header ("history", _("History"));
 show_item_history ($item_id, $group_id);
 print html_hidsubpart_footer ();
