@@ -1157,13 +1157,8 @@ function trackers_data_get_submitters ($group_id = false)
   );
 }
 
-function trackers_data_get_followups ($item_id, $rorder = false)
+function trackers_data_get_followups ($item_id)
 {
-  if ($rorder)
-    $rorder = "DESC";
-  else
-    $rorder = "ASC";
-
   $tracker = ARTIFACT;
 
   return
@@ -1189,8 +1184,7 @@ function trackers_data_get_followups ($item_id, $rorder = false)
             AND f.field_name = 'comment_type_id'
         ) fv
         ON bhi.type = fv.value_id AND bhi.grp = fv.group_id
-      ORDER BY date $rorder",
-      [$item_id]
+      ORDER BY date", [$item_id]
     );
 }
 

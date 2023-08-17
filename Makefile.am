@@ -43,9 +43,6 @@ EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
 
 CLEANFILES = $(backend_scripts)
 
-dist-hook:
-	find $(distdir) -type d -name '.svn' -o -name '*~' | xargs -r rm -rf
-
 distcheck-hook:
 	if grep -q '^This is a stub' $(distdir)/ChangeLog; then \
 	  echo; echo; \
