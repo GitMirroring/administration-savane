@@ -57,7 +57,6 @@ sub print_copyright_notice
 {
   my $line;
   my ($path, $fh) = @_;
-  $line = <$fh>;
   while ($line = <$fh>)
     {
       last if $line =~ m/Copyright/;
