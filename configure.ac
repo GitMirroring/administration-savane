@@ -121,7 +121,7 @@ AC_MSG_RESULT([$WWW_SERVER_USER])
 
 AC_MSG_CHECKING([for Apache group])
 AC_ARG_WITH([apache-group],
-  AS_HELP_STRING([--with-apache-user], [webserver group [the same as user]]),
+  AS_HELP_STRING([--with-apache-group], [webserver group [the same as user]]),
   [WWW_SERVER_GROUP="$withval"], [WWW_SERVER_GROUP="$WWW_SERVER_USER"])
 AC_MSG_RESULT([$WWW_SERVER_GROUP])
 
