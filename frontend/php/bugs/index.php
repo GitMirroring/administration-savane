@@ -251,9 +251,11 @@ switch ($func)
         'hash' => 'form_id', 'strings' => [['check', '1984']],
         # As of 2022-02, frontend never reads from the spam_stats table,
         # so we may safely 'pass' 'details'.
-        'pass' => 'details', 'true' => 'preview'
+        'pass' => 'details', 'true' => 'submit'
       ]
     );
+    if (!isset ($fields['submit']))
+      $preview = true;
     db_autoexecute (
       'spam_stats',
       [

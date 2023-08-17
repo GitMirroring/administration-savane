@@ -14,6 +14,9 @@
 
 * New user preference to silence source code offer via SSH.
 
+* New tracker items are previewed unless submitted explicitly,
+  Savannah sr #110299.
+
 * Bug fixes:
 
 ** Deprecation messages in the captcha library broke the resulting image.
