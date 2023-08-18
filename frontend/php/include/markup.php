@@ -188,8 +188,8 @@ function markup_info ($level)
   $text = $info[$level][1];
 
   $img = html_image ('misc/edit.png', ['class' => 'icon']);
-  return '<span class="smaller">('
-    . utils_help ("$link_head$img$string$link_tail", $text) . ')</span>';
+  return '<span class="smaller">'
+    . utils_help ("$link_head$img$string$link_tail", $text) . '</span>';
 }
 
 # Convert special markup characters in the input text to HTML.
