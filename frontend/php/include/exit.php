@@ -94,7 +94,7 @@ function exit_not_logged_in ()
 
 function exit_no_group ()
 {
-  exit_error (_("No group chosen"), 'nogroup');
+  exit_error (_("No group chosen"));
 }
 
 function exit_missing_param ($param_list = [])
