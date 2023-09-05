@@ -27,7 +27,7 @@
 ** In bugs/index.php, voting only worked for tracker admins,
    broken since 2022-04 (302fce4c); Savannah sr #110896.
 
-** More PHP 8.1 => 8.2 incompatibilities were resolved.
+** More PHP 8.0 => 8.2 incompatibilities were resolved.
 
 [BACKEND]
 

@@ -72,6 +72,7 @@ function db_connect ()
   $mysql_conn = NULL;
   db_check_mysqli ();
 
+  mysqli_report (MYSQLI_REPORT_ERROR);
   $conn = mysqli_connect ($sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname);
   if (!$conn)
     {

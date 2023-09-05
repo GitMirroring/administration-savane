@@ -46,7 +46,6 @@ $sys_debug_sqlprofiler = false;
 $sys_file_domain = '';
 $sys_linguas = "en:es";
 require_once ("include/i18n.php");
-require_once ("include/utils.php");
 require_once ("include/database.php");
 require_once ("include/mailman.php");
 
