@@ -66,25 +66,19 @@ function db_check_mysqli ()
 
 function db_connect ()
 {
-  global $sys_dbhost, $sys_dbuser, $sys_dbpasswd, $conn, $sys_dbname;
-  global $mysql_conn;
+  global $sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname, $mysql_conn;
 
-  $mysql_conn = NULL;
+  $mysql_conn = null;
   db_check_mysqli ();
 
   mysqli_report (MYSQLI_REPORT_ERROR);
   $conn = mysqli_connect ($sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname);
   if (!$conn)
-    {
-      print "<p>Failed to connect to database: ";
-      print mysqli_connect_error () . "</p>\n";
-      print "<p>Contact server administrators "
-        . "{$GLOBALS['sys_email_adress']}</p>\n";
-      exit;
-    }
+    return
+      "<p>Failed to connect to database: " . mysqli_connect_error () . "</p>\n";
   mysqli_set_charset ($conn, 'utf8');
   $mysql_conn = $conn;
-  return true;
+  return null;
 }
 
 function db_real_escape_string ($string)
@@ -288,6 +282,8 @@ function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
 # adodb.inc.php.
 function db_execute ($sql, $inputarr = null, $multi_query = 0)
 {
+  if (empty ($GLOBALS['mysql_conn']))
+    return null;
   $expanded_sql = db_variable_binding ($sql, $inputarr);
   return db_query ($expanded_sql, 0, $multi_query);
 }

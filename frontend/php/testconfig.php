@@ -41,6 +41,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+$testconfig_php = true;
 include ("include/ac_config.php");
 $sys_debug_sqlprofiler = false;
 $sys_file_domain = '';
@@ -209,7 +210,7 @@ function test_captcha ()
   global $sys_captchadir;
   $default_dir = '/usr/share/php';
 
-  print "<h2>Captcha</h2>\n\n";
+  print "<h3>Captcha</h3>\n\n";
   if (empty ($sys_captchadir))
     {
       print "<p><strong>sys_captchadir isn't set.</strong></p>\n";
@@ -281,7 +282,7 @@ function output_mailman_query ($q)
 
 function test_mailman ()
 {
-  print "<h2>Mailman connection</h2>";
+  print "<h3>Mailman connection</h3>";
   print "<dl>\n";
   $ver = mailman_get_version ();
   $have_version = output_mailman_version ($ver);
@@ -477,104 +478,116 @@ else
   }
 print "</p>\n";
 
-if (!is_readable ($sys_conf_file))
-  print "Since $sys_conf_file does not exist or is not readable, "
-        . "this part cannot be checked.";
+function test_mysql ()
+{
+  print "\n<h3>MySQL configuration</h3>\n\n";
+  $db_err = db_connect ();
+  if ($db_err !== null)
+    {
+      print $db_err;
+      return;
+    }
+  # When sql_mode contains 'ONLY_FULL_GROUP_BY', queries like
+  # "SELECT groups.group_name, groups.group_id, groups.unix_group_name,"
+  # ...
+  # . "GROUP BY groups.unix_group_name "
+  # . "ORDER BY groups.unix_group_name"
+  # used e.g. in my/groups.php result in an error.
+  #
+  # Since MySQL 5.7, this is default. We could use ANY_VALUE ()
+  # to workaround this, but it is only introduced in 5.7,
+  # so won't work with older MySQLs.
+  $mysql_params = [
+    '@@GLOBAL.version' => null,
+    '@@GLOBAL.sql_mode' => null,
+    '@@SESSION.sql_mode' =>
+      "<em>This should</em> <strong>not</strong> <em>include</em> "
+        . "<code>ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</code><em>.</em>"
+  ];
+  $mysql_highlight = [
+    '@@GLOBAL.sql_mode' => 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES',
+    '@@SESSION.sql_mode' => 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES'
+  ];
+  print "<dl>\n";
+  foreach ($mysql_params as $param => $comment)
+    {
+      $result = db_query ("SELECT $param");
+      $value = db_result ($result, 0, $param);
+      if (isset ($mysql_highlight[$param]))
+        {
+          $vals = explode (",", $mysql_highlight[$param]);
+          foreach ($vals as $i => $v)
+            $value = str_replace ($v, "<strong>$v</strong>", $value);
+        }
+      print "<dt>$param</dt><dd>'$value'";
+      if ($comment !== null)
+        print "\n$comment";
+      print "</dd>\n";
+    }
+  print "</dl>\n";
+}
+
+function test_sysconfigs ()
+{
+  global $sys_conf_file;
+  include $sys_conf_file;
+  $variables = [
+    'dbhost', 'dbname', 'dbpasswd', 'dbuser', 'default_domain',
+    'etc_dir', 'file_domain', 'https_host', 'incdir',
+    'url_topdir', 'www_topdir',
+    'linguas', 'localedir',
+    'mail_admin', 'mail_domain', 'mail_replyto', 'name',
+    'themedefault', 'unix_group_name', 'upload_max',
+    'watch_anon_posts', 'new_user_watch_days',
+    'mailman_wrapper', 'savane_url', 'savane_cgit'
+  ];
+  if (empty ($inside_siteadmin))
+    utils_set_csp_headers ();
+
+  print "<dl>\n";
+  foreach ($variables as $tag)
+    {
+      $var = "sys_$tag";
+      $value = '<strong>unset</strong>';
+      if (isset ($GLOBALS[$var]))
+        $value = utils_specialchars (print_r ($GLOBALS[$var], true));
+      if ($var == "sys_dbpasswd")
+        $value = "**************";
+
+      printf ("<dt>%s</dt>\n<dd>%s</dd>\n", $var, $value);
+    }
+  if (!isset ($GLOBALS['sys_debug_on']))
+    $GLOBALS['sys_debug_on'] = false;
+
+  print "</dl>\n";
+  print "<p>Savane uses safe default values when variables are not set "
+    . "in the configuration file.</p>\n";
+  print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
+  test_captcha ();
+  test_mailman ();
+  test_mysql ();
+
+  print "\n<h3>Other tests</h3>\n\n";
+  print "<table border=\"1\">\n";
+  print "<dl>\n";
+  test_repos ();
+  print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
+  test_sys_upload_dir ();
+  print "</dd>\n";
+  print "<dt id='i18n'>i18n</dt>\n<dd>";
+  test_i18n ();
+  print "</dd>\n";
+  print "</dl>\n";
+  test_gpg ();
+}
+
+print "<h2>Configured settings</h2>\n";
+
+if (is_readable ($sys_conf_file))
+  test_sysconfigs ();
 else
-  {
-    include $sys_conf_file;
-    $variables = [
-      'dbhost', 'dbname', 'dbpasswd', 'dbuser', 'default_domain',
-      'etc_dir', 'file_domain', 'https_host', 'incdir',
-      'url_topdir', 'www_topdir',
-      'linguas', 'localedir',
-      'mail_admin', 'mail_domain', 'mail_replyto', 'name',
-      'themedefault', 'unix_group_name', 'upload_max',
-      'watch_anon_posts', 'new_user_watch_days',
-      'mailman_wrapper', 'savane_url', 'savane_cgit'
-    ];
-    if (empty ($inside_siteadmin))
-      utils_set_csp_headers ();
-
-    print "<dl>\n";
-    foreach ($variables as $tag)
-      {
-        $var = "sys_$tag";
-        $value = '<strong>unset</strong>';
-        if (isset ($GLOBALS[$var]))
-          $value = utils_specialchars (print_r ($GLOBALS[$var], true));
-        if ($var == "sys_dbpasswd")
-          $value = "**************";
-
-        printf ("<dt>%s</dt>\n<dd>%s</dd>\n", $var, $value);
-      }
-    if (!isset ($GLOBALS['sys_debug_on']))
-      $GLOBALS['sys_debug_on'] = false;
-
-    print "</dl>\n";
-    print "<p>Savane uses safe default values when variables are not set "
-      . "in the configuration file.</p>\n";
-    print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
-    test_captcha ();
-    test_mailman ();
-
-    print "\n<h2>MySQL configuration</h2>\n\n";
-    if (!db_connect ())
-      print "<blockquote>Can't connect to database.</blockquote>\n";
-    else
-      {
-        # When sql_mode contains 'ONLY_FULL_GROUP_BY', queries like
-        # "SELECT groups.group_name,"
-        # . "groups.group_id,"
-        # . "groups.unix_group_name,"
-        # ...
-        # . "GROUP BY groups.unix_group_name "
-        # . "ORDER BY groups.unix_group_name"
-        # used e.g. in my/groups.php result in an error.
-        #
-        # Since MySQL 5.7, this is default. We could use ANY_VALUE ()
-        # to workaround this, but it is only introduced in 5.7,
-        # so won't work with older MySQLs.
-        $mysql_params = array ('@@GLOBAL.version' => NULL,
-                               '@@GLOBAL.sql_mode' => NULL,
-                               '@@SESSION.sql_mode' =>
-                "<em>This should</em> <strong>not</strong> <em>include</em> "
-                . "<code>ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</code><em>.</em>");
-        $mysql_highlight = array ('@@GLOBAL.sql_mode' =>
-                                  'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES',
-                                  '@@SESSION.sql_mode' =>
-                                  'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES');
-        print "<dl>\n";
-        foreach ($mysql_params as $param => $comment)
-          {
-            $result = db_query ('SELECT ' . $param);
-            $value = db_result ($result, 0, $param);
-            if (isset ($mysql_highlight[$param]))
-              {
-                $vals = explode (",", $mysql_highlight[$param]);
-                foreach ($vals as $i => $v)
-                  $value = str_replace ($v, "<strong>$v</strong>", $value);
-              }
-            print "<dt>$param</dt><dd>'$value'";
-            if ($comment !== NULL)
-              print "\n$comment";
-            print "</dd>\n";
-          }
-        print "</dl>\n";
-      } # db_connect ()
-    print "\n<h2>Other tests</h2>\n\n";
-    print "<table border=\"1\">\n";
-    print "<dl>\n";
-    test_repos ();
-    print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
-    test_sys_upload_dir ();
-    print "</dd>\n";
-    print "<dt id='i18n'>i18n</dt>\n<dd>";
-    test_i18n ();
-    print "</dd>\n";
-    print "</dl>\n";
-    test_gpg ();
-  } # is_readable ($sys_conf_file)
+  print "Since $sys_conf_file does not exist or is not readable, "
+    . "this part cannot be checked.";
 
 print "\n<h2>Optional PHP configuration</h2>\n\n";
 

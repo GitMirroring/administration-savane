@@ -8,6 +8,8 @@
 
 * Support for authentication via Kerberos is dropped.
 
+* Database connection errors are handled in a more reasonable way.
+
 * Spam is excluded from 'Most Popular Items'.
 
 * Broken themes Sad and Right are removed, sr #110921.

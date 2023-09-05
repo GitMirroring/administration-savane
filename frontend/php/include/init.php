@@ -237,9 +237,12 @@ function get_module_include_dir (
   return $guess;
 }
 
-# Start user session.
-# Connect to db.
-db_connect ();
+$db_err = db_connect ();
+if ($db_err !== null && empty ($testconfig_php))
+  {
+    print $db_err;
+    exit;
+  }
 
 # sys_unix_group_name is maybe defined
 # in this case, we want sys_group_id.
