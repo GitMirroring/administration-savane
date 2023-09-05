@@ -174,13 +174,7 @@ extract (sane_import ('get',
   ]
 ));
 
-# If we are on an artifact index page and we have only one argument which is
-# a numeric number, we suppose it is an item_id.
-# Maybe it was a link shortcut like
-# blabla.org/task/?nnnn (blabla.org/task/?#nnnn cannot work because # is
-# not sent by the browser as it's a tag for html anchors).
-if (!empty ($_SERVER['QUERY_STRING'])
-    && ctype_digit (strval ($_SERVER['QUERY_STRING'])))
+if ($have_item_id)
   $func = 'detailitem';
 
 # Initialize the global data structure before anything else.

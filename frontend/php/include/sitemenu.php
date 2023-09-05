@@ -94,7 +94,7 @@ function sitemenu ($params)
 # that need to keep such context.
 function sitemenu_extraurl ($only_with_post = false)
 {
-  global $goup_name, $item_id;
+  global $goup_name, $item_id, $have_item_id;
   # If only_with_post is set, it means that we will return nothing if the
   # page was loaded with a get.
   if ($only_with_post && $_SERVER["REQUEST_METHOD"] != "POST")
@@ -104,8 +104,7 @@ function sitemenu_extraurl ($only_with_post = false)
   if ($_SERVER["REQUEST_METHOD"] == "POST")
     {
       if (!empty($group_name))
-        $extraurl .= "&amp;group=" . utils_urlencode ($group_name)
-          . "&amp;";
+        $extraurl .= "&amp;group=" . utils_urlencode ($group_name) . "&amp;";
       if (!empty ($item_id))
         $extraurl .= "&amp;func=detailitem&amp;item_id="
           . utils_urlencode ($item_id) . "&amp;";
@@ -114,11 +113,10 @@ function sitemenu_extraurl ($only_with_post = false)
   $query_string = '';
   if (!empty ($_SERVER['QUERY_STRING']))
     $query_string = $_SERVER['QUERY_STRING'];
-  if (!empty ($item_id) && ctype_digit (strval ($query_string)))
+  if ($have_item_id)
     {
       # Short link case (like /bugs/?212).
-      $extraurl .= "&amp;func=detailitem&amp;item_id="
-        . utils_urlencode ($item_id);
+      $extraurl .= "&amp;func=detailitem&amp;item_id=$item_id";
       return $extraurl;
     }
   $extraurl = utils_urlencode ($query_string);

@@ -303,17 +303,22 @@ extract (sane_import ('request',
 if (!defined ('ARTIFACT'))
    define ('ARTIFACT', get_module_include_dir ($_SERVER['SCRIPT_NAME'], 1));
 
-# If we are on an artifact index page and we have only one argument which is
-# a numeric number, we suppose it is an item_id.
-# Maybe it was a link shortcut like
-# blabla.org/task/?nnnn (blabla.org/task/?#nnnn cannot work because # is
-# not sent by the browser as it's a tag for html anchors).
-# Necessary to determine group_id.
-if (
-  in_array (ARTIFACT, $tracker_list) && !empty ($_SERVER['QUERY_STRING'])
-  && ctype_digit (strval ($_SERVER['QUERY_STRING']))
-)
-  $item_id = $_SERVER['QUERY_STRING'];
+function init_extract_item_id ($tracker_list)
+{
+  global $item_id, $have_item_id;
+  # If we are on an artifact index page and we have an argument which is
+  # a numeric number, we suppose it is an item_id.
+  if (!in_array (ARTIFACT, $tracker_list))
+    return;
+  if (empty ($_SERVER['QUERY_STRING']))
+    return;
+  $qs = strval ($_SERVER['QUERY_STRING']);
+  if (ctype_digit ($qs))
+    $item_id = $qs;
+  $have_item_id = !empty ($item_id);
+}
+
+init_extract_item_id ($tracker_list);
 
 if (!empty ($item_id) && !is_numeric ($item_id))
   util_die (_("Invalid item ID."));
