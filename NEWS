@@ -78,6 +78,8 @@
 
 ** Gettext autoconf macro invocations were wrong.
 
+** Image building was broken.
+
 [REQUIREMENTS]
 
 * GNU gettext version 0.16.1 or later is required.
