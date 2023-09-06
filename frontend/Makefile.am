@@ -40,7 +40,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = . php/link-to-file.php php/link-to-projects.php php/link-to-users.php
+EXTRA_DIST = . php/file php/projects php/users
 
 basic_png = \
   php/images/mime_type/blank.png \

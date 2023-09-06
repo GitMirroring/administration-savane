@@ -36,7 +36,7 @@ POTFILES = \
 	frontend/php/testing/index.php \
 	frontend/php/testing/test.php \
 	frontend/php/svn/index.php \
-	frontend/php/link-to-file.php \
+	frontend/php/file.php \
 	frontend/php/stats/index.php \
 	frontend/php/people/resume.php \
 	frontend/php/people/editjob.php \
@@ -45,7 +45,7 @@ POTFILES = \
 	frontend/php/people/admin/index.php \
 	frontend/php/people/viewjob.php \
 	frontend/php/people/viewgpg.php \
-	frontend/php/link-to-projects.php \
+	frontend/php/projects.php \
 	frontend/php/i18n.php \
 	frontend/php/files/index.php \
 	frontend/php/captcha.php \
@@ -179,7 +179,7 @@ POTFILES = \
 	frontend/php/news/index.php \
 	frontend/php/news/admin/index.php \
 	frontend/php/news/approve.php \
-	frontend/php/link-to-users.php \
+	frontend/php/users.php \
 	frontend/php/arch/index.php \
 	frontend/php/bzr/index.php \
 	frontend/php/css/graph-widths.php \
@@ -648,24 +648,9 @@ dist-hook:
 	fi; \
 	pot_regexp=`echo $(POTFILES) | sed 's,  *,|,g;s,^|*,^(,;s,|*$$,)$$,'`; \
 	files=`cd $(top_srcdir) \
-	  && find frontend/ -name "*.php" ! -name ac_config.php`; \
+	  && find frontend/ -type f -name '*.php' ! -name ac_config.php`; \
 	files=`cd $(top_srcdir); ls $$files`; \
-	unique_files=`cd $(top_srcdir); echo "$$files" \
-	  | while read f; do \
-	    echo -n Checking file $$f for uniqueness...' ' 1>&2; \
-	    g=$$(echo $$f | sed 's,\.,[.],g; s,/,[/],g'); \
-	    vex=$$(echo "$$files" | sed '/^'$$g'$$/,$$d' \
-		   | while read i; do \
-		       if cmp -s $$f $$i; then echo $$i; break; fi; \
-		     done); \
-	    if test "x$$vex" != x; then \
-	      echo duplicate '('$$vex')' 1>&2; \
-	    else \
-	      echo ok 1>&2; \
-	      echo $$f; \
-	    fi; \
-	  done`; \
-	missing_potfiles=`echo "$$unique_files" | grep -E -v $$pot_regexp`; \
+	missing_potfiles=`echo "$$files" | grep -E -v $$pot_regexp`; \
 	if test "x$$missing_potfiles" != x; then \
 	  echo "The POTFILES variable misses these files: $$missing_potfiles" \
 	    1>&2; \
