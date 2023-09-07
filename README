@@ -90,7 +90,7 @@ Bootstrapping from Git checkout
 -------------------------------
 
 * GNU Autotools and their dependencies
-* Git (generating ChangeLog)
+* Git - generating ChangeLog
 
 Build Time
 ----------
@@ -101,7 +101,7 @@ Build Time
 * Grep
 * Sed
 * Find
-* ImageMagic (resizing images for icons)
+* ImageMagic - resizing images for icons
 
 Run Time
 --------
@@ -109,8 +109,9 @@ Run Time
 * GNU Coreutils
 * Grep
 * GnuPG
-* PHP (5.4, 5.5, 5.6, 7.0, 7.2, 7.4, 8.0, 8.1 or 8.2)
+* PHP (5.4, 5.5, 5.6, 7.0, 7.2, 7.4, 8.0, 8.1 or 8.2) - frontend
 ** Text_CAPTCHA (php-text-captcha, php-image-text in Trisquel)
+** mysqli extension (php-mysqli in Trisquel)
 * Perl >= 5.6
 ** DBI (libdbi-perl in Trisquel)
 ** DBD::mysql (libdbd-mysql-perl, depends on libdbi-perl in Trisquel)
@@ -118,8 +119,8 @@ Run Time
 ** Date::Calc (libdate-calc-perl in Trisquel)
 ** Digest::MD5 (in an unmaintained test suite)
 * MySQL or MariaDB
-* Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel)
-* Pwqcheck (handling new passwords in frontend, passwdqc in Trisquel)
+* Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel) - frontend
+* Pwqcheck (passwdqc in Trisquel) - handling new passwords in frontend
 
 Documentation
 =============
