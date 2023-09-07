@@ -74,6 +74,8 @@
 * Perl library is installed to $(pkgdatadir) rather than $(libexecdir);
   this makes lib/sv_pm_true unneeded.
 
+* Code to detect and use configured value for the sed program is added.
+
 * Bug fixes:
 
 ** Gettext autoconf macro invocations were wrong.

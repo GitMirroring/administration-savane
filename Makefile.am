@@ -25,7 +25,7 @@ directories = backend/accounts backend/extra/git backend/mail backend/misc
 bin_SCRIPTS = $(backend_scripts)
 
 subst_in_scripts = \
-	sed \
+	${SED} \
 	-e 's,[@]PERL[@],$(PERL),' \
 	-e 's,[@]pkgdatadir[@],$(pkgdatadir),' \
 	-e 's,[@]sysconfdir[@],$(sysconfdir),'

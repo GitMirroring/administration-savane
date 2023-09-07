@@ -4,7 +4,8 @@
 # Savane-specific changes:
 #
 # - set POTFILES, DOMAIN, COPYRIGHT_HOLDER, MSGMERGE_OPTIONS
-# - verify POTFILES in dist-hook.
+# - verify POTFILES in dist-hook
+# - use configured ${SED} value.
 #
 # Makefile configuration - processed by automake.
 
@@ -327,7 +328,7 @@ SUFFIXES = .po .gmo .sed .sin .nop .po-create .po-update
 # under version control.
 $(GMOFILES): $(srcdir)/$(DOMAIN).pot
 .po.gmo: ; \
-  lang=`echo $* | sed -e 's,.*/,,'`; \
+  lang=`echo $* | ${SED} -e 's,.*/,,'`; \
   rm -f $${lang}.gmo \
     && $(MSGMERGE) $(MSGMERGE_FOR_MSGFMT_OPTION) \
         -o $${lang}.1po $(srcdir)/$${lang}.po $(srcdir)/$(DOMAIN).pot \
@@ -335,7 +336,7 @@ $(GMOFILES): $(srcdir)/$(DOMAIN).pot
     && mv t-$${lang}.gmo $${lang}.gmo && rm -f $${lang}.1po
 
 .sin.sed:
-	sed -e '/^#/d' $< > t-$@
+	${SED} -e '/^#/d' $< > t-$@
 	mv t-$@ $@
 
 
@@ -379,8 +380,12 @@ $(srcdir)/stamp-po: $(srcdir)/$(DOMAIN).pot
 $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	package_gnu="$(PACKAGE_GNU)"; \
 	test -n "$$package_gnu" || { \
-	  if { if (LC_ALL=C find --version) 2>/dev/null | grep GNU >/dev/null; then \
-	         LC_ALL=C find -L $(top_srcdir) -maxdepth 1 -type f -size -10000000c -exec grep -i 'GNU $(PACKAGE)' /dev/null '{}' ';' 2>/dev/null; \
+	  if { if (LC_ALL=C find --version) 2>/dev/null \
+	           | grep GNU >/dev/null; then \
+	         LC_ALL=C find -L $(top_srcdir) -maxdepth 1 -type f \
+	           -size -10000000c \
+	           -exec grep -i 'GNU $(PACKAGE)' /dev/null '{}' ';' \
+	           2>/dev/null; \
 	       else \
 	         LC_ALL=C grep -i 'GNU $(PACKAGE)' $(top_srcdir)/* 2>/dev/null; \
 	       fi; \
@@ -400,7 +405,7 @@ $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	else \
 	  msgid_bugs_address='$(PACKAGE_BUGREPORT)'; \
 	fi; \
-	case `$(XGETTEXT) --version | sed 1q | sed -e 's,^[^0-9]*,,'` in \
+	case `$(XGETTEXT) --version | ${SED} 1q | ${SED} -e 's,^[^0-9]*,,'` in \
 	  '' | 0.[0-9] | 0.[0-9].* | 0.1[0-5] | 0.1[0-5].* | 0.16 | 0.16.[0-1]*) \
 	    $(XGETTEXT) --default-domain=$(DOMAIN) --directory=$(top_srcdir) \
 	      --add-comments=TRANSLATORS: \
@@ -422,14 +427,15 @@ $(DOMAIN).pot-update: $(POTFILES_DEPS) remove-potcdate.sed
 	esac
 	test ! -f $(DOMAIN).po || { \
 	  if test -f $(srcdir)/$(DOMAIN).pot-header; then \
-	    sed -e '1,/^#$$/d' < $(DOMAIN).po > $(DOMAIN).1po && \
+	    ${SED} -e '1,/^#$$/d' < $(DOMAIN).po > $(DOMAIN).1po && \
 	    cat $(srcdir)/$(DOMAIN).pot-header $(DOMAIN).1po > $(DOMAIN).po && \
 	    rm -f $(DOMAIN).1po \
 	    || exit 1; \
 	  fi; \
 	  if test -f $(srcdir)/$(DOMAIN).pot; then \
-	    sed -f remove-potcdate.sed < $(srcdir)/$(DOMAIN).pot > $(DOMAIN).1po && \
-	    sed -f remove-potcdate.sed < $(DOMAIN).po > $(DOMAIN).2po && \
+	    ${SED} -f remove-potcdate.sed < $(srcdir)/$(DOMAIN).pot \
+	      > $(DOMAIN).1po && \
+	    ${SED} -f remove-potcdate.sed < $(DOMAIN).po > $(DOMAIN).2po && \
 	    if cmp $(DOMAIN).1po $(DOMAIN).2po >/dev/null 2>&1; then \
 	      rm -f $(DOMAIN).1po $(DOMAIN).2po $(DOMAIN).po; \
 	    else \
@@ -450,18 +456,21 @@ $(srcdir)/$(DOMAIN).pot:
 # This target rebuilds a PO file if $(DOMAIN).pot has changed.
 # Note that a PO file is not touched if it doesn't need to be changed.
 $(POFILES): $(srcdir)/$(DOMAIN).pot
-	@lang=`echo $@ | sed -e 's,.*/,,' -e 's/\.po$$//'`; \
+	@lang=`echo $@ | ${SED} -e 's,.*/,,' -e 's/\.po$$//'`; \
 	if test -f "$(srcdir)/$${lang}.po"; then \
 	  test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
-	  echo "$${cdcmd}$(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS) --lang=$${lang} --previous $${lang}.po $(DOMAIN).pot"; \
+	  cmd_start="$(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS)"; \
+	  cmd_tail="--lang=$${lang} --previous $${lang}.po $(DOMAIN).pot"; \
+	  echo "$${cdcmd}$${cmd_start} $${cmd_tail}"; \
 	  cd $(srcdir) \
-	    && { case `$(MSGMERGE_UPDATE) --version | sed 1q | sed -e 's,^[^0-9]*,,'` in \
+	    && { case `$(MSGMERGE_UPDATE) --version \
+	                | ${SED} 1q | ${SED} -e 's,^[^0-9]*,,'` in \
 	           '' | 0.[0-9] | 0.[0-9].* | 0.1[0-5] | 0.1[0-5].*) \
-	             $(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS) $${lang}.po $(DOMAIN).pot;; \
+	             $${cmd_start} $${lang}.po $(DOMAIN).pot;; \
 	           0.1[6-7] | 0.1[6-7].*) \
-	             $(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS) --previous $${lang}.po $(DOMAIN).pot;; \
+	             $${cmd_start} --previous $${lang}.po $(DOMAIN).pot;; \
 	           *) \
-	             $(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS) --lang=$${lang} --previous $${lang}.po $(DOMAIN).pot;; \
+	             $${cmd_start} $${cmd_tail};; \
 	         esac; \
 	       }; \
 	else \
@@ -475,7 +484,7 @@ install-data-local-yes: all-local
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  lang=`echo $$cat | ${SED} -e 's/\.gmo$$//'`; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(MKDIR_P) $(DESTDIR)$$dir; \
 	  if test -r $$cat; then realcat=$$cat; else realcat=$(srcdir)/$$cat; fi; \
@@ -483,14 +492,19 @@ install-data-local-yes: all-local
 	  echo "installing $$realcat as $(DESTDIR)$$dir/$(DOMAIN).mo"; \
 	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
 	    if test -n "$$lc"; then \
-	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
-	        link=`cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
-	        mv $(DESTDIR)$(localedir)/$$lang/$$lc $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
+	      if (cd $(DESTDIR)$(localedir)/$$lang \
+	            && LC_ALL=C ls -l -d $$lc 2>/dev/null) \
+	          | grep ' -> ' >/dev/null; then \
+	        link=`cd $(DESTDIR)$(localedir)/$$lang \
+	          && LC_ALL=C ls -l -d $$lc | ${SED} -e 's/^.* -> //'`; \
+	        mv $(DESTDIR)$(localedir)/$$lang/$$lc \
+	          $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
 	        mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
 	        (cd $(DESTDIR)$(localedir)/$$lang/$$lc.old && \
 	         for file in *; do \
 	           if test -f $$file; then \
-	             ln -s ../$$link/$$file $(DESTDIR)$(localedir)/$$lang/$$lc/$$file; \
+	             ln -s ../$$link/$$file \
+	               $(DESTDIR)$(localedir)/$$lang/$$lc/$$file; \
 	           fi; \
 	         done); \
 	        rm -f $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
@@ -503,10 +517,14 @@ install-data-local-yes: all-local
 	        fi; \
 	      fi; \
 	      rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
-	      ln -s ../LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null || \
-	      ln $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null || \
-	      cp -p $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
-	      echo "installing $$realcat link as $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo"; \
+	      ln -s ../LC_MESSAGES/$(DOMAIN).mo \
+	        $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null \
+	      || ln $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo \
+	        $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null \
+	      || cp -p $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo \
+	        $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
+	      link_target="$(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo"; \
+	      echo "installing $$realcat link as $${link_target}"; \
 	    fi; \
 	  done; \
 	done
@@ -517,19 +535,24 @@ installdirs-local-yes:
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  lang=`echo $$cat | ${SED} -e 's/\.gmo$$//'`; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(MKDIR_P) $(DESTDIR)$$dir; \
 	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
 	    if test -n "$$lc"; then \
-	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
-	        link=`cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
-	        mv $(DESTDIR)$(localedir)/$$lang/$$lc $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
+	      if (cd $(DESTDIR)$(localedir)/$$lang \
+	          && LC_ALL=C ls -l -d $$lc 2>/dev/null) \
+	        | grep ' -> ' >/dev/null; then \
+	        link=`cd $(DESTDIR)$(localedir)/$$lang \
+	          && LC_ALL=C ls -l -d $$lc | ${SED} -e 's/^.* -> //'`; \
+	        mv $(DESTDIR)$(localedir)/$$lang/$$lc \
+	          $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
 	        mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
 	        (cd $(DESTDIR)$(localedir)/$$lang/$$lc.old && \
 	         for file in *; do \
 	           if test -f $$file; then \
-	             ln -s ../$$link/$$file $(DESTDIR)$(localedir)/$$lang/$$lc/$$file; \
+	             ln -s ../$$link/$$file \
+	               $(DESTDIR)$(localedir)/$$lang/$$lc/$$file; \
 	           fi; \
 	         done); \
 	        rm -f $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
@@ -551,7 +574,7 @@ uninstall-local-yes:
 	catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  lang=`echo $$cat | ${SED} -e 's/\.gmo$$//'`; \
 	  for lc in LC_MESSAGES $(EXTRA_LOCALE_CATEGORIES); do \
 	    rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
 	  done; \
@@ -583,8 +606,13 @@ distdir1:
 	  done; \
 	else \
 	  case $(XGETTEXT) in \
-	    :) echo "Warning: Creating a tarball without '$(DOMAIN).pot', because a suitable 'xgettext' program was not found in PATH." 1>&2;; \
-	    *) echo "Warning: Creating a tarball without '$(DOMAIN).pot', because 'xgettext' found no strings to extract. Check the POTFILES and the XGETTEXT_OPTIONS in the Makefile.am file." 1>&2;; \
+	    :) echo "Warning: Creating a tarball without '$(DOMAIN).pot', " \
+              "because a suitable 'xgettext' program was not found in PATH." \
+	      1>&2;; \
+	    *) echo "Warning: Creating a tarball without '$(DOMAIN).pot', " \
+	       "because 'xgettext' found no strings to extract." \
+	       "Check the POTFILES and the XGETTEXT_OPTIONS" \
+	       "in the Makefile.am file." 1>&2;; \
 	  esac; \
 	fi
 
@@ -596,26 +624,32 @@ update-po: Makefile
 # General rule for creating PO files.
 
 .nop.po-create:
-	@lang=`echo $@ | sed -e 's/\.po-create$$//'`; \
-	echo "File $$lang.po does not exist. If you are a translator, you can create it through 'msginit'." 1>&2; \
+	@lang=`echo $@ | ${SED} -e 's/\.po-create$$//'`; \
+	echo "File $$lang.po does not exist. " \
+	  "If you are a translator, you can create it through 'msginit'." \
+	  1>&2; \
 	exit 1
 
 # General rule for updating PO files.
 
 .nop.po-update:
-	@lang=`echo $@ | sed -e 's/\.po-update$$//'`; \
+	@lang=`echo $@ | ${SED} -e 's/\.po-update$$//'`; \
 	tmpdir=`pwd`; \
 	echo "$$lang:"; \
 	test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
-	echo "$${cdcmd}$(MSGMERGE) $(MSGMERGE_OPTIONS) --lang=$$lang --previous $$lang.po $(DOMAIN).pot -o $$lang.new.po"; \
+	cmd_start="$(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS)"; \
+	cmd_tail="--lang=$${lang} --previous $${lang}.po $(DOMAIN).pot"; \
+	echo "$${cdcmd}$${cmd_start} $${cmd_tail} -o $$lang.new.po"; \
+	cmd_tail="-o $$tmpdir/$$lang.new.po  $${lang}.po $(DOMAIN).pot"; \
 	cd $(srcdir); \
-	if { case `$(MSGMERGE) --version | sed 1q | sed -e 's,^[^0-9]*,,'` in \
+	if { case `$(MSGMERGE) --version | ${SED} 1q \
+	         | ${SED} -e 's,^[^0-9]*,,'` in \
 	       '' | 0.[0-9] | 0.[0-9].* | 0.1[0-5] | 0.1[0-5].*) \
-	         $(MSGMERGE) $(MSGMERGE_OPTIONS) -o $$tmpdir/$$lang.new.po $$lang.po $(DOMAIN).pot;; \
+	         $${cmd_start} $${cmd_tail};; \
 	       0.1[6-7] | 0.1[6-7].*) \
-	         $(MSGMERGE) $(MSGMERGE_OPTIONS) --previous -o $$tmpdir/$$lang.new.po $$lang.po $(DOMAIN).pot;; \
+	         $${cmd_start} --previous $${cmd_tail};; \
 	       *) \
-	         $(MSGMERGE) $(MSGMERGE_OPTIONS) --lang=$$lang --previous -o $$tmpdir/$$lang.new.po $$lang.po $(DOMAIN).pot;; \
+	         $${cmd_start} --lang=$$lang --previous $${cmd_tail};; \
 	     esac; \
 	   }; then \
 	  if cmp $$lang.po $$tmpdir/$$lang.new.po >/dev/null 2>&1; then \
@@ -624,7 +658,8 @@ update-po: Makefile
 	    if mv -f $$tmpdir/$$lang.new.po $$lang.po; then \
 	      :; \
 	    else \
-	      echo "msgmerge for $$lang.po failed: cannot move $$tmpdir/$$lang.new.po to $$lang.po" 1>&2; \
+	      echo "msgmerge for $$lang.po failed: cannot move" \
+	        "$$tmpdir/$$lang.new.po to $$lang.po" 1>&2; \
 	      exit 1; \
 	    fi; \
 	  fi; \
@@ -646,7 +681,7 @@ dist-hook:
 	  echo; \
 	  exit 0; \
 	fi; \
-	pot_regexp=`echo $(POTFILES) | sed 's,  *,|,g;s,^|*,^(,;s,|*$$,)$$,'`; \
+	pot_regexp=`echo $(POTFILES) | ${SED} 's,  *,|,g;s,^|*,^(,;s,|*$$,)$$,'`; \
 	files=`cd $(top_srcdir) \
 	  && find frontend/ -type f -name '*.php' ! -name ac_config.php`; \
 	files=`cd $(top_srcdir); ls $$files`; \

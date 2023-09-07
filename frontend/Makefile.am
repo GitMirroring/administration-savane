@@ -335,7 +335,7 @@ install-data-hook:
 	  ! -name '*.orig.png' -print \
 	  | while read f; do \
 	      dir=`echo "$$f" \
-	        | sed 's,$(srcdir),$(dest_dir),;s,/[^/]*$$,,'`; \
+	        | ${SED} 's,$(srcdir),$(dest_dir),;s,/[^/]*$$,,'`; \
 	      $(INSTALL_DATA) -D -t $$dir $$f || exit 1; \
 	    done
 	for pass in dir file; do \
@@ -344,7 +344,7 @@ install-data-hook:
 	        if test -d "$$l/"; then type=dir; else type=file; fi; \
 	        if test $$pass != $$type; then continue; fi; \
 	        dir=`echo "$$l" \
-	          | sed 's,$(srcdir),$(dest_dir),;s,/[^/]*$$,,'`; \
+	          | ${SED} 's,$(srcdir),$(dest_dir),;s,/[^/]*$$,,'`; \
 	        source=`readlink "$$l"`; \
 	        base=`basename $$l`; \
 	        test -d "$$dir" || $(INSTALL) -d $$dir; \

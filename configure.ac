@@ -50,6 +50,7 @@ AM_INIT_AUTOMAKE([1.11.1])
 AM_PO_SUBDIRS
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_SED
 
 AC_PATH_PROG(PERL, [perl])
 AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
@@ -87,9 +88,9 @@ AS_CASE(["x$GIT"], [x], [], [
   AS_IF([test -d "$srcdir/.git"], [
     AS_CASE(["x$enable_changelog"], [xyes], [
       AS_ECHO(["Updating ChangeLog..."])
-      sed '1,/^=\{51\}/{/^=\{51\}/p;d}' "$srcdir/ChangeLog" > ChangeLog.git
+      "$SED" '1,/^=\{51\}/{/^=\{51\}/p;d}' "$srcdir/ChangeLog" > ChangeLog.git
       "$GIT" --git-dir="$srcdir/.git" log --no-decorate --numstat \
-        | sed "s,[[[:space:]]]*$,," > "$srcdir/ChangeLog"
+        | "$SED" "s,[[[:space:]]]*$,," > "$srcdir/ChangeLog"
       echo >> "$srcdir/ChangeLog"
       cat ChangeLog.git >> "$srcdir/ChangeLog"
       rm ChangeLog.git
@@ -107,10 +108,10 @@ AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
 AC_MSG_CHECKING([for Git commit])
-SV_GIT_COMMIT=`sed 's,^commit ,,;q' $srcdir/ChangeLog`
+SV_GIT_COMMIT=`"$SED" 's,^commit ,,;q' $srcdir/ChangeLog`
 commit_source='guessed from ChangeLog'
 AS_IF([test -d "$srcdir/.git"], [
-  head=`sed 's,^ref: ,,;q' $srcdir/.git/HEAD`
+  head=`"$SED" 's,^ref: ,,;q' $srcdir/.git/HEAD`
   SV_GIT_COMMIT=`cat $srcdir/.git/$head`
   commit_source='extracted from Git repository'
 ])
