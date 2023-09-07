@@ -521,7 +521,7 @@ function test_mysql ()
         }
       print "<dt>$param</dt><dd>'$value'";
       if ($comment !== null)
-        print "\n$comment";
+        print "<br />\n$comment";
       print "</dd>\n";
     }
   print "</dl>\n";
