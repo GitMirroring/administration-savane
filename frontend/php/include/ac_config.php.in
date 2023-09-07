@@ -48,7 +48,6 @@ $sys_confdir = "@sysconfdir@";
 $sys_localedir = "@localedir@";
 unset ($prefix, $datarootdir);
 $savane_version = "@VERSION@";
-$sys_conf_file_name = '.savane.conf.php';
 $sys_conf_file = null;
 $ac_git_commit = "@SV_GIT_COMMIT@";
 $ac_package_tarname = "@PACKAGE_TARNAME@";
@@ -60,6 +59,17 @@ else
 
 $sys_etc_dir .= '/savane/';
 
+function ac_conf_lookup ($d)
+{
+  foreach (['savane.conf.php', '.savane.conf.php'] as $name)
+    {
+      $conf_file = "$d$name";
+      if (file_exists ($conf_file) && is_readable ($conf_file))
+        return $conf_file;
+    }
+  return null;
+}
+
 foreach (
   [getenv ('SAVANE_CONF'), getenv ('SV_LOCAL_INC_PREFIX'), $sys_etc_dir] as $d
 )
@@ -68,8 +78,8 @@ foreach (
       continue;
     if (!preg_match (',/$,', $d))
       $d .= '/';
-    $conf_file = "$d$sys_conf_file_name";
-    if (!file_exists ($conf_file) || !is_readable ($conf_file))
+    $conf_file = ac_conf_lookup ($d);
+    if (empty ($conf_file))
       continue;
     $sys_conf_file = $conf_file;
     break;
