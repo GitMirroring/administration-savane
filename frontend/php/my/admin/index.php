@@ -43,15 +43,20 @@
 require_once ('../../include/sane.php');
 require_once ('../../include/utils.php');
 require_once ('../../include/form.php');
+$pref_list = ['email_encrypted', 'nonfixed_feedback', 'keep_only_one_session',
+  'quiet_ssh', 'reverse_comments_order', 'stone_age_menu', 'use_bookmarks'
+];
+$pref_fb_on_set = [
+ 'stone_age_menu' =>
+   _("Stone age menu activated, it will be effective the next time "
+     . "a page is loaded")
+];
+$true_fields = ['update', 'theme_rotate_jump', 'form_email_hide'];
+foreach ($pref_list as $p)
+  $true_fields[] = "form_$p";
 extract (sane_import ('post',
   [
-    'true' =>
-      [
-        'update', 'form_keep_only_one_session', 'theme_rotate_jump',
-        'form_reverse_comments_order', 'form_stone_age_menu',
-        'form_nonfixed_feedback', 'form_use_bookmarks', 'form_email_hide',
-        'form_email_encrypted'
-      ],
+    'true' => $true_fields,
     'no_quotes' => ['form_timezone', 'user_theme']
   ]
 ));
@@ -94,30 +99,21 @@ require_once ('../../include/timezones.php');
 extract (sane_import ('request', ['pass' => 'feedback']));
 session_require (['isloggedin' => 1]);
 
-if ($update)
-  {
-    function sync_preference ($pref, $note = null)
+function sync_preference ($pref)
+{
+  global $pref_fb_on_set;
+  if ($GLOBALS["form_$pref"] == "1")
     {
-      if ($GLOBALS["form_$pref"] == "1")
-        {
-          user_set_preference ($pref, 1);
-          if ($note !== null)
-            fb ($note);
-        }
-      else
-        user_unset_preference ($pref);
+      user_set_preference ($pref, 1);
+      if (array_key_exists ($pref, $pref_fb_on_set))
+        fb ($pref_fb_on_set[$pref]);
     }
-    sync_preference ('use_bookmarks');
-    sync_preference ('email_encrypted');
-    sync_preference ('nonfixed_feedback');
-    sync_preference (
-      'stone_age_menu',
-       _("Stone age menu activated, it will be effective the next time "
-         . "a page is\nloaded")
-    );
-    sync_preference ('reverse_comments_order');
-    sync_preference ('keep_only_one_session');
-  }
+  else
+    user_unset_preference ($pref);
+}
+if ($update)
+  foreach ($pref_list as $p)
+    sync_preference ($p);
 
 # Print form and links.
 site_user_header (['context' => 'account']);
@@ -321,6 +317,13 @@ print '<p class="smaller">'
   . _("When checked, Savannah will encrypt email messages\nwith your "
       . "registered public GPG key when resetting password is requested.\n"
       . "If no suitable key is available, the messages still go unencrypted.")
+  . "</p>\n";
+
+$i++;
+print_box_next_item ();
+pref_cbox ('quiet_ssh', _("Quiet SSH member shell"));
+print '<p class="smaller">'
+  . _("Suppress the message that offers Savane source code when using SSH.")
   . "</p>\n";
 
 print $HTML->box_bottom ();

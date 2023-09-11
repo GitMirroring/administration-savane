@@ -53,6 +53,8 @@
 use strict;
 use Cwd 'abs_path';
 use Savane::Version;
+use Savane::DB;
+use Savane::User;
 
 $ENV{'PATH'}="/usr/local/bin:/usr/bin:/bin";
 $ENV{'CVSEDITOR'}="/bin/false";
@@ -104,7 +106,7 @@ process_help_and_version () unless ($ARGV[0] eq "-c");
 # checking if --help is requested; if we did that before,
 # make installcheck would require setting $source_code_url
 # in the stub membersh-conf.pl.
-offer_source_code ();
+offer_source_code () unless quiet_is_requested ();
 
 output_error_msg () unless ($#ARGV == 1 && $ARGV[0] eq "-c");
 
@@ -119,7 +121,12 @@ for my $cmd (@commands_enabled)
 
 output_error_msg ();
 
-sub offer_source_code ()
+sub quiet_is_requested
+{
+  return GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
+}
+
+sub offer_source_code
 {
   die "Source code URL isn't defined in configuration file\n\n"
     . "\t$conf_file\n\nExiting" if $source_code_url eq '';

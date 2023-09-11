@@ -12,6 +12,8 @@
 
 * Broken themes Sad and Right are removed, sr #110921.
 
+* New user preference to silence source code offer via SSH.
+
 * Bug fixes:
 
 ** Deprecation messages in the captcha library broke the resulting image.
