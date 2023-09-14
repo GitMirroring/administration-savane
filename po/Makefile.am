@@ -5,7 +5,8 @@
 #
 # - set POTFILES, DOMAIN, COPYRIGHT_HOLDER, MSGMERGE_OPTIONS
 # - verify POTFILES in dist-hook
-# - use configured ${SED} value.
+# - use configured ${SED} value
+# - use sed instead of basename.
 #
 # Makefile configuration - processed by automake.
 
@@ -483,7 +484,7 @@ install-data-local-no: all-local
 install-data-local-yes: all-local
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
-	  cat=`basename $$cat`; \
+	  cat=`echo " $$cat" | ${SED} 's,.*/,,;s,^ ,,'`; \
 	  lang=`echo $$cat | ${SED} -e 's/\.gmo$$//'`; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(MKDIR_P) $(DESTDIR)$$dir; \
@@ -534,7 +535,7 @@ installdirs-local-no:
 installdirs-local-yes:
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
-	  cat=`basename $$cat`; \
+	  cat=`echo " $$cat" | ${SED} 's,.*/,,;s,^ ,,'`; \
 	  lang=`echo $$cat | ${SED} -e 's/\.gmo$$//'`; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(MKDIR_P) $(DESTDIR)$$dir; \
@@ -573,7 +574,7 @@ uninstall-local-no:
 uninstall-local-yes:
 	catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
-	  cat=`basename $$cat`; \
+	  cat=`echo " $$cat" | ${SED} 's,.*/,,;s,^ ,,'`; \
 	  lang=`echo $$cat | ${SED} -e 's/\.gmo$$//'`; \
 	  for lc in LC_MESSAGES $(EXTRA_LOCALE_CATEGORIES); do \
 	    rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
