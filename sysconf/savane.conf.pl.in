@@ -1,3 +1,11 @@
-# Dummy configuration file for Savane Perl scripts.
-our $sys_db_skip_init = 1; # Allow running distcheck even with unconfigured DB.
+# Configuration file for Savane Perl scripts.
+
+our $sys_dbname="@SV_DB_NAME@";
+our $sys_dbhost="@SV_DB_HOST@";
+our $sys_dbport="@SV_DB_PORT@";
+our $sys_dbuser="@SV_DB_USER@";
+our $sys_dbnetworking = "@SV_DB_NETWORKING@";
+our $sys_dbpasswd="@SV_DB_PASSWORD@";
+our $sys_dbsocket = "@mysql_socket@"
+  if $sys_dbnetworking eq 'no';
 return 1;

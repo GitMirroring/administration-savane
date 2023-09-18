@@ -51,7 +51,8 @@ $sys_debug_email_override_address = "webmasters@localhost";
 
 $sys_dbhost = "@SV_DB_HOST@";
 $sys_dbport = "@SV_DB_PORT@";
-if ('@SV_DB_NETWORKING@' === 'no')
+$sys_dbnetworking = '@SV_DB_NETWORKING@';
+if ($sys_dbnetworking === 'no')
   $sys_dbsocket = "@mysql_socket@";
 $sys_dbname = "@SV_DB_NAME@";
 $sys_dbuser = "@SV_DB_USER@";

@@ -55,18 +55,32 @@ our $version = 1;
 
 our $sys_dbname;
 our $sys_dbhost;
+our $sys_dbport;
 our $sys_dbuser;
 our $sys_dbpasswd;
+our $sys_dbnetworking;
 our $sys_dbparams;
-our $sys_db_skip_init;
 our $dbd;
+our $socket = "@mysql_socket@";
+
+sub db_source
+{
+  my $ret = "DBI:mysql:database=$sys_dbname";
+
+  $ret .= ":host=$sys_dbhost";
+  $ret .= ":port=$sys_dbport" if $sys_dbport ne '';
+  $ret .= ":mysql_socket=$socket" if $sys_dbnetworking eq 'no';
+  $ret .= ":$sys_dbparams";
+  return $ret;
+}
 
 $dbd =
   DBI->connect (
-    "DBI:mysql:database=$sys_dbname:host=$sys_dbhost:$sys_dbparams",
-    $sys_dbuser, $sys_dbpasswd, { RaiseError => 1, AutoCommit => 1}
-  )
-  unless ($sys_db_skip_init);
+    db_source (), $sys_dbuser, $sys_dbpasswd,
+    {PrintError => 0, AutoCommit => 1}
+  );
+
+$dbd->{PrintError} = $dbd->{RaiseError} = 1 if $dbd;
 
 # Return the name and type of every field of the table.
 # arg0: table
