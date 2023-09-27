@@ -56,30 +56,27 @@ AC_SUBST([DIRNAME],
   [['${SED} -e "s,\([^/]\)/*$$,\1,;tb;:b;s,^[^/]*$$,.,;tq;" \
     -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']])
 
-AC_PATH_PROG(PERL, [perl])
+AC_PATH_PROG([PERL], [perl])
 AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
+AC_ARG_VAR([PERL], [Perl executable])
 
-AC_PATH_PROG(PHP, [php])
-
-AC_PATH_PROG(SV_DB_CMD, [mysql])
-AS_CASE(["x$SV_DB_CMD"], [x], [AC_MSG_ERROR([MySQL client not found])])
+AC_PATH_PROG([PHP], [php])
+AC_ARG_VAR([PHP], [PHP executable])
 
 # Look for Apache2 and MySQL server, needed for local testing.
-AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
-AC_SUBST([WWW_SERVER_BIN])
-AC_PATH_PROG([MYSQLD_BIN], [mysqld], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
+AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [], [$PATH$PATH_SEPARATOR/usr/sbin])
+AC_ARG_VAR([WWW_SERVER_BIN], [Apache2 executable])
+AC_PATH_PROG([MYSQLD_BIN], [mysqld], [], [$PATH$PATH_SEPARATOR/usr/sbin])
+AC_ARG_VAR([MYSQLD_BIN], [MySQL daemon])
 AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
-AC_SUBST([MYSQLD_SAFE_BIN])
+  [$PATH$PATH_SEPARATOR/usr/sbin])
+AC_ARG_VAR([MYSQLD_SAFE_BIN], [MySQL '"safe"' daemon])
 AC_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
-AC_SUBST([MYSQL_INSTALLDB_BIN])
-AC_PATH_PROG([MYSQL_BIN], [mysql], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
-AC_SUBST([MYSQL_BIN])
-AC_PATH_PROG(GIT, [git])
+  [$PATH$PATH_SEPARATOR/usr/sbin])
+AC_ARG_VAR([MYSQL_INSTALLDB_BIN], [mysql_install_db executable])
+AC_PATH_PROG([MYSQL_BIN], [mysql])
+AC_ARG_VAR([MYSQL_BIN], [MySQL client])
+AS_CASE(["x$MYSQL_BIN"], [x], [AC_MSG_ERROR([MySQL client not found])])
 AC_PATH_PROG([GRAPHVIZ_BIN], [dot])
 AC_ARG_VAR([GRAPHVIZ_BIN], [Graphviz executable])
 
@@ -88,6 +85,9 @@ AC_ARG_ENABLE([changelog],
   [AS_HELP_STRING([--enable-changelog], [update ChangeLog from git logs])],
   [], [enable_changelog=no])
 AC_MSG_RESULT([$enable_changelog])
+
+AC_PATH_PROG([GIT], [git])
+AC_ARG_VAR([GIT], [Git executable])
 
 AS_CASE(["x$GIT"], [x], [], [
   AS_IF([test -d "$srcdir/.git"], [
