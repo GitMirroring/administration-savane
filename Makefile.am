@@ -18,6 +18,7 @@ backend_bin_scripts = \
   backend/extra/git/sv_git_gc_repos.pl \
   backend/mail/sv_aliases \
   backend/mail/sv_mailman-wrapper.pl \
+  backend/mail/sv_sendmail.pl \
   backend/misc/sv_cleaner \
   backend/misc/sv_reminder
 
@@ -75,6 +76,13 @@ mysql_rundir = $(rundir)/mysqld
 mysql_pid = $(mysql_rundir)/pid
 mysql_socket = $(mysql_rundir)/sock
 mysql_lock = $(mysql_rundir)/lock
+if HAVE_SENDMAIL
+  WWW_SENDMAIL_LINE =
+  HAVE_SENDMAIL_VAR = 1
+else
+  WWW_SENDMAIL_LINE = php_admin_value sendmail_path "$(bindir)/sv_sendmail.pl"
+  HAVE_SENDMAIL_VAR = 0
+endif
 
 subst_in_files = \
   ${SED} \
@@ -87,6 +95,8 @@ subst_in_files = \
     -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),g' \
     -e 's,[@]WWW_SERVER_PORT[@],$(WWW_SERVER_PORT),g' \
     -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
+    -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
+    -e 's,[@]HAVE_SENDMAIL[@],$(HAVE_SENDMAIL_VAR),g' \
     -e 's,[@]MYSQL_BIN[@],$(MYSQL_BIN),g' \
     -e 's,[@]MYSQLD_BIN[@],$(MYSQLD_BIN),g' \
     -e 's,[@]MYSQLD_SAFE_BIN[@],$(MYSQLD_SAFE_BIN),g' \

@@ -63,6 +63,9 @@ AC_ARG_VAR([PERL], [Perl executable])
 AC_PATH_PROG([PHP], [php])
 AC_ARG_VAR([PHP], [PHP executable])
 
+AC_PATH_PROG([SENDMAIL], [sendmail])
+AC_ARG_VAR([SENDMAIL], [sendmail executable])
+
 # Look for Apache2 and MySQL server, needed for local testing.
 AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [], [$PATH$PATH_SEPARATOR/usr/sbin])
 AC_ARG_VAR([WWW_SERVER_BIN], [Apache2 executable])
@@ -143,15 +146,27 @@ AS_IF([echo $SV_GIT_COMMIT | grep -q ['^[a-f0-9]\{40,\}$']],
 ])
 AC_SUBST([SV_GIT_COMMIT])
 
+AC_MSG_CHECKING([whether to use sendmail])
+AC_ARG_ENABLE([sendmail],
+  AS_HELP_STRING([--disable-sendmail], [do not use sendmail]),
+  [], [enable_sendmail=yes])
+AS_CASE(["x$enable_sendmail"], [xyes], [],
+  [
+    enable_sendmail=no
+    SENDMAIL=
+  ])
+AC_MSG_RESULT([$enable_sendmail])
+AM_CONDITIONAL([HAVE_SENDMAIL], [test "x$SENDMAIL" != x])
+
 AC_MSG_CHECKING([for database name])
 AC_ARG_WITH([db-name],
   AS_HELP_STRING([--with-db-name], [name of the database [savane]]),
-  [SV_DB_NAME="$withval"], [SV_DB_NAME=savane])
+  [SV_DB_NAME="$withval"], [SV_DB_NAME=$PACKAGE])
 AC_MSG_RESULT([$SV_DB_NAME])
 
 AC_MSG_CHECKING([for database user])
 AC_ARG_WITH([db-user],
-  AS_HELP_STRING([--with-db-user], [name of the database user [sv]]),
+  AS_HELP_STRING([--with-db-user], [database user [sv]]),
   [SV_DB_USER="$withval"], [SV_DB_USER=sv])
 AC_MSG_RESULT([$SV_DB_USER])
 
@@ -200,7 +215,7 @@ AC_SUBST([SV_DB_USER])
 AC_SUBST([SV_DB_PASSWORD])
 AC_SUBST([SV_DB_OPTIONS])
 
-SV_CONF="$sysconfdir/savane"
+SV_CONF="$sysconfdir/$PACKAGE"
 AC_SUBST(SV_CONF)
 
 AC_MSG_CHECKING([for Apache user])
@@ -239,6 +254,7 @@ AC_OUTPUT
 AS_ECHO([])
 AS_ECHO(["Configured $PACKAGE_STRING"])
 AS_ECHO(["Git commit: $SV_GIT_COMMIT ($commit_source)"])
+AS_ECHO(["Prefix: $prefix"])
 AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Apache user: $WWW_SERVER_USER"])
 AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
@@ -270,6 +286,14 @@ AS_CASE(["x$SV_DB_NAME"], [x],
   [AS_ECHO(["Note: Database name is unconfigured"])])
 AS_CASE(["x$SV_DB_HOST"], [x],
   [AS_ECHO(["Note: Database host is unconfigured"])])
+
+mbox="$localstatedir/lib/$PACKAGE/log/sendmail.mbox"
+
+AS_CASE(["x$SENDMAIL"], [x],
+  [
+    AS_ECHO(["Note: sendmail is unconfigured."])
+    AS_ECHO(["      Email will be directed to $mbox."])
+  ])
 
 AS_CASE(["x$GRAPHVIZ_BIN"], [x],
   [

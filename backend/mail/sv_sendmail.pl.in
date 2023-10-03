@@ -1,4 +1,7 @@
+#! @PERL@ -I@pkgdatadir@/lib
+#
 # Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2001-2006 Loic Dachary <loic--gnu.org>
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
@@ -37,60 +40,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-# Send notifications.
-
 use strict;
-require Mail::Send;
-require Exporter;
+use Savane::Version;
 
-our @ISA = qw (Exporter);
-our @EXPORT = qw (MailSend);
-our $version = 1;
+my $help =
+"Usage: $0 [OPTIONS]
 
-sub format_message
-{
-  my $url = GetConf ("sys_default_domain") . GetConf ("sys_url_topdir");
-  return "$_[0]\n\n-- \n"
-    .  "Message sent by " . GetConf ("sys_name") . "\nhttps://$url\n";
-}
+A stub to use instead of sendmail: redirect email to a log file.
 
-sub send_mail
-{
-  my ($to, $subject, $message) = @_;
-  my $msg = new Mail::Send;
-  my $fh;
+  -h, --help      show this help and exit
+  -v, --version   show Savane version and exit";
+PrintVersionOrHelp ($help);
 
-  $msg->to ($to);
-  $msg->subject ($subject);
-  $msg->add ("From", GetConf ("sys_mail_replyto"));
-  $msg->add ("X-Savane-Server", GetConf ("sys_default_domain"));
-  $msg->add ("User-Agent", "Savane::Mail.pm");
-
-  $fh = $msg->open;
-  print $fh $message;
-  $fh->close;
-}
-
-sub log_mail
-{
-  my ($to, $subject, $message) = @_;
-  my $logdir = "@logdir@";
-  my $log = "$logdir/sendmail.mbox";
-  die "Can't open $log for writing: $!\n" unless open FH, '>>', $log;
-  print FH "From @PACKAGE@ " . `date`;
-  print FH "From: " . GetConf ("sys_mail_replyto") . "\n";
-  print FH "X-Savane-Server: " . GetConf ("sys_default_domain") . "\n";
-  print FH "User-Agent: Savane::Mail.pm\n";
-  close FH;
-}
-
-sub MailSend
-{
-  my ($to, $subj, $msg) = @_;
-  $msg = format_message ($msg);
-  return send_mail ($to, $subj, $msg) if @HAVE_SENDMAIL@;
-  return log_mail ($to, $subj, $msg);
-}
-
-return 1;
+my $logdir = "@logdir@";
+my $log = "$logdir/sendmail.mbox";
+die "Can't open $log for writing: $!\n" unless open FH, '>>', $log;
+print FH "From @PACKAGE@ " . `LC_ALL=C date -u +'%a %b %d %T %Y'`;
+print FH $_ while (<>);

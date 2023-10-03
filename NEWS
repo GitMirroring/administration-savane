@@ -2,7 +2,7 @@
 
 [FRONTEND]
 
-* New script, sv_frontendctl.pl.
+* New scripts, sv_frontendctl.pl and sv_sendmail.pl.
 
 * New configuration file name, savane.conf.php; when looking
   for the configuration file, it's checked before .savane.conf.php.
@@ -144,6 +144,10 @@
 ** sv_cgit.pl listed private as well as public repositories.
 
 [BUILD]
+
+* New configure option to redirect mail to
+  @localstatedir@/lib/@PACKAGE@/log/sendmail.mbox,
+  --disable-sendmail.
 
 * Initial database is installed (unless already present)
   in @localstatedir@/lib/@PACKAGE@/mysqld,

@@ -47,7 +47,9 @@ if ($sys_www_server_port != 80)
 $sys_brother_domain = $sys_default_domain;
 
 $sys_debug_nobasehost = true;
+# Set this variable to redirect all emails to one address:
 $sys_debug_email_override_address = "webmasters@localhost";
+unset ($sys_debug_email_override_address);
 
 $sys_dbhost = "@SV_DB_HOST@";
 $sys_dbport = "@SV_DB_PORT@";
