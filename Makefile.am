@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = gnits
 ACLOCAL_AMFLAGS = -I autotools/m4
 
 # The list of subdirectories containing Makefiles.
-SUBDIRS = etc frontend po
+SUBDIRS = frontend po
 
 backend_bin_scripts = \
   backend/accounts/sv_assign_uid_gid \

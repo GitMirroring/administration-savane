@@ -1,7 +1,0 @@
-The Savane etc:
--------------------
-
-In this directory are a default crontab and logrotate file you may want to
-copy in /etc/cron.d and /etc/logrorate.d.
-
-You are in fact advised to do so, after editing the files.

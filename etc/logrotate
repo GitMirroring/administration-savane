@@ -1,6 +1,0 @@
-/var/log/sv_*.log {
-  rotate 32
-  weekly
-  compress
-  missingok
-}
