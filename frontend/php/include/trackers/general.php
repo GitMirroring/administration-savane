@@ -249,14 +249,14 @@ function trackers_field_display (
 
     case 'DF':
       if ($ascii)
-        $output .= ($value == 0)? '': utils_format_date ($value);
+        $output .= utils_format_date ($value);
       else
         {
           if ($ro)
             $output .= utils_format_date ($value);
-        else
-          $output .= trackers_field_date (
-            $field_name, ($value == 0)? null: date ("Y-m-d", $value)
+          else
+            $output .= trackers_field_date (
+              $field_name, empty ($value)? null: date ("Y-m-d", $value)
           );
         }
       break;

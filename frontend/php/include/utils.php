@@ -277,7 +277,7 @@ else # !function_exists ("strftime")
 # @see utils_date_to_unixtime()
 function utils_format_date ($timestamp, $format = "default")
 {
-  if ($timestamp == 0)
+  if (empty ($timestamp))
     return '-';
 
   $tm = localtime ($timestamp, true);
