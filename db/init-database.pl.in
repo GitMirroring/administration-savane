@@ -131,7 +131,10 @@ sub make_db
 sub fill_db
 {
   my $res = system (mysql_cmd () . " < @srcdir@/db/initial.sql");
-  die "Failed to fill database.\n" if $res;
+  die "Failed to fill minimal database.\n" if $res;
+  return 0 unless "@ADD_SAMPLE_DB@" eq "yes";
+  $res = system (mysql_cmd () . " < @srcdir@/db/sample.sql");
+  die "Failed to add sample database entries.\n" if $res;
 }
 
 sub make_launch_db_conf

@@ -106,13 +106,19 @@ AS_CASE(["x$GIT"], [x], [], [
   ])
 ])
 
-AC_MSG_CHECKING([whether to install database])
+AC_MSG_CHECKING([whether to initialize database])
 AC_ARG_ENABLE([database],
-  [AS_HELP_STRING([--disable-database], [do not install database])],
+  [AS_HELP_STRING([--disable-database], [do not initialize database])],
   [], [enable_database=yes])
 AS_CASE(["x$enable_database"], [xno], [], [enable_database=yes])
 AC_MSG_RESULT([$enable_database])
 AM_CONDITIONAL([HAVE_DATABASE], [test "x$enable_database" = xyes])
+AC_MSG_CHECKING([whether to insert sample database entries])
+AC_ARG_ENABLE([sample-db],
+  [AS_HELP_STRING([--enable-sample-db], [insert sample database entries])],
+  [], [enable_sample_db=no])
+AS_CASE(["x$enable_sample_db"], [xyes], [], [enable_sample_db=no])
+AC_MSG_RESULT([$enable_sample_db])
 AS_CASE(["$enable_database.$MYSQL_BIN"], [yes.],
   [AC_MSG_ERROR([MySQL client not found])])
 AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN$MYSQLD_BIN"], [yes.],
@@ -121,6 +127,11 @@ AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN"], [yes.],
   [AC_MSG_WARN([mysql_install_db not found; falling back to mysqld])])
 AS_CASE(["$enable_database.$MYSQLD_SAFE_BIN"], [yes.],
   [AC_MSG_ERROR([mysqld_safe not found])])
+AS_CASE(["$enable_database.$enable_sample_db"], [no.yes],
+  [
+    AC_MSG_ERROR([Sample entries are requested without database initialization])
+  ])
+AC_SUBST([ADD_SAMPLE_DB], [$enable_sample_db])
 
 AC_MSG_CHECKING([whether to install frontend part])
 AC_ARG_ENABLE([frontend],

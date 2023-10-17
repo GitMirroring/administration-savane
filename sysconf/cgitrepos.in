@@ -1,4 +1,20 @@
 # Sample cgitrepos file.  Public domain.  Initially written by Ineiev.
+repo.group=Savane administration
+repo.url=administration.git
+repo.path=/srv/git/administration.git
+repo.desc=Primary Cgit entry
+repo.readme=README.html
+repo.owner=
+repo.url=administration/0.git
+repo.path=/srv/git/administration/0.git
+repo.desc=Null secondary Cgit entry
+repo.readme=README.html
+repo.owner=
+repo.url=administration/1.git
+repo.path=/srv/git/administration/0.git
+repo.desc=First secondary Cgit entry
+repo.readme=README.html
+repo.owner=
 repo.group=GNU Core Utilities
 repo.url=coreutils.git
 repo.path=/srv/git/coreutils.git

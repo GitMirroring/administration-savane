@@ -154,6 +154,9 @@
   with PID file and socket in @runstatedir@/@PACKAGE@/mysqld;
   new configure option, --disable-database.
 
+* A small set of sample database entries is optionally added on top of
+  the initial database (--enable-sample-db).
+
 * frontend part is installed to $(pkgdatadir); a few PHP checks are run
   in configure and installcheck time.  New configure option to control
   this, --disable-frontend.

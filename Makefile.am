@@ -100,6 +100,7 @@ subst_in_files = \
     -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
     -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
     -e 's,[@]HAVE_SENDMAIL[@],$(HAVE_SENDMAIL_VAR),g' \
+    -e 's,[@]ADD_SAMPLE_DB[@],$(ADD_SAMPLE_DB),g' \
     -e 's,[@]GRAPHVIZ_BIN[@],$(GRAPHVIZ_BIN),g' \
     -e 's,[@]MYSQL_BIN[@],$(MYSQL_BIN),g' \
     -e 's,[@]MYSQLD_BIN[@],$(MYSQLD_BIN),g' \
@@ -150,7 +151,7 @@ $(substituted): %: %.in dirs.stamp; $(subst_in_files) < $< > $@
 cgirepos: ; echo -n > $@
 
 EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
-  db/initial.sql db/mk-db.sql.in \
+  db/initial.sql db/mk-db.sql.in db/sample.sql \
   tests $(substituted:%=%.in) backend/README autotools/README \
   caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \

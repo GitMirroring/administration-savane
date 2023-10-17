@@ -81,4 +81,5 @@ $sys_registration_captcha = 1;
 $sys_upload_max = 16384;
 
 $sys_etc_dir = "@confdir@";
+$sys_vcs_dir['git']['dir'] = "@confdir@";
 ?>

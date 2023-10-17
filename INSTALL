@@ -75,6 +75,13 @@ In order to shut down the servers, run
 $ $HOME/sv/install/sbin/sv_frontendctl -k stop
 $ $HOME/sv/install/sbin/sv_kill_db
 
+Adding sample database
+----------------------
+
+When configured with --enable-sample-db, non-administrator users
+'alice', 'bob', 'carol', 'dave', 'eve' are added, with the same
+password '-'.
+
 Advanced and troubleshooting
 ----------------------------
 
@@ -117,6 +124,10 @@ $ mysql --user=root --password < db/mk-db.sql
 Initialize database:
 
 $ mysql --user=sv --password sv_demo < ../savane/db/initial.sql
+
+Optionally install sample entries:
+
+$ mysql --user=sv --password sv_demo < ../savane/db/sample.sql
 
 Visit <http://127.0.0.85:4913/testconfig.php> and check the 'MySQL
 configuration' section; you may want to set sql_mode in some file from
