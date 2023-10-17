@@ -113,7 +113,7 @@ function sitemenu_extraurl ($only_with_post = false)
   $query_string = '';
   if (!empty ($_SERVER['QUERY_STRING']))
     $query_string = $_SERVER['QUERY_STRING'];
-  if ($have_item_id)
+  if ($have_item_id && ctype_digit (strval ($query_string)))
     {
       # Short link case (like /bugs/?212).
       $extraurl .= "&amp;func=detailitem&amp;item_id=$item_id";

@@ -187,7 +187,7 @@ extract (sane_import ('get',
   ]
 ));
 
-if ($have_item_id)
+if ($have_item_id && empty ($func))
   $func = 'detailitem';
 
 # Initialize the global data structure before anything else.
