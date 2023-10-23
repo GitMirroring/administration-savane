@@ -21,6 +21,10 @@
 
 * Bug fixes:
 
+** Email notifications from trackers included a localized
+   '[(Error - Not Found)]' string when a language other than
+   English was selected; broken since 2022-02 (50bd0b7c399).
+
 ** Deprecation messages in the captcha library broke the resulting image.
 
 ** The input to add CC was shown to all visitors, even though

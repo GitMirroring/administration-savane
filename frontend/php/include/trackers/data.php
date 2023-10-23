@@ -2207,13 +2207,13 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
 
 # Simply return the value associated with a given value_id
 # for a given field of a given group. If associated value not
-# found then return value_id itself.
-# By doing so if this function is called by mistake on a field with type
-# text area or text field then it returns the text itself.
+# found then return value_id itself with an error message.
 function trackers_data_get_value (
   $field, $group_id, $value_id, $by_field_id = false
 )
 {
+  if (empty ($value_id))
+    return 'None';
   # submitted_by and assigned_to fields are special select box fields.
   if (($field == 'assigned_to') || ($field == 'submitted_by'))
     return user_getname ($value_id);
@@ -2248,7 +2248,7 @@ function trackers_data_get_value (
     return db_result ($result, 0, 'value');
 
   # No value found for this value id.
-  return $value_id . _('(Error - Not Found)');
+  return "$value_id " . _('(Error - Not Found)');
 }
 
 # Show defined and site-wide responses.
