@@ -46,6 +46,8 @@
 
 [BACKEND]
 
+* New commands in sv_membersh, rm and rmdir.
+
 * sv_groups doesn't create GNU Arch directories any more.
 
 * sv_groups invoked 'chattr +i' when creating CVS and Git areas,

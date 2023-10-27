@@ -83,6 +83,8 @@ our %commands_available = (
   'cvs' => '^cvs server$',
   'git' => '^git-',
   'hg' => '^hg -R ([[:alpha:]][[:alnum:]_/-]*) serve --stdio$',
+  'rm' => '^rm ([[:alnum:]_/.-]+)',
+  'rmdir' => '^rmdir ([[:alnum:]_/.-]+)',
   'rsync' => '^rsync --server ',
   'scp' => '^scp( -[dprv])* (-t|-f) (-- )?([[:alnum:]_/.-]+)$',
   'sftp' => '^/usr/lib/openssh/sftp-server( |$)',
@@ -153,7 +155,7 @@ sub run_command
       $a =~ s/'/\\'/g;
       push @args, $a;
     }
-  die "Failed to exec '" . join ("' '", @args) . "': $!";
+  die "Failed to exec '" . join ("' '", @args) . "': $!.\nExiting";
 }
 
 sub run_bzr
@@ -200,6 +202,33 @@ sub assert_path
   return if $realpath =~ m:$allowed_paths:;
   die "Wrong path requested: >$path<, resolves to >$realpath<\n"
     . "Allowed paths are $allowed_paths\nExiting";
+}
+
+sub remove
+{
+  my $path = shift;
+  my $type = shift;
+  assert_path ($path);
+  die "$path doesn't exist.\nExiting" unless -e $path;
+  if ($type)
+    {
+      die "$path is not a directory.\nExiting" unless -d $path;
+      die "Can't remove directory $path: $!.\nExiting" unless rmdir ($path);
+      exit (0);
+    }
+  die "$path is not a file.\nExiting" unless -f $path;
+  die "Can't remove file $path: $!.\nExiting" unless unlink ($path);
+  exit (0);
+}
+
+sub run_rm
+{
+  remove ($_[$#_], 0);
+}
+
+sub run_rmdir
+{
+  remove ($_[$#_], 1);
 }
 
 sub run_rsync
