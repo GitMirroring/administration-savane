@@ -470,6 +470,11 @@ function show_priority_colors_key ()
   print  "</p>\n";
 }
 
+function utils_get_tracker_list ()
+{
+  return ['bugs', 'support', 'task', 'patch', 'cookbook'];
+}
+
 function utils_get_tracker_icon ($tracker)
 {
   if ($tracker == "bugs")

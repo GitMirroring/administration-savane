@@ -84,13 +84,19 @@ extract (sane_import ('request', ['digits' => 'type_id']));
 extract (sane_import ('get', ['true' => 'create']));
 extract (sane_import ('post', ['true' => ['delete', 'update']]));
 
-$tracker_labels = [
-  no_i18n ("Cookbook Manager"), no_i18n ("Bug Tracking"),
-  no_i18n ("News Manager"), no_i18n ("Task Tracking"),
-  no_i18n ("Support Tracking"), no_i18n ("Patch Tracking"),
+$trackers_labelled = [
+  'cookbook' => no_i18n ("Cookbook Manager"),
+  'bugs' => no_i18n ("Bug Tracking"), 'news' => no_i18n ("News Manager"),
+  'task' => no_i18n ("Task Tracking"),
+  'support' => no_i18n ("Support Tracking"),
+  'patch' => no_i18n ("Patch Tracking"),
 ];
 
-$trackers = ['cookbook', 'bugs', 'news', 'task', 'support', 'patch'];
+$trackers = utils_get_tracker_list ();
+$trackers[] = 'news';
+$tracker_labels = [];
+foreach ($trackers as $t)
+  $tracker_labels[] = $trackers_labelled[$t];
 
 $vcs_list = [
   no_i18n ("CVS") => 'cvs', no_i18n ("GNU Arch") => 'arch',

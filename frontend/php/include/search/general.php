@@ -452,9 +452,7 @@ function search_run (
       $sql .= " AND $kw_sql ORDER BY user_name ";
       $sql_params = array_merge($sql_params, $kw_sql_params);
     }
-  elseif (
-    !in_array ($tos, ['bugs', 'support', 'patch', 'cookbook', 'task'])
-  )
+  elseif (!in_array ($tos, utils_get_tracker_list ()))
     exit_error (_("Invalid search."));
   else
     {

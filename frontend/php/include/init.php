@@ -210,7 +210,7 @@ function require_directory ($module)
   $GLOBALS["directory_{$module}_is_loaded"] = 1;
 }
 
-$tracker_list = ['bugs', 'patch', 'task', 'cookbook', 'support'];
+$tracker_list = utils_get_tracker_list ();
 
 function get_module_include_dir (
   $script_name, $true_artifact = 0, $true_dir = 0

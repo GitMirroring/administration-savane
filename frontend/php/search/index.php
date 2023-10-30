@@ -43,18 +43,14 @@
 
 require_once ('../include/init.php');
 
+$tos_values = array_merge (['soft', 'people'], utils_get_tracker_list ());
 extract (sane_import ('request',
   [
     'digits' =>
       [ 'type', 'only_group_id', ['offset', [0, 410338673]],
         ['max_rows', [1, 4913]], ['exact', [0, 1]]
       ],
-    'strings' => [
-      [
-        'type_of_search',
-        ['soft', 'people', 'bugs', 'support', 'patch', 'cookbook', 'task'],
-      ],
-    ],
+    'strings' => [['type_of_search', $tos_values]],
     'pass' => ['words0', 'words1', 'words'],
   ]
 ));
@@ -177,8 +173,7 @@ if ($type_of_search == "people")
       }
     finish_page ();
   }
-$trackers = ['bugs', 'support', 'patch', 'cookbook', 'task'];
-if (!in_array ($type_of_search, $trackers))
+if (!in_array ($type_of_search, utils_get_tracker_list ()))
   {
     search_send_header ();
     print '<p class="error">' . _("Error") . ' - ' . _("Invalid Search!!")

@@ -400,11 +400,10 @@ $user_history_field_names = "(
 function user_has_history ($user_id)
 {
   global $user_history_field_names;
-  $trackers = ['bugs', 'support', 'task', 'patch', 'cookbook'];
   $name = user_fetch_name ($user_id);
   if ($name == '')
     return false;
-  foreach ($trackers as $tr)
+  foreach (utils_get_tracker_list () as $tr)
     {
       $result = db_execute (
         "SELECT bug_id FROM $tr WHERE submitted_by = ? LIMIT 1", [$user_id]

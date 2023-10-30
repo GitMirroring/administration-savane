@@ -44,7 +44,7 @@
 require_once ('../../include/init.php');
 session_require (['isloggedin' => '1']);
 
-$trackers = ['bugs', 'task', 'patch', 'support', 'cookbook'];
+$trackers = utils_get_tracker_list ();
 $user_id = user_getid ();
 $user_email = user_getemail ();
 $user_name = user_getname ();

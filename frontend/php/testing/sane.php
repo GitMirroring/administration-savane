@@ -2069,17 +2069,13 @@ $reference = 'register/upload.php';
 
 $reference = 'search/index.php';
 {
+  $tos_values = array_merge (['soft', 'people'], utils_get_tracker_list ());
   $names = [
     'digits' =>
       [ 'type', 'only_group_id', ['offset', [0, 410338673]],
         ['max_rows', [1, 4913]], ['exact', [0, 1]]
       ],
-    'strings' => [
-      [
-        'type_of_search',
-        ['soft', 'people', 'bugs', 'support', 'patch', 'cookbook', 'task'],
-      ],
-    ],
+    'strings' => [['type_of_search', $tos_values]],
     'pass' => 'words',
   ];
   $in = $out = [
@@ -2140,7 +2136,7 @@ $reference = 'siteadmin/groupedit.php';
     'form_name' => 'grep', 'group_type' => 1,
   ];
   foreach ($names['specialchars'] as $n)
-    $in[$n] = $out[$n] = $n;  
+    $in[$n] = $out[$n] = $n;
   test_sane_import ($in, $names, $out);
 }
 

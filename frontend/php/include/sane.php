@@ -223,9 +223,7 @@ $sane_sanitizers['funcs'] = function ($in, &$out, $i, $arg)
 $sane_sanitizers['artifact'] = function ($in, &$out, $i, $arg)
 {
   global $sane_sanitizers;
-  return $sane_sanitizers['strings'] (
-    $in, $out, $i, ['bugs', 'cookbook', 'patch', 'support', 'task']
-  );
+  return $sane_sanitizers['strings'] ($in, $out, $i, utils_get_tracker_list ());
 };
 
 # Assign when match regex in $arg.

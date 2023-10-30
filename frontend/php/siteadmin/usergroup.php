@@ -135,7 +135,7 @@ function inclusion_requests_query ($user_name)
 function contribution_query ($user_id, $user_name, $offset, $max_rows)
 {
   $max_plus = $max_rows + 1;
-  $trackers = ['cookbook', 'bugs', 'task', 'support', 'patch'];
+  $trackers = utils_get_tracker_list ();
   $queries = [];
   foreach ($trackers as $tracker)
     $queries[] = tracker_query ($user_id, $tracker);
