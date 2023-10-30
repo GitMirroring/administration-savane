@@ -363,21 +363,15 @@ function html_build_list_table_top (
 
   $count = count ($title_arr);
   if ($links_arr)
-    {
-      for ($i = 0; $i < $count; $i++)
-        {
-          $ln = $links_arr[$i]; $ti = $title_arr[$i];
-          $return .= "<th class='boxtitle'>"
-            . "<a class='sortbutton' href=\"$ln\">$ti</a></th>\n";
-        }
-    }
+    for ($i = 0; $i < $count; $i++)
+      {
+        $ln = $links_arr[$i]; $ti = $title_arr[$i];
+        $return .= "<th class='boxtitle'>"
+          . "<a class='sortbutton' href=\"$ln\">$ti</a></th>\n";
+      }
   else
-    {
-      for ($i = 0; $i < $count; $i++)
-        {
-          $return .= "<th class='boxtitle'>{$title_arr[$i]}</th>\n";
-        }
-    }
+    for ($i = 0; $i < $count; $i++)
+      $return .= "<th class='boxtitle'>{$title_arr[$i]}</th>\n";
   return "$return</tr>\n";
 }
 

@@ -53,7 +53,7 @@ require_once (dirname (__FILE__) . '/utils.php');
 # Sanitization checks.
 
 # Unset variables that users are not allowed to set in any cases.
-unset($feedback_html);
+unset ($feedback_html);
 
 # Fuctions to sanitize user-supplied values.
 # Return 0 when the variable was set, 1 otherwize (the caller will set
@@ -284,7 +284,7 @@ $sane_sanitizers['internal_uri'] = function ($in, &$out, $i, $arg)
 };
 
 # Return function from $sane_sanitizers if it exists.
-function sane_prefix_func ($x)
+function sane_func ($x)
 {
   global $sane_sanitizers;
   if (isset($sane_sanitizers[$x]))
@@ -303,7 +303,7 @@ function sane_assign_arr_func ($arg_in, &$func_arg)
       $ret = $arg_in[0];
       $func_arg = $arg_in[1];
     }
-  return sane_prefix_func ($ret);
+  return sane_func ($ret);
 }
 
 # Array; arg[0] is function and arg for keys,
@@ -337,16 +337,12 @@ $sane_sanitizers['array'] = function ($in, &$out, $i, $arg)
 
 function sane_input_array_name ($method)
 {
-  if ($method == 'get')
-    return '_GET';
-  if ($method == 'post')
-    return '_POST';
-  if ($method == 'cookie')
-    return '_COOKIE';
-  if ($method == 'files')
-    return '_FILES';
-  if ($method == 'test')
-    return 'sane_test_input';
+  $arrays = [
+    'get' => '_GET', 'post' => '_POST', 'cookie' => '_COOKIE',
+    'files' => '_FILES', 'test' => 'sane_test_input'
+  ];
+  if (isset ($arrays[$method]))
+    return $arrays[$method];
   return '_REQUEST';
 }
 
@@ -420,12 +416,12 @@ function sane_apply_func ($func, $input, $name, &$values)
 # For more examples, see testing/sane.php.
 function sane_import ($method, $names)
 {
-  $values = array();
+  $values = [];
   $input =& $GLOBALS[sane_input_array_name ($method)];
 
   foreach ($names as $fnc => $name)
     {
-      $func = sane_prefix_func ($fnc);
+      $func = sane_func ($fnc);
       if ($func !== null)
         sane_apply_func ($func, $input, $name, $values);
       else
@@ -434,12 +430,9 @@ function sane_import ($method, $names)
   return $values;
 }
 
-# Function to set a variable in both $_REQUEST and global.
-# (This function should be used only to set safe values! Normally
-# it should be used only in include/ like pre.php).
-function sane_set ($varname, $value)
+# Mysterious function to enchant a superglobal. Never called.
+function sane_set ($varname)
 {
-  $GLOBALS[$varname] = $value;
-  $_REQUEST[$varname] = $value;
+  return $_REQUEST[$varname];
 }
 ?>
