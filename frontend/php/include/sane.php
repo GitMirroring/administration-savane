@@ -219,12 +219,12 @@ $sane_sanitizers['funcs'] = function ($in, &$out, $i, $arg)
     ]);
 };
 
-# Names of tracker.
+# Tracker names.
 $sane_sanitizers['artifact'] = function ($in, &$out, $i, $arg)
 {
   global $sane_sanitizers;
-  return $sane_sanitizers['strings'] ($in, $out, $i,
-    ['bugs', 'cookbook', 'news', 'patch', 'support', 'task']
+  return $sane_sanitizers['strings'] (
+    $in, $out, $i, ['bugs', 'cookbook', 'patch', 'support', 'task']
   );
 };
 
