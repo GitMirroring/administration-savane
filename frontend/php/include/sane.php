@@ -430,10 +430,4 @@ function sane_import ($method, $names)
     }
   return $values;
 }
-
-# Mysterious function to enchant a superglobal. Never called.
-function sane_set ($varname)
-{
-  return $_REQUEST[$varname];
-}
 ?>
