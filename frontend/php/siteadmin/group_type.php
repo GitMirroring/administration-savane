@@ -75,9 +75,9 @@ function show_checkbox ($title, $field, $row)
 {
   $checkbox = form_checkbox ($field, $row[$field] == 1);
   $id = $field;
-  print "\n<br />\n&nbsp;&nbsp;$checkbox\n"
+  print "<p>\n$checkbox\n"
     . "<span class=\"preinput\"><label for=\"$id\">$title</label></span>"
-    . "<br />\n";
+    . "</p>\n";
 }
 
 extract (sane_import ('request', ['digits' => 'type_id']));
@@ -263,7 +263,7 @@ print form_tag ()
   . "<input type='hidden' name='type_id' value=\"$type_id\" />\n";
 
 print '<h2>' . no_i18n ("General default settings for groups of this type")
-  . "</h2>\n";
+  . "</h2>\n\n";
 $textfield_size = '65';
 print '<p>'
   . no_i18n (
@@ -284,7 +284,7 @@ print '<p>'
       . 'from the whole installation settings.')
   . "</p>\n";
 
-print $HTML->box_top (no_i18n ("General Settings"));
+print "<h2>" . no_i18n ("General Settings") . "</h2>\n\n";
 
 $idx = 'name';
 specific_input (
@@ -294,6 +294,7 @@ $idx = 'base_host';
 specific_input (
   no_i18n ("Base Host:"), $row_grp[$idx], $idx, $textfield_size
 );
+print "<p>";
 specific_showinput (
   no_i18n ("Description (will be added on each group main page):"),
   "<textarea cols=\"$textfield_size\" rows='6' wrap='virtual' "
@@ -307,16 +308,14 @@ specific_showinput (
   . " size=\"$textfield_size\" />",
   'admin_email_adress'
 );
-
-print $HTML->box_bottom ();
-print "<br /><br />\n";
+print "</p>\n";
 
 # FIXME: the following more or less assuming that WWW homepage will be
 # managed using CVS.
 # For instance, there will be no viewcvs possibility for Arch managed
 # repository. But this is non-blocker so we let as it is.
 
-print $HTML->box_top (no_i18n ("Group WWW homepage"));
+print "<h2>" . no_i18n ("Group WWW homepage") . "</h2>\n\n";
 print '<p>'
   . no_i18n (
       "This is useful if you provide directly web homepages (created by\n"
@@ -326,7 +325,9 @@ print '<p>'
       . "management.")
   . "</p>\n";
 
+print "<p>";
 show_checkbox (no_i18n ("Can use homepage"), 'can_use_homepage', $row_grp);
+print "</p>";
 
 $sel_val = null;
 $selection = $row_grp['homepage_scm'];
@@ -339,7 +340,8 @@ foreach ($vcs_list as $title => $name)
 $vals = array_keys ($vcs_list);
 $select_box =
    html_build_select_box_from_array ($vals, no_i18n ("VCS"), $sel_val);
-print "<br />\n";
+
+print "<p>";
 specific_showinput (no_i18n ("Selected SCM:"), $select_box);
 
 html_select_typedir_box ("dir_type_homepage", $row_grp['dir_type_homepage']);
@@ -357,25 +359,21 @@ specific_input (
   no_i18n ("Homepage CVS view URL (webcvs, viewcvs):"),
   $row_grp[$idx], $idx, $textfield_size
 );
-
-print $HTML->box_bottom ();
-print "<br /><br />\n";
+print "</p>";
 
 function source_code_manager ($HTML, $row_grp, $textfield_size,
   $vcs_name, $vcs_offix)
 {
   # TRANSLATORS: the argument is VCS name (like Subversion).
-  print $HTML->box_top (
-    sprintf (no_i18n ("Source Code Manager: %s"), $vcs_name)
-  );
-  print '<p>';
+  printf ("<h2>" . no_i18n ("Source Code Manager: %s") . "</h2>", $vcs_name);
+  print "\n\n<p>";
   printf (
     no_i18n ("This is useful if you provide directly %s repositories\n"
       . "(created by the backend) or if you want to allow groups\n"
       . "to configure the related menu entry (see below)."),
     $vcs_name
   );
-  print "</p>\n";
+  print "</p>\n<p>";
   show_checkbox (
     # TRANSLATORS: the argument is VCS name (like Subversion).
     sprintf (no_i18n ("Can use %s"), $vcs_name),
@@ -394,15 +392,13 @@ function source_code_manager ($HTML, $row_grp, $textfield_size,
     no_i18n ("Repository view URL (cvsweb, viewcvs, archzoom...):"),
     $row_grp[$idx], $idx, $textfield_size
   );
-
-  print $HTML->box_bottom ();
-  print "<br /><br />\n";
+  print "</p>\n";
 }
 
 foreach ($vcs_list as $title => $name)
   source_code_manager ($HTML, $row_grp, $textfield_size, $title, $name);
 
-print $HTML->box_top (no_i18n ("Download Area"));
+print "<h2>" . no_i18n ("Download Area") . "</h2>\n\n";
 print '<p>'
   . no_i18n (
       "This is useful if you provide directly download areas\n"
@@ -423,10 +419,8 @@ $idx = 'url_download';
 specific_input (
   no_i18n ("Repository URL:"), $row_grp[$idx], $idx, $textfield_size
 );
-print $HTML->box_bottom ();
-print "<br /><br />\n";
 
-print $HTML->box_top (no_i18n ("Licenses"));
+print "<h2>" . no_i18n ("Licenses") . "</h2>\n\n";
 print '<p>'
   . no_i18n (
       "This is useful if you want group to select a license on\n"
@@ -435,10 +429,7 @@ print '<p>'
   . "</p>\n";
 show_checkbox (no_i18n ("Can use licenses"), 'can_use_license', $row_grp);
 
-print $HTML->box_bottom ();
-print "<br /><br />\n";
-
-print $HTML->box_top (no_i18n ("Development Status"));
+print "<h2>" . no_i18n ("Development Status") . "</h2>\n\n";
 print '<p>'
   . no_i18n (
       "This is useful if you want group to be able to defines\n"
@@ -453,10 +444,7 @@ show_checkbox (
   no_i18n ("Can use development status"), "can_use_devel_status", $row_grp
 );
 
-print $HTML->box_bottom ();
-print "<br /><br />\n";
-
-print $HTML->box_top (no_i18n ("Mailing List"));
+print "<h2>" . no_i18n ("Mailing List") . "</h2>\n\n";
 print '<p class="warn">'
   . no_i18n (
       "Important: Everytime a mailing list name should appear,\n"
@@ -479,8 +467,6 @@ show_checkbox (
   no_i18n ("Can use mailing lists"), "can_use_mailing_list", $row_grp
 );
 
-print "<br /><br />\n";
-
 $idx = 'mailing_list_host';
 specific_input (no_i18n ("Mailing list Host (DEPRECATED):"),
   $row_grp[$idx], $idx, $textfield_size
@@ -502,7 +488,6 @@ specific_input (
   $row_grp[$idx], $idx, $textfield_size
 );
 
-print "<br /><br />\n";
 print '<p>'
   . no_i18n (
       "With the following, you can force groups to follow a specific\n"
@@ -556,22 +541,37 @@ specific_input (no_i18n ("Administrative Interface URL:"),
   $row_grp[$idx], $idx, $textfield_size
 );
 
-print $HTML->box_bottom ();
-print "<br /><br />\n";
-
-function artifact_checkbox ($HTML, $title, $description, $label, $artifact)
+function art_privbox ($art)
 {
   global $row_grp;
-
-  print $HTML->box_top ($title);
-  if ($description != '')
-    print "<p>$description</p>\n";
-  show_checkbox ($label, "can_use_$artifact", $row_grp);
-
-  print $HTML->box_bottom () . "<br /><br />\n";
+  if ($art == 'bug')
+    $art = 'bugs';
+  if ($art == 'forum')
+    return;
+  $labels = [
+    no_i18n ('Default permissions for members'),
+    no_i18n ('Default posting restrictions')
+  ];
+  print html_build_list_table_top ($labels) . "<tr>\n";
+  html_select_permission_box ($art, $row_grp["{$art}_flags"], "type");
+  print "\n";
+  html_select_restriction_box ($art, $row_grp["{$art}_rflags"], "type");
+  print "\n</tr>\n</table>\n\n";
 }
 
-artifact_checkbox ($HTML, no_i18n ("Forum"),
+function artifact_section ($title, $description, $label, $artifact)
+{
+  global $row_grp, $HTML;
+
+  print "<h2>$title</h2>\n\n";
+  if ($description != '')
+    print "<p>$description</p>\n";
+  if ($artifact != 'cookbook')
+    show_checkbox ($label, "can_use_$artifact", $row_grp);
+  art_privbox ($artifact);
+}
+
+artifact_section (no_i18n ("Forum"),
   no_i18n (
     "Forum is a deprecated feature of Savane. We do not recommend using\n"
     . "it and we do not maintain this code any longer."
@@ -579,14 +579,15 @@ artifact_checkbox ($HTML, no_i18n ("Forum"),
   no_i18n ("Can use forum"), 'forum'
 );
 
-artifact_checkbox ($HTML, no_i18n ("Support Request Manager"),
+artifact_section (no_i18n ("Support Request Manager"),
   no_i18n (
     "This is one of the main issue tracker of Savane.  Groups are\n"
     . "supposed to use it as primary interface with end user."
   ),
  no_i18n ("Can use support request tracker"), 'support'
 );
-artifact_checkbox ($HTML, no_i18n ("Bug Tracker"),
+
+artifact_section (no_i18n ("Bug Tracker"),
   no_i18n (
     "This is one of the main issue tracker of Savane. Unlike the\n"
     . "support tracker, it is supposed to be used mainly to organize\n"
@@ -600,7 +601,7 @@ artifact_checkbox ($HTML, no_i18n ("Bug Tracker"),
   no_i18n ("Can use bug tracker"), 'bug'
 );
 
-artifact_checkbox ($HTML, no_i18n ("Task Manager"),
+artifact_section (no_i18n ("Task Manager"),
   no_i18n (
     "This is one of the main issue tracker of Savane.  Unlike the\n"
     . "support tracker, it is supposed to be used mainly to organize\n"
@@ -610,7 +611,7 @@ artifact_checkbox ($HTML, no_i18n ("Task Manager"),
   no_i18n ("Can use task manager"), 'task'
 );
 
-artifact_checkbox ($HTML, no_i18n ("Patch Manager"),
+artifact_section (no_i18n ("Patch Manager"),
   no_i18n (
     "This is a deprecated issue tracker. It was originally designed\n"
     . "to get all the submitted patches; but it seems to us more sensible\n"
@@ -619,9 +620,11 @@ artifact_checkbox ($HTML, no_i18n ("Patch Manager"),
   no_i18n ("Can use patch manager (deprecated)"), 'patch'
 );
 
-artifact_checkbox (
-  $HTML, no_i18n ("News Manager"), '', no_i18n ("Can use news manager"), 'news'
+artifact_section (
+  no_i18n ("News Manager"), '', no_i18n ("Can use news manager"), 'news'
 );
+
+artifact_section (no_i18n ("Cookbook"), '', '', 'cookbook');
 
 $update_delete_buttons = "\n<p align='center'>\n"
   . form_submit ($update_button_text) . "&nbsp;\n"
@@ -629,7 +632,8 @@ $update_delete_buttons = "\n<p align='center'>\n"
   . "\n</p>\n";
 print $update_delete_buttons;
 
-print $HTML->box_top (no_i18n ("Group Menu Settings"), '', 1);
+print "<h2>" . no_i18n ("Group Menu Settings") . "</h2>\n\n";
+
 $i = 1;
 print '<p class="' . utils_altrow ($i) . '">'
   . no_i18n (
@@ -698,44 +702,6 @@ foreach ($checkboxes as $k => $v)
     specific_checkbox ($k, $v, $row_grp, utils_altrow ($i));
   }
 
-print $HTML->box_bottom (1);
-print $update_delete_buttons . "<br /><br />\n";
-
-$HTML->box1_top (no_i18n ("Group default member permissions"));
-
-print '<p>'
-  . no_i18n (
-      "This form allows you to define the default permissions for users\n"
-      . "added to a group of this type, unless this group defined its own\n"
-      . "configuration.")
-  . "</p>\n";
-
-$list_head = html_build_list_table_top ($tracker_labels) . "<tr>\n";
-print $list_head;
-foreach ($trackers as $art)
-  html_select_permission_box ($art, $row_grp["{$art}_flags"], "type");
-
-print "</tr>\n</table>\n";
-
-$HTML->box1_bottom ();
-print $update_delete_buttons . "<br /><br />\n";
-
-$HTML->box1_top (no_i18n ("Group default posting restrictions"));
-
-print '<p>'
-  . no_i18n (
-    "This form allows you to define the default posting restriction\n"
-    . "on this group trackers.")
-  . "</p>\n";
-
-print $list_head;
-foreach ($trackers as $art)
-  html_select_restriction_box ($art, $row_grp["{$art}_rflags"], "type");
-print "</tr>\n</table>\n";
-
-$HTML->box1_bottom ();
-
-print $update_delete_buttons;
-print "</form>\n";
+print "$update_delete_buttons</form>\n";
 site_admin_footer ([]);
 ?>
