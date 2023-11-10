@@ -60,6 +60,8 @@
 ** ChangeLog could be generated with branch names which broke Git commit
    detection in configure.
 
+** Except CVS, new repositories for private groups were created world-readable.
+
 [BUILD]
 
 * frontend part is installed to $(pkgdatadir); a few PHP checks are run

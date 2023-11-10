@@ -52,7 +52,7 @@ our $version = 1;
 
 sub make_hg_dir
 {
-  my ($name, $dir_hg) = @_;
+  my ($name, $dir_hg, $is_public) = @_;
   my $old_umask = umask (0002);
 
   system ('hg', 'init', $dir_hg);
@@ -63,14 +63,15 @@ sub make_hg_dir
   print FILE "#<savane>\n[web]\ncontact =\ndescription = $name\n#</savane>\n";
   close (FILE);
   system ('chgrp', $name, "$dir_hg/.hg/hgrc");
+  system ('chmod', '-R', 'o=', $dir_hg) unless $is_public;
   umask ($old_umask);
   return '';
 }
 
 sub HgMakeArea
 {
-  my ($name, $dir_hg) = @_;
-  return MakeDir (\&make_hg_dir, $name, $dir_hg);
+  my ($name, $dir_hg, $is_public) = @_;
+  return MakeDir (\&make_hg_dir, $name, $dir_hg, $is_public);
 }
 
 return "true";

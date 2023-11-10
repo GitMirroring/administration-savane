@@ -57,8 +57,7 @@ our $version = 1;
 
 sub make_svn_area
 {
-  # FIXME: are private project handled as expected here?
-  my ($name, $dir_svn) = @_;
+  my ($name, $dir_svn, $is_public) = @_;
   # Fsfs repositories are the most stable and scalable.  Bdb just
   # doesn't cut it.  Fsfs also is the default in new SVN releases.
   system ('svnadmin', 'create', '--fs-type', 'fsfs', $dir_svn);
@@ -68,12 +67,13 @@ sub make_svn_area
   # Giving privs to hooks/ would mean giving local access.
   system ('chgrp', '-R', $name, "$dir_svn/db");
   system ('chmod', '-R', 'g+w', "$dir_svn/db");
+  system ('chmod', '-R', 'o=', "$dir_svn/db") unless $is_public;
   return '';
 }
 
 sub SvnMakeArea
 {
-  my ($name, $dir_svn) = @_;
-  return MakeDir (\&make_svn_area, $name, $dir_svn);
+  my ($name, $dir_svn, $is_public) = @_;
+  return MakeDir (\&make_svn_area, $name, $dir_svn, $is_public);
 }
 return "true";

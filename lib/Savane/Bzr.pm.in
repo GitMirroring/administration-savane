@@ -51,10 +51,11 @@ our $version = 1;
 
 sub make_bzr_area
 {
-  my ($name, $dir_bzr) = @_;
+  my ($name, $dir_bzr, $is_public) = @_;
+  my $mode = $is_public? '2775': '2770';
   my $old_umask = umask (0002);
 
-  system ('mkdir', '-m', '2775', '-p', $dir_bzr);
+  system ('mkdir', '-m', $mode, '-p', $dir_bzr);
   system ('chgrp', $name, $dir_bzr);
 
   # Clean up environment.
@@ -64,7 +65,7 @@ sub make_bzr_area
 
 sub BzrMakeArea
 {
-  my ($name, $dir_bzr) = @_;
-  return MakeDir (\&make_bzr_area, $name, $dir_bzr);
+  my ($name, $dir_bzr, $is_public) = @_;
+  return MakeDir (\&make_bzr_area, $name, $dir_bzr, $is_public);
 }
 return "true";

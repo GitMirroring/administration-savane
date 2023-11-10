@@ -51,7 +51,7 @@ our $version = 1;
 
 sub make_git_area
 {
-  my ($name, $dir_git) = @_;
+  my ($name, $dir_git, $is_public) = @_;
   my $w = '';
   $ENV{'GIT_DIR'} = $dir_git;
 
@@ -59,6 +59,7 @@ sub make_git_area
   system ('git', 'init', '--shared=all');
 
   system ('chgrp', '-R', $name, $dir_git);
+  system ('chmod', '-R', 'o=', $dir_git) unless $is_public;
   # Needed to make the repo accessible via bare HTTP.
   open (HOOK, ">$dir_git/hooks/post-update")
     or $w = " Cannot open hooks/post-update for writing: $!";
@@ -84,8 +85,8 @@ sub make_git_area
 
 sub GitMakeArea
 {
-  my ($name, $dir_git) = @_;
-  return MakeDir (\&make_git_area, $name, $dir_git);
+  my ($name, $dir_git, $is_public) = @_;
+  return MakeDir (\&make_git_area, $name, $dir_git, $is_public);
 }
 
 return "true";
