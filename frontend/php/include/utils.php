@@ -798,7 +798,7 @@ function utils_set_csp_headers ()
   # Security issues apply even during fundrasing periods.  Please don't disable
   # this; instead, add some domain to img-src (or (better?) copy necessary
   # images to images/ or to submissions_uploads/).
-  $policy = "Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline' static.fsf.org; frame-src static.fsf.org; font-src static.fsf.org; script-src static.fsf.org";
+  $policy = "Content-Security-Policy: default-src 'self'; frame-ancestors 'none'";
   if ($GLOBALS['sys_file_domain'] != $GLOBALS['sys_default_domain'])
     $policy .= "; img-src 'self' " . $GLOBALS['sys_file_domain'];
   header ($policy);
