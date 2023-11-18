@@ -30,16 +30,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savannah 3.12\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2023-09-11 11:56+0000\n"
-"PO-Revision-Date: 2023-09-11 15:44+0000\n"
+"POT-Creation-Date: 2023-11-18 16:44+0000\n"
+"PO-Revision-Date: 2023-11-18 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
 #: frontend/php/git/admin/index.php:54 frontend/php/projects.php:59
 #: frontend/php/cvs/admin/index.php:65 frontend/php/project/admin/index.php:52
@@ -402,8 +402,8 @@ msgstr "Метка значения"
 #: frontend/php/bugs/admin/field_usage.php:394
 #: frontend/php/bugs/admin/editqueryforms.php:226
 #: frontend/php/bugs/admin/editqueryforms.php:492
-#: frontend/php/search/index.php:123
-#: frontend/php/include/search/general.php:528
+#: frontend/php/search/index.php:119
+#: frontend/php/include/search/general.php:526
 msgid "Description"
 msgstr "Описание"
 
@@ -547,7 +547,7 @@ msgstr "Обновление других полей"
 #: frontend/php/bugs/admin/field_values.php:510
 #: frontend/php/bugs/admin/field_values.php:628
 #: frontend/php/bugs/admin/field_values.php:650
-#: frontend/php/include/trackers/format.php:654
+#: frontend/php/include/trackers/format.php:653
 msgid "Carbon-Copy List"
 msgstr "Адреса уведомления"
 
@@ -557,8 +557,8 @@ msgstr "Адреса уведомления"
 #: frontend/php/bugs/admin/editqueryforms.php:527
 #: frontend/php/cvs/admin/index.php:196
 #: frontend/php/include/people/general.php:373
-#: frontend/php/include/trackers/format.php:587
-#: frontend/php/include/trackers/format.php:725
+#: frontend/php/include/trackers/format.php:586
+#: frontend/php/include/trackers/format.php:724
 #: frontend/php/include/news/general.php:218
 msgid "Delete"
 msgstr "Удалить"
@@ -797,14 +797,14 @@ msgstr "Переход не найден"
 #: frontend/php/include/trackers_run/mod.php:317
 #: frontend/php/include/people/general.php:215
 #: frontend/php/include/trackers/general.php:234
-#: frontend/php/include/utils.php:438 frontend/php/include/html.php:461
-#: frontend/php/include/html.php:645
+#: frontend/php/include/utils.php:438 frontend/php/include/html.php:455
+#: frontend/php/include/html.php:639
 msgid "None"
 msgstr "Пусто"
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:135
 #: frontend/php/include/trackers_run/mod.php:317
-#: frontend/php/include/html.php:463
+#: frontend/php/include/html.php:457
 msgid "Any"
 msgstr "Любые"
 
@@ -973,9 +973,9 @@ msgid "Select Fields"
 msgstr "Выбрать поля"
 
 #: frontend/php/bugs/admin/field_usage.php:394
-#: frontend/php/search/index.php:123
+#: frontend/php/search/index.php:119
 #: frontend/php/include/people/general.php:413
-#: frontend/php/include/search/general.php:528
+#: frontend/php/include/search/general.php:526
 msgid "Type"
 msgstr "Тип"
 
@@ -988,9 +988,9 @@ msgid "Unused"
 msgstr "не используется"
 
 #: frontend/php/bugs/admin/field_usage.php:428
-#: frontend/php/search/index.php:123 frontend/php/search/index.php:204
+#: frontend/php/search/index.php:119 frontend/php/search/index.php:199
 #: frontend/php/include/people/general.php:413
-#: frontend/php/include/search/general.php:528
+#: frontend/php/include/search/general.php:526
 #: frontend/php/include/pagemenu.php:93
 msgid "Group"
 msgstr "Группа"
@@ -1924,7 +1924,7 @@ msgstr "Добавить категории работы"
 msgid "Add Job Skills"
 msgstr "Добавить навыки"
 
-#: frontend/php/people/viewjob.php:52 frontend/php/search/index.php:184
+#: frontend/php/people/viewjob.php:52 frontend/php/search/index.php:179
 #: frontend/php/account/lostlogin.php:62 frontend/php/account/lostlogin.php:67
 #: frontend/php/account/pending-resend.php:58
 #: frontend/php/include/stats/general.php:49 frontend/php/include/utils.php:79
@@ -1988,7 +1988,7 @@ msgstr "Этот пользователь не зарегистрировал к
 msgid "GPG Key of the user %s"
 msgstr "Ключ GPG пользователя %s"
 
-#: frontend/php/projects.php:59 frontend/php/include/html.php:850
+#: frontend/php/projects.php:59 frontend/php/include/html.php:844
 msgid "That group does not exist."
 msgstr "Такой группы нет."
 
@@ -2060,43 +2060,43 @@ msgstr "Верхний вариант (&ldquo;Сброс&rdquo;) сбрасыв�
 msgid "Please correctly answer the antispam captcha!"
 msgstr "Решите правильно на антиспамную задачу!"
 
-#: frontend/php/search/index.php:77
+#: frontend/php/search/index.php:73
 msgid "Enter your search words above."
 msgstr "Введите сверху слова для поиска."
 
-#: frontend/php/search/index.php:146
+#: frontend/php/search/index.php:142
 msgid "Note that <strong>private</strong> groups are not shown on this page."
 msgstr ""
 "Обратите внимание, что <strong>скрытые</strong> группы на этой странице не "
 "показаны."
 
-#: frontend/php/search/index.php:163 frontend/php/account/login.php:182
+#: frontend/php/search/index.php:159 frontend/php/account/login.php:182
 #: frontend/php/account/login.php:276 frontend/php/account/verify.php:89
 #: frontend/php/account/verify.php:115 frontend/php/include/sitemenu.php:510
 msgid "Login"
 msgstr "Войти"
 
-#: frontend/php/search/index.php:163
+#: frontend/php/search/index.php:159
 msgid "Name"
 msgstr "Имя"
 
-#: frontend/php/search/index.php:184
+#: frontend/php/search/index.php:179
 msgid "Invalid Search!!"
 msgstr "Неправильный поиск!"
 
-#: frontend/php/search/index.php:202
+#: frontend/php/search/index.php:197
 msgid "Item Id"
 msgstr "Номер заявки"
 
-#: frontend/php/search/index.php:202
+#: frontend/php/search/index.php:197
 msgid "Item Summary"
 msgstr "Тема заявки"
 
-#: frontend/php/search/index.php:205
+#: frontend/php/search/index.php:200
 msgid "Submitter"
 msgstr "Автор"
 
-#: frontend/php/search/index.php:205 frontend/php/include/trackers/show.php:247
+#: frontend/php/search/index.php:200 frontend/php/include/trackers/show.php:247
 #: frontend/php/include/project/admin.php:63
 #: frontend/php/include/news/forum.php:233 frontend/php/forum/forum.php:231
 msgid "Date"
@@ -2675,8 +2675,8 @@ msgid ""
 "Group administrators can use the\n"
 "<a href=\"%s\">administrative interface</a> to manage the list."
 msgstr ""
-"Администраторы группы могут управлять списком рассылки с помощью <a "
-"href=\"%s\">инструментов администратора</a>."
+"Администраторы группы могут управлять списком рассылки с помощью <a href=\"%s"
+"\">инструментов администратора</a>."
 
 #: frontend/php/mail/admin/index.php:90
 msgid ""
@@ -2817,7 +2817,7 @@ msgstr ""
 
 #: frontend/php/register/index.php:116
 #: frontend/php/include/people/general.php:148
-#: frontend/php/include/html.php:918
+#: frontend/php/include/html.php:912
 msgid "Group type"
 msgstr "Тип группы"
 
@@ -3359,7 +3359,7 @@ msgid "Address:"
 msgstr "Адрес:"
 
 #: frontend/php/my/bookmarks.php:90 frontend/php/include/trackers/data.php:1359
-#: frontend/php/include/init.php:352
+#: frontend/php/include/init.php:356
 msgid "Item not found"
 msgstr "Заявка не найдена"
 
@@ -3591,7 +3591,7 @@ msgstr "Полное имя обновлено."
 #: frontend/php/my/admin/change.php:126 frontend/php/my/admin/change.php:141
 #: frontend/php/my/admin/change.php:187 frontend/php/my/admin/change.php:200
 #: frontend/php/my/admin/change.php:240 frontend/php/my/admin/change.php:369
-#: frontend/php/my/admin/change.php:417 frontend/php/include/user.php:527
+#: frontend/php/my/admin/change.php:417 frontend/php/include/user.php:526
 msgid "Failed to update the database."
 msgstr "Не удалось обновить базу данных."
 
@@ -3763,7 +3763,7 @@ msgstr "Новое полное имя:"
 msgid "Change Timezone"
 msgstr "Изменить временной пояс"
 
-#: frontend/php/my/admin/change.php:546 frontend/php/my/admin/index.php:341
+#: frontend/php/my/admin/change.php:546 frontend/php/my/admin/index.php:334
 msgid ""
 "No matter where you live, you can see all dates and times as if it were in\n"
 "your neighborhood."
@@ -3771,8 +3771,8 @@ msgstr ""
 "Где бы вы ни жили, вы будете видеть все даты и времена, как если бы это было "
 "с вами по соседству."
 
-#: frontend/php/my/admin/change.php:550 frontend/php/my/admin/index.php:337
-#: frontend/php/my/admin/index.php:339
+#: frontend/php/my/admin/change.php:550 frontend/php/my/admin/index.php:330
+#: frontend/php/my/admin/index.php:332
 msgid "Timezone"
 msgstr "Временной пояс"
 
@@ -3866,7 +3866,7 @@ msgid "Discard Email Change"
 msgstr "Отменить смену адреса"
 
 #: frontend/php/my/admin/change.php:637 frontend/php/my/admin/change.php:642
-#: frontend/php/my/admin/index.php:430
+#: frontend/php/my/admin/index.php:423
 msgid "Delete Account"
 msgstr "Удалить учетную запись"
 
@@ -4191,7 +4191,7 @@ msgstr ""
 "Активировано меню каменного века, вступит в действие при следующей загрузке "
 "страницы"
 
-#: frontend/php/my/admin/index.php:92 frontend/php/include/utils.php:747
+#: frontend/php/my/admin/index.php:92 frontend/php/include/utils.php:752
 msgid "Database successfully updated"
 msgstr "База данных успешно обновлена"
 
@@ -4368,32 +4368,23 @@ msgstr ""
 "ключа GPG, когда запрашивается сброс пароля. Если ключа для шифрования нет, "
 "сообщения будут отправляться незашифроваными."
 
-#: frontend/php/my/admin/index.php:324
-msgid "Quiet SSH member shell"
-msgstr "Краткий режим оболочки SSH"
-
-#: frontend/php/my/admin/index.php:326
-msgid "Suppress the message that offers Savane source code when using SSH."
-msgstr ""
-"Подавлять сообщение, предлагающее исходный текст Savane при пользовании SSH."
-
-#: frontend/php/my/admin/index.php:330
+#: frontend/php/my/admin/index.php:323
 msgid "Cosmetics Setup"
 msgstr "Косметические настройки"
 
-#: frontend/php/my/admin/index.php:350
+#: frontend/php/my/admin/index.php:343
 msgid "Theme"
 msgstr "Оформление"
 
-#: frontend/php/my/admin/index.php:354
+#: frontend/php/my/admin/index.php:347
 msgid "Jump to the next theme"
 msgstr "Следующее графическое оформление"
 
-#: frontend/php/my/admin/index.php:357
+#: frontend/php/my/admin/index.php:350
 msgid "Not satisfied with the default color theme of the interface?"
 msgstr "Не нравится графическое оформление?"
 
-#: frontend/php/my/admin/index.php:363
+#: frontend/php/my/admin/index.php:356
 msgid ""
 "The theme you are currently using does not follow the latest Savane CSS\n"
 "guidelines. As a result, page layout may be more or less severely broken. It "
@@ -4404,7 +4395,7 @@ msgstr ""
 "CSS Savane. В результате расположение страницы может оказаться более или "
 "менее серьезно искажено. Этим оформлением пользоваться не рекомендуется."
 
-#: frontend/php/my/admin/index.php:374
+#: frontend/php/my/admin/index.php:367
 #, php-format
 msgid ""
 "%s administrators should be asked to take\n"
@@ -4413,11 +4404,11 @@ msgstr ""
 "Администраторов сайта %s нужно попросить следовать указаниям по CSS Savane, "
 "поскольку это основной вариант оформления."
 
-#: frontend/php/my/admin/index.php:391
+#: frontend/php/my/admin/index.php:384
 msgid "Print comments from the oldest to the latest"
 msgstr "Выводить комментарии от старых к новым"
 
-#: frontend/php/my/admin/index.php:394
+#: frontend/php/my/admin/index.php:387
 msgid ""
 "By default, comments are listed in reverse chronological order. This means\n"
 "that for a given item, comments are printed from the latest to the oldest. "
@@ -4428,11 +4419,11 @@ msgstr ""
 "значит, что для данной заявки комментарии выводятся от новых к старым. Если "
 "это вас не устраивает, выберите эту настройку."
 
-#: frontend/php/my/admin/index.php:403
+#: frontend/php/my/admin/index.php:396
 msgid "Use the Stone Age menu"
 msgstr "Пользоваться меню каменного века"
 
-#: frontend/php/my/admin/index.php:405
+#: frontend/php/my/admin/index.php:398
 msgid ""
 "By default, the top menu includes links to all relevant pages\n"
 "context (group area, personal area) in dropdown submenus. However,\n"
@@ -4449,11 +4440,11 @@ msgstr ""
 "3.10, 2020 год). Выбор этой настройки включает старомодное подменю,\n"
 "подобное тому, какое было в прежних выпусках Savane (< 2.0)."
 
-#: frontend/php/my/admin/index.php:416
+#: frontend/php/my/admin/index.php:409
 msgid "Show feedback in relative position"
 msgstr "Показывать отклик в относительной позиции"
 
-#: frontend/php/my/admin/index.php:418
+#: frontend/php/my/admin/index.php:411
 msgid ""
 "By default, the feedback box appear as a fixed box on top of the window.\n"
 "If you check this option, the feedback will\n"
@@ -4463,11 +4454,11 @@ msgstr ""
 "окна. Если выбрать эту настройку, отклик будет добавляться на страницу после "
 "верхнего меню."
 
-#: frontend/php/my/admin/index.php:428
+#: frontend/php/my/admin/index.php:421
 msgid "Account Deletion"
 msgstr "Удаление учетной записи"
 
-#: frontend/php/my/admin/index.php:435
+#: frontend/php/my/admin/index.php:428
 #, php-format
 msgid ""
 "If you are no longer member of any project and do not intend to use\n"
@@ -5245,7 +5236,7 @@ msgstr "Обсуждение"
 
 #: frontend/php/include/trackers_run/mod.php:584
 #: frontend/php/include/trackers_run/add.php:207
-#: frontend/php/include/trackers/format.php:555
+#: frontend/php/include/trackers/format.php:554
 msgid "Attached Files"
 msgstr "Присоединенные файлы"
 
@@ -5694,8 +5685,8 @@ msgstr[2] ""
 #, php-format
 msgid ""
 "Column heading links sort results (up or\n"
-"down), you can also <a href=\"%1$s\">sort by priority</a> or <a "
-"href=\"%2$s\">reset\n"
+"down), you can also <a href=\"%1$s\">sort by priority</a> or <a href=\"%2$s"
+"\">reset\n"
 "sort</a>."
 msgstr ""
 "Ссылки в заголовках столбцов сортируют результаты (в возрастающем или "
@@ -5789,7 +5780,7 @@ msgstr "Открытая заявка"
 
 #. TRANSLATORS: anonymous user.
 #: frontend/php/include/trackers_run/digest.php:294
-#: frontend/php/include/utils.php:440 frontend/php/include/html.php:708
+#: frontend/php/include/utils.php:440 frontend/php/include/html.php:702
 msgid "Anonymous"
 msgstr "Аноним"
 
@@ -6142,7 +6133,7 @@ msgid "Group administrator"
 msgstr "Администратор группы"
 
 #: frontend/php/include/trackers/format.php:315
-#: frontend/php/include/html.php:707
+#: frontend/php/include/html.php:701
 msgid "Group Member"
 msgstr "Член группы"
 
@@ -6177,36 +6168,36 @@ msgstr "Отвечает за эту заявку."
 msgid "Flag as spam"
 msgstr "Выставить признак спама"
 
-#: frontend/php/include/trackers/format.php:547
+#: frontend/php/include/trackers/format.php:546
 msgid "No files currently attached"
 msgstr "Никакие файлы в настоящее время не приложены"
 
-#: frontend/php/include/trackers/format.php:597
+#: frontend/php/include/trackers/format.php:596
 #, php-format
 msgid "<!-- file -->%1$s added by %2$s"
 msgstr "%1$s добавлен пользователем %2$s"
 
-#: frontend/php/include/trackers/format.php:638
+#: frontend/php/include/trackers/format.php:637
 msgid "CC list is empty"
 msgstr "Список уведомлений пуст"
 
-#: frontend/php/include/trackers/format.php:688
+#: frontend/php/include/trackers/format.php:687
 msgid "Voted in favor of this item"
 msgstr "Голосует за эту заявку"
 
-#: frontend/php/include/trackers/format.php:691
+#: frontend/php/include/trackers/format.php:690
 msgid "Submitted the item"
 msgstr "Автор заявки"
 
-#: frontend/php/include/trackers/format.php:692
+#: frontend/php/include/trackers/format.php:691
 msgid "Posted a comment"
 msgstr "Автор комментария"
 
-#: frontend/php/include/trackers/format.php:693
+#: frontend/php/include/trackers/format.php:692
 msgid "Updated the item"
 msgstr "Редактор заявки"
 
-#: frontend/php/include/trackers/format.php:732
+#: frontend/php/include/trackers/format.php:731
 #, php-format
 msgid "<!-- email --> %1$s added by %2$s"
 msgstr "%1$s добавлен пользователем %2$s"
@@ -7223,16 +7214,16 @@ msgstr ""
 "Ничего не найдено. Учтите, что в поиске участвуют только слова, в которых "
 "более двух символов."
 
-#: frontend/php/include/search/general.php:458
+#: frontend/php/include/search/general.php:456
 msgid "Invalid search."
 msgstr "Неправильная строка поиска."
 
 #. TRANSLATORS: this is a title for search results when exactly one item is found.
-#: frontend/php/include/search/general.php:522
+#: frontend/php/include/search/general.php:520
 msgid "Unique group search result"
 msgstr "Единственный результат поиска"
 
-#: frontend/php/include/search/general.php:524
+#: frontend/php/include/search/general.php:522
 #, php-format
 msgid "Search string was: %s."
 msgstr "Поиск проведен по строке: %s."
@@ -7473,7 +7464,7 @@ msgstr "Без разметки"
 msgid "No tags are available in this input field."
 msgstr "В этом поле не доступна никакая разметка."
 
-#: frontend/php/include/init.php:262
+#: frontend/php/include/init.php:266
 msgid ""
 "Your $sys_unix_group_name configuration variable refers to a\n"
 "non-existing project. Please update the configuration."
@@ -7481,27 +7472,27 @@ msgstr ""
 "Ваша переменная конфигурации $sys_unix_group_name указывает на "
 "несуществующий проект. Исправьте настройки."
 
-#: frontend/php/include/init.php:327
+#: frontend/php/include/init.php:331
 msgid "Invalid item ID."
 msgstr "Неправильный идентификатор заявки."
 
-#: frontend/php/include/init.php:330
+#: frontend/php/include/init.php:334
 msgid "Invalid forum ID."
 msgstr "Неправильный идентификатор форума."
 
-#: frontend/php/include/init.php:427
+#: frontend/php/include/init.php:431
 msgid "This group is in maintenance mode"
 msgstr "Группа на регламентных работах"
 
-#: frontend/php/include/init.php:428
+#: frontend/php/include/init.php:432
 msgid "Note: this group is in maintenance mode"
 msgstr "Замечание: эта группа находится на регламентных работах"
 
-#: frontend/php/include/init.php:431
+#: frontend/php/include/init.php:435
 msgid "This group is not in active state"
 msgstr "Эта группа не в активном состоянии"
 
-#: frontend/php/include/init.php:460
+#: frontend/php/include/init.php:464
 #, php-format
 msgid "Group #%s not found"
 msgstr "Группа №%s не найдена"
@@ -7604,31 +7595,31 @@ msgstr "Цвета приоритета открытых заявок:"
 msgid "Closed Items Priority Colors:"
 msgstr "Цвета приоритета закрытых заявок:"
 
-#: frontend/php/include/utils.php:500
+#: frontend/php/include/utils.php:505
 msgid "bugs"
 msgstr "ошибки"
 
-#: frontend/php/include/utils.php:502
+#: frontend/php/include/utils.php:507
 msgid "recipes"
 msgstr "рецепты"
 
-#: frontend/php/include/utils.php:504
+#: frontend/php/include/utils.php:509
 msgid "patches"
 msgstr "Заплатки (патчи)"
 
-#: frontend/php/include/utils.php:506
+#: frontend/php/include/utils.php:511
 msgid "support requests"
 msgstr "запросы на поддержку"
 
-#: frontend/php/include/utils.php:508
+#: frontend/php/include/utils.php:513
 msgid "tasks"
 msgstr "задачи"
 
-#: frontend/php/include/utils.php:538
+#: frontend/php/include/utils.php:543
 msgid "Untitled"
 msgstr "Без заголовка"
 
-#: frontend/php/include/utils.php:741
+#: frontend/php/include/utils.php:746
 msgid "Error updating database"
 msgstr "Ошибка при обновлении базы данных"
 
@@ -7722,7 +7713,7 @@ msgstr "Недостающие параметры"
 msgid "This project has turned off mailing lists"
 msgstr "В этом проекте списки рассылки отключены"
 
-#: frontend/php/include/database.php:95
+#: frontend/php/include/database.php:97
 msgid "db_query_escape: Missing parameter"
 msgstr "db_query_escape: Недостающий параметр"
 
@@ -7739,31 +7730,41 @@ msgstr "Работает на Savane %s"
 msgid "Back to the top"
 msgstr "Вверх страницы"
 
-#: frontend/php/include/session.php:96
-msgid "Missing Password Or User Name"
-msgstr "Не хватает пароля или имени пользователя"
+#: frontend/php/include/session.php:93
+msgid "Missing password"
+msgstr "Не задан пароль"
 
-#: frontend/php/include/session.php:106
-msgid "Invalid User Name"
-msgstr "Неправильное имя пользователя"
+#: frontend/php/include/session.php:102
+msgid "Missing user name"
+msgstr "Не задано имя пользователя"
 
-#: frontend/php/include/session.php:128
-msgid "Account Pending"
+#: frontend/php/include/session.php:104
+#, php-format
+msgid "Invalid user name *%s*"
+msgstr "Невозможное имя пользователя *%s*"
+
+#: frontend/php/include/session.php:119
+msgid "Account pending"
 msgstr "Учетная запись еще не активирована"
 
-#: frontend/php/include/session.php:135
-msgid "Account Deleted"
+#: frontend/php/include/session.php:124
+msgid "Account deleted"
 msgstr "Учетная запись удалена"
 
-#: frontend/php/include/session.php:140
-msgid "Account Not Active"
+#: frontend/php/include/session.php:126
+msgid "Account not active"
 msgstr "Учетная запись не активна"
 
-#: frontend/php/include/session.php:147
-msgid "Invalid Password"
+#: frontend/php/include/session.php:138
+#, php-format
+msgid "User *%s* not found"
+msgstr "Пользователь *%s* не найден"
+
+#: frontend/php/include/session.php:160
+msgid "Invalid password"
 msgstr "Неверный пароль"
 
-#: frontend/php/include/session.php:276
+#: frontend/php/include/session.php:289
 msgid ""
 "Two people had the same session hash - re-login.\n"
 "It should never happen again."
@@ -7791,81 +7792,81 @@ msgstr "Ошибка:"
 msgid "Some Errors:"
 msgstr "Некоторые ошибки:"
 
-#: frontend/php/include/html.php:475
+#: frontend/php/include/html.php:469
 msgid "Unknown"
 msgstr "Неизвестно"
 
-#: frontend/php/include/html.php:494
+#: frontend/php/include/html.php:488
 msgid "ERROR - number of values differs from number of texts"
 msgstr "Ошибка: число величин отличается от числа текстов"
 
-#: frontend/php/include/html.php:625 frontend/php/include/html.php:688
+#: frontend/php/include/html.php:619 frontend/php/include/html.php:682
 msgid "Group Type Default"
 msgstr "Исходное для типа группы"
 
-#: frontend/php/include/html.php:631
+#: frontend/php/include/html.php:625
 msgid "Group Default"
 msgstr "Исходное для группы"
 
-#: frontend/php/include/html.php:635
+#: frontend/php/include/html.php:629
 msgid "Roles of members"
 msgstr "Роли участников"
 
-#: frontend/php/include/html.php:646
+#: frontend/php/include/html.php:640
 msgid "Technician"
 msgstr "Техник"
 
-#: frontend/php/include/html.php:647
+#: frontend/php/include/html.php:641
 msgid "Manager"
 msgstr "Секретарь"
 
-#: frontend/php/include/html.php:648
+#: frontend/php/include/html.php:642
 msgid "Techn. & Manager"
 msgstr "Техник-секретарь"
 
-#: frontend/php/include/html.php:690
+#: frontend/php/include/html.php:684
 msgid "Same as for new items"
 msgstr "Так же, как для новых"
 
-#: frontend/php/include/html.php:696
+#: frontend/php/include/html.php:690
 msgid "Permission level"
 msgstr "Уровень доступа"
 
-#: frontend/php/include/html.php:707
+#: frontend/php/include/html.php:701
 msgid "Nobody"
 msgstr "Никто"
 
-#: frontend/php/include/html.php:707
+#: frontend/php/include/html.php:701
 msgid "Logged-in User"
 msgstr "Пользователь:"
 
-#: frontend/php/include/html.php:777
+#: frontend/php/include/html.php:771
 msgid "Website theme"
 msgstr "Оформление сайта"
 
-#: frontend/php/include/html.php:789
+#: frontend/php/include/html.php:783
 msgid "(default)"
 msgstr "(исходное)"
 
-#: frontend/php/include/html.php:796
+#: frontend/php/include/html.php:790
 msgid "Pick theme alphabetically every day"
 msgstr "Менять оформление каждый день по алфавиту"
 
-#: frontend/php/include/html.php:797
+#: frontend/php/include/html.php:791
 msgid "Pick random theme every day"
 msgstr "Менять оформление каждый день наугад"
 
 #. TRANSLATORS: the argument is group id (a number).
-#: frontend/php/include/html.php:849
+#: frontend/php/include/html.php:843
 #, php-format
 msgid "Invalid Group %s"
 msgstr "Неверная группа %s"
 
-#: frontend/php/include/html.php:918
+#: frontend/php/include/html.php:912
 msgid "Choose one below"
 msgstr "Выберите"
 
-#: frontend/php/include/html.php:925
+#: frontend/php/include/html.php:919
 msgid ""
 "Technicians, and only technicians, can be assigned items of trackers. They\n"
 "cannot reassign items, change the status or priority of items."
@@ -7873,7 +7874,7 @@ msgstr ""
 "Техникам и только техникам могут поручаться заявки журналов. Они не могут "
 "перемещать заявки, изменять состояние или приоритет заявок."
 
-#: frontend/php/include/html.php:929
+#: frontend/php/include/html.php:923
 msgid ""
 "Tracker Managers can fully manage items of trackers, including\n"
 "assigning items to technicians, reassigning items over trackers and "
@@ -7885,7 +7886,7 @@ msgstr ""
 "техникам, перемещать заявки между журналами и проектами, изменять приоритеты "
 "и состояние заявок&nbsp;&mdash; но они не могут настраивать журналы."
 
-#: frontend/php/include/html.php:934
+#: frontend/php/include/html.php:928
 msgid ""
 "Group admins can manage members, configure the trackers, post\n"
 "jobs, and add mailing lists. They actually also have manager rights on "
@@ -7960,11 +7961,11 @@ msgstr "-"
 msgid "Invalid User ID"
 msgstr "Неправильный идентификатор пользователя"
 
-#: frontend/php/include/user.php:509 frontend/php/include/user.php:534
+#: frontend/php/include/user.php:508 frontend/php/include/user.php:533
 msgid "Account deleted."
 msgstr "Учетная запись удалена."
 
-#: frontend/php/include/user.php:636
+#: frontend/php/include/user.php:635
 #, php-format
 msgid "Member since %s"
 msgstr "Дата вступления: %s"
@@ -9977,14 +9978,14 @@ msgstr "Файл XML, который вы запрашиваете, на сай�
 #, php-format
 msgid ""
 "It is surely because it was not yet generated, or too old. If you\n"
-"think that there's a broken link on %s that must be repaired, <a "
-"href=\"%s\">\n"
+"think that there's a broken link on %s that must be repaired, <a href=\"%s"
+"\">\n"
 "file a support request</a>, mentioning the URL you tried to access (%s)."
 msgstr ""
 "Он наверняка либо еще не сгенерирован, либо слишком стар. Если вы думаете, "
-"что на сайте %s есть неработающая ссылка, которую нужно исправить, <a "
-"href=\"%s\">составьте запрос на поддержку</a> с указанием URL, по которому "
-"вы пытались перейти (%s)."
+"что на сайте %s есть неработающая ссылка, которую нужно исправить, <a href="
+"\"%s\">составьте запрос на поддержку</a> с указанием URL, по которому вы "
+"пытались перейти (%s)."
 
 #: frontend/php/404-export.php:66 frontend/php/404.php:63
 #, php-format
@@ -10173,8 +10174,8 @@ msgid ""
 "in items or item comments. You can <a href=\"#test\">test it below</a>."
 msgstr ""
 "На этой странице описан язык разметки Savane для форматирования текстов,\n"
-"которые вы пишете в заявках и комментариях к ним. Его можно <a "
-"href=\"#test\">протестировать ниже</a>."
+"которые вы пишете в заявках и комментариях к ним. Его можно <a href=\"#test"
+"\">протестировать ниже</a>."
 
 #: frontend/php/markup-test.php:68
 msgid "Text to test"
@@ -10582,7 +10583,7 @@ msgstr ""
 "вашей личности, когда вы забудете пароль. Ключи для подписи выпусков "
 "\"Общедоступной информации\" вашей группы."
 
-#: frontend/site-specific/gnu/account/editsshkeys.php:48
+#: frontend/site-specific/gnu/account/editsshkeys.php:47
 msgid ""
 "Public keys should look like this (their typical\n"
 "length is hundreds of characters):"
@@ -10590,7 +10591,7 @@ msgstr ""
 "Открытые ключи должны выглядеть так (их длина обычно составляет сотни "
 "символов):"
 
-#: frontend/site-specific/gnu/account/editsshkeys.php:55
+#: frontend/site-specific/gnu/account/editsshkeys.php:53
 #, php-format
 msgid ""
 "When unsure, check <a href=\"%s\">Savannah documentation on SSH access</a>."
@@ -10604,8 +10605,8 @@ msgid ""
 "You should take some time to read the <a href=\"%1$s\">Savane User\n"
 "Guide</a> so that you may take full advantage of %2$s."
 msgstr ""
-"Для вас неплохо было бы уделить немного времени чтению <a "
-"href=\"%1$s\">Руководства\n"
+"Для вас неплохо было бы уделить немного времени чтению <a href=\"%1$s"
+"\">Руководства\n"
 "пользователя Savane</a>, чтобы эффективно пользоваться сайтом %2$s."
 
 #: frontend/site-specific/gnu/account/first.php:56
@@ -10663,8 +10664,8 @@ msgid ""
 "Automated (though asynchronous) spam deletion, through the <a\n"
 "href=\"%s\">listhelper system</a>.  More details about this:"
 msgstr ""
-"Автоматическое (хотя и асинхронное) удаление спама с помощью системы <a "
-"href=\"%s\">listhelper</a>. Подробности:"
+"Автоматическое (хотя и асинхронное) удаление спама с помощью системы <a href="
+"\"%s\">listhelper</a>. Подробности:"
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:73
 msgid ""
@@ -11295,13 +11296,12 @@ msgstr "оставить заявку в журнале администраци
 #, php-format
 msgid ""
 "As an alternative to submitting a tracker item, you can send mail to the\n"
-"<a href=\"%s\">savannah-help-public</a> list, after <a "
-"href=\"%s\">searching\n"
+"<a href=\"%s\">savannah-help-public</a> list, after <a href=\"%s"
+"\">searching\n"
 "the archives</a>."
 msgstr ""
-"Вместо заявки в журнале можно послать сообщение в список <a "
-"href=\"%s\">savannah-help-public</a> после <a href=\"%s\">поиска в архивах</"
-"a>."
+"Вместо заявки в журнале можно послать сообщение в список <a href=\"%s"
+"\">savannah-help-public</a> после <a href=\"%s\">поиска в архивах</a>."
 
 #: frontend/site-specific/gnu/contact.php:92
 msgid ""
@@ -11670,8 +11670,8 @@ msgid ""
 msgstr ""
 "Для разработчиков GNU: если предполагается применять эти ключи для "
 "размещения выпусков на ftp.gnu.org, их нужно также выслать по адресу ftp-"
-"uploads@gnu.org. Автоматически пересылка не происходит. См. страницу <a "
-"href=\"%s\">Регистрация в автомате размещения</a>."
+"uploads@gnu.org. Автоматически пересылка не происходит. См. страницу <a href="
+"\"%s\">Регистрация в автомате размещения</a>."
 
 #: frontend/site-specific/gnu/page_header.php:48
 msgid ""
@@ -11712,8 +11712,8 @@ msgid ""
 "Our service runs with 100%% free software, including <a href=\"%s\">itself</"
 "a>."
 msgstr ""
-"Наша служба полностью работает на свободных программах, в том числе <a "
-"href=\"%s\">собственно сайт</a>."
+"Наша служба полностью работает на свободных программах, в том числе <a href="
+"\"%s\">собственно сайт</a>."
 
 #: frontend/site-specific/gnu/homepage.php:67
 msgid "Why choose Savannah?"
@@ -11898,6 +11898,20 @@ msgstr "Это группа переводов www.gnu.org."
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
 
+#~ msgid "Quiet SSH member shell"
+#~ msgstr "Краткий режим оболочки SSH"
+
+#~ msgid "Suppress the message that offers Savane source code when using SSH."
+#~ msgstr ""
+#~ "Подавлять сообщение, предлагающее исходный текст Savane при пользовании "
+#~ "SSH."
+
+#~ msgid "Invalid User Name"
+#~ msgstr "Неправильное имя пользователя"
+
+#~ msgid "Account Deleted"
+#~ msgstr "Учетная запись удалена"
+
 #~ msgid "Usage status"
 #~ msgstr "Используется ли"
 
@@ -11913,7 +11927,6 @@ msgstr "Эта группа содержит дополнения к офици�
 #~ msgid "phpkrb5 module failure"
 #~ msgstr "сбой модуля phpkrb5"
 
-#, php-format
 #~ msgid ""
 #~ "User is a kerberos principal but password do not\n"
 #~ "match. Please use your kerberos password for the first login and then "
@@ -11927,7 +11940,6 @@ msgstr "Эта группа содержит дополнения к офици�
 #~ "в системе %s. Это нужно, чтобы предотвратить хищение имени вашей\n"
 #~ "учетной записи."
 
-#, php-format
 #~ msgid ""
 #~ "P.S. Your password is now stored in hashed form\n"
 #~ "in the %s database."
@@ -11986,11 +11998,9 @@ msgstr "Эта группа содержит дополнения к офици�
 #~ msgid "More Information"
 #~ msgstr "Подробнее"
 
-#, php-format
 #~ msgid "For more information, see %s."
 #~ msgstr "Дополнительные сведения см. в %s."
 
-#, php-format
 #~ msgid "List %s is already in the database. We will create an alias."
 #~ msgstr "Рассылка %s в базе данных уже есть. Будет создан синоним."
 
@@ -12015,7 +12025,6 @@ msgstr "Эта группа содержит дополнения к офици�
 #~ msgid "every Sunday"
 #~ msgstr "каждое воскресенье"
 
-#, php-format
 #~ msgid ""
 #~ "Configuration for user #%s (you!) ignored to avoid\n"
 #~ "incoherent flags status. End the superuser session to change your "
@@ -12033,7 +12042,6 @@ msgstr "Эта группа содержит дополнения к офици�
 #~ msgid "Error Adding List"
 #~ msgstr "Ошибка при добавлении списка рассылки"
 
-#, php-format
 #~ msgid ""
 #~ "Error: ssh-vulnkey detected key #%s as compromised.\n"
 #~ "Please upgrade your system and regenerate it\n"
