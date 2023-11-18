@@ -96,8 +96,8 @@ function session_login_is_sane ($name, $password)
   if (!empty ($name))
      return true;
   $raw_loginname = null;
-  if (array_key_exists ('name', $_REQUEST))
-    $raw_loginname = $_REQUEST['name'];
+  if (array_key_exists ('form_loginname', $_REQUEST))
+    $raw_loginname = $_REQUEST['form_loginname'];
   if (null === $raw_loginname)
     fb (_('Missing user name'), 1);
   else
