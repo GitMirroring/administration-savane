@@ -52,7 +52,7 @@ extract (sane_import ('get',
     'digits' => 'dtime',
     'preg' =>
       [
-        ['dip_addr', ',^[\d./:]+$,'],
+        ['dip_addr', ',^[[:xdigit:]./:]+$,'],
         ['dsession_hash', '/^[a-f\d]+[.]{3}$/']
       ],
   ]

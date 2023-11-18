@@ -48,6 +48,9 @@
 
 ** More PHP 8.0 => 8.2 incompatibilities were resolved.
 
+** Sessions from IPv6 addresses couldn't be deleted in /my/admin/sessions.php;
+   Broken since 2022-02 (3f27e1bb9), Savannah sr #110959.
+
 [BACKEND]
 
 * New commands in sv_membersh, rm and rmdir.

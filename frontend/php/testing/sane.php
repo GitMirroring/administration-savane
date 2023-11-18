@@ -1623,7 +1623,7 @@ $reference = 'my/admin/sessions.php';
     'digits' => 'dtime',
     'preg' =>
       [
-        ['dip_addr', ',^[\d./:]+$,'],
+        ['dip_addr', ',^[[:xdigit:]./:]+$,'],
         ['dsession_hash', '/^[a-f\d]+[.]{3}$/']
       ],
   ];
@@ -1634,6 +1634,8 @@ $reference = 'my/admin/sessions.php';
     'dtime' => 1,
     'dsession_hash' => substr (md5 (0), 0, 6) . "..."
   ];
+  test_sane_import ($in, $names, $out);
+  $in['dip_addr'] = $out['dip_addr'] = '2023:01:da8b:6fa1:b93c:f5b4:3593:26a2';
   test_sane_import ($in, $names, $out);
   $in['func'] = 'add'; $out['func'] = null;
   test_sane_import ($in, $names, $out);
