@@ -23,6 +23,8 @@
 * New tracker items are previewed unless submitted explicitly,
   Savannah sr #110299.
 
+* Wrong login diagnostics are improved.
+
 * Bug fixes:
 
 ** Email notifications from trackers included a localized

@@ -86,65 +86,78 @@ function session_stay_in_ssl ()
   return isset ($GLOBALS['sys_https_host']);
 }
 
-function session_login_valid (
-  $form_loginname, $form_pw, $cookie_for_a_year = 0,
-  $allowpending = 0
-)
+function session_login_is_sane ($name, $password)
 {
-  if (!$form_loginname || !$form_pw)
+  if ($password === '')
     {
-      fb (_('Missing Password Or User Name'), 1);
+      fb (_('Missing password'), 1);
       return false;
     }
+  if (!empty ($name))
+     return true;
+  $raw_loginname = null;
+  if (array_key_exists ('name', $_REQUEST))
+    $raw_loginname = $_REQUEST['name'];
+  if (null === $raw_loginname)
+    fb (_('Missing user name'), 1);
+  else
+    fb (sprintf (_('Invalid user name *%s*'), $raw_loginname), 1);
+  return false;
+}
 
+function session_login_is_disallowed ($status, $allow_pending)
+{
+  $GLOBALS['signal_pending_account'] = 0;
+  if ($status == 'A')
+     return false;
+  if ($status == 'SQD') # Squad account, silently exit.
+    return true;
+  if ($status == 'P')
+    {
+      if ($allow_pending) # If allowpending (in verify.php), then allow.
+        return false;
+      fb (_('Account pending'), 1);
+      # We can't rely on $ffeedback because it's cleared after use.
+      $GLOBALS['signal_pending_account'] = 1;
+    }
+  elseif ($status == 'D' || $status == 'S')
+    fb (_('Account deleted'), 1);
+  else
+    fb (_('Account not active'), 1);
+  return true;
+}
+
+function session_fetch_login_data ($name)
+{
   $resq = db_execute (
     "SELECT user_id, user_pw, status FROM user WHERE user_name = ?",
-    [$form_loginname]
+    [$name]
   );
   if (db_numrows ($resq) < 1)
     {
-      fb (_('Invalid User Name'), 1);
-      return false;
+      fb (sprintf (_('User *%s* not found'), $name), 1);
+      return null;
     }
+  return db_fetch_array ($resq);
+}
 
-  $usr = db_fetch_array ($resq);
-  $GLOBALS['signal_pending_account'] = 0;
+function session_login_valid (
+  $name, $password, $cookie_for_a_year = 0, $allowpending = 0
+)
+{
+  if (!session_login_is_sane ($name, $password))
+    return false;
 
-  # Check status first.
-  # if allowpending (for verify.php) then allow.
-  if ($allowpending && ($usr['status'] == 'P'))
-    {
-      #1;
-    }
-  else
-    {
-      if ($usr['status'] == 'SQD')
-        {
-          # Squad account, silently exit.
-          return false;
-        }
-      if ($usr['status'] == 'P')
-        {
-          fb (_('Account Pending'), 1);
-          # We can't rely on $ffeedback because it's cleared after use.
-          $GLOBALS['signal_pending_account'] = 1;
-          return false;
-        }
-      if ($usr['status'] == 'D' || $usr['status'] == 'S')
-        {
-          fb (_('Account Deleted'), 1);
-          return false;
-        }
-      if ($usr['status'] != 'A')
-        {
-          fb (_('Account Not Active'), 1);
-          return false;
-        }
-    }
+  $usr = session_fetch_login_data ($name);
+  if ($usr === null)
+    return false;
 
-  if (!account_validpw ($usr['user_pw'], $form_pw))
+  if (session_login_is_disallowed ($usr['status'], $allowpending))
+    return false;
+
+  if (!account_validpw ($usr['user_pw'], $password))
     {
-      fb (_('Invalid Password'), 1);
+      fb (_('Invalid password'), 1);
       return false;
     }
   session_set_new ($usr['user_id'], $cookie_for_a_year);
