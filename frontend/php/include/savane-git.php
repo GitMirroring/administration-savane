@@ -60,12 +60,16 @@ function git_get_commit ()
     return $default_val;
   return trim (file_get_contents ($ref_file));
 }
-function git_get_savane_url ($commit)
+function git_get_savane_url ($commit, $page = null)
 {
-  global $sys_savane_url, $sys_savane_cgit;
+  global $sys_savane_cgit;
   if (empty ($commit))
-    return $sys_savane_url;
-  return "$sys_savane_cgit/commit/?id=$commit";
+    $commit = '';
+  else
+    $commit = "?id=$commit";
+  if (null === $page)
+    return "$sys_savane_cgit/commit/$commit";
+  return "$sys_savane_cgit/plain/$page$commit";
 }
 
 function git_get_tarball_name ()

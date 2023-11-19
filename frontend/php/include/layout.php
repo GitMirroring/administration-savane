@@ -220,24 +220,20 @@ class Layout extends savane_error
   {
     global $savane_version;
     $commit = git_get_commit ();
-    $url = git_get_savane_url ($commit);
     print '<p class="footer">';
     utils_get_content ("page_footer");
     $root = realpath (dirname (__FILE__) . "/../../..");
-    print "<br />\n<a href=\"";
-    print '//git.savannah.gnu.org/cgit/administration/savane.git/plain'
-      . preg_replace (
-          ":^$root:", '', realpath ($_SERVER['SCRIPT_FILENAME'])
-        );
-    if (!empty ($commit))
-      print "?id=$commit";
-    print "\">" . _('Source Code') . "</a>\n";
+    $page =
+      preg_replace (":^$root:", '', realpath ($_SERVER['SCRIPT_FILENAME']));
+    $url = git_get_savane_url ($commit, $page);
+    print "<br />\n" . utils_link ($url, _('Page source code'));
 
+    print "</p>\n<div align='right'><p>";
     # TRANSLATORS: the argument is version of Savane (like 3.2).
-    print "</p>\n<div align='right'><p>"
-      . utils_link ($url, sprintf (_("Powered by Savane %s"), $savane_version))
-      . "</p></div>\n";
-    print "</div> <!-- class='main' -->\n";
+    printf (_("Powered by Savane %s."), $savane_version);
+    $url = git_get_savane_url ($commit);
+    print "<br />" . utils_link ($url, _("Corresponding source code"));
+    print "</p></div>\n</div> <!-- class='main' -->\n";
     print "</div> <!-- class='realbody' -->\n";
     print "\n</body>\n</html>\n";
   }
