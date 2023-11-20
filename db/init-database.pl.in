@@ -1,0 +1,170 @@
+#! @PERL@
+# Initialize Savane database at the install stage.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+
+our $launched_db = 0;
+# All files should be installed in $DESTDIR provided through the command line.
+our $destdir = @ARGV[0];
+our $datadir = "$destdir@mysql_datadir@";
+our $socket = "$destdir@mysql_socket@";
+our $pidfile = "$destdir@mysql_pid@";
+our $tmpdir = "$destdir@mysql_tmpdir@";
+our $confdir = "$destdir@confdir@";
+our $secfile = "$destdir@mysql_secfile@";
+
+sub launch_daemon
+{
+  return 0 if -e $pidfile;
+  system (
+    "@MYSQLD_SAFE_BIN@ --skip-networking "
+    . "--socket=$socket --pid-file=$pidfile --tmpdir=$tmpdir "
+    . "--secure-file-priv=$secfile --datadir=$datadir &"
+  );
+  sleep 1 until -e $pidfile;
+  return 1;
+}
+
+sub init_datadir
+{
+  my @init_cmd;
+  mkdir $secfile, 0700 unless -e $secfile;
+  if (-e $datadir)
+    {
+      print "Note: $datadir exists; skipping SQL server data initialization.\n";
+      return;
+    }
+  if ('@MYSQL_INSTALLDB_BIN@' ne '')
+    {
+      @init_cmd = ('@MYSQL_INSTALLDB_BIN@');
+    }
+  else
+    {
+      @init_cmd = ('@MYSQLD_BIN@', '--initialize-insecure');
+      mkdir '@mysql_datadir@';
+    }
+  push @init_cmd,  ("--user=$ENV{'USER'}", "--datadir=$datadir");
+  die "Failed to initialize datadir.\n" if system (@init_cmd);
+}
+
+sub mysql_cmd
+{
+  return '@MYSQL_BIN@ --user=@SV_DB_USER@ --password=@SV_DB_PASSWORD@ '
+    . "--host=@SV_DB_HOST@ -S $socket @SV_DB_NAME@";
+}
+
+sub detect_db
+{
+  my $cmd = mysql_cmd ();
+  return `echo SHOW DATABASES | $cmd` =~ /\n@SV_DB_NAME@\n/;
+}
+
+# List of arguments to try when creating SQL user and database.
+# The requirements of database servers may vary.
+sub arg_list_to_check
+{
+  my @db_user_list = ("", "-u $ENV{'USER'}", "-u root");
+  my @host_arg_list = ("", "--host=@SV_DB_HOST@");
+  my @ret = ();
+  for my $user (@db_user_list)
+    {
+      for my $host (@host_arg_list)
+        {
+          push @ret, "$user $host";
+        }
+    }
+  return @ret;
+}
+
+sub make_db
+{
+  my $cmd = "@MYSQL_BIN@ -S $socket < db/mk-db.sql";
+  my $res;
+  my $cmd_args;
+  for $cmd_args (arg_list_to_check ())
+    {
+      return unless system ("$cmd $cmd_args");
+    }
+  die "Failed to create database.\n";
+}
+
+sub fill_db
+{
+  my $res = system (mysql_cmd () . " < @srcdir@/db/initial.sql");
+  die "Failed to fill database.\n" if $res;
+}
+
+sub make_launch_db_conf
+{
+  my $conf_file = "$confdir/launch-db.pl";
+  my $query = 'SELECT @@session.sql_mode';
+  my $cmd = "echo $query | " . mysql_cmd () . " --skip-column-names";
+  my $mode = `$cmd`;
+  chomp $mode;
+  $mode =~ s/\b(ONLY_FULL_GROUP_BY|STRICT_TRANS_TABLES)\b//g;
+  $mode =~ s/(^|,),*/$1/g;
+  $mode =~ s/,$//;
+  die "Can't open $conf_file for writing: $!\n" unless open FH, '>', $conf_file;
+  print FH "# Configuration file for sv_launch_db.pl\n";
+  print FH '$sql_mode = "' . $mode . '"' . ";\n1;\n";
+  close FH;
+}
+
+# Checking the exit status of this script proved insufficient since
+# it may die with zero exit code; so we additionally use a db/init.stamp.
+unlink ("db/init.stamp");
+init_datadir ();
+$launched_db = launch_daemon ();
+if (detect_db ())
+  {
+    print "Note: database @SV_DB_NAME@ exists; skipping creation.\n";
+  }
+else
+  {
+    make_db ();
+    fill_db ();
+  }
+make_launch_db_conf ();
+system ("touch db/init.stamp");
+
+END { kill 'TERM', `cat $pidfile` if $launched_db; }

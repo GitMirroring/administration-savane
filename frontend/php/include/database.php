@@ -66,13 +66,15 @@ function db_check_mysqli ()
 
 function db_connect ()
 {
-  global $sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname, $mysql_conn;
+  global $sys_dbhost, $sys_dbport, $sys_dbuser, $sys_dbpasswd, $sys_dbname;
+  global $sys_dbsocket, $mysql_conn;
 
   $mysql_conn = null;
   db_check_mysqli ();
 
   mysqli_report (MYSQLI_REPORT_ERROR);
-  $conn = mysqli_connect ($sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname);
+  $conn = mysqli_connect ($sys_dbhost, $sys_dbuser, $sys_dbpasswd, $sys_dbname,
+    $sys_dbport, $sys_dbsocket);
   if (!$conn)
     return
       "<p>Failed to connect to database: " . mysqli_connect_error () . "</p>\n";

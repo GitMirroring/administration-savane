@@ -68,15 +68,14 @@ AS_CASE(["x$SV_DB_CMD"], [x], [AC_MSG_ERROR([MySQL client not found])])
 AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([WWW_SERVER_BIN])
+AC_PATH_PROG([MYSQLD_BIN], [mysqld], [],
+  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQLD_SAFE_BIN])
 AC_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQL_INSTALLDB_BIN])
-AC_PATH_PROG([MYSQLADMIN_BIN], [mysqladmin], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
-AC_SUBST([MYSQLADMIN_BIN])
 AC_PATH_PROG([MYSQL_BIN], [mysql], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQL_BIN])
@@ -104,6 +103,22 @@ AS_CASE(["x$GIT"], [x], [], [
   ])
 ])
 
+AC_MSG_CHECKING([whether to install database])
+AC_ARG_ENABLE([database],
+  [AS_HELP_STRING([--disable-database], [do not install database])],
+  [], [enable_database=yes])
+AS_CASE(["x$enable_database"], [xno], [], [enable_database=yes])
+AC_MSG_RESULT([$enable_database])
+AM_CONDITIONAL([HAVE_DATABASE], [test "x$enable_database" = xyes])
+AS_CASE(["$enable_database.$MYSQL_BIN"], [yes.],
+  [AC_MSG_ERROR([MySQL client not found])])
+AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN$MYSQLD_BIN"], [yes.],
+  [AC_MSG_ERROR([Neither mysql_install_db nor mysqld found.])])
+AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN"], [yes.],
+  [AC_MSG_WARN([mysql_install_db not found; falling back to mysqld])])
+AS_CASE(["$enable_database.$MYSQLD_SAFE_BIN"], [yes.],
+  [AC_MSG_ERROR([mysqld_safe not found])])
+
 AC_MSG_CHECKING([whether to install frontend part])
 AC_ARG_ENABLE([frontend],
   [AS_HELP_STRING([--disable-frontend], [skip frontend (PHP) part])],
@@ -130,21 +145,34 @@ AC_SUBST([SV_GIT_COMMIT])
 
 AC_MSG_CHECKING([for database name])
 AC_ARG_WITH([db-name],
-  AS_HELP_STRING([--with-db-name], [name of the database [sv_demo]]),
-  [SV_DB_NAME="$withval"], [SV_DB_NAME=sv_demo])
+  AS_HELP_STRING([--with-db-name], [name of the database [savane]]),
+  [SV_DB_NAME="$withval"], [SV_DB_NAME=savane])
 AC_MSG_RESULT([$SV_DB_NAME])
 
 AC_MSG_CHECKING([for database user])
-AC_ARG_WITH([db-name],
-  AS_HELP_STRING([--with-db-name], [name of the database [sv]]),
+AC_ARG_WITH([db-user],
+  AS_HELP_STRING([--with-db-user], [name of the database user [sv]]),
   [SV_DB_USER="$withval"], [SV_DB_USER=sv])
 AC_MSG_RESULT([$SV_DB_USER])
 
 AC_MSG_CHECKING([for database host])
 AC_ARG_WITH([db-host],
-  AS_HELP_STRING([--with-db-host], [host of the database [127.0.0.1]]),
-  [SV_DB_HOST="$withval"], [SV_DB_HOST=127.0.0.1])
+  AS_HELP_STRING([--with-db-host], [host of the database [localhost]]),
+  [SV_DB_HOST="$withval"], [SV_DB_HOST=localhost])
 AC_MSG_RESULT([$SV_DB_HOST])
+
+AC_MSG_CHECKING([for database port])
+AC_ARG_WITH([db-port],
+  AS_HELP_STRING([--with-db-port], [port to connect to database [none]]),
+  [SV_DB_PORT="$withval"; db_port="$SV_DB_PORT"], [db_port=none])
+AC_MSG_RESULT([$db_port])
+
+AC_MSG_CHECKING([whether to disable database networking])
+AC_ARG_ENABLE([db-networking],
+  AS_HELP_STRING([--enable-db-networking], [run database over network [no]]),
+  [], [enable_db_networking=no])
+AS_CASE(["x$enable_db_networking"], [xno], [], [enable_db_networking=yes])
+AC_MSG_RESULT([$enable_db_networking])
 
 AC_MSG_CHECKING([for database options])
 AC_ARG_WITH([db-options],
@@ -159,12 +187,14 @@ AC_ARG_WITH([db-credentials],
     [path to the file with MySQL credentials in form password=_PASSWD_]))
 AC_MSG_RESULT([$with_db_credentials])
 AS_CASE(["x$with_db_credentials"], [xno], [],
-  [
-    SV_DB_PASSWORD=`
-      "$SED" ['/^password=/!d;s,[^=]*=,,;q'] < "$with_db_credentials"`
+  [ AS_IF([test -f  "$with_db_credentials"],
+      [SV_DB_PASSWORD=`
+        "$SED" ['/^password=/!d;s,[^=]*=,,;q'] < "$with_db_credentials"`])
   ])
 
 AC_SUBST([SV_DB_HOST])
+AC_SUBST([SV_DB_PORT])
+AC_SUBST([SV_DB_NETWORKING], [$enable_db_networking])
 AC_SUBST([SV_DB_NAME])
 AC_SUBST([SV_DB_USER])
 AC_SUBST([SV_DB_PASSWORD])
@@ -200,7 +230,7 @@ AC_MSG_RESULT([$WWW_SERVER_PORT])
 AC_SUBST([WWW_SERVER_PORT])
 
 AC_CONFIG_FILES([
-  Makefile etc/Makefile frontend/Makefile
+  Makefile etc/Makefile frontend/Makefile db/mk-db.sql
   frontend/php/include/ac_config.php
 ])
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
@@ -216,7 +246,11 @@ AS_ECHO(["Apache host: $WWW_SERVER_HOST"])
 AS_ECHO(["Apache port: $WWW_SERVER_PORT"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
 AS_ECHO(["Database user: $SV_DB_USER"])
+AS_ECHO(["Database host: $SV_DB_HOST"])
+AS_ECHO(["Database port: $db_port"])
+AS_ECHO(["Run database over network: $enable_db_networking"])
 AS_ECHO(["Install frontend (PHP) part: $enable_frontend"])
+AS_ECHO(["Install database: $enable_database"])
 AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
   [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]

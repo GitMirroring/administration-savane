@@ -21,14 +21,22 @@ backend_bin_scripts = \
   backend/misc/sv_cleaner \
   backend/misc/sv_reminder
 
-backend_sbin_scripts = backend/sbin/sv_frontendctl.pl
+frontend_sbin = sv_frontendctl.pl
+if HAVE_DATABASE
+db_sbin = sv_launch_db.pl sv_kill_db.pl
+endif
+backend_sbin = $(frontend_sbin) $(db_sbin)
+
+backend_sbin_scripts = $(backend_sbin:%=backend/sbin/%)
 
 backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
+
+build_time_scripts = db/init-database.pl
 
 conf_files = apache.conf savane.conf.pl membersh-conf.pl savane.conf.php cgitrepos
 
 directories = backend/accounts backend/sbin backend/extra/git backend/mail \
-  backend/misc sysconf lib/Savane
+  backend/misc db sysconf lib/Savane
 
 modules = \
   lib/Savane.pm \
@@ -49,31 +57,70 @@ modules = \
 
 bin_SCRIPTS = $(backend_bin_scripts)
 sbin_SCRIPTS = $(backend_sbin_scripts)
+noinst_SCRIPTS = $(build_time_scripts)
 nobase_pkgdata_DATA = $(modules)
 confdir = $(sysconfdir)/$(PACKAGE)
+pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
+logdir = $(pkgstatedir)/log
+rundir = $(runstatedir)/$(PACKAGE)
+apache_logdir = $(logdir)/apache
+apache_rundir = $(rundir)/apache
+apache_pid = $(apache_rundir)/pid
+apache_lock = $(apache_rundir)/lock
+frontenddir = $(pkgdatadir)/frontend
+mysql_datadir = $(pkgstatedir)/mysqld
+mysql_tmpdir = $(pkgstatedir)/tmp
+mysql_secfile = $(mysql_tmpdir)/mysqld-priv
+mysql_rundir = $(rundir)/mysqld
+mysql_pid = $(mysql_rundir)/pid
+mysql_socket = $(mysql_rundir)/sock
+mysql_lock = $(mysql_rundir)/lock
 
 subst_in_files = \
   ${SED} \
-    -e 's,[@]PERL[@],$(PERL),' \
-    -e 's,[@]PACKAGE[@],$(PACKAGE),' \
-    -e 's,[@]VERSION[@],$(VERSION),' \
-    -e 's,[@]SV_CONF[@],$(SV_CONF),' \
-    -e 's,[@]WWW_SERVER_BIN[@],$(WWW_SERVER_BIN),' \
-    -e 's,[@]WWW_SERVER_GROUP[@],$(WWW_SERVER_GROUP),' \
-    -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),' \
-    -e 's,[@]WWW_SERVER_PORT[@],$(WWW_SERVER_PORT),' \
-    -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),' \
-    -e 's,[@]SV_DB_HOST[@],$(SV_DB_HOST),' \
-    -e 's,[@]SV_DB_NAME[@],$(SV_DB_NAME),' \
-    -e 's,[@]SV_DB_PASSWORD[@],$(SV_DB_PASSWORD),' \
-    -e 's,[@]SV_DB_USER[@],$(SV_DB_USER),' \
-    -e 's,[@]localstatedir[@],$(localstatedir),' \
-    -e 's,[@]pkgdatadir[@],$(pkgdatadir),' \
-    -e 's,[@]runstatedir[@],$(runstatedir),' \
-    -e 's,[@]sysconfdir[@],$(sysconfdir),'
+    -e 's,[@]PERL[@],$(PERL),g' \
+    -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
+    -e 's,[@]VERSION[@],$(VERSION),g' \
+    -e 's,[@]SV_CONF[@],$(SV_CONF),g' \
+    -e 's,[@]WWW_SERVER_BIN[@],$(WWW_SERVER_BIN),g' \
+    -e 's,[@]WWW_SERVER_GROUP[@],$(WWW_SERVER_GROUP),g' \
+    -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),g' \
+    -e 's,[@]WWW_SERVER_PORT[@],$(WWW_SERVER_PORT),g' \
+    -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
+    -e 's,[@]MYSQL_BIN[@],$(MYSQL_BIN),g' \
+    -e 's,[@]MYSQLD_BIN[@],$(MYSQLD_BIN),g' \
+    -e 's,[@]MYSQLD_SAFE_BIN[@],$(MYSQLD_SAFE_BIN),g' \
+    -e 's,[@]MYSQL_INSTALLDB_BIN[@],$(MYSQL_INSTALLDB_BIN),g' \
+    -e 's,[@]SV_DB_HOST[@],$(SV_DB_HOST),g' \
+    -e 's,[@]SV_DB_PORT[@],$(SV_DB_PORT),g' \
+    -e 's,[@]SV_DB_NETWORKING[@],$(SV_DB_NETWORKING),g' \
+    -e 's,[@]SV_DB_NAME[@],$(SV_DB_NAME),g' \
+    -e 's,[@]SV_DB_PASSWORD[@],$(SV_DB_PASSWORD),g' \
+    -e 's,[@]SV_DB_USER[@],$(SV_DB_USER),g' \
+    -e 's,[@]srcdir[@],$(srcdir),g' \
+    -e 's,[@]localstatedir[@],$(localstatedir),g' \
+    -e 's,[@]pkgdatadir[@],$(pkgdatadir),g' \
+    -e 's,[@]pkgstatedir[@],$(pkgstatedir),g' \
+    -e 's,[@]runstatedir[@],$(runstatedir),g' \
+    -e 's,[@]mysql_datadir[@],$(mysql_datadir),g' \
+    -e 's,[@]confdir[@],$(confdir),g' \
+    -e 's,[@]logdir[@],$(logdir),g' \
+    -e 's,[@]rundir[@],$(rundir),g' \
+    -e 's,[@]apache_logdir[@],$(apache_logdir),g' \
+    -e 's,[@]apache_rundir[@],$(apache_rundir),g' \
+    -e 's,[@]apache_pid[@],$(apache_pid),g' \
+    -e 's,[@]apache_lock[@],$(apache_lock),g' \
+    -e 's,[@]frontenddir[@],$(frontenddir),g' \
+    -e 's,[@]mysql_rundir[@],$(mysql_rundir),g' \
+    -e 's,[@]mysql_pid[@],$(mysql_pid),g' \
+    -e 's,[@]mysql_secfile[@],$(mysql_secfile),g' \
+    -e 's,[@]mysql_socket[@],$(mysql_socket),g' \
+    -e 's,[@]mysql_lock[@],$(mysql_lock),g' \
+    -e 's,[@]mysql_tmpdir[@],$(mysql_tmpdir),g' \
+    -e 's,[@]sysconfdir[@],$(sysconfdir),g'
 
 substituted = \
-  $(backend_scripts) $(conf_files:%=sysconf/%) $(modules)
+  $(backend_scripts) $(build_time_scripts) $(conf_files:%=sysconf/%) $(modules)
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
 
@@ -83,23 +130,36 @@ $(substituted): %: %.in dirs.stamp; $(subst_in_files) < $< > $@
 cgirepos: ; echo -n > $@
 
 EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
-  db tests $(substituted:%=%.in) backend/README autotools/README \
+  db/initial.sql db/mk-db.sql.in \
+  tests $(substituted:%=%.in) backend/README autotools/README \
+  caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
   caboose/parse-files.awk
 
-CLEANFILES = $(substituted) dirs.stamp
+CLEANFILES = $(substituted) dirs.stamp db/init.stamp
 
-dest_local = $(DESTDIR)$(localstatedir)/lib/$(PACKAGE)
-dest_run = $(DESTDIR)$(runstatedir)/$(PACKAGE)
-dirs_to_make = $(frontend_dirs) $(frontend_cache_dirs)
+dest_local = $(DESTDIR)$(pkgstatedir)
+dest_run = $(DESTDIR)$(rundir)
+dest_log = $(DESTDIR)$(logdir)
+if HAVE_DATABASE
+db_dirs = $(DESTDIR)$(mysql_rundir) $(DESTDIR)$(mysql_tmpdir)
+# Database data directory is created with the initializatoin utility,
+# and some versions of it require that it doesn't exist.
+uninstalled_db_dirs = $(DESTDIR)$(mysql_datadir) $(DESTDIR)$(mysql_secfile)
+skip_init_db =
+else
+skip_init_db = @echo Skipping
+endif
 
 if HAVE_FRONTEND
-frontend_dirs = $(dest_run)/apache $(dest_local)/apache
+frontend_dirs = $(DESTDIR)$(apache_rundir) $(DESTDIR)$(apache_logdir)
 frontend_cache_dirs = $(dest_local)/submissions_uploads/trackers_attachments
 endif # HAVE_FRONTEND
+dirs_to_make = $(db_dirs) $(dest_log) $(frontend_dirs) $(frontend_cache_dirs)
+uninstalled_dirs = $(dirs_to_make) $(uninstalled_db_dirs)
 
 uninstall-hook:
-	rm -fr $(frontend_dirs)
+	rm -fr $(uninstalled_dirs)
 	rm -d $(frontend_cache_dirs) || true
 	rm -d `echo $(frontend_cache_dirs) | ${DIRNAME}` || true
 
@@ -125,10 +185,15 @@ install-conf-files: $(conf_files:%=sysconf/%) ; \
   done
 
 make-var-subdirs: ; $(MKDIR_P) $(dirs_to_make)
-install-data-local: make-var-subdirs install-conf-link install-conf-files
+install-data-local: init-database
+init-database: make-var-subdirs install-conf-link install-conf-files
+	$(skip_init_db) $(PERL) db/init-database.pl "$(DESTDIR)"
+	$(skip_init_db) test -e db/init.stamp || exit 1
+
+.PHONY: install-conf-link instal-conf-files make-var-subdirs init-database
 
 uninstall-local: ; \
-  for i in $(conf_files); do \
+  for i in $(conf_files) launch-db.pl; do \
     $(RM) "$(DESTDIR)$(confdir)/$$i"; \
   done
 

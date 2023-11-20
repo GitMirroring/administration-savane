@@ -1,5 +1,6 @@
-<?php
-# Basic configuration template.
+#! @PERL@ -I@pkgdatadir@/lib
+#
+# Stop database daemon of Savane.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -40,42 +41,32 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-$sys_default_domain = "@WWW_SERVER_HOST@";
-$sys_www_server_port = '@WWW_SERVER_PORT@';
-if ($sys_www_server_port != 80)
-  $sys_default_domain .= ":@WWW_SERVER_PORT@";
-$sys_brother_domain = $sys_default_domain;
 
-$sys_debug_nobasehost = true;
-$sys_debug_email_override_address = "webmasters@localhost";
+use strict;
+use Savane::Version;
 
-$sys_dbhost = "@SV_DB_HOST@";
-$sys_dbport = "@SV_DB_PORT@";
-if ('@SV_DB_NETWORKING@' === 'no')
-  $sys_dbsocket = "@mysql_socket@";
-$sys_dbname = "@SV_DB_NAME@";
-$sys_dbuser = "@SV_DB_USER@";
-$sys_dbpasswd = '@SV_DB_PASSWORD@';
-$sys_incdir = "gnu";
-$sys_name = "Savannah-dev";
-$sys_unix_group_name = "administration";
-$sys_themedefault = "Savannah";
-$sys_graphviz = '@GRAPHVIZ_BIN@';
+our $rundir = "@mysql_rundir@";
+our $pidfile = "@mysql_pid@";
+our $socket = "@mysql_socket@";
 
-# Directory for group registration uploads.
-$sys_upload_dir = "@localstatedir@/lib/@PACKAGE@/submissions_uploads/";
-$sys_trackers_attachments_dir = "{$sys_upload_dir}trackers_attachments";
+my $help =
+"Usage: $0 [OPTIONS]
 
-$sys_logo_name = "floating.png";
-$sys_logo_name_width = "148";
-$sys_logo_name_height = "125";
-$sys_mail_domain = "localhost";
-$sys_mail_admin = "savannah-reports-private";
-$sys_mail_replyto = "INVALID.NOREPLY";
-$sys_enable_forum_comments = 0;
-$sys_registration_text_spam_test = 0;
-$sys_registration_captcha = 1;
-$sys_upload_max = 16384;
+Stop database daemon of Savane.
 
-$sys_etc_dir = "@confdir@";
-?>
+  -h, --help         show this help and exit
+  -v, --version      show Savane version and exit
+";
+
+PrintVersionOrHelp ($help);
+
+die "$rundir directory doesn't exist.\n" unless -d $rundir;
+die "PID file $pidfile doesn't exist.\n" unless -e $pidfile;
+my $pid = `cat $pidfile`;
+if (kill 0, $pid)
+  {
+    kill 'TERM', $pid;
+    exit 0;
+  }
+print STDERR "Note: no process $pid found; clearing $rundir\n";
+unlink $pidfile, $socket;

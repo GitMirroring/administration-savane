@@ -126,6 +126,9 @@
 * sv_groups invoked 'chattr +i' when creating CVS and Git areas,
   and it didn't work in Savannah setup; replace it with 'chmod -R a-w'.
 
+* New scripts to launch and stop database daemon for Savane,
+  sv_launch_db.pl and sv_kill_db.pl.
+
 * Script to run git-gc for every repository, rewritten in Perl
   and added to Savane.
 
@@ -141,6 +144,11 @@
 ** sv_cgit.pl listed private as well as public repositories.
 
 [BUILD]
+
+* Initial database is installed (unless already present)
+  in @localstatedir@/lib/@PACKAGE@/mysqld,
+  with PID file and socket in @runstatedir@/@PACKAGE@/mysqld;
+  new configure option, --disable-database.
 
 * frontend part is installed to $(pkgdatadir); a few PHP checks are run
   in configure and installcheck time.  New configure option to control

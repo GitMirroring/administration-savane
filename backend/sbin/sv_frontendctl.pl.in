@@ -49,10 +49,10 @@ use Savane::Version;
 my $port = "@WWW_SERVER_PORT@";
 my $host = "@WWW_SERVER_HOST@";
 
-my $pid_dir = "@runstatedir@/@PACKAGE@/apache";
-my $log_dir = "@localstatedir@/lib/@PACKAGE@/apache";
-my $pid_file = "$pid_dir/pid";
-my $lock_dir = "$pid_dir/lock";
+my $pid_dir = "@apache_rundir@";
+my $log_dir = "@apache_logdir@";
+my $pid_file = "@apache_pid@";
+my $lock_dir = "@apache_lock@";
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -90,4 +90,4 @@ $ENV{'APACHE_RUN_GROUP'} = "@WWW_SERVER_GROUP@";
 $ENV{'APACHE_LOCK_DIR'} = "$lock_dir";
 $ENV{'APACHE_LOG_DIR'} = "$log_dir";
 
-system ('@WWW_SERVER_BIN@', '-f', '@sysconfdir@/@PACKAGE@/apache.conf', @ARGV);
+system ('@WWW_SERVER_BIN@', '-f', '@confdir@/apache.conf', @ARGV);

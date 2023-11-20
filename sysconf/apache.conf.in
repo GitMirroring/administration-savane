@@ -57,9 +57,9 @@ IncludeOptional conf-enabled/*.conf
 
 ServerName @WWW_SERVER_HOST@
 <VirtualHost @WWW_SERVER_HOST@>
-  DocumentRoot @pkgdatadir@/frontend/php
+  DocumentRoot @frontenddir@/php
   SetEnv SAVANE_CONF @SV_CONF@
-  <Directory "@pkgdatadir@/frontend/php/">
+  <Directory "@frontenddir@/php/">
     php_admin_flag register_globals off
     php_admin_flag magic_quotes_gpc off
     php_admin_flag file_uploads on
@@ -77,7 +77,7 @@ ServerName @WWW_SERVER_HOST@
   ErrorDocument 404 /404.php
 
   # Restrict access into include/
-  <Directory "@pkgdatadir@/frontend/php/include/">
+  <Directory "@frontenddir@/php/include/">
    Require all denied
   </Directory>
 

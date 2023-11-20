@@ -93,7 +93,7 @@ our %commands_available = (
 our @commands_enabled = ();
 our $source_code_url = '';
 
-my $conf_file = "@sysconfdir@/savane/membersh-conf.pl";
+my $conf_file = "@confdir@/membersh-conf.pl";
 
 die "No $conf_file found. Exiting" unless -e $conf_file;
 unless (do $conf_file)

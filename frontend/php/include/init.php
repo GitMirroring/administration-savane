@@ -121,6 +121,10 @@ if (!empty ($sys_conf_file))
 
 if (empty ($sys_file_domain))
   $sys_file_domain = $sys_default_domain;
+if (empty ($sys_dbport))
+  $sys_dbport = null;
+if (empty ($sys_dbsocket))
+  $sys_dbsocket = null;
 
 # Detect where we are, unless it's explicitely specified in the
 # configuration file:

@@ -540,8 +540,8 @@ function test_sysconfigs ()
   global $sys_conf_file, $page;
   include $sys_conf_file;
   $variables = [
-    'dbhost', 'dbname', 'dbpasswd', 'dbuser', 'default_domain',
-    'etc_dir', 'file_domain', 'https_host', 'incdir',
+    'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
+    'default_domain', 'etc_dir', 'file_domain', 'https_host', 'incdir',
     'url_topdir', 'www_topdir',
     'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',

@@ -86,3 +86,14 @@ sbin/sv_frontendctl.pl
 ======================
 
 Runs Apache and a local web server on top it.
+
+sbin/sv_kill_db.pl
+==================
+
+Kills database server launched with sbin/sv_launch_db.pl
+
+sbin/sv_launch_db.pl
+====================
+
+Runs an instance of database server specifically for its Savane
+installation.

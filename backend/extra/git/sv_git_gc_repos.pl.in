@@ -52,7 +52,7 @@ my $script = "${name_base}_gc_repos.pl";
 my $verbose;
 my $topdir = "/srv/git";
 my ($dry_run, $skip_du, $skip_gc, $skip_ts);
-my $logfile = "/var/log/$name_base.log";
+my $logfile = "@logdir@/$name_base.log";
 my $git_bin = 'git';
 
 my $help_msg =

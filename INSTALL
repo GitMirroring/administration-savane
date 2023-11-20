@@ -8,49 +8,18 @@ notice and this notice are preserved.  This file is offered as-is,
 without any warranty.
 
 This document describes a sample Savane installation procedure using
-a demo database.  For more details and options, you may want to look
-into Savannah wiki (https://savannah.gnu.org/maintenance/).
-The commands are run from a non-root account unless specifically
-noted for the command in question.
+an initial database.  For more details and options, you may want
+to look into Savannah wiki (https://savannah.gnu.org/maintenance/).
+The commands are run from an ordinary (non-root) account
+unless in the 'Advanced and troubleshooting' section where it's
+specifically noted otherwise.
+
+Basic installation
+------------------
 
 Install dependencies.  If you are going to use localizations, make
 sure the languages are listed when running locale -a (in Trisquel,
 look for language-pack-*).
-
-Download and gpg --verify savane_demo-$latest.sql.gz{.sig,}
-from Savannah administration group download area
-(as of 2023-08, $latest is 2022-05).
-
-With root privileges, create a database and a user;
-grant proper permissions:
-
-# mysql
-Welcome to the MariaDB monitor.  Commands end with ; or \g.
-Your MariaDB connection id is 37
-Server version: 10.3.38-MariaDB-0ubuntu0.20.04.1 Ubuntu 20.04
-
-Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
-
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
-
-MariaDB [(none)]> CREATE DATABASE sv_demo;
-Query OK, 1 row affected (0.001 sec)
-
-MariaDB [(none)]> CREATE USER 'sv'@'localhost' IDENTIFIED BY 'sv';
-Query OK, 0 rows affected (0.009 sec)
-
-MariaDB [(none)]> GRANT ALL PRIVILEGES ON sv_demo.* TO 'sv'@'localhost';
-Query OK, 0 rows affected (0.001 sec)
-
-MariaDB [(none)]> quit
-Bye
-# exit
-$
-
-Fill the database from the demo dump:
-
-$ gzip -d < savane_demo-$latest.sql.gz \
-  | mysql --user=sv --password=sv sv_demo
 
 Clone Savane to $HOME/sv:
 
@@ -71,10 +40,8 @@ autoreconf: Entering directory `.'
 ...
 autoreconf: Leaving directory `.'
 
-$ echo 'password=sv' > ../passwd.mysql
 $ cd ..; mkdir build; cd build
-$ ../savane/configure --prefix=$HOME/sv/install \
-  --with-db-credentials=../passwd.mysql
+$ ../savane/configure --prefix=$HOME/sv/install
 checking for a BSD-compatible install... /usr/bin/install -c
 ...
 Now you can run
@@ -90,25 +57,67 @@ make[1]: Leaving directory '/home/dti/sv/savane'
 ...
 $
 
+Launch database daemon:
+
+$ $HOME/sv/install/sbin/sv_launch_db.pl
+
 Start web server:
 
-$ $HOME/sv/install/sbin/sv_frontendctl -k graceful
-
-Visit <http://127.0.0.85:4913/testconfig.php>.
-
-Check "MySQL configuration" and disable flags like STRICT_TRANS_TABLES
-in database configuration: set sql_mode in the right file from /etc/mysql
-to something like
-
-  [mysqld]
-
-  sql_mode = ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
-
-Then restart the database server (requires root privileges):
-
-# service mariadb restart
+$ $HOME/sv/install/sbin/sv_frontendctl -k start
 
 Visit <http://127.0.0.85:4913/testconfig.php>, look for errors.
 
 At this point, it should work: visit <http://127.0.0.85:4913>,
-login as 'agn' using password '12345'.
+login as '-' using password '-'; that user is the initial administrator.
+
+In order to shut down the servers, run
+
+$ $HOME/sv/install/sbin/sv_frontendctl -k stop
+$ $HOME/sv/install/sbin/sv_kill_db
+
+Advanced and troubleshooting
+----------------------------
+
+The procedure above installs a complete instance of database server
+data in user's home directory.  That avoids the need for running
+any commands with root privileges, but the amount of server data
+may exceed 100 MB, and typically that would duplicate already
+initialized system-wide data.  Moreover, Savane database server
+initialization is known to fail with older MySQL versions like 5.7.
+
+The database can be installed in the system area, but that means invoking
+the database client from the root account or at least using the root database
+account.  Also, the database daemon is likely to start when the OS boots,
+so you needn't run sv_launch_db.pl; however, sv_launch_db.pl passes the right
+sql_mode to the daemon, so some changes may be needed in /etc/.
+
+First, add --disable-database and --enable-db-networking to Savane
+configure options; also, you may want to customize the database
+name, user and password:
+
+Write a file with database password in form 'password=*PASSWORD*'.
+
+$ ../savane/configure --prefix=$HOME/sv/install \
+  --disable-database --enable-db-networking --with-db-user=sv \
+  --with-db-credentials=PASSWD_FILE --with-db-name=sv_demo
+
+where PASSWD_FILE is path to the file you've filled.
+
+Build and install as usual:
+
+$ make all install
+
+Create database user account from the root account or use database root
+account:
+
+$ sudo mysql < db/mk-db.sql
+  or
+$ mysql --user=root --password < db/mk-db.sql
+
+Initialize database:
+
+$ mysql --user=sv --password sv_demo < ../savane/db/initial.sql
+
+Visit <http://127.0.0.85:4913/testconfig.php> and check the 'MySQL
+configuration' section; you may want to set sql_mode in some file from
+/etc/mysql/.
