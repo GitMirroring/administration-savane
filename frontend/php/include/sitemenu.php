@@ -207,6 +207,36 @@ function menu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
   return sitemenu_thispage ($page_title, $page_toptab, $page_group);
 }
 
+function sitemenu_context_title ($params)
+{
+  $title = context_title ();
+  if ($title === null)
+    $title = '';
+  if (!array_key_exists ('title', $params) || $params['title'] == '')
+    return $title;
+  if ($title !== '')
+    # TRANSLATORS: this string is used to separate context from
+    # further description, like _("Bugs") . _(": ") . $bug_title.
+    $title .= _(": ");
+  return $title . $params['title'];
+}
+
+function sitemenu_bookmark_entry ($page_title)
+{
+  global $HTML, $sys_home;
+  if (!empty ($_POST))
+    return;
+  if (!(user_isloggedin () && user_get_preference ("use_bookmarks")))
+    return;
+  $title =
+    utils_urlencode (sitemenu_context_title (['title' => $page_title]));
+  $HTML->menu_entry ("{$sys_home}my/bookmarks.php?add=1&amp;url="
+    . utils_urlencode ($_SERVER['REQUEST_URI'])
+    . "&amp;title=$title",
+    _("Bookmark It"), 1, _("Add this page to my bookmarks")
+  );
+}
+
 # Page-specific toolbox.
 function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
 {
@@ -231,29 +261,12 @@ function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
     $extra_name = $GLOBALS['extra_script_name'];
 
   $script_extra = $_SERVER['SCRIPT_NAME'] . $extra_name;
-  $HTML->menu_entry ("$script_extra?reload=1" . $extraurl,
-    _("Clean Reload"), 1,
+  $HTML->menu_entry (
+    "$script_extra?reload=1$extraurl", _("Clean Reload"), 1,
     _("Reload the page without risk of reposting data")
   );
   $HTML->menuhtml_bottom ();
-
-  if (empty ($_POST))
-    {
-      if (user_isloggedin () && user_get_preference ("use_bookmarks"))
-        {
-          $bookmark_title = utils_urlencode (context_title ());
-          if ($page_title)
-            # TRANSLATORS: this string is used to separate context from
-            # further description, like _("Bugs")._(": ").$bug_title.
-            $bookmark_title .= utils_urlencode (_(": ") . $page_title);
-
-            $HTML->menu_entry ("{$sys_home}my/bookmarks.php?add=1&amp;url="
-              . utils_urlencode ($_SERVER['REQUEST_URI']) . '&amp;title='
-              . $bookmark_title,
-              _("Bookmark It"), 1, _("Add this page to my bookmarks")
-            );
-        }
-    }
+  sitemenu_bookmark_entry ($page_title);
 
   # Show related recipes. Maybe not the best way to put it, but in "this page"
   # it makes sense.

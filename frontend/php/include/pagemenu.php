@@ -70,17 +70,7 @@ function pagemenu ($params)
         [ 'width' => '48', 'height' => '48', 'alt' => context_alt (),
            'class' => 'pageicon']
       );
-  $title = context_title ();
-  if ($title)
-    print $title;
-  if ($title && !empty ($params['title']))
-    print
-      # TRANSLATORS: this string is used to separate context from
-      # further description, like _("Bugs")._(": ").$bug_title.
-      _(": ");
-  if (!empty ($params['title']))
-    print $params['title'];
-  print "</h1>\n\n";
+  print sitemenu_context_title ($params) . "</h1>\n\n";
 
   # Print topmenu subtitle.
   unset ($scope);
