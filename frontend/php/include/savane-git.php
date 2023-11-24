@@ -60,10 +60,10 @@ function git_get_commit ()
     return $default_val;
   return trim (file_get_contents ($ref_file));
 }
-function git_get_savane_url ($commit, $page = null)
+function git_get_savane_url ($commit = null, $page = null)
 {
   global $sys_savane_cgit;
-  if (empty ($commit))
+  if ($commit === null)
     $commit = '';
   else
     $commit = "?id=$commit";
@@ -95,5 +95,15 @@ function git_check_tarball ()
     return 1;
   fclose ($f);
   return 0;
+}
+
+function git_agpl_notice ($msg = null)
+{
+  if (null !== $msg)
+    $msg .= ' ';
+  $msg = "\n    AGPL NOTICE\n\n$msg"
+    . "You can download the corresponding source code of Savane at "
+    . git_get_tarball_url () . "\n";
+  return wordwrap ($msg, 78);
 }
 ?>

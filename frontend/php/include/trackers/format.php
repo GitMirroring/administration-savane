@@ -43,6 +43,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 require_once (dirname (__FILE__) . '/../utils.php');
+require_once (dirname (__FILE__) . '/../savane-git.php');
 
 function format_details (
   $item_id, $group_id, $ascii = false, $item_assigned_to = false,
@@ -436,20 +437,64 @@ function format_item_summary ($res, $bug_ref, $artifact)
   return $body;
 }
 
-function format_item_changes ($changes, $item_id, $group_id)
+function format_file_agpl_notice ()
+{
+  return git_agpl_notice ('These attachments are served by Savane.');
+}
+
+function format_change_files ($out, $changes, $separator, $item_group)
+{
+  global $sys_file_domain;
+  if (empty ($changes['attach']))
+    return $out;
+  if ($out)
+    $out .= $separator;
+
+  $out_att = "Additional Item Attachment";
+  if (!$out)
+    $out_att .= ", $item_group";
+  $out_att .= ":\n\n";
+
+  foreach ($changes['attach'] as $file)
+    $out_att .= sprintf (
+       "File name: %-30s Size:%d KB\n    <%s>\n\n",
+       $file['name'], intval ($file['size'] / 1024),
+       "https://$sys_file_domain/file/{$file['name']}?file_id={$file['id']}"
+    );
+  return "$out$out_att" . format_file_agpl_notice ();
+}
+
+function format_change_comments (
+  $out, $changes, $separator, $item_group, $item_id
+)
+{
+  if (empty ($changes['details']))
+    return $out;
+  if ($out)
+    $out .= $separator;
+
+  $out_com = "Follow-up Comment #"
+    . db_numrows (trackers_data_get_followups ($item_id));
+  if (!$out)
+    $out_com .= ", $item_group";
+
+  $out_com .= ":\n\n";
+  if ($changes['details']['type'] != 'None')
+    $out_com .= "[{$changes['details']['type']}]\n";
+  $out_com .= markup_ascii ($changes['details']['add']);
+  return "$out$out_com";
+}
+
+function format_change_fields ($changes, $separator)
 {
   # FIXME: strange, with %25s it does not behave exactly like
   # trackers_field_label_display.
   $fmt = "%24s: %23s => %-23s\n";
-
-  $separator = "\n    _______________________________________________________\n\n";
-
-  # Process most of the fields.
   $out = '';
   foreach ($changes as $field => $h)
     {
       # If both removed and added items are empty skip - Sanity check.
-      if (empty($h['del']) && empty($h['add']))
+      if (empty ($h['del']) && empty ($h['add']))
         continue;
 
       if ($field == "details" || $field == "attach")
@@ -460,71 +505,31 @@ function format_item_changes ($changes, $item_id, $group_id)
       if ($field == "realdetails")
         $field = "details";
 
-      $label = trackers_data_get_label($field);
+      $label = trackers_data_get_label ($field);
       if (!$label)
         $label = $field;
-      $out .= sprintf($fmt, $label,
-                      isset($h['del']) ? $h['del'] : null,
-                      isset($h['add']) ? $h['add'] : null);
+      $out .= sprintf ($fmt, $label, isset ($h['del'])? $h['del']: null,
+        isset ($h['add'])? $h['add']: null
+      );
     }
+  return $out;
+}
+
+# FIXME: shouldn't this be localized?
+function format_item_changes ($changes, $item_id, $group_id)
+{
+  $separator =
+    "\n    _______________________________________________________\n\n";
+  $item_group = utils_get_tracker_prefix (ARTIFACT) . "#$item_id"
+    . " (group " . group_getunixname ($group_id) . ")";
+  $out = format_change_fields ($changes, $separator);
 
   if ($out)
-    {
-      $out = "Update of " . utils_get_tracker_prefix(ARTIFACT) . " #" . $item_id
-             ." (project " . group_getunixname($group_id) . "):\n\n" . $out;
-    }
+    $out = "Update of $item_group:\n\n$out";
 
-  # Process special cases: follow-up comments.
-  if (!empty($changes['details']))
-    {
-      if ($out)
-        $out .= $separator;
-
-      $out_com = "Follow-up Comment #"
-                 . db_numrows(trackers_data_get_followups($item_id));
-      if (!$out)
-        {
-          $out_com .= ", " . utils_get_tracker_prefix(ARTIFACT) . " #" . $item_id
-                      . " (project " . group_getunixname($group_id) . ")";
-        }
-
-      $out_com .= ":\n\n";
-      if ($changes['details']['type'] != 'None')
-        $out_com .= '[' . $changes['details']['type'] . "]\n";
-      $out_com .= markup_ascii ($changes['details']['add']);
-      unset ($changes['details']);
-
-      $out .= $out_com;
-    }
-
-  # Process special cases: file attachment.
-  if (!empty($changes['attach']))
-    {
-      if ($out)
-        $out .= $separator;
-
-      $out_att = "Additional Item Attachment";
-      if (!$out)
-        {
-          $out_att .= ", " . utils_get_tracker_prefix(ARTIFACT) . " #" . $item_id
-                      . " (project " . group_getunixname($group_id) . ")";
-        }
-      $out_att .= ":\n\n";
-
-      foreach ($changes['attach'] as $file)
-        {
-          $out_att .= sprintf("File name: %-30s Size:%d KB\n    <%s>\n\n",
-                              $file['name'], intval($file['size']/1024),
-                              "https://" . $GLOBALS['sys_file_domain']
-                              . '/file/' . $file['name'] . '?file_id='
-                              . $file['id']);
-
-        }
-      unset($changes['attach']);
-      $out .= $out_att;
-    }
-
-  return $out;
+  $out =
+    format_change_comments ($out, $changes, $separator, $item_group, $item_id);
+  return format_change_files ($out, $changes, $separator, $item_group);
 }
 
 function format_item_fetch_attachments ($item_id, $ascii)
@@ -549,24 +554,22 @@ function format_item_fetch_attachments ($item_id, $ascii)
 
 function format_item_attachment_ascii ($row, $href)
 {
-  $fmt = "\n-------------------------------------------------------\n"
-    . "Date: %s  Name: %s  Size: %s   By: %s\n%s\n%s";
-  return sprintf (
-    $fmt, utils_format_date ($row['date']), $row['filename'],
-    utils_filesize (0, intval ($row['filesize'])), $row['user_name'],
-    $row['description'], '<http://' . $GLOBALS['sys_default_domain']
-    . utils_unconvert_htmlspecialchars ($href) . '>'
+  $ret = "\n-------------------------------------------------------\n";
+  $ret .= sprintf ("Name: %s  Size: %s\n",
+    $row['filename'], utils_filesize (0, intval ($row['filesize']))
   );
+  return $ret . '<http://' . $GLOBALS['sys_default_domain']
+    . utils_unconvert_htmlspecialchars ($href) . '>';
 }
 function format_item_file_details ($row, $href)
 {
   $lnk = "<a href=\"$href\">file #{$row['file_id']}: &nbsp;";
   # TRANSLATORS: the first argument is file name, the second is user's name.
-  $out .= sprintf (_('<!-- file -->%1$s added by %2$s'),
+  $out = sprintf (_('<!-- file -->%1$s added by %2$s'),
     $lnk . utils_specialchars ($row['filename']) . '</a>',
     utils_user_link ($row['user_name'])
   );
-  $out = ' <span class="smaller">(' . utils_filesize (0, $row['filesize']);
+  $out .= ' <span class="smaller">(' . utils_filesize (0, $row['filesize']);
   if ($row['filetype'])
     $out .= ' - ' . $row['filetype'];
   if ($row['description'])
@@ -582,16 +585,23 @@ function format_delete_file_link ($item_id, $file_id)
     . html_image_trash (['class' => 'icon']) . '</a></span>';
 }
 
-function format_item_single_attachment ($row, $may_delete, $i)
+function format_item_single_attachment ($row, $may_delete, $ascii, $i)
 {
   global $sys_home;
   $file_id = $row['file_id'];
   $href = $sys_home . ARTIFACT . "/download.php?file_id=$file_id";
+  $out = '';
   if ($ascii)
-    return format_item_attachment_ascii ($row, $href);
+    {
+      # The description is common for all files in the original
+      # submission, so only write it once.
+      if (!$i && $row['description'] !== '')
+        $out .= $row['description'] . "\n";
+      return $out . format_item_attachment_ascii ($row, $href);
+    }
   $out .= '<div class="' . utils_altrow ($i++) . '">';
   if ($may_delete)
-    $out .= format_delete_link ($row['item_id'], $file_id);
+    $out .= format_delete_file_link ($row['item_id'], $file_id);
   return $out . format_item_file_details ($row, $href) . "</div>\n";
 }
 
@@ -607,10 +617,10 @@ function format_item_attached_files ($item_id, $group_id, $ascii = false)
     0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
   );
   for ($i = 0; $row = db_fetch_array ($result); $i++)
-    format_item_single_attachment ($row, $manager, $i);
+    $out .= format_item_single_attachment ($row, $manager, $ascii, $i);
 
   if ($ascii)
-    return "$out\n";
+    return "$out\n" . format_file_agpl_notice ();
   return  $out . $HTML->box_bottom (1);
 }
 

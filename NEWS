@@ -89,6 +89,9 @@
 ** Sessions from IPv6 addresses couldn't be deleted in /my/admin/sessions.php;
    Broken since 2022-02 (3f27e1bb9), Savannah sr #110959.
 
+** AGPL notice is added to tracker notifications containing links
+   to attachments.
+
 ** Labels for radio buttons were broken since 2023-05 (76b235977).
 
 ** Sorting by priority in trackers didn't work, Savannah sr #110975.
