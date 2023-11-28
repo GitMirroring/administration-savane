@@ -44,6 +44,7 @@
 require_once ('../include/init.php');
 require_once ('../include/http.php');
 require_once ('../include/news/general.php');
+require_once ('../include/savane-git.php');
 
 if (empty ($group_id))
 {
@@ -96,8 +97,13 @@ $myself = "$protocol{$_SERVER['SERVER_NAME']}$port"
 # Nice doc here: http://www.atomenabled.org/developers/syndication/
 header ('Content-type: application/atom+xml;charset=UTF-8');
 header ("Content-Disposition: attachment; filename=$group.atom");
+$uri = git_get_savane_url ();
+$notice = nl2br ("Savane\n" . git_agpl_notice ());
 print "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <feed xmlns=\"http://www.w3.org/2005/Atom\">
+  <generator uri=\"$uri\" version=\"$savane_version\">
+  $notice
+  </generator>
   <id>$id</id>
   <link rel=\"self\" href=\"$myself\"/>
   <title>$title</title>

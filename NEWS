@@ -95,6 +95,8 @@
 ** AGPL notice is added to tracker notifications containing links
    to attachments.
 
+** Atom feeds lacked Savane source code offer.
+
 ** Labels for radio buttons were broken since 2023-05 (76b235977).
 
 ** Sorting by priority in trackers didn't work, Savannah sr #110975.
