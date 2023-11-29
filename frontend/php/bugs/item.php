@@ -41,7 +41,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-$includes = ['init', 'gpg', 'member', 'trackers/general', 'trackers/format'];
+$includes = [
+  'init', 'gpg', 'member', 'trackers/general', 'trackers/format',
+  'savane-git'
+];
 
 foreach ($includes as $i)
   require_once ("../include/$i.php");
@@ -97,6 +100,7 @@ if ($data_are_private)
     $ctype = "application/pgp-encrypted";
   }
 $message = format_item_details ($item_id, $group_id, true);
+$message .= git_agpl_notice ('This file was served by Savane.');
 if ($data_are_private)
   {
     list ($exit_code, $error_msg, $encrypted_message) =
