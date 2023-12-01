@@ -1,0 +1,149 @@
+#! @PERL@ -I@pkgdatadir@
+# Run git-gc for every Git repository.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2023 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use Savane::Version qw (PrintVersionOrHelp);
+use Savane::Util;
+use Getopt::Long;
+use File::Temp qw (tempfile);
+
+my $name_base = "sv_git";
+my $script = "${name_base}_gc_repos.pl";
+my $verbose;
+my $topdir = "/srv/git";
+my $dry_run = 0;
+my $skip_du = 0;
+my $logfile = "/var/log/$name_base.log";
+
+my $help_msg =
+"Usage: $0 [OPTIONS]
+
+Run git-gc for every Git repository.
+
+  -h, --help        show this help and exit
+  -v, --version     show Savane version and exit
+      --dry-run     don't apply changes
+      --skip-du     don't report file space usage
+      --verbose     output extra messages
+      --topdir      the working directory [$topdir]
+      --logfile     file for reports [$logfile]";
+
+PrintVersionOrHelp ($help_msg);
+
+GetOptions (
+  "logfile=s" => \$logfile, "topdir=s" => \$topdir, "dry-run" => \$dry_run,
+  "verbose" => \$verbose, "skip-du" => \$skip_du
+) or die ("Wrong command line.");
+
+open_log ($logfile, $script, $dry_run);
+
+sub dir_size
+{
+  my $ret = '0';
+  $ret = `du -sk $_[0]` unless $skip_du;
+  $ret =~ s/\s.*//s;
+  return $ret;
+}
+
+sub report_gc_results
+{
+  my ($path, $repo, $s0, $t) = @_;
+  my $s1 = dir_size ($repo);
+  my $msg = sprintf ("%-20s", $path);
+  if ($skip_du)
+    {
+      $msg .= sprintf (" (in %is)", $t);
+    }
+  else
+    {
+      $msg .= sprintf (" %u -> %u KiB (saved %.2f%% in %is)",
+        $s0, $s1, ($s0 - $s1) * 100 / $s0, $t
+        );
+    }
+  print_log ($msg) if $verbose;
+  print "$msg\n";
+}
+
+sub run_git_gc
+{
+  my ($path, $repo) = @_;
+  print_log ("running git-gc for $path") if $verbose;
+  print STDERR "$path";
+  print STDERR " (dry run)" if $dry_run;
+  print STDERR "...\n";
+  my $s0 = dir_size ($repo);
+  $s0 = 1 unless $s0 > 0;
+  my $t = time ();
+  system ("git --git-dir $repo gc -q --auto 2>&1 | tee -a $logfile")
+    unless $dry_run;
+  report_gc_results ($path, $repo, $s0, time () - $t);
+}
+
+sub show_total_size
+{
+  my $total_size;
+  system ("date");
+  return if $skip_du;
+  $total_size = dir_size (".");
+  print "$total_size\n";
+  print_log ("$_[0] size $total_size");
+}
+
+chdir ($topdir) or die $!;
+show_total_size ("initial");
+foreach my $path (<*.git>)
+  {
+    next unless -d $path;
+    run_git_gc ($path, $path);
+    $path =~ s/[.]git$//;
+    next unless -d $path;
+    chdir ($path) or die $!;
+    foreach my $repo (<*.git>)
+      {
+        next unless -d $repo;
+        run_git_gc ("$path/$repo", $repo);
+      }
+    chdir ("..");
+  }
+show_total_size ("  final");
+finalize_log ();

@@ -62,6 +62,9 @@
 * sv_groups invoked 'chattr +i' when creating CVS and Git areas,
   and it didn't work in Savannah setup; replace it with 'chmod -R a-w'.
 
+* Script to run git-gc for every repository, rewritten in Perl
+  and added to Savane.
+
 * Bug fixes:
 
 ** sv_membersh didn't offer the corresponding source code.

@@ -15,6 +15,7 @@ backend_scripts = \
 	backend/accounts/sv_membersh \
 	backend/extra/git/sv_cgit.pl \
 	backend/extra/git/sv_cgit_about_filter.pl \
+	backend/extra/git/sv_git_gc_repos.pl \
 	backend/mail/sv_aliases \
 	backend/mail/sv_mailman-wrapper.pl \
 	backend/misc/sv_cleaner \
