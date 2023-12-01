@@ -171,7 +171,7 @@ sub fetch_sv_aliases
 
 sub finish
 {
-  finalize_log;
+  finalize_log ();
   exit (0);
 }
 
@@ -192,4 +192,4 @@ if (-e "/usr/bin/newaliases")
     system ("/usr/bin/newaliases") unless $dry_run;
     print_log ("/usr/bin/newaliases");
   }
-finish;
+finish ();

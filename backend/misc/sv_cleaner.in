@@ -321,11 +321,11 @@ clean_idle_accounts;
 
 sub finish_work
 {
-  finalize_log;
+  finalize_log ();
   exit 0;
 }
 
-finish_work unless ($big_cleanup);
+finish_work () unless ($big_cleanup);
 
 sub delete_news
 {
@@ -474,4 +474,4 @@ foreach my $table (@user_tables)
         delete_and_log ($table, "user_id = $uid", "#$uid orphan $table");
       }
   }
-finish_work;
+finish_work ();

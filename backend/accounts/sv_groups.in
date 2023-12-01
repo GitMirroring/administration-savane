@@ -347,4 +347,4 @@ foreach my $group (@db_groups)
     print_log ("-- update $name: $madesomething") if $madesomething;
   } # foreach my $group (@db_groups)
 
-finalize_log;
+finalize_log ();
