@@ -1,5 +1,5 @@
 #! @PERL@ -I@pkgdatadir@
-# Run git-gc for every Git repository.
+# Run git-gc for every Git repository, update Cgit last-modified info.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -51,20 +51,23 @@ my $name_base = "sv_git";
 my $script = "${name_base}_gc_repos.pl";
 my $verbose;
 my $topdir = "/srv/git";
-my $dry_run = 0;
-my $skip_du = 0;
+my ($dry_run, $skip_du, $skip_gc, $skip_ts);
 my $logfile = "/var/log/$name_base.log";
+my $git_bin = 'git';
 
 my $help_msg =
 "Usage: $0 [OPTIONS]
 
-Run git-gc for every Git repository.
+Run git-gc for every Git repository, update Cgit last-modified info.
 
   -h, --help        show this help and exit
   -v, --version     show Savane version and exit
-      --dry-run     don't apply changes
+      --dry-run     don't apply any changes
       --skip-du     don't report file space usage
+      --skip-gc     don't run git-gc
+      --skip-ts     don't update last-modified info
       --verbose     output extra messages
+      --git-bin     the Git executable [$git_bin]
       --topdir      the working directory [$topdir]
       --logfile     file for reports [$logfile]";
 
@@ -72,8 +75,11 @@ PrintVersionOrHelp ($help_msg);
 
 GetOptions (
   "logfile=s" => \$logfile, "topdir=s" => \$topdir, "dry-run" => \$dry_run,
-  "verbose" => \$verbose, "skip-du" => \$skip_du
+  "verbose" => \$verbose, "skip-du" => \$skip_du, "skip-gc" => \$skip_gc,
+  "skip-ts" => \$skip_ts, "git-bin=s" => \$git_bin
 ) or die ("Wrong command line.");
+
+$skip_gc = $skip_ts = 1 if $dry_run;
 
 open_log ($logfile, $script, $dry_run);
 
@@ -83,6 +89,37 @@ sub dir_size
   $ret = `du -sk $_[0]` unless $skip_du;
   $ret =~ s/\s.*//s;
   return $ret;
+}
+
+sub make_cgit_info_dir
+{
+  my $dir = shift;
+  $dir .= '/info';
+  unless (-d $dir)
+    {
+      mkdir ($dir) or die $!;
+    }
+  $dir .= '/web';
+  unless (-d $dir)
+    {
+      mkdir ($dir) or die $!;
+    }
+  return "$dir/last-modified";
+}
+
+sub update_cgit_timestamp
+{
+  return if $skip_ts;
+  my $repo = shift;
+  my $ts_file = make_cgit_info_dir ($repo);
+  my $git_options =
+    "for-each-ref --format='%(committerdate)' --sort=-committerdate --count=1";
+  my $timestamp = `$git_bin --git-dir=$repo $git_options`;
+  chomp $timestamp;
+  return if $timestamp eq '';
+  open (TS, '>', $ts_file) or die $!;
+  print TS "$timestamp\n";
+  close (TS);
 }
 
 sub report_gc_results
@@ -109,14 +146,22 @@ sub run_git_gc
   my ($path, $repo) = @_;
   print_log ("running git-gc for $path") if $verbose;
   print STDERR "$path";
-  print STDERR " (dry run)" if $dry_run;
+  if ($dry_run)
+    {
+      print STDERR " (dry run)";
+    }
+  elsif ($skip_gc)
+    {
+      print STDERR " (skipping gc)";
+    }
   print STDERR "...\n";
   my $s0 = dir_size ($repo);
   $s0 = 1 unless $s0 > 0;
   my $t = time ();
-  system ("git --git-dir $repo gc -q --auto 2>&1 | tee -a $logfile")
-    unless $dry_run;
+  system ("$git_bin --git-dir $repo gc -q --auto 2>&1 | tee -a $logfile")
+    unless $skip_gc;
   report_gc_results ($path, $repo, $s0, time () - $t);
+  update_cgit_timestamp ($repo);
 }
 
 sub show_total_size
