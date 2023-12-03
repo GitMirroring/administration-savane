@@ -178,25 +178,6 @@ site_project_header (
   ]
 );
 
-$checked = '';
-if ($detailed)
-  $checked = " selected='selected'";
-$form_opening = form_tag (['method' => 'get'], "#options");
-$form_submit = '<input class="bold" type="submit" value="'
-  . _("Apply") . '" />';
-$selector = '<select title="' . _("basic or detailed")
-  . '" name="detailed"><option value="0">'
-  # TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-  . _("basic") . "</option>\n<option value='1'$checked>"
-  # TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-  . _("detailed") . "</option>\n</select>\n"
-  . form_hidden (['group' => $group]);
-# TRANSLATORS: the argument is "basic" or "detailed".
-print html_show_displayoptions (
-  sprintf (_("Browse with the %s memberlist."), $selector),
-  $form_opening, $form_submit
-);
-
 $this_user = user_getid ();
 $approved_member = member_check ($this_user, $group_id);
 print '<p>';
@@ -223,6 +204,25 @@ print '<p>'
   . _("On this page are only presented specific roles, roles\nwhich "
       . "are not attributed by default when joining this project.")
   . "</p>\n";
+
+$checked = '';
+if ($detailed)
+  $checked = " selected='selected'";
+$form_opening = form_tag (['method' => 'get'], "#options");
+$form_submit = '<input class="bold" type="submit" value="'
+  . _("Apply") . '" />';
+$selector = '<select title="' . _("basic or detailed")
+  . '" name="detailed"><option value="0">'
+  # TRANSLATORS: this is used in context of "Browse with the %s memberlist."
+  . _("basic") . "</option>\n<option value='1'$checked>"
+  # TRANSLATORS: this is used in context of "Browse with the %s memberlist."
+  . _("detailed") . "</option>\n</select>\n"
+  . form_hidden (['group' => $group]);
+# TRANSLATORS: the argument is "basic" or "detailed".
+print html_show_displayoptions (
+  sprintf (_("Browse with the %s memberlist."), $selector),
+  $form_opening, $form_submit
+);
 
 $members = fetch_member_list ($group_id);
 $title_arr = ["&nbsp;", _("Member")];
