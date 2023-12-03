@@ -87,12 +87,11 @@ function html_show_boxoptions ($legend, $text, $form_opening = 0,
 
   # We add boxoptionwanted to be able to determine if a boxoption was used
   # to update the page, in which case the boxoption must appear deployed.
-  $ret .= "$text"
-     . form_input ("hidden", "boxoptionwanted", "1")
-     . '</div>';
+  $ret .= $text . form_input ("hidden", "boxoptionwanted", "1");
 
   if ($form_opening && $submit)
     $ret .= "\n</form>\n";
+  $ret .= "</div>\n";
 
   return "$ret\n";
 }
