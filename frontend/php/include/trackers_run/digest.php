@@ -69,7 +69,8 @@ if ($func == "digest")
           . "of this page."
         )
       . "</p>\n";
-    goto end_of_file;
+    include '../include/trackers_run/browse.php';
+    exit (0);
   }
 if ($func == "digestselectfield")
   {
@@ -152,11 +153,11 @@ if ($func == "digestselectfield")
 
     print form_footer (_("Submit"));
     trackers_footer ([]);
-    goto end_of_file;
+    exit (0);
   } # if ($func == "digestselectfield")
 
 if ($func != "digestget")
-  goto end_of_file;
+  exit (0);
 
 if (!is_array ($items_for_digest))
   exit_error (_("No items selected for digest"));
@@ -308,6 +309,4 @@ foreach ($items_for_digest as $item)
     print "<p class='clearr'>&nbsp;</p>\n</div>\n\n";
   } # foreach ($items_for_digest as $item)
 trackers_footer ([]);
-
-end_of_file:
 ?>

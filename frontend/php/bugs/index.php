@@ -210,29 +210,17 @@ if ($process_comment)
   $submitreturn = 1;
 switch ($func)
 {
-  case 'search':
-    # Search in the item database.
+  case 'search': # Search items.
     include '../include/trackers_run/search.php';
     break;
 
-  case 'digest':
-    # Item digest: search item stage.
-    include '../include/trackers_run/digest.php';
-    include '../include/trackers_run/browse.php';
-    break;
-
-  case 'digestselectfield':
-    # Item digest: select field stage.
+  case 'digest':            # Item digest: select items.
+  case 'digestselectfield': # Item digest: select fields.
+  case 'digestget':         # Item digest: output.
     include '../include/trackers_run/digest.php';
     break;
 
-  case 'digestget':
-    # Item digest: output.
-    include '../include/trackers_run/digest.php';
-    break;
-
-  case 'browse':
-    # Browse the bug database (it also the default).
+  case 'browse': # List items (the default).
     include '../include/trackers_run/browse.php';
     break;
 
