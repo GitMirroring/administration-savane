@@ -1278,18 +1278,14 @@ function trackers_data_add_history (
 
   # If type has a value, add it into the sql statement (this is only
   # for the follow up comments (details field)).
-  $val_type = 'NULL';
+  $val_type = null;
   if ($type)
-    {
-      $val_type = $type;
-    }
+    $val_type = $type;
   else
-    {
-        # No comment type specified for a followup comment,
-        # so force it to None (100).
-      if ($field_name == 'details')
-        $val_type = 100;
-    }
+    # No comment type specified for a followup comment,
+    # so force it to None (100).
+    if ($field_name == 'details')
+      $val_type = 100;
 
   $result = db_autoexecute (
     "{$artifact}_history",
