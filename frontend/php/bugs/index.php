@@ -217,6 +217,7 @@ switch ($func)
   case 'digest':            # Item digest: select items.
   case 'digestselectfield': # Item digest: select fields.
   case 'digestget':         # Item digest: output.
+  case 'view-dependencies': # Special digest.
     include '../include/trackers_run/digest.php';
     break;
 

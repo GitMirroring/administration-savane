@@ -45,7 +45,7 @@
 extract (sane_import ('get',
   [
     'funcs' => 'func',
-    'digits' =>  'dependencies_of_item',
+    'digits' =>  ['dependencies_of_item', 'chunksz', 'offset'],
     'artifact' => 'dependencies_of_tracker',
     'array' =>
       [
@@ -54,6 +54,13 @@ extract (sane_import ('get',
       ]
   ]
 ));
+
+$default_chunksz = 50;
+if (empty ($chunksz))
+  $chunksz = $default_chunksz;
+$chunksz = intval ($chunksz);
+if ($chunksz <= 0)
+  $chunksz = $default_chunksz;
 
 if ($func == "digest")
   {
@@ -92,7 +99,7 @@ function select_items_by_deps ($deps_of_item, $deps_of_tracker)
 function print_field_selection_head ($group)
 {
   global $items_for_digest;
-  trackers_header (['title' => _("Digest Items: Fields Selection")]);
+  trackers_header (['title' => _("Digest items: field selection")]);
   print form_tag (['method' => 'get'])
     . form_hidden (['group' => $group, 'func' => 'digestget']);
 
@@ -158,6 +165,96 @@ function print_select_latest_comment ($i)
     . _("Latest Comment") . ' <span class="smaller"><em>- '
     . _("Latest comment posted about the item.") . "</em></span></div>\n";
 }
+function print_select_dependencies ($i)
+{
+  print_altrow ($i);
+  print form_checkbox ("field_used[dependencies]", 1) . '&nbsp;&nbsp;'
+    . _("Dependencies") . ' <span class="smaller"><em>- '
+    . _("List of dependencies.") . "</em></span></div>\n";
+}
+function list_group_items ()
+{
+  global $items_for_digest, $group_id;
+  $artifact = ARTIFACT;
+  $res = db_execute ("
+     SELECT
+       '$artifact' AS tracker, bug_id, summary, privacy, group_id, status_id,
+       priority
+     FROM $artifact WHERE group_id = ? ORDER BY bug_id", [$group_id]
+  );
+  $items_for_digest = $ret = [];
+  if (!db_numrows ($res))
+    return [];
+  while ($row = db_fetch_array ($res))
+    {
+      $items_for_digest[] = $row['bug_id'];
+      $ret[$row['bug_id']] = $row;
+    }
+  return $ret;
+}
+function print_item_link ($row)
+{
+  if ($row['status_id'] != 1)
+    {
+      $img_file = 'ok.png'; $img_alt = _("Closed Item");
+    }
+  else
+    {
+      $img_file = 'wrong.png'; $img_alt = _("Open Item");
+    }
+  $icon = html_image ("bool/$img_file", ['alt' => $img_alt]);
+  $item = $row['bug_id'];
+  $artifact = $row['tracker'];
+  $summary = $row['summary'];
+
+  print '<span class="'
+   . utils_get_priority_color ($row['priority'], $row['status_id'])
+   . "\">$icon&nbsp; "
+   . utils_link ("?func=detailitem&amp;item_id=$item", "$artifact #$item")
+   . ": &nbsp;$summary &nbsp;</span>";
+
+}
+function print_item_deps ($deps)
+{
+  print "<ul>\n";
+  foreach ($deps as $d)
+    show_dep ($d);
+  print "</ul>\n";
+}
+function print_items_with_dependencies ($items, $dependencies)
+{
+  global $items_for_digest;
+  trackers_header (['title' => _("Digest dependencies")]);
+  if (empty ($items_for_digest))
+    {
+      print "<p>" . _("No item found.") . "</p>\n";
+      return;
+    }
+  print "<ul>\n";
+  $i = 0;
+  foreach ($items_for_digest as $it)
+    {
+      if (item_access_denied ($items[$it]['privacy'], $items[$it]['group_id']))
+        continue;
+      if (!array_key_exists ($it, $dependencies))
+        continue;
+      print '<li class="' . utils_altrow ($i++) . "\">\n<p>";
+      print_item_link ($items[$it]);
+      print "</p>\n";
+      print_item_deps ($dependencies[$it]);
+      print "</li>\n";
+    }
+  print "</ul>\n";
+}
+function view_dependencies ()
+{
+  global $items_for_digest;
+  $group_items = list_group_items ();
+  $deps = list_dependencies ($items_for_digest);
+  print_items_with_dependencies ($group_items, $deps);
+  warn_about_hidden ();
+}
+
 if ($func == "digestselectfield")
   {
     select_items_by_deps ($dependencies_of_item, $dependencies_of_tracker);
@@ -169,11 +266,15 @@ if ($func == "digestselectfield")
     $i = print_all_fields_selection ();
     # The rest are not fields, but could be useful.
     print_select_latest_comment ($i++);
+    print_select_dependencies ($i);
 
     print form_footer (_("Submit"));
     trackers_footer ([]);
     exit (0);
   } # if ($func == "digestselectfield")
+
+if ($func == 'view-dependencies')
+  view_dependencies ();
 
 if ($func != "digestget")
   exit (0);
@@ -188,11 +289,119 @@ trackers_header (
   ['title' => _("Digest") . ' - ' . utils_format_date (time ())]
 );
 
+$have_hidden_something = 0;
+
+function item_access_denied ($privacy, $group_id)
+{
+  $ret = $privacy == '2' && !member_check_private (0, $group_id);
+  if ($ret)
+    $GLOBALS['have_hidden_something'] = 1;
+  return $ret;
+}
+
+function fetch_dependencies ($items)
+{
+  if (empty ($items))
+    return [[], []];
+  $sql = "
+    SELECT
+        item_id, is_dependent_on_item_id AS dep_id,
+        is_dependent_on_item_id_artifact as dep_art
+      FROM " . ARTIFACT . "_dependencies
+      WHERE item_id " . utils_in_placeholders ($items);
+  $res = db_execute ($sql, $items);
+  if (!db_numrows ($res))
+    return [[], []];
+  $items = $art = [];
+  while ($l = db_fetch_array ($res))
+    {
+      $items[$l['item_id']][$l['dep_art']][] = $l['dep_id'];
+      $art[$l['dep_art']][] = $l['dep_id'];
+    }
+  return [$items, $art];
+}
+
+function fetch_summaries ($art)
+{
+  $tables = $args = $ret = [];
+  foreach ($art as $a => $l)
+    {
+      $tables[] = "
+        SELECT
+          '$a' AS tracker, bug_id, summary, privacy, group_id, status_id,
+          priority
+        FROM $a WHERE spamscore < 5 AND bug_id " . utils_in_placeholders ($l);
+      $args = array_merge ($args, $l);
+    }
+  if (empty ($tables))
+    return $ret;
+  $sql = join ("UNION", $tables);
+  $res = db_execute ($sql, $args);
+  while ($row = db_fetch_array ($res))
+    if (!item_access_denied ($row['privacy'], $row['group_id']))
+      $ret[$row['tracker']][$row['bug_id']] = $row;
+  return $ret;
+}
+
+function list_dependencies ($items)
+{
+  list ($items, $art) = fetch_dependencies ($items);
+  $summaries = fetch_summaries ($art);
+  $ret = [];
+  foreach ($items as $it => $v)
+    foreach ($v as $tracker => $ids)
+      {
+        if (!array_key_exists ($tracker, $summaries))
+          continue;
+        $sum = $summaries[$tracker];
+        foreach ($ids as $i)
+          if (array_key_exists ($i, $sum))
+            $ret[$it][] = $sum[$i];
+      }
+  return $ret;
+}
+
+function show_dep ($d)
+{
+  print "<li>";
+  print "<a href=\"{$GLOBALS['sys_home']}{$d['tracker']}/?{$d['bug_id']}\">";
+  print "{$d['tracker']} #{$d['bug_id']}</a>: ";
+  print '<span class="'
+    . utils_get_priority_color ($d['priority'], $d['status_id']) . '">';
+  print "{$d['summary']}</span></li>\n";
+}
+
+function show_dependencies ($item)
+{
+  global $dependencies, $field_used;
+  if (!isset ($field_used["dependencies"]))
+    return;
+  if ($field_used["dependencies"] != 1)
+    return;
+  print '<p class="clearr"><span class="preinput">'
+    . _("Dependencies") . "</span></p>\n";
+  if (empty ($dependencies[$item]))
+    return;
+  print "<ul>\n";
+  foreach ($dependencies[$item] as $d)
+    show_dep ($d);
+  print "</ul>\n";
+}
+
+function warn_about_hidden ()
+{
+  if ($GLOBALS['have_hidden_something'])
+    print "<p><strong>"
+      . _('Note: private items are not shown.') . "</strong></p>\n";
+}
+
+if (isset ($field_used["dependencies"]) && $field_used["dependencies"] == 1)
+  $dependencies = list_dependencies ($items_for_digest);
+
 # Browse the list of selected item.
 $i = 0;
 foreach ($items_for_digest as $item)
   {
-    $i++;
     $result =
       db_execute ("SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?", [$item]);
 
@@ -203,41 +412,24 @@ foreach ($items_for_digest as $item)
     # Normally, the user should not even been able to select this item.
     # But someone nasty could forge the arguments of the script... So its
     # better to check everytime.
-    if ($res_arr['privacy'] == "2"
-        && !member_check_private (0, $res_arr['group_id']))
+    if (item_access_denied ($res_arr['privacy'], $res_arr['group_id']))
       continue;
 
     # Show summary if requested.
-    $summary = '';
-    if (isset ($field_used['summary']) && $field_used['summary'] == 1)
-      $summary = $res_arr['summary'];
-
-    # Show if the item is closed with an icon.
-    if ($res_arr['status_id'] != 1)
-      {
-        $img_file = 'ok.png'; $img_alt = _("Closed Item");
-      }
-    else
-      {
-        $img_file = 'wrong.png'; $img_alt = _("Open Item");
-      }
-    $icon = html_image ("bool/$img_file", ['alt' => $img_alt]);
-
-    print '<div class="' . utils_altrow ($i) . '">';
-    print '<span class="large"><span class="'
-     . utils_get_priority_color ($res_arr['priority'], $res_arr['status_id'])
-     . "\">$icon&nbsp; "
-     . utils_link ("?func=detailitem&amp;item_id=$item", ARTIFACT . " #$item")
-     . ": &nbsp;$summary &nbsp;</span></span><br /><br />\n";
+    if (!(isset ($field_used['summary']) && $field_used['summary'] == 1))
+      $res_arr['summary'] = '';
+    print '<div class="' . utils_altrow ($i++) . '"><span class="large">';
+    print_item_link ($res_arr);
+    print "</span><br /><br />\n";
 
     $field_count = 0;
     $halves = ['', ''];
     while ($field_name = trackers_list_all_fields ())
       {
-        # Some field can be ignored in any cases.
-        if (in_array ($field_name,
-              ["status_id", "summary", "bug_id", "details", "comment_type_id"])
-        )
+        # Some fields can be ignored in any cases.
+        $ignore_fields =
+          ["status_id", "summary", "bug_id", "details", "comment_type_id"];
+        if (in_array ($field_name, $ignore_fields))
           continue;
 
         # Check the fields.
@@ -325,7 +517,10 @@ foreach ($items_for_digest as $item)
             print '</span> ' . markup_rich ($last_comment) . "</div>\n";
           }
       }
+    show_dependencies ($item);
     print "<p class='clearr'>&nbsp;</p>\n</div>\n\n";
   } # foreach ($items_for_digest as $item)
+
+warn_about_hidden ();
 trackers_footer ([]);
 ?>

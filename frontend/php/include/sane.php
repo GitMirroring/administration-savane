@@ -215,7 +215,7 @@ $sane_sanitizers['funcs'] = function ($in, &$out, $i, $arg)
       'deltransition', 'delwatchee', 'detailitem', 'digest', 'digestget',
       'digestselectfield', 'flagspam', 'manage', 'monitor', 'postaddcomment',
       'postadditem', 'postmoditem', 'search', 'subscribe', 'unflagspam',
-      'unsubscribe', 'viewspam'
+      'unsubscribe', 'viewspam', 'view-dependencies'
     ]);
 };
 
