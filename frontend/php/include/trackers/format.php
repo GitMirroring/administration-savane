@@ -527,213 +527,190 @@ function format_item_changes ($changes, $item_id, $group_id)
   return $out;
 }
 
+function format_item_fetch_attachments ($item_id, $ascii)
+{
+  global $HTML;
+  $result = trackers_data_get_attached_files ($item_id);
+  if (!db_numrows ($result))
+    {
+      if ($ascii)
+        return [$result, ''];
+      return [$result,
+        '<span class="warn">' . _("No files currently attached") . '</span>'
+      ];
+    }
+  if ($ascii)
+    $msg = "    _______________________________________________________\n"
+      . "File Attachments:\n\n";
+  else
+    $msg = $HTML->box_top (_("Attached Files"), '', 1);
+  return [$result, $msg];
+}
+
+function format_item_attachment_ascii ($row, $href)
+{
+  $fmt = "\n-------------------------------------------------------\n"
+    . "Date: %s  Name: %s  Size: %s   By: %s\n%s\n%s";
+  return sprintf (
+    $fmt, utils_format_date ($row['date']), $row['filename'],
+    utils_filesize (0, intval ($row['filesize'])), $row['user_name'],
+    $row['description'], '<http://' . $GLOBALS['sys_default_domain']
+    . utils_unconvert_htmlspecialchars ($href) . '>'
+  );
+}
+function format_item_file_details ($row, $href)
+{
+  $lnk = "<a href=\"$href\">file #{$row['file_id']}: &nbsp;";
+  # TRANSLATORS: the first argument is file name, the second is user's name.
+  $out .= sprintf (_('<!-- file -->%1$s added by %2$s'),
+    $lnk . utils_specialchars ($row['filename']) . '</a>',
+    utils_user_link ($row['user_name'])
+  );
+  $out = ' <span class="smaller">(' . utils_filesize (0, $row['filesize']);
+  if ($row['filetype'])
+    $out .= ' - ' . $row['filetype'];
+  if ($row['description'])
+    $out .= ' - ' . markup_basic ($row['description']);
+  return "$out)</span>";
+}
+
+function format_delete_file_link ($item_id, $file_id)
+{
+  global $php_self;
+  return '<span class="trash"><a href="$php_self?func=delete_file'
+    . "&amp;item_id=$item_id&amp;item_file_id=$file_id\">"
+    . html_image_trash (['class' => 'icon']) . '</a></span>';
+}
+
+function format_item_single_attachment ($row, $may_delete, $i)
+{
+  global $sys_home;
+  $file_id = $row['file_id'];
+  $href = $sys_home . ARTIFACT . "/download.php?file_id=$file_id";
+  if ($ascii)
+    return format_item_attachment_ascii ($row, $href);
+  $out .= '<div class="' . utils_altrow ($i++) . '">';
+  if ($may_delete)
+    $out .= format_delete_link ($row['item_id'], $file_id);
+  return $out . format_item_file_details ($row, $href) . "</div>\n";
+}
+
 # Show the files attached to this tracker item.
 function format_item_attached_files ($item_id, $group_id, $ascii = false)
 {
-  global $HTML, $sys_home, $php_self;
-  $out = '';
-  $order = 'DESC';
+  global $HTML;
+  list ($result, $out) = format_item_fetch_attachments ($item_id, $ascii);
+  if (!db_numrows ($result))
+    return $out;
 
-  $result = trackers_data_get_attached_files ($item_id, $order);
-  $rows = db_numrows ($result);
+  $manager = member_check (
+    0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
+  );
+  for ($i = 0; $row = db_fetch_array ($result); $i++)
+    format_item_single_attachment ($row, $manager, $i);
 
-  # No file attached -> return now.
+  if ($ascii)
+    return "$out\n";
+  return  $out . $HTML->box_bottom (1);
+}
+
+function format_item_cc_list_header ($rows)
+{
+  global $HTML;
   if ($rows <= 0)
-    {
-      if ($ascii)
-        return "";
-      return
-        '<span class="warn">' . _("No files currently attached") . '</span>';
-    }
+    return '<span class="warn">' . _("CC list is empty") . '</span>';
+  return $HTML->box_top (_("Carbon-Copy List"), '', 1);
+}
 
-  # Header first.
-  if ($ascii)
-    $out .= "    _______________________________________________________\n"
-      . "File Attachments:\n\n";
-  else
-    $out .= $HTML->box_top(_("Attached Files"),'',1);
+function format_item_cc_list_email ($row)
+{
+  $email = $row['email'];
+  # If email is numeric, it must be a user id. Try to convert it
+  # to the user name.
+  if (ctype_digit (strval ($email)) && user_exists ($email))
+    $email =  user_getname ($email);
+  return utils_email ($email);
+}
 
-  # Determine what the print out format is based on output type (Ascii, HTML).
-  if ($ascii)
-    $fmt = "\n-------------------------------------------------------\n"
-      . "Date: %s  Name: %s  Size: %s   By: %s\n%s\n%s";
+function format_item_cc_list_comment ($row)
+{
+  $vot = _('Voted in favor of this item');
+  $com_arr = [
+    '-SUB-' => _('Submitted the item'), '-COM-' => _('Posted a comment'),
+    '-UPD-' => _('Updated the item'), '-VOT-' => $vot,
+    'Voted in favor of this item' => $vot
+  ];
 
-  # Loop throuh the attached files and format them.
-  $i = 0;
-  while ($row = db_fetch_array ($result))
-    {
-      $item_file_id = $row['file_id'];
-      $href = $sys_home . ARTIFACT . "/download.php?file_id=$item_file_id";
+  $comment = $row['comment'];
+  if (array_key_exists ($comment, $com_arr))
+    return $com_arr[$comment];
+  return $comment;
+}
 
-      if ($ascii)
-        $out .= sprintf (
-          $fmt, utils_format_date ($row['date']), $row['filename'],
-          utils_filesize (0, intval ($row['filesize'])), $row['user_name'],
-          $row['description'], '<http://' . $GLOBALS['sys_default_domain']
-          . utils_unconvert_htmlspecialchars ($href) . '>'
-        );
-      else
-        {
-          $html_delete = '';
-          $mem_ck = member_check (
-            0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
-          );
-          if ($mem_ck)
-            {
-              $html_delete = '<span class="trash"><a href="'
-                . "$php_self?func=delete_file&amp;item_id=$item_id"
-                . "&amp;item_file_id=$item_file_id\">"
-                . html_image_trash (['alt' => _("Delete"), 'class' => 'icon'])
-                . '</a></span>';
-            }
+function format_item_cc_list_user_data ($group_id)
+{
+  $ret['manager'] = member_check (
+    0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
+  );
+  $u_id = user_getid ();
+  $ret['u_name'] = user_getname ($u_id);
+  $ret['u_mail'] = user_getemail ($u_id);
+  return $ret;
+}
 
-          $out .= '<div class="' . utils_altrow ($i++) . '">' . $html_delete;
-          $out .= "<a href=\"$href\">file #$item_file_id: &nbsp;";
+function format_item_cc_list_delete_icon ($u, $row)
+{
+  global $php_self;
+  $cc_id = $row['bug_cc_id'];
+  $item = $row['item'];
+  $icon = "<span class='trash'><a href=\"$php_self?func=delete_cc"
+    . "&amp;item_id=$item&amp;item_cc_id=$cc_id\">"
+    . html_image_trash (['class' => 'icon']) . '</a></span>';
+  # Show the icon if one of the conditions is met:
+  # a) current user is a tracker manager;
+  # b) the CC name is the current user;
+  # c) the CC email address matches the one of the current user;
+  # d) the current user is the person who added the CC.
+  if ($u['manager'])
+    return $icon;
+  if (in_array ($row['email'], [$u['u_name'], $u['u_mail']]))
+    return $icon;
+  if ($u['u_name'] === $row['user_name'])
+    return $icon;
+  return '';
+}
 
-          # TRANSLATORS: the first argument is file name, the second
-          # is user's name.
-          $out .= sprintf (
-            _('<!-- file -->%1$s added by %2$s'),
-            utils_specialchars ($row['filename']) . '</a>',
-            utils_user_link ($row['user_name'])
-          );
-
-          $out .= ' <span class="smaller">('
-            . utils_filesize (0, $row['filesize']);
-          if ($row['filetype'])
-            $out .= ' - ' . $row['filetype'];
-          if ($row['description'])
-            $out .= ' - ' . markup_basic ($row['description']);
-          $out .= ")</span></div>\n";
-        }
-    } # while ($row = db_fetch_array ($result))
-
-  if ($ascii)
-    $out .= "\n";
-  else
-    $out .= $HTML->box_bottom (1);
-
+function format_item_cc_list_entry ($row, $item_id, $user_data, $i)
+{
+  $out = '';
+  $row['item'] = $item_id;
+  $comment = format_item_cc_list_comment ($row);
+  $row['user_name'] = $user_name = user_getname ($row['added_by']);
+  $out .= '<li class="' . utils_altrow ($i) . '">';
+  $out .= format_item_cc_list_delete_icon ($user_data, $row);
+  $u_link = utils_user_link ($user_name);
+  $email = format_item_cc_list_email ($row);
+  # TRANSLATORS: the first argument is email, the second is user's name.
+  $out .= sprintf (_('<!-- email --> %1$s added by %2$s'), $email, $u_link);
+  if ($comment)
+    $out .= ' <span class="smaller">(' . markup_basic ($comment) . ')</span>';
   return $out;
 }
 
-# Show the notification list for this item.
-function format_item_cc_list ($item_id, $group_id, $ascii = false)
+# Format the notification list for an item.
+function format_item_cc_list ($item_id, $group_id)
 {
-  global $HTML, $php_self;
-  if ($ascii)
-    $ascii = 1;
-  else
-    $ascii = 0;
-
+  global $HTML;
   $result = trackers_data_get_cc_list ($item_id);
-  $rows = db_numrows ($result);
-
-  $out = '';
-
-  # No file attached -> return now.
-  if ($rows <= 0)
-    {
-      if (!$ascii)
-        $out = '<span class="warn">' . _("CC list is empty") . '</span>';
-      return $out;
-    }
-
-  # Header first an determine what the print out format is
-  # based on output type (ASCII, HTML).
-  if ($ascii)
-    {
-      $out .= "    _______________________________________________________\n\n"
-        . "Carbon-Copy List:\n\n";
-      $fmt = "%-35s | %s\n";
-      $out .= sprintf ($fmt, 'CC Address', 'Comment');
-      $out .=
-        "------------------------------------+-----------------------------\n";
-    }
-  else
-    $out .= $HTML->box_top (_("Carbon-Copy List"), '', 1);
-
-  # Loop through the cc and format them.
-  for ($i = 0; $i < $rows; $i++)
-    {
-
-      if ($ascii)
-        {
-          # We shan't provide the CC address in the mail, we keep that
-          # information only on the web interface.
-          $email = "Available only on the item webpage";
-        }
-      else
-        {
-          $email = db_result ($result, $i, 'email');
-
-          # If email is numeric, it must be an user id. Try to convert it
-          # to the username.
-          if (ctype_digit (strval ($email)) && user_exists ($email))
-            $email =  user_getname ($email);
-
-          # HTML preformat the address.
-          $email = utils_email ($email);
-        }
-      $item_cc_id = db_result ($result, $i, 'bug_cc_id');
-      $href_cc = $email;
-
-      # If the comment is -SUB-, -UPD- or -COM-, it means submitter
-      # or commenter, etc.
-      # It appears like this because the comment was automatically inserted.
-      # It allows us to translated it only now, so the translation is the
-      # one of the page viewer, not the one of that made the CC to be added.
-      $comment = db_result ($result, $i, 'comment');
-      $vot_arr = [
-        'Voted in favor of this item', _('Voted in favor of this item')
-      ];
-      $com_arr = [
-        '-SUB-' => ['Submitted the item', _('Submitted the item')],
-        '-COM-' => ['Posted a comment', _('Posted a comment')],
-        '-UPD-' => ['Updated the item', _('Updated the item')],
-        '-VOT-' => $vot_arr, 'Voted in favor of this item' => $vot_arr
-      ];
-      if (isset ($com_arr[$comment]))
-        $comment = $com_arr[$comment][$ascii];
-
-      if ($ascii)
-        {
-          $out .= sprintf($fmt, $email, $comment);
-          continue;
-        }
-      # Show CC delete icon if one of the condition is met:
-      # a) current user is a tracker manager;
-      # b) then CC name is the current user;
-      # c) the CC email address matches the one of the current user;
-      # d) the current user is the person who added the CC.
-      $html_delete = '';
-      $u_id = user_getid ();
-      $u_name = user_getname ($u_id);
-      $u_mail = user_getemail ($u_id);
-      $user_name = user_getname (db_result ($result, $i, 'added_by'));
-      $res_name = $user_name;
-      $mem_ck = member_check (
-        0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
-      );
-      if (
-        $mem_ck || $u_name == $email || $u_mail == $email
-        || $u_name == $res_name
-      )
-        $html_delete = '<span class="trash"><a href="'
-          . "$php_self?func=delete_cc&amp;item_id=$item_id"
-          . "&amp;item_cc_id=$item_cc_id\">"
-          . html_image_trash (['alt' => _("Delete"), 'class' => 'icon'])
-          . '</a></span>';
-
-      $out .= '<li class="' . utils_altrow ($i) . '">' . $html_delete;
-      $u_link = utils_user_link ($user_name);
-      # TRANSLATORS: the first argument is email, the second is user's name.
-      $out .=
-        sprintf (_('<!-- email --> %1$s added by %2$s'), $email, $u_link);
-      if ($comment)
-        $out .= ' <span class="smaller">(' . markup_basic ($comment)
-          . ')</span>';
-    } # for ($i = 0; $i < $rows; $i++)
-  $out .= $ascii? "\n": $HTML->box_bottom (1);
+  $n = db_numrows ($result);
+  $out = format_item_cc_list_header ($n);
+  if (!$n)
+    return $out;
+  $user_data = format_item_cc_list_user_data ($group_id);
+  $i = 0;
+  while ($row = db_fetch_array ($result))
+    $out .= format_item_cc_list_entry ($row, $item_id, $user_data, $i++);
+  $out .= $HTML->box_bottom (1);
   return $out;
 }
 ?>

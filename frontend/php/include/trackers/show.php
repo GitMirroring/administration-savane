@@ -359,9 +359,9 @@ function show_item_attached_files ($item_id, $group_id, $ascii = false)
   print format_item_attached_files ($item_id, $group_id, $ascii);
 }
 
-function show_item_cc_list ($item_id, $group_id, $ascii = false)
+function show_item_cc_list ($item_id, $group_id)
 {
-  print format_item_cc_list ($item_id, $group_id, $ascii);
+  print format_item_cc_list ($item_id, $group_id);
 }
 
 # Look for items that $item_id depends on in all artifact.

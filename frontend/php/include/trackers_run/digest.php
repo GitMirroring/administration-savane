@@ -72,84 +72,103 @@ if ($func == "digest")
     include '../include/trackers_run/browse.php';
     exit (0);
   }
+
+# Select items to digest, if we are supposed to digest dependencies.
+function select_items_by_deps ($deps_of_item, $deps_of_tracker)
+{
+  global $items_for_digest;
+  if (!($deps_of_item && $deps_of_tracker))
+    return;
+  $res_deps =
+    db_execute ("
+      SELECT is_dependent_on_item_id FROM {$deps_of_tracker}_dependencies
+      WHERE item_id = ? AND is_dependent_on_item_id_artifact = ?
+      ORDER by is_dependent_on_item_id", [$deps_of_item, ARTIFACT]
+    );
+  $items_for_digest = [];
+  while ($deps = db_fetch_array ($res_deps))
+    $items_for_digest[] = $deps['is_dependent_on_item_id'];
+}
+function print_field_selection_head ($group)
+{
+  global $items_for_digest;
+  trackers_header (['title' => _("Digest Items: Fields Selection")]);
+  print form_tag (['method' => 'get'])
+    . form_hidden (['group' => $group, 'func' => 'digestget']);
+
+  # Keep track of the selected items.
+  $count = 0;
+  foreach ($items_for_digest as $item)
+    {
+      print form_input ("hidden", "items_for_digest[]", $item);
+      $count++;
+    }
+
+  print "\n\n<p>";
+  printf (
+    ngettext (
+      "You selected %s item for this digest.",
+      "You selected %s items for this digest.", $count),
+    $count
+  );
+  print ' '
+   . _("Now you must unselect fields you do not want to be included "
+       . "in the digest.")
+   . "</p>\n";
+}
+function print_altrow ($i)
+{
+  print '<div class="' . utils_altrow ($i) . '">';
+}
+function print_field_selection ($field_name, $i)
+{
+  # Open/Close and group id are meaningless in this context:
+  # they'll be on the output page in any cases.
+  if (in_array ($field_name, ['group_id', 'status_id']))
+    return 0;
+  if (!trackers_data_is_used ($field_name))
+    return 0;
+
+  # Item ID is mandatory.
+  if ($field_name == "bug_id")
+      {
+        print form_hidden (["field_used[$field_name]" => "1"])
+          . "\n";
+        return 0;
+      }
+  print_altrow ($i);
+  print form_checkbox ("field_used[$field_name]", 1)
+    . '&nbsp;&nbsp;' . trackers_data_get_label ($field_name)
+    . ' <span class="smaller"><em>- '
+    . trackers_data_get_description ($field_name)
+    . "</em></span></div>\n";
+  return 1;
+}
+function print_all_fields_selection ()
+{
+  $i = 0;
+  while ($field_name = trackers_list_all_fields ())
+    $i += print_field_selection ($field_name, $i);
+  return $i;
+}
+function print_select_latest_comment ($i)
+{
+  print_altrow ($i);
+  print form_checkbox ("field_used[latestcomment]", 1) . '&nbsp;&nbsp;'
+    . _("Latest Comment") . ' <span class="smaller"><em>- '
+    . _("Latest comment posted about the item.") . "</em></span></div>\n";
+}
 if ($func == "digestselectfield")
   {
-    # Determines items to digest, if we are supposed to digest dependencies.
-    if ($dependencies_of_item && $dependencies_of_tracker)
-      {
-        $res_deps =
-          db_execute ("
-            SELECT is_dependent_on_item_id
-            FROM {$dependencies_of_tracker}_dependencies
-            WHERE item_id = ? AND is_dependent_on_item_id_artifact = ?
-            ORDER by is_dependent_on_item_id",
-            [$dependencies_of_item, ARTIFACT]
-          );
-        $items_for_digest = [];
-        while ($deps = db_fetch_array ($res_deps))
-          $items_for_digest[] = $deps['is_dependent_on_item_id'];
-      }
+    select_items_by_deps ($dependencies_of_item, $dependencies_of_tracker);
 
     if (!is_array ($items_for_digest))
       exit_error (_("No items selected for digest"));
 
-    trackers_header (['title' => _("Digest Items: Fields Selection")]);
-    print form_tag (['method' => 'get'])
-      . form_hidden (['group' => $group, 'func' => 'digestget']);
-
-    # Keep track of the selected items.
-    $count = 0;
-    foreach ($items_for_digest as $item)
-      {
-        print form_input ("hidden", "items_for_digest[]", $item);
-        $count++;
-      }
-
-    print "\n\n<p>";
-    printf (
-      ngettext (
-        "You selected %s item for this digest.",
-        "You selected %s items for this digest.", $count),
-      $count
-    );
-    print ' '
-     . _("Now you must unselect fields you do not want to be included "
-         . "in the digest.")
-     . "</p>\n";
-
-    $i = 0;
-    # Select fields.
-    while ($field_name = trackers_list_all_fields ())
-      {
-        if (!trackers_data_is_used ($field_name))
-          continue;
-        # Open/Close and Group id are meaningless in this context:
-        # they'll be on the output page in any cases.
-        if ($field_name == 'group_id' || $field_name == 'status_id')
-          continue;
-
-        # Item ID is mandatory.
-        if ($field_name == "bug_id")
-            {
-              print form_hidden (["field_used[$field_name]" => "1"])
-                . "\n";
-              continue;
-            }
-
-        print '<div class="' . utils_altrow ($i) . '">'
-          . form_checkbox ("field_used[$field_name]", 1)
-          . '&nbsp;&nbsp;' . trackers_data_get_label ($field_name)
-          . ' <span class="smaller"><em>- '
-          . trackers_data_get_description ($field_name)
-          . "</em></span></div>\n";
-          $i++;
-      }
-    # Comments is not an authentic field but could be useful. We allow
-    # addition of the latest comment.
-    print '<div class="' . utils_altrow ($i) . '">'
-      . form_checkbox ("field_used[latestcomment]", 1) . '&nbsp;&nbsp;'
-      . _("Latest Comment") . ' <span class="smaller"><em>- '
-      . _("Latest comment posted about the item.") . "</em></span></div>\n";
+    print_field_selection_head ($group);
+    $i = print_all_fields_selection ();
+    # The rest are not fields, but could be useful.
+    print_select_latest_comment ($i++);
 
     print form_footer (_("Submit"));
     trackers_footer ([]);

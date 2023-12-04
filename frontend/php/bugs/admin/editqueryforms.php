@@ -524,7 +524,7 @@ if ($rows)
               . "$php_self?group=$group"
               . '&amp;delete_report=1&amp;report_id='.$arr['report_id']
               . '&amp;rep_name=' . utils_urlencode ($arr['name']) . '">'
-              .  html_image_trash (['alt' => _("Delete")]) . '</a>';
+              .  html_image_trash () . '</a>';
           }
         print "</td>\n</tr>\n";
         $i++;

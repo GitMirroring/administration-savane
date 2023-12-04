@@ -43,8 +43,7 @@
 
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
-require_directory ("project");
-require_once('../../include/trackers/conf.php');
+require_once ('../../include/trackers/conf.php');
 
 extract (sane_import ('post',
   ['true' => 'update', 'digits' => 'from_group_id']
@@ -58,10 +57,10 @@ if (!user_ismember ($group_id, 'A'))
 
 trackers_init ($group_id);
 
-if ($update && $from_group_id != 100)
+if ($update && !in_array ($from_group_id, [0, 100]))
   trackers_conf_copy ($group_id, ARTIFACT, $from_group_id);
 
 trackers_header_admin (['title' => _("Copy Configuration")]);
-conf_form ($group_id, ARTIFACT);
+trackers_conf_form ($group_id, ARTIFACT);
 trackers_footer ([]);
 ?>

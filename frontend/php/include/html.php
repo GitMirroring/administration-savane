@@ -334,8 +334,10 @@ function html_image ($src, $args = [])
   return "$return />";
 }
 
-function html_image_trash ($args)
+function html_image_trash ($args = [])
 {
+  if (!array_key_exists ('alt', $args))
+    $args['alt'] = _("Delete");
   return html_image ('misc/trash.png', $args);
 }
 

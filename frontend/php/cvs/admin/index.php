@@ -193,8 +193,7 @@ print form_tag ([], "?group=$group");
 print "<table>\n";
 print html_build_list_table_top (
   [
-    html_image_trash (['alt' => _("Delete")]),
-    _('Repo'), _('Match'), _('Modules'), _('Branches'),
+    html_image_trash (), _('Repo'), _('Match'), _('Modules'), _('Branches'),
     _('Send to'), _('Diff?'), _('Diffs to')
   ]
 );

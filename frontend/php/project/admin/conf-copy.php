@@ -41,15 +41,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-require_directory("trackers");
+require_once ('../../include/init.php');
+require_directory ("trackers");
 
 extract (sane_import ('post',
-  [
-    'true' => 'update',
-    'digits' => 'from_group_id',
-    'artifact' => 'artifact',
-  ]
+  ['true' => 'update', 'digits' => 'from_group_id', 'artifact' => 'artifact']
 ));
 
 if (!$group_id)
@@ -58,8 +54,12 @@ if (!$group_id)
 if (!user_ismember ($group_id, 'A'))
   exit_permission_denied ();
 
-if ($update && $from_group_id != 100)
-  trackers_conf_copy ($group_id, $artifact, $from_group_id);
+if ($update && !in_array ($from_group_id, [0, 100]))
+  {
+    if (empty ($artifact))
+      exit_missing_param (['artifact']);
+    trackers_conf_copy ($group_id, $artifact, $from_group_id);
+  }
 
 site_project_header (
   [
@@ -69,13 +69,13 @@ site_project_header (
 );
 
 print html_h (2, _("Support Tracker Configuration Copy"));
-conf_form ($group_id, "support");
+trackers_conf_form ($group_id, "support");
 print html_h (2, _("Bug Tracker Configuration Copy"));
-conf_form ($group_id, "bugs");
+trackers_conf_form ($group_id, "bugs");
 print html_h (2, _("Task Tracker Configuration Copy"));
-conf_form ($group_id, "task");
+trackers_conf_form ($group_id, "task");
 print html_h (2, _("Patch Tracker Configuration Copy"));
-conf_form ($group_id, "patch");
+trackers_conf_form ($group_id, "patch");
 
 site_project_footer ([]);
 ?>

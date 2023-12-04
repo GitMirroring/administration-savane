@@ -1207,19 +1207,12 @@ function trackers_data_get_history ($item_id)
   );
 }
 
-function trackers_data_get_attached_files ($item_id = false, $order = 'DESC')
+function trackers_data_get_attached_files ($item_id)
 {
-  if ($order != 'DESC' && $order != 'ASC')
-    util_die (
-      "trackers_data_get_attached_files: invalid \$order '$order')"
-    );
-
   return db_execute ("
-    SELECT
-      file_id, filename, filesize, filetype, description, date, user.user_name
-    FROM trackers_file, user
-    WHERE submitted_by = user.user_id AND artifact = ?  AND item_id = ?
-    ORDER BY date $order",
+    SELECT trackers_file.*, user.user_name FROM trackers_file, user
+    WHERE submitted_by = user.user_id AND artifact = ? AND item_id = ?
+    ORDER BY date DESC",
     [ARTIFACT, $item_id]
   );
 }
