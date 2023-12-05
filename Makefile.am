@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = gnits
 ACLOCAL_AMFLAGS = -I autotools/m4
 
 # The list of subdirectories containing Makefiles.
-SUBDIRS = frontend po
+SUBDIRS = . frontend po
 
 backend_bin_scripts = \
   backend/accounts/sv_assign_uid_gid \
@@ -23,6 +23,7 @@ backend_bin_scripts = \
   backend/misc/sv_reminder
 
 frontend_sbin = sv_frontendctl.pl
+frontend_php_built = frontend/php/include/ac_config.php
 if HAVE_DATABASE
 db_sbin = sv_launch_db.pl sv_kill_db.pl
 endif
@@ -37,7 +38,7 @@ build_time_scripts = db/init-database.pl
 conf_files = apache.conf savane.conf.pl membersh-conf.pl savane.conf.php cgitrepos
 
 directories = backend/accounts backend/sbin backend/extra/git backend/mail \
-  backend/misc db sysconf lib/Savane
+  backend/misc db sysconf lib/Savane frontend/php/include
 
 modules = \
   lib/Savane.pm \
@@ -58,7 +59,7 @@ modules = \
 
 bin_SCRIPTS = $(backend_bin_scripts)
 sbin_SCRIPTS = $(backend_sbin_scripts)
-noinst_SCRIPTS = $(build_time_scripts)
+noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built)
 nobase_pkgdata_DATA = $(modules)
 confdir = $(sysconfdir)/$(PACKAGE)
 pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
@@ -88,8 +89,10 @@ subst_in_files = \
   ${SED} \
     -e 's,[@]PERL[@],$(PERL),g' \
     -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
+    -e 's,[@]PACKAGE_TARNAME[@],$(PACKAGE_TARNAME),g' \
     -e 's,[@]VERSION[@],$(VERSION),g' \
     -e 's,[@]SV_CONF[@],$(SV_CONF),g' \
+    -e 's,[@]SV_GIT_COMMIT[@],$(SV_GIT_COMMIT),g' \
     -e 's,[@]WWW_SERVER_BIN[@],$(WWW_SERVER_BIN),g' \
     -e 's,[@]WWW_SERVER_GROUP[@],$(WWW_SERVER_GROUP),g' \
     -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),g' \
@@ -97,6 +100,7 @@ subst_in_files = \
     -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
     -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
     -e 's,[@]HAVE_SENDMAIL[@],$(HAVE_SENDMAIL_VAR),g' \
+    -e 's,[@]GRAPHVIZ_BIN[@],$(GRAPHVIZ_BIN),g' \
     -e 's,[@]MYSQL_BIN[@],$(MYSQL_BIN),g' \
     -e 's,[@]MYSQLD_BIN[@],$(MYSQLD_BIN),g' \
     -e 's,[@]MYSQLD_SAFE_BIN[@],$(MYSQLD_SAFE_BIN),g' \
@@ -107,6 +111,10 @@ subst_in_files = \
     -e 's,[@]SV_DB_NAME[@],$(SV_DB_NAME),g' \
     -e 's,[@]SV_DB_PASSWORD[@],$(SV_DB_PASSWORD),g' \
     -e 's,[@]SV_DB_USER[@],$(SV_DB_USER),g' \
+    -e 's,[@]prefix[@],$(prefix),g' \
+    -e 's,[@]exec_prefix[@],$(exec_prefix),g' \
+    -e 's,[@]bindir[@],$(bindir),g' \
+    -e 's,[@]datarootdir[@],$(datarootdir),g' \
     -e 's,[@]srcdir[@],$(srcdir),g' \
     -e 's,[@]localstatedir[@],$(localstatedir),g' \
     -e 's,[@]pkgdatadir[@],$(pkgdatadir),g' \
@@ -127,10 +135,12 @@ subst_in_files = \
     -e 's,[@]mysql_socket[@],$(mysql_socket),g' \
     -e 's,[@]mysql_lock[@],$(mysql_lock),g' \
     -e 's,[@]mysql_tmpdir[@],$(mysql_tmpdir),g' \
+    -e 's,[@]localedir[@],$(localedir),g' \
     -e 's,[@]sysconfdir[@],$(sysconfdir),g'
 
 substituted = \
-  $(backend_scripts) $(build_time_scripts) $(conf_files:%=sysconf/%) $(modules)
+  $(backend_scripts) $(build_time_scripts) $(conf_files:%=sysconf/%) $(modules) \
+  $(frontend_php_built)
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
 

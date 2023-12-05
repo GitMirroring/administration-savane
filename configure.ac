@@ -244,10 +244,7 @@ AC_ARG_WITH([apache-port],
 AC_MSG_RESULT([$WWW_SERVER_PORT])
 AC_SUBST([WWW_SERVER_PORT])
 
-AC_CONFIG_FILES([
-  Makefile frontend/Makefile db/mk-db.sql
-  frontend/php/include/ac_config.php
-])
+AC_CONFIG_FILES([Makefile frontend/Makefile db/mk-db.sql])
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
 AC_OUTPUT
 
