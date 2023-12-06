@@ -293,8 +293,7 @@ if ($update_field)
     print "<dd>" . join ("<br />", $checkboxes) . "</dd>\n</dl>\n";
 
     if (trackers_data_is_special ($field))
-      print '<input type="hidden" name="place" value="'
-        . trackers_data_get_place ($field) . '" />';
+      print form_hidden (['place' => trackers_data_get_place ($field)]);
     else
       {
         print "\n\n<h2>" . _("Display:") . "</h2>\n";

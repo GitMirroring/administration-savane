@@ -284,10 +284,9 @@ print _("Filter by branch: you will be notified only commits in these branches,
   . "<br />";
 print "<input type='text' name='arr_branches[new]' value='' />";
 print "</li>\n</ol>\n";
-print "<input type='hidden' name='arr_id[new]' value='new' />\n";
+print form_hidden (['arr_id[new]' => 'new']);
 $caption = _('Add');
-print "<input type='submit' name='log_accum' value='$caption' /\n>
-</form>\n";
+print "<input type='submit' name='log_accum' value='$caption' />\n</form>\n";
 
 print "<p>" . _("The changes come into effect within an hour.") . "</p>\n";
 

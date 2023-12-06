@@ -107,7 +107,7 @@ function print_field_selection_head ($group)
   $count = 0;
   foreach ($items_for_digest as $item)
     {
-      print form_input ("hidden", "items_for_digest[]", $item);
+      print form_hidden (["items_for_digest[]" => $item]);
       $count++;
     }
 

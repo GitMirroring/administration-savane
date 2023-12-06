@@ -219,21 +219,22 @@ function specific_line ($artifact, $explanation, $use, $increment=1)
       || str_match ("viewcvs", $artifact) || str_match ("extralink", $artifact))
     $url = $project->getUrl($artifact);
   else
-    $url = $project->getArtifactUrl($artifact);
+    $url = $project->getArtifactUrl ($artifact);
   $url = utils_specialchars_decode ($url, ENT_QUOTES);
   $extra = 'size="20" title="' . _("Alternative Address") . '"';
   print form_input ("text", "url_$artifact", $url, $extra) . $tail;
 }
 
 print '<p>';
-print _("You can activate or deactivate feature/artifact for your project. In
-some cases, depending on the system administrator's choices, you can even use
-change the URL for a feature/artifact. If the field &ldquo;alternative
-address&rdquo; is empty, the standard is used.");
+print
+  _("You can activate or deactivate feature for your group. In some cases, "
+    . "depending on the system administrator's choices, you can "
+    . "even use change the URL for a feature. If the field "
+    . "&ldquo;alternative address&rdquo; is empty, the standard is used.");
 print "</p>\n";
 
 print form_header ($_SERVER['PHP_SELF'])
-  . form_input ("hidden", "group_id", $group_id);
+  . form_hidden (["group_id" => $group_id]);
 
 print html_build_list_table_top (
   [
@@ -242,16 +243,18 @@ print html_build_list_table_top (
   ]
 );
 
-if ($project->CanUse("homepage"))
+if ($project->CanUse ("homepage"))
   {
-    specific_line("homepage", _("Homepage"), $project->Uses("homepage"));
-    specific_line("cvs_viewcvs_homepage",
-                  _("Homepage Source Code Web Browsing"), 0, 0);
+    specific_line ("homepage", _("Homepage"), $project->Uses("homepage"));
+    specific_line ("cvs_viewcvs_homepage",
+      _("Homepage Source Code Web Browsing"), 0, 0
+    );
   }
 
-if ($project->CanModifyUrl("extralink_documentation"))
-  specific_line("extralink_documentation", _("Documentation"),
-                $project->Uses("extralink_documentation"));
+if ($project->CanModifyUrl ("extralink_documentation"))
+  specific_line ("extralink_documentation", _("Documentation"),
+    $project->Uses("extralink_documentation")
+  );
 
 function specific_can_use ($project, $artifact, $explanation)
 {
@@ -260,7 +263,7 @@ function specific_can_use ($project, $artifact, $explanation)
 }
 specific_can_use ($project, "download", _("Download Area"));
 
-if ($project->CanUse("download") && $project->CanModifyDir("download_dir"))
+if ($project->CanUse ("download") && $project->CanModifyDir("download_dir"))
   {
     $i++; print '<tr>';
     $next_td ($i);
@@ -275,45 +278,30 @@ if ($project->CanUse("download") && $project->CanModifyDir("download_dir"))
     $next_td ($i);
     print ' '
       . form_input (
-          "text", "dir_download", $project->getDir("download"), 'size="20"'
+          "text", "dir_download", $project->getDir ("download"), 'size="20"'
         );
     print "</td>\n</tr>\n";
   }
 
-if ($project->CanUse("cvs") || $project->CanUse("homepage"))
+if ($project->CanUse ("cvs") || $project->CanUse ("homepage"))
   {
-    specific_line("cvs", _("CVS"), $project->Uses("cvs"));
-    specific_line("cvs_viewcvs", _("CVS Web Browsing"), 0, 0);
+    specific_line ("cvs", _("CVS"), $project->Uses ("cvs"));
+    specific_line ("cvs_viewcvs", _("CVS Web Browsing"), 0, 0);
   }
-if ($project->CanUse("arch"))
-  {
-    specific_line("arch", _("GNU Arch"), $project->Uses("arch"));
-    specific_line("arch_viewcvs", _("Arch Web Browsing"), 0, 0);
-  }
-
-if ($project->CanUse("svn"))
-  {
-    specific_line("svn", _("Subversion"), $project->Uses("svn"));
-    specific_line("svn_viewcvs", _("Subversion Web Browsing"), 0, 0);
-  }
-
-if ($project->CanUse("git"))
-  {
-    specific_line("git", _("Git"), $project->Uses("git"));
-    specific_line("git_viewcvs", _("Git Web Browsing"), 0, 0);
-  }
-
-if ($project->CanUse("hg"))
-  {
-    specific_line("hg", _("Mercurial"), $project->Uses("hg"));
-    specific_line("hg_viewcvs", _("Mercurial Web Browsing"), 0, 0);
-  }
-
-if ($project->CanUse("bzr"))
-  {
-    specific_line("bzr", _("Bazaar"), $project->Uses("bzr"));
-    specific_line("bzr_viewcvs", _("Bazaar Web Browsing"), 0, 0);
-  }
+foreach (
+  [
+    'arch' => [_("GNU Arch"), _("Arch Web Browsing")],
+    'svn' => [_("Subversion"), _("Subversion Web Browsing")],
+    'git' => [_("Git"), _("Git Web Browsing")],
+    'hg' => [_("Mercurial"), _("Mercurial Web Browsing")],
+    'bzr' => [_("Bazaar"), _("Bazaar Web Browsing")]
+  ] as $vcs => $labels
+)
+  if ($project->CanUse ($vcs))
+    {
+      specific_line ($vcs, $labels[0], $project->Uses ($vcs));
+      specific_line ("{$vcs}_viewcvs", $labels[1], 0, 0);
+    }
 
 foreach (
   [
@@ -326,5 +314,5 @@ foreach (
 
 print "</table>\n";
 print form_footer ();
-site_project_footer(array());
+site_project_footer ();
 ?>

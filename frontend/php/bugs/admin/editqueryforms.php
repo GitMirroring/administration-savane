@@ -428,24 +428,19 @@ if ($show_report)
         # the report with rank 0. This field is mandatory: otherwise
         # some links would be broken or there would be even no links.
         if ($field == 'bug_id')
-          {
-            print "\n<td align=\"center\"><input type=\"hidden\" name=\""
-              . "$cb_report\" value=\"1\" />X</td>"
-              . "\n<td align=\"center\"><input type=\"hidden\" name=\""
-              . "$tf_report\" value=\"0\" />0</td>\n";
-          }
+          print "\n<td align=\"center\">"
+            . form_hidden ([$cb_report => 1, $tf_report => 0])
+            . "X</td>\n<td align=\"center\">0</td>\n";
         else
-          {
-            print "\n<td align=\"center\">"
-              . form_checkbox (
-                  $cb_report, $cb_report_chk,
-                  ['title' => _("Use as an Output Column")]
-                )
-              . "</td>\n<td align=\"center\">"
-              . "<input type='text' name=\"$tf_report\" title=\""
-              . _("Rank on Output")
-              . "\" value=\"$tf_report_val\" size='5' maxlen='5' /></td>\n";
-          }
+          print "\n<td align=\"center\">"
+            . form_checkbox (
+                $cb_report, $cb_report_chk,
+                ['title' => _("Use as an Output Column")]
+              )
+            . "</td>\n<td align=\"center\">"
+            . "<input type='text' name=\"$tf_report\" title=\""
+            . _("Rank on Output")
+            . "\" value=\"$tf_report_val\" size='5' maxlen='5' /></td>\n";
         print "\n<td align=\"center\">" . '<input type="text" name="'
           . $tf_colwidth . '" title="' . _("Column width (optional)")
           . "\" value='$tf_colwidth_val' size='5' maxlen='5' /></td>\n</tr>\n";

@@ -707,7 +707,7 @@ function trackers_canned_response_box (
   $vals = $texts = [];
   $result = trackers_data_get_canned_responses ($group_id);
   if (db_numrows ($result) <= 0)
-    return form_input ("hidden", "canned_response", "100")
+    return form_hidden (["canned_response" => "100"])
       . _("No canned response available");
 
   if (db_numrows ($result) > 1)

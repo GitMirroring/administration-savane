@@ -101,7 +101,7 @@ print '<div class="inputfield"><strong><label for="form_pw2">'
   . _("New passphrase (repeat):") . '</label></strong>';
 print form_input ("password", "form_pw2") . "</div>\n";
 
-print form_input ("hidden", "confirm_hash", $confirm_hash);
+print form_hidden (["confirm_hash" => $confirm_hash]);
 print form_footer ();
 
 $HTML->footer ([]);

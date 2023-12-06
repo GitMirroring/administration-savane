@@ -106,7 +106,7 @@ print "<br />\n"
   . no_i18n ("Search by email, username, realname or userid:") . "\n";
 print form_tag (['method' => 'get', 'name' => 'usersrch'])
   . "<input type='text' name='text_search' value=\"$text_search\" />\n"
-  . form_input ('hidden', 'usersearch', '1')
+  . form_hidden (['usersearch' => '1'])
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
 $MAX_ROW = 100;

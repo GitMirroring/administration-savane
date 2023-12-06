@@ -259,8 +259,7 @@ site_admin_header (
 
 
 print "<h1>{$row_grp['name']} (#{$row_grp['type_id']})</h1>\n";
-print form_tag ()
-  . "<input type='hidden' name='type_id' value=\"$type_id\" />\n";
+print form_tag () . form_hidden (['type_id' => $type_id]);
 
 print '<h2>' . no_i18n ("General default settings for groups of this type")
   . "</h2>\n\n";

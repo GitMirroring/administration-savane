@@ -346,26 +346,22 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
         . "</strong></td></tr>\n</table>\n";
       print db_error ();
     }
-  for ($i = 0; $i < $rows; $i++)
+  for ($i = 0; $row = db_fetch_array ($result); $i++)
     {
       print form_tag ();
       print html_build_list_table_top ($title_arr);
+      $hid = ['group_id' => $group_id];
+      $k = "{$infix}_inventory_id";
+      $hid[$k] = $row[$k];
+      $k = "{$infix}_id";
+      $hid[$k] = $row[$k];
       print "<tr class='" . utils_altrow ($i)
-        . "'>\n<td><input type='hidden' name='{$infix}_inventory_id' "
-        . 'value="' . db_result ($result, $i, $infix . '_inventory_id')
-        . "\" />\n<input type='hidden' name='{$infix}_id' "
-        . "value='" . db_result ($result, $i, $infix . '_id')
-        . "' />\n<input type='hidden' name='group_id' "
-        . "value='$group_id' />\n<span class='smaller'>"
-        . db_result ($result, $i, 'skill_name')
+        . "'>\n<td>" . form_hidden ($hid)
+        . "<span class='smaller'>{$row['skill_name']}"
         . "</span></td>\n<td><span class='smaller'>"
-        . people_skill_level_box (
-            'skill_level_id', db_result ($result, $i, 'skill_level_id')
-          )
+        . people_skill_level_box ('skill_level_id', $row['skill_level_id'])
         . "</span></td>\n<td><span class='smaller'>"
-        . people_skill_year_box (
-           'skill_year_id', db_result ($result, $i, 'skill_year_id')
-          )
+        . people_skill_year_box ('skill_year_id', $row['skill_year_id'])
         . "</span></td>\n<td nowrap><span class='smaller'>"
         . "<input type='submit' name='update_{$infix}_inventory' "
         . "value='" . _("Update") . "'> &nbsp;\n"
@@ -381,8 +377,7 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
   print "\n<tr class='" . utils_altrow (0) . "'>\n<td>";
 
   if ($job_id !== false)
-    print "<input type='hidden' name='{$infix}_id' value='$job_id' />"
-      . "<input type='hidden' name='group_id' value='$group_id' />\n";
+    print form_hidden (["{$infix}_id" => $job_id, 'group_id' => $group_id]);
 
   print '<span class="smaller">' . people_skill_box ('skill_id')
     . "</span></td>\n<td><span class='smaller'>"

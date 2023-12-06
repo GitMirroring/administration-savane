@@ -46,9 +46,9 @@
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
 
-require_once('../include/init.php');
-require_once('../include/account.php');
-session_require(array('group'=>'1','admin_flags'=>'A'));
+require_once ('../include/init.php');
+require_once ('../include/account.php');
+session_require (['group' => '1','admin_flags' => 'A']);
 
 extract (sane_import ('request', ['digits' => 'user_id']));
 extract (sane_import ('post',
@@ -60,50 +60,52 @@ $error = '';
 # Check for valid register from form post.
 function register_valid ()
 {
-  global $update, $user_id, $error;
+  global $update, $user_id, $error, $form_pw, $form_pw2;
 
   if (!$update)
     return 0;
-# Check against old password.
-  db_execute("SELECT user_pw FROM user WHERE user_id=?", array($user_id));
+  # Check against old password.
+  db_execute ("SELECT user_pw FROM user WHERE user_id = ?", [$user_id]);
 
-  if (!$GLOBALS['form_pw'])
+  if (!$form_pw)
     {
       $error = no_i18n ('no password provided');
       return 0;
     }
-  if ($GLOBALS['form_pw'] != $GLOBALS['form_pw2'])
+  if ($form_pw != $form_pw2)
     {
       $error = no_i18n ('passwords don\'t match');
       return 0;
     }
-  if (!account_pwvalid($GLOBALS['form_pw']))
+  if (!account_pwvalid ($form_pw))
     {
       $error = no_i18n ('provided password is considered weak');
       return 0;
     }
 
   # If we got this far, it must be good.
-  db_autoexecute('user', array('user_pw' =>
-                 account_encryptpw($GLOBALS['form_pw'])),
-                 DB_AUTOQUERY_UPDATE, "user_id=?", array($user_id));
+  db_autoexecute ('user', ['user_pw' => account_encryptpw ($form_pw)],
+    DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
+  );
   return 1;
 }
 
 $title = sprintf (no_i18n ('Change Password for %s'), user_getname ($user_id));
 
-$HTML->header(['title' => $title]);
+$HTML->header (['title' => $title]);
 # Check for valid login, if so, congratulate.
-if (register_valid())
+if (register_valid ())
   {
-    print '
-<p><strong>'.no_i18n('Savannah Change Confirmation').'</strong></p>
-<p>'.no_i18n('Congratulations. You have managed to change this user\'s
-password.').'
-</p>
-<p>'.sprintf(no_i18n('You should now <a href="%s">Return to UserList</a>.'),
-'/admin/userlist.php')."</p>\n";
-
+    print "\n<p><strong>"
+      . no_i18n ('Savannah Change Confirmation') . "</strong></p>\n<p>"
+      . no_i18n ("Congratulations. You have managed to change this user's"
+          . "password.")
+      . "</p>\n<p>";
+    printf (
+      no_i18n ('You should now <a href="%s">Return to UserList</a>.'),
+      '/admin/userlist.php'
+    );
+    print "</p>\n";
   }
 else
   {
@@ -117,9 +119,9 @@ else
       . "<br />\n<input type='password' name='form_pw' />\n</p>\n<p>"
       . no_i18n ('New Password (repeat):')
       . "<br />\n<input type='password' name='form_pw2' />\n"
-      . "<input type='hidden' name='user_id' value='$user_id'>\n</p>\n"
+      . form_hidden (['user_id' => $user_id]) . "</p>\n"
       . '<p><input type="submit" name="update" value=\''
       . no_i18n ('Update') . "' />\n</p>\n</form>\n";
   }
-$HTML->footer(array());
+$HTML->footer ([]);
 ?>

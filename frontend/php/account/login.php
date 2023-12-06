@@ -224,9 +224,8 @@ if (!empty ($login) && !$success)
 
 if (isset ($sys_https_host))
   utils_get_content ("account/login");
-print "<form action=\"$sys_https_url$sys_home"
-  . 'account/login.php" method="post">';
-print form_input ('hidden', 'uri', $uri);
+print form_tag (['action' => "$sys_https_url{$sys_home}account/login.php"]);
+print form_hidden (['uri' => $uri]);
 
 # Shortcuts to New Account and Lost Password have a tabindex superior to
 # the rest of form, so they don't mess with the normal order when you

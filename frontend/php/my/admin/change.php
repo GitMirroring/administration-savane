@@ -619,8 +619,7 @@ elseif ($item == "email")
         $input_titles = [_('Confirmation hash:')];
         $input_specific = "<input type='text' readonly='readonly' "
           . "name='confirm_hash' value='$confirm_hash' />";
-        $input_specific .=
-          "<input type='hidden' name='step' value='confirm2' />";
+        $input_specific .= form_hidden (['step' => 'confirm2']);
       }
     elseif ($step == "discard")
       {
@@ -652,7 +651,7 @@ elseif ($item == "delete")
         $input_titles = [_('Confirmation hash:')];
         $input_specific = "<input type='text' readonly='readonly' "
           . 'name="confirm_hash" value="' . $confirm_hash . '" />'
-          . "<input type='hidden' name='step' value='confirm2' />";
+          . form_hidden (['step' => 'confirm2']);
       }
     elseif ($step == 'discard')
       {
@@ -660,7 +659,7 @@ elseif ($item == "delete")
         $input_titles = [_('Discard hash:')];
         $input_specific = "<input type='text' readonly='readonly' "
           . "name='confirm_hash' value='$confirm_hash' />"
-          . "<input type='hidden' name='step' value='discard' />";
+          . form_hidden (['step' => 'discard']);
       }
   }
 
@@ -697,7 +696,7 @@ for ($i = 0; $i < 3; $i++)
     print "<br />\n";
   }
 
-print "<input type='hidden' name='item' value=\"$item\" />\n";
+print form_hidden (['item' => $item]);
 print '<p>' . form_submit (_("Update")) . "</p>\n</form>\n";
 site_user_footer ([]);
 ?>

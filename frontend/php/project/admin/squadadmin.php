@@ -105,11 +105,8 @@ function confirm_squad_deletion ($group_id, $squad_id, $realname, $squad_name)
   print '<p>' . _('This action cannot be undone.') . "</p>\n";
 
   print form_header ($_SERVER["PHP_SELF"]);
-  print form_input( "hidden", "group_id", $group_id);
-  # Do not pass the squad id as $squad_id, because if $squad_id is defined
-  # the software will try show the squad details, even if it has been
-  # removed, while we want the list of existing squads.
-  print form_input( "hidden", "squad_id_to_delete", $squad_id);
+  print form_hidden (["group_id" => $group_id]);
+  print form_hidden (["squad_id_to_delete" => $squad_id]);
   print '<p><span class="preinput">'
     . _("Do you really want to delete this squad account?")
     . "</span></p>\n";
@@ -168,16 +165,16 @@ if ($squad_id)
           else
             # TRANSLATORS: the argument is user's name.
             $str = _("User %s is not part of the squad.");
-          fb (sprintf ($str, user_getname($user)), !$ok);
+          fb (sprintf ($str, user_getname ($user)), !$ok);
         }
 
-    site_project_header(array('title' => _("Manage Squads"),
-                              'group' => $group_id,
-                              'context' => 'ahome'));
+    site_project_header (
+      [ 'title' => _("Manage Squads"), 'group' => $group_id,
+        'context' => 'ahome']
+    );
 
-    print form_header($_SERVER["PHP_SELF"]);
-    print form_input("hidden", "group_id", $group_id);
-    print form_input("hidden", "squad_id", $squad_id);
+    print form_header ($_SERVER["PHP_SELF"]);
+    print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     print '<p><span class="preinput"><label for="form_realname">'
           . _("Real Name:") . "</label></span><br />\n&nbsp;&nbsp;";
     print form_input("text", "form_realname", $realname)
@@ -199,8 +196,7 @@ if ($squad_id)
 . _("To remove members from the squad, select their names and push the button
 below.") . "</p>\n";
     print form_header($_SERVER["PHP_SELF"]);
-    print form_input("hidden", "group_id", $group_id);
-    print form_input("hidden", "squad_id", $squad_id);
+    print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     print '&nbsp;&nbsp;<select title="' . _("Users")
           . '" name="user_ids[]" size="10" multiple="multiple">';
     $exists = false;
@@ -228,16 +224,14 @@ below.") . "</p>\n";
       WHERE
         user.user_id=user_group.user_id AND user_group.group_id = ?
         AND admin_flags <> 'P' AND admin_flags <> 'SQD'
-      ORDER BY user.user_name",
-      array($group_id)
+      ORDER BY user.user_name", [$group_id]
     );
 
     print "<p>"
 . _("To add members to the squad, select their name and push the button below.")
 . "</p>\n";
     print form_header($_SERVER["PHP_SELF"]);
-    print form_input("hidden", "group_id", $group_id);
-    print form_input("hidden", "squad_id", $squad_id);
+    print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     print '&nbsp;&nbsp;<select title="' . ("Users")
       . '" name="user_ids[]" size="10" multiple="multiple">';
     $exists = false;
@@ -398,7 +392,7 @@ $result = db_execute ("
 if ($rows < db_numrows ($result))
   {
     print form_header ($_SERVER["PHP_SELF"] . '#form', $form_id);
-    print form_input ("hidden", "group_id", $group_id);
+    print form_hidden (["group_id" => $group_id]);
     print '<p><span class="preinput"><label for="form_loginname">'
       . _ ("Squad Login Name:") . "</label></span>\n<br />&nbsp;&nbsp;";
     print "$group-" . form_input("text", "form_loginname", $form_loginname)
