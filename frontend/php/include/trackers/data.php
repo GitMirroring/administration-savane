@@ -50,8 +50,8 @@ require_once ("$dir_name/../trackers/transition.php");
 require_once ("$dir_name/../trackers/cookbook.php");
 require_once (dirname (__FILE__) . '/../utils.php');
 
-# Get all the possible bug fields for this project both used and unused. If
-# used then show the project specific information about field usage
+# Get all the possible bug fields for this group both used and unused. If
+# used then show the group specific information about field usage
 # otherwise show the default usage parameter.
 # Make sure array element are sorted by ascending place.
 function trackers_data_get_all_fields ($group_id = false, $reload = false)
@@ -89,11 +89,11 @@ function trackers_data_get_all_fields ($group_id = false, $reload = false)
       $BF_USAGE_BY_NAME[$field_array['field_name'] ] = $field_array;
     }
 
-  # Select all project-specific entries.
-  $res_project = db_execute ($sql, [$group_id]);
+  # Select all group-specific entries.
+  $res_group = db_execute ($sql, [$group_id]);
 
   # Override entries in the default array.
-  while ($field_array = db_fetch_array ($res_project))
+  while ($field_array = db_fetch_array ($res_group))
     {
       $BF_USAGE_BY_ID[$field_array['bug_field_id'] ] = $field_array;
       $BF_USAGE_BY_NAME[$field_array['field_name'] ] = $field_array;
@@ -512,7 +512,7 @@ function trackers_data_get_field_predefined_values (
   $field_name = ($by_field_id ? trackers_data_get_field_name ($field) : $field);
 
   # The "Assigned_to" box requires some special processing,
-  # because possible values  are project members) and they are
+  # because possible values  are group members) and they are
   # not stored in the trackers_field_value table but in the user_group table.
   if ($field_name == 'assigned_to')
     return trackers_data_get_technicians ($group_id);
@@ -540,7 +540,7 @@ function trackers_data_get_field_predefined_values (
   # The fields value_id and value must be first in the select statement,
   # because the output is used in the html_build_select_box function.
 
-  # Look for project specific values first.
+  # Look for group-specific values first.
   $sql = "
     SELECT
       value_id, value, bug_fv_id, bug_field_id, group_id, description,
@@ -643,7 +643,7 @@ function trackers_data_is_showed_on_result ($field)
   return trackers_data_nonempty ($field, 'show_on_result');
 }
 
-# Return a TRUE value if non project members who still are
+# Return a TRUE value if non group members who still are
 # logged in users should be able to access this field
 # (first bit of show_on_add set).
 function trackers_data_is_showed_on_add ($field, $by_field_id = false)
@@ -664,7 +664,7 @@ function trackers_data_is_showed_on_add_nologin ($field, $by_field_id = false)
   return 0;
 }
 
-# Return a TRUE value if project members should be able to
+# Return a TRUE value if group members should be able to
 # access this field.
 function trackers_data_is_showed_on_add_members ($field, $by_field_id = false)
 {
@@ -941,11 +941,11 @@ function trackers_data_create_value (
     $field_id = trackers_data_get_field_id ($field);
 
   # If group_id = 100 (None), then do nothing,
-  # because no real project should have the group number '100'.
+  # because no real group should have the group number '100'.
   if ($group_id == 100)
     return;
 
-  # If the current value set for this project is empty
+  # If the current value set for this group is empty
   # then copy the default values first (if any).
   if (trackers_data_is_value_set_empty ($field, $group_id))
     trackers_data_copy_default_values ($field, $group_id);
@@ -990,7 +990,7 @@ function trackers_data_update_value (
 
   # Updating a bug field value that belong to group 100 (None) is
   # forbidden. These are default values that cannot be changed, so
-  # make sure to copy the default values first in the project context first.
+  # make sure to copy the default values first in the group context first.
 
   if ($res = trackers_data_is_default_value ($item_fv_id))
     {
@@ -1071,7 +1071,7 @@ function trackers_data_update_usage (
   if (!isset ($transition_default_auth))
     $transition_default_auth = '';
 
-  # See if this field usage exists in the table for this project.
+  # See if this field usage exists in the table for this group.
   $result = db_execute ("
     SELECT bug_field_id FROM " . ARTIFACT . "_field_usage
     WHERE bug_field_id = ? AND group_id = ?",
@@ -1404,7 +1404,7 @@ function trackers_data_handle_update (
   $change_exists = false;
 
   # Update an item. Rk: vfl is an variable list of fields, Vary from one
-  # project to another.
+  # group to another.
   # Return true if bug updated, false if nothing changed or
   # DB update failed.
 
@@ -1708,7 +1708,7 @@ function trackers_data_handle_update (
 }
 
 function trackers_data_reassign_item (
-  $item_id, $reassign_change_project, $reassign_change_artifact
+  $item_id, $reassign_change_group, $reassign_change_artifact
 )
 {
   global $group_id;
@@ -1723,7 +1723,7 @@ function trackers_data_reassign_item (
   # If the new group_id does not exists, nothing to be done either,
   # unless the artifact changed: if no new valid group_id, let
   # consider that it does not require a change.
-  $new_group_id = group_getid ($reassign_change_project);
+  $new_group_id = group_getid ($reassign_change_group);
   if (!$new_group_id)
     $new_group_id = $group_id;
 
@@ -1748,8 +1748,8 @@ function trackers_data_reassign_item (
   $row_data = db_fetch_array ($res_data);
 
   # Duplicate the report.
-  if (!$reassign_change_project)
-    $reassign_change_project = $group_id;
+  if (!$reassign_change_group)
+    $reassign_change_group = $group_id;
 
   if (!$reassign_change_artifact)
     {
@@ -1831,7 +1831,7 @@ function trackers_data_reassign_item (
     }
 
   # Add a comment giving every original information.
-  $comment = "This item has been reassigned from the project "
+  $comment = "This item has been reassigned from the group "
     . group_getname ($row_data['group_id']) . " " . ARTIFACT
     . " tracker to your tracker.\n\nThe original report is still available at "
     . ARTIFACT . " #$item_id\n\n"
@@ -2034,7 +2034,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
 
   # Finally, create the bug itself.
   # This SQL query only sets up the values for fields used by
-  # this project. For other unused fields we assume that the DB will set
+  # this group. For other unused fields we assume that the DB will set
   # up an appropriate default value (see bug table definition).
 
   # Extract field transition possibilities:
@@ -2225,7 +2225,7 @@ function trackers_data_get_value (
       $args[] = $field_id;
     }
 
-  # Look for project specific values first...
+  # Look for group-specific values first...
   $result = db_execute ($sql, $args);
   if (db_numrows ($result) > 0)
     return db_result ($result, 0, 'value');
@@ -2259,8 +2259,8 @@ function trackers_data_get_reports ($group_id, $user_id = 100)
   # Print first system reports.
 
   # OUTDATED: currently personal query forms are deactivated in the code
-  # If user is unknown then get only project-wide and system wide reports
-  # else get personal reports in addition  project-wide and system wide.
+  # If user is unknown then get only group-wide and system wide reports
+  # else get personal reports in addition  group-wide and system wide.
 
   $system_scope = 'S';
 
@@ -2363,7 +2363,7 @@ function trackers_data_add_watchees ($user_id, $watchee_id, $group_id)
       && !trackers_data_is_watched ($user_id, $watchee_id, $group_id))
   )
     return 0;
-  # Only accept the request from a member of the project.
+  # Only accept the request from a member of the group.
   # Note that a user can trick the URL to watch himself.
   # It has no consequences, so we do not care.
   return db_autoexecute (
@@ -2409,7 +2409,7 @@ function trackers_data_delete_file ($group_id, $item_id, $file_id)
     {
       # TRANSLATORS: the argument is item id (a number).
       $msg = sprintf (
-        _("Item #%s doesn't belong to project"), $item_id
+        _("Item #%s doesn't belong to group"), $item_id
       );
       fb ($msg, 1);
       return;

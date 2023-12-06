@@ -205,18 +205,14 @@ print '<p>'
       . "are not attributed by default when joining this project.")
   . "</p>\n";
 
-$checked = '';
-if ($detailed)
-  $checked = " selected='selected'";
 $form_opening = form_tag (['method' => 'get'], "#options");
 $form_submit = '<input class="bold" type="submit" value="'
   . _("Apply") . '" />';
 $selector = '<select title="' . _("basic or detailed")
-  . '" name="detailed"><option value="0">'
   # TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-  . _("basic") . "</option>\n<option value='1'$checked>"
+  . form_option ('0', $detailed, _("basic"))
   # TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-  . _("detailed") . "</option>\n</select>\n"
+  . form_option ('1', $detailed, _("detailed")) . "</select>\n"
   . form_hidden (['group' => $group]);
 # TRANSLATORS: the argument is "basic" or "detailed".
 print html_show_displayoptions (

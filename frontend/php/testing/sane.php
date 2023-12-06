@@ -1242,7 +1242,7 @@ $reference = 'include/trackers_run/index.php';
     'pass' =>
       [
         'comment', 'additional_comment', 'depends_search',
-        'reassign_change_project_search'
+        'reassign_change_group_search'
       ],
     'digits' => ['comment_type_id', 'new_vote', 'quote_no'],
     'specialchars' => 'cc_comment',
@@ -1255,7 +1255,7 @@ $reference = 'include/trackers_run/index.php';
         ],
         ['add_cc', '/^[-+_@.,;\s\da-zA-Z]*$/'],
         [
-          'reassign_change_project', '/^[-_[:alnum:]]*$/'
+          'reassign_change_group', '/^[-_[:alnum:]]*$/'
         ]
       ],
     'strings' =>
@@ -1266,7 +1266,7 @@ $reference = 'include/trackers_run/index.php';
           ['all', 'support', 'bugs', 'task', 'patch']
         ],
         [
-          'depends_search_only_project',
+          'depends_search_only_group',
           ['any', 'notany']
         ]
       ],
@@ -1289,7 +1289,7 @@ $reference = 'include/trackers_run/index.php';
     'comment' => 'comment',
     'additional_comment' => 'a',
     'depends_search' => 'd',
-    'reassign_change_project_search' => 'r',
+    'reassign_change_group_search' => 'r',
     'comment_type_id' => 127,
     'new_vote' => 10,
     'quote_no' => 3,
@@ -1297,10 +1297,10 @@ $reference = 'include/trackers_run/index.php';
     'canned_response' => '!multiple!',
     'originator_email' => 'agn@test.mil',
     'add_cc' => 'agn,a@b.ca;d@e.fgh',
-    'reassign_change_project' => '0-grep_up',
+    'reassign_change_group' => '0-grep_up',
     'depends_search_only_artifact' => 'bugs',
     'reassign_change_artifact' => 'all',
-    'depends_search_only_project' => 'any',
+    'depends_search_only_group' => 'any',
     'submitreturn' => true,
     'preview' => true,
     'dependent_on_task' => [1, 2, 3],

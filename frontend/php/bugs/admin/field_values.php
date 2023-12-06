@@ -705,9 +705,9 @@ if ($update_value)
       . _("Status:") . "</label></span>\n"
       . "<select name='status' id='status'>\n"
       # TRANSLATORS: this is field status.
-      . "  <option value='A'>" . _("Active") . "</option>\n"
-      . "  <option value='H'$h_selected>" . _("Hidden")
-      . "</option>\n</select>\n<p>\n"
+      . form_option ('A', null, _("Active"))
+      . form_option ('H', db_result ($res, 0, 'status'), _("Hidden"))
+      . "</select>\n<p>\n"
       . '<span class="preinput"><label for="description">'
       . _("Description (optional):") . "</label></span><br />\n"
       . '<textarea id="description" name="description" rows="4" '

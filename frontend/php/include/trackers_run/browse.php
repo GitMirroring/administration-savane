@@ -955,26 +955,23 @@ $url .= "&amp;morder=$morder";
 if ($advsrch)
   {
     $url_alternate_search = str_replace ('advsrch=1', 'advsrch=0', $url);
+    $advsrch = 1;
     $text = _("Simple Search");
   }
 else
   {
+    $advsrch = 0;
     $url_alternate_search = str_replace ('advsrch=0', 'advsrch=1', $url);
     $text = _("Advanced Search");
   }
 
-# Select 'list form' or 'select' form.
-$advsrch_0 = $advsrch_1 = '';
-if ($advsrch)
-  $advsrch_1 = ' selected="selected"';
-else
-  $advsrch_0 = ' selected="selected"';
-$form_sel_type = '<select title="' . _("type of search")
-  . "\" name='advsrch'><option value='0'$advsrch_0>"
+$form_sel_type =
+  '<select title="' . _("type of search") . "\" name='advsrch'>"
   # TRANSLATORS: this string is used to specify kind of selection.
-  . _("Simple") . "</option>\n<option value='1'$advsrch_1>"
+  . form_option ('0', $advsrch, _("Simple"))
   # TRANSLATORS: this string is used to specify kind of selection.
-  . _("Multiple") . "</option></select>\n";
+  . form_option ('1', $advsrch, _("Multiple"))
+  . "</select>\n";
 $form_submit = '<input class="bold" value="' . _("Apply")
   . "\" name='go_report' type='submit' />\n";
 
@@ -1006,15 +1003,13 @@ if (($details_search == 1) && ($summary_search == 1))
     );
     $conj =
       '<select title="' . _("logical operation to apply")
-      . '" name="sumORdet">' . "\n" . '<option value="0" '
-      . ($sumORdet? '': 'selected="selected"') . '>'
+      . '" name="sumORdet">' . "\n"
       # TRANSLATORS: this is a logical operator, used in string
       # "Use logical %s between '%s' and '%s' searches.
-      . _("AND") . "</option>\n<option " . 'value="1" '
-      . ($sumORdet? 'selected="selected"': '') . '>'
+      . form_option ('0', $sumORdet, _("AND"))
       # TRANSLATORS: this is a logical operator, used in string
       # "Use logical %s between '%s' and '%s' searches.
-      . _("OR") . "</option>\n</select>\n";
+      . form_option ('1', $sumORdet, _("OR")) . "</select>\n";
 
     $form .= '<p class="smaller">';
     $form .=
@@ -1064,15 +1059,14 @@ $hist_ev_value = ["modified", "not modified"];
 
 $form_activated = '<select title="'
   . _("whether additional constraint is activated")
-  . '" name="history_search"><option value="0" '
-  . (!$history_search? 'selected="selected"': '') . '>'
+  . '" name="history_search">'
   # TRANSLATORS: this string is used as the argument in
   # 'Additional constraint %s'.
-  . _("deactivated") . "</option>\n<option value='1' "
-  . ($history_search? 'selected="selected"': '') . '>'
+  . form_option ('0', $history_search, _("deactivated"))
   # TRANSLATORS: this string is used as the argument in
   # 'Additional constraint %s'.
-  . _("activated") . "</option></select>\n";
+  . form_option ('1', $history_search, _("activated"))
+  . "</select>\n";
 $form_separator = "<br />\n&nbsp;&nbsp;&nbsp;";
 $form_fieldname = html_build_select_box_from_arrays (
   $fname, $flabel, 'history_field', $history_field, false, '', true,

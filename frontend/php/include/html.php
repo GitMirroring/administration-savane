@@ -218,14 +218,6 @@ function html_feedback ($bottom)
 {
   global $feedback, $ffeedback, $sys_home;
 
-  # Escape the html special chars, active markup.
-
-  # Ugh... Actually this is because feedback may be passed through
-  # $_GET[] in some situations, which can lead to XSS if the content
-  # is not escaped. We need a proper way to display formatted text to
-  # the user - OR, we need to properly replace pages that pass
-  # 'feedback' as a GET argument (grep 'feedback=').
-
   # Be quiet when there is no feedback.
   if (!($ffeedback || $feedback))
     return;
@@ -242,11 +234,8 @@ function html_feedback ($bottom)
 
   $class_hide = 'feedback';
 
-  # Users can choose the same behavior, disallowing the fixed positionning
-  # of the feedback (less convenient as the feedback gets easily hidden,
-  # requires to scroll to be accessed, but seems prefered by users of
-  # mozilla that slow scrolling down/up when there is such fixed box on the
-  # page).
+  # Users can choose the same behavior, disallowing the fixed positioning
+  # of the feedback.
   if (user_get_preference ("nonfixed_feedback"))
     {
       $class_hide = 'feedback feedback-hide';
@@ -258,37 +247,28 @@ function html_feedback ($bottom)
   print '<script type="text/javascript" src="/js/show-feedback.php?suffix='
     . "$suffix\"></script>\n";
 
-  $img_ok = "bool/ok.png"; $img_wrong = "bool/wrong.png";
+  $img_ok = html_image ("bool/ok.png", ['class' => 'feedbackimage']);
+  $img_wrong = html_image ("bool/wrong.png", ['class' => 'feedbackimage']);
   # Only success.
   if ($feedback && !$ffeedback)
     print "<div id=\"feedback$suffix\" class=\"$class_hide\">"
-      . '<span class="feedbacktitle">'
-      . html_image ($img_ok, ['class' => 'feedbackimage'])
+      . '<span class="feedbacktitle">' . $img_ok
       . _("Success:") . "</span> $feedback</div>\n$script_hide";
 
   # Only errors.
   if ($ffeedback && !$feedback)
-    {
-      print "<div id=\"feedback$suffix\" class=\"feedbackerror $class_hide\">"
-        . "<span class='feedbackerrortitle'>"
-        . html_image ($img_wrong, ['class' => 'feedbackimage'])
-        . _("Error:") . "</span>\n$ffeedback</div>\n";
-    }
+    print "<div id=\"feedback$suffix\" class=\"feedbackerror $class_hide\">"
+      . "<span class='feedbackerrortitle'>$img_wrong"
+      . _("Error:") . "</span>\n$ffeedback</div>\n";
 
   # Errors and success.
   if ($ffeedback && $feedback)
-    {
-      print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
-        . "$class_hide\"><span class='feedbackerrorandsuccesstitle'>"
-        . html_image ($img_wrong, ['class' => 'feedbackimage'])
-        . _("Some Errors:") . "</span> $feedback $ffeedback</div>\n";
-    }
+    print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
+      . "$class_hide\"><span class='feedbackerrorandsuccesstitle'>$img_wrong"
+      . _("Some Errors:") . "</span> $feedback $ffeedback</div>\n";
 
   # We empty feedback so there will be a bottom feedback only if something
-  # changed. It may confuse users, however I would find more confusing to
-  # have two lookalike feedback information providing most of the time the
-  # same information AND (that is the problem) sometimes more information
-  # in the second one.
+  # changes.
   $feedback = $ffeedback = '';
 }
 
@@ -322,8 +302,8 @@ function html_image ($src, $args = [])
   # If there is neither height nor width tag, insert them both.
   if (empty ($args['height']) && empty ($args['width']))
     {
-     # Check to see if we've already fetched the image data.
-     if (empty ($img_attr[$src]) && is_file ($path))
+      # Check to see if we've already fetched the image data.
+      if (empty ($img_attr[$src]) && is_file ($path))
         {
           list ($width, $height, $type, $img_attr[$src]) =
             @getimagesize ($path);
@@ -359,7 +339,6 @@ function html_build_list_table_top (
   $title_arr, $links_arr = false, $table = true
 )
 {
-  global $HTML;
   $return = '';
 
   if ($table)
@@ -406,17 +385,14 @@ function html_build_select_box_from_array (
   $vals, $select_name, $checked_val = 'xzxz', $samevals = 0, $title = ""
 )
 {
-  $return = "<select " . html_title_attr($title) . "name=\"$select_name\">\n";
+  $return = "<select " . html_title_attr ($title) . "name=\"$select_name\">\n";
   $rows = count ($vals);
   for ($i = 0; $i < $rows; $i++)
     {
       $v = $i;
       if ($samevals)
         $v = $vals[$i];
-      $return .= "  <option value=\"$v\"";
-      if ($v == $checked_val)
-        $return .= ' selected="selected"';
-      $return .= ">{$vals[$i]}</option>\n";
+      $return .= "  " . form_option ($v, $checked_val, $vals[$i]);
     }
   return "$return\n</select>\n";
 }
@@ -471,44 +447,27 @@ function html_build_select_box_from_arrays (
 
   # We want the "Default" on item initial post, only at this momement.
   if ($show_unknown)
-    {
-      $return .= "<option value=\"!unknown!\">" . _("Unknown") . "</option>\n";
-    }
+    $return .= form_option ("!unknown!", NULL, _("Unknown"));
 
   # We don't always want the default any  row shown.
   if ($show_any)
-    {
-      $selected = ( $checked_val == 0 ? 'selected="selected"':'');
-      $return .= "<option value=\"0\" $selected>$text_any </option>\n";
-    }
+    $return .= form_option ("0", $checked_val, $text_any);
 
   # We don't always want the default 100 row shown.
   if ($show_100)
-    {
-      $selected = ( $checked_val == 100 ? 'selected="selected"':'');
-      $return .= "<option value=\"100\" $selected>$text_100 </option>\n";
-    }
+    $return .= form_option ("100", $checked_val, $text_100);
 
   $rows = count ($vals);
   if (count ($texts) != $rows)
     $return .= _('ERROR - number of values differs from number of texts');
 
   for ($i = 0; $i < $rows; $i++)
-    {
-      #  Uggh - sorry - don't show the 100 row and Any row.
-      #  If it was shown above, otherwise do show it.
-      if ((($vals[$i] != '100') && ($vals[$i] != '0'))
-           || ($vals[$i] == '100' && !$show_100)
-           || ($vals[$i] == '0' && !$show_any))
-        {
-          $return .= "\n<option value=\"{$vals[$i]}\"";
-          if ($vals[$i] == $checked_val)
-            {
-              $return .= ' selected="selected"';
-            }
-          $return .= ">{$texts[$i]}</option>\n";
-       }
-    }
+    #  Uggh - sorry - don't show the 100 row and Any row.
+    #  If it was shown above, otherwise do show it.
+    if ((($vals[$i] != '100') && ($vals[$i] != '0'))
+         || ($vals[$i] == '100' && !$show_100)
+         || ($vals[$i] == '0' && !$show_any))
+      $return .= form_option ($vals[$i], $checked_val, $texts[$i]);
   $return .= "</select>\n";
   return $return;
 }
@@ -555,11 +514,8 @@ function html_build_localized_select_box (
 # or value and the second column being the text you want displayed.
 #
 # The second parameter is the name you want assigned to this form element.
-#
 # The third parameter is an array of checked values.
-#
 # The fourth parameter is the size of this box.
-#
 # Fifth to eigth params determine whether to show None and Any.
 #
 # Ninth param determine whether to show numeric values next to
@@ -572,41 +528,19 @@ function html_build_multiple_select_box (
 {
   $title_attr = html_title_attr ($title);
   $return = "\n<select $title_attr name=\"$name\" multiple size='$size'>\n";
-  # Put in the Any box.
   if ($show_any)
-    {
-      $return .= '<option value="0"';
-      foreach ($checked_array as $v)
-        if ($v == '0')
-          $return .= ' selected="selected"';
-      $return .= ">$text_any</option>\n";
-    }
-  # Put in the default NONE box.
+    $return .= form_option ("0", $checked_array, $text_any);
   if ($show_100)
+    $return .= form_option ("100", $checked_array, $text_100);
+  while ($row = db_fetch_array ($result))
     {
-      $return .= '<option value="100"';
-      foreach ($checked_array as $v)
-        if ($v == '100')
-          $return .= ' selected="selected"';
-      $return .= ">$text_100</option>\n";
-    }
-  $rows = db_numrows ($result);
-  for ($i = 0; $i < $rows; $i++)
-    {
-      if (db_result($result, $i, 0) != '100')
-        {
-          $return .= '<option value="' . db_result ($result, $i, 0) . '"';
-          # Determine if it's checked.
-          $val = db_result ($result, $i, 0);
-          foreach ($checked_array as $v)
-            if ($val == $v)
-              $return .= ' selected="selected"';
-          $val .= '-';
-          if (!$show_value)
-            $val = '';
-          $return .= ">$val"
-             . substr (db_result ($result, $i, 1), 0, 35) . "</option>\n";
-        }
+      if ($row[0] == '100')
+        continue;
+      $val = $row[0] . '-';
+      if (!$show_value)
+        $val = '';
+      $label = $val . substr ($row[1], 0, 35);
+      $return .= form_option ($row[0], $checked_array, $label);
     }
   return "$return</select>\n";
 }
@@ -636,10 +570,10 @@ function html_select_permission_box ($artifact, $row, $level = "member")
     . "\" name=\"{$artifact}_user_$num\">\n";
   if ($default)
     {
-      $sel = ' selected="selected"';
+      $sel = 'NULL';
       if ($value)
-        $sel = '';
-      print "  <option value='NULL'$sel>$default</option>\n";
+        $sel = 'value';
+      print "  " . form_option ('NULL', $sel, $default);;
     }
   $labels = [
     [9, _("None")],
@@ -651,11 +585,7 @@ function html_select_permission_box ($artifact, $row, $level = "member")
     {
       if ($artifact == 'news' && count ($vl) > 2)
         continue;
-      $v = $vl[0]; $l = $vl[1];
-      $sel = '';
-      if ($value == $v)
-        $sel = ' selected="selected"';
-      print "  <option value='$v'$sel>$l</option>\n";
+      print "  " . form_option ($vl[0], $value, $vl[1]);
     }
   print "</select>\n";
   if (!$value && $level == "group")
@@ -698,23 +628,17 @@ function html_select_restriction_box (
 
   if ($default)
     {
-      $sel = ' selected="selected"';
+      $sel = 'NULL';
       if ($value)
-        $sel = '';
-      print "<option value='NULL'$sel>$default</option>\n";
+        $sel = 'value';
+      print form_option ('NULL', $sel, $default);
     }
   $labels = [
     [6, _("Nobody")], [5, _("Group Member")],  [3, _("Logged-in User")],
     [2, _("Anonymous")],
   ];
   foreach ($labels as $vl)
-    {
-      $v = $vl[0]; $l = $vl[1];
-      $sel = '';
-      if ($value == $v)
-        $sel = ' selected="selected"';
-      print "<option value='$v'$sel>$l</option>\n";
-    }
+    print form_option ($vl[0], $value, $vl[1]);
   print "</select>\n";
 
   if (!$value && $level == "group" && $event == 1)
@@ -752,12 +676,7 @@ function html_select_typedir_box ($input_name, $current_value)
       "savannah-nongnu" => "Savannah non-GNU",
     ] as $dir => $title
   )
-    {
-      $sel = '';
-      if ($current_value == $dir)
-        $sel = ' selected="selected"';
-      print "<option value='$dir'$sel>$title</option>\n";
-    }
+    print form_option ($dir, $current_value, $title);
   print "</select> [BACKEND SPECIFIC]\n";
   print "<p><span class='smaller'>Basic directory will make the backend\n"
     . "using DownloadMakeArea(), defined in Savannah::Download;<br />\n"
@@ -777,20 +696,16 @@ function html_select_theme_box ($input_name = "user_theme", $current = 0)
   print '<select title="' . _("Website theme") . "\" name=\"$input_name\">\n";
   $theme_option = function ($theme, $label = null) use ($current)
   {
-    print "  <option value=\"$theme\"";
-    if ($theme == $current)
-      print ' selected="selected"';
-    print ">";
     if (empty ($label))
-      print $theme;
+      $label = $theme;
     else
-      print "&gt; $label";
+      $label = "&gt; $label";
     if ($theme == $GLOBALS['sys_themedefault'])
-      print ' ' . _("(default)");
-    print "</option>\n";
+      $label .= ' ' . _("(default)");
+    print form_option ($theme, $current, $label);
   };
   # Fixed themes.
-  foreach (theme_list() as $theme)
+  foreach (theme_list () as $theme)
     $theme_option ($theme);
   # Two special themes.
   $theme_option ("rotate", _("Pick theme alphabetically every day"));

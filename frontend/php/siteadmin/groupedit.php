@@ -205,12 +205,7 @@ foreach (
     'I' => no_i18n ("Incomplete (failure during registration)"),
   ] as $k => $v
 )
-  {
-    $sel = '';
-    if ( $row_grp['status'] == $k)
-      $sel = ' selected';
-    print "<option$sel value='$k'>$v</option>\n";
-  }
+  print form_option ($k, $row_grp['status'], $v);
 print "</select>\n";
 print '<p class="warn">'
   . no_i18n (
@@ -236,15 +231,8 @@ print '<p><span class="preinput"><label for="form_public">'
       "You must clear the HTML repository field below when setting the "
       . "private flag otherwise unpredictable result will occur.")
   . "<br />\n<select name='form_public' id='form_public'>\n";
-$sel = '';
-if ($row_grp['is_public'] == 1)
-$sel = ' selected';
-print "<option$sel value='1'>" . no_i18n ("Yes") . "</option>\n";
-if ($sel == '')
-  $sel = ' selected';
-else
-  $sel = '';
-print "<option$sel value='0'>" . no_i18n ("No") . "</option>\n";
+print form_option ('1', $row_grp['is_public'], no_i18n ("Yes"));
+print form_option ('0', $row_grp['is_public'], no_i18n ("No"));
 print "</select>\n";
 
 next_altrow ();
@@ -257,15 +245,11 @@ print no_i18n (
 );
 print "<br />\n";
 print "<select name='form_license' id='form_license'>\n";
-print '<option value="none">' . no_i18n ("N/A") . "</option>\n";
-print '<option value="other">' . no_i18n ("Other license") . "</option>\n";
+print form_option ("none", null, no_i18n ("N/A"));
+print form_option ("other", null, no_i18n ("Other license"));
 
 foreach ($LICENSE_EN as $k => $v)
-  {
-    print "<OPTION value=\"$k\"";
-    if ($k == $row_grp['license']) print " selected";
-    print ">$v</option>\n";
-  }
+  print form_option ($k, $row_grp['license'], $v);
 print '</select>
 <br />
 <label for="form_license_other">';

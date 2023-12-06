@@ -124,10 +124,10 @@ extract (sane_import ('post',
 # Assign null to the fields that only tracker admins may modify.
 foreach (
   [
-    'depends_search', 'reassign_change_project_search',
-    'cc_comment', 'add_cc', 'reassign_change_project',
+    'depends_search', 'reassign_change_group_search',
+    'cc_comment', 'add_cc', 'reassign_change_group',
     'depends_search_only_artifact', 'reassign_change_artifact',
-    'depends_search_only_project', 'dependent_on_task', 'dependent_on_bugs',
+    'depends_search_only_group', 'dependent_on_task', 'dependent_on_bugs',
     'dependent_on_support', 'dependent_on_patch',
   ] as $var
 )
@@ -136,13 +136,13 @@ foreach (
 if ($is_trackeradmin)
   extract (sane_import ('post',
     [
-      'pass' => ['depends_search', 'reassign_change_project_search'],
+      'pass' => ['depends_search', 'reassign_change_group_search'],
       'specialchars' => 'cc_comment',
       'preg' =>
         [
           ['add_cc', '/^[-+_@.,;\s\da-zA-Z]*$/'],
           [
-            'reassign_change_project', '/^[-_[:alnum:]]*$/'
+            'reassign_change_group', '/^[-_[:alnum:]]*$/'
           ]
         ],
       'strings' =>
@@ -153,7 +153,7 @@ if ($is_trackeradmin)
             ['all', 'support', 'bugs', 'task', 'patch']
           ],
           [
-            'depends_search_only_project',
+            'depends_search_only_group',
             ['any', 'notany']
           ]
         ],
@@ -168,7 +168,7 @@ if ($is_trackeradmin)
     ]
   ));
 
-foreach (['reassign_change_project_search', 'depends_search'] as $var)
+foreach (['reassign_change_group_search', 'depends_search'] as $var)
   if (!is_scalar ($$var))
     $$var = '';
 
@@ -191,7 +191,7 @@ if ($have_item_id && empty ($func))
   $func = 'detailitem';
 
 # Initialize the global data structure before anything else.
-trackers_init($group_id);
+trackers_init ($group_id);
 
 $project = project_get_object ($group_id);
 $changed = false;
@@ -422,7 +422,7 @@ switch ($func)
 
     # Special case: we may be searching for an item, in that case
     # reprint the same page, plus search results.
-    if ($depends_search || $reassign_change_project_search
+    if ($depends_search || $reassign_change_group_search
         || $canned_response == "!multiple!")
       {
         if ($depends_search)
@@ -436,13 +436,13 @@ switch ($func)
             );
             fb ($msg);
           }
-        if ($reassign_change_project_search)
+        if ($reassign_change_group_search)
           {
             $msg = sprintf (
-              _("You provided search words to get a list of projects\nthis "
+              _("You provided search words to get a list of groups\nthis "
                 . "item should maybe reassigned to. Below, in the section\n"
                 . "[%s Reassign this item], you can now select the "
-                . "appropriate\nproject and submit the form."),
+                . "appropriate\ngroup and submit the form."),
               $sys_https_url . $_SERVER['SCRIPT_NAME'] . '#reassign'
             );
             fb ($msg);
@@ -540,15 +540,15 @@ switch ($func)
     # the bug must be in the original report, and will be duplicated
     # in the new one.
     if (
-      $reassign_change_project
+      $reassign_change_group
       || ($reassign_change_artifact && ($reassign_change_artifact != ARTIFACT))
     )
       {
-        dbg("reassign item: reassign_change_project:$reassign_change_project, "
+        dbg("reassign item: reassign_change_group:$reassign_change_group, "
             . "reassign_change_artifact:$reassign_change_artifact, ARTIFACT:"
             . ARTIFACT);
         trackers_data_reassign_item (
-          $item_id, $reassign_change_project, $reassign_change_artifact
+          $item_id, $reassign_change_group, $reassign_change_artifact
         );
       }
 
@@ -568,7 +568,7 @@ switch ($func)
             exit (0);
           }
         $_POST = $_FILES = [];
-        $form_id = $depends_search = $reassign_change_project_search =
+        $form_id = $depends_search = $reassign_change_group_search =
         $add_cc = $input_file = $changed = $vfl = $details = $comment = null;
         $nocache = 1;
       }
@@ -582,7 +582,7 @@ switch ($func)
         trackers_data_delete_file($group_id, $item_id, $item_file_id);
 
          # Unset previous settings and return to the item.
-         $depends_search = $reassign_change_project_search = $add_cc
+         $depends_search = $reassign_change_group_search = $add_cc
            = $input_file = $changed = $vfl = $details = null;
          include '../include/trackers_run/mod.php';
       }
@@ -595,7 +595,7 @@ switch ($func)
     $changed = trackers_delete_cc ($group_id, $item_id, $item_cc_id, $changes);
 
     # Unset previous settings and return to the item.
-    $depends_search = $reassign_change_project_search = $add_cc = $input_file
+    $depends_search = $reassign_change_group_search = $add_cc = $input_file
       = $changed = $vfl = $details = null;
 
     include '../include/trackers_run/mod.php';
@@ -619,7 +619,7 @@ switch ($func)
       }
 
     # Unset previous settings and return to the item.
-    $depends_search = $reassign_change_project_search = $add_cc = $input_file
+    $depends_search = $reassign_change_group_search = $add_cc = $input_file
       = $changed = $vfl = $details = $changes = $address = null;
     include '../include/trackers_run/mod.php';
     break;
@@ -636,8 +636,8 @@ switch ($func)
 
     # Determine the additional spamscore according to user credentials.
     # +1 = logged in user
-    # +3 = project member
-    # +5 = project admin
+    # +3 = group member
+    # +5 = group admin
     $spamscore = 1;
     if (member_check (0, $group_id))
       {

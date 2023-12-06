@@ -146,8 +146,8 @@ elseif ($check_member ($group_id, ARTIFACT, '1'))
     _("You are technician for this tracker."),
     [
       _("technician") =>
-        _("you can be assigned tracker's items, but you cannot reassign\n"
-          . "items, change priority nor open/close")
+        _("you can be assigned tracker's items, but you cannot reassign "
+          . "items, change priority, open nor close")
     ]
   );
 elseif ($check_member ($group_id, ARTIFACT, '3'))
@@ -155,9 +155,9 @@ elseif ($check_member ($group_id, ARTIFACT, '3'))
     _("You are manager for this tracker."),
     [
       _("manager") =>
-        _("you can fully manage the trackers items, including assigning\n"
-          . "items to technicians, reassign items over trackers and "
-          . "projects, changing\npriority and open/close items")
+        _("you can fully manage the trackers items, including assigning "
+          . "items to technicians, reassigning items over trackers and "
+          . "groups, changing priority, opening and closing items")
     ]
   );
 
@@ -220,7 +220,7 @@ print "<td $button_attr><span class='noprint'>"
 
 print '<tr><td colspan="' . ($fields_per_line * 2) . "\">&nbsp;</td></tr>\n";
 
-# Now display the variable part of the field list (depend on the project).
+# Now display the variable part of the field list (depend on the group).
 # Some fields must be displayed differently according to the user role.
 $is_manager = $check_member ($group_id, ARTIFACT, '3', 0);
 
@@ -232,7 +232,7 @@ $j = 0; # Background selector.
 
 while ($field_name = trackers_list_all_fields ())
   {
-    # If the field is not used by the project, skip it.
+    # If the field is not used by the group, skip it.
     if (!trackers_data_is_used ($field_name))
       continue;
 
@@ -412,7 +412,7 @@ $is_deployed["reassign"] = false;
 # first set them all to false without question and then set to true only
 # the relevant.
 if ($depends_search || $canned_response == "!multiple!"
-    || $reassign_change_project_search)
+    || $reassign_change_group_search)
   {
     foreach ($is_deployed as $key => $value)
       $is_deployed[$key] = false;
@@ -421,7 +421,7 @@ if ($depends_search || $canned_response == "!multiple!"
       $is_deployed["dependencies"] = true;
     if ($canned_response == "!multiple!")
       $is_deployed["postcomment"] = true;
-    if ($reassign_change_project_search)
+    if ($reassign_change_group_search)
       $is_deployed["reassign"] = true;
   }
 
@@ -650,50 +650,37 @@ if ($is_trackeradmin)
 
     # Generate the list of searchable trackers.
     $tracker_list = [
-      'all'     => _("Any Tracker"),
-      'support' => _("The Support Tracker Only"),
-      'bugs'    => _("The Bug Tracker Only"),
-      'task'    => _("The Task Manager Only"),
-      'patch'   => _("The Patch Manager Only"),
+      'all'     => _("any tracker"),
+      'support' => _("the support tracker only"),
+      'bugs'    => _("the bug tracker only"),
+      'task'    => _("the task manager only"),
+      'patch'   => _("the patch manager only"),
     ];
 
     foreach ($tracker_list as $option_value => $text)
-      {
-        $selected = '';
-        if ($option_value == $depends_search_only_artifact)
-          $selected = ' selected="selected"';
-        $tracker_select .=
-          "<option value=\"$option_value\"$selected>$text</option>\n";
-      }
+      $tracker_select .=
+        form_option ($option_value, $depends_search_only_artifact, $text);
     $tracker_select .= "</select>\n";
 
-    $group_select = '<select title="' . _("Wether to search in any project")
-                    . '" name="depends_search_only_project">';
+    $group_select = '<select title="' . _("Wether to search in any group")
+      . '" name="depends_search_only_group">';
 
-    # By default, search restricted to the project (lighter for the CPU,
+    # By default, search restricted to the group (lighter for the CPU,
     # probably also more accurate).
-    $selected = '';
-    if ($depends_search_only_project == "any")
-      $selected = ' selected="selected"';
-    $group_select .= "<option value='any'$selected>"
+    $group_select .=
       # TRANSLATORS: this string is used in the context like
-      # "search an item of [The Bug Tracker Only] of [Any Project]".
-      . _("Any Project")
-      . "</option>\n";
-
-    # Not yet a select? It means we are in the default case.
-    if ($selected)
-      $selected = '';
-    else
-      $selected = ' selected="selected"';
-
+      # "search an item of [the bug tracker only] of [any group]".
+      form_option ('any', $depends_search_only_group, _("any group"));
+    $selected = 'val';
+    if ($depends_search_only_group != 'any')
+      $selected = 'notany';
     # TRANSLATORS: this string is used in the context like
-    # "search an item of [The Bug Tracker Only] of [This Project Only]".
-    $group_select .= "<option value='notany'$selected >"
-      . _("This Project Only") . "</option>\n</select>&nbsp;";
+    # "search an item of [the bug tracker only] of [this group only]".
+    $group_select .= form_option ('notany', $selected, _("this group only"))
+      . "</select>&nbsp;";
 
-    # TRANSLATORS: the first argument is tracker type (like The Bug Tracker),
-    # the second argument is either 'This Project Only' or 'Any Project'.
+    # TRANSLATORS: the first argument is tracker type (like the bug tracker),
+    # the second argument is either 'this group only' or 'any group'.
     printf (_('Of %1$s of %2$s'), $tracker_select, $group_select);
 
     if ($depends_search)
@@ -731,7 +718,7 @@ if ($is_trackeradmin)
             # Actually search on each asked trackers.
             foreach ($artifacts as $num => $tracker)
               {
-                if ($depends_search_only_project == "notany")
+                if ($depends_search_only_group == "notany")
                   $GLOBALS['only_group_id'] = $group_id;
 
                 # Do not ask for all words,
@@ -842,7 +829,7 @@ $display_votes = function ($group_id, $item_id, $votes,  $new_vote, $lock)
   if (!(trackers_data_is_showed_on_add ("vote")
       || member_check (user_getid(), $group_id)))
     {
-      print '<span class="warn">' . _("Only project members can vote.")
+      print '<span class="warn">' . _("Only group members can vote.")
         . "</span>$end";
       return;
     }
@@ -890,9 +877,8 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
         $checked = '';
         if (!$GLOBALS['reassign_change_artifact'] && ARTIFACT == $art
             || $GLOBALS['reassign_change_artifact'] == $art)
-          $checked = ' selected="selected"';
-        $ret = "<option value=\"$art\"$checked>$title</option>\n";
-        return $ret;
+          $checked = $art;
+        return form_option ($art, $checked, $title);
       }
     $tracker_select = '<select title="' . _("Tracker to reassign to")
                       . '" name="reassign_change_artifact">';
@@ -912,20 +898,20 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
 
     print "<br /><br />\n<span class='preinput'>";
 
-    if (!$reassign_change_project_search)
-      print _("Move to the project:");
+    if (!$reassign_change_group_search)
+      print _("Move to the group:");
     else
       {
         # Print a specific message if we are already at step 2 of
-        # reassignation to another project.
+        # reassignation to another group.
         print _("New search, in case the previous one was not satisfactory\n"
-                . "(to reassign the item to another project):");
+                . "(to reassign the item to another group):");
       }
 
     print "</span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" title="' . _("Project to reassign item to")
-      . '" name="reassign_change_project_search" size="40" maxlength="255" />';
-    if (!$reassign_change_project_search)
+      . '<input type="text" title="' . _("Group to reassign item to")
+      . '" name="reassign_change_group_search" size="40" maxlength="255" />';
+    if (!$reassign_change_group_search)
       print form_submit (_("Search"), "submit");
     else
       {
@@ -935,25 +921,25 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
       }
 
     # Search results, if we are already at step 2 of filling.
-    if ($reassign_change_project_search)
+    if ($reassign_change_group_search)
       {
         print "\n<p><span class='preinput'>";
         printf (
-          _("To which project this bug should be reassigned to? This is\n"
+          _("To which group this bug should be reassigned to? This is\n"
             . "the result of your search of '%s' in the database:"),
-          utils_specialchars ($reassign_change_project_search));
+          utils_specialchars ($reassign_change_group_search));
         print '</span>';
 
         # Print a null-option, someone may change his mine without having
         # to use the back button of his browser.
         print "<br />\n&nbsp;&nbsp;&nbsp;"
-          . '<input type="radio" name="reassign_change_project" '
+          . '<input type="radio" name="reassign_change_group" '
           . 'value="0" checked="checked" /> '
-          . _("Do not reassign to another project.");
+          . _("Do not reassign to another group.");
 
         $success = false;
         $result_search =
-          search_run ($reassign_change_project_search, "soft", 0);
+          search_run ($reassign_change_group_search, "soft", 0);
         $success = db_numrows ($result_search);
 
         # Print the result, if existing.
@@ -967,7 +953,7 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
                   continue;
                 print "<br />\n&nbsp;&nbsp;&nbsp;"
                   . form_input (
-                      "radio", "reassign_change_project", $res_unix_group_name
+                      "radio", "reassign_change_group", $res_unix_group_name
                     )
                   . " [$res_unix_group_name, #$res_group_id] $res_group_name";
               }
@@ -980,7 +966,7 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
                     . "than three characters are valid.");
             print '</span>';
           }
-      } # if ($reassign_change_project_search)
+      } # if ($reassign_change_group_search)
     print html_hidsubpart_footer ();
     print '</span>';
   } # if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")

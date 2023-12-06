@@ -173,12 +173,7 @@ if ($project->CanUse ("devel_status"))
     print  '<select name="form_devel_status" id="form_devel_status">';
 
     foreach ($DEVEL_STATUS as $k => $v)
-      {
-        print "<option value=\"$k\"";
-        if ($k == $row_grp['devel_status'])
-          print ' selected';
-        print ">$v</option>\n";
-      }
+      print form_option ($k, $row_grp['devel_status'], $v);
     print "</select></p>\n";
   }
 

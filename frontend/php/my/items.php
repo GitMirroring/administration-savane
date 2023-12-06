@@ -61,7 +61,7 @@ extract (sane_import ('get',
 
 $user_arr = [user_getid ()];
 
-# Get the list of projects the user is member of.
+# Get the list of groups the user is member of.
 $result = db_execute ("
   SELECT
     g.group_name, g.group_id, g.unix_group_name, g.status
@@ -123,39 +123,29 @@ print '<p>'
   . "</p>\n";
 utils_get_content ("my/items");
 
-function sel_if ($a)
-{
-  if ($a)
-    return 'selected="selected"';
-  return '';
-}
-
-$fopen = '<select title="' . _("open or closed")
-  . "\" name='form_open'>\n<option value='open' "
-  . sel_if ($open == "open") . '>'
+$fopen = '<select title="' . _("open or closed") . "\" name='form_open'>\n"
   # TRANSLATORS: This is used later as argument of "Show [%s] new items..."
-  . _("Open<!-- items -->") . "</option>\n";
-$fopen .= "<option value='closed' " . sel_if ($open == "closed") . '>'
+  . form_option ('open', $open, _("open<!-- items -->"));
+$fopen .=
   # TRANSLATORS: This is used later as argument of "Show [%s] new items..."
-  . _("Closed<!-- items -->") . "</option></select>\n";
+  form_option ('closed', $open, _("closed<!-- items -->"))
+  . "</select>\n";
 
-$fthreshold = '<select title="' . ("priority")
-  . "\" name='form_threshold'>\n";
+$fthreshold = '<select title="' . _("priority") . "\" name='form_threshold'>\n";
 $priorities = [
 # TRANSLATORS: This is used later as argument of
 # "...new items or of [%s] priority"
- 1 => _("Lowest"), 3 => _("Low"), 5 => _("Normal"), 7 => _("High"),
- 9 => _("Immediate")
+ 1 => _("lowest"), 3 => _("low"), 5 => _("normal"), 7 => _("high"),
+ 9 => _("immediate")
 ];
 foreach ($priorities as $k => $v)
-  $fthreshold .= "<option value='$k'" . sel_if ($threshold == $k) . ">$v"
-    . "</option>\n";
+  $fthreshold .= form_option ($k, $threshold, $v);
 $fthreshold .= "</select>\n";
 
 $form_opening = form_tag (['method' => 'get'], "#options");
 $form_submit = '<input class="bold"  type="submit" value="'._("Apply").'" />';
-# TRANSLATORS: the first argument is either 'Open' or 'Closed',
-# the second argument is priority ('Lowest', 'Normal' &c.).
+# TRANSLATORS: the first argument is either 'open' or 'closed',
+# the second argument is priority ('lowest', 'normal' &c.).
 $msg_text = sprintf (_('Show %1$s new items of %2$s priority at least.'),
   $fopen, $fthreshold
 );

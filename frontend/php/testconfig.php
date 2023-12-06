@@ -445,7 +445,7 @@ print "</p>\n";
 function test_i18n ()
 {
   i18n_setup ("es_ES.UTF-8");
-  $str = 'High';
+  $str = 'Any';
   $res = gettext ($str);
   if ($res == $str)
     print "<strong>fail</strong>";

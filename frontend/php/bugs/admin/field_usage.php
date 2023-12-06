@@ -181,7 +181,6 @@ if ($update_field)
       );
     print "</dd>\n";
 
-    $sel = ' selected="selected"';
     # Ask they want to save the history of the item.
     if (!trackers_data_is_special ($field))
       {
@@ -189,14 +188,13 @@ if ($update_field)
           . "</span>\n<dt>\n<dd>"
           . "<select title=\"" . _("whether to keep in history")
           . "\" name='keep_history'>\n";
-        $ck = trackers_data_do_keep_history ($field)? $sel: '';
-        print "<option value='1'$ck>"
-          . _("Keep field value changes in history") . "</option>\n";
-        $ck = trackers_data_do_keep_history ($field)? '': $sel;
-        print "<option value='0'$ck>"
-          . _("Ignore field value changes in history")
-          . "</option>\n</select>\n";
-        }
+        $cur = trackers_data_do_keep_history ($field);
+        print form_option ('1', $cur, _("Keep field value changes in history"));
+        print form_option (
+         '0', $cur, _("Ignore field value changes in history")
+        );
+        print "</select>\n";
+      }
     print "</dd>\n</dl>\n";
 
     print "\n\n<h2>" . _("Access:") . "</h2>\n";
@@ -210,20 +208,19 @@ if ($update_field)
         # "Mandatory" is not really 100% mandatory, only if it is possible
         # for a user to fill the entry.
         # It is "Mandatory whenever possible".
-        $mandatory_flag = trackers_data_mandatory_flag ($field);
+        $cur = trackers_data_mandatory_flag ($field);
         print '<dt><span class="preinput">' . _("This field is:")
           . "</span></dt>\n<dd>\n"
           . "<select title=\"" . _("whether the field is mandatory")
           . "\" name='mandatory_flag'>\n";
-        $ck =($mandatory_flag == 1)? $sel: '';
-        print "<option value='1'$sel>"
-          . _("Optional (empty values are accepted)") . "</option>\n";
-        $ck =($mandatory_flag == 3)? $sel: '';
-        print "<option value='3'$sel>" . _("Mandatory") . "</option>\n";
-        $ck =($mandatory_flag == 0)? $sel: '';
-        print "<option value='0'$sel>"
-          . _("Mandatory only if it was presented to the original submitter")
-          . "</option>\n</select><br />\n";
+        print form_option ('1', $cur,
+          _("Optional (empty values are accepted)")
+        );
+        print form_option ('3', $cur, _("Mandatory"));
+        print form_option ('0', $cur,
+          _("Mandatory only if it was presented to the original submitter")
+        );
+        print "</select>\n";
      }
 
     print "</dd>\n<dt>";

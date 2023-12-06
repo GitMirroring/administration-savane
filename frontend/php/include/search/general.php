@@ -117,10 +117,7 @@ function search_list_tracker_options ($gid, $type_of_search, $is_small)
          $text = sprintf ($msg[1], $group_realname);
        if (!$text)
          continue;
-       $sel_attr = '';
-       if ($type_of_search == $key)
-          $sel_attr = ' selected="selected"';
-       $sel .= "<option value='$key' $sel_attr>$text</option>\n";
+       $sel .= form_option ($key, $type_of_search, $text);
      }
   return $sel;
 }

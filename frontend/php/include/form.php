@@ -154,8 +154,13 @@ function form_option ($value, $selected_value = NULL, $label = NULL)
   if ($label === NULL)
     $label = $value;
   $ret = "<option value=\"$value\"";
-  if ($selected_value !== NULL && $value == $selected_value)
-    $ret .= ' selected="selected"';
+  if ($selected_value !== NULL)
+     {
+       if (!is_array ($selected_value))
+         $selected_value = [$selected_value];
+       if (in_array ($value, $selected_value))
+         $ret .= ' selected="selected"';
+     }
   return "$ret>$label</option>\n";
 }
 

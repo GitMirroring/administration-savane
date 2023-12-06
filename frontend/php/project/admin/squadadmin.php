@@ -193,31 +193,32 @@ if ($squad_id)
    );
 
     print "<p>"
-. _("To remove members from the squad, select their names and push the button
-below.") . "</p>\n";
-    print form_header($_SERVER["PHP_SELF"]);
+      . _("To remove members from the squad, select their names and push the "
+          . "button\nbelow.")
+      . "</p>\n";
+    print form_header ($_SERVER["PHP_SELF"]);
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
-    print '&nbsp;&nbsp;<select title="' . _("Users")
-          . '" name="user_ids[]" size="10" multiple="multiple">';
+    $sel_head = '&nbsp;&nbsp;<select title="' . _("Users")
+      . '" name="user_ids[]" size="10" multiple="multiple">';
+    $select = $sel_head;
     $exists = false;
-    $already_in_squad = array();
-    while ($thisuser = db_fetch_array($result_delusers))
+    $already_in_squad = [];
+    while ($thisuser = db_fetch_array ($result_delusers))
       {
-        print '<option value="' . $thisuser['user_id'] . '">'
-          . $thisuser['realname']
-          . ' &lt;' . $thisuser['user_name'] . "&gt;</option>\n";
+        $select .= form_option ($thisuser['user_id'], null,
+          $thisuser['realname'] . ' &lt;' . $thisuser['user_name'] . "&gt;"
+        );
         $already_in_squad[$thisuser['user_id']] = true;
         $exists = true;
       }
+    $users_none_found = '<h3>' . _("Users") . "</h3>\n<p>" . _("None found") . "</p>\n";
 
-    if (!$exists)
-      print '<option>' . _("None found") . "</option>\n";
-    print '</select>';
-    print "<br />\n" . form_submit(_("Remove Members"), "remove_from_squad")
-          . "</form>\n";
-
+    if ($exists)
+      print "$select</select><br />\n";
+    else
+      print $users_none_found;
+    print form_submit (_("Remove Members"), "remove_from_squad") . "</form>\n";
     print '<h2>' . _("Adding members") . "</h2>\n";
-
     $result_addusers =  db_execute ("
       SELECT user.user_id, user.user_name, user.realname
       FROM user, user_group
@@ -228,32 +229,32 @@ below.") . "</p>\n";
     );
 
     print "<p>"
-. _("To add members to the squad, select their name and push the button below.")
-. "</p>\n";
-    print form_header($_SERVER["PHP_SELF"]);
+      . _("To add members to the squad, select their name and push the button "
+          . "below.")
+      . "</p>\n";
+    print form_header ($_SERVER["PHP_SELF"]);
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
-    print '&nbsp;&nbsp;<select title="' . ("Users")
-      . '" name="user_ids[]" size="10" multiple="multiple">';
+    $select = $sel_head;
     $exists = false;
-    while ($thisuser = db_fetch_array($result_addusers))
+    while ($thisuser = db_fetch_array ($result_addusers))
       {
         # Ignore if previously found as member.
-          if (array_key_exists($thisuser['user_id'], $already_in_squad))
-            continue;
-
-        print "<option value=\"{$thisuser['user_id']}\">{$thisuser['realname']}"
-          . " &lt;{$thisuser['user_name']}&gt;</option>\n";
+        if (array_key_exists ($thisuser['user_id'], $already_in_squad))
+          continue;
+        $select .= form_option ($thisuser['user_id'], null,
+          "{$thisuser['realname']}" . " &lt;{$thisuser['user_name']}&gt;"
+        );
         $exists = true;
       }
 
-    if (!$exists)
-      print '<option>' . _("None found") . "</option>\n";
-    print "</select>\n";
-    print "<br />\n" . form_submit(_("Add Members"), "add_to_squad")
-          . "</form>\n";
+    if ($exists)
+      print "$select</select><br />\n";
+    else
+      print $users_none_found;
+    print form_submit (_("Add Members"), "add_to_squad") . "</form>\n";
     print '<h2>' . _("Setting permissions") . "</h2>\n";
     print "<p><a href=\"userperms.php?group=$group#$squad_name\">"
-          . _("Set Permissions") . "</a></p>\n";
+      . _("Set Permissions") . "</a></p>\n";
     finish_page ();
   } # if ($squad_id)
 
