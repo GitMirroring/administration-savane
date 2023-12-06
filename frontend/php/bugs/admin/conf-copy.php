@@ -62,5 +62,5 @@ if ($update && !in_array ($from_group_id, [0, 100]))
 
 trackers_header_admin (['title' => _("Copy Configuration")]);
 trackers_conf_form ($group_id, ARTIFACT);
-trackers_footer ([]);
+trackers_footer ();
 ?>

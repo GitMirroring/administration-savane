@@ -123,5 +123,5 @@ print html_select_restriction_box (
 print "\n<p align='center'><input type='submit' name='update' value=\""
   . _("Update Permissions") . "\" /></p>\n</form>\n";
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

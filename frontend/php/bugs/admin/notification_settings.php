@@ -119,5 +119,5 @@ if (user_ismember ($group_id, 'A'))
 print "\n<p align='center'><input type='submit' name='submit' class='bold' "
   . 'value="' . _("Submit Changes") . "\" /></p>\n</form>\n";
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

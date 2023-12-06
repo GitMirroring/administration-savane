@@ -148,7 +148,7 @@ function finish_page ()
   trackers_header (["title" => _("Statistics"), "css" => $css]);
   print $page;
   specific_reports_list ($field, $group_id);
-  trackers_footer ([]);
+  trackers_footer ();
   exit (0);
 }
 

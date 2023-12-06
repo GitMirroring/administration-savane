@@ -380,7 +380,7 @@ if ($update_field)
       . _("Update") . "\" />\n&nbsp;&nbsp;\n<input type='submit' "
       . "name='reset' value=\"" . _("Reset to defaults")
       . "\" /></p>\n</form>\n";
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   } # if ($update_field)
 
@@ -458,5 +458,5 @@ if ($inc)
   $hnc = "$tr" . _("UNUSED CUSTOM FIELDS") . "$rule1$hnc";
 print "$hdr$hu$hn$hnc</table>\n";
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

@@ -187,5 +187,5 @@ foreach ($pref_preamble_titles as $pre => $title)
 print '<div class="center"><input type="submit" name="submit" value="'
  . _("Submit") . '" />' . "</div>\n</form>\n";
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

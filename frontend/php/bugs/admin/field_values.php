@@ -664,7 +664,7 @@ if ($list_value)
         );
         print "</b></p>\n";
       }
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   } # if ($list_value)
 if ($update_value)
@@ -738,7 +738,7 @@ if ($update_value)
       . '<input type="submit" name="submit" value="' . _("Submit")
       . "\" />\n</p>\n";
 
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   }
 if ($create_canned || $delete_canned)
@@ -808,7 +808,7 @@ if ($create_canned || $delete_canned)
       . "rows='20' cols='65' wrap='hard'></textarea>\n<div class='center'>\n"
       . '<input type="submit" name="submit" value="' . _("Submit")
       . "\" />\n</div>\n</form>\n";
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   }
 if ($update_canned)
@@ -852,7 +852,7 @@ if ($update_canned)
           . "<input type='submit' name='submit' value=\"" . _("Submit")
           . "\" />\n</div>\n</form>\n";
       }
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   }
 
@@ -896,5 +896,5 @@ print "\n<td>"
 print "\n<td>" . _("Project") . "</td></tr>\n";
 print "</table>\n";
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

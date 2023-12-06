@@ -210,5 +210,5 @@ while ($field_name = trackers_list_all_fields ())
 print "</table>\n"
   . "<p align='center'><input type='submit' name='update' value=\""
   . _("Update") . "\" /></p>\n";
-trackers_footer ([]);
+trackers_footer ();
 ?>

@@ -269,7 +269,7 @@ if ($func == "digestselectfield")
     print_select_dependencies ($i);
 
     print form_footer (_("Submit"));
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   } # if ($func == "digestselectfield")
 
@@ -522,5 +522,5 @@ foreach ($items_for_digest as $item)
   } # foreach ($items_for_digest as $item)
 
 warn_about_hidden ();
-trackers_footer ([]);
+trackers_footer ();
 ?>

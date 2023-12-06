@@ -61,7 +61,7 @@ $result = db_execute ("
 
 if (db_numrows ($result)  <= 0)
   {
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   }
 $res_arr = db_fetch_array ($result);
@@ -1009,5 +1009,5 @@ print html_hidsubpart_header ("history", _("History"));
 show_item_history ($item_id, $group_id);
 print html_hidsubpart_footer ();
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

@@ -64,7 +64,7 @@ if (!$download)
      print "<p><a href=\"export.php?group=$group&amp;download=1\">"
        . _("Download tracker data") . "</a></p>\n";
 
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   }
 $art = ARTIFACT;

@@ -1194,5 +1194,5 @@ else
       . "too restrictive.");
     fb ($msg . ' ' . db_error (), 1);
   }
-trackers_footer ([]);
+trackers_footer ();
 ?>

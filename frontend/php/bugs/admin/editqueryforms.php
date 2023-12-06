@@ -327,7 +327,7 @@ if ($new_report)
       }
     print "</table>\n<p><center><input type='submit' name='submit' value=\""
       . _('Submit') . "\" /></center></p>\n</form>\n";
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   } # if ($new_report)
 
@@ -454,7 +454,7 @@ if ($show_report)
     print "</table>\n"
       . '<p><center><input type="submit" name="submit" value="'
       . _("Submit") . "\" /></center></p>\n</form>\n";
-    trackers_footer ([]);
+    trackers_footer ();
     exit (0);
   } # if ($show_report)
 
@@ -540,5 +540,5 @@ printf (
    "$php_self?group=$group&new_report=1"
 );
 print "</p>\n";
-trackers_footer ([]);
+trackers_footer ();
 ?>

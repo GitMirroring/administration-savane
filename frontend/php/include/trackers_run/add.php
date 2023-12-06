@@ -271,5 +271,5 @@ print form_submit (false, "submit", 'class="bold"');
 print "</div>\n";
 print "</form>\n";
 
-trackers_footer ([]);
+trackers_footer ();
 ?>

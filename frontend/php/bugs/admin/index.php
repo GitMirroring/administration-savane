@@ -129,5 +129,5 @@ print '<p class="smaller">'
 
 print $HTML->box_bottom ();
 print html_splitpage (3);
-trackers_footer ([]);
+trackers_footer ();
 ?>

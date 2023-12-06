@@ -92,7 +92,7 @@ function trackers_header_admin ($params)
   trackers_header ($params, 'a');
 }
 
-function trackers_footer ($params)
+function trackers_footer ($params = [])
 {
   site_project_footer ($params);
 }
