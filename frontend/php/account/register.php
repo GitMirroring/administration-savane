@@ -202,7 +202,8 @@ if ($form_is_valid)
 
     sendmail_mail (
       ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $form_email],
-      [ 'subject' => "$sys_name " . _("Account Registration"),
+      # TRANSLATORS: the argument is the name of the system (like "Savannah").
+      [ 'subject' => sprintf (_("%s account registration"), $sys_name)
         'body' => $message]
     );
 
@@ -262,8 +263,7 @@ if ($sys_registration_text_spam_test)
     print form_input ('text', "form_year", $form_year, 'size="30"');
     print "<br />\n<span class='text'>";
     printf (
-      _("In what year was the GNU project announced? "
-        . "[<a href='%s'>hint</a>]"),
+      _("In what year was the GNU project announced? [<a href='%s'>hint</a>]"),
       'https://www.gnu.org/gnu/gnu-history.html'
     );
     print "</span></p>\n";
