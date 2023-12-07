@@ -203,7 +203,7 @@ if ($form_is_valid)
     sendmail_mail (
       ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $form_email],
       # TRANSLATORS: the argument is the name of the system (like "Savannah").
-      [ 'subject' => sprintf (_("%s account registration"), $sys_name)
+      [ 'subject' => sprintf (_("%s account registration"), $sys_name),
         'body' => $message]
     );
 
