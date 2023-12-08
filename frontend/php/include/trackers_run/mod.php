@@ -52,6 +52,7 @@ require_directory ("search"); # Need search functions.
 
 $fields_per_line = 2;
 $max_size = 40;
+$max_rows = 25;
 $ro_fields = !$is_trackeradmin;
 
 $result = db_execute ("

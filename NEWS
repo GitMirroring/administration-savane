@@ -37,6 +37,9 @@
 ** When adding dependencies to tracker items, the search didn't
    include private items even when accessible.
 
+** When adding dependencies to tracker items, only one item per
+   tracker was shown.
+
 ** Deprecation messages in the captcha library broke the resulting image.
 
 ** The input to add CC was shown to all visitors, even though
