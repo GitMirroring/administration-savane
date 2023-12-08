@@ -360,6 +360,13 @@ function trackers_field_date_operator ($field_name, $value = '', $ro = false)
     . "\" name=\"{$field_name}_op\">$options</select>\n";
 }
 
+function trackers_chunksz_control ()
+{
+  global $chunksz;
+  return html_label ('chunksz', _("Items to show at once:")) . '&nbsp;'
+    . form_input ('text', 'chunksz', $chunksz, 'size="3" maxlength="5"');
+}
+
 function trackers_field_text (
   $field_name, $value = '', $size = 0, $maxlength = 0
 )

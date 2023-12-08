@@ -1063,14 +1063,7 @@ if ($history_search)
     . "&amp;history_date=$history_date";
 
 $form .= '<p class="smaller">';
-$form .=
-  sprintf (
-    _("Items to show at once: %s."),
-    form_input ("text", "chunksz", $wanted_chunksz,
-      'size="3" maxlength="5" title="'
-      . _("Number of items to show at once") . '"')
-  )
-  . ' ';
+$form .= trackers_chunksz_control () . ' ';
 if ($is_trackeradmin)
   $form .=
     sprintf (

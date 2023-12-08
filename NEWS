@@ -28,6 +28,9 @@
 
 * Wrong login diagnostics are improved.
 
+* A facility for displaying inter-item dependencies is added to trackers,
+  /_tacker_/dependencies.php?group=_unix_group_name_, per Savannah sr #110966.
+
 * Canned response selection was replaced with a multiple-selection list;
   previously, it was a single-selection list with an option to call
   a list of checkboxes.

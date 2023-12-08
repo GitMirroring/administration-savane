@@ -121,6 +121,7 @@ Run Time
 * MySQL or MariaDB
 * Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel) - frontend
 * Pwqcheck (passwdqc in Trisquel) - handling new passwords in frontend
+* Graphviz (graphviz in Trisquel) - displaying inter-item dependency graphs.
 
 Documentation
 =============

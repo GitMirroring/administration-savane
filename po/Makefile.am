@@ -18,6 +18,7 @@ POTFILES = \
 	frontend/php/git/index.php \
 	frontend/php/docs/index.php \
 	frontend/php/bugs/item.php \
+	frontend/php/bugs/dependencies.php \
 	frontend/php/bugs/download.php \
 	frontend/php/bugs/export.php \
 	frontend/php/bugs/index.php \
@@ -129,6 +130,7 @@ POTFILES = \
 	frontend/php/include/trackers/data.php \
 	frontend/php/include/trackers/transition.php \
 	frontend/php/include/trackers/votes.php \
+	frontend/php/include/trackers/view-dependencies.php \
 	frontend/php/include/trackers/conf.php \
 	frontend/php/include/i18n.php \
 	frontend/php/include/search/general.php \

@@ -77,6 +77,8 @@ AC_PATH_PROG([MYSQL_BIN], [mysql], [],
   [$PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/usr/local/sbin/])
 AC_SUBST([MYSQL_BIN])
 AC_PATH_PROG(GIT, [git])
+AC_PATH_PROG([GRAPHVIZ_BIN], [dot])
+AC_ARG_VAR([GRAPHVIZ_BIN], [Graphviz executable])
 
 AC_MSG_CHECKING([whether to regenerate ChangeLog])
 AC_ARG_ENABLE([changelog],
@@ -172,6 +174,12 @@ AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
   [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]
 )
+
+AS_CASE(["x$GRAPHVIZ_BIN"], [x],
+  [
+    AS_ECHO(["Note: graphviz is unconfigured."])
+    AS_ECHO(["      Dependency graphs will not be shown."])
+  ])
 
 AS_ECHO([])
 AS_ECHO(["Now you can run"])

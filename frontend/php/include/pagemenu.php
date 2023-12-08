@@ -583,39 +583,26 @@ function pagemenu_group_trackers ($tracker)
   $ret = '';
   $root = "$sys_home$tracker";
   $gr_n = "?group=" . $project->getUnixName ();
+  $write_access = group_restrictions_check ($group_id, $tracker);
+  $export_check = member_check (0, $group_id);
   if (in_array ($tracker, ["bugs", "support", "patch", "task"]))
     {
-      $ret .= pagemenu_submenu_entry (_("Submit new"),
-        $project->get_artifact_url ($tracker, 'additem'),
-        group_restrictions_check ($group_id, $tracker)
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Browse"),
-        $project->get_artifact_url ($tracker)
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Reset to open"),
-        $project->get_artifact_url ($tracker, 'browse&amp;set=open')
-      );
-
-      $ret .= pagemenu_submenu_entry(_("Digest"),
-        $project->get_artifact_url ($tracker, 'digest')
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Export"),
-        $project->get_artifact_url ($tracker, '', 'export.php'),
-        member_check (0, $group_id)
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Get statistics"),
-        $project->get_artifact_url ($tracker, '', 'reporting.php')
-      );
-
-      # At the end of the submenu, for cohesion with the "search" in the
-      # menu that is also at the end.
-      $ret .= pagemenu_submenu_entry (_("Search"),
-        $project->get_artifact_url ($tracker, 'search')
-      );
+      $entries = [
+        [_("Submit new"), 'additem', '', $write_access],
+        [_("Browse"), '', '', 1],
+        [_("Reset to open"), 'browse&amp;set=open', '', 1],
+        [_("Digest"), 'digest', '', 1],
+        [_("Dependencies"), '', 'dependencies.php', 1],
+        [_("Export"), '', 'export.php', $export_check],
+        [_("Get statistics"), '', 'reporting.php', 1],
+        # At the end of the submenu, for cohesion with the "search"
+        # in the menu that is also at the end.
+        [_("Search"), 'search', '', 1]
+      ];
+      foreach ($entries as $e)
+        $ret .= pagemenu_submenu_entry (
+          $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
+        );
     }
   elseif ($tracker == "cookbook")
     {
@@ -629,43 +616,24 @@ function pagemenu_group_trackers ($tracker)
       # use another one for good reasons and we do not have to enforce
       # anything at this point.
       if ($project->Uses ("extralink_documentation"))
-        {
-          $ret .=
-            pagemenu_submenu_entry (_("Browse (External to Savane)"),
-              $project->getUrl ("extralink_documentation"), 1,
-              _("Browse Documentation that is located outside of Savane")
-            )
-            .  pagemenu_submenu_entry_separator ();
-        }
-
-      $ret .= pagemenu_submenu_entry (_("Browse"),
-        $project->get_artifact_url ($tracker)
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Submit"),
-        $project->get_artifact_url ($tracker, 'additem', 'edit.php'),
-        group_restrictions_check ($group_id, $tracker)
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Edit"),
-        $project->get_artifact_url ($tracker, 'browse', 'edit.php'),
-        group_restrictions_check ($group_id, $tracker)
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Digest"),
-        $project->get_artifact_url ($tracker, 'digest', 'edit.php'),
-        _("Digest recipes")
-      );
-
-      $ret .= pagemenu_submenu_entry (_("Export"),
-        $project->get_artifact_url ($tracker, '', 'export.php'),
-        member_check (0, $group_id)
-      );
-      # At the end of the submenu, for cohesion with the "search" in the
-      # menu that is also at the end.
-      $ret .= pagemenu_submenu_entry (_("Search"),
-        $project->get_artifact_url ($tracker, 'search')
-      );
+        $ret .=
+          pagemenu_submenu_entry (_("Browse (External to Savane)"),
+            $project->getUrl ("extralink_documentation"), 1,
+            _("Browse Documentation that is located outside of Savane")
+          )
+          . pagemenu_submenu_entry_separator ();
+      $entries = [
+        [_("Browse"), '', '', 1],
+        [_("Submit"), 'additem', 'edit.php', $write_access],
+        [_("Edit"), 'browse', 'edit.php', $write_access],
+        [_("Digest"), 'digest', 'edit.php', 1],
+        [_("Export"), '', 'export.php', $export_check],
+        [_("Search"), 'search', '', 1]
+      ];
+      foreach ($entries as $e)
+        $ret .= pagemenu_submenu_entry (
+          $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
+        );
       # If it is the site admin project, link to savane-doc.
       if ($group_id == $sys_group_id)
         $ret .= pagemenu_submenu_entry_separator ()
