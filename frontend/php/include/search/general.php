@@ -458,19 +458,17 @@ function search_run (
     {
       $sql = "
         SELECT
-          $tos.bug_id, $tos.summary, $tos.date, $tos.privacy,
-          $tos.submitted_by, user.user_name, $tos.group_id
-        FROM $tos, user, groups
+          t.bug_id, t.summary, t.date, t.privacy,
+          t.submitted_by, user.user_name, t.group_id
+        FROM $tos t, user, groups
         WHERE
-          user.user_id = $tos.submitted_by
-          AND groups.group_id = $tos.group_id ";
+          user.user_id = t.submitted_by AND groups.group_id = t.group_id ";
       if ($tos != 'cookbook')
         # As of 2021, we have no use_cookbook in the groups table.
         $sql .= "AND groups.use_$tos = 1";
 
       list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-        $arr_keywords, [ "$tos.details", "$tos.summary", "$tos.bug_id"],
-        $and_or
+        $arr_keywords, [ "t.details", "t.summary", "t.bug_id"], $and_or
       );
 
       $sql .= " AND $kw_sql ";
@@ -480,12 +478,12 @@ function search_run (
         {
           # $search_without_group_id can be set to avoid restricting search
           # to a group even if group_id is set.
-          $sql .= " AND $tos.group_id = ? ";
+          $sql .= " AND t.group_id = ? ";
           $sql_params[] = $only_group_id;
         }
 
-      $sql .= " AND $tos.spamscore < 5
-        GROUP BY bug_id, summary, date, user_name ORDER BY $tos.date DESC ";
+      $sql .= " AND t.spamscore < 5
+        GROUP BY bug_id, summary, date, user_name ORDER BY t.date DESC ";
     }
 
   $sql .= " LIMIT ?, ?";

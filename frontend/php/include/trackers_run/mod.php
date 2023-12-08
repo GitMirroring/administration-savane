@@ -748,23 +748,23 @@ if ($is_trackeradmin)
                              $res_group) = db_fetch_array ($result_search))
                   {
                     # Avoid item depending on itself.
-                    # Hide private items. For now, they are excluded for
-                    # dependencies. We'll implement that later if necessary.
-                    if ($res_privacy == 2)
+                    # Hide private items unless accessible.
+                    if (
+                      $res_privacy == 2 && !member_check_private (0, $res_group)
+                    )
                       continue;
                     if ($res_id != $item_id || $tracker != ARTIFACT)
                       {
                          # Right now only print id, summary and group.
                          # We may change that depending on users feedback.
                          print "<br />\n";
+                         $label = "$tracker #$res_id: $res_summary, "
+                           . _("group") . ' ' . group_getname ($res_group);
                          print '&nbsp;&nbsp;&nbsp;'
                            . form_checkbox (
                                "dependent_on_{$tracker}[]", 0,
-                               ['value' => $res_id]
-                             )
-                           . " $tracker # $res_id: $res_summary";
-                         print ', ' . _("group") . ' '
-                           . group_getname ($res_group);
+                               ['value' => $res_id, 'label' => $label]
+                             );
                       }
                     }
               } # foreach ($artifacts as $num => $tracker)
