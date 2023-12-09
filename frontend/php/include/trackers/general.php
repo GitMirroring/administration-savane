@@ -1453,7 +1453,7 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
 function trackers_criteria_sanitize ($criteria_list)
 {
   $criteria = explode (',', $criteria_list);
-  $fields = [];
+  $fields = ['bug_id', 'priority']; # These fields are always present.
   while ($field = trackers_list_all_fields ())
     $fields[] = $field;
   $regexp = "/^(" . join ('|', $fields) . ')[<>]?$/';
@@ -1482,38 +1482,47 @@ function trackers_criteria_list_to_query ($criteria_list)
   return $criteria_list;
 }
 
-# Return image name and alt text for sorting order.
-function trackers_sorting_order ($crit)
+function trackers_sorting_order_img ($crit)
 {
+  #TRANSLATORS: this string specifies sorting order.
+  $so = ['image' => 'up', 'text' => _('up')];
   if (substr ($crit, -1) == '>')
     #TRANSLATORS: this string specifies sorting order.
-    return ['image' => 'down', 'text' => _('down')];
-  #TRANSLATORS: this string specifies sorting order.
-  return ['image' => 'up', 'text' => _('up')];
+    $so = ['image' => 'down', 'text' => _('down')];
+  $img_src = "arrows/{$so['image']}.png";
+  return html_image ($img_src,  ['alt' => $so['text'], 'class' => 'icon']);
+}
+
+# Return a single link from the list of criteria
+# built in trackers_criteria_list_to_text ().
+function trackers_sorting_link ($url, $morder, $crit)
+{
+  $field = str_replace (['<', '>'], '', $crit);
+  return "<a href=\"$url&amp;morder=$morder#results\">"
+    . trackers_data_get_label ($field) . '</a>'
+    . trackers_sorting_order_img ($crit);
 }
 
 # Transform criteria list to readable text statement.
 # $url must not contain the morder parameter.
 function trackers_criteria_list_to_text ($criteria_list, $url)
 {
-  if ($criteria_list)
+  if (empty ($criteria_list))
+    return '';
+  $morder = '';
+  foreach (explode (',', $criteria_list) as $crit)
     {
-      $arr = explode(',', $criteria_list);
-      $morder = '';
-
-      foreach ($arr as $crit)
-        {
-          $morder .= ($morder? ",$crit": $crit);
-          $attr = str_replace('>', '', $crit);
-          $attr = str_replace('<', '', $attr);
-          $so = trackers_sorting_order ($crit);
-          $img_src = 'arrows/' . $so['image'] . '.png';
-          $arr_text[] = "<a href=\"$url&amp;morder=$morder#results\">"
-            . trackers_data_get_label ($attr) . '</a>'
-            . html_image ($img_src,  ['alt' => $so['text']]);
-        }
+      $morder .= $crit;
+      $links[] = trackers_sorting_link ($url, $morder, $crit);
+      $morder .= ',';
     }
-  return join (' &gt; ', $arr_text);
+  # The links cut the sequence of ordering at the current field,
+  # which makes no sense for the last item, so we make it change
+  # the order asc <-> desc.
+  $anc = '#results';
+  $last = strtr (end ($links), [">$anc" => "<$anc", "<$anc" => ">$anc"]);
+  $links [key ($links)] = $last;
+  return join (' &gt; ', $links);
 }
 
 function trackers_build_match_expression ($field, &$to_match)

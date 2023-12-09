@@ -55,6 +55,8 @@
 
 ** Labels for radio buttons were broken since 2023-05 (76b235977).
 
+** Sorting by priority in trackers didn't work, Savannah sr #110975.
+
 [BACKEND]
 
 * New commands in sv_membersh, rm and rmdir.

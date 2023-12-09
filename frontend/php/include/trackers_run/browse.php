@@ -698,15 +698,15 @@ if ($morder != '')
           {
             if (!trackers_data_is_used ($field))
               continue;
-
             if (!trackers_data_is_showed_on_result ($field))
               continue;
-
-            if (strcmp ($field, $matching_morder) == 0)
-              $matching_morder = '';
+            if (strcmp ($field, $matching_morder))
+              continue;
+            $matching_morder = '';
+            break;
           }
       }
-    if ($matching_morder == '')
+    if ($matching_morder == '' || $matching_morder == 'priority')
       {
         $fields = trackers_criteria_list_to_query ($morder);
         if (!empty ($fields))
@@ -727,10 +727,7 @@ if ($digest)
 
 function lbl_item ($field, $crit)
 {
-  $so = trackers_sorting_order ($crit);
-  $img = html_image (
-    "arrows/{$so['image']}.png", ['alt' => $so['text'], 'class' => 'icon']
-  );
+  $img = trackers_sorting_order_img ($crit);
   return trackers_data_get_label ($field) . " $img";
 }
 
@@ -781,7 +778,6 @@ while ($field = trackers_list_all_fields ('cmp_place_result'))
           {
             if ($morder == "$field<" || $morder == "$field>")
               {
-                $so = trackers_sorting_order ($morder);
                 $lbl_list[] = lbl_item ($field, $morder);
                 $morder_icon_is_set = 1;
               }
