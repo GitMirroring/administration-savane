@@ -186,7 +186,7 @@ function specific_line ($artifact, $explanation, $use, $increment=1)
     $i++;
   print "<tr>\n";
   $next_td ($i);
-  print "<label for=\"use_$artifact\">$explanation</td>\n";
+  print html_label ("use_$artifact", $explanation) . "</td>\n";
   $next_td ($i);
   # Print the checkbox to de/activate it
   # (viewcvs cannot be activated or deactivated, they are not in the menu).
