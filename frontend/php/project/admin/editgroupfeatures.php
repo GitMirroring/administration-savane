@@ -324,7 +324,7 @@ foreach (
 )
   specific_can_use ($project, $k, $v);
 
-$HTML->box1_bottom();
-print form_footer();
+print "</table>\n";
+print form_footer ();
 site_project_footer(array());
 ?>
