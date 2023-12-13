@@ -51,6 +51,9 @@ require_once ('../include/account.php'); # account_groupnamevalid
 require_once ('../include/group.php'); # getTypeBaseHost()
 require_once ('../include/sendmail.php');
 
+# The messages are not localized since further conversation is supposed
+# to be in English.
+
 # GPLQuickForm validation callback.
 # Make sure the name is not already taken, ignoring incomplete
 # registrations: risks of a name clash seems near 0, while not doing that
@@ -79,105 +82,123 @@ function group_type_exists ($type_id)
 }
 
 session_require (['isloggedin' => '1']);
-# TRANSLATORS: the argument is site name (like Savannah).
-$HTML->header (['title' => sprintf (_("%s hosting request"), $sys_name)]);
+$HTML->header (
+  # TRANSLATORS: the argument is site name (like Savannah).
+  ['title' => sprintf (no_i18n ("%s hosting request"), $sys_name)]
+);
 
 if (db_numrows (db_execute ("SELECT type_id FROM group_type")) < 1)
   {
     # group_type is empty; it's not possible to register groups.
-    print _("No group type has been set. Admins need to create at least one\n"
-            . "group type. They can make it so visiting the link &ldquo;Group "
-            . "Type\nAdmin&rdquo; on the Administration section of the "
-            . "left side menu, while logged\nin as admin.");
+    print no_i18n (
+      "No group type has been set. Admins need to create at least one "
+      . "group type. They can make it so visiting the link &ldquo;Group "
+      . "Type Admin&rdquo; on the Administration section of the "
+      . "left side menu, while logged\nin as admin.");
     $HTML->footer ([]);
     exit (0);
   }
 
 $form = new GPLQuickForm ('change_date');
 
-$form->addElement ('header', 'title_name', _('Group name'));
-$form->addElement ('text', 'full_name', _('Full name'));
-$form->addElement ('text', 'unix_name', _('System name'),
-  _("Used in URLs, mailing list names, etc&mdash;4&ndash;16 characters,\n"
+$form->addElement ('header', 'title_name', no_i18n ('Group name'));
+$form->addElement ('text', 'full_name', no_i18n ('Full name'));
+$form->addElement ('text', 'unix_name', no_i18n ('System name'),
+  no_i18n (
+    "Used in URLs, mailing list names, etc&mdash;4&ndash;16 characters, "
     . "starting with a letter and only containing ASCII letters, digits "
     . "and dashes.  System names should be reasonably descriptive, rather "
-    . "than terse abbreviations\nor confusingly general.")
+    . "than terse abbreviations or confusingly general.")
 );
 
-$form->addElement ('header', 'title_information', _('Package information'));
-$form->addElement ('textarea', 'purpose', _('~20-line technical description'),
-  _("What is your package? (Purpose, topic, programming language...)\n"
+$form->addElement (
+  'header', 'title_information', no_i18n ('Package information')
+);
+$form->addElement ('textarea', 'purpose',
+  no_i18n ('~20-line technical description'),
+  no_i18n ("What is your package? (Purpose, topic, programming language...) "
     . "What is special about it?")
 );
 $types = [];
 $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY type_id");
 while ($line = db_fetch_array ($result))
   $types[$line['type_id']] = gettext ($line['name']);
-$form->addElement ('select', 'group_type', _('Group type'), $types);
+$form->addElement ('select', 'group_type', no_i18n ('Group type'), $types);
 $form->setDefaults (['group_type' => 2]);
-$form->addElement ('select', 'license', _('Package license'), $LICENSE);
-$form->addElement ('textarea', 'license_other', _('Other license, details'));
+$form->addElement ('select', 'license', no_i18n ('Package license'), $LICENSE);
+$form->addElement (
+  'textarea', 'license_other', no_i18n ('Other license, details')
+);
 
-$form->addElement ('header', 'title_checklist', _("Checklist"));
+$form->addElement ('header', 'title_checklist', no_i18n ("Checklist"));
 # <savannah-specific>
 $form->addElement ('checkbox', 'cl1',
-  _('My software runs primarily on a completely free OS'));
+  no_i18n ('My software runs primarily on a completely free OS'));
 $form->addElement ('checkbox', 'cl2',
-  _('My license is compatible with GNU GPLv3 and later '
+  no_i18n ('My license is compatible with GNU GPLv3 and later '
     . 'or GFDLv1.3 and later'));
 $form->addElement ('checkbox', 'cl3',
-  _('My dependencies are compatible with my package license'));
+  no_i18n ('My dependencies are compatible with my package license'));
 $form->addElement ('checkbox', 'cl4',
-  sprintf (_('All my files include <a href="%s">valid copyright notices</a>'),
-    'https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html')
+  sprintf (
+    no_i18n ('All my files include <a href="%s">valid copyright notices</a>'),
+    '//www.gnu.org/prep/maintain/html_node/Copyright-Notices.html')
 );
 $form->addElement ('checkbox', 'cl5',
   sprintf (
-    _("All my files include a <a href=\"%s\">license notice</a>\n"),
+    no_i18n ("All my files include a <a href=\"%s\">license notice</a>\n"),
     '//www.gnu.org/licenses/gpl-howto.html')
 );
 $form->addElement ('checkbox', 'cl6',
-  _('Origin and license of media files is specified'));
+  no_i18n ('Origin and license of media files is specified'));
 $form->addElement ('checkbox', 'cl7',
-  _('My tar file includes a copy of the license'));
+  no_i18n ('My tar file includes a copy of the license'));
 # </savannah-specific>
 $form->addElement ('checkbox', 'cl_foolproof',
-  _("I read carefully and don't check this one"));
+  no_i18n ("I read carefully and don't check this one"));
 $form->addElement ('checkbox', 'cl_requirements',
-  sprintf (_('I agree with the <a href="%s">hosting requirements</a>'),
+  sprintf (no_i18n ('I agree with the <a href="%s">hosting requirements</a>'),
    'requirements.php')
 );
-$form->addElement ('header', 'title_details', _('Details'));
-$form->addElement ('textarea', 'required_sw', _('Dependencies'),
-  _('name + license + website for each dependency')
+$form->addElement ('header', 'title_details', no_i18n ('Details'));
+$form->addElement ('textarea', 'required_sw', no_i18n ('Dependencies'),
+  no_i18n ('name + license + website for each dependency')
 );
-$form->addElement ('textarea', 'comments', _('Other Comments'));
-$form->addElement ('text', 'tarball_url', _('Tarball (.tar.gz) URL'),
+$form->addElement ('textarea', 'comments', no_i18n ('Other Comments'));
+$form->addElement ('text', 'tarball_url', no_i18n ('Tarball (.tar.gz) URL'),
   sprintf (
-    _('(or <a href="%s" target="_blank">upload file</a> to Savannah.)'),
+    no_i18n ('(or <a href="%s" target="_blank">upload file</a> to Savannah.)'),
     'upload.php')
 );
-$form->addElement ('submit', null, _("Register group"));
+$form->addElement ('submit', null, no_i18n ("Register group"));
 
-$form->addRule ('full_name', _("Invalid full name"), 'minlength', 2);
-$form->addRule ('unix_name', _("Invalid system name"), 'callback',
+$form->addRule ('full_name', no_i18n ("Invalid full name"), 'minlength', 2);
+$form->addRule ('unix_name', no_i18n ("Invalid system name"), 'callback',
   'account_groupnamevalid');
-$form->addRule ('unix_name', _("A group with that name already exists."),
+$form->addRule ('unix_name', no_i18n ("A group with that name already exists."),
   'callback', 'group_does_not_already_exist');
-$form->addRule ('license', _("Invalid license"), 'callback', 'license_exists');
-$form->addRule ('group_type', _("Invalid group type"),
-  'callback', 'group_type_exists');
+$form->addRule (
+  'license', no_i18n ("Invalid license"), 'callback', 'license_exists'
+);
+$form->addRule (
+  'group_type', no_i18n ("Invalid group type"), 'callback', 'group_type_exists'
+);
 
 for ($i = 1; $i <= 7; $i++)
-  $form->addRule("cl$i", _("Please recheck your submission"), 'required');
+  $form->addRule (
+    "cl$i", no_i18n ("Please recheck your submission"), 'required'
+  );
 
-$form->addRule ("cl_foolproof", _(":)"), 'maxlength', 0);
-$form->addRule ("cl_requirements", _("Please accept the hosting requirements"),
+$form->addRule ("cl_foolproof", no_i18n (":)"), 'maxlength', 0);
+$form->addRule (
+  "cl_requirements", no_i18n ("Please accept the hosting requirements"),
   'required'
 );
-$form->addRule ('purpose', _("This is too short!"), 'minlength', 30);
+$form->addRule ('purpose', no_i18n ("This is too short!"), 'minlength', 30);
 $form->addRule ('tarball_url',
- _("Please give us a link to your package latest release"), 'minlength', 4);
+  no_i18n ("Please give us a link to your package latest release"),
+  'minlength', 4
+);
 
 if (!$form->validate ())
   {
@@ -204,7 +225,7 @@ db_autoexecute ('groups',
   [
     'group_name' => utils_specialchars ($form_full_name),
     'unix_group_name' => strtolower ($form_values['unix_name']),
-    'status' => 'P', 'is_public' => 1, 'register_time' => time(),
+    'status' => 'P', 'is_public' => 1, 'register_time' => time (),
     'register_purpose' => utils_specialchars ($form_purpose),
     'required_software' => utils_specialchars ($form_required_sw),
     'other_comments' => utils_specialchars ($form_comments),
@@ -220,8 +241,10 @@ $result = db_execute (
 $group_id = db_result ($result, 0, 'group_id');
 $project = project_get_object ($group_id);
 
-if (db_affected_rows($result) < 1)
-  exit_error (_("Unable to update database, please contact administrators"));
+if (db_affected_rows ($result) < 1)
+  exit_error (
+    no_i18n ("Unable to update database, please contact administrators")
+  );
 
 $user_id = user_getid ();
 
@@ -229,7 +252,7 @@ $user_id = user_getid ();
 $result = member_add ($user_id, $group_id, "A");
 
 if (!$result)
-  exit_error (_("Setting you as group admin failed"));
+  exit_error (no_i18n ("Setting you as group admin failed"));
 
 $user_realname = user_getrealname ($user_id);
 $user_email = user_getemail ($user_id);
