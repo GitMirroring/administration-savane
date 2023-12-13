@@ -146,7 +146,7 @@ $headers = [
 ];
 foreach ($headers as $field => $h)
   {
-    $val = str_replace (['\n', '\r'], ' ', $row[$field]);
+    $val = str_replace (["\n", "\r"], ' ', $row[$field]);
     header ("$h$val");
   }
 # Dump file to the browser.
