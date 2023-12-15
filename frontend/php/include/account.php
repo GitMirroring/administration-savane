@@ -540,20 +540,6 @@ function account_nextuid ()
   return ($row[maxid] + 1);
 }
 
-# Print out shell selects.
-function account_shellselects ($current)
-{
-  $shells = file ("/etc/shells");
-  for ($i = 0; $i < count ($shells); $i++)
-    {
-      $this_shell = chop ($shells[$i]);
-      $sel = "";
-      if ($current == $this_shell)
-        $sel = " selected";
-      echo "<option$sel value=$this_shell>$this_shell</option>\n";
-    }
-}
-
 function account_validpw ($stored_pw, $plain_pw)
 {
   if (empty ($stored_pw) || empty ($plain_pw))
