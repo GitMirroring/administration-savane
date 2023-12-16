@@ -731,7 +731,7 @@ $(derived_png): %.png: %.orig.png
 	$(MKDIR_P) `echo "$@" | ${DIRNAME}`
 	convert -resize 24x24 -background white -antialias $< $@
 
-nobase_nodist_frontend_DATA = php/include/ac_config.php $(derived_png)
+nobase_nodist_frontend_DATA = php/include/ac_config.php local.php $(derived_png)
 
 nobase_frontend_DATA = $(extra_dist)
 

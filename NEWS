@@ -2,7 +2,7 @@
 
 [FRONTEND]
 
-* New scripts, sv_frontendctl.pl and sv_sendmail.pl.
+* New scripts, sv_php_server.pl, sv_frontendctl.pl and sv_sendmail.pl.
 
 * New configuration file name, savane.conf.php; when looking
   for the configuration file, it's checked before .savane.conf.php.

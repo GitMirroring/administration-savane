@@ -1,7 +1,6 @@
 #! @PERL@ -I@pkgdatadir@/lib
 #
-# Script for running Savane frontend locally.
-# Invoke apache2 with proper environment.
+# Script for running Savane frontend in the built-in PHP server.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -45,49 +44,42 @@
 
 use strict;
 use Savane::Version;
+use Getopt::Long;
+use Cwd qw (abs_path);
 
 my $port = "@WWW_SERVER_PORT@";
 my $host = "@WWW_SERVER_HOST@";
-
-my $pid_dir = "@apache_rundir@";
-my $log_dir = "@apache_logdir@";
-my $pid_file = "@apache_pid@";
-my $lock_dir = "@apache_lock@";
+my $php_bin = "@PHP@";
 
 my $help =
 "Usage: $0 [OPTIONS]
 
-Invoke Apache2 with proper environment.
+Run frontend in PHP built-in server.
 
   -h, --help         show this help and exit
   -v, --version      show Savane version and exit
-
-Other options are passed to Apache2 (typically, -k graceful).
+      --php-bin      PHP executable [$php_bin]
 
 Configuration:
 
 Host: $host
-Port: $port
-
-APACHE_RUN_USER: @WWW_SERVER_USER@
-APACHE_RUN_GROUP: @WWW_SERVER_GROUP@
-APACHE_LOG_DIR: $log_dir
-APACHE_LOCK_DIR: $lock_dir
-APACHE_PID_FILE: $pid_file";
+Port: $port";
 
 $help .= "\n\nNote: Port is less than 1024; this script needs root privileges."
   if $port < 1024;
 
 PrintVersionOrHelp ($help);
 
-mkdir $pid_dir unless -d $pid_dir;
-mkdir $log_dir unless -d $log_dir;
+GetOptions ("php-bin=s" => \$php_bin) or die ("Wrong command line.");
+
+$php_bin = abs_path ($php_bin);
+
+chdir '@frontenddir@/php';
 
 $ENV{'LANG'} = 'C';
-$ENV{'APACHE_PID_FILE'} = "$pid_file";
-$ENV{'APACHE_RUN_USER'} = "@WWW_SERVER_USER@";
-$ENV{'APACHE_RUN_GROUP'} = "@WWW_SERVER_GROUP@";
-$ENV{'APACHE_LOCK_DIR'} = "$lock_dir";
-$ENV{'APACHE_LOG_DIR'} = "$log_dir";
+$ENV{'SAVANE_CONF'} = '@confdir@';
 
-system ('@WWW_SERVER_BIN@', '-f', '@confdir@/apache.conf', @ARGV);
+system (
+  $php_bin, '-c', '@confdir@/php.ini', '-S', "$host:$port",
+  '-t', "@frontenddir@/php", "@frontenddir@/local.php"
+);

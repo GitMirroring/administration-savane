@@ -22,8 +22,8 @@ backend_bin_scripts = \
   backend/misc/sv_cleaner \
   backend/misc/sv_reminder
 
-frontend_sbin = sv_frontendctl.pl
-frontend_php_built = frontend/php/include/ac_config.php
+frontend_sbin = sv_frontendctl.pl sv_php_server.pl
+frontend_php_built = frontend/php/include/ac_config.php frontend/local.php
 if HAVE_DATABASE
 db_sbin = sv_launch_db.pl sv_kill_db.pl
 endif
@@ -35,7 +35,8 @@ backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
 
 build_time_scripts = db/init-database.pl
 
-conf_files = apache.conf savane.conf.pl membersh-conf.pl savane.conf.php cgitrepos
+conf_files = apache.conf savane.conf.pl membersh-conf.pl php.ini \
+  savane.conf.php cgitrepos
 
 directories = backend/accounts backend/sbin backend/extra/git backend/mail \
   backend/misc db sysconf lib/Savane frontend/php/include
@@ -66,6 +67,7 @@ pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
 logdir = $(pkgstatedir)/log
 rundir = $(runstatedir)/$(PACKAGE)
 apache_logdir = $(logdir)/apache
+php_log_file = sv.php-error.log
 apache_rundir = $(rundir)/apache
 apache_pid = $(apache_rundir)/pid
 apache_lock = $(apache_rundir)/lock
@@ -82,6 +84,7 @@ if HAVE_SENDMAIL
   HAVE_SENDMAIL_VAR = 1
 else
   WWW_SENDMAIL_LINE = php_admin_value sendmail_path "$(bindir)/sv_sendmail.pl"
+  PHP_SENDMAIL_LINE = sendmail_path = "$(bindir)/sv_sendmail.pl"
   HAVE_SENDMAIL_VAR = 0
 endif
 
@@ -99,6 +102,8 @@ subst_in_files = \
     -e 's,[@]WWW_SERVER_PORT[@],$(WWW_SERVER_PORT),g' \
     -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
     -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
+    -e 's,[@]PHP_SENDMAIL_LINE[@],$(PHP_SENDMAIL_LINE),g' \
+    -e 's,[@]PHP[@],$(PHP),g' \
     -e 's,[@]HAVE_SENDMAIL[@],$(HAVE_SENDMAIL_VAR),g' \
     -e 's,[@]ADD_SAMPLE_DB[@],$(ADD_SAMPLE_DB),g' \
     -e 's,[@]GRAPHVIZ_BIN[@],$(GRAPHVIZ_BIN),g' \
@@ -126,6 +131,7 @@ subst_in_files = \
     -e 's,[@]logdir[@],$(logdir),g' \
     -e 's,[@]rundir[@],$(rundir),g' \
     -e 's,[@]apache_logdir[@],$(apache_logdir),g' \
+    -e 's,[@]php_log_file[@],$(php_log_file),g' \
     -e 's,[@]apache_rundir[@],$(apache_rundir),g' \
     -e 's,[@]apache_pid[@],$(apache_pid),g' \
     -e 's,[@]apache_lock[@],$(apache_lock),g' \

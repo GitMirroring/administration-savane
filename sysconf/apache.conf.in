@@ -112,6 +112,6 @@ ServerName @WWW_SERVER_HOST@
 
   # Include deprecation warnings, set the value to E_ALL (32767).
   php_admin_value error_reporting 32767
-  php_admin_value error_log ${APACHE_LOG_DIR}/sv.php-error.log
+  php_admin_value error_log ${APACHE_LOG_DIR}/@php_log_file@
 
 </VirtualHost>

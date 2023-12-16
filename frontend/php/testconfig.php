@@ -608,8 +608,8 @@ print "<p>The following is not required to run Savane, but could enhance\n"
 
 $phptags = [
   'disable_functions' => 'passthru,popen,shell_exec,system',
-  'display_errors' => '1',
-  'error_reporting' => (string)(E_ALL | E_STRICT), 'log_errors' => '1',
+  'display_errors' => '1', 'error_reporting' => (string)(E_ALL),
+  'log_errors' => '1',
 ];
 
 print "\n<table border=\"1\">\n"
