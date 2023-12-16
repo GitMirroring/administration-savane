@@ -272,14 +272,14 @@ class GPLQuickForm
 {
   private $name = '';
   private $method = '';
-  private $in = array();
+  private $in = [];
 
   private $jsWarnings_pref = 'The form is not valid';
   private $jsWarnings_post = '';
-  private $elements = array();
-  private $rules = array();
+  private $elements = [];
+  private $rules = [];
 
-  public function __construct($name='', $method='post')
+  public function __construct ($name='', $method='post')
   {
     $this->name = $name;
     $this->method = $method;
@@ -296,36 +296,33 @@ class GPLQuickForm
       }
   }
 
-  public function setJsWarnings($pref, $post)
+  public function setJsWarnings ($pref, $post)
   {
     $this->jsWarnings_pref = $pref;
     $this->jsWarnings_post = $post;
   }
 
-  public function addElement()
+  public function addElement ()
   {
-    $arg_list = func_get_args();
+    $arg_list = func_get_args ();
 
-    $type = array_shift($arg_list);
-    $name = array_shift($arg_list);
+    $type = array_shift ($arg_list);
+    $name = array_shift ($arg_list);
     $params = $arg_list;
 
-    if (!is_string($type))
+    if (!is_string ($type))
       throw new Exception("Adding elements as objects not supported");
 
-    $this->elements_debug[$name] = array($type, $arg_list);
+    $this->elements[$name] = new GPLQuickForm_Element ($type, $name, $params);
 
-    $this->elements[$name] = new GPLQuickForm_Element($type, $name, $params);
-
-    // Set the value from $_GET/$_POST if available
-    if (isset($this->in[$name]))
-      $this->elements[$name]->setValue($this->in[$name]);
+    # Set the value from $_GET/$_POST if available.
+    if (isset ($this->in[$name]))
+      $this->elements[$name]->setValue ($this->in[$name]);
   }
   public function getElement($name)
   {
     return $this->elements[$name];
   }
-
 
   public function setConstants($constants)
   {
@@ -388,10 +385,10 @@ class GPLQuickForm
   }
   public function validate()
   {
-    $elt_is_valid = array();
+    $elt_is_valid = [];
     $form_is_valid = true;
 
-    if (empty($this->in))
+    if (empty ($this->in))
       # Form not submitted yet.
       return false;
 
@@ -403,64 +400,63 @@ class GPLQuickForm
             $name_array = $name;
             $name = $name_array[0];
           }
-        if (!isset($elt_is_valid[$name]))
+        if (!isset ($elt_is_valid[$name]))
           $elt_is_valid[$name] = true;
         $elt = $this->elements[$name];
+        if (!$elt_is_valid[$name])
+          continue;
 
-        if ($elt_is_valid[$name])
+        $rule_is_valid = false;
+        if (!is_array ($name))
+          $value = $elt->getValue ();
+        if ($value === NULL)
+          $value = '';
+        switch ($type)
           {
-            $rule_is_valid = false;
-            if (!is_array($name))
-              {
-                $value = $elt->getValue();
-              }
-            switch($type)
-              {
-              case 'callback':
-                $callback = $type_param;
-                $rule_is_valid = call_user_func($callback, $value);
-                break;
-              case 'required':
-                $rule_is_valid = !empty($value);
-                break;
-              case 'regex':
-                $pattern = $type_param;
-                $rule_is_valid = preg_match($pattern, $value) > 0;
-                break;
-              case 'nonzero':
-                $rule_is_valid = !preg_match('/^0/', $value);
-                break;
-              case 'lettersonly':
-                $rule_is_valid = preg_match('/^[a-zA-Z]*$/', $value);
-                break;
-              case 'alphanumeric':
-                $rule_is_valid = preg_match('/^[a-zA-Z0-9]*$/', $value);
-                break;
-              case 'minlength':
-                $rule_is_valid = (strlen($value) >= $type_param);
-                break;
-              case 'maxlength':
-                $rule_is_valid = (strlen($value) <= $type_param);
-                break;
-              case 'rangelength':
-                $rule_is_valid = (strlen($value) >= $type_param[0]
-                                  && strlen($value) <= $type_param[1]);
-                break;
-              case 'compare':
-                $name2 = $name_array[1];
-                $elt2 = $this->elements[$name2];
-                $value2 = $elt2->getValue();
-                $rule_is_valid = ($value == $value2);
-                break;
-              default:
-                util_die ("Unsupported rule type: $type");
-              }
-            if (!$rule_is_valid)
-              {
-                $form_is_valid = false;
-                $elt_is_valid[$name] = false;
-                $elt->setError ($error_message);
-              }
+          case 'callback':
+            $callback = $type_param;
+            $rule_is_valid = call_user_func ($callback, $value);
+            break;
+          case 'required':
+            $rule_is_valid = !empty ($value);
+            break;
+          case 'regex':
+            $pattern = $type_param;
+            $rule_is_valid = preg_match ($pattern, $value) > 0;
+            break;
+          case 'nonzero':
+            $rule_is_valid = !preg_match ('/^0/', $value);
+            break;
+          case 'lettersonly':
+            $rule_is_valid = preg_match ('/^[a-zA-Z]*$/', $value);
+            break;
+          case 'alphanumeric':
+            $rule_is_valid = preg_match ('/^[a-zA-Z0-9]*$/', $value);
+            break;
+          case 'minlength':
+            $rule_is_valid = (strlen ($value) >= $type_param);
+            break;
+          case 'maxlength':
+            $rule_is_valid = (strlen ($value) <= $type_param);
+            break;
+          case 'rangelength':
+            $rule_is_valid = (strlen ($value) >= $type_param[0]
+              && strlen ($value) <= $type_param[1]);
+            break;
+          case 'compare':
+            $name2 = $name_array[1];
+            $elt2 = $this->elements[$name2];
+            $value2 = $elt2->getValue ();
+            $rule_is_valid = ($value == $value2);
+            break;
+          default:
+            util_die ("Unsupported rule type: $type");
+          }
+        if (!$rule_is_valid)
+          {
+            $form_is_valid = false;
+            $elt_is_valid[$name] = false;
+            $elt->setError ($error_message);
           }
       }
     return $form_is_valid;

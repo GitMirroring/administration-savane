@@ -635,16 +635,17 @@ function utils_split_emails ($addresses)
   return explode (',', $addresses);
 }
 
-# Email Verification.
 function validate_email ($address)
 {
-  # FIXME: this allows in domain names some characters that are not allowed
+  if (empty ($address))
+    return false;
+  # FIXME: this allows some characters in domain names that are not allowed.
   return (preg_match (',^[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+'. '@'
                       . '[-!#$%&\'*+\\/0-9=?A-Z^_`a-z{|}~]+\.'
                       . '[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+$,', $address));
 }
 
-# Verification of comma separated list of email addresses.
+# Verify comma-separated list of email addresses.
 function validate_emails ($addresses)
 {
   $arr = utils_split_emails ($addresses);
@@ -778,8 +779,10 @@ function utils_setcookie ($name, $value, $expire, $secure = false)
 
 function utils_set_csp_headers ()
 {
-  if (!empty ($GLOBALS['skip_csp_headers']) && $GLOBALS['skip_csp_headers'])
+  global $skip_csp_headers;
+  if (!empty ($skip_csp_headers))
     return;
+  $skip_csp_headers = true; # Only set the headers once.
   # Set up proper use of UTF-8, even if the webserver doesn't serve it by default.
   header('Content-Type: text/html; charset=utf-8');
   # Disallow embedding in any frames.

@@ -70,26 +70,7 @@ extract (sane_import ('get',
   ['strings' => [['func', $functions]], 'path' => ['name']]
 ));
 extract (sane_import ('post', ['digits' => ['repo_no'], 'true' => ['submit']]));
-if (isset ($submit))
-  {
-    if (empty ($repo_no))
-      $repo_no = 0;
-    extract (sane_import ('post',
-      [
-        'specialchars' => ["desc$repo_no"],
-        'path' => ["readme$repo_no"],
-        'true' => ["disable_tarballs$repo_no"]
-      ]
-    ));
-    if (empty (${"disable_tarballs$repo_no"}))
-      $disable_tarballs = 0;
-    else
-      $disable_tarballs = 1;
-    $desc = ${"desc$repo_no"};
-    $readme = ${"readme$repo_no"};
-    if ($readme === null)
-      $readme = '';
-  }
+
 function page_start ()
 {
   global $group_id, $vcs;
@@ -159,28 +140,6 @@ function check_name ()
   exit_error (sprintf (_("Repository %s not found"), $name));
   return false;
 }
-
-$id = repo_html_id ($name);
-$next_location = "Location: $php_self?group=$group_name#$id";
-
-$have_name = check_name ();
-if (isset ($func) && $have_name)
-  {
-    $f = "func_$func";
-    $f ($name);
-    header ($next_location);
-  }
-
-if (isset ($submit) && $have_name)
-  {
-    foreach (
-      ['desc' => $desc, 'readme' => $readme, 'no-tarball' => $disable_tarballs]
-      as $k => $v
-    )
-      if (isset ($v))
-        vcs_set_repo_pref ($vcs, $group_id, $k, $name, $v);
-    $repos = vcs_get_repos ($vcs, $group_id);
-  }
 
 function display_introduction ()
 {
@@ -292,6 +251,47 @@ function display_repos ($repos)
       $repo_no++;
     }
 }
+
+if (isset ($submit))
+  {
+    if (empty ($repo_no))
+      $repo_no = 0;
+    extract (sane_import ('post',
+      [
+        'specialchars' => ["desc$repo_no"],
+        'path' => ["readme$repo_no"],
+        'true' => ["disable_tarballs$repo_no"]
+      ]
+    ));
+    if (empty (${"disable_tarballs$repo_no"}))
+      $disable_tarballs = 0;
+    else
+      $disable_tarballs = 1;
+    $desc = ${"desc$repo_no"};
+    $readme = ${"readme$repo_no"};
+    if ($readme === null)
+      $readme = '';
+  }
+
+$have_name = check_name ();
+if (isset ($func) && $have_name)
+  {
+    $id = repo_html_id ($name);
+    $f = "func_$func";
+    $f ($name);
+    header ("Location: $php_self?group=$group_name#$id");
+  }
+
+if (isset ($submit) && $have_name)
+  {
+    foreach (
+      ['desc' => $desc, 'readme' => $readme, 'no-tarball' => $disable_tarballs]
+      as $k => $v
+    )
+      if (isset ($v))
+        vcs_set_repo_pref ($vcs, $group_id, $k, $name, $v);
+    $repos = vcs_get_repos ($vcs, $group_id);
+  }
 
 page_start ();
 display_introduction ();

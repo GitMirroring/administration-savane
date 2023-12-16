@@ -72,16 +72,28 @@ function sendmail_format_body (&$message, $context)
   $message['body'] = str_replace ("\r\n", "\n", $body);
 }
 
+function sendmail_x_savane_server_header ()
+{
+  $ret = '';
+  if (!empty ($GLOBALS['int_delayspamcheck']))
+    return $ret;
+  foreach (['NAME' => '', 'PORT' => ':', 'ADDR' => ' '] as $key => $sep)
+    {
+      $val = '';
+      $key = "SERVER_$key";
+      if (!empty ($_SERVER[$key]))
+        $val = trim ($_SERVER[$key]);
+      if ($val !== '')
+        $ret .= "$sep$val";
+    }
+  return "X-Savane-Server: $ret\n";
+}
+
 function sendmail_savane_headers ($context)
 {
-  global $int_delayspamcheck;
-
-  $ret = '';
   # Add a signature for the server (not if delayed, because it will be added
   # we the mail will be actually sent).
-  if (empty ($int_delayspamcheck))
-    $ret .= "X-Savane-Server: {$_SERVER['SERVER_NAME']}:"
-       . "{$_SERVER['SERVER_PORT']} [{$_SERVER['SERVER_ADDR']}]\n";
+  $ret = sendmail_x_savane_server_header ();
 
   # Necessary for proper utf-8 support.
   $ret .= "MIME-Version: 1.0\nContent-Type: text/plain;charset=UTF-8\n";

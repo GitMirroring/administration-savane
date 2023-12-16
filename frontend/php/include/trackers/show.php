@@ -384,7 +384,7 @@ function show_dependent_item ($item_id, $dependson = 0)
 
   # Slurps the database.
   $item_exists = false;
-  $item_exists_tracker = false;
+  $item_exists_tracker = [];
   foreach ($artifacts as $art)
     {
       $sql_params = [$item_id];

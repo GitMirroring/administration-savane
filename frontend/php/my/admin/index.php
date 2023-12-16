@@ -137,14 +137,7 @@ print '<p class="smaller">'
 utils_get_content ("account/index_passwd");
 print "</p>\n";
 
-# Get shared key count from DB.
-$expl_keys = explode ("###", $row_user['authorized_keys']);
-
-# If the last 'key' is empty, then it is because of a trailing separator;
-# so do not count it.
-$keynum = (sizeof ($expl_keys));
-if ($expl_keys[$keynum-1] == "")
-  $keynum--;
+$keynum = (count (account_get_authorized_keys ()));
 
 $i = 0;
 function print_box_next_item ()

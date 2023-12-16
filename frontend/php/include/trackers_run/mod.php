@@ -519,7 +519,7 @@ print html_hidsubpart_header ("discussion", _("Discussion"));
 if ($revert_comment_order)
   print form_hidden (['revert_order' => 1]);
 
-$new_comment = false;
+$new_comment = [];
 if ($preview)
   {
     $new_comment['user_id'] = user_getid ();

@@ -42,22 +42,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 $file_dir = dirname (__FILE__);
-
-require_once ("$file_dir/error.php");
-# Autoconf-based:
-require_once ("$file_dir/ac_config.php");
-
-# Database abstraction.
-require_once ("$file_dir/database.php");
-# Security library.
-require_once ("$file_dir/session.php");
-# User functions like get_name, logged_in, etc.
-require_once ("$file_dir/user.php");
-# Title, helper to find out appropriate info depending on the context,
-# like title.
-require_once ("$file_dir/context.php");
-require_once ("$file_dir/exit.php");
-require_once ("$file_dir/utils.php");
+$inc = [
+  'error', 'ac_config', 'database', 'session', 'user', 'context', 'exit',
+  'utils'
+];
+foreach ($inc as $i)
+  require_once ("$file_dir/$i.php");
+unset ($inc);
 
 # Default values, so they cannot be found undefined in the code.
 $sys_name = "Change-This-Site-Name-with-\$sys_name";
@@ -173,11 +164,6 @@ $php_self = utils_specialchars ($_SERVER['PHP_SELF']);
 # this, make the banner work with the headers instead.
 utils_set_csp_headers ();
 utils_update_decimal_separator ();
-
-# Stop a failed assertion.  We don't use much assertions though,
-# because you can't provide additional feedback for debugging (like
-# the value of the invalid variable). Check util_die () instead.
-assert_options (ASSERT_BAIL, 1);
 
 # Source (require) all specific include files of a module from
 # the include area (all include files of a module are arranged

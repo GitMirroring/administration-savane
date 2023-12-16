@@ -171,7 +171,9 @@ site_project_header (
   ['title' => _("Select Features"),'group' => $group_id, 'context' => 'ahome']
 );
 
-$next_td = function (&$i)
+$i = 0;
+
+$next_td = function ($i)
 {
   print ' <td class="' . utils_altrow ($i) . '">';
 };

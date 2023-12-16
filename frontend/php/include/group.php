@@ -78,7 +78,9 @@ class Group extends savane_error
   var $data_array; # Data from db.
   var $type_data_array;
   var $group_id;
+  var $type_id;
   var $db_result; # Database result set handle.
+  var $db_type_result;
   var $perm_data_array; # Permissions data row from db.
   var $is_admin; # Whether the user is an admin/super user of this project.
 

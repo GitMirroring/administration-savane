@@ -217,6 +217,8 @@ function html_anchor ($content, $name)
 
 function html_format_feedback ($f)
 {
+  if (empty ($f))
+    $f = '';
   $f = preg_replace ('/\n*$/', '', $f);
   return nl2br (markup_basic (utils_specialchars ($f)));
 }

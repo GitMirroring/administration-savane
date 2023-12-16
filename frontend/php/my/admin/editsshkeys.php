@@ -41,102 +41,44 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once ('../../include/init.php');
-require_once ('../../include/account.php');
-require_once ('../../include/sendmail.php');
+foreach (['init', 'account', 'sendmail'] as $inc)
+  require_once ("../../include/$inc.php");
 session_require (['isloggedin' => 1]);
 
 extract (sane_import ('post',
-  [
-    'true' => 'update',
-    'array' =>
-      [
-        ['form_authorized_keys', ['digits', 'no_quotes']]
-      ]
-  ]
+  ['true' => 'update', 'array' => [['form_keys', ['digits', 'no_quotes']]]]
 ));
 
 $key_limit = 25; # Maximum key number to register.
 $min_keys = 5; # Minumum key fields to show.
-$key_separator = "###";
+
+$keys = account_get_authorized_keys ();
+$user_id = user_getid ();
 
 if ($update)
   {
     form_check ();
+    $orig_keys = $keys;
     $keys = [];
-    # Build the key string.
     for ($i = 0; $i < $key_limit; $i++)
       {
-        if (!isset ($form_authorized_keys[$i]))
+        if (!isset ($form_keys[$i]))
           continue;
-        $thiskey = $form_authorized_keys[$i];
+        $k = $form_keys[$i];
         # Remove useless blank spaces.
-        $thiskey = trim ($thiskey);
-        $thiskey = str_replace ("\n", "", $thiskey);
-        if ($thiskey !== '' && !in_array ($thiskey, $keys, true))
+        $k = str_replace ("\n", "", trim ($k));
+        if ($k !== '' && !in_array ($k, $keys, true))
           {
             fb (sprintf (_("Key #%s seen"), $i + 1));
-            $keys[] = $thiskey;
+            $keys[] = $k;
           }
       }
-    $keys = join ($key_separator, $keys);
-    # Grab original keys from the database for comparison.
-    $res_orig_keys = db_execute (
-      "SELECT authorized_keys FROM user WHERE user_id = ?", [user_getid ()]
-    );
-    $row_orig_keys = db_fetch_array ($res_orig_keys);
-    $orig_keys = $row_orig_keys['authorized_keys'];
-    $new_keys = array_diff (
-      explode ($key_separator, $keys), explode ($key_separator, $orig_keys)
-    );
+    $new_keys = array_diff ($keys, $orig_keys);
 
     if (count ($new_keys))
-      {
-        $user_id = user_getid ();
-        # TRANSLATORS: the argument is site name (like Savannah).
-        $message = sprintf (
-          _("Someone, presumably you, has changed your SSH keys on %s.\n"
-            . "If it wasn't you, maybe someone is trying to compromise your "
-            . "account..."),
-          $sys_name
-        );
-        # TRANSLATORS: the argument is site name (like Savannah).
-        $message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
-
-        sendmail_mail (
-          [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
-            'to' => user_get_email ($user_id)],
-          [ 'subject' => "$sys_name " . _("SSH key changed on your account"),
-            'body' => $message]
-        );
-      }
-    $success =
-      db_execute (
-        "UPDATE user SET authorized_keys = ? WHERE user_id = ?",
-        [$keys, user_getid ()]
-      );
-    if ($success)
-      {
-        if ($keys == '')
-          fb (_("No key is registered"));
-        else
-          fb (_("Keys registered"));
-      }
-    else
-      fb (_("Error while registering keys"), 1);
+      account_new_keys_alert ($user_id);
+    account_register_keys ($keys, $user_id);
   }
-else # !$update
-  {
-    # Grab keys from the database.
-    $res_keys = db_execute (
-      "SELECT authorized_keys FROM user WHERE user_id = ?",
-      [user_getid ()]
-    );
-    $row_keys = db_fetch_array ($res_keys);
-    $keys = $row_keys['authorized_keys'];
-  }
-
-$form_authorized_keys =  explode ($key_separator, $keys);
 
 # Not valid registration, or first time to page.
 site_user_header (
@@ -151,7 +93,7 @@ print '<p>'
      . "registered is what\nyou expected.")
  . "</p>\n";
 
-$n = count ($form_authorized_keys);
+$n = count ($keys);
 if ($n < $min_keys)
   $n = $min_keys;
 if ($n > $key_limit)
@@ -159,14 +101,13 @@ if ($n > $key_limit)
 
 for ($i = 0; $i < $n; $i++)
   {
-    $thiskey = '';
-    if (isset ($form_authorized_keys[$i]))
-      $thiskey = $form_authorized_keys[$i];
-    print "<span class=\"preinput\"><label for=\"form_authorized_keys[$i]\">";
+    $k = '';
+    if (isset ($keys[$i]))
+      $k = $keys[$i];
+    print "<span class=\"preinput\"><label for=\"form_keys[$i]\">";
     printf (_("Key #%s:"), $i + 1);
-    print "</label></span>\n<input type='text' size='60' "
-      . "id='form_authorized_keys[$i]' name='form_authorized_keys[$i]'\n"
-      . "      value='$thiskey' /><br />\n";
+    print "</label></span>\n<input type='text' size='60' id='form_keys[$i]' "
+      . "name='form_keys[$i]'\n  value='$k' /><br />\n";
   }
 print "<br />\n" . form_footer (_("Update"));
 site_user_footer ([]);

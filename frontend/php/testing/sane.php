@@ -293,6 +293,8 @@ $reference = 'css/graph-widths.php';
   $in['widths'] = '1,2,3,a';
   $out = ['widths' => null];
   test_sane_import ($in, $names, $out);
+  if (!isset ($out['widths']))
+    $out['widths'] = '';
   $w = explode (',', $out['widths']);
   $count = count ($w);
   if ($count > 1)
@@ -1532,16 +1534,13 @@ $reference = 'my/admin/editsshkeys.php';
 {
   $names = [
     'true' => 'update',
-    'array' =>
-      [
-        ['form_authorized_keys', ['digits', 'no_quotes']]
-      ]
+    'array' => [['form_keys', ['digits', 'no_quotes']]]
   ];
   $in = $out = [
-    'form_authorized_keys' => ['a', 'b', 'c', 3 => '"']
+    'form_keys' => ['a', 'b', 'c', 3 => '"']
   ];
   $out['update'] = null;
-  unset ($out['form_authorized_keys'][3]);
+  unset ($out['form_keys'][3]);
   test_sane_import ($in, $names, $out);
 }
 

@@ -42,14 +42,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 $testconfig_php = true;
-include ("include/ac_config.php");
+require_once ("include/ac_config.php");
 $sys_debug_sqlprofiler = false;
 $sys_file_domain = '';
 $sys_linguas = "en:es";
-require_once ("include/i18n.php");
-require_once ("include/database.php");
-require_once ("include/mailman.php");
-require_once ("include/savane-git.php");
+foreach (['i18n', 'database', 'mailman', 'savane-git'] as $inc)
+  require_once ("include/$inc.php");
 
 function return_bytes ($v)
 {
@@ -296,57 +294,57 @@ function test_mailman ()
       . "in \$sys_mailman_wrapper.</strong></p>\n";
 }
 
-print "<?xml version=\"1.0\" encoding=\"utf-8\"?"
+$page = "<?xml version=\"1.0\" encoding=\"utf-8\"?"
   # Separate the previous "?" from ">" to workaround broken syntax
   # highlighting in some editors.
   . ">\n";
-print "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
+$page .= "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
     \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n\n";
 
-print "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en_US\">\n"
-. "<head>\n"
-. "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />\n"
-. "<title>Basic configuration tests</title>\n"
-. "<link rel=\"stylesheet\" type=\"text/css\" "
-. "href=\"/css/internal/testconfig.css\" />\n"
-. "</head>\n\n"
-. "<body>\n";
+$page .= "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en_US\">\n"
+  . "<head>\n"
+  . "<meta http-equiv='content-type' content='text/html; charset=utf-8' />\n"
+  . "<title>Basic configuration tests</title>\n"
+  . "<link rel=\"stylesheet\" type=\"text/css\" "
+  . "href=\"/css/internal/testconfig.css\" />\n"
+  . "</head>\n\n"
+  . "<body>\n";
 
-print "<h1>Basic pre-tests for Savane installation</h1>\n\n";
-if (empty($inside_siteadmin))
-  print "<p>This page should help you to check whether your
-installation is properly configured. It shouldn't display any sensitive
-information, since it could give details about your setup to anybody.</p>\n";
+$page .= "<h1>Basic pre-tests for Savane installation</h1>\n\n";
+if (empty ($inside_siteadmin))
+  $page .= "<p>This page should help you to check whether your installation\n"
+    . "is properly configured. It shouldn't display any sensitive\n"
+    . "information, since it could give details about your setup\n"
+    . "to anybody.</p>\n";
 
-print "\n<h2>Savane source code</h2>\n\n";
+$page .= "\n<h2>Savane source code</h2>\n\n";
 function check_source_code ()
 {
   $commit = git_get_commit ();
   $cgit_url = git_get_savane_url ($commit);
   $tarball_name = git_get_tarball_name ();
   $tarball_url = git_get_tarball_url ();
-  print "<dl>\n";
-  print "<dt>Configured Git commit</dt>\n";
-  print "<dd>{$GLOBALS['ac_git_commit']}</dd>\n";
-  print "<dt>Computed Git commit</dt>\n";
-  print "<dd><a href='$cgit_url'>$commit</a></dd>\n";
-  print "<dt>Tarball</dt>\n";
-  print "<dd><a href='$tarball_url'>$tarball_name</a></dd>\n";
-  print "<dt>Availability</dt>\n<dd>";
+  $ret = "<dl>\n";
+  $ret .= "<dt>Configured Git commit</dt>\n";
+  $ret .= "<dd>{$GLOBALS['ac_git_commit']}</dd>\n";
+  $ret .= "<dt>Computed Git commit</dt>\n";
+  $ret .= "<dd><a href='$cgit_url'>$commit</a></dd>\n";
+  $ret .= "<dt>Tarball</dt>\n";
+  $ret .= "<dd><a href='$tarball_url'>$tarball_name</a></dd>\n";
+  $ret .= "<dt>Availability</dt>\n<dd>";
   if (git_check_tarball ())
-    print "<strong>Fail.  You must make sure you offer the source code "
+    $ret .= "<strong>Fail.  You must make sure you offer the source code "
       . "correctly before making the website available to other "
       . "users.</strong>";
   else
-    print "OK";
-  print "</dd>\n</dl>\n";
+    $ret .= "OK";
+  return "$ret</dd>\n</dl>\n";
 }
+$page .= check_source_code ();
 
-check_source_code ();
+$page .= "\n<h2>Basic PHP configuration</h2>\n\n";
 
-print "\n<h2>Basic PHP configuration</h2>\n\n";
-
-print "<p>PHP version: " . phpversion () . "</p>\n";
+$page .= "<p>PHP version: " . phpversion () . "</p>\n";
 
 # cf. http://php.net/manual/en/ini.php
 $phptags = ['file_uploads' => '1', 'allow_url_fopen' => '1'];
@@ -357,18 +355,18 @@ $all_inis = ini_get_all ();
 define ('PHP_INI_SYSTEM', 4);
 # Cf. http://www.php.net/manual/en/ini.core.php
 
-print "\n<table border=\"1\" summary=\"PHP configuration\">\n";
-print "<tr><th>PHP Tag name</th><th>Local value</th>"
-    . "<th>Suggested value</th></tr>\n";
+$page .= "\n<table border=\"1\" summary=\"PHP configuration\">\n";
+$page .= "<tr><th>PHP Tag name</th><th>Local value</th>"
+  . "<th>Suggested value</th></tr>\n";
 $have_unset = false;
 ksort ($phptags);
 function compare_ini_vals ($tag, $good, $cmp)
 {
-  global $all_inis;
+  global $all_inis, $page;
   $gv = utils_specialchars ($good);
   if (!array_key_exists ($tag, $all_inis))
     {
-      printf (
+      $page .= sprintf (
         "<tr><td>%s</td><td class=\"unset\">Unknown*</td><td>%s</td></tr>\n",
         $tag, $gv
       );
@@ -378,16 +376,18 @@ function compare_ini_vals ($tag, $good, $cmp)
   $t = utils_specialchars ($ini_val);
   if ($cmp ($ini_val, $good))
     {
-      printf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
+      $page .=
+        sprintf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
       return false;
     }
-  printf ("<tr><td>%s</td><td class=\"different\">%s</td><td>%s",
-    $tag, $t, $gv);
+  $page .= sprintf (
+    "<tr><td>%s</td><td class=\"different\">%s</td><td>%s", $tag, $t, $gv
+  );
   if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
-    print " (can be set in php.ini, .htaccess or httpd.conf)";
+    $page .= " (can be set in php.ini, .htaccess or httpd.conf)";
   else
-    print " (can be set in php.ini or httpd.conf, but not in .htaccess)";
-  print "</td></tr>\n";
+    $page .= " (can be set in php.ini or httpd.conf, but not in .htaccess)";
+  $page .= "</td></tr>\n";
   return false;
 }
 
@@ -401,19 +401,20 @@ $cmp = function ($a, $b) { return return_bytes ($a) >= return_bytes ($b); };
 foreach ($phptags as $tag => $good)
   if (compare_ini_vals ($tag, $good, $cmp))
     $have_unset = true;
-print "</table>\n\n";
+$page .= "</table>\n\n";
 if ($have_unset)
-  print "<blockquote>* This tag was not found at all. It is probably "
+  $page .= "<blockquote>* This tag was not found at all. It is probably "
     . "irrelevant to your PHP version so you may ignore this "
     . "entry.</blockquote>\n";
 
-print "\n<h2>PHP functions</h2>\n\n";
+$page .= "\n<h2>PHP functions</h2>\n\n";
 
 $phpfunctions =
   [
     'mysqli_connect' =>
       'You must install/configure php-mysqli ! [REQUIRED]',
-    'gettext' => 'You should install/configure php with gettext support '
+    'gettext' =>
+      'You should install PHP with gettext support (--with-gettext) '
       . '! [RECOMMENDED]',
     'strftime' => 'When this function is dropped from PHP '
       . '(deprecated in 8.1), date output is expected to slow down '
@@ -423,7 +424,7 @@ $phpfunctions =
     'sem_get' =>
       'Semaphores are used in mailman interface (--enable-sysvsem) ! [REQUIRED]'
  ];
-print "<p>";
+$page .= "<p>";
 foreach ($phpfunctions as $func => $comment)
   {
     $funcs = explode ("|", $func);
@@ -435,12 +436,12 @@ foreach ($phpfunctions as $func => $comment)
           break;
         }
     if ($have_func)
-      print "function <strong>$f</strong> exists.<br />\n";
+      $page .= "function <strong>$f</strong> exists.<br />\n";
     else
-      print
+      $page .=
         "function <strong>$func</strong> not found. <em>$comment</em><br />\n";
   }
-print "</p>\n";
+$page .= "</p>\n";
 
 function test_i18n ()
 {
@@ -454,32 +455,32 @@ function test_i18n ()
   i18n_setup ("en_US.UTF-8");
 }
 
-print "\n<h2>Apache environment vars</h2>\n\n<p>";
+$page .= "\n<h2>Apache environment vars</h2>\n\n<p>";
 if (getenv ('SAVANE_CONF'))
   {
     $conf_var = getenv ('SAVANE_CONF');
-    print "SAVANE_CONF configured to $conf_var<br />\n";
+    $page .= "SAVANE_CONF configured to $conf_var<br />\n";
   }
 if (getenv('SV_LOCAL_INC_PREFIX'))
   {
     $conf_var = getenv ('SV_LOCAL_INC_PREFIX');
-    print "SV_LOCAL_INC_PREFIX configured to $conf_var<br />\n";
+    $page .= "SV_LOCAL_INC_PREFIX configured to $conf_var<br />\n";
   }
-print "</p>\n\n<h2>Savane configuration:</h2>\n\n<p>";
+$page .= "</p>\n\n<h2>Savane configuration:</h2>\n\n<p>";
 
 if (empty ($sys_conf_file))
-  print "<strong>sys_conf_file not set!</strong>\n";
+  $page .= "<strong>sys_conf_file not set!</strong>\n";
 else
   {
-    print "sys_conf_file is set to $sys_conf_file<br />\n";
-    print "File <strong>$sys_conf_file</strong> ";
+    $page .= "sys_conf_file is set to $sys_conf_file<br />\n";
+    $page .= "File <strong>$sys_conf_file</strong> ";
 
     if (is_readable ($sys_conf_file))
-      print "exists and is readable.";
+      $page .= "exists and is readable.";
     else
-      print "does not exist or is not readable!";
+      $page .= "does not exist or is not readable!";
   }
-print "</p>\n";
+$page .= "</p>\n";
 
 function test_mysql ()
 {
@@ -532,7 +533,7 @@ function test_mysql ()
 
 function test_sysconfigs ()
 {
-  global $sys_conf_file;
+  global $sys_conf_file, $page;
   include $sys_conf_file;
   $variables = [
     'dbhost', 'dbname', 'dbpasswd', 'dbuser', 'default_domain',
@@ -546,6 +547,8 @@ function test_sysconfigs ()
   ];
   if (empty ($inside_siteadmin))
     utils_set_csp_headers ();
+  print $page;
+  $page = '';
 
   print "<dl>\n";
   foreach ($variables as $tag)
@@ -584,7 +587,7 @@ function test_sysconfigs ()
   test_gpg ();
 }
 
-print "<h2>Configured settings</h2>\n";
+$page .= "<h2>Configured settings</h2>\n";
 
 if (is_readable ($sys_conf_file))
   test_sysconfigs ();
@@ -613,7 +616,7 @@ $cmp = function ($a, $b) { return $a === $b; };
 foreach ($phptags as $tag => $good)
   if (compare_ini_vals ($tag, $good, $cmp))
     $have_unset = true;
-print "</table>\n\n";
+print "$page</table>\n\n";
 if ($have_unset)
   print "<blockquote>* This tag was not found at all. It is probably irrelevant "
        . "to your PHP version so you may ignore this entry.</blockquote>\n\n";

@@ -183,6 +183,8 @@ function account_pwvalid ($newpass, $oldpass = '', $user = '')
 
 function account_realname_valid ($name)
 {
+  if ($name === null)
+    return 0;
   utils_get_content ("forbidden_realnames");
   if (empty ($GLOBALS['forbid_realname_regexp']))
     return 1;
@@ -191,6 +193,8 @@ function account_realname_valid ($name)
 
 function account_sanitize_realname ($name)
 {
+  if (!is_string ($name))
+    return '';
   return strtr ($name, "'\",<", "    ");
 }
 
@@ -493,5 +497,69 @@ function account_validpw ($stored_pw, $plain_pw)
   if (strlen ($stored_pw) < 2) # Disabled account, for sure.
     return false;
   return crypt ($plain_pw, $stored_pw) == $stored_pw;
+}
+
+function account_key_separator ()
+{
+  return '###';
+}
+
+function account_filter_empty_keys ($keys)
+{
+  return array_filter ($keys, function ($x) { return !empty (trim ($x)); });
+}
+
+function account_get_authorized_keys ($uid = 0)
+{
+  if (empty ($uid))
+    $uid = user_getid ();
+  $res = db_execute (
+    "SELECT authorized_keys FROM user WHERE user_id = ?", [$uid]
+  );
+  $row = db_fetch_array ($res);
+  if (empty ($row['authorized_keys']))
+    $row['authorized_keys'] = '';
+  $keys = explode (account_key_separator (), $row['authorized_keys']);
+  return account_filter_empty_keys ($keys);
+}
+
+function account_join_keys ($keys)
+{
+  return join (account_key_separator (), account_filter_empty_keys ($keys));
+}
+
+function account_register_keys ($keys, $uid = 0)
+{
+  $res = db_execute ("UPDATE user SET authorized_keys = ? WHERE user_id = ?",
+    [account_join_keys ($keys), $uid]
+  );
+  if (!$res)
+    {
+      fb (_("Error while registering keys"), 1);
+      return;
+    }
+  if (count ($keys))
+    fb (_("Keys registered"));
+  else
+    fb (_("No key is registered"));
+}
+
+function account_new_keys_alert ($user_id)
+{
+  global $sys_name, $sys_mail_replyto, $sys_mail_domain;
+  $from = "$sys_mail_replyto@$sys_mail_domain";
+  $subject = "$sys_name " . _("SSH key changed on your account");
+  # TRANSLATORS: the argument is site name (like Savannah).
+  $message = sprintf (
+    _("Someone, presumably you, has changed your SSH keys on %s.\n"
+      . "If it wasn't you, maybe someone is trying to compromise your "
+      . "account..."), $sys_name
+  );
+  # TRANSLATORS: the argument is site name (like Savannah).
+  $message .= "\n" . sprintf (_("-- the %s team."), $sys_name) . "\n";
+  sendmail_mail (
+    ['from' => $from, 'to' => user_get_email ($user_id)],
+    ['subject' => $subject, 'body' => $message]
+  );
 }
 ?>

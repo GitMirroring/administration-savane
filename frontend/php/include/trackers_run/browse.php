@@ -100,6 +100,9 @@ $offset = intval ($offset);
 if ($history_field === null)
   $history_field = '0';
 
+if ($morder === null)
+  $morder = '';
+
 $hdr = _('Browse Items');
 
 # Make sure spamscore has a numeric value between 1 and 20

@@ -115,10 +115,8 @@ function trackers_data_get_item_group ($item_id)
   return db_result ($res, 0, 'group_id');
 }
 
-function &trackers_data_get_notification_settings ($group_id, $tracker)
+function trackers_data_get_notification_settings ($group_id, $tracker)
 {
-  assert ('ctype_alnum (strval ($tracker))');
-
   $result = db_execute (
     "SELECT * FROM groups WHERE group_id = ?", [$group_id]
   );
@@ -169,7 +167,7 @@ function trackers_data_show_notification_settings (
   $group_id, $tracker, $show_intro_msg
 )
 {
-  $grtrsettings = &trackers_data_get_notification_settings (
+  $grtrsettings = trackers_data_get_notification_settings (
     $group_id, $tracker
   );
   if (!(user_ismember ($group_id, 'A')))

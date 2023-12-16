@@ -90,7 +90,10 @@ function git_get_tarball_url ()
 # Return non-zero when tarball URL results in an error.
 function git_check_tarball ()
 {
+  # Don't emit warnings when fopen fails.
+  $error_state = utils_disable_warnings (E_WARNING);
   $f = fopen (git_get_tarball_url (), 'r');
+  utils_restore_warnings ($error_state);
   if ($f === false)
     return 1;
   fclose ($f);

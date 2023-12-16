@@ -81,7 +81,7 @@ if ($tod <= $day / 2 && $tod >= $day / 2 - $delta)
 if (!$tod || $tod >= $day - $delta)
   $t0 -= 34 * 60;
 $tod = $t0 % $day;
-$m = $tod / 60;
+$m = intval($tod / 60);
 $hour = intval ($m / 60);
 $minute = $m % 60;
 foreach ($test as $l => $v0)
