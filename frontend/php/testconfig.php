@@ -418,7 +418,9 @@ $phpfunctions =
       . '(deprecated in 8.1), date output is expected to slow down '
       . '! [RECOMMENDED]',
     'ctype_digit' => 'You must have a PHP version supporting ctype '
-      . '(--enable-ctype) ! [REQUIRED]'
+      . '(--enable-ctype) ! [REQUIRED]',
+    'sem_get' =>
+      'Semaphores are used in mailman interface (--enable-sysvsem) ! [REQUIRED]'
  ];
 print "<p>";
 foreach ($phpfunctions as $func => $comment)
