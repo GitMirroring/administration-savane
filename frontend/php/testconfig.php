@@ -412,17 +412,18 @@ $page .= "\n<h2>PHP functions</h2>\n\n";
 $phpfunctions =
   [
     'mysqli_connect' =>
-      'You must install/configure php-mysqli ! [REQUIRED]',
+      'You must install php-mysqli ! [REQUIRED]',
     'gettext' =>
-      'You should install PHP with gettext support (--with-gettext) '
-      . '! [RECOMMENDED]',
+      'You should install PHP with gettext support '
+      . '(--with-gettext --enable-intl) ! [RECOMMENDED]',
     'strftime' => 'When this function is dropped from PHP '
       . '(deprecated in 8.1), date output is expected to slow down '
       . '! [RECOMMENDED]',
     'ctype_digit' => 'You must have a PHP version supporting ctype '
       . '(--enable-ctype) ! [REQUIRED]',
-    'sem_get' =>
-      'Semaphores are used in mailman interface (--enable-sysvsem) ! [REQUIRED]'
+    'imagettfbbox' =>
+      'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
+    'sem_get' => 'Used in mailman interface (--enable-sysvsem) ! [REQUIRED]'
  ];
 $page .= "<p>";
 foreach ($phpfunctions as $func => $comment)
