@@ -344,6 +344,11 @@ function html_label ($for, $title)
   return "<label for='$for'>$title</label>";
 }
 
+function html_h ($no, $title)
+{
+  return "<h$no>$title</h$no>\n";
+}
+
 # Start a list table from an array of titles and builds.
 # The first row of a new table.
 #

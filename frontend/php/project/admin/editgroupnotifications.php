@@ -87,20 +87,15 @@ site_project_header (
 );
 print form_tag () . form_hidden (['group_id' => $group_id]);
 
-function print_h2 ($x)
-{
-  print "<h2>$x</h2>\n";
-}
-
 $show_intro = 1;
 foreach ($artifacts as $art => $label)
   {
-    print_h2 ($label);
+    print html_h (2, $label);
     trackers_data_show_notification_settings ($group_id, $art, $show_intro);
     $show_intro = 0;
     print "<br />\n";
   }
-print_h2 (_("News Manager Email Notification Settings"));
+print html_h (2, _("News Manager Email Notification Settings"));
 print '<span class="preinput">' . _("Carbon-Copy List:")
   . "</span><br />\n&nbsp;&nbsp;"
   . form_input ('text', 'form_news_address', $row_grp['new_news_address'],

@@ -68,18 +68,13 @@ site_project_header (
   ]
 );
 
-$print_h2 = function ($x)
-{
-  print '<h2>' . $x . "</h2>\n";
-};
-
-$print_h2 (_("Support Tracker Configuration Copy"));
+print html_h (2, _("Support Tracker Configuration Copy"));
 conf_form ($group_id, "support");
-$print_h2 (_("Bug Tracker Configuration Copy"));
+print html_h (2, _("Bug Tracker Configuration Copy"));
 conf_form ($group_id, "bugs");
-$print_h2 (_("Task Tracker Configuration Copy"));
+print html_h (2, _("Task Tracker Configuration Copy"));
 conf_form ($group_id, "task");
-$print_h2 (_("Patch Tracker Configuration Copy"));
+print html_h (2, _("Patch Tracker Configuration Copy"));
 conf_form ($group_id, "patch");
 
 site_project_footer ([]);
