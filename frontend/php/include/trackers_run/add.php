@@ -119,10 +119,11 @@ while ($field_name = trackers_list_all_fields ())
       $field_name, $group_id, false, false
     );
     if ($field_name == 'details')
-      $label .=
-        ' <span class="preinput">' . markup_info ("full")
-        . "</span>&nbsp;\n&nbsp;"
-        . form_submit (_('Preview'), 'preview', false, true);
+      {
+        $GLOBALS['int_trapisset'] = true;
+        $label .= ' <span class="preinput">' . markup_info ("full")
+          . "</span>&nbsp;\n&nbsp;" . form_submit (_('Preview'), 'preview');
+      }
 
     $star = '';
     $mandatory_flag = trackers_data_mandatory_flag ($field_name);
@@ -266,7 +267,8 @@ if (!user_isloggedin ())
     . "\n" . form_input ('text', 'check', $check) . "</p>\n";
 
 print '<div align="center">';
-print form_submit (_('Preview'), 'preview', false, true) . '&nbsp;&nbsp;';
+$int_trapisset = true;
+print form_submit (_('Preview'), 'preview') . '&nbsp;&nbsp;';
 print form_submit (false, "submit", 'class="bold"');
 print "</div>\n";
 print "</form>\n";

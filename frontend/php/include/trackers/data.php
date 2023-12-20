@@ -45,10 +45,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace {
+
 $dir_name = dirname (__FILE__);
 require_once ("$dir_name/../trackers/transition.php");
 require_once ("$dir_name/../trackers/cookbook.php");
-require_once (dirname (__FILE__) . '/../utils.php');
+require_once ("$dir_name/../utils.php");
 
 # Get all the possible bug fields for this group both used and unused. If
 # used then show the group specific information about field usage
@@ -365,97 +367,75 @@ function trackers_data_post_notification_settings ($group_id, $tracker)
   return 0;
 }
 
-function trackers_data_get_item_notification_info (
-  $item_id, $artifact, $updated
-)
+function trackers_data_catnotif ($item_id, $artifact, $updated, $newad)
 {
-  $emailad = "";
-  $sendemail = 0;
-  # Get group information bur new entity notification settings.
   $result = db_execute ("
-    SELECT
-      g.{$artifact}_glnotif, g.send_all_{$artifact}, g.new_{$artifact}_address
-    FROM {$artifact} a, groups g
-    WHERE a.bug_id = ?  AND g.group_id = a.group_id",
-    [$item_id]
+    SELECT v.email_ad, v.send_all_flag
+    FROM {$artifact}_field_value v, {$artifact}_field f, $artifact a
+    WHERE
+      a.bug_id = ? AND f.field_name = ? AND v.group_id = a.group_id
+      AND v.bug_field_id = f.bug_field_id AND v.value_id = a.category_id",
+    [$item_id, 'category_id']
   );
+  if (!db_numrows ($result))
+    return $newad;
+  if (db_result ($result, 0, 'send_all_flag') == 1 || !$updated)
+    return [db_result ($result, 0, 'email_ad')];
+  return [];
+}
 
-  $glnotif = db_result ($result, 0, "{$artifact}_glnotif");
-  $glsendall = db_result ($result, 0, "send_all_$artifact");
-  $glnewad = db_result ($result, 0, "new_{$artifact}_address");
-  if ($glnotif != 1)
-    {   # not 'global only'
-      $cat_field_name = "category_id";
+function trackers_data_fetch_item_notif ($item, $art)
+{
+  $result = db_execute ("
+    SELECT g.{$art}_glnotif, g.send_all_{$art}, g.new_{$art}_address
+    FROM {$art} a, groups g
+    WHERE a.bug_id = ? AND g.group_id = a.group_id", [$item]
+  );
+  $row = db_fetch_array ($result);
+  return [
+    $row["{$art}_glnotif"], $row["send_all_$art"], [$row["new_{$art}_address"]]
+  ];
+}
 
-      $result = db_execute ("
-        SELECT v.email_ad, v.send_all_flag
-        FROM {$artifact}_field_value v, {$artifact}_field f, $artifact a
-        WHERE
-          a.bug_id = ?  AND f.field_name = ? AND v.group_id = a.group_id
-        AND v.bug_field_id = f.bug_field_id AND v.value_id = a.category_id",
-        [$item_id, $cat_field_name]
-      );
-      $rows = db_numrows ($result);
-      if ($rows > 0)
-        {
-          $sendallflag = db_result ($result, 0, 'send_all_flag');
-          if (($updated == 0) || (($updated == 1) && ($sendallflag == 1)))
-            $emailad .= db_result ($result, 0, 'email_ad');
-        }
-      else
-        {
-          # Could be that administrator closes category notification and forgot
-          # to define categories BUT in most cases it means the submitter
-          # selected the 'NONE' category for this bug.
-          if (($updated == 0) || (($updated == 1) && ($glsendall == 1)))
-            $emailad .= $glnewad;
-        }
-    }
-  if ($glnotif > 0)
-    {   # not 'category only'
-      if (($updated == 0) || (($updated == 1) && ($glsendall == 1)))
-        {
-          if ($emailad != "")
-            $emailad .= ',';
-          $emailad .= $glnewad;
-        }
-    }
-  if (trim ($emailad) != "")
-    $sendemail = 1;
-  return [$emailad, $sendemail];
+function trackers_data_get_item_notification_info ($item, $artifact, $updated)
+{
+  list ($notif, $sendall, $newad) =
+    trackers_data_fetch_item_notif ($item, $artifact);
+  if ($sendall != 1 && $updated)
+    $newad = [];
+  $addr = [];
+  if ($notif != 1)
+    $addr = trackers_data_catnotif ($item, $artifact, $updated, $newad);
+  if ($notif > 0)
+    $addr = array_merge ($addr, $newad);
+  $addr = trim (join (',', array_unique ($addr)));
+  return [$addr, $addr !== ""];
+}
+
+function trackers_data_cmp ($ar1, $ar2, $field)
+{
+  $place1 = isset ($ar1[$field])? $ar1[$field]: 0;
+  $place2 = isset ($ar2[$field])? $ar2[$field]: 0;
+  if ($place1 < $place2)
+    return -1;
+  if ($place1 > $place2)
+    return 1;
+  return 0;
 }
 
 function cmp_place ($ar1, $ar2)
 {
-  $place1 = isset ($ar1['place']) ? $ar1['place'] : 0;
-  $place2 = isset ($ar2['place']) ? $ar2['place'] : 0;
-  if ($place1 < $place2)
-    return -1;
-  else if ($place1 > $place2)
-    return 1;
-  return 0;
+  return trackers_data_cmp ($ar1, $ar2, 'place');
 }
 
 function cmp_place_query ($ar1, $ar2)
 {
-  $place1 = isset ($ar1['place_query']) ? $ar1['place_query'] : 0;
-  $place2 = isset ($ar2['place_query']) ? $ar2['place_query'] : 0;
-  if ($place1 < $place2)
-    return -1;
-  else if ($place1 > $place2)
-    return 1;
-  return 0;
+  return trackers_data_cmp ($ar1, $ar2, 'place_query');
 }
 
 function cmp_place_result ($ar1, $ar2)
 {
-  $place1 = isset ($ar1['place_result']) ? $ar1['place_result'] : 0;
-  $place2 = isset ($ar2['place_result']) ? $ar2['place_result'] : 0;
-  if ($place1 < $place2)
-    return -1;
-  elseif ($place1 > $place2)
-    return 1;
-  return 0;
+  return trackers_data_cmp ($ar1, $ar2, 'place_result');
 }
 
 # Get all the bug fields involved in the bug report.
@@ -684,6 +664,11 @@ function trackers_data_is_text_field ($field, $by_field_id = false)
 function trackers_data_is_text_area ($field, $by_field_id = false)
 {
   return trackers_data_get_display_type ($field, $by_field_id) == 'TA';
+}
+
+function trackers_data_is_text ($f)
+{
+  return trackers_data_is_text_field ($f) || trackers_data_is_text_area ($f);
 }
 
 function trackers_data_is_select_box ($field, $by_field_id = false)
@@ -1139,13 +1124,6 @@ function trackers_data_get_technicians ($group_id)
   return db_execute ($sql, $uids);
 }
 
-# Get transitions valid for a given tracker as an array.
-# DEPRECATED, moved to transition.php.
-function trackers_data_get_transition ($group_id)
-{
-  return trackers_transition_get_update ($group_id);
-}
-
 function trackers_data_get_submitters ($group_id = false)
 {
   $art = ARTIFACT;
@@ -1352,208 +1330,286 @@ function trackers_data_add_history (
     }
   return $result;
 }
-
-function trackers_data_append_canned_response ($details, $canned_response)
+} # namespace {
+namespace trackers_data {
+function collect_canned_responses ($canned_response)
 {
-  if (
-    $canned_response == 100 || $canned_response == '!multiple!'
-    || empty ($canned_response)
-  )
-    return $details;
-  $separator = "\n\n";
-  if (!empty ($details))
-    $details .= $separator;
-
-  if (!is_array ($canned_response))
-    $canned_response = [$canned_response];
-
-  $any_response_used = false;
+  $responses = [];
   foreach ($canned_response as $response)
     {
       $res = db_execute ("
         SELECT * FROM " . ARTIFACT . "_canned_responses
-        WHERE bug_canned_id = ?",
-        [$response]
+        WHERE bug_canned_id = ?", [$response]
       );
 
-      if (db_numrows ($res) <= 0)
+      if (!db_numrows ($res))
         {
           fb (_("Unable to use canned response"), 1);
           continue;
         }
-      if (!empty ($details))
-        $details .= $separator;
-      $details .= utils_specialchars_decode (
+      $responses[] = utils_specialchars_decode (
         db_result ($res, 0, 'body'), ENT_QUOTES
       );
-      $any_response_used = true;
     }
-  if ($any_response_used)
+  if (count ($responses))
     fb (_("Canned response used"));
-  return $details;
+  return $responses;
+}
+} # namespace trackers_data {
+
+namespace {
+function trackers_data_append_canned_response ($details, $resp_ids)
+{
+  if (empty ($resp_ids) || in_array ($resp_ids, [100, '!multiple!']))
+    return $details;
+  $det = [];
+  if (is_string ($details) && $details !== '')
+    $det = [$details];
+  if (!is_array ($resp_ids))
+    $resp_ids = [$resp_ids];
+  $responses = trackers_data\collect_canned_responses ($resp_ids);
+  return join ("\n\n", array_merge ($det, $responses));
+}
+} # namespace {
+
+namespace trackers_data {
+
+function transition_new_change ($changes, $field)
+{
+  return !isset ($changes[$field]) || !is_array ($changes[$field])
+    || (!array_key_exists ('del', $changes[$field])
+        && !array_key_exists ('add', $changes[$field]));
 }
 
-# Handle update of most usual fields.
-function trackers_data_handle_update (
+function update_changes ($field, $group_id, $old_value, $value, &$changes)
+{
+  $changes[$field]['del'] =
+    trackers_field_display (
+      $field, $group_id, $old_value, false, false, true, true
+    );
+  $changes[$field]['add'] =
+    trackers_field_display (
+      $field, $group_id, $value, false, false, true, true
+    );
+  $changes[$field]['del-val'] = $old_value;
+  $changes[$field]['add-val'] = $value;
+}
+} # namespace trackers_data {
+
+namespace trackers_data\handle_update {
+
+function fetch_data ($group_id, $item_id, $vfl)
+{
+  $missing = [];
+  # Make sure required fields are not empty.
+  if (!$group_id)
+    $missing[] = 'group_id';
+  if (!$item_id)
+    $missing[] = 'item_id';
+  if (count ($missing))
+    exit_missing_param ($missing);
+
+  if (!trackers_check_empty_fields ($vfl, false))
+    return [false, false];
+
+  $res = db_execute (
+    "SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
+  );
+  if (!db_numrows ($res))
+    return [false, false];
+  return [db_fetch_array ($res), trackers_transition_get_update ($group_id)];
+}
+
+function vals_differ ($field, $old_value, $value)
+{
+  if (trackers_data_is_text ($field))
+    return $old_value != utils_specialchars ($value);
+  if (!trackers_data_is_date_field ($field))
+    return $old_value != $value;
+  $date_value = $value;
+  list ($value, $ok) = utils_date_to_unixtime ($value);
+  # Users can be on different timezone; the form saves only the day,
+  # month, year.
+  # We cannot compare the timestamp (affected by timezone changes).
+  $date_old_value = date ("Y-n-j", $old_value);
+  return $date_old_value != $date_value;
+}
+
+function try_transition ($ft, $oldval, $val, $new_change)
+{
+  if (!array_key_exists ($oldval, $ft))
+    return null;
+  if (!array_key_exists ($val, $ft[$oldval]))
+    return null;
+  $id = [];
+  $cc = [$ft[$oldval][$val]['notification_list']];
+  if ($new_change)
+    $id = [$ft[$oldval][$val]['transition_id']];
+  return [$cc, $id];
+}
+
+function transition_id_cc ($field, $oldval, $val, $transition, $changes)
+{
+  $new_change = \trackers_data\transition_new_change ($changes, $field);
+  $field_id = trackers_data_get_field_id ($field);
+  if (!array_key_exists ($field_id, $transition))
+    return [[], []];
+  $ft = $transition[$field_id];
+  $ret = try_transition ($ft, 'any', $val, $new_change);
+  if ($ret !== null)
+    return $ret;
+  $ret = try_transition ($ft, $oldval, $val, $new_change);
+  if ($ret !== null)
+    return $ret;
+  return [[], []];
+}
+
+function update_details ($details, $item_id, $group_id, &$vfl, &$changes)
+{
+  if ($details == '')
+    return 0;
+  fb (_("Comment added"), 0);
+  $dtext = utils_specialchars ($details);
+  if (empty ($vfl['comment_type_id']))
+    $vfl['comment_type_id'] = false;
+  trackers_data_add_history (
+    'details', $dtext, '', $item_id, $vfl['comment_type_id']
+  );
+  $changes['details']['add'] = $dtext;
+  $changes['details']['type'] =
+    trackers_data_get_value (
+      'comment_type_id', $group_id, $vfl['comment_type_id']
+    );
+  if (user_isloggedin () && !user_get_preference ("skipcc_postcomment"))
+    trackers_add_cc ($item_id, user_getid (), "-COM-", $changes);
+  return 1;
+}
+
+function cookbook_change ($details, $previous_details)
+{
+  # We should use "details" but since details are used for comment
+  # (which is really nasty), we simply can't.
+
+  # How should be print the change?
+  # The way we do it here is to show the previous recipe cut to 25 chars
+  # and after the -> we say the number of characters that have been added.
+  $del_cut = utils_cutstring ($previous_details, 25);
+  $change = strlen ($details) - strlen ($previous_details);
+  if ($change >= 0)
+    $change = "+$change";
+  return ["$change chars", $del_cut];
+}
+
+function update_cookbook (
+  $item_id, $group_id, $row, &$vfl, &$changes, &$upd_list
+)
+{
+  if (ARTIFACT != 'cookbook')
+    return 0;
+  $details = utils_specialchars ($vfl['details']);
+  $previous_details = $row['details'];
+
+  if ($details == $previous_details)
+    return 0;
+  $upd_list['details'] = $details;
+  list ($del_cut, $change) = cookbook_change ($details, $previous_details);
+
+  trackers_data_add_history (
+    'realdetails', utils_specialchars ($del_cut),
+    utils_specialchars ($change), $item_id, false, false, true
+  );
+  $changes['realdetails']['add'] = $change;
+  $changes['realdetails']['del'] = $del_cut;
+  return 1;
+}
+
+function transition_not_needed ($field, $row, $value)
+{
+  # Skip over special fields  except for summary which in this
+  # particular case can be processed normally.
+  if (trackers_data_is_special ($field) && ($field != 'summary'))
+    return true;
+
+  # Skip over comment, which is also a special field but not known as
+  # special by the database.
+  if ($field == 'comment')
+    return true;
+
+  return !vals_differ ($field, $row[$field], $value);
+}
+
+function update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists)
+{
+  if (!count ($upd_list))
+    {
+      if ($change_exists)
+        return true;
+      fb (_("No field to update"));
+      # Must return false, otherwise a notif would be sent.
+      return false;
+    }
+  $res = db_autoexecute (ARTIFACT, $upd_list, DB_AUTOQUERY_UPDATE,
+    "bug_id = ? AND group_id = ?", [$item_id, $group_id]
+  );
+  if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
+    trackers_add_cc ($item_id, user_getid (), "-UPD-");
+
+  if (!db_affected_rows ($res))
+    exit_error (_("Item update failed"));
+
+  fb (_("Item successfully updated"));
+  return true;
+}
+
+function update_close_date ($item_id, $vfl, $row, &$upd_list)
+{
+  if (!isset ($vfl['status_id']))
+    return;
+  $st = $vfl['status_id'];
+  if (!trackers_data_is_status_closed ($st))
+    return;
+  if ($st == $row['status_id'])
+    return;
+  $now = time ();
+  $upd_list['close_date'] = $now;
+  trackers_data_add_history ('close_date', $row['close_date'], $now, $item_id);
+}
+
+function handle_update (
   $group_id, $item_id, $dependent_on_task, $dependent_on_bugs,
   $dependent_on_support, $dependent_on_patch, $canned_response, $vfl,
   &$changes, &$extra_addresses
 )
 {
-  # Variable to track changes made inside the function.
-  $change_exists = false;
+  list ($row, $field_transition) = fetch_data ($group_id, $item_id, $vfl);
+  if ($row === false)
+    return;
+  $change_exists = 0;
 
-  # Update an item. Rk: vfl is an variable list of fields, Vary from one
-  # group to another.
-  # Return true if bug updated, false if nothing changed or
-  # DB update failed.
-
-  # Make sure absolutely required fields are not empty.
-  if (!$group_id || !$item_id)
-    exit_missing_param (['group_id', 'item_id']);
-
-  # Make sure mandatory fields are not empty, otherwise we want the form
-  # to be re-submitted.
-  if ((trackers_check_empty_fields ($vfl, false) == false))
-    {
-      # In such circonstances, we reprint the form
-      # highligthing missing fields.
-      # (It is important that trackers_check_empty_fields set the global var
-      # previous_form_bad_fields).
-      return false;
-    }
-
-  # Get this bug from the DB.
-  $result = db_execute (
-    "SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
-  );
-
-  # Extract field transition possibilities:
-  $field_transition = trackers_data_get_transition ($group_id);
-  # We will store in an array the transition_id accepted, to check
-  # other fields updates.
-  $field_transition_accepted = array();
-
-  # See which fields changed during the modification
-  # and if we must keep history then do it. Also add them to the update
-  # statement ($changes was initialized in index, as it is used by other
-  # functions).
-  reset ($vfl);
-  $upd_list = [];
+  $field_transition_accepted = $upd_list = $extra_addr = [];
+  if (trim ($extra_addresses) != '')
+    $extra_addr[] = $extra_addresses;
   foreach ($vfl as $field => $value)
     {
-      # $field_transition_id needed to be reset for every field in the loop
-      # and $field_transition_accepted filled only if $field_transition_id
-      # is not empty (otherwise transition automatic updates risk to be
-      # done by error if a transition is defined for any field!)
-      $field_transition_id = '';
-
-      # Skip over special fields  except for summary which in this
-      # particular case can be processed normally.
-      if (trackers_data_is_special ($field) && ($field != 'summary'))
+      if (transition_not_needed ($field, $row, $value))
         continue;
+      $old_value = $row[$field];
 
-      # Skip over comment, which is also a special field but not known as
-      # special by the database.
-      if ($field == 'comment')
-        continue;
+      list ($trans_cc, $trans_id) = transition_id_cc (
+        $field, $old_value, $value, $field_transition, $changes
+      );
+      $extra_addr = array_merge ($extra_addr, $trans_cc);
+      $field_transition_accepted =
+        array_merge ($field_transition_accepted, $trans_id);
 
-      $old_value = db_result ($result, 0, $field);
+      $upd_list[$field] = $value;
+      if (trackers_data_is_text ($field))
+        $upd_list[$field] = utils_specialchars ($value);
+      trackers_data_add_history ($field, $old_value, $value, $item_id);
 
-      # Handle field transitions checks+cc notif,
-      # register id of transition to execute.
-      $field_id = trackers_data_get_field_id ($field);
-      $field_transition_cc = '';
-      if (array_key_exists ($field_id, $field_transition)
-          # First check basic transition;
-          # check multiple transition, override other transition.
-          && (array_key_exists ($old_value, $field_transition[$field_id])
-              || array_key_exists ("any", $field_transition[$field_id])))
-        {
-          $ft = $field_transition[$field_id];
-          if (array_key_exists ("any", $ft)
-              && array_key_exists ($value, $ft["any"]))
-            {
-              $field_transition_cc = $ft["any"][$value]['notification_list'];
-
-              # Register the transition, but only if the field it is about
-              # was not filled in the form
-              if (!isset ($changes[$field])
-                  || !is_array ($changes[$field])
-                  || (!array_key_exists ('del', $changes[$field])
-                      && !array_key_exists ('add', $changes[$field])))
-                $field_transition_id = $ft["any"][$value]['transition_id'];
-            }
-          elseif (array_key_exists ($old_value, $field_transition[$field_id])
-                   && array_key_exists ($value,
-                                       $field_transition[$field_id][$old_value]))
-            {
-              $field_transition_cc =
-                $field_transition[$field_id][$old_value][$value]['notification_list'];
-
-              # Register the transition, but only if the field it is about
-              # was not filled in the form.
-              if (!is_array ($changes[$field]) ||
-                  (!array_key_exists ('del', $changes[$field])
-                   && !array_key_exists ('add', $changes[$field])))
-                $field_transition_id =
-                  $field_transition[$field_id][$old_value][$value]['transition_id'];
-            }
-        }
-
-      $is_text = (trackers_data_is_text_field ($field)
-                  || trackers_data_is_text_area ($field));
-      if  ($is_text)
-        {
-          $differ = ($old_value != utils_specialchars ($value));
-        }
-      elseif (trackers_data_is_date_field ($field))
-        {
-          $date_value = $value;
-          list ($value,$ok) = utils_date_to_unixtime ($value);
-
-          # Users can be on different timezone ; The form
-          # saves only the day, month, year.
-          # We cannot compare the timestamp (affected by timezone changes).
-          $date_old_value = date ("Y-n-j", $old_value);
-
-          $differ = ($date_old_value != $date_value);
-        }
-      else
-        $differ = $old_value != $value;
-
-      if ($differ)
-        {
-          if (trim ("$extra_addresses$field_transition_cc") != "")
-            $extra_addresses .= ", ";
-          $extra_addresses .= $field_transition_cc;
-
-          if ($is_text)
-            $upd_list[$field] = utils_specialchars ($value);
-          else
-            $upd_list[$field] = $value;
-          trackers_data_add_history ($field, $old_value, $value, $item_id);
-
-          # Keep track of the change.
-          $changes[$field]['del'] =
-            trackers_field_display (
-              $field, $group_id, $old_value, false, false, true, true
-            );
-          $changes[$field]['add'] =
-            trackers_field_display (
-              $field, $group_id, $value, false, false, true, true
-            );
-
-          # Keep track of the change real numeric values.
-          $changes[$field]['del-val'] = $old_value;
-          $changes[$field]['add-val'] = $value;
-
-          # Register transition id, if not empty.
-          if ($field_transition_id != '')
-            {
-              $field_transition_accepted[] = $field_transition_id;
-            }
-        }
+      \trackers_data\update_changes (
+        $field, $group_id, $old_value, $value, $changes
+      );
     } # foreach ($vfl as $field => $value)
 
   # Now we run transitions other fields update. This function does check
@@ -1569,142 +1625,62 @@ function trackers_data_handle_update (
     $vfl['comment'], $canned_response
   );
 
-  # Comment field history is handled a little differently. Followup comments
-  # are added in the bug history along with the comment type.
-  if ($details != '')
-    {
-      $change_exists = 1;
-      fb (_("Comment added"), 0);
-      $dtext = utils_specialchars ($details);
-      if (empty ($vfl['comment_type_id']))
-        $vfl['comment_type_id'] = false;
-      trackers_data_add_history (
-        'details', $dtext, '', $item_id, $vfl['comment_type_id']
-      );
-      $changes['details']['add'] = $dtext;
-      $changes['details']['type'] =
-        trackers_data_get_value (
-          'comment_type_id', $group_id, $vfl['comment_type_id']
-        );
+  $change_exists |= update_details (
+    $details, $item_id, $group_id, $vfl, $changes
+  );
 
-      # Add poster in CC.
-      if (user_isloggedin () && !user_get_preference ("skipcc_postcomment"))
-        trackers_add_cc ($item_id, user_getid (), "-COM-", $changes);
-    }
-
-  # If we are on the cookbook, the original submission have been details.
-  if (ARTIFACT == 'cookbook')
-    {
-      $details = utils_specialchars ($vfl['details']);
-      $previous_details = db_result ($result, 0, 'details');
-
-      if ($details != $previous_details)
-        {
-          $change_exists = 1;
-          $upd_list['details'] = $details;
-          # We should use "details" but since details are used for comment
-          # (which is really nasty), we simply can't.
-
-          # How should be print the change?
-          # The way we do it here is to show the previous recipe cut to 25 chars
-          # and after the -> we say the number of characters that have been added.
-          $del_cut = utils_cutstring ($previous_details, 25);
-          $change = strlen ($details) - strlen ($previous_details);
-          if ($change >= 0)
-            $change = "+$change";
-          $change .= " chars";
-
-          trackers_data_add_history (
-            'realdetails', utils_specialchars ($del_cut),
-            utils_specialchars ($change), $item_id, false, false, true
-          );
-          $changes['realdetails']['add'] = $change;
-          $changes['realdetails']['del'] = $del_cut;
-        }
-    }
-
-  # Enter the timestamp if we are changing to closed or declined
-  # (if not already set).
-  if (isset ($fvl['status_id'])
-      && trackers_data_is_status_closed ($vfl['status_id'])
-      && $vfl['status_id'] != db_result ($result, 0, 'status_id'))
-    {
-      $now = time ();
-      $upd_list['close_date'] = $now;
-      trackers_data_add_history (
-        'close_date', db_result ($result, 0, 'close_date'), $now, $item_id
-      );
-    }
+  $change_exists |= update_cookbook (
+    $item_id, $group_id, $row, $vfl, $changes, $upd_list
+  );
+  update_close_date ($item_id, $vfl, $row, $upd_list);
 
   # Enter new dependencies.
-  $artifacts = ["support", "bugs", "task", "patch"];
+  $artifacts = array_diff (utils_get_tracker_list (), ['cookbook']);
   $address = '';
-  foreach ($artifacts as $dependent_on)
+  foreach ($artifacts as $art)
     {
-      $art = $dependent_on;
-      $dependent_on = "dependent_on_$dependent_on";
-      if ($$dependent_on)
+      $dependent_on = "dependent_on_$art";
+      if (!$$dependent_on)
+        continue;
+      foreach ($$dependent_on as $dep)
         {
-          foreach ($$dependent_on as $dep)
-            {
-              trackers_data_update_dependent_items ($dep, $item_id, $art);
+          trackers_data_update_dependent_items ($dep, $item_id, $art);
+          $changes['Depends on']['add'] = "$art #$dep";
+          $change_exists = 1;
 
-              $changes['Depends on']['add'] = "$art #$dep";
-              $change_exists = 1;
-
-              # Check if we are supposed to send all modifications
-              # to an address.
-              list ($address, $sendall) =
-                trackers_data_get_item_notification_info ($dep, $art, 1);
-              if (($sendall == 1) && (trim ($address) != ""))
-                {
-                  if (trim ($extra_addresses) != "")
-                    {
-                      $extra_addresses .= ", ";
-                    }
-                  $extra_addresses .= $address;
-                }
-            }
+          # Check if we are supposed to send all modifications
+          # to an address.
+          list ($address, $sendall) =
+            trackers_data_get_item_notification_info ($dep, $art, 1);
+          if ($sendall && trim ($address) != "")
+            $extra_addr[] = $address;
         }
     }
+  if (count ($extra_addr))
+    $extra_addresses = join (', ', $extra_addr);
 
-  # If we are on the cookbook, Store related links.
- if (ARTIFACT == 'cookbook')
-   {
-     cookbook_handle_update ($item_id, $group_id);
-   }
+  # If we are on the cookbook, store related links.
+  if (ARTIFACT == 'cookbook')
+    cookbook_handle_update ($item_id, $group_id);
 
-  # Finally, build the full SQL query and update the bug itself (if need be).
-  dbg ("UPD LIST: " . implode (',', $upd_list));
-  if (count ($upd_list) > 0)
-    {
-      $res = db_autoexecute (
-        ARTIFACT, $upd_list, DB_AUTOQUERY_UPDATE,
-        "bug_id = ? AND group_id = ?", [$item_id, $group_id]
-      );
-      $result = db_affected_rows ($res);
+  return update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists);
+}
+} # namespace trackers_data\handle_update {
 
-      # Add CC (CC in case of comment would have been already entered,
-      # if there is only a comment, we should not end up here).
-      if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
-        trackers_add_cc ($item_id, user_getid (), "-UPD-");
-    }
-  else
-    {
-      if ($change_exists)
-        return true;
-      fb (_("No field to update"));
-      # Must return false, otherwise a notif would be sent.
-      return false;
-    }
-
-  if (!$result)
-    {
-      exit_error (_("Item Update failed"));
-      return false;
-    }
-  fb (_("Item Successfully Updated"));
-  return true;
+namespace {
+# Handle update of most usual fields.
+# Return true if updated, false if nothing changed or DB update failed.
+function trackers_data_handle_update (
+  $group_id, $item_id, $dependent_on_task, $dependent_on_bugs,
+  $dependent_on_support, $dependent_on_patch, $canned_response, $vfl,
+  &$changes, &$extra_addresses
+)
+{
+  return trackers_data\handle_update\handle_update (
+    $group_id, $item_id, $dependent_on_task, $dependent_on_bugs,
+    $dependent_on_support, $dependent_on_patch, $canned_response, $vfl,
+    $changes, $extra_addresses
+  );
 }
 
 function trackers_data_reassign_item (
@@ -2023,14 +1999,12 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
     $user = user_getid ();
 
   # Make sure required fields are not empty.
-  if (trackers_check_empty_fields ($vfl) == false)
-    {
-      # In such circumstances, we reprint the form
-      # highligthing missing fields.
-      # (It is important that trackers_check_empty_fields set the global var
-      # previous_form_bad_fields.)
-      return false;
-    }
+  if (!trackers_check_empty_fields ($vfl))
+    # In such circumstances, we reprint the form
+    # highligthing missing fields.
+    # (It is important that trackers_check_empty_fields set the global var
+    # previous_form_bad_fields.)
+    return false;
 
   # Finally, create the bug itself.
   # This SQL query only sets up the values for fields used by
@@ -2038,11 +2012,10 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   # up an appropriate default value (see bug table definition).
 
   # Extract field transition possibilities:
-  $field_transition = trackers_data_get_transition ($group_id);
+  $field_transition = trackers_transition_get_update ($group_id);
   # We shall store in an array the transition_id accepted, to check
   # other field updates.
-  $field_transition_accepted = array();
-  $changes = array();
+  $field_transition_accepted = $changes = [];
 
   # Build the variable list of fields and values.
   # We must add open/closed by ourselves, as it is missing from the
@@ -2078,49 +2051,26 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
                && array_key_exists ($value, $ft["any"]))
              {
                $field_transition_cc = $ft["any"][$value]['notification_list'];
-
-               # Register the transition, but only if the field it is about
-               # was not filled in the form.
-               if (
-                 !is_array ($changes[$field])
-                 || (!array_key_exists ('del', $changes[$field])
-                     && !array_key_exists ('add', $changes[$field]))
-               )
+               if (trackers_data\transition_new_change ($changes, $field))
                  $field_transition_id = $ft["any"][$value]['transition_id'];
              }
-           else if (array_key_exists ("100", $ft)
+           elseif (array_key_exists ("100", $ft)
                     && array_key_exists ($value, $ft["100"]))
              {
                $field_transition_cc = $ft["100"][$value]['notification_list'];
-               # Register the transition, but only if the field it is about
-               # was not filled in the form
-               if (
-                 !is_array ($changes[$field])
-                 || (!array_key_exists ('del', $changes[$field])
-                     && !array_key_exists ('add', $changes[$field]))
-               )
+               if (trackers_data\transition_new_change ($changes, $field))
                  $field_transition_id = $ft["100"][$value]['transition_id'];
              }
         }
 
-      if (trackers_data_is_text_area ($field)
-          || trackers_data_is_text_field ($field))
+      if (trackers_data_is_text ($field))
         $value = utils_specialchars ($value);
       elseif (trackers_data_is_date_field ($field))
         list ($value, $ok) = utils_date_to_unixtime ($value);
 
       $insert_fields[$field] = $value;
 
-      # Keep track of the change:
-      $changes[$field]['del'] =
-        trackers_field_display ($field, $group_id, '', false, false, true, true);
-      $changes[$field]['add'] =
-        trackers_field_display ($field, $group_id, $value, false, false, true,
-                               true);
-
-      $changes[$field]['del-val']= '';
-      $changes[$field]['add-val']= $value;
-
+      trackers_data\update_changes ($field, $group_id, '', $value, $changes);
       # Register transition id.
       $field_transition_accepted[] = $field_transition_id;
 
@@ -2131,9 +2081,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   # Get the default spamscore.
   $spamscore = spam_get_user_score ($user);
   if ($spamscore > 4)
-    {
-      $vfl['summary'] = "[SPAM] " . $vfl['summary'];
-    }
+    $vfl['summary'] = "[SPAM] " . $vfl['summary'];
 
   # Add all special fields that were not handled in the previous block.
   $insert_fields['close_date'] = 0;
@@ -2397,46 +2345,46 @@ function trackers_data_is_watched ($user_id, $watchee_id, $group_id)
   return null;
 }
 
+# Return non-zero when the item doesn't belong to the group.
+function tracker_data_item_out_of_group ($group_id, $item_id)
+{
+  $res = db_execute ("
+    SELECT bug_id FROM " . ARTIFACT . " WHERE bug_id = ? AND group_id = ?",
+    [$item_id, $group_id]
+  );
+  if (db_numrows ($res))
+    return false;
+   # TRANSLATORS: the argument is item id (a number).
+   $msg = sprintf (_("Item #%s doesn't belong to group"), $item_id);
+   fb ($msg, 1);
+   return true;
+}
+
 function trackers_data_delete_file ($group_id, $item_id, $file_id)
 {
   global $sys_trackers_attachments_dir;
-  # Make sure the attachment belongs to the group.
-  $res = db_execute ("
-    SELECT bug_id from " . ARTIFACT . " WHERE bug_id = ? AND group_id = ?",
-    [$item_id, $group_id]
-  );
-  if (db_numrows ($res) <= 0)
-    {
-      # TRANSLATORS: the argument is item id (a number).
-      $msg = sprintf (
-        _("Item #%s doesn't belong to group"), $item_id
-      );
-      fb ($msg, 1);
-      return;
-    }
-
-  $result = false;
+  if (tracker_data_item_out_of_group ($group_id, $item_id))
+    return;
   # Delete the attachment.
-  if (unlink ("$sys_trackers_attachments_dir/$file_id"))
-    $result = db_execute ("
-      DELETE FROM trackers_file WHERE item_id = ?  AND file_id = ?",
-      [$item_id, $file_id]
-    );
+  if (!unlink ("$sys_trackers_attachments_dir/$file_id"))
+    return;
+  $res = db_execute ("
+    DELETE FROM trackers_file WHERE item_id = ? AND file_id = ?",
+    [$item_id, $file_id]
+  );
 
-  if (!$result)
-    {
-      # TRANSLATORS: the argument is file id (a number); the string
-      # shall be followed by database error message.
-      $msg = sprintf (_("Can't delete attachment #%s:"), $file_id);
-      fb ($msg . " " . db_error ($res), 1);
-    }
-  else
+  if ($res)
     {
       fb (_("File successfully deleted"));
       trackers_data_add_history (
         "Attached File", "#$file_id", "Removed", $item_id, 0, 0, 1
       );
+     return;
     }
+  # TRANSLATORS: the argument is file id (a number); the string
+  # shall be followed by database error message.
+  $msg = sprintf (_("Can't delete attachment #%s:"), $file_id);
+  fb ("$msg " . db_error ($res), 1);
 }
 
 function trackers_data_count_field_value_usage (
@@ -2484,4 +2432,5 @@ function trackers_data_quote_comment ($item_id, $quote_no)
   $quote = "\n\n[comment #$quote_no $label]\n$quote";
   return $quote;
 }
+} # namespace {
 ?>

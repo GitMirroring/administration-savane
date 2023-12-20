@@ -339,7 +339,7 @@ sendmail_mail (
   # Send an email to notify the admins of the ite update.
   list ($additional_address, $sendall) =
     trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
-  if ((trim ($address) != "") && (trim ($additional_address) != ""))
+  if ((trim ($address) != "") && $sendall)
     $address .= ", ";
   $address .= $additional_address;
   # Exclude the submitter who has already been sent a notification.

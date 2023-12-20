@@ -81,6 +81,31 @@ function str_match ($needle, $haystack)
   return strpos ($haystack, $needle) !== false;
 }
 
+function field_usable ($group, $field, $field_name)
+{
+  if ($group->CanUse ($field_name))
+    return true;
+  if ($field_name == "extralink_documentation")
+    return true;
+  if ($field == "url_cvs_viewcvs_homepage" && $group->CanUse ("homepage"))
+    return true;
+  foreach (['cvs', 'arch', 'svn', 'git', 'hg', 'bzr'] as $vcs)
+    if ($field == "url_{$vcs}_viewcvs" && $group->CanUse ($vcs))
+      return true;
+  return false;
+}
+
+function type_usable ($group, $type, $field_name, $field)
+{
+  if ($type == "use")
+    return 1;
+  if ($type == "url")
+    return $group->CanModifyUrl ($field_name);
+  return
+    $type == "dir" && $field == "dir_download" && $group->CanUse ("download")
+    && $group->CanModifyDir ("download_dir");
+}
+
 $names = $post_names ();
 extract (sane_import ('post', $names));
 
@@ -92,8 +117,6 @@ if ($query['feedback'])
   fb ($query['feedback'], $query['error']);
 
 $project = project_get_object ($group_id);
-
-# If this was a submission, make updates.
 if ($update)
   {
     #FIXME: feeds the database with default values... instead of checkbox,
@@ -115,38 +138,16 @@ if ($update)
       }
 
     $cases = $get_cases ($names);
-    $upd_list = array();
+    $upd_list = [];
 
     foreach ($cases as $field)
       {
-        $field_name = substr($field, 4, strlen($field));
-        $type = substr($field, 0, 3);
-
-        if ($project->CanUse($field_name)
-            || ($field_name == "extralink_documentation")
-            || ($field == "url_cvs_viewcvs_homepage"
-                && $project->CanUse("homepage"))
-            || ($field == "url_cvs_viewcvs" && $project->CanUse("cvs"))
-            || ($field == "url_arch_viewcvs" && $project->CanUse("arch"))
-            || ($field == "url_svn_viewcvs" && $project->CanUse("svn"))
-            || ($field == "url_git_viewcvs" && $project->CanUse("git"))
-            || ($field == "url_hg_viewcvs" && $project->CanUse("hg"))
-            || ($field == "url_bzr_viewcvs" && $project->CanUse("bzr")))
-          {
-            if ($type == "use")
-              $upd_list[$field] = $$field;
-            elseif ($type == "url")
-              {
-                if ($project->CanModifyUrl($field_name))
-                  $upd_list[$field] = $$field;
-              }
-            elseif ($type == "dir" && $field == "dir_download"
-                    && $project->CanUse("download")
-                    && $project->CanModifyDir("download_dir"))
-              {
-                $upd_list[$field] = $$field;
-              }
-          }
+        $field_name = substr ($field, 4);
+        if (!field_usable ($project, $field, $field_name))
+          continue;
+        $type = substr ($field, 0, 3);
+        if (type_usable ($project, $type, $field_name, $field))
+          $upd_list[$field] = $$field;
       }
 
     if ($upd_list)

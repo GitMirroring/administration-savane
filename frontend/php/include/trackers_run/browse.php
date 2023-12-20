@@ -47,7 +47,7 @@
 
 require_once (dirname (__FILE__) . '/../trackers/show.php');
 
-$preference_prefix = $art = ARTIFACT;
+$art = ARTIFACT;
 extract (sane_import ('get',
   [
     'digits' =>
@@ -215,31 +215,25 @@ if ($history_search)
 # $msort = 1 if multicolumn sort activated.
 #
 # if morder not defined then reuse the one in preferences.
-$order_pref = "{$preference_prefix}_browse_order$group_id";
-$report_pref = "{$preference_prefix}_browse_report$group_id";
-$cust_pref = "{$preference_prefix}_brow_cust$group_id";
+$order_pref = "{$art}_browse_order$group_id";
+$report_pref = "{$art}_browse_report$group_id";
+$cust_pref = "{$art}_brow_cust$group_id";
 if (user_isloggedin () && !isset ($morder))
   $morder = user_get_preference ($order_pref);
 
 if ($order !== null)
   {
-    if (($order != '') && ($order != 'digest'))
-      {
-        # Add the criteria to the list of existing ones
-        $morder = trackers_add_sort_criteria ($morder, $order, $msort);
-      }
+    if (!in_array ($order, ['', 'digest']))
+      # Add the criteria to the list of existing ones.
+      $morder = trackers_add_sort_criteria ($morder, $order, $msort);
     else
-      {
-        # Reset list of sort criteria
-        $morder = '';
-      }
+      # Reset list of sort criteria.
+      $morder = '';
   }
 
 if ($morder != '' && user_isloggedin ())
-  {
-    if ($morder != user_get_preference ($order_pref))
-      user_set_preference ($order_pref, $morder);
-  }
+  if ($morder != user_get_preference ($order_pref))
+    user_set_preference ($order_pref, $morder);
 
 # If the report type is not defined then get it from the user preferences.
 # If it is set then update the user preference.  Also initialize the
@@ -323,11 +317,12 @@ if (!$set)
       } # user_isloggedin ()
   } # !$set
 
+$user_id = user_getid ();
 if ($set == 'my')
   {
     #  My bugs - backwards compat can be removed 9/10.
     $url_params['status_id'][] = 1;
-    $url_params['assigned_to'][] = user_getid ();
+    $url_params['assigned_to'][] = $user_id;
   }
 elseif ($set == 'custom')
   {
@@ -389,25 +384,23 @@ while ($field = trackers_list_all_fields ())
 # Force the selection of privacy, we always want to be sure that no private
 # item title is provided to everybody.
 $full_field_list = $col_list = $width_list = $lbl_list = [];
-$select_count = "SELECT count(DISTINCT $art.bug_id) AS count";
-$select = "SELECT DISTINCT $art.group_id, $art.priority, $art.privacy,
-  $art.status_id, $art.submitted_by";
+$select = [
+  'a.group_id', 'a.priority', 'a.privacy', 'a.status_id', 'a.submitted_by'
+];
 
-$where = "WHERE $art.group_id = ? ";
+$where = "WHERE a.group_id = ?";
 $where_params = [$group_id];
 
-# Take into account the spamscore limit (always shows
-# item posted by the logged in user).
-$spamscore_additional = '';
-$spamscore_additional_params = [];
-if (user_getid () != 100)
+# Take into account the spamscore limit (always show
+# item posted by the logged-in user).
+$where .= " AND (a.spamscore < ?";
+$where_params[] = $spamscore;
+if ($user_id != 100)
   {
-    $spamscore_additional = ' OR submitted_by = ?';
-    $spamscore_additional_params = [user_getid ()];
+    $where .= ' OR a.submitted_by = ?';
+    $where_params[] = $user_id;
   }
-$where .= "AND ($art.spamscore < ? $spamscore_additional) ";
-$spam_params = array_merge ([$spamscore], $spamscore_additional_params);
-$where_params = array_merge ($where_params, $spam_params);
+$where .= ")";
 
 # If the user asked for more than 150 items to be shown,
 # restrict arbitrarily to 150:
@@ -421,9 +414,6 @@ if ($chunksz > 150 && !$digest)
 
 $limit = " LIMIT ?, ?";
 $limit_params = [$offset, $chunksz];
-
-# Prepare the where clause with the selection criteria given by the user.
-reset ($url_params);
 
 # Prepare for summary and original submission as 'special' criteria.
 $summary_search = 0;
@@ -450,7 +440,7 @@ foreach ($url_params as $field => $value_id)
         && !trackers_isvarany ($url_params[$field]))
       {
         # Only select box criteria to where clause if argument is not ANY.
-        $where .= " AND $art.$field "
+        $where .= " AND a.$field "
           . utils_in_placeholders ($url_params[$field]) . ' ';
         $where_params = array_merge ($where_params, $url_params[$field]);
       }
@@ -462,7 +452,7 @@ foreach ($url_params as $field => $value_id)
         $ok = $ok && preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $param, $match_arr);
         if ($ok)
           list (, $year, $month, $day) = $match_arr;
-        $field_defined = " AND $art.$field <> 0 ";
+        $field_defined = " AND a.$field <> 0 ";
 
         if ($advsrch)
           {
@@ -470,12 +460,12 @@ foreach ($url_params as $field => $value_id)
               utils_date_to_unixtime ($url_params["{$field}_end"]);
             if ($ok)
               {
-                $where .= " AND $art.$field >= ?";
+                $where .= " AND a.$field >= ?";
                 $where_params[] = $time;
               }
             if ($ok_end)
               {
-                $where .= " AND $art.$field <= ?";
+                $where .= " AND a.$field <= ?";
                 $where_params[] = $time_end;
               }
             if (!$ok && !$ok_end) # No limits, allow undefined dates.
@@ -490,14 +480,14 @@ foreach ($url_params as $field => $value_id)
               {
                 # '=' means that day between 00:00 and 23:59.
                 $time_end = mktime (23, 59, 59, $month, $day, $year);
-                $where .= " AND $art.$field >= ? AND $art.$field <= ? ";
+                $where .= " AND a.$field >= ? AND a.$field <= ?";
                 $where_params[] = $time;
                 $where_params[] = $time_end;
               }
             else
               {
                 $time = mktime (0, 0, 0, $month, $day + 1, $year);
-                $where .= " AND $art.$field $operator= ? ";
+                $where .= " AND a.$field $operator= ?";
                 $where_params[] = $time;
               }
           }
@@ -523,7 +513,7 @@ foreach ($url_params as $field => $value_id)
             # differently.
             list ($expr, $params) =
               trackers_build_match_expression ($field, $url_params[$field][0]);
-            $where .= " AND $expr ";
+            $where .= " AND $expr";
             $where_params = array_merge ($where_params, $params);
           }
       }
@@ -549,7 +539,7 @@ if ($sumORdet == 1)
         );
         $where .= $expr;
         $where_params = array_merge ($where_params, $params);
-        $where .= ') ) ';
+        $where .= ') )';
       }
     else
       {
@@ -694,7 +684,7 @@ if ($morder != '')
     if (!$msort)
       {
         $matching_morder = preg_replace ('/[<>]$/', '', $morder);
-        while ($field = trackers_list_all_fields ('cmp_place_result'))
+        while ($field = trackers_list_all_fields ())
           {
             if (strcmp ($field, $matching_morder))
               continue;
@@ -707,7 +697,7 @@ if ($morder != '')
             # only supports full iteration.
           }
       }
-    if ($matching_morder == '' || $matching_morder == 'priority')
+    if (in_array ($matching_morder, ['', 'priority']))
       {
         $fields = trackers_criteria_list_to_query ($morder);
         if (!empty ($fields))
@@ -788,32 +778,29 @@ while ($field = trackers_list_all_fields ('cmp_place_result'))
       }
 
     if ($field == 'updated')
-      continue; # This field needs a specific selection, added later.
+      {
+        $select[] = "IFNULL(MAX(upd.date), a.date) AS updated";
+        continue;
+      }
 
     if (!trackers_data_is_username_field ($field))
       {
         # Select column as is.
-        $select .= ", $art.$field";
+        $select[] = "a.$field";
         continue;
       }
     # Display the username instead of the user_id.
-    $select .= ", user_$field.user_name AS $field";
+    $select[] = "user_$field.user_name AS $field";
     $froms[] = "user user_$field";
-    $where .= " AND user_$field.user_id = $art.$field ";
+    $where .= " AND user_$field.user_id = a.$field";
   } # while ($field = trackers_list_all_fields ('cmp_place_result'))
 
 $art_h = "{$art}_history";
 
-$froms_count = $froms;
-$froms_count[] = $art;
+$next_from = "$art a";
 if ($have_last_updated)
-  {
-    $sel = ", IFNULL(MAX(upd.date), $art.date) AS updated";
-    $select .= $sel;
-    $froms[] = "$art LEFT JOIN $art_h upd ON upd.bug_id = $art.bug_id";
-  }
-else
-  $froms[] = $art;
+  $next_from .= " LEFT JOIN $art_h upd ON upd.bug_id = a.bug_id";
+$froms[] = $next_from;
 
 $from_params = [];
 $more_from = '';
@@ -822,40 +809,34 @@ if ($history_search)
     list ($unix_history_date, $ok) = utils_date_to_unixtime ($history_date);
     if ($history_event == "modified")
       {
-        $more_from .= ", $art_h ";
-        $where .= "AND $art_h.bug_id = $art.bug_id AND $art_h.date >= ? ";
+        $froms[] = "$art_h hist";
+        $where .= " AND hist.bug_id = a.bug_id AND hist.date >= ?";
         $where_params[] = $unix_history_date;
         if ($history_field != '0')
           {
-            $where .= " AND $art_h.field_name = ? ";
+            $where .= " AND hist.field_name = ?";
             $where_params[] = $history_field;
           }
       }
     else
       {
         $more_from .= "
-          LEFT JOIN $art_h
-          ON ($art_h.bug_id = $art.bug_id AND $art_h.date >= ?";
+          LEFT JOIN $art_h hist ON (hist.bug_id = a.bug_id AND hist.date >= ?";
         $from_params[] = $unix_history_date;
+        $where .= " AND hist.bug_id IS NULL";
         if ($history_field != '0')
           {
-            $more_from .= " AND $art_h.field_name = ?";
+            $more_from .= " AND hist.field_name = ?";
             $from_params[] = $history_field;
           }
         $more_from .= ') ';
-        $where .= " AND $art_h.bug_id IS NULL";
       }
   }
 
-foreach (['', '_count'] as $suf)
-  {
-    $froms_joint = join (", ", ${"froms$suf"});
-    ${"from$suf"} = "FROM $froms_joint $more_from";
-  }
-
+$from = "FROM " . join (", ", $froms) . $more_from;
 $group_by = '';
 if ($have_last_updated)
-  $group_by .= " GROUP BY $art.bug_id";
+  $group_by .= " GROUP BY a.bug_id";
 
 # Run 2 queries: one to count the total number of results, and the second
 # one with the LIMIT argument. It is faster than selecting all
@@ -863,58 +844,43 @@ if ($have_last_updated)
 # time to transfer all the results from the server to the client.
 # It is also faster than using the SQL_CALC_FOUND_ROWS/FOUND_ROWS()
 # capabilities of MySQL.
-$sql_count = "$select_count $from_count $where";
-$result_count = db_execute (
-  $sql_count, array_merge ($from_params, $where_params)
-);
-$totalrows = db_result ($result_count, 0, 'count');
+$sql = "SELECT count(DISTINCT a.bug_id) AS count $from $where";
+$params = array_merge ($from_params, $where_params);
+$result = db_execute ($sql, $params);
+$totalrows = db_result ($result, 0, 'count');
 
-$sql = "$select $from $where$group_by $order_by $limit";
-$result = db_execute (
-  $sql, array_merge ($from_params, $where_params, $limit_params)
-);
+$select = "SELECT DISTINCT " . join (', ', $select);
+$sql = "$select $from $where $group_by $order_by $limit";
+$result = db_execute ($sql, array_merge ($params, $limit_params));
 
 # Build the array that will be given to the function that make the item
 # list. We cannot simply return the SQL results, since we have to remove
 # private items if necessary and set $totalrows accordingly.
 $result_array = [];
-while ($thisarray = db_fetch_array ($result))
+$skip_priv = !member_check_private (0, $group_id);
+$uname = user_getname ();
+while ($row = db_fetch_array ($result))
   {
-    if (!isset ($thisarray['bug_id']))
-      {
-        $error_msg = 'no bug_id in result; $thisarray: ';
-        foreach ($thisarray as $idx => $val)
-          $error_msg .= " [$idx] => '$val'";
-        trigger_error ($error_msg);
-      }
-    # Get the id.
-    $thisitem_id = $thisarray['bug_id'];
-
-    # Do not show private item, apart to technician level members
-    # and submitter.
-    if ($thisarray['privacy'] == '2'
-        && !member_check_private (0, $group_id)
-        && $thisarray['submitted_by'] != user_getname ())
+    $id = $row['bug_id'];
+    if ($row['privacy'] == '2' && $skip_priv && $row['submitted_by'] != $uname)
       {
         $totalrows--;
         continue;
       }
-
-  # Build a specific array for each item.
-  $result_array[$thisitem_id] = [];
+  $result_array[$id] = [];
 
   # Always store the group, it may be necessary later, in case we actually
   # look for items from different projects.
-  $result_array[$thisitem_id]["group_id"] = $thisarray["group_id"];
+  $result_array[$id]["group_id"] = $row["group_id"];
 
   # Store each field that will be necessary later.
   foreach ($full_field_list as $f)
     {
-      $result_array[$thisitem_id][$f] = null;
-      if (isset ($thisarray[$f]))
-        $result_array[$thisitem_id][$f] = $thisarray[$f];
+      $result_array[$id][$f] = null;
+      if (isset ($row[$f]))
+        $result_array[$id][$f] = $row[$f];
     }
-  } # while ($thisarray = db_fetch_array ($result))
+  } # while ($row = db_fetch_array ($result))
 
 # Display the HTML search form.
 
@@ -931,7 +897,7 @@ $form = form_hidden (
 );
 
 # Show the list of available bug reports kind.
-$res_report = trackers_data_get_reports ($group_id, user_getid ());
+$res_report = trackers_data_get_reports ($group_id, $user_id);
 $show_100 = true;
 $form_query_type = html_build_select_box (
   $res_report, 'report_id', $report_id, $show_100,
@@ -1177,7 +1143,7 @@ if ($digest)
 if ($totalrows > 0)
   {
     show_item_list ($result_array, $offset, $totalrows, $col_list,
-      $lbl_list, $width_list, $url, false);
+      $lbl_list, $width_list, $url);
     if ($digest)
       print form_footer (_("Proceed to Digest next step"));
     show_priority_colors_key ();

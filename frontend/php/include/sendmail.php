@@ -120,11 +120,15 @@ function sendmail_msgid_headers ($context)
   if (empty ($context['tracker']) || empty ($context['item']))
     return $headers;
   $tracker = $context['tracker']; $item_id = $context['item'];
-  $headers .= "References: " . trackers_get_msgid ($tracker, $item_id) . "\n";
-  $headers .= "In-Reply-To: "
-    . trackers_get_msgid ($tracker, $item_id, true) . "\n";
+  $refs = trackers_get_msgid ($tracker, $item_id);
+  if (count ($refs))
+    {
+      $headers .= "References: " . join (' ', $refs) . "\n";
+      # This code assumes that it's the latest message that's
+      # replied to, which may be wrong, actually.
+      $headers .= "In-Reply-To: {$refs[0]}\n";
+    }
   trackers_register_msgid ($msg_id, $tracker, $item_id);
-
   return $headers;
 }
 

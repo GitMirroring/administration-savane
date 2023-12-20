@@ -115,16 +115,16 @@ if (!group_restrictions_check ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT))
     $enable_comments = false;
   }
 
-trackers_header ([
-  'title' =>
-     "$item_name, " . utils_cutstring ($res_arr['summary'])
-]);
+trackers_header (
+  ['title' => "$item_name, " . utils_cutstring ($res_arr['summary'])]
+);
 
 # Check if the user have a specific role.
-$check_member = function ($group_id, $artifact, $role, $strict = 1)
+$check_member = function ($role)
 {
-  $flag = member_create_tracker_flag ($artifact) . $role;
-  return member_check (0, $group_id, $flag,  $strict);
+  global $group_id;
+  $flag = member_create_tracker_flag (ARTIFACT) . $role;
+  return member_check (0, $group_id, $flag);
 };
 $member_help = function ($title, $arr)
 {
@@ -132,7 +132,8 @@ $member_help = function ($title, $arr)
   print help ($title, $arr);
   print "</p>\n";
 };
-if ($check_member ($group_id, ARTIFACT, '2'))
+$is_manager = $check_member ('3');
+if ($check_member ('2'))
   $member_help (
     _("You are both technician and manager for this tracker."),
     [
@@ -141,7 +142,7 @@ if ($check_member ($group_id, ARTIFACT, '2'))
      _("manager") => _("fully manage the items"),
     ]
   );
-elseif ($check_member ($group_id, ARTIFACT, '1'))
+elseif ($check_member ('1'))
   $member_help (
     _("You are technician for this tracker."),
     [
@@ -150,7 +151,7 @@ elseif ($check_member ($group_id, ARTIFACT, '1'))
           . "items, change priority, open nor close")
     ]
   );
-elseif ($check_member ($group_id, ARTIFACT, '3'))
+elseif ($is_manager)
   $member_help (
     _("You are manager for this tracker."),
     [
@@ -160,9 +161,10 @@ elseif ($check_member ($group_id, ARTIFACT, '3'))
           . "groups, changing priority, opening and closing items")
     ]
   );
+unset ($check_member);
 
 if (!empty ($private_intro))
-  print '<p>' . $private_intro . "</p>\n";
+  print "<p>$private_intro</p>\n";
 
 $class = utils_get_priority_color (
   $res_arr['priority'], $res_arr['status_id']
@@ -187,9 +189,6 @@ if ($enable_comments)
 #
 #  | Label:  Value________| Label:  Value______ |
 #  | Label:  Value_____________________________ |
-#
-#  So we have 4 column large via colspan.
-
 $button_attr =
   "colspan='$fields_per_line' width='50%' align='center' valign='top'";
 
@@ -199,15 +198,13 @@ print "\n\n<table cellpadding='0' width='100%'>\n"
   . utils_user_link (user_getname ($submitter), user_getrealname ($submitter))
   . "</td>\n<td $button_attr><span class='noprint'>"
   . form_submit (_("Submit changes and browse items"), "submit", 'class="bold"')
-  . "</span></td>\n</tr>\n<tr>\n"
-  . '<td class="preinput" width="15%">'
+  . "</span></td>\n</tr>\n<tr>\n<td class='preinput' width='15%'>"
   # TRANSLATORS: This is a label for dates.
   . _("Submitted:") . "&nbsp;</td>\n<td width='35%'>"
   . utils_format_date ($res_arr['date'])
   . "</td>\n<td $button_attr><span class='noprint'>"
   . form_submit (_("Submit changes and return to this item"), "submitreturn")
   . "</span></td>\n</tr>\n";
-
 print "\n<tr>\n<td class='preinput' width='15%'>";
 $votes = $res_arr['vote'];
 if ($votes)
@@ -222,11 +219,24 @@ print '<tr><td colspan="' . ($fields_per_line * 2) . "\">&nbsp;</td></tr>\n";
 
 # Now display the variable part of the field list (depend on the group).
 # Some fields must be displayed differently according to the user role.
-$is_manager = $check_member ($group_id, ARTIFACT, '3', 0);
 
-# Variables that will be used afterwards.
+function mandatory_sign ($submitter, $field)
+{
+  global $group_id, $enable_comments;
+  if (!$enable_comments)
+    return '';
+  $star = '<span class="warn"> *</span>';
+  $flag = trackers_data_mandatory_flag ($field);
+  if ($flag == 3)
+    return $star;
+  if ($flag != 0)
+    return '';
+  if (trackers_check_is_shown_to_submitter ($field, $group_id, $submitter))
+    return $star;
+  return '';
+}
+
 $item_assigned_to = null;
-
 $i = 0; # Field counter.
 $j = 0; # Background selector.
 
@@ -250,7 +260,7 @@ while ($field_name = trackers_list_all_fields ())
           continue;
       }
 
-    #  Print the originator email field only if the submitted was anonymous.
+    #  Print the originator email field only if the submitter was anonymous.
     if ($field_name == 'originator_email' && $submitter != '100')
       continue;
 
@@ -263,14 +273,13 @@ while ($field_name = trackers_list_all_fields ())
 
     # Look for the field value in the database only if we missing
     # its values. If we already have a value, we are probably in
-    # step 2 of a search on item/group (dependency, reassignation).
+    # step 2 of a search.
 
     # If nocache is set, we were explicetely asked to rely only
     # on database content.
     if (!isset ($nocache))
       $nocache = false;
-    if ((empty ($$field_name) || $nocache)
-        && !($preview && $is_trackeradmin))
+    if ((empty ($$field_name) || $nocache) && !($preview && $is_trackeradmin))
       $field_value = $res_arr[$field_name];
     else
       {
@@ -286,9 +295,9 @@ while ($field_name = trackers_list_all_fields ())
         $field_value = utils_specialchars ($$field_name);
       }
     list ($sz,) = trackers_data_get_display_size ($field_name);
-    $label = trackers_field_label_display ($field_name, $group_id,
-                                           false, false);
-    # Save the assigned to value for later.
+    $label = trackers_field_label_display (
+      $field_name, $group_id, false, false
+    );
     if ($field_name == 'assigned_to')
       {
         $item_assigned_to = trackers_field_display (
@@ -298,7 +307,6 @@ while ($field_name = trackers_list_all_fields ())
           user_getname ($field_value), user_getrealname ($field_value)
         );
       }
-
     # Some fields must be displayed read-only,
     # assigned_to, status_id and priority too, for technicians
     # (if super_user, do nothing).
@@ -306,88 +314,61 @@ while ($field_name = trackers_list_all_fields ())
         && (in_array ($field_name,
             ['status_id', 'assigned_to', 'priority', 'originator_email'])))
       {
-        $value = trackers_field_display ($field_name, $group_id, $field_value,
-          false, false, true
+        $value = trackers_field_display (
+          $field_name, $group_id, $field_value, false, false, true
         );
         if ($field_name == 'originator_email')
           $value = utils_email_basic ($value);
       }
     else
-      $value = trackers_field_display ($field_name, $group_id, $field_value,
-        false, false, $ro_fields, false, false, _("None"), false, _("Any"),
-        true
+      $value = trackers_field_display (
+        $field_name, $group_id, $field_value, false, false,
+        $ro_fields, false, false, _("None"), false, _("Any"), true
       );
 
-    # Check if the field is mandatory.
-    $star = '';
-    $mandatory_flag = trackers_data_mandatory_flag ($field_name);
-    if ($mandatory_flag == 3
-        || ($mandatory_flag == 0
-            && trackers_check_is_shown_to_submitter (
-                 $field_name, $group_id, $submitter))
-    )
-      if ($enable_comments)
-        $star = '<span class="warn"> *</span>';
-
-    # Fields colors.
-    $field_class = '';
-    $row_class = '';
+    $label .= mandatory_sign ($submitter, $field_name);
+    $field_class = $row_class = '';
     if ($j % 2 && $field_name != 'details')
-      {
-        # We keep the original submission with the default
-        # background color, for lisibility sake.
-        #
-        # We also use the boxitem background color only one time
-        # out of two, to keep the page light.
-        $row_class = ' class="' . utils_altrow ($j + 1) . '"';
-      }
+      # We keep the original submission with the default background color.
+      # We also use the boxitem background color only one time
+      # out of two, to keep the page light.
+      $row_class = ' class="' . utils_altrow ($j + 1) . '"';
 
     # If we are working on the cookbook, present checkboxes to
     # defines context before the summary line;
     if (CONTEXT == 'cookbook' && $field_name == 'summary')
-      {
-        cookbook_print_form ();
-      }
+      cookbook_print_form ();
 
-    # We highlight fields that were not properly/completely
-    # filled.
     if ($previous_form_bad_fields
         && array_key_exists ($field_name, $previous_form_bad_fields))
-      {
-        $field_class = ' class="highlight"';
-      }
+      $field_class = ' class="highlight"';
     $td = "<td valign='middle'$field_class";
 
     if ($sz > $max_size)
       {
         # Field getting one line for itself.
-
         # Each time prepare the change of the background color.
         $j++;
 
-        print "\n<tr$row_class>$td width='15%'>"
-          . "$label$star</td>\n$td colspan=\""
+        print "\n<tr$row_class>$td width='15%'>$label</td>\n$td colspan=\""
           . (2 * $fields_per_line - 1) . '" width="75%">'
           . "$value</td>\n</tr>\n";
           $i = 0;
+          continue;
       }
-    else
+    # Field getting half of a line for itself.
+    if (!($i % $fields_per_line))
       {
-        # Field getting half of a line for itself.
-        if (!($i % $fields_per_line))
-          {
-            # Every one out of two, prepare the background color change.
-            # We do that at this moment because we cannot be sure
-            # there will be another field on this line.
-            $j++;
-          }
-
-        print ($i % $fields_per_line? '': "\n<tr$row_class>");
-        print "$td width='15%'>$label$star</td>\n$td width='35%'>"
-          . "$value</td>\n";
-        $i++;
-        print ($i % $fields_per_line? '': "</tr>\n");
+        # Every one out of two, prepare the background color change.
+        # We do that at this moment because we cannot be sure
+        # there will be another field on this line.
+        $j++;
       }
+    if ($i % $fields_per_line)
+      print  "\n<tr$row_class>";
+    print "$td width='15%'>$label</td>\n$td width='35%'>$value</td>\n";
+    if (++$i % $fields_per_line)
+      print "</tr>\n";
   } # while ($field_name = trackers_list_all_fields ())
 
 print "</table>\n";
@@ -400,12 +381,9 @@ $is_deployed = [];
 $is_deployed["postcomment"] = false;
 if ($preview)
   $is_deployed["postcomment"] = $enable_comments;
-$is_deployed["discussion"] = true;
-$is_deployed["attached"] = true;
+$is_deployed["discussion"] = $is_deployed["attached"] = true;
 $is_deployed["dependencies"] = true;
-$is_deployed["cc"] = false;
-$is_deployed["votes"] = false;
-$is_deployed["reassign"] = false;
+$is_deployed["cc"] = $is_deployed["votes"] = $is_deployed["reassign"] = false;
 
 # If at the second step of any two-step activity (add deps, reassign,
 # multiple canned answer), deploy only the relevant:
@@ -425,24 +403,22 @@ if ($depends_search || $canned_response == "!multiple!"
       $is_deployed["reassign"] = true;
   }
 
-$canned_text = trackers_data_append_canned_response ('', $canned_response);
-
 if ($comment === null)
   $comment = '';
 
 if (isset ($quote_no))
   {
     $quote = trackers_data_quote_comment ($item_id, $quote_no);
+    $cr = $canned_response;
     if ($quote === false)
       {
         # No comment to quote found, probably quoting the preview.
         $preview = true;
-        $quote = $canned_text;
-        if (!empty ($canned_text))
+        $quote = '';
+        if (!empty ($canned_response))
           $canned_response = '!multiple!';
-        $canned_text = '';
       }
-    $comment .= $quote;
+    $comment = trackers_data_append_canned_response ("$comment$quote", $cr);
   }
 if (!empty ($comment))
   $is_deployed['postcomment'] = $enable_comments;
@@ -568,7 +544,7 @@ if ($preview)
         trackers_data_get_cached_field_value (
           'comment_type_id', $group_id, $comment_type_id
         );
-    $comm = $comment . $canned_text;
+    $comm = trackers_data_append_canned_response ($comment, $canned_response);
     if (!empty ($comm))
       $comm = trackers_encode_value (utils_specialchars ($comm));
     $new_comment['old_value'] = $comm;
@@ -684,15 +660,11 @@ if ($is_trackeradmin)
     printf (_('Of %1$s of %2$s'), $tracker_select, $group_select);
 
     if ($depends_search)
-      {
-        # Print a specific message if we are already at step 2 of filling
-        # a dependency.
-        print form_submit (_("New search"), "submit");
-      }
+      print form_submit (_("New search"), "submit");
     else
       print form_submit (_("Search"), "submit");
 
-    # Search results, if we are already at step 2 of filling.
+    # Search results, if we are already at step 2.
     if ($depends_search)
       {
         print "</p>\n<p><span class='preinput'>";
@@ -866,7 +838,7 @@ unset ($display_votes);
 
 # Reassign an item, if manager of the tracker.
 # Not possible on the cookbook manager, cookbook entries are too specific.
-if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
+if ($is_manager && ARTIFACT != "cookbook")
   {
     # No point in having this part printable.
     print '<span class="noprint">';
@@ -898,29 +870,21 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
 
     print "<br /><br />\n<span class='preinput'>";
 
-    if (!$reassign_change_group_search)
-      print _("Move to the group:");
+    if ($reassign_change_group_search)
+      print _("New search, in case the previous one was not satisfactory\n"
+              . "(to reassign the item to another group):");
     else
-      {
-        # Print a specific message if we are already at step 2 of
-        # reassignation to another group.
-        print _("New search, in case the previous one was not satisfactory\n"
-                . "(to reassign the item to another group):");
-      }
+      print _("Move to the group:");
 
     print "</span><br />\n&nbsp;&nbsp;&nbsp;"
       . '<input type="text" title="' . _("Group to reassign item to")
       . '" name="reassign_change_group_search" size="40" maxlength="255" />';
-    if (!$reassign_change_group_search)
-      print form_submit (_("Search"), "submit");
+    if ($reassign_change_group_search)
+      print form_submit (_("New search"), "submit");
     else
-      {
-        # Print a specific message if we are already at step 2 of filling
-        # a ressign.
-        print form_submit (_("New search"), "submit");
-      }
+      print form_submit (_("Search"), "submit");
 
-    # Search results, if we are already at step 2 of filling.
+    # Search results, if we are already at step 2.
     if ($reassign_change_group_search)
       {
         print "\n<p><span class='preinput'>";
@@ -937,39 +901,26 @@ if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
           . 'value="0" checked="checked" /> '
           . _("Do not reassign to another group.");
 
-        $success = false;
-        $result_search =
-          search_run ($reassign_change_group_search, "soft", 0);
-        $success = db_numrows ($result_search);
-
-        # Print the result, if existing.
-        if (db_numrows ($result_search) != 0)
+        $res = search_run ($reassign_change_group_search, "soft", 0);
+        $list_is_empty = true;
+        while (list ($grp_name, $ug_name, $grp_id) = db_fetch_array ($res))
           {
-            while (list ($res_group_name, $res_unix_group_name, $res_group_id)
-                   = db_fetch_array ($result_search))
-              {
-                # Not reassigning to itself.
-                if ($res_unix_group_name == $group)
-                  continue;
-                print "<br />\n&nbsp;&nbsp;&nbsp;"
-                  . form_input (
-                      "radio", "reassign_change_group", $res_unix_group_name
-                    )
-                  . " [$res_unix_group_name, #$res_group_id] $res_group_name";
-              }
+            if ($grp_id == $group_id) # Don't reassign to itself.
+              continue;
+            $list_is_empty = false;
+            print "<br />\n&nbsp;&nbsp;&nbsp;"
+              . form_input ("radio", "reassign_change_group", $ug_name)
+              . " [$ug_name, #$grp_id] $grp_name";
           }
-
-        if (!$success)
-          {
-            print "<br />\n<span class='warn'>";
-            print _("None found. Please note that only search words of more\n"
-                    . "than three characters are valid.");
-            print '</span>';
-          }
+        if ($list_is_empty)
+          print "<br />\n<span class='warn'>"
+            . _("None found. Please note that only search words of more\n"
+                . "than three characters are valid.")
+            . '</span>';
       } # if ($reassign_change_group_search)
     print html_hidsubpart_footer ();
     print '</span>';
-  } # if ($check_member ($group_id, ARTIFACT, '3') && ARTIFACT != "cookbook")
+  } # if ($is_manager && ARTIFACT != "cookbook")
 
 if ($enable_comments)
   {

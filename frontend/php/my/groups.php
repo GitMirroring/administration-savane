@@ -283,7 +283,8 @@ print form_tag () . form_hidden (['action' => 'searchgroup']);
 print form_input ('text', 'words', $words,
   "title=\"" . _("Group to look for") . "\" size='35'");
 print "<br /><br />\n";
-print form_submit (_("Search Groups"), "Submit", false, true);
+$int_trapisset = true;
+print form_submit (_("Search Groups"), "Submit");
 print "</form>\n\n</div><!-- end boxitem -->\n";
 
 extract (sane_import ('request', ['pass' => 'words']));
@@ -338,7 +339,7 @@ if ($words)
           . "</label><br />\n"
           . "<textarea name='form_message' id='form_message' cols='40'\n"
           . "rows='7'></textarea><br /><br />\n";
-        print form_submit (_("Request Inclusion"), 'update', false, true);
+        print form_submit (_("Request Inclusion"), 'update');
         print "</form>\n";
       }
     print "</div><!-- end boxitemalt -->\n";

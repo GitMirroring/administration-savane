@@ -106,111 +106,103 @@ function show_item_navbar ($url, $offset, $total_rows)
   return $nav_bar . show_item_navbar_end ($url, $offset, $total_rows);
 }
 
+function show_item_field_try_date ($field, $value)
+{
+  if (!trackers_data_is_date_field ($field))
+    return null;
+  if (!$value)
+    return "align=\"middle\">-";
+  $highlight_date = '';
+  if ($field == 'planned_close_date' && $value < time ())
+    $highlight_date = ' class="highlight"';
+  return "$highlight_date>" . utils_format_date ($value, 'natural');
+}
+
+function show_item_field_try_username ($field, $value)
+{
+  if (!trackers_data_is_username_field ($field))
+    return null;
+  if ($value == 'None')
+    $value = '';
+  if ($value === '')
+    return ">$value";
+  return ">" . utils_user_link ($value);
+}
+
+function show_item_field_try_bug_id ($field, $value)
+{
+  if ($field !== 'bug_id')
+    return null;
+  return "><a href=\"?$value\">#$value</a>";
+}
+
+function show_item_field_try_select_box ($field, $value)
+{
+  global $group_id;
+  if (!trackers_data_is_select_box ($field))
+    return null;
+  $val = trackers_data_get_cached_field_value ($field, $group_id, $value);
+  if ($val == 'None')
+    $val = '';
+  return ">$val";
+}
+
+function show_item_field_in_list ($row, $field, $width)
+{
+  if (empty ($width))
+    $width = '';
+  else
+    $width = " width=\"$width%\"";
+  $value = $row[$field];
+
+  foreach (['date', 'bug_id', 'username', 'select_box'] as $f)
+    {
+      $f = "show_item_field_try_$f";
+      $text = $f ($field, $value);
+      if ($text === null)
+        continue;
+      print "<td$width$text</td>\n";
+      return;
+    }
+  print "<td$width><a href=\"?{$row['bug_id']}\">$value</a></td>\n";
+}
+
+function show_item_in_list ($row, $fields, $widths, $field_num)
+{
+  print '<tr class="'
+    . utils_get_priority_color ($row["priority"], $row["status_id"])
+    . "\">\n";
+
+  for ($j = 0; $j < $field_num; $j++)
+    {
+      if ($fields[$j] != "digest")
+        {
+          show_item_field_in_list ($row, $fields[$j], $widths[$j]);
+          continue;
+        }
+      print '<td class="center">'
+        . form_checkbox ("items_for_digest[]", 1, ['value' => $row['bug_id']])
+        . "</td>\n";
+    } # for ($j = 0; $j < $field_num; $j++)
+  print "</tr>\n";
+}
+
 function show_item_list (
-  $result_arr, $offset, $total_rows, $field_arr, $title_arr, $width_arr,
-  $url, $nolink = false
+  $items, $offset, $total_rows, $fields, $titles, $widths, $url
 )
 {
-  global $group_id, $morder;
-
-  # Build the list of links to use for column headings.
-  # Used to trigger sort on that column.
-  if ($url)
-    {
-      $links_arr = [];
-      foreach ($field_arr as $field)
-        $links_arr[] = "$url&amp;order=$field#results";
-    }
-
+  $links = [];
+  foreach ($fields as $field)
+    $links[] = "$url&amp;order=$field#results";
   $nav_bar = show_item_navbar ($url, $offset, $total_rows);
 
   print "<p id='results' class='item-navbar'>$nav_bar</p>\n";
-  print html_build_list_table_top ($title_arr, $links_arr);
+  print html_build_list_table_top ($titles, $links);
 
-  # See if the bugs are too old - so we can highlight them.
-  $nb_of_fields = count ($field_arr);
-
-  foreach ($result_arr as $thisitem)
-    {
-      $thisitem_id = $thisitem['bug_id'];
-      print '<tr class="'
-        . utils_get_priority_color (
-            $result_arr[$thisitem_id]["priority"],
-            $result_arr[$thisitem_id]["status_id"]
-          )
-        . "\">\n";
-
-      for ($j = 0; $j < $nb_of_fields; $j++)
-        {
-          # If we are in digest mode, add the digest checkbox.
-          if ($field_arr[$j] == "digest")
-            {
-              print '<td class="center">'
-                . form_checkbox (
-                    "items_for_digest[]", 1, ['value' => $thisitem_id]
-                  )
-                . "</td>\n";
-              continue;
-            }
-
-          $value = $result_arr[$thisitem_id][$field_arr[$j]];
-          $width = '';
-          if ($width_arr[$j])
-            $width = ' width="' . $width_arr[$j] . '%"';
-
-          if (trackers_data_is_date_field ($field_arr[$j]) )
-            {
-              if ($value)
-                {
-                  $highlight_date = '';
-                  if (
-                    $field_arr[$j] == 'planned_close_date' && $value < time ()
-                  )
-                    $highlight_date = ' class="highlight"';
-                  print "<td$width$highlight_date>";
-                  print utils_format_date ($value, 'natural');
-                  print "</td>\n";
-                }
-              else
-                print "<td align=\"middle\"$width>-</td>\n";
-            }
-          elseif ($field_arr[$j] == 'bug_id')
-            {
-              if ($nolink)
-                print "<td$width>#$value</td>\n";
-              else
-                print "<td$width><a href=\"?$value\">&nbsp;#$value</a></td>\n";
-            }
-          elseif (trackers_data_is_username_field ($field_arr[$j]))
-            {
-              if ($value == 'None')
-                $value = '';
-              if ($nolink || $value === '')
-                print "<td$width>$value</td>\n";
-              else
-                print "<td$width>" . utils_user_link ($value) . "</td>\n";
-            }
-          elseif (trackers_data_is_select_box ($field_arr[$j]))
-            {
-              $val = trackers_data_get_cached_field_value (
-                $field_arr[$j], $group_id, $value
-              );
-              if ($val == 'None')
-                $val = '';
-              print "<td$width>$val</td>\n";
-            }
-          else
-            {
-              if ($nolink)
-                print "<td$width>$value&nbsp;</td>\n";
-              else
-                print "<td$width><a href=\"?$thisitem_id\">$value</a></td>\n";
-            }
-        } # for ($j = 0; $j < $nb_of_fields; $j++)
-      print "</tr>\n";
-    } # foreach ($result_arr as $thisitem)
+  $field_num = count ($fields);
+  foreach ($items as $row)
+    show_item_in_list ($row, $fields, $widths, $field_num);
   print "</table>\n";
-  # Print prev/next links.
   print "<br />\n<p class='item-navbar'>$nav_bar</p><br />\n";
 }
 

@@ -322,7 +322,7 @@ switch ($func)
         list ($additional_address, $sendall) =
           trackers_data_get_item_notification_info ($item_id, ARTIFACT, 0);
 
-        if ((trim ($address) != "") && (trim ($additional_address) != ""))
+        if ((trim ($address) != "") && $sendall)
           $address .= ", ";
         $address .= $additional_address;
         trackers_mail_followup ($item_id, $address);
@@ -512,11 +512,10 @@ switch ($func)
     if ($changed)
       {
         # Check if we re supposed to send all modifications to an address.
-        list($additional_address, $sendall) =
+        list ($additional_address, $sendall) =
           trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
 
-        if (($sendall == 1) && (trim ($address) != "")
-            && (trim ($additional_address) != ""))
+        if ($sendall && trim ($address) != "")
           $address .= ", ";
         $address .= $additional_address;
         trackers_mail_followup ($item_id, $address, $changes);
@@ -609,10 +608,9 @@ switch ($func)
     if ($changed)
       {
         # See if we are supposed to send all modifications to an address.
-        list($additional_address, $sendall) =
+        list ($additional_address, $sendall) =
           trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
-        if (($sendall == 1) && (trim($address) != "")
-            && (trim($additional_address) != ""))
+        if ($sendall && trim ($address) != "")
           $address .= ", ";
         $address .= $additional_address;
         trackers_mail_followup($item_id, $address, $changes);

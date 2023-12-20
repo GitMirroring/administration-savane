@@ -120,7 +120,7 @@ function trackers_list_all_fields ($sort_func = false, $by_field_id = false)
         $sort_func = 'cmp_place';
       uasort ($BF_USAGE_BY_ID, $sort_func);
       uasort ($BF_USAGE_BY_NAME, $sort_func);
-      $AT_START=false;
+      $AT_START = false;
     }
 
   # Return the next bug field in the list.  If the global
@@ -130,10 +130,9 @@ function trackers_list_all_fields ($sort_func = false, $by_field_id = false)
   # list of field names.
   $idx = $by_field_id? 'bug_field_id': 'field_name';
 
-  if (current ($BF_USAGE_BY_ID) !== FALSE)
+  if (current ($BF_USAGE_BY_ID) !== false)
     {
       $field_array = current ($BF_USAGE_BY_ID);
-      $key = key ($BF_USAGE_BY_ID);
       next ($BF_USAGE_BY_ID);
       return $field_array[$idx];
     }
@@ -170,8 +169,8 @@ function trackers_field_label_display (
 
 # Display a bug field either as a read-only value or as a read-write
 # making modification possible.
-# - field_name : name of the bug field (column name).
-# - group_id : the group id (project id).
+# - field_name: name of the column.
+# - group_id: the group id.
 # - value: the current value stored in this field (for select boxes type of field
 #     it is the value_id actually. It can also be an array with mutliple values.
 # - break: true if a break line is to be inserted between the field label
@@ -653,6 +652,24 @@ function trackers_set_empty_field_feedback ($bad_fields, $new_item)
   fb ($msg, 1);
 }
 
+function trackers_ck_empty_fld ($field, $val, $new_item = true)
+{
+  global $previous_form_bad_fields;
+  # Only the field percent_complete is allowed to use the special value
+  # hundred.
+  if ($field == "percent_complete")
+    return;
+  $non_empty = $val !== '';
+  if (trackers_data_is_select_box ($field))
+    $non_empty = $val != 100;
+  if ($non_empty)
+    return;
+
+  if (!trackers_mandatory_field ($field, $new_item))
+    return;
+  $previous_form_bad_fields[$field] = trackers_data_get_label ($field);
+}
+
 # Check whether empty values are submitted in any mandatory fields.
 # $field_array: associative array of field_name -> value.
 # $new_item: whether checks for new items (as opposed to comments) are run.
@@ -666,28 +683,9 @@ function trackers_check_empty_fields ($field_array, $new_item = true)
   $previous_form_bad_fields = [];
 
   foreach ($field_array as $field_name => $val)
-    {
-      # Only the field percent_complete is allowed to use the special value
-      # hundred.
-      # FIXME: maybe it should not use that value at all, however it would
-      # require one more database migration. Something that should indeed be
-      # done if at some point we feel the need for one more exception.
-      if ($field_name == "percent_complete")
-        continue;
+    trackers_ck_empty_fld ($field_name, $val, $new_item);
 
-      $non_empty = $val !== '';
-      if (trackers_data_is_select_box ($field_name))
-        $non_empty = $val != 100;
-      if ($non_empty)
-        continue;
-
-      if (!trackers_mandatory_field ($field_name, $new_item))
-        continue;
-      $value = trackers_data_get_label ($field_name);
-      $previous_form_bad_fields[$field_name] = $value;
-    }
-
-  if (count ($previous_form_bad_fields) <= 0)
+  if (!count ($previous_form_bad_fields))
     return true;
   trackers_set_empty_field_feedback ($previous_form_bad_fields, $new_item);
   return false;
@@ -1416,7 +1414,7 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
   $found = false;
   if ($criteria_list)
     {
-      $arr = explode(',', $criteria_list);
+      $arr = explode (',', $criteria_list);
       $i = 0;
       foreach ($arr as $attr)
         {
@@ -1434,19 +1432,18 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
         }
     }
 
-  if (!$found)
-    {
-      if (!$msort)
-        unset ($arr);
-      if (
-        $order == 'severity' || $order == 'hours'
-        || trackers_data_is_date_field ($order)
-      )
-        # Severity, effort and dates sorted in descending order by default.
-        $arr[] = "$order<";
-      else
-        $arr[] = "$order>";
-    }
+  if ($found)
+    return join (',', $arr);
+  if (!$msort)
+    $arr = [];
+  if (
+    $order == 'severity' || $order == 'hours'
+    || trackers_data_is_date_field ($order)
+  )
+    # Severity, effort and dates sorted in descending order by default.
+    $arr[] = "$order<";
+  else
+    $arr[] = "$order>";
   return join (',', $arr);
 }
 
@@ -1454,9 +1451,10 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
 function trackers_criteria_sanitize ($criteria_list)
 {
   $criteria = explode (',', $criteria_list);
-  $fields = ['bug_id', 'priority']; # These fields are always present.
+  $fields = ['bug_id' => 1, 'priority' => 1]; # These fields are always present.
   while ($field = trackers_list_all_fields ())
-    $fields[] = $field;
+    $fields[$field] = 1;
+  $fields = array_keys ($fields);
   $regexp = "/^(" . join ('|', $fields) . ')[<>]?$/';
   $criteria_filtered = [];
   foreach ($criteria as $cr)
@@ -1692,24 +1690,17 @@ function trackers_register_msgid ($msgid, $artifact, $item_id)
   );
 }
 
-# Get a list, separated  a msg id for an item update notification.
-function trackers_get_msgid ($artifact, $item_id, $latest = "")
+# Get a list of msg ids for item update notification
+# (the References and In-Reply-To headers), in the reverse chronological order.
+function trackers_get_msgid ($artifact, $item_id)
 {
-  if ($latest)
-    $latest = "ORDER BY id DESC LIMIT 1";
-
   $result = db_execute ("
-    SELECT msg_id FROM trackers_msgid
-    WHERE artifact = ?  AND item_id = ? $latest",
-    [$artifact, $item_id]
+    SELECT msg_id FROM trackers_msgid WHERE artifact = ? AND item_id = ?
+    ORDER BY id DESC", [$artifact, $item_id]
   );
-  $list = '';
-  while ($id = db_fetch_array ($result))
-    {
-      if (isset ($list))
-        $list .= " ";
-      $list .= "<{$id['msg_id']}>";
-    }
-  return $list;
+  $msg_ids = [];
+  while ($row = db_fetch_array ($result))
+    $msg_ids[] = "<{$row['msg_id']}>";
+  return $msg_ids;
 }
 ?>

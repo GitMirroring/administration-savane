@@ -967,7 +967,7 @@ function utils_make_upload_file ($tarball_name, &$errors)
       $errors = "$res: $err";
       return null;
     }
-  $out = substr ($out, 0, strlen ($out) - 1); # Remove trailing "\n".
+  $out = substr ($out, 0, -1); # Remove trailing "\n".
   return utils_try_move ($out, $path);
 }
 
