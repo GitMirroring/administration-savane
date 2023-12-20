@@ -600,7 +600,7 @@ print "<p>The following is not required to run Savane, but could enhance\n"
   . "and report\npotentially harmful bugs.</p>\n";
 
 $phptags = [
-  'disable_functions' => 'exec,passthru,popen,shell_exec,system',
+  'disable_functions' => 'passthru,popen,shell_exec,system',
   'display_errors' => '1',
   'error_reporting' => (string)(E_ALL | E_STRICT), 'log_errors' => '1',
 ];
