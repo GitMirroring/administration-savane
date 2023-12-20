@@ -65,6 +65,10 @@
 
 ** Sorting by priority in trackers didn't work, Savannah sr #110975.
 
+** When copying configuration from other trackers, the pages didn't exclude
+   the tracker of the same group; when that option was selected,
+   the configuration of the tracker broke.
+
 [BACKEND]
 
 * New commands in sv_membersh, rm and rmdir.

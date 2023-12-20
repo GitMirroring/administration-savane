@@ -366,11 +366,11 @@ function trackers_conf_copy ($group_id, $artifact, $from_group_id)
 function trackers_conf_form ($group_id, $artifact)
 {
   $result = db_execute ("
-    SELECT groups.group_name,groups.group_id FROM groups, user_group
+    SELECT g.group_name,g.group_id FROM groups g, user_group u
     WHERE
-      groups.group_id = user_group.group_id AND user_group.user_id = ?
-      AND groups.status = 'A' AND groups.use_{$artifact} = '1'",
-     [user_getid ()]
+      g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
+      AND g.status = 'A' AND g.use_{$artifact} = '1'",
+     [user_getid (), $group_id]
   );
   if (!db_numrows ($result))
     {
