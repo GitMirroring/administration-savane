@@ -873,12 +873,13 @@ function trackers_filter_notif_address (
 # item is getting closed,
 # - unless this person wants to know only if the item status changed and
 # the item status changed.
-function trackers_build_notification_list (
-  $item_id, $group_id, $changes, $artifact
-)
+function trackers_build_notification_list ($item, $changes, $artifact)
 {
+  $item_id = $item['bug_id'];
   list ($addresses, $addresses_to_skip) =
     trackers_initial_notification_list ($artifact, $item_id);
+  if (!empty ($item['originator_email']))
+    $addresses[$item['originator_email']] = true;
 
   $result = trackers_get_cc_list ($artifact, $item_id);
   while ($row = db_fetch_array ($result))
@@ -962,7 +963,7 @@ function trackers_followup_mail_addresses (
   # See who is going to receive the notification.
   # Plus append any other email given at the end of the list.
   $addresses =
-    trackers_build_notification_list ($bug_id, $group_id, $changes, $tracker);
+    trackers_build_notification_list ($res, $changes, $tracker);
   $to = join (',', $addresses);
   $to = trim ("$to,$more_addresses", ',');
   $from = user_getrealname (0, 1) . " <$sys_mail_replyto@$sys_mail_domain>";
