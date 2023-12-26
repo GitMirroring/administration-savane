@@ -48,6 +48,8 @@
 ** Notifications weren't sent to originator_email if that field was
    filled after submitting the item in a tracker.
 
+** Single-column sorting in tracker item list was broken.
+
 ** Updating votes in my/votes.php tried to write in non-existing my_cc
    table since 2022-11 (d7b66a1be).
 

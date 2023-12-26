@@ -696,14 +696,15 @@ if ($morder != '')
         $matching_morder = preg_replace ('/[<>]$/', '', $morder);
         while ($field = trackers_list_all_fields ('cmp_place_result'))
           {
+            if (strcmp ($field, $matching_morder))
+              continue;
             if (!trackers_data_is_used ($field))
               continue;
             if (!trackers_data_is_showed_on_result ($field))
               continue;
-            if (strcmp ($field, $matching_morder))
-              continue;
             $matching_morder = '';
-            break;
+            # Can't break here because tracker_list_all_fields ()
+            # only supports full iteration.
           }
       }
     if ($matching_morder == '' || $matching_morder == 'priority')
