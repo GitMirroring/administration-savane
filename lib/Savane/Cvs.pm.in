@@ -447,10 +447,8 @@ sub setup_cvs_permissions
   # Build the locks.
   system ('mkdir', '-p', '-m', '777', "/var/lock/cvs/$repo_type/$name");
 
-  # Seal CVSROOT dir; 2775 on the top dir allows group members
-  # with local access to rename CVSROOT and replace it with
-  # their own.
-  system ('chmod', '-R', 'a-w', "$dir_cvs/CVSROOT/");
+  # Seal CVSROOT dir.
+  system ('chmod', 'a-w', "$dir_cvs/CVSROOT/");
 }
 
 sub make_cvs_area
