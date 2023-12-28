@@ -66,7 +66,7 @@ function error_level_name ($errno)
   return $errno;
 }
 
-function error_array_is_list (&$val)
+function error_array_is_list ($val)
 {
   $i = 0;
   foreach ($val as $k => $ignored)
@@ -79,7 +79,7 @@ function error_array_is_list (&$val)
   return true;
 }
 
-function error_print_array (&$val)
+function error_print_array ($val)
 {
   $ret = [];
   if (error_array_is_list ($val))
@@ -93,7 +93,7 @@ function error_print_array (&$val)
   return '[' . join (",\n", $ret) . ']';
 }
 
-function error_print_r (&$val)
+function error_print_r ($val)
 {
   if ($val === null)
     return '<NULL>';
