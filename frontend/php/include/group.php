@@ -580,10 +580,20 @@ function group_trimmed_array ($res, $suff)
   return $ret;
 }
 
+function group_null_perm ($art)
+{
+  if (!is_array ($art))
+    return null;
+  $ret = [];
+  foreach ($art as $a)
+    $ret[$a] = null;
+  return $ret;
+}
+
 function group_get_perm_flags ($group_id, $artifact, $prefix = '')
 {
   if (empty ($artifact))
-    return null;
+    return group_null_perm ($artifact);
   $art = $artifact;
   if (is_scalar ($artifact))
     $art = [$art];
@@ -597,7 +607,7 @@ function group_get_perm_flags ($group_id, $artifact, $prefix = '')
     [$group_id]
   );
   if (!db_numrows ($res))
-    return null;
+    return group_null_perm ($artifact);
   if (is_scalar ($artifact))
     return db_result ($res, 0, "$artifact$suff");
   return group_trimmed_array ($res, $suff);
@@ -627,7 +637,7 @@ function group_getrestrictions (
 {
   $flag = group_get_perm_flags ($group_id, $artifact, 'r');
   if ($flag === null)
-    return $flag;
+    return group_null_perm ($artifact);
   $f = $flag;
   if (is_scalar ($f))
     $f = [$f];
