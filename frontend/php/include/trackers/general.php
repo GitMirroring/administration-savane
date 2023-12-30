@@ -1650,14 +1650,6 @@ function trackers_build_match_expression ($field, &$to_match)
   return [$expr, $params];
 }
 
-# The function moved to data.
-function trackers_delete_file (
-  $group_id = false, $item_id = false, $item_file_id = false
-)
-{
-  return trackers_data_delete_file ($group_id, $item_id, $item_file_id);
-}
-
 # Register a msg id for an item update notification.
 function trackers_register_msgid ($msgid, $artifact, $item_id)
 {

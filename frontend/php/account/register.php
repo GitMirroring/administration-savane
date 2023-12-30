@@ -174,16 +174,14 @@ if ($form_is_valid)
     if (!$result)
       exit_error ('error', db_error ());
     $newuserid = db_insertid ($result);
-    if (
-      db_numrows (db_execute (
-        "SELECT user_id FROM user WHERE user_name = ?",
-        [$new_name])) > 1
-    )
+    $result = db_execute (
+      "SELECT user_id FROM user WHERE user_name = ?", [$new_name]
+    );
+    if (db_numrows ($result) > 1)
       {
         user_purge ($newuserid);
         fb (_("That username already exists."), 1);
       }
-    form_clean ($form_id);
 
     # TRANSLATORS: the argument is the name of the system (like "Savannah").
     $message_head = sprintf (

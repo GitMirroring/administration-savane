@@ -42,12 +42,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/vars.php');
-require_once ('../include/form.php');
-require_once ('../include/html.php');
-# Needed for group history.
-require_directory ("project");
+foreach (['init', 'vars', 'form', 'html', 'project/admin'] as $i)
+  require_once ("../include/$i.php");
 
 session_require (['group' => $sys_group_id, 'admin_flags' => 'A']);
 
@@ -201,8 +197,6 @@ foreach (
   [
     'A' => no_i18n ("Active"), 'P' => no_i18n ("Pending"),
     'D' => no_i18n ("Deleted"),
-    'M' => no_i18n ("Maintenance (accessible only to superuser)"),
-    'I' => no_i18n ("Incomplete (failure during registration)"),
   ] as $k => $v
 )
   print form_option ($k, $row_grp['status'], $v);

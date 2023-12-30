@@ -265,13 +265,6 @@ function form_check ($form_id)
   return form_reset_form_id ($form_id);
 }
 
-# Remove form_id from database: the item was posted.
-function form_clean ($form_id)
-{
-  # Form_id are now directly removed by form_check.
-  return 1;
-}
-
 # Check whether the trap field has been filled. If so, refuse the post.
 # This test should probably be made before remove form id, to be
 # dumbuser-compliant.

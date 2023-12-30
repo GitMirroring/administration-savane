@@ -713,16 +713,6 @@ function util_die ($msg)
   die ();
 }
 
-function util_feedback ($msg, $error = 0)
-{
-  fb ($msg, $error);
-}
-
-function feedback ($msg, $error = 0)
-{
-  fb ($msg, $error);
-}
-
 # Add feedback information.
 function fb ($msg, $error = 0)
 {

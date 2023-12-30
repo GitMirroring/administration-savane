@@ -143,8 +143,6 @@ if ($update)
     # Check for duplicates.
     if (!form_check ($form_id))
       return 0;
-    $form_cleaned_already = false;
-
     while ($val = db_fetch_array ($result_upd))
       {
         if (!isset ($form_groups[$val['group_id']]))
@@ -170,11 +168,6 @@ if ($update)
         send_pending_user_email (
           $val['group_id'], $row_user['user_id'], $form_message
         );
-        if (!$form_cleaned_already)
-          {
-            form_clean ($form_id);
-            $form_cleaned_already = 1;
-          }
       }
   } # if ($update)
 

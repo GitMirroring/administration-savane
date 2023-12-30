@@ -418,17 +418,9 @@ function init_group_vars ()
 
 function init_check_group_status ($status)
 {
-  if ($status == 'I' || $status == 'A')
+  if ($status == 'A' || user_is_super_user ())
     return;
-  $su = user_is_super_user ();
-  if ($status == 'M') # Maintenance mode, OK for superusers.
-    {
-      if (!$su)
-        exit_error (_("This group is in maintenance mode"));
-      fb (_("Note: this group is in maintenance mode"));
-    }
-  elseif (!$su) # Other cases, no access granted.
-    exit_error (_("This group is not in active state"));
+  exit_permission_denied ();
 }
 
 # Make sure we are on the correct site.

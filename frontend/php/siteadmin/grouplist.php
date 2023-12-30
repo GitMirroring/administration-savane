@@ -99,14 +99,11 @@ $abc_array = [
 
 $status_arr = [
   'A' => no_i18n ("Active"), 'P' => no_i18n ("Pending"),
-  'I' => no_i18n ("Incomplete"), 'D' => no_i18n ("Deleted"),
-  'M' => no_i18n ("Maintenance"), 'X' => no_i18n ("System internal")
+  'D' => no_i18n ("Deleted"), 'X' => no_i18n ("System internal")
 ];
 $status_proj_arr = [
   'A' => no_i18n ("Active Groups"), 'P' => no_i18n ("Pending Groups"),
-  'I' => no_i18n ("Incomplete Groups"), 'D' => no_i18n ("Deleted Groups"),
-  'M' => no_i18n ("Maintenance Groups"),
-  'X' => no_i18n ("System internal Groups")
+  'D' => no_i18n ("Deleted Groups"), 'X' => no_i18n ("System internal Groups")
 ];
 
 print '<h2>' . no_i18n ("Group Search") . "</h2>\n<p>"
