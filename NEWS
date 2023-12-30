@@ -56,6 +56,9 @@
 
 ** Single-column sorting in tracker item list was broken.
 
+** When deleting files, no check was run if the item in question
+   belonged to the right tracker (bugs vs support &c.)
+
 ** Updating votes in my/votes.php tried to write in non-existing my_cc
    table since 2022-11 (d7b66a1be).
 

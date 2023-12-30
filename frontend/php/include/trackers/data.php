@@ -2355,23 +2355,40 @@ function tracker_data_item_out_of_group ($group_id, $item_id)
   if (db_numrows ($res))
     return false;
    # TRANSLATORS: the argument is item id (a number).
-   $msg = sprintf (_("Item #%s doesn't belong to group"), $item_id);
+   fb (sprintf (_("Item #%s doesn't belong to group"), $item_id), 1);
+   return true;
+}
+
+function tracker_data_file_out_of_item ($item_id, $file_id)
+{
+  $res = db_execute ("
+    SELECT file_id FROM trackers_file
+    WHERE item_id = ? AND artifact = ? AND file_id = ?",
+    [$item_id, ARTIFACT, $file_id]
+  );
+  if (db_numrows ($res))
+    return false;
+   $msg = sprintf (_('File #%$1s doesn\'t belong to item #%$2s'),
+     $file_id, $item_id
+   );
    fb ($msg, 1);
    return true;
 }
 
-function trackers_data_delete_file ($group_id, $item_id, $file_id)
+function trackers_unlink_attachment ($file_id)
 {
   global $sys_trackers_attachments_dir;
-  if (tracker_data_item_out_of_group ($group_id, $item_id))
+  if (unlink ("$sys_trackers_attachments_dir/$file_id"))
+    return false;
+  fb (sprintf (_("File #%s not found"), $file_id), 1);
+  return true;
+}
+
+function trackers_delete_attachment ($file_id)
+{
+  if (trackers_unlink_attachment ($file_id))
     return;
-  # Delete the attachment.
-  if (!unlink ("$sys_trackers_attachments_dir/$file_id"))
-    return;
-  $res = db_execute ("
-    DELETE FROM trackers_file WHERE item_id = ? AND file_id = ?",
-    [$item_id, $file_id]
-  );
+  $res = db_execute ("DELETE FROM trackers_file WHERE file_id = ?", [$file_id]);
 
   if ($res)
     {
@@ -2385,6 +2402,15 @@ function trackers_data_delete_file ($group_id, $item_id, $file_id)
   # shall be followed by database error message.
   $msg = sprintf (_("Can't delete attachment #%s:"), $file_id);
   fb ("$msg " . db_error ($res), 1);
+}
+
+function trackers_data_delete_file ($group_id, $item_id, $file_id)
+{
+  if (tracker_data_item_out_of_group ($group_id, $item_id))
+    return;
+  if (tracker_data_file_out_of_item ($item_id, $file_id))
+    return;
+  trackers_delete_attachment ($file_id);
 }
 
 function trackers_data_count_field_value_usage (
