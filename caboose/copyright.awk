@@ -14,7 +14,8 @@ function output_accum(file_name)
 !in_seq && /Copyright.*(19|20)[[:digit:]]{2}\>/ { in_seq = 1; accum = "" }
 in_seq {
   gsub(/^[[:space:]]*[*][[:space:]]*/, "")
-  gsub(/^# */, "")
+  gsub(/^[;#] */, "")
+  gsub(/^-- */, "")
   gsub(/^\/\/ */, "")
   sub(/\(c\)/, "(C)")
   if ($0 ~ /^[[:space:]]*$/)
