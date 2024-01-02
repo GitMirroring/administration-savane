@@ -44,25 +44,31 @@
 $dir_name = dirname (__FILE__);
 require_once ("$dir_name/spam.php");
 
+function form_get_id ()
+{
+  static $form_header_id = null;
+  if (!empty ($form_header_id))
+    return $form_header_id;
+  utils_srand ();
+  $form_header_id = md5 (mt_rand (0, 1000000));
+  return $form_header_id;
+}
+
 # To use this form that disallow duplicates:
 #    - form_header must be used on the form
-#    - form_check must be used before any insert in the db after submission
-#    - form_clean must be used after succesful item submission
+#    - form_check must be used before any insert in the DB after submission
 
 # Start the form with unique ID, store it in the database.
 function form_header (
-  $action, $form_id = false, $method = "post", $extra = false
+  $action = null, $form_id = false, $method = "post", $extra = false
 )
 {
+  if ($action === null)
+    $action = $_SERVER["PHP_SELF"];
   if ($extra)
     $extra = " $extra";
-
-  # Keep previous form id, in case of form that are recreated on failure.
   if (!$form_id)
-    {
-      utils_srand ();
-      $form_id = md5 (mt_rand (0, 1000000));
-    }
+    $form_id = form_get_id ();
   $result = db_autoexecute ('form',
     [ 'form_id' => $form_id, 'timestamp' => time (),
       'user_id' => user_getid ()],
@@ -72,7 +78,7 @@ function form_header (
     fb (_("System error while creating the form, report it to admins"), 1);
 
   return "\n<form action=\""
-    . utils_specialchars ($action) . "\" method=\"$method\"$extra>"
+    . utils_specialchars ($action) . "\" method=\"$method\"$extra>\n"
     . form_hidden (["form_id" => $form_id]);
 }
 

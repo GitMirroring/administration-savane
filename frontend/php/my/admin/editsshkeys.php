@@ -145,7 +145,7 @@ $form_authorized_keys =  explode ($key_separator, $keys);
 site_user_header (
   ['title' => _("Change Authorized Keys"), 'context' => 'account']
 );
-print form_header ($_SERVER['PHP_SELF'], false, "post");
+print form_header ();
 print '<h2>' . _("Authorized keys") . "</h2>\n";
 utils_get_content ("account/editsshkeys");
 print '<p>'

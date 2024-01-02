@@ -49,7 +49,6 @@ extract (sane_import ('all',
   [
     'digits' => ['id', 'status'],
     'strings' => [['status', ['0', '4', '5']]],
-    'hash' => 'form_id',
     'true' => ['update', 'post_changes', 'approve'],
     'specialchars' => ['summary', 'details'],
   ]

@@ -128,7 +128,7 @@ print '<p>'
   . "</p>\n<p>"
   . _("Here, you can tune your notification settings.") . "</p>\n";
 
-print "\n" . form_header($_SERVER['PHP_SELF']);
+print "\n" . form_header ();
 
 print '&nbsp;&nbsp;<span class="preinput">'
   . _("Send notification to me only when:") . "</span><br />\n&nbsp;&nbsp;";

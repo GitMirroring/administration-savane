@@ -242,7 +242,7 @@ print
     . "reflected here.");
 print "</p>\n";
 
-print form_header ($_SERVER['PHP_SELF']);
+print form_header ();
 print form_hidden (["post_changes" => "y", "group_id" => $group_id]);
 
 while ($row = db_fetch_array ($result))

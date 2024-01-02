@@ -44,14 +44,13 @@ require_once('include/init.php');
 require_once('include/markup.php');
 require_once('include/trackers/general.php');
 
-extract(sane_import('post',
-  ['specialchars' => 'comment',
-   'true' => ['basic', 'rich', 'full']
-  ]));
+extract (sane_import ('post',
+  ['specialchars' => 'comment', 'true' => ['basic', 'rich', 'full']]
+));
 $text = $comment;
 
-$HTML->header(array('title' => _("Test Markup"), 'notopmenu' => 1));
-html_feedback_top();
+$HTML->header (['title' => _("Test Markup"), 'notopmenu' => 1]);
+html_feedback_top ();
 
 print markup_full ("= " . _('Markup Reminder and Test') . " =\n");
 print "<p>"
@@ -62,20 +61,21 @@ in items or item comments. You can <a href="#test">test it below</a>.')
 print markup_full (markup_get_reminder ());
 
 print '<h3 id="test">' . _('Test Markup') . "</h3>\n";
-print form_header($_SERVER['PHP_SELF'] . '#test', false, "post",
-                  'enctype="multipart/form-data" name="test_form"');
+print form_header ($_SERVER['PHP_SELF'] . '#test', false, "post",
+  'enctype="multipart/form-data" name="test_form"'
+);
 
 print trackers_field_textarea('comment', $text, 0, 0, _("Text to test"));
 $GLOBALS['int_trapisset'] = true;
 print '<div class="noprint">'
-      . form_submit(_("Basic Markup"), "basic", 'class="bold"')
-      . form_submit(_("Rich Markup"), "rich", 'class="bold"')
-      . form_submit(_("Full Markup"), "full", 'class="bold"')
-      . "</div>\n</form>\n";
+  . form_submit (_("Basic Markup"), "basic", 'class="bold"')
+  . form_submit (_("Rich Markup"), "rich", 'class="bold"')
+  . form_submit (_("Full Markup"), "full", 'class="bold"')
+  . "</div>\n</form>\n";
 
 if (!$comment)
   {
-    $HTML->footer(array());
+    $HTML->footer ([]);
     exit;
   }
 $comment_number = 0;
@@ -84,10 +84,9 @@ if ($rich)
     print '<table cellpadding="0" width="100%">' . "\n";
     print '<tr class="boxlight"><td valign="top">';
     print '<a id="comment' . $comment_number . '" href="#comment'
-           . $comment_number . '" class="preinput">';
+      . $comment_number . '" class="preinput">';
     print utils_format_date(time ()) . ', '
-          . sprintf(_("comment #%s:"), $comment_number)
-          . "</a><br />\n";
+      . sprintf(_("comment #%s:"), $comment_number) . "</a><br />\n";
     print '<div class="tracker_comment">' . "\n";
   }
 if ($full)
@@ -99,10 +98,10 @@ else
 if ($rich)
   {
     print "</div>\n</td>\n";
-    print '<td class="boxlightextra">' . utils_user_link (user_getname (),
-                                                          user_getname (0, 1));
+    print '<td class="boxlightextra">'
+      . utils_user_link (user_getname (), user_getname (0, 1));
     print "</td>\n</tr>\n";
     print "</table>\n";
   }
-$HTML->footer(array());
+$HTML->footer ([]);
 ?>

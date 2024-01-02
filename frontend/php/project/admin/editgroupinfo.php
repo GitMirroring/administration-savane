@@ -124,8 +124,7 @@ site_project_header (
     'context' => 'ahome']
 );
 
-print form_header ($_SERVER['PHP_SELF'])
-  . form_hidden (["group_id" => $group_id]);
+print form_header () . form_hidden (["group_id" => $group_id]);
 
 $print_preinput = function ($label, $name, $markup = '')
 {

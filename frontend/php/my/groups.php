@@ -320,7 +320,7 @@ if ($words)
           _("To request inclusion in one or several groups, check the\n"
             . "boxes, write a meaningful message for group administrator\n"
             . "who will approve or discard the request, and submit the form.");
-        print "</p>\n" . form_header ($_SERVER['PHP_SELF']);
+        print "</p>\n" . form_header ();
 
         while ($val = db_fetch_array ($result_search))
           {

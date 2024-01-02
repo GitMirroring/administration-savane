@@ -88,9 +88,7 @@ print '<h2>' . _("Lost Passphrase Login") . "</h2>\n";
 print '<p>';
 printf (_("Welcome, %s."), $row_lostuser['user_name']);
 print ' ' . _("You may now change your passphrase.") . "</p>\n";
-
-print form_header ($_SERVER['PHP_SELF']);
-
+print form_header ();
 print '<div>' . account_password_help () . "</div>\n";
 print '<div class="inputfield"><strong><label for="form_pw">'
   . _("New passphrase:")

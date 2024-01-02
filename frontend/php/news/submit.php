@@ -100,8 +100,7 @@ site_project_header (
 print '<p class="warn">'
   . _("A news manager of this group will have to review and approve the news.")
   . "</p>\n"
-  . form_header ($_SERVER['PHP_SELF'], $form_id)
-  . form_hidden (["group_id" => $group_id])
+  . form_header () . form_hidden (["group_id" => $group_id])
   . "<span class='preinput'>" . html_label ('summary', _("Subject:"))
   . "</span><br/>&nbsp;&nbsp;\n"
   . "<input type='text' id='summary' name='summary' value=\"$summary\" "

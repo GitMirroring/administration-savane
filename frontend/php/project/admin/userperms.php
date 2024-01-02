@@ -717,7 +717,7 @@ site_project_header (
   ['title' => _("Set Permissions"), 'group' => $group_id, 'context' => 'ahome']
 );
 
-print form_header ($_SERVER['PHP_SELF']) . form_hidden (["group" => $group]);
+print form_header () . form_hidden (["group" => $group]);
 print_group_posting_defaults ($group_id, $project);
 print_member_defaults ($group_id, $project);
 list_squads ($group_id, $project);

@@ -104,7 +104,7 @@ function confirm_squad_deletion ($group_id, $squad_id, $realname, $squad_name)
   );
   print '<p>' . _('This action cannot be undone.') . "</p>\n";
 
-  print form_header ($_SERVER["PHP_SELF"]);
+  print form_header ();
   print form_hidden (["group_id" => $group_id]);
   print form_hidden (["squad_id_to_delete" => $squad_id]);
   print '<p><span class="preinput">'
@@ -173,7 +173,7 @@ if ($squad_id)
         'context' => 'ahome']
     );
 
-    print form_header ($_SERVER["PHP_SELF"]);
+    print form_header ();
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     print '<p><span class="preinput"><label for="form_realname">'
           . _("Real Name:") . "</label></span><br />\n&nbsp;&nbsp;";
@@ -196,7 +196,7 @@ if ($squad_id)
       . _("To remove members from the squad, select their names and push the "
           . "button\nbelow.")
       . "</p>\n";
-    print form_header ($_SERVER["PHP_SELF"]);
+    print form_header ();
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     $sel_head = '&nbsp;&nbsp;<select title="' . _("Users")
       . '" name="user_ids[]" size="10" multiple="multiple">';
@@ -232,7 +232,7 @@ if ($squad_id)
       . _("To add members to the squad, select their name and push the button "
           . "below.")
       . "</p>\n";
-    print form_header ($_SERVER["PHP_SELF"]);
+    print form_header ();
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     $select = $sel_head;
     $exists = false;

@@ -673,7 +673,7 @@ if (empty ($input_titles[0]))
 if ($preamble)
   print "<p>$preamble</p>\n";
 
-print form_header ($_SERVER['PHP_SELF'], false, "post");
+print form_header ();
 
 $input_spec = [$input_specific];
 for ($i = 0; $i < 3; $i++)

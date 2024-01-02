@@ -234,8 +234,7 @@ print
     . "&ldquo;alternative address&rdquo; is empty, the standard is used.");
 print "</p>\n";
 
-print form_header ($_SERVER['PHP_SELF'])
-  . form_hidden (["group_id" => $group_id]);
+print form_header () . form_hidden (["group_id" => $group_id]);
 
 print html_build_list_table_top (
   [
