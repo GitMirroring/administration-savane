@@ -7,7 +7,7 @@
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2008-2017, 2020 Karl Berry (disable languages)
-# Copyright (C) 2013, 2014, 2017-2023 Ineiev
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
 #
 # This file is part of Savane.
 #
