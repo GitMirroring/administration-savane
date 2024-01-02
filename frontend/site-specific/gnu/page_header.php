@@ -41,7 +41,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 print '<meta name="Author" content="'
- . "Copyright 2023 Free Software Foundation, Inc.\n"
+ . "Copyright 2024 Free Software Foundation, Inc.\n"
  . _("Verbatim copying and distribution of this entire article\n"
      . "is permitted in any medium, provided this notice is preserved.")
  . "\" />\n<meta name=\"description\" content=\""

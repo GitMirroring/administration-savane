@@ -41,7 +41,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 print "\n"
-  . 'Copyright &copy; 2023 &nbsp;Free Software Foundation, Inc.'
+  . 'Copyright &copy; 2024 Free Software Foundation, Inc.'
   . "\n<br />\n"
   . _("Verbatim copying and distribution of this entire article\n"
       . "is permitted in any medium, provided this notice is preserved.")
