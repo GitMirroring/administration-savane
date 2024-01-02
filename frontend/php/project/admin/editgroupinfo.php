@@ -124,7 +124,7 @@ site_project_header (
     'context' => 'ahome']
 );
 
-print form_header ($_SERVER['PHP_SELF'], $extra = 'name=""')
+print form_header ($_SERVER['PHP_SELF'])
   . form_hidden (["group_id" => $group_id]);
 
 $print_preinput = function ($label, $name, $markup = '')
@@ -198,14 +198,11 @@ if ($project->getLicense () == 'gpl')
     print "</label></p>\n";
   }
 
-print form_footer ();
+print form_submit ();
 
 print "\n<h2>" . _("GPG Keys Used for Releases") . "</h2>\n";
 
 print $gpg_sample_text;
-
-print form_header ($_SERVER['PHP_SELF'])
-  . form_hidden (["group_id" => $group_id]);
 
 if ($project->getTypeBaseHost () == "savannah.gnu.org")
   print $gpg_gnu_maintainers_note;
