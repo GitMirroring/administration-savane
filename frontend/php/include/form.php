@@ -43,13 +43,15 @@
 
 $dir_name = dirname (__FILE__);
 require_once ("$dir_name/spam.php");
+if (!function_exists ("random_bytes"))
+  require_once ("$dir_name/random-bytes.php");
 
 function form_get_id ()
 {
   static $form_header_id = null;
   if (!empty ($form_header_id))
     return $form_header_id;
-  $form_header_id = md5 (utils_mt_rand ());
+  $form_header_id = md5 (random_bytes (8));
   return $form_header_id;
 }
 

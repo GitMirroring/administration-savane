@@ -43,6 +43,7 @@
 
 require_once (dirname (__FILE__) . '/utils.php');
 require_once (dirname (__FILE__) . '/pwqcheck.php');
+require_once (dirname (__FILE__) . '/random-bytes.php');
 
 # Return a string explaining current pwcheck requirements.
 function expand_pwqcheck_options ()
@@ -453,67 +454,12 @@ function account_groupnamevalid ($name)
   return 0;
 }
 
-# <phpass>
-# From http://www.openwall.com/phpass/
-# Version 0.3 / genuine
-# Public domain
-# Author: Solar Designer
-function account_encode64 ($input, $count)
-{
-  $itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  $output = '';
-  $i = 0;
-  do
-    {
-      $value = ord ($input[$i++]);
-      $output .= $itoa64[$value & 0x3f];
-      if ($i < $count)
-        $value |= ord ($input[$i]) << 8;
-      $output .= $itoa64[($value >> 6) & 0x3f];
-      if ($i++ >= $count)
-        break;
-      if ($i < $count)
-        $value |= ord ($input[$i]) << 16;
-      $output .= $itoa64[($value >> 12) & 0x3f];
-      if ($i++ >= $count)
-        break;
-      $output .= $itoa64[($value >> 18) & 0x3f];
-    }
-  while ($i < $count);
-  return $output;
-}
-
-function account_get_random_bytes ($count)
-{
-  $random_state = microtime ();
-  $output = '';
-  if (is_readable ('/dev/urandom') && ($fh = @fopen ('/dev/urandom', 'rb')))
-    {
-      $output = fread ($fh, $count);
-      fclose ($fh);
-    }
-  if (strlen ($output) < $count)
-    {
-      $output = '';
-      for ($i = 0; $i < $count; $i += 16)
-        {
-          $random_state =
-            md5 (microtime () . $random_state);
-          $output .=
-            pack ('H*', md5 ($random_state));
-        }
-      $output = substr ($output, 0, $count);
-    }
-  return $output;
-}
-# </phpass>
-
 function account_gensalt ($salt_base64_length = 16)
 {
   # Note: $salt_base64_length = 16 for SHA-512, cf. crypt(3)
   $salt_byte_length = $salt_base64_length * 6 / 8;
-  $rand_bytes = account_get_random_bytes ($salt_byte_length);
-  return account_encode64 ($rand_bytes, $salt_byte_length);
+  $rand_bytes = phpass_get_random_bytes ($salt_byte_length);
+  return phpass_encode64 ($rand_bytes, $salt_byte_length);
 }
 
 # Generate unix pw.

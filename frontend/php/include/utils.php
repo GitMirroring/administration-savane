@@ -967,6 +967,8 @@ function utils_str_join ($separator, $str, $n)
   return str_repeat ("$str$separator", $n - 1) . $str;
 }
 
+# Return a random number from 0 to $end.
+# For sensitive tokens, use random_bytes instead.
 function utils_mt_rand ($end = 1000000)
 {
   $micro = 1000000;

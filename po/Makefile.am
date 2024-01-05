@@ -158,6 +158,7 @@ POTFILES = \
 	frontend/php/include/calendar.php \
 	frontend/php/include/group.php \
 	frontend/php/include/savane_error.php \
+	frontend/php/include/random-bytes.php \
 	frontend/php/include/spam.php \
 	frontend/php/include/project_home.php \
 	frontend/php/project/memberlist-gpgkeys.php \
