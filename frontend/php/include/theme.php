@@ -150,8 +150,7 @@ function theme_validate ($user_theme)
 function theme_next_random ()
 {
   $theme = theme_list ();
-  utils_srand ();
-  $num = mt_rand (0, count ($theme) - 1);
+  $num = utils_mt_rand (count ($theme) - 1);
   $random_theme = theme_validate ($theme[$num]);
   $expire = time () + 60 * 60 * 24;
   return $random_theme;

@@ -977,9 +977,12 @@ function utils_str_join ($separator, $str, $n)
   return str_repeat ("$str$separator", $n - 1) . $str;
 }
 
-function utils_srand ()
+function utils_mt_rand ($end = 1000000)
 {
-  mt_srand ((int)((double)microtime () * 1000000));
+  $micro = 1000000;
+  $t = (int)(microtime (true) * $micro);
+  mt_srand ($t % $micro);
+  return mt_rand (0, $end);
 }
 
 function utils_placeholders ($array)

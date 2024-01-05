@@ -49,8 +49,7 @@ function form_get_id ()
   static $form_header_id = null;
   if (!empty ($form_header_id))
     return $form_header_id;
-  utils_srand ();
-  $form_header_id = md5 (mt_rand (0, 1000000));
+  $form_header_id = md5 (utils_mt_rand ());
   return $form_header_id;
 }
 

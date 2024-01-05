@@ -108,9 +108,8 @@ function sendmail_extract_comment_id (&$context)
 
 function sendmail_create_msgid ()
 {
-  utils_srand ();
   return date ("Ymd-His", time ()) . ".sv" . user_getid () . "."
-    . mt_rand (0, 100000) . "@" . $_SERVER["HTTP_HOST"];
+    . utils_mt_rand () . "@" . $_SERVER["HTTP_HOST"];
 }
 
 function sendmail_msgid_headers ($context)
