@@ -50,15 +50,24 @@ function git_description_fallback (&$desc, $url)
     $desc = $url;
 }
 
+function git_read_description ($dir_name)
+{
+  # Suppress warnings: when the group is private, the www-data user will be
+  # denied access its repositories.
+  $old_handler = set_error_handler (function ($no, $str) { });
+  $desc = file_get_contents ("$dir_name/description");
+  set_error_handler ($old_handler);
+  if ($desc === false)
+    return '';
+  return trim ($desc);
+}
+
 function git_make_entry ($git_dir, $repo_dir, $clone_path)
 {
   $dir_name = "$git_dir/$repo_dir";
   if (!is_dir ($dir_name))
     return null;
-  $desc = file_get_contents ("$dir_name/description");
-  if ($desc === false)
-    $desc = '';
-  $desc = trim ($desc);
+  $desc = git_read_description ($dir_name);
   git_description_fallback ($desc, $repo_dir);
   $name = preg_replace ('/[.]git$/', "", $repo_dir);
   return ['name' => $name, 'url' => $repo_dir, 'desc' => $desc,
