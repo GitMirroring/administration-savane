@@ -55,7 +55,7 @@ function sendmail_signature ()
     . "\nhttps://$sys_default_domain$sys_home\n";
 }
 
-function sendmail_format_body (&$message, &$context)
+function sendmail_format_body (&$message, $context)
 {
   if (!empty ($context['skip_format_body']))
     return;
@@ -488,7 +488,7 @@ function sendmail_make_subjects ($to, $message, $context)
   $v = join (', ', $recipients);
   $emails[$v] = $recipients;
   $user_subj[$v] = $subject;
-  return [$user_subj, $emails];
+  return [array_map ("sendmail_encode_header", $user_subj), $emails];
 }
 
 function sendmail_encrypt_message ($uid, &$msg)
@@ -502,10 +502,17 @@ function sendmail_encrypt_message ($uid, &$msg)
   return [$encrypted === '', $gpg_error];
 }
 
-# Send the mail.
-# Every mail sent by Savannah should be using that function which
-# works like mail ().
-# $to can be a comma-separated list; $from and $to can contain user names.
+# Send the mail. Every mail sent by Savannah should be using this function.
+#
+# $addresses['to'] is comma-separated list; $addresses['from']
+# and $addresses['to'] may contain user names instead of emails.
+#
+# $message contains a list of headers (['headers']), the subject
+# (['subject']), the body (['body']).
+#
+# $context may contain additional data like relevant unix_group_name
+# (['group']), artifact (['tracker']), item and comment IDs (['item']),
+# additional flags (['skip_format_body']).
 function sendmail_mail ($addresses, $message, $context = [])
 {
   sendmail_check_displayspamcheck ($context);
@@ -516,12 +523,8 @@ function sendmail_mail ($addresses, $message, $context = [])
   list ($recipients, $subj_pfx, $emails) =
     sendmail_compile_custom_subject_lines ($to, $context);
   sendmail_debug_override_address ($recipients, $subj_pfx, $message, $emails);
-  list ($user_subj, $emails) =
-    sendmail_make_subjects ($to, $message, $context);
-
-  return sendmail_send_to_list (
-    $emails, $user_subj, $message, $context
-  );
+  list ($subj, $emails) = sendmail_make_subjects ($to, $message, $context);
+  return sendmail_send_to_list ($emails, $subj, $message, $context);
 }
 
 # Encode each recipient separately and separate them using commas.

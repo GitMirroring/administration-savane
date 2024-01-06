@@ -77,6 +77,8 @@
 
 ** The user names were base64-encoded in feedback on notifications.
 
+** Non-ASCII email subjects were not base64-encoded.
+
 [BACKEND]
 
 * New commands in sv_membersh, rm and rmdir.
