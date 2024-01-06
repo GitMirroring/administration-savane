@@ -241,7 +241,7 @@ function sendmail_send_to_list ($user_name, $user_subj, &$message, &$context)
         {
           $ret .= mail ($u_name, $u_subj, $body, $headers);
           # TRANSLATORS: the argument is a comma-separated list of recipients.
-          fb (sprintf (_("Mail sent to %s"), $u_name));
+          fb (sprintf (_("Mail sent to %s"), join (', ', $user_name[$v])));
           continue;
         }
       sendmail_spamcheck_queue ($context, $u_name, $u_subj, $message);

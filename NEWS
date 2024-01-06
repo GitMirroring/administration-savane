@@ -75,6 +75,8 @@
    the tracker of the same group; when that option was selected,
    the configuration of the tracker broke.
 
+** The user names were base64-encoded in feedback on notifications.
+
 [BACKEND]
 
 * New commands in sv_membersh, rm and rmdir.
