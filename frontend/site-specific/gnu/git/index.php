@@ -50,16 +50,19 @@ $n = count ($repo_list);
 if ($n > 1)
   print "<p>" . _('Note: this group has multiple Git repositories.')
     . "</p>\n";
-print "<h3>" . _('Anonymous clone:') . "</h3>\n<pre>";
-
-for ($i = 0; $i < $n; $i++)
+if ($project->isPublic ())
   {
-    if ($n > 1)
-      print $repo_list[$i]['desc'] . "\n";
-    print "git clone https://git." . $project->getTypeBaseHost ()
-      . "/git/" . $repo_list[$i]['url'] . "\n";
-    if ($i < $n - 1)
-      print "\n";
+    print "<h3>" . _('Anonymous clone:') . "</h3>\n<pre>";
+
+    for ($i = 0; $i < $n; $i++)
+      {
+        if ($n > 1)
+          print $repo_list[$i]['desc'] . "\n";
+        print "git clone https://git." . $project->getTypeBaseHost ()
+          . "/git/" . $repo_list[$i]['url'] . "\n";
+        if ($i < $n - 1)
+          print "\n";
+      }
   }
 
 print "</pre>\n\n<h3>" . _('Member clone:') . "</h3>\n\n<pre>";

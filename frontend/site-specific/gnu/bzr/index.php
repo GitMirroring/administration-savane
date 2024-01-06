@@ -47,66 +47,54 @@ include dirname (__FILE__) . '/../fingerprints.php';
 
 global $project;
 
-$http_base_url = 'bzr.' . $project->getTypeBaseHost() . "/r/"
-  . $project->getUnixName();
-$bzr_base_url = 'bzr://bzr.'
-  . $project->getTypeBaseHost() . "/" . $project->getUnixName();
+$base_host = $project->getTypeBaseHost ();
+$unix_name = $project->getUnixName ();
+$http_base_url = "bzr.$base_host/r/$unix_name";
+$bzr_base_url = "bzr://bzr.$base_host/$unix_name";
 
-print '<h3>'._('Anonymous read-only access').'</h3>
+if ($project->isPublic ())
+  {
+    print '<h3>' . _('Anonymous read-only access') . "</h3>\n";
+    print '<p>'
+      . _("The Bazaar repositories for projects use separate directories for\n"
+        . "each branch. You can see the branch names in the repository by "
+        . "pointing\na web browser to:")
+      . "<br />\n<code>http://$http_base_url</code></p>\n\n"
+      . "<ul>\n<li><p>"
+      . _("For a repository with separate branch directories (<tt>trunk</tt>,\n"
+      . "<tt>devel</tt>, &hellip;), use:")
+      . "</p>\n<pre>bzr branch $bzr_base_url/" . _('<i>branch</i>')
+      . "</pre>\n<p>"
+      . _('where <i>branch</i> is the name of the branch you want.')
+      . "</p>\n</li>\n\n<li><p>"
+      . _('For a repository with only a top-level <tt>.bzr</tt> directory, '
+         . 'use:')
+      . "</p>\n\n<pre>bzr branch $bzr_base_url</pre>\n</li>\n\n<li><p>"
+      . _("If you need the low-performance HTTP or HTTPS access, these are "
+      . "the URLs:")
+      . "</p>\n<pre>http://$http_base_url/" . _('<i>branch</i>')
+      . "\nhttps://$http_base_url/" . _('<i>branch</i>')
+      . "\n</pre>\n</li>\n</ul>\n\n";
+  }
 
-<p>'._('The Bazaar repositories for projects use separate directories for
-each branch. You can see the branch names in the repository by pointing
-a web browser to:').' <br />
-<code>http://' . $http_base_url . '</code></p>
+print '<h3>' . _('Developer write access (SSH)') . "</h3>\n";
 
-<ul>
-<li><p>'._('For a repository with separate branch directories (<tt>trunk</tt>,
-<tt>devel</tt>, &hellip;), use:').'</p>
-
-<pre>bzr branch ' . $bzr_base_url . '/' . _('<i>branch</i>') . '</pre>
-
-<p>'._('where <i>branch</i> is the name of the branch you want.').'</p>
-</li>
-
-<li><p>'
-._('For a repository with only a top-level <tt>.bzr</tt> directory, use:').'</p>
-
-<pre>bzr branch ' . $bzr_base_url . '</pre>
-</li>
-
-<li><p>'
-. _('If you need the low-performance HTTP or HTTPS access, these are the URLs:')
-. '</p>
-<pre>http://' . $http_base_url . '/'  . _('<i>branch</i>') . '
-https://' . $http_base_url . '/'  . _('<i>branch</i>') . '
-</pre>
-</li>
-</ul>
-
-<h3>'._('Developer write access (SSH)').'</h3>
-
-';
-
-$username = user_getname();
+$username = user_getname ();
 if ($username == "NA")
-   # For anonymous user.
-   $username = '&lt;<i>'._('membername').'</i>&gt;';
-print '
-<pre>bzr branch bzr+ssh://'
-  .$username ?>@bzr.<?php echo $project->getTypeBaseHost(). "/"
-  .$project->getUnixName()
-  .'/<i>branch</i></pre>
+   $username = '&lt;<i>' . _('membername') . "</i>&gt;\n";
+print "<pre>bzr branch bzr+ssh://$username@bzr.$base_host/$unix_name/"
+  . "<i>branch</i></pre>\n\n";
+print '<h3>' . _('More introductory documentation') . "</h3>\n";
 
-<h3>'._('More introductory documentation').'</h3>
-
-';
-
-printf ('<p>'
-._('Check the <a href="%s">UsingBzr</a> page at the documentation wiki.')
-."</p>\n", "//savannah.gnu.org/maintenance/UsingBzr");
+print '<p>';
+printf (
+  _('Check the <a href="%s">UsingBzr</a> page at the documentation wiki.'),
+  "//savannah.gnu.org/maintenance/UsingBzr"
+);
+print "</p>\n";
 
 print "<p>"
-. _('The SSHv2 public key fingerprints for the machine hosting the source
-trees are:') . "</p>\n" . $vcs_fingerprints;
-
+  . _("The SSHv2 public key fingerprints for the machine hosting the source\n"
+    . "trees are:")
+  . "</p>\n$vcs_fingerprints\n";
 ?>

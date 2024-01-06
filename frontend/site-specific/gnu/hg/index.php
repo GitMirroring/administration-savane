@@ -1,5 +1,4 @@
 <?php
-
 # Instructions about Hg usage.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
@@ -45,37 +44,29 @@
 include dirname (__FILE__) . '/../fingerprints.php';
 
 global $project;
+$base_host = $project->getTypeBaseHost ();
+$unix_name = $project->getUnixName ();
+$type_dir = preg_replace (':/srv/hg:', '', $project->getTypeDir ('hg'));
 
-print '<h3>' . _('Anonymous read-only access') . '</h3>
+if ($project->isPublic ())
+  {
+    print '<h3>' . _('Anonymous read-only access') . "</h3>\n";
+    print "<pre>hg clone https://hg.$base_host/hgweb$type_dir\n</pre>\n";
+  }
 
-<pre>hg clone https://hg.'
-  . $project->getTypeBaseHost() . '/hgweb'
-  . preg_replace(':/srv/hg:', '', $project->getTypeDir('hg')) . '
-</pre>
+print '<h3>' . _('Developer write access (SSH)') . "</h3>\n";
 
-<h3>' . _('Developer write access (SSH)') . '</h3>
-
-';
-
-$username = user_getname();
+$username = user_getname ();
 if ($username == "NA")
-   # For anonymous user.
-   $username = '&lt;<i>'._('membername').'</i>&gt;';
-print '
-<pre>hg clone ssh://'
-  . $username . '@hg.' . $project->getTypeBaseHost() . "/"
-  . $project->getUnixName() . '</pre>
+  $username = '&lt;<i>' . _('membername') . "</i>&gt;\n";
 
-<p>'
-. _('The SSHv2 public key fingerprints for the machine hosting the source
-trees are:') . "</p>\n" . $vcs_fingerprints;
+print "<pre>hg clone ssh://$username@hg.$base_host/$unix_name</pre>\n<p>";
+print
+  _("The SSHv2 public key fingerprints for the machine hosting the source\n"
+    . "trees are:")
+  . "</p>\n$vcs_fingerprints\n";
 
-print '
-<h3>'._('More information').'</h3>
-
-<p><a href="//savannah.gnu.org/maintenance/UsingHg">
-https://savannah.gnu.org/maintenance/UsingHg</a></p>
-
-';
-
+print '<h3>' . _('More information') . "</h3>\n";
+print "<p><a href=\"//savannah.gnu.org/maintenance/UsingHg\">\n"
+ . "https://savannah.gnu.org/maintenance/UsingHg</a></p>\n";
 ?>

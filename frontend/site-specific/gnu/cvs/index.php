@@ -49,44 +49,44 @@ include dirname (__FILE__) . '/../fingerprints.php';
 
 global $project, $sys_home, $sys_unix_group_name;
 
-print '<h3>' . _('Anonymous CVS Access') . "</h3>\n";
-
-print '<p>'
- . _("This project's CVS repository can be checked out through anonymous\n"
-      . "CVS with the following instruction set. The module you wish\n"
-      . "to check out must be specified as the &lt;<i>modulename</i>&gt;.")
- . "</p>\n";
-
 $proj_unix_name = $project->getUnixName ();
-
 $cvs_cmd_base = "cvs -z3 -d:pserver:anonymous@cvs."
   . $project->getTypeBaseHost () . ":";
 
-if ($project->Uses ("cvs"))
+
+if ($project->isPublic ())
   {
-    $cvs_cmd = "$cvs_cmd_base " . $project->getTypeDir ('cvs') . " co ";
-    print "<h4>" . _('Software repository:') . "</h4>\n";
-    print "<pre>$cvs_cmd$proj_unix_name</pre>\n";
-    print "<p>" . _('With other project modules:') . "</p>\n";
-    print "<pre>$cvs_cmd&lt;<i>" . _('modulename') . "</i>&gt;</pre>\n";
+    print '<h3>' . _('Anonymous CVS Access') . "</h3>\n";
+    print '<p>'
+     . _("This project's CVS repository can be checked out through anonymous\n"
+          . "CVS with the following instruction set. The module you wish\n"
+          . "to check out must be specified as the &lt;<i>modulename</i>&gt;.")
+     . "</p>\n";
+
+    if ($project->Uses ("cvs"))
+      {
+        $cvs_cmd = "$cvs_cmd_base " . $project->getTypeDir ('cvs') . " co ";
+        print "<h4>" . _('Software repository:') . "</h4>\n";
+        print "<pre>$cvs_cmd$proj_unix_name</pre>\n";
+        print "<p>" . _('With other project modules:') . "</p>\n";
+        print "<pre>$cvs_cmd&lt;<i>" . _('modulename') . "</i>&gt;</pre>\n";
+      }
+    if ($project->CanUse("homepage") || $project->UsesForHomepage("cvs"))
+      {
+        print "<h4>" . _('Webpage repository:') . "</h4>\n";
+        print "<pre>$cvs_cmd_base" . $project->getTypeDir('homepage')
+          . " co $proj_unix_name</pre>\n";
+      }
+
+    print '<p>';
+    print _("<em>Hint:</em> When you update your working copy from within "
+      . "the\nmodule's directory (with <code>cvs update</code>) you do not "
+      . "need the\n<code>-d</code> option anymore.  Simply use");
+    print "</p>\n\n<pre>";
+    print "cvs update\ncvs -qn update\n";
+    print "</pre>\n\n";
+    print "<p>" . _('to preview and status check.') . "</p>\n";
   }
-if ($project->CanUse("homepage") || $project->UsesForHomepage("cvs"))
-  {
-    print "<h4>" . _('Webpage repository:') . "</h4>\n";
-    print "<pre>$cvs_cmd_base" . $project->getTypeDir('homepage')
-      . " co $proj_unix_name</pre>\n";
-  }
-
-print '<p>';
-print _("<em>Hint:</em> When you update your working copy from within the
-module's directory (with <code>cvs update</code>) you do not need the
-<code>-d</code> option anymore.  Simply use");
-print "</p>\n\n<pre>";
-print "cvs update\ncvs -qn update\n";
-print "</pre>\n\n";
-
-print "<p>" . _('to preview and status check.') . "</p>\n";
-
 print '<h3>' . _('Group member CVS access via SSH') . "</h3>\n";
 
 print "<p>"
