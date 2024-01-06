@@ -212,8 +212,8 @@ function trackers_transition_update_item (
           if ($field != 'close_date')
             {
               # TRANSLATORS: the argument is field name.
-              sprintf (_("Automatic update of %s due to transitions settings"),
-                trackers_data_get_label($field)
+              $msg = sprintf (_("Automatic update of %s due to transitions settings"),
+                trackers_data_get_label ($field)
               );
               fb ($msg);
             }
