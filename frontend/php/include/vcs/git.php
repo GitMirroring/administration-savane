@@ -54,9 +54,9 @@ function git_read_description ($dir_name)
 {
   # Suppress warnings: when the group is private, the www-data user will be
   # denied access its repositories.
-  $old_handler = set_error_handler (function ($no, $str) { });
+  $error_state = utils_disable_warnings ();
   $desc = file_get_contents ("$dir_name/description");
-  set_error_handler ($old_handler);
+  utils_restore_warnings ($error_state);
   if ($desc === false)
     return '';
   return trim ($desc);

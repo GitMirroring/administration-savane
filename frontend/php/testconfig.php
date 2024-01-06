@@ -197,6 +197,7 @@ function test_sys_upload_dir ()
   $error_handler = function ($errno, $errstr)
   {
     print "<b>unlink failed:</b> $errstr";
+    return true;
   };
   $old_handler = set_error_handler ($error_handler, E_WARNING);
   $res = unlink ($path);

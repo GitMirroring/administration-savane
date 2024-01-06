@@ -893,17 +893,24 @@ function utils_run_proc ($cmd, &$out, &$err, $aux = [])
   return $res;
 }
 
+function utils_disable_warnings ($level = E_ALL)
+{
+  $h = set_error_handler (function ($errno, $str) {return true;}, $level);
+  return [$h, $level];
+}
+
+function utils_restore_warnings ($state)
+{
+  set_error_handler ($state[0], $state[1]);
+}
+
 # Try to move $tmp_path to $path without overwriting if the latter exists;
 # return $path when successful, $tmp_path otherwise.
 function utils_try_move ($tmp_path, $path)
 {
-  $link_error_handler = function ($errno, $errstr, $errfile, $errline)
-  {
-    # Ignore warning.
-  };
-  $old_handler = set_error_handler ($link_error_handler, E_WARNING);
+  $error_state = utils_disable_warnings (E_WARNING);
   $res = link ($tmp_path, $path);
-  set_error_handler ($old_handler, E_WARNING);
+  utils_restore_warnings ($error_state);
   if (!$res) # Already exists; fallback to temporary file name.
     return $tmp_path;
   unlink ($tmp_path);

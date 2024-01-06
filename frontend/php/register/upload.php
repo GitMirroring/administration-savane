@@ -66,13 +66,9 @@ if ($tarball['error'] != 0)
 # return $path when successful, $tmp_path otherwise.
 function try_move ($tmp_path, $path)
 {
-  $link_error_handler = function ($errno, $errstr, $errfile, $errline)
-  {
-    # Ignore warning.
-  };
-  $old_handler = set_error_handler ($link_error_handler, E_WARNING);
+  $state = utils_disable_warnings (E_WARNING);
   $res = link ($tmp_path, $path);
-  set_error_handler ($old_handler, E_WARNING);
+  utils_restore_warnings ($state);
   if (!$res) # Already exists; fallback to temporary file name.
     return $tmp_path;
   unlink ($tmp_path);
