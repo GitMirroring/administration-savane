@@ -48,11 +48,18 @@ if (!function_exists ("random_bytes"))
 
 function form_get_id ()
 {
-  static $form_header_id = null;
-  if (!empty ($form_header_id))
-    return $form_header_id;
-  $form_header_id = md5 (random_bytes (8));
-  return $form_header_id;
+  static $form_id = null;
+  if (!empty ($form_id))
+    return $form_id;
+  $form_id = md5 (random_bytes (8));
+  $result = db_autoexecute ('form',
+    [ 'form_id' => $form_id, 'timestamp' => time (),
+      'user_id' => user_getid ()],
+    DB_AUTOQUERY_INSERT
+  );
+  if (db_affected_rows ($result) != 1)
+    fb (_("System error while creating the form, report it to admins"), 1);
+  return $form_id;
 }
 
 # To use this form that disallow duplicates:
@@ -70,14 +77,6 @@ function form_header (
     $extra = " $extra";
   if (!$form_id)
     $form_id = form_get_id ();
-  $result = db_autoexecute ('form',
-    [ 'form_id' => $form_id, 'timestamp' => time (),
-      'user_id' => user_getid ()],
-    DB_AUTOQUERY_INSERT
-  );
-  if (db_affected_rows ($result) != 1)
-    fb (_("System error while creating the form, report it to admins"), 1);
-
   return "\n<form action=\""
     . utils_specialchars ($action) . "\" method=\"$method\"$extra>\n"
     . form_hidden (["form_id" => $form_id]);
