@@ -62,6 +62,21 @@ $post_names = function ()
   return $names;
 };
 
+if (empty ($group_id))
+  exit_no_group ();
+
+if (project_get_object ($group_id)->getStatus () == 'X')
+  {
+    site_admin_header (
+      ['title' => no_i18n ("Group List"), 'context' => 'admgroup']
+    );
+    print "<p>"
+      . no_i18n ("This is a special group.  No controls are provided.")
+      . "</p>\n";
+    site_admin_footer ([]);
+    exit (0);
+  }
+
 extract (sane_import ('post', $post_names ()));
 extract (sane_import ('get',
   ['true' => 'updatefast', 'preg' => [['status', '/^[A-Z]$/']]]

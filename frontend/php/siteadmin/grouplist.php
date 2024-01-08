@@ -186,9 +186,12 @@ else
     for ($i = 0; $i < $rows; $i++)
       {
         $grp = db_fetch_array ($res);
+        $grp_name = $grp['group_name'];
+        if (in_array ($grp['status'], ['A', 'P']))
+          $grp_name =
+            "<a href=\"groupedit.php?group_id=$grp[group_id]\">$grp_name</a>";
         print '<tr class="' . utils_altrow ($inc++) . '">';
-        print "<td><a href=\"groupedit.php?group_id=$grp[group_id]\">"
-          . "$grp[group_name]</a></td>\n";
+        print "<td>$grp_name</td>\n";
         print "<td>$grp[unix_group_name]</td>\n";
         print '<td>' . $status_arr[$grp['status']] . "</td>\n";
         print '<td>' . ($grp['is_public']? no_i18n ("yes"): no_i18n ("no"))
