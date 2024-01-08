@@ -62,6 +62,15 @@ function form_get_id ()
   return $form_id;
 }
 
+function form_id_input ($method, $form_id = false)
+{
+  if (empty ($form_id))
+    $form_id = form_get_id ();
+  if ($method != 'post')
+    return '';
+  return form_hidden (['form_id' => $form_id]);
+}
+
 # To use this form that disallow duplicates:
 #    - form_header must be used on the form
 #    - form_check must be used before any insert in the DB after submission
@@ -75,14 +84,12 @@ function form_header (
     $action = $_SERVER["PHP_SELF"];
   if ($extra)
     $extra = " $extra";
-  if (!$form_id)
-    $form_id = form_get_id ();
   return "\n<form action=\""
     . utils_specialchars ($action) . "\" method=\"$method\"$extra>\n"
-    . form_hidden (["form_id" => $form_id]);
+    . form_id_input ($method, $form_id);
 }
 
-# Similar to form_header, but without generating new $form_id.
+# Similar to form_header, but with a different argument parser.
 function form_tag ($args = [], $action_suffix = '')
 {
   $def_args = ['action' => $GLOBALS['php_self'], 'method' => 'post'];
@@ -92,11 +99,11 @@ function form_tag ($args = [], $action_suffix = '')
       $args[$k] = $def_args[$k];
 
   $args['action'] .= $action_suffix;
-  $arg_string = '';
+  $attr = '';
   foreach ($args as $k => $v)
-    $arg_string .= " $k=\"$v\"";
+    $attr .= " $k=\"$v\"";
 
-  return "\n<form $arg_string>\n";
+  return "<form $attr>\n" . form_id_input ($args['method']);
 }
 
 # Usual input.
