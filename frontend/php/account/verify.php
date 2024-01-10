@@ -48,13 +48,11 @@ require_once ('../include/form.php');
 require_once ('../include/exit.php');
 
 extract (sane_import ('post',
-  [
-    'true' => 'update',
-    'hash' => ['form_id', 'confirm_hash'],
-    'name' => 'form_loginname',
-    'pass' => 'form_pw'
-  ]
+  ['true' => 'update', 'name' => 'form_loginname', 'pass' => 'form_pw']
 ));
+# Must accept all ways of providing confirm_hash because in the mail it is a GET
+# but if the form fails (wrong password, etc), it will be a POST.
+extract (sane_import ('request', ['hash' => 'confirm_hash']));
 
 # Logged users have no business here.
 if (user_isloggedin ())
@@ -87,8 +85,8 @@ if (!empty ($update))
       }
   }
 site_header (['title' => _("Login")]);
-# TRANSLATORS: the argument is the name of the system (like "Savannah").
 print '<h2> ';
+# TRANSLATORS: the argument is the name of the system (like "Savannah").
 printf (_("%s Account Verification"), $sys_name);
 print "</h2>\n";
 print '<p>'
@@ -96,7 +94,7 @@ print '<p>'
      . "will then be activated for normal logins.")
  . "</p>\n";
 
-print form_header ($_SERVER["PHP_SELF"], $form_id);
+print form_header ();
 print '<p><span class="preinput">'
   . _("Login Name") . ":</span><br />\n&nbsp;&nbsp;";
 print form_input ("text", "form_loginname");
@@ -107,10 +105,6 @@ print '<p><span class="preinput">'
 print form_input ("password", "form_pw");
 print "</p>\n";
 
-# Must accept all ways of providing confirm_hash (POST & GET), because
-# in the mail it is a POST but if the form fail (wrong password, etc), it will
-# be a GET.
-extract (sane_import ('request', ['hash' => 'confirm_hash']));
 print form_hidden (["confirm_hash" => $confirm_hash]);
 print form_footer (_("Login"));
 

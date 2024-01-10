@@ -127,22 +127,18 @@ function send_pending_user_email ($group_id, $user_id, $user_message)
 # Request for inclusion.
 extract (sane_import ('post',
   [
-    'true' => 'update',
-    'hash' => 'form_id',
-    'pass' => 'form_message',
+    'true' => 'update', 'pass' => 'form_message',
     'array' => [['form_groups', ['digits', 'true']]],
   ]
 ));
 
 if ($update)
   {
+    form_check ();
     $result_upd = db_query ("
       SELECT group_id FROM groups WHERE status = 'A' AND is_public = '1'
       ORDER BY group_id"
     );
-    # Check for duplicates.
-    if (!form_check ($form_id))
-      return 0;
     while ($val = db_fetch_array ($result_upd))
       {
         if (!isset ($form_groups[$val['group_id']]))

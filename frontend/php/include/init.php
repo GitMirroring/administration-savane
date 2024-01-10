@@ -95,8 +95,6 @@ $sys_gpg_name = "gpg";
 $sys_debug_on = false;
 # Prevent redirections like sv.gnu.org -> sv.nongnu.org.
 $sys_debug_nobasehost = false;
-# Prevent form duplicate checks which are a PITA during debugging.
-$sys_debug_noformcheck = false;
 # Log which queries are used the most, using XCache variables.
 $sys_debug_sqlprofiler = false;
 

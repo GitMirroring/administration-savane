@@ -165,21 +165,14 @@ $reference = 'account/login.php';
 $reference = 'account/lostlogin.php';
 {
   $names = [
-    'hash' => 'form_id',
     'true' => 'update',
     'pass' => ['form_pw', 'form_pw2']
   ];
-  $in = [
-    'form_id' => md5 (83521),
-    'form_pw' => '123;"45',
-    'form_pw2' => '123 45',
-  ];
+  $in = ['form_pw' => '123;"45', 'form_pw2' => '123 45'];
   $out = $in;
   $out['update'] = null;
   test_sane_import ($in, $names, $out);
 
-  $in['form_id'] = $in['form_id'] . 'A';
-  $out['form_id'] = null;
   $in['update'] = 'x';
   $out['update'] = true;
   test_sane_import ($in, $names, $out);
@@ -207,14 +200,12 @@ $reference = 'account/pending-resend.php';
 $reference = 'account/register.php';
 {
   $names = [
-    'hash' => 'form_id',
     'name' => 'form_loginname',
     'pass' => ['form_pw', 'form_pw2', 'form_realname', 'form_email'],
     'digits' => 'form_year',
     'true' => ['update', 'form_usepam']
   ];
   $in = [
-    'form_id' => md5 (289),
     'form_loginname' => 'agn',
     'update' => 'Update',
     'form_pw' => '%',
@@ -260,12 +251,11 @@ $reference = 'account/verify.php';
 {
   $names = [
     'true' => 'update',
-    'hash' => ['form_id', 'confirm_hash'],
+    'hash' => [ 'confirm_hash'],
     'name' => 'form_loginname',
     'pass' => 'form_pw'
   ];
   $in = [
-    'form_id' => md5 (4913),
     'confirm_hash' => md5 ('agn'),
     'form_loginname' => 'agn',
     'form_pw' => 0
@@ -520,6 +510,13 @@ $reference = 'include/form.php';
 
   $in['group_id'] = '1234';
 
+  test_sane_import ($in, $names, $out);
+  $names = ['hash' => 'form_id'];
+  $in = ['form_id' => md5 (83521)];
+  $out = $in;
+  test_sane_import ($in, $names, $out);
+  $in['form_id'] = $in['form_id'] . 'A';
+  $out['form_id'] = null;
   test_sane_import ($in, $names, $out);
 }
 
@@ -816,11 +813,8 @@ $reference = 'include/trackers/general.php';
 
 $reference = 'include/trackers_run/add.php';
 {
-  $names = [
-    'hash' => 'form_id', 'array' => [['prefill', [null, 'specialchars']]]
-  ];
+  $names = ['array' => [['prefill', [null, 'specialchars']]]];
   $in = [
-    'form_id' => md5 ('a'),
     'prefill' => ['"prefill"', 'prefill', 'p<r>efill']
   ];
   $out = $in;
@@ -1040,10 +1034,10 @@ $reference = 'include/trackers_run/admin/field_values_reset.php';
   test_sane_import ($in, $names, $out);
 }
 
-$reference = 'include/trackers_run/admin/field_values_transition-ofields-update.php';
+$reference = 'include/bugs/admin/field_values_transition-ofields-update.php';
 {
   $names = ['digits' => 'transition_id'];
-  $in = ['form_id' => 'abcdef01', 'transition_id' => 'i'];
+  $in = ['form_di' => 'abcdef01', 'transition_id' => 'i'];
   $out = ['transition_id' => null];
   test_sane_import ($in, $names, $out);
   $all_fields = ['category_id', 'resolution_id', 'privacy', 'status_id'];
@@ -1238,7 +1232,6 @@ $reference = 'include/trackers_run/index.php';
   $out = $in;
   test_sane_import ($in, $names, $out);
   $names = [
-    'hash' => 'form_id',
     'pass' =>
       [
         'comment', 'additional_comment', 'depends_search',
@@ -1284,7 +1277,6 @@ $reference = 'include/trackers_run/index.php';
       ]
   ];
   $in = [
-    'form_id' => md5 ('form_id'),
     'comment' => 'comment',
     'additional_comment' => 'a',
     'depends_search' => 'd',
@@ -1326,11 +1318,8 @@ $reference = 'include/trackers_run/index.php';
   $out = $in;
   $out['item_depends_on'] = null;
   test_sane_import ($in, $names, $out);
-  $names = [
-    'hash' => 'form_id', 'strings' => [['check', '1984']],
-    'pass' => 'details'
-  ];
-  $in = ['form_id' => md5(''), 'check' => '1984'];
+  $names = ['strings' => [['check', '1984']], 'pass' => 'details'];
+  $in = ['check' => '1984'];
   $out = $in;
   $out['details'] = null;
   test_sane_import ($in, $names, $out);
@@ -1339,7 +1328,7 @@ $reference = 'include/trackers_run/index.php';
   $in['check'] = 1984; $out['check'] = '1984';
   test_sane_import ($in, $names, $out);
   $names = [
-    'hash' => 'form_id', 'digits' => ['item_id'],
+    'digits' => ['item_id'],
     'strings' => [['check', '1984']], 'pass' => 'comment'
   ];
   $out['item_id'] = $in['item_id'] = 3;
@@ -1526,7 +1515,7 @@ $reference = 'my/admin/change.php';
         ['step', ['confirm', 'confirm2', 'discard']],
       ],
     'true' => ['update', 'test_gpg_key'],
-    'hash' => ['session_hash', 'confirm_hash', 'form_id'],
+    'hash' => ['session_hash', 'confirm_hash'],
   ];
   $in = $out = [
    'item' => 'realname',
@@ -1535,7 +1524,6 @@ $reference = 'my/admin/change.php';
    'test_gpg_key' => true,
    'session_hash' => md5 (5),
    'confirm_hash' => md5 (6),
-   'form_id' => md5 (7),
   ];
   test_sane_import ($in, $names, $out);
 }
@@ -1544,14 +1532,12 @@ $reference = 'my/admin/editsshkeys.php';
 {
   $names = [
     'true' => 'update',
-    'hash' => 'form_id',
     'array' =>
       [
         ['form_authorized_keys', ['digits', 'no_quotes']]
       ]
   ];
   $in = $out = [
-    'form_id' => md5 (8),
     'form_authorized_keys' => ['a', 'b', 'c', 3 => '"']
   ];
   $out['update'] = null;
@@ -1643,17 +1629,14 @@ $reference = 'my/groups.php';
 {
   $names = [
     'true' => 'update',
-    'hash' => 'form_id',
     'pass' => 'form_message',
     'array' => [['form_groups', ['digits', 'true']]],
   ];
   $in = $out = [
     'update' => true,
-    'form_id' => 'x',
     'form_message' => '<b id=\'',
     'form_groups' => ['on', 'on', 'on', 'on'],
   ];
-  $out['form_id'] = null;
   foreach ($out['form_groups'] as $k => $v)
     $out['form_groups'][$k] = true;
   test_sane_import ($in, $names, $out);
@@ -1782,12 +1765,10 @@ $reference = 'news/index.php';
 $reference = 'news/submit.php';
 {
   $names = [
-    'hash' => 'form_id',
     'true' => 'update',
     'specialchars' => ['summary', 'details'],
   ];
   $in = $out = [
-    'form_id' => md5 ('form_id'),
     'update' => true,
     'summary' => 'symmary',
     'details' => 'details',
@@ -1800,14 +1781,12 @@ $reference = 'news/approve.php';
   $names = [
     'digits' => ['id', 'status'],
     'strings' => [['status', ['0', '4', '5']]],
-    'hash' => 'form_id',
     'true' => ['update', 'post_changes', 'approve'],
     'specialchars' => ['summary', 'details'],
   ];
   $in = $out = [
     'id' => 1,
     'status' => 4,
-    'form_id' => md5 ('md5'),
     'update' => true,
     'summary' => 'sum',
     'details' => 'det'
@@ -1988,7 +1967,6 @@ $reference = 'project/admin/squadadmin.php';
         'update_delete_step2', 'deletionconfirmed', 'add_to_squad',
         'remove_from_squad',
       ],
-    'hash' => 'form_id',
     'array' => [['user_ids', ['digits', 'digits']]],
     'digits' => ['squad_id_to_delete'],
      # form_realname is sanitized further.
@@ -1997,7 +1975,7 @@ $reference = 'project/admin/squadadmin.php';
   ];
   $in = $out = [
     'update' => true, 'update_general' => true, 'add_to_squad' => true,
-    'form_id' => md5 ('update'), 'squad_id_to_delete' => 289,
+    'squad_id_to_delete' => 289,
     'user_ids' => [1, 2], 'form_realname' => 'agn', 'form_loginname' => 'agn',
   ];
   $out['update_delete_step1'] = $out['update_delete_step2']

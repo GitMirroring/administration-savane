@@ -44,7 +44,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extract (sane_import ('request',
-  ['hash' => 'form_id', 'array' => [['prefill', [null, 'specialchars']]]]
+  ['array' => [['prefill', [null, 'specialchars']]]]
 ));
 
 if (!group_restrictions_check ($group_id, ARTIFACT))
@@ -73,8 +73,8 @@ if ($preamble)
 print '<h2>' . _("Details") . "</h2>\n";
 
 # Beginning of the submission form with fixed fields.
-print form_header ($php_self, $form_id, "post",
-  'enctype="multipart/form-data" name="trackers_form"'
+print form_header (
+  null, "post", 'enctype="multipart/form-data" name="trackers_form"'
 );
 print form_hidden (["func" => "postadditem", 'group_id' => $group_id]);
 print "\n<table cellpadding='0' width='100%'>";

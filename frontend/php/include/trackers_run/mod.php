@@ -177,8 +177,7 @@ print $res_arr['summary'] . "</h1>\n";
 if ($enable_comments)
   {
     print form_header (
-      $_SERVER['PHP_SELF'], $form_id, "post",
-      'enctype="multipart/form-data" name="item_form"'
+      null, "post", 'enctype="multipart/form-data" name="item_form"'
     );
     print form_hidden (
       ["func" => "postmoditem", "group_id" => $group_id, "item_id" => $item_id]

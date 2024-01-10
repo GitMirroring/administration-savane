@@ -42,19 +42,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/sane.php');
-require_once ('../include/session.php');
-require_once ('../include/sendmail.php');
-require_once ('../include/database.php');
+foreach (['init', 'sane', 'sendmail', 'random-bytes'] as $inc)
+  require_once ("../include/$inc.php");
 
 extract (sane_import ('post', ['name' => 'form_loginname']));
 
 # Logged users have no business here.
 if (user_isloggedin ())
-  session_redirect ($GLOBALS['sys_home'] . "my/");
+  session_redirect ("{$sys_home}my/");
 
-$confirm_hash = md5 (strval (time ()) . strval (rand ()));
+form_check ();
+
+$confirm_hash = md5 (random_bytes (8));
 # Account check.
 $res_user = db_execute ("
   SELECT * FROM user WHERE user_name = ? AND status = 'A'", [$form_loginname]
@@ -65,12 +64,11 @@ if (db_numrows ($res_user) < 1)
       SELECT status FROM user WHERE user_name = ? AND status = 'P'",
       [$form_loginname]
     );
-    $msg = _("This account does not exist");
-    if (db_numrows  ($res_user) > 0)
-      $msg =
-        _("This account hasn't been activated, please contact website "
-          . "administration");
-
+    $msg =
+      _("This account hasn't been activated, please contact website "
+        . "administration");
+    if (!db_numrows  ($res_user))
+      $msg = _("This account does not exist");
     exit_error (_("Invalid User"), $msg);
   }
 $row_user = db_fetch_array ($res_user);
@@ -86,7 +84,7 @@ $res_emails = db_execute ("
   SELECT count FROM user_lostpw
   WHERE
     user_id = ? AND DAYOFYEAR(date) = DAYOFYEAR(CURRENT_DATE)
-    AND HOUR(DATE) = HOUR(NOW())", [$row_user['user_id']]
+    AND HOUR(date) = HOUR(NOW())", [$row_user['user_id']]
 );
 if (db_numrows ($res_emails) < 1)
   $email_notifications = 0;
@@ -114,8 +112,8 @@ else
     db_execute ("
       UPDATE user_lostpw SET count = count + 1
       WHERE
-        user_id = ? AND DAYOFYEAR(DATE) = DAYOFYEAR(CURRENT_DATE)
-        AND HOUR(DATE) = HOUR(NOW())",
+        user_id = ? AND DAYOFYEAR(date) = DAYOFYEAR(CURRENT_DATE)
+        AND HOUR(date) = HOUR(NOW())",
       [$row_user['user_id']]
     );
   }

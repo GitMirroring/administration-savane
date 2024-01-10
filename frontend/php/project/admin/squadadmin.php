@@ -53,7 +53,6 @@ extract (sane_import ('post',
         'update_delete_step2', 'deletionconfirmed', 'add_to_squad',
         'remove_from_squad',
       ],
-    'hash' => 'form_id',
     'array' => [['user_ids', ['digits', 'digits']]],
     'digits' => ['squad_id_to_delete'],
      # form_realname is sanitized further.
@@ -65,7 +64,13 @@ extract (sane_import ('post',
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
 if (!$group_id)
-  exit_no_group();
+  exit_no_group ();
+
+if (
+  $update || $update_general || $add_to_squad || $update_delete_step1
+  || $update_delete_step2 || $remove_from_squad
+)
+  form_check ();
 
 function finish_page ()
 {
@@ -177,10 +182,10 @@ if ($squad_id)
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
     print '<p><span class="preinput"><label for="form_realname">'
           . _("Real Name:") . "</label></span><br />\n&nbsp;&nbsp;";
-    print form_input("text", "form_realname", $realname)
-                     . " &lt;$squad_name&gt;</p>\n";
-    print form_submit(_("Update"), "update_general") . ' '
-          . form_submit(_("Delete Squad"), "update_delete_step1") . "</form>\n";
+    print form_input ("text", "form_realname", $realname)
+      . " &lt;$squad_name&gt;</p>\n";
+    print form_submit (_("Update"), "update_general") . ' '
+      . form_submit (_("Delete Squad"), "update_delete_step1") . "</form>\n";
 
     print '<h2>' . _("Removing members") . "</h2>\n";
 
@@ -286,7 +291,7 @@ function validate_loginname ($form_loginname, $group)
 
 function create_squad (&$form_loginname, &$form_realname, $group)
 {
-  global $form_id, $group_id, $sys_mail_replyto, $sys_mail_domain;
+  global $group_id, $sys_mail_replyto, $sys_mail_domain;
 
   $result = db_autoexecute (
     'user',
@@ -294,13 +299,13 @@ function create_squad (&$form_loginname, &$form_realname, $group)
       'user_name' => strtolower ($group . "-" . $form_loginname),
       'user_pw' => 'ignored', 'realname' => $form_realname,
       'email' => "{$sys_mail_replyto}@{$sys_mail_domain}",
-      'add_date' => time(), 'status' => 'SQD', 'email_hide' => 1,
+      'add_date' => time (), 'status' => 'SQD', 'email_hide' => 1,
     ],
     DB_AUTOQUERY_INSERT
   );
   if (db_affected_rows ($result) <= 0)
     {
-      fb(_("Error during squad creation"));
+      fb (_("Error during squad creation"));
       return;
     }
   fb (_("Squad created"));
@@ -308,15 +313,15 @@ function create_squad (&$form_loginname, &$form_realname, $group)
   member_add ($created_squad_id, $group_id, 'SQD');
 
   # Clear variables so the form below will be empty.
-  $form_id = $form_loginname = $form_realname = null;
+  $form_loginname = $form_realname = null;
 }
 
-if ($update && form_check ($form_id))
+if ($update)
   {
     if (!$form_loginname)
-      fb(_("You must supply a username."), 1);
+      fb (_("You must supply a username."), 1);
     if (!$form_realname)
-      fb(_("You must supply a non-empty real name."), 1);
+      fb (_("You must supply a non-empty real name."), 1);
 
     if (
       $form_loginname && $form_realname
@@ -339,10 +344,10 @@ if ($update_delete_step2 && $deletionconfirmed == "yes")
     );
 
     if (!db_numrows ($delete_result))
-      exit_error(_("Squad not found"));
+      exit_error (_("Squad not found"));
 
-    fb(_("Squad deleted"));
-    member_remove($squad_id_to_delete, $group_id);
+    fb (_("Squad deleted"));
+    member_remove ($squad_id_to_delete, $group_id);
   }
 
 $result = db_execute ("
@@ -360,8 +365,9 @@ site_project_header (
 );
 
 print '<p>'
-. _("Squads can be assigned items, share permissions. Creating squads is useful
-if you want to assign some items to several members at once.") . "</p>\n";
+  . _("Squads can be assigned items, share permissions. Creating squads is "
+    . "useful\nif you want to assign some items to several members at once.")
+  . "</p>\n";
 
 print '<h2 id="form">' . _("Squad List") . "</h2>\n";
 
@@ -371,11 +377,9 @@ else
   {
     print "<ul>\n";
     while ($squad = db_fetch_array ($result))
-      {
-        print "<li><a href=\"?squad_id={$squad['user_id']}&amp;group_id="
-              . "$group_id\">{$squad['realname']} &lt;"
-              . "{$squad['user_name']}&gt;</a></li>\n";
-      }
+      print "<li><a href=\"?squad_id={$squad['user_id']}&amp;"
+        . "group_id=$group_id\">{$squad['realname']} "
+        . "&lt;{$squad['user_name']}&gt;</a></li>\n";
     print "</ul>\n";
   }
 
@@ -392,11 +396,11 @@ $result = db_execute ("
 );
 if ($rows < db_numrows ($result))
   {
-    print form_header ($_SERVER["PHP_SELF"] . '#form', $form_id);
+    print form_header ("$php_self#form");
     print form_hidden (["group_id" => $group_id]);
     print '<p><span class="preinput"><label for="form_loginname">'
-      . _ ("Squad Login Name:") . "</label></span>\n<br />&nbsp;&nbsp;";
-    print "$group-" . form_input("text", "form_loginname", $form_loginname)
+      . _("Squad Login Name:") . "</label></span>\n<br />&nbsp;&nbsp;";
+    print "$group-" . form_input ("text", "form_loginname", $form_loginname)
       . "</p>\n";
     print '<p><span class="preinput"><label for="form_realname">'
       . _("Squad Full Name:") . "</label></span>\n<br />&nbsp;&nbsp;";

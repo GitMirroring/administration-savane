@@ -44,11 +44,7 @@
 require_once ('../include/init.php');
 
 extract (sane_import ('post',
-  [
-    'hash' => 'form_id',
-    'true' => 'update',
-    'specialchars' => ['summary', 'details'],
-  ]
+  ['true' => 'update', 'specialchars' => ['summary', 'details']]
 ));
 
 if (!group_restrictions_check ($group_id, "news"))
@@ -61,14 +57,9 @@ if (!group_restrictions_check ($group_id, "news"))
 
 if ($update)
   {
-    $valid = form_check ($form_id);
-    if (!$summary)
-      {
-        fb (_("Title is missing"), 1);
-        $valid = 0;
-      }
+    form_check ();
     $result = false;
-    if ($valid)
+    if ($summary)
       {
         $t = time ();
         $fields = [ 'group_id' => $group_id, 'submitted_by' => user_getid (),
@@ -77,6 +68,8 @@ if ($update)
         ];
         $result = db_autoexecute ('news_bytes', $fields, DB_AUTOQUERY_INSERT);
       }
+    else
+      fb (_("Title is missing"), 1);
     if ($result)
       {
         $feedback = _("News Posted: it will need to be approved by a news "

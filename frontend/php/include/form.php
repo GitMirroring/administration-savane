@@ -62,13 +62,11 @@ function form_get_id ()
   return $form_id;
 }
 
-function form_id_input ($method, $form_id = false)
+function form_id_input ($method)
 {
-  if (empty ($form_id))
-    $form_id = form_get_id ();
   if ($method != 'post')
     return '';
-  return form_hidden (['form_id' => $form_id]);
+  return form_hidden (['form_id' => form_get_id ()]);
 }
 
 # To use this form that disallow duplicates:
@@ -76,17 +74,14 @@ function form_id_input ($method, $form_id = false)
 #    - form_check must be used before any insert in the DB after submission
 
 # Start the form with unique ID, store it in the database.
-function form_header (
-  $action = null, $form_id = false, $method = "post", $extra = false
-)
+function form_header ($action = null, $method = "post", $extra = false)
 {
   if ($action === null)
-    $action = $_SERVER["PHP_SELF"];
+    $action = $GLOBALS["php_self"];
   if ($extra)
     $extra = " $extra";
-  return "\n<form action=\""
-    . utils_specialchars ($action) . "\" method=\"$method\"$extra>\n"
-    . form_id_input ($method, $form_id);
+  return "\n<form action=\"$action\" method=\"$method\"$extra>\n"
+    . form_id_input ($method);
 }
 
 # Similar to form_header, but with a different argument parser.
@@ -222,57 +217,6 @@ function form_footer ($text = false, $submit_name = "update")
     . "</div>\n</form>\n";
 }
 
-function form_preliminary_check ($form_id)
-{
-  if (!empty ($GLOBALS['sys_debug_noformcheck']))
-    return 1;
-  form_check_nobot ();
-
-  if (preg_match ('/^[a-f0-9]*$/', $form_id))
-    return null;
-  fb (_("Unrecognized unique form_id"), 1);
-  return 0;
-}
-
-# Remove form_id from the database; make sure it belongs to the current
-# user.  Return 1 in case of success, else 0.
-function form_reset_form_id ($form_id)
-{
-  $result = db_execute ("DELETE FROM form WHERE user_id = ? AND form_id = ?",
-    [user_getid (), $form_id]
-  );
-  if (db_affected_rows ($result))
-    return 1;
-  fb (_("Duplicate Post: this form was already submitted."), 1);
-  return 0;
-}
-
-# Check whether this is a duplicate or not: return true if the form is ok.
-# We do need this extra check for anynomous users.  Logged in users can forge
-# their id and remove all the form id of their user, if they wish.  It's their
-# problem.
-# This function is also used as a cross-side request forgery (CSRF) protection.
-function form_check ($form_id)
-{
-  $ret = form_preliminary_check ($form_id);
-  if ($ret !== null)
-    return $ret;
-  # See bug #6983.
-  # We must clean the form id right now.  This is not how the form id mechanism
-  # was designed.
-  #
-  # Originally, form id was supposed to be deleted only when we are sure
-  # that the form was posted.
-  # However, since apache & all are multithreaded, you can end up with the
-  # case that the delay between the initial check and the end of the form
-  # is long enough to make possible a duplicate.
-  #
-  # Now, the check will remove the id.  If the remove fail, it means that
-  # the form id no longer exists and then we exit.  We will have only one
-  # SQL request, reducing as much as possible delays.
-  return form_reset_form_id ($form_id);
-}
-
 # Check whether the trap field has been filled. If so, refuse the post.
 # This test should probably be made before remove form id, to be
 # dumbuser-compliant.
@@ -284,5 +228,48 @@ function form_check_nobot ()
   # Not much explanation on the reject, since we are hunting spammers.
   exit_log ("filled the spam trap special field");
   exit_missing_param ();
+}
+
+function form_preliminary_check ($form_id)
+{
+  form_check_nobot ();
+  if (empty ($form_id))
+    exit_missing_param (['form_id']);
+}
+
+# Remove form_id from the database; make sure it belongs to the current
+# user.  Return 0 in case of success, else 1.
+function form_reset_form_id ($form_id)
+{
+  $result = db_execute ("DELETE FROM form WHERE user_id = ? AND form_id = ?",
+    [user_getid (), $form_id]
+  );
+  if (db_affected_rows ($result))
+    return 0;
+  fb (_("Duplicate Post: this form was already submitted."), 1);
+  return 1;
+}
+
+# Check whether this is a duplicate or not: exit when the form_id is absent
+# in the DB, which may mean that it has already been submitted (user's mistake)
+# or has never been registered (CSRF).
+function form_check ()
+{
+  $form_id = '';
+  extract (sane_import ('post', ['hash' => 'form_id']));
+  form_preliminary_check ($form_id);
+  # See Savannah bug #6983.
+  # We must clean the form ID right now.  Originally, form ID was deleted
+  # only when we were sure that the form was posted.
+  #
+  # However, since apache & all are multithreaded, you can end up with the
+  # case that the delay between the initial check and the end of the form
+  # is long enough to make possible a duplicate.
+  #
+  # Now, the check will remove the ID.  If the remove fail, it means that
+  # the form ID no longer exists and then we exit.  We will have only one
+  # SQL request, reducing as much as possible delays.
+  if (form_reset_form_id ($form_id))
+    exit_error (_("Exiting"));
 }
 ?>

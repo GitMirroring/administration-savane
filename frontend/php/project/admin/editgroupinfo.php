@@ -66,8 +66,8 @@ session_require (['group' => $group_id, 'admin_flags' => 'A']);
 # Update info for page.
 $res_grp = db_execute ("SELECT * FROM groups WHERE group_id = ?", [$group_id]);
 if (db_numrows ($res_grp) < 1)
-  exit_no_group( );
-$row_grp = db_fetch_array( $res_grp);
+  exit_no_group ();
+$row_grp = db_fetch_array ($res_grp);
 
 $keyring = group_get_preference ($group_id, 'gpg_keyring');
 

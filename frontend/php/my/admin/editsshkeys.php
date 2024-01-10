@@ -49,7 +49,6 @@ session_require (['isloggedin' => 1]);
 extract (sane_import ('post',
   [
     'true' => 'update',
-    'hash' => 'form_id',
     'array' =>
       [
         ['form_authorized_keys', ['digits', 'no_quotes']]
@@ -63,9 +62,7 @@ $key_separator = "###";
 
 if ($update)
   {
-    if (!form_check ($form_id))
-      exit_error (_("Exiting"));
-
+    form_check ();
     $keys = [];
     # Build the key string.
     for ($i = 0; $i < $key_limit; $i++)

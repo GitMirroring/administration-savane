@@ -107,7 +107,7 @@ extract (sane_import ('request',
 ));
 extract (sane_import ('post',
   [
-    'hash' => 'form_id', 'true' => ['submitreturn', 'preview'],
+    'true' => ['submitreturn', 'preview'],
     'digits' => ['comment_type_id', 'quote_no', 'new_vote'],
     'pass' => 'comment',
     'preg' =>
@@ -235,10 +235,10 @@ switch ($func)
     # Actually add in the database what was filled in the form.
     $fields = sane_import ('post',
       [
-        'hash' => 'form_id', 'strings' => [['check', '1984']],
+        'strings' => [['check', '1984']],
         # As of 2022-02, frontend never reads from the spam_stats table,
-        # so we may safely 'pass' 'details'.
-        'pass' => 'details', 'true' => 'submit'
+        # so we may safely 'pass' 'details' and 'form_id'.
+        'pass' => ['form_id', 'details'], 'true' => 'submit'
       ]
     );
     if (!isset ($fields['submit']))
@@ -258,9 +258,7 @@ switch ($func)
     if (!user_isloggedin ())
       $anon_check_failed = empty ($fields['check']);
 
-    # Check for duplicates.
-    if (!form_check ($form_id))
-      exit_error (_("Exiting"));
+    form_check ();
 
     # Get the list of bug fields used in the form.
     $vfl = trackers_extract_field_list ();
@@ -362,8 +360,8 @@ switch ($func)
     # or manager.
     $fields = sane_import ('post',
       [
-        'hash' => 'form_id', 'digits' => ['item_id'],
-        'strings' => [['check', '1984']], 'pass' => 'comment'
+        'digits' => ['item_id'],
+        'strings' => [['check', '1984']], 'pass' => ['comment', 'form_id']
       ]
     );
     db_autoexecute (
@@ -375,10 +373,7 @@ switch ($func)
         'check_value' => $fields['check'], 'details' => $fields['comment']
       ]
     );
-
-    if (!form_check ($form_id))
-      exit_error (_("Exiting"));
-
+    form_check ();
     $anon_check_failed = false;
     if (!user_isloggedin ())
       $anon_check_failed = empty ($fields['check']) && !$process_comment;
@@ -558,7 +553,7 @@ switch ($func)
             exit (0);
           }
         $_POST = $_FILES = [];
-        $form_id = $depends_search = $reassign_change_group_search =
+        $depends_search = $reassign_change_group_search =
         $add_cc = $input_file = $changed = $vfl = $details = $comment = null;
         $nocache = 1;
       }

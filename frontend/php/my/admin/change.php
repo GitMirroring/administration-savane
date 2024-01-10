@@ -61,9 +61,11 @@ extract (sane_import ('request',
         ['step', ['confirm', 'confirm2', 'discard']],
       ],
     'true' => ['update', 'test_gpg_key'],
-    'hash' => ['session_hash', 'confirm_hash', 'form_id'],
+    'hash' => ['session_hash', 'confirm_hash'],
   ]
 ));
+if ($update || $test_gpg_key)
+  form_check ();
 
 if (!$item)
   exit_missing_param ();
@@ -104,9 +106,6 @@ if ($item == 'delete')
 # Update the database.
 if ($update)
   {
-    if (!form_check ($form_id))
-      exit_error (_("Exiting"));
-
     # Update the database and redirect to account conf page.
     if ($item == "realname")
       {
@@ -553,7 +552,7 @@ elseif ($item == "timezone")
 elseif ($item == "password")
   {
     $title = _("Change Password");
-    $preamble = account_password_help();
+    $preamble = account_password_help ();
     $input_titles = [
       _("Current password:"), _("New password / passphrase:"),
       _("Re-type new password:"),

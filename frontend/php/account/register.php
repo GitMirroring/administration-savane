@@ -52,14 +52,13 @@ require_once ('../include/sendmail.php');
 
 extract (sane_import ('post',
   [
-    'hash' => 'form_id',
     'name' => 'form_loginname',
     'pass' => ['form_pw', 'form_pw2', 'form_realname', 'form_email'],
     'digits' => 'form_year',
     'true' => ['update', 'form_usepam']
   ]
 ));
-foreach (['form_id', 'form_realname', 'form_email', 'form_year'] as $v)
+foreach (['form_realname', 'form_email', 'form_year'] as $v)
   if (!isset ($$v))
     $$v = '';
 
@@ -79,8 +78,9 @@ $email_is_valid = false;
 $realname_is_valid = false;
 $antispam_is_valid = false;
 
-if (!empty ($update) && form_check ($form_id))
+if (!empty ($update))
   {
+    form_check ();
     # Form is submitted.
     if ($sys_registration_text_spam_test)
       {
@@ -145,7 +145,7 @@ if (!empty ($update) && form_check ($form_id))
     else
       $realname_is_valid = true;
     $form_realname = account_sanitize_realname ($form_realname);
-  } # if (!empty($update) && form_check($form_id))
+  } # if (!empty ($update))
 elseif ($sys_registration_captcha)
   {
     $antispam_is_valid = 'unset';
@@ -236,7 +236,7 @@ if ($form_is_valid)
 site_header (
   ['title' => _("User account registration"), 'context' => 'account']
 );
-print form_header ($php_self, $form_id);
+print form_header ();
 $br = "</span><br />\n&nbsp;&nbsp;";
 $pre = '<p><span class="preinput">';
 print $pre . _("Login Name:") . $br;

@@ -49,11 +49,13 @@ require_once ('../include/form.php');
 extract (sane_import ('request', ['hash' => 'confirm_hash']));
 extract (sane_import ('post',
   [
-    'hash' => 'form_id',
     'true' => 'update',
     'pass' => ['form_pw', 'form_pw2']
   ]
 ));
+
+if ($update)
+  form_check ();
 
 $res_lostuser = db_execute (
   "SELECT * FROM user WHERE confirm_hash = ?", [$confirm_hash]
@@ -70,8 +72,8 @@ $row_lostuser = db_fetch_array($res_lostuser);
 if ($update && $form_pw)
   {
     if (strcmp ($form_pw, $form_pw2))
-      fb(_("Passphrases do not match."), 1);
-    elseif (account_pwvalid ($form_pw) && form_check ($form_id))
+      fb (_("Passphrases do not match."), 1);
+    elseif (account_pwvalid ($form_pw))
       {
         db_autoexecute ('user',
           ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => ''],

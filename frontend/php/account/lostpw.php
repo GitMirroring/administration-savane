@@ -41,31 +41,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
+require_once ('../include/init.php');
 
 # Logged users have no business here.
-if (user_isloggedin())
-  session_redirect($GLOBALS['sys_home']."my/");
+if (user_isloggedin ())
+  session_redirect ("{$sys_home}my/");
 
-$HTML->header(array('title'=>_("Lost Account Password")));
-print '<p><strong>'._("Lost your password?")."</strong></p>\n";
+$HTML->header (['title' => _("Lost Account Password")]);
+print '<p><strong>' . _("Lost your password?") . "</strong></p>\n";
 
-print '<p>'._("The form below will email a URL to the email address we have on
-file for you. In this URL is a 128-bit confirmation hash for your account.
-Visiting the URL will allow you to change your password online and
-login.")."</p>\n";
-print '<p class="warn">'._("This will work only if your account was already
-successfully registered and activated. Note that accounts that are not
-activated within the three days next to their registration are automatically
-deleted.")."</p>\n";
+print '<p>'
+  . _("The form below will email a URL to the email address we have on\nfile "
+    . "for you. In this URL is a 128-bit confirmation hash for your account.\n"
+    . "Visiting the URL will allow you to change your password online and\n"
+    . "login.")
+  . "</p>\n";
+print '<p class="warn">'
+  . _("This will work only if your account was already\nsuccessfully "
+    . "registered and activated. Note that accounts that are not\nactivated "
+    . "within the three days next to their registration are automatically\n"
+    . "deleted.")
+  . "</p>\n";
 
-print '<form action="lostpw-confirm.php" method="post">';
+print form_header ('lostpw-confirm.php');
 print '<p><span class="preinput"> &nbsp;&nbsp;';
-print _("Login Name:");
-print ' &nbsp;&nbsp;</span><input type="text" name="form_loginname" /> &nbsp;&nbsp;';
-print '<input type="submit" name="send" value="'._("Send lost password hash")
-       ."\" /></p>\n";
+print _("Login Name:") . ' &nbsp;&nbsp;</span>';
+print '<input type="text" name="form_loginname" /> &nbsp;&nbsp;';
+print form_submit (_("Send lost password hash"), 'send') . "</p>\n";
 print "</form>\n";
 
-$HTML->footer(array());
+$HTML->footer ([]);
 ?>

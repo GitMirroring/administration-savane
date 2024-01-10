@@ -61,8 +61,8 @@ in items or item comments. You can <a href="#test">test it below</a>.')
 print markup_full (markup_get_reminder ());
 
 print '<h3 id="test">' . _('Test Markup') . "</h3>\n";
-print form_header ($_SERVER['PHP_SELF'] . '#test', false, "post",
-  'enctype="multipart/form-data" name="test_form"'
+print form_header (
+  "$php_self#test", "post", 'enctype="multipart/form-data" name="test_form"'
 );
 
 print trackers_field_textarea('comment', $text, 0, 0, _("Text to test"));
