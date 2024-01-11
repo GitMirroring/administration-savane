@@ -206,40 +206,27 @@ function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
 )
 {
   # Table name validation and quoting.
-  $tables = preg_split('/[\s,]+/', $table);
-  $tables_string = '';
-  $first = true;
+  $tables = preg_split ('/[\s,]+/', $table);
+  $tables_string = [];
   foreach ($tables as $table)
     {
-      if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]+$/', $table))
+      if (!preg_match ('/^[a-zA-Z_][a-zA-Z0-9_]+$/', $table))
         util_die ("db_autoexecute: invalid table name: $table");
-      if ($first)
-        {
-          $tables_string = "`$table`";
-          $first = false;
-        }
-      else
-        $tables_string .= ",`$table`";
+      $tables_string[] = "`$table`";
     }
+  $tables_string = join (', ', $tables_string);
 
   switch ((string) $mode)
     {
     case 'INSERT':
     case '1':
-    # Quote fields to avoid problem with reserved words (bug #8898@gna).
-    # TODO: do connections with ANSI_QUOTES mode and use the standard
-    # "'" field delimiter.
-      $first = true;
+      # Quote fields to avoid problem with reserved words (bug #8898@gna).
+      # TODO: do connections with ANSI_QUOTES mode and use the standard
+      # "'" field delimiter.
+      $fields = [];
       foreach (array_keys ($dict) as $field)
-        {
-          if ($first)
-            {
-              $fields = "`$field`";
-              $first = false;
-            }
-          else
-            $fields .= ",`$field`";
-        }
+        $fields[] = "`$field`";
+      $fields = join (', ', $fields);
       $question_marks = utils_placeholders ($dict);
       return db_execute ("
         INSERT INTO $tables_string ($fields) VALUES ($question_marks)",
@@ -248,20 +235,17 @@ function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
       break;
     case 'UPDATE':
     case '2':
-      $sql_fields = '';
-      $values = array();
-
+      $sql_fields = $values = [];
       foreach ($dict as $field => $value)
         {
-          $sql_fields .= "`$field`=?,";
+          $sql_fields[] = "`$field` = ?";
           $values[] = $value;
         }
-      $sql_fields = rtrim($sql_fields, ',');
-      $values = array_merge($values, $where_inputarr);
-      $where_sql = $where_condition ? "WHERE $where_condition" : '';
-      return db_execute ("
-        UPDATE $tables_string SET $sql_fields $where_sql",
-        $values
+      $sql_fields = join (', ', $sql_fields);
+      $values = array_merge ($values, $where_inputarr);
+      $where_sql = $where_condition? "WHERE $where_condition": '';
+      return db_execute (
+        "UPDATE $tables_string SET $sql_fields $where_sql", $values
       );
       break;
     default:
