@@ -255,24 +255,21 @@ function session_set_new ($user_id, $cookie_for_a_year)
 {
   global $G_SESSION, $session_hash;
   $stay_in_ssl = session_stay_in_ssl ();
-  # Concatinate current time, and random seed for MD5 hash
-  # continue until unique hash is generated (SHOULD only be once).
   do
     {
-      $pre_hash = time () . rand () . $_SERVER['REMOTE_ADDR'] . microtime ();
-      $session_hash = md5 ($pre_hash);
+      $session_hash = random_hash ();
       $result = db_execute (
         "SELECT session_hash FROM session WHERE session_hash = ?",
         [$session_hash]
       );
     }
-  while (db_numrows ($result) > 0); # do
+  while (db_numrows ($result) > 0); # Make sure the hash is unique.
 
   # Make new session entries into DB.
   db_autoexecute ('session',
     [
       'session_hash' => $session_hash, 'ip_addr' => $_SERVER['REMOTE_ADDR'],
-      'time' => time(), 'user_id' => $user_id, 'stay_in_ssl' => $stay_in_ssl
+      'time' => time (), 'user_id' => $user_id, 'stay_in_ssl' => $stay_in_ssl
     ],
     DB_AUTOQUERY_INSERT
   );

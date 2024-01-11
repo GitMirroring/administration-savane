@@ -41,14 +41,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/sane.php');
-require_once ('../include/account.php');
-require_once ('../include/spam.php');
-require_once ('../include/form.php');
-require_once ('../include/utils.php');
-require_once ('../include/html.php');
-require_once ('../include/sendmail.php');
+$inc = ['init', 'sane', 'account', 'spam', 'form', 'utils', 'html', 'sendmail'];
+foreach ($inc as $i)
+  require_once ("../include/$i.php");
 
 extract (sane_import ('post',
   [
@@ -159,17 +154,13 @@ $form_is_valid = $login_is_valid && $pw_is_valid && $email_is_valid
 if ($form_is_valid)
   {
     $passwd = account_encryptpw ($form_pw);
-    $confirm_hash = substr (md5 (rand (0, 32768) . $passwd . time ()), 0, 16);
+    $confirm_hash = substr (random_hash (), 0, 16);
     $new_name = strtolower ($form_loginname);
-    $result = db_autoexecute (
-      'user',
-      [
-        'user_name' => $new_name, 'user_pw' => $passwd,
-        'realname' => $form_realname, 'email' => $form_email,
-        'add_date' => time(), 'status' => 'P', 'confirm_hash' => $confirm_hash
-      ],
-      DB_AUTOQUERY_INSERT
-    );
+    $vals = ['user_name' => $new_name, 'user_pw' => $passwd, 'status' => 'P',
+      'realname' => $form_realname, 'email' => $form_email,
+      'add_date' => time (), 'confirm_hash' => $confirm_hash
+    ];
+    $result = db_autoexecute ('user', $vals);
 
     if (!$result)
       exit_error ('error', db_error ());

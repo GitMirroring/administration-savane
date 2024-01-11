@@ -1,5 +1,5 @@
 <?php
-# Fallback implementation of random_bytes for PHP 5.
+# Fallback implementation of random_bytes for PHP 5 and related functions.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -80,18 +80,15 @@ function phpass_get_random_bytes ($count)
       $output = fread ($fh, $count);
       fclose ($fh);
     }
-  if (strlen ($output) < $count)
+  if (strlen ($output) >= $count)
+    return $output;
+  $output = '';
+  for ($i = 0; $i < $count; $i += 16)
     {
-      $output = '';
-      for ($i = 0; $i < $count; $i += 16)
-        {
-          $random_state =
-            md5 (microtime () . $random_state);
-          $output .=
-            pack ('H*', md5 ($random_state));
-        }
-      $output = substr ($output, 0, $count);
+      $random_state = md5 (microtime () . $random_state);
+      $output .= pack ('H*', md5 ($random_state));
     }
+  $output = substr ($output, 0, $count);
   return $output;
 }
 # </phpass>
@@ -100,3 +97,8 @@ if (!function_exists ('random_bytes'))
   {
     function random_bytes ($count) { return phpass_get_random_bytes ($count); }
   }
+
+function random_hash ($random_count = 16)
+{
+  return md5 (random_bytes ($random_count));
+}
