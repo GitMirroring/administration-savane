@@ -883,15 +883,18 @@ function utils_run_proc ($cmd, &$out, &$err, $aux = [])
   return $res;
 }
 
-function utils_disable_warnings ($level = E_ALL)
+function utils_disable_warnings ($level = E_ALL, $dry_run = false)
 {
+  if ($dry_run)
+    return null;
   $h = set_error_handler (function ($errno, $str) {return true;}, $level);
   return [$h, $level];
 }
 
 function utils_restore_warnings ($state)
 {
-  set_error_handler ($state[0], $state[1]);
+  if ($state !== null)
+    set_error_handler ($state[0], $state[1]);
 }
 
 # Try to move $tmp_path to $path without overwriting if the latter exists;

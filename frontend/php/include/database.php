@@ -272,6 +272,15 @@ function db_execute ($sql, $inputarr = null, $multi_query = 0)
   return db_query ($expanded_sql, 0, $multi_query);
 }
 
+function db_query_prevent_die ($disable = null)
+{
+  static $die_disabled = false;
+  $prev = $die_disabled;
+  if ($disable !== null)
+    $die_disabled = !empty ($disable);
+  return $prev;
+}
+
 function db_query_die ($qstring, $errors = null)
 {
   $str = "db_query: SQL query error in [$qstring]";
@@ -280,7 +289,9 @@ function db_query_die ($qstring, $errors = null)
   else
     foreach ($errors as $idx => $err)
       $str .= "<br />\n<b>query $idx:</b> <i>$err</i>";
-  util_die ($str);
+  if (!db_query_prevent_die ())
+    util_die ($str);
+  return false;
 }
 
 function db_query ($qstring, $print = 0, $multi_query = 0)
@@ -332,7 +343,7 @@ function db_query ($qstring, $print = 0, $multi_query = 0)
   if ($print)
     {
       print "<pre>[";
-      print_r($qstring);
+      print_r ($qstring);
       print "]</pre>";
     }
 
@@ -356,14 +367,13 @@ function db_query ($qstring, $print = 0, $multi_query = 0)
           mysqli_next_result ($mysql_conn);
         }
       if ($fail)
-        db_query_die ($qstring, $errors);
+        return db_query_die ($qstring, $errors);
     }
   else
     $db_qhandle = mysqli_query ($mysql_conn, $qstring);
   if ($db_qhandle)
     return $db_qhandle;
-  db_query_die ($qstring);
-  return $db_qhandle;
+  return db_query_die ($qstring);
 }
 
 function db_numrows ($qhandle)

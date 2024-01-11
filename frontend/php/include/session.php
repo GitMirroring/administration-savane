@@ -251,44 +251,46 @@ function session_setglobals ($user_id)
     $G_USER = db_fetch_array ($result);
 }
 
+# Try inserting new session hash in the table.  Return false if the hash already
+# exists; when $tries_left is zero, the error shows up in the browser and
+# terminates the further output (it would be more user-friendly to explain what
+# happened, but the event is unlikely enough to cut the corners).
+function session_try_insert_hash ($user_id, $hash, $tries_left)
+{
+  $vals = ['session_hash' => $hash, 'user_id' => $user_id,
+    'ip_addr' => $_SERVER['REMOTE_ADDR'], 'time' => time (),
+    'stay_in_ssl' => session_stay_in_ssl ()
+  ];
+  $saved = utils_disable_warnings (E_ALL, !$tries_left);
+  db_query_prevent_die ($tries_left);
+  $res = db_autoexecute ('session', $vals);
+  db_query_prevent_die (false);
+  utils_restore_warnings ($saved);
+  return !empty ($res);
+}
+
+function session_generate_hash ($user_id)
+{
+  $tries = 17;
+  while ($tries--)
+    {
+      $hash = random_hash ();
+      if (session_try_insert_hash ($user_id, $hash, $tries))
+        return db_execute (
+          'SELECT * FROM session WHERE session_hash = ?', [$hash]
+        );
+      trigger_error ("duplicate hash $hash detected, tries left: $tries");
+    }
+  return false;
+}
+
 function session_set_new ($user_id, $cookie_for_a_year)
 {
   global $G_SESSION, $session_hash;
-  $stay_in_ssl = session_stay_in_ssl ();
-  do
-    {
-      $session_hash = random_hash ();
-      $result = db_execute (
-        "SELECT session_hash FROM session WHERE session_hash = ?",
-        [$session_hash]
-      );
-    }
-  while (db_numrows ($result) > 0); # Make sure the hash is unique.
-
-  # Make new session entries into DB.
-  db_autoexecute ('session',
-    [
-      'session_hash' => $session_hash, 'ip_addr' => $_SERVER['REMOTE_ADDR'],
-      'time' => time (), 'user_id' => $user_id, 'stay_in_ssl' => $stay_in_ssl
-    ],
-    DB_AUTOQUERY_INSERT
-  );
-  # Set global.
-  $res = db_execute (
-    "SELECT * FROM session WHERE session_hash = ?", [$session_hash]
-  );
-  if (db_numrows ($res) > 1)
-    {
-      db_execute (
-        "DELETE FROM session WHERE session_hash = ?", [$session_hash]
-      );
-      exit_error (
-        _("Two people had the same session hash - re-login.\n"
-          . "It should never happen again.")
-      );
-    }
+  $res = session_generate_hash ($user_id);
   $G_SESSION = db_fetch_array ($res);
   session_setglobals ($G_SESSION['user_id']);
+  $session_hash = $G_SESSION['session_hash'];
 
   # If the user specified he wants only one session to be opened at a time,
   # kill all other sessions.
