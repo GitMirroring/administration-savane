@@ -151,6 +151,7 @@ sub get_db_separated
 # Return a list of entries.
 sub GetDB
 {
+  push (@_, 0) while $#_ < 2;
   push (@_, ",");
   return get_db_separated (@_);
 }
@@ -158,6 +159,7 @@ sub GetDB
 # Return a list of entries like GetDB, but with an unusual separator.
 sub GetDBAlt
 {
+  push (@_, 0) while $#_ < 2;
   push (@_, "------SPLIT------");
   return get_db_separated (@_);
 }
