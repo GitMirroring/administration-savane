@@ -132,7 +132,8 @@ function search_list_tracker_options ($gid, $type_of_search, $is_small)
 function search_box ($searched_words = '', $scope = null, $size = 15)
 {
   global $words, $group_id, $exact, $type_of_search, $type, $max_rows;
-  global $only_group_id;
+  global $only_group_id, $sys_home;
+  $submit = form_input ("submit", 'search', _("Search"));
 
   if (!is_scalar ($searched_words))
     $searched_words = '';
@@ -162,16 +163,10 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
   if ($words == "%%%")
     $words = "*";
 
-  $ret =
-    "<form action=\"{$GLOBALS['sys_home']}search/#options\" method='get'>\n";
-
+  $ret = form_header ("{$sys_home}search/#options", 'get');
   if (!$is_small)
-    {
-      # If it's a big form, we want the submit button on the right.
-      $ret .= '<span class="boxoptionssubmit">'
-        . '<input type="submit" name="Search" value="' . _("Search")
-        . "\" />&nbsp;</span>\n";
-    }
+    # If it's a big form, we want the submit button on the right.
+    $ret .= "<span class='boxoptionssubmit'>$submit&nbsp;</span>\n";
 
   $title = false;
   if ($is_small)
@@ -215,11 +210,9 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
 
   if ($is_small)
     # If it's a small form, the submit button has not already been inserted.
-    $ret .= "<br />\n<input type='submit' "
-      . "name='Search' value=\"" . _("Search") . "\" />&nbsp;\n";
+    return $ret . form_hidden (['exact' => 1]) . "<br />\n"
+      . "$submit&nbsp;\n</form>\n";
 
-  if ($is_small)
-    return $ret . form_hidden (['exact' => 1]) . "</form>\n";
   $ret .= "<br />\n&nbsp;";
   $ret .= form_radio ('exact', 0,
     ['checked' => !$exact, 'label' => _("with at least one of the words")]
@@ -506,14 +499,11 @@ function search_exact ($keywords)
     WHERE
       type = type_id AND group_name $ph AND status = 'A' AND is_public = '1'";
   $result = db_execute ($sql, $arr_keywords);
-  $num_rows = db_numrows ($result);
-
-  if ($num_rows != 1)
+  if (db_numrows ($result) != 1)
     return;
-  print "<h2>";
   # TRANSLATORS: this is a title for search results when exactly one item is found.
-  print _("Unique group search result");
-  print "</h2>\n<p>";
+  print html_h (2, _("Unique group search result"));
+  print "<p>";
   printf (_("Search string was: %s."),
     '<b>' . utils_specialchars ($keywords) . '</b>'
   );

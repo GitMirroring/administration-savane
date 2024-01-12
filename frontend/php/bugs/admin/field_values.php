@@ -244,16 +244,15 @@ if ($list_value)
 
     if ($td_select_box ($field))
       {
-        # First check that this field is used by the project and
-        # it is in the project scope.
-
-        $is_project_scope = trackers_data_is_project_scope ($field);
-
-        trackers_header_admin (array ('title' => $hdr));
-
-        print '<h1>' . _("Field Label:") . ' '
-          . trackers_data_get_label ($field) . "</h1>\n<p>"
-          . '<span class="smaller">('
+        # First check that this field is used by the group and
+        # it is in the group scope.
+        $is_group_scope = trackers_data_is_project_scope ($field);
+        trackers_header_admin (['title' => $hdr]);
+        print
+          html_h (1,
+            _("Field Label:") . ' ' . trackers_data_get_label ($field)
+          )
+          . '<p><span class="smaller">('
           . utils_link (
               $sys_home . ARTIFACT . "/admin/field_usage.php?group=$group"
               . "&amp;update_field=1&amp;field=$field",
@@ -268,29 +267,23 @@ if ($list_value)
 
         if (!$result || $rows <= 0)
           # TRANSLATORS: the  argument is field label.
-          printf (
-            "\n<h1>" . _("No values defined yet for %s") . "</h1>\n",
+          printf (html_h (1, _("No values defined yet for %s")),
             trackers_data_get_label ($field)
           );
         else
           {
-            print "\n<h2>" . _("Existing Values") . "</h2>\n";
-
-            $title_arr =  [];
-            if (!$is_project_scope)
-              $title_arr[] = _('ID');
-            $title_arr[] = _("Value label");
-            $title_arr[] = _("Description");
-            $title_arr[] = _("Rank");
-            $title_arr[] = _("Status");
-            $title_arr[] = _("Occurrences");
+            print html_h (2, _("Existing Values"));
+            $title_arr =  [_("Value label"), _("Description"), _("Rank"),
+              _("Status"), _("Occurrences")];
+            if (!$is_group_scope)
+              $title_arr = array_merge ([_('ID')], $title_arr);
 
             $hdr = html_build_list_table_top ($title_arr);
 
+            # TRANSLATORS: this is field status.
             $status_stg = [
-              # TRANSLATORS: this is field status.
              'A' => _("Active"), 'P' => _("Permanent"), 'H' => _("Hidden")
-           ];
+            ];
 
             # Display the list of values in 2 blocks: active first,
             # hidden second.
@@ -314,7 +307,7 @@ if ($list_value)
 
                 # Show the value ID only for system wide fields which
                 # value id are fixed and serve as a guide.
-                if (!$is_project_scope)
+                if (!$is_group_scope)
                   $html .= "<td>$value_id</td>\n";
 
                 # The permanent values cant be modified (No link).
@@ -360,11 +353,10 @@ if ($list_value)
             print "$hdr$ha$hh</table>\n";
           } # !(!$result || $rows <= 0)
 
-        # Only show the add value form if this is a project scope field.
-        if ($is_project_scope)
+        # Only show the add value form if this is a group scope field.
+        if ($is_group_scope)
           {
-            print '<h2>' . _("Create a new field value") . "</h2>\n";
-
+            print html_h (2, _("Create a new field value"));
             if ($ih)
               print '<p>'
                 . _("Before you create a new value make sure there isn't one "
@@ -379,11 +371,11 @@ if ($list_value)
                   'group_id' => $group_id
                 ]
               );
-            print '<span class="preinput"><label for="title">'
-              . _("Value:") . '</label> </span>'
+            print '<span class="preinput">'
+              . html_label ('title', _("Value:")) . '</span>&nbsp;'
               . form_input ("text", "title", "", 'size="30" maxlength="60"')
-              . "\n&nbsp;&nbsp;<span class='preinput'><label for='order_id'>"
-              . _("Rank:") . '</label> </span>'
+              . "\n&nbsp;&nbsp;<span class='preinput'>"
+              . html_label ('order_id', _("Rank:")) . '</span>&nbsp;'
               . form_input ("text", "order_id", "", 'size="6" maxlength="6"');
 
             if (isset ($none_rk))
@@ -395,29 +387,28 @@ if ($list_value)
                 print "</strong></p>\n";
               }
 
-            print "<p><span class='preinput'><label for='description'>"
-              . _("Description (optional):") . "</label></span><br />\n"
-              . "<textarea id='description' name='description' rows='4' "
-              . "cols='65' wrap='hard'></textarea></p>\n"
-              . "<div class='center'>\n"
-              . "<input type='submit' name='submit' value=\""
-              . _("Update") . "\" />\n</div>\n</form>\n";
-          } # $is_project_scope
+            print "<p><span class='preinput'>"
+              . html_label ('description', _("Description (optional):"))
+              . "</span><br />\n"
+              . form_textarea ('description', '',
+                 "rows='4' cols='65' wrap='hard'")
+              . "</p>\n" . form_footer (_("Update"), 'submit');
+          } # $is_group_scope
 
-        # If the project use custom values, propose to reset to the default.
+        # If the group use custom values, propose to reset to the default.
         if (trackers_data_use_field_predefined_values ($field, $group_id))
           {
-            print '<h2>' . _("Reset values") . "</h2>\n";
+            print html_h (2, _("Reset values"));
             print '<p>'
               . _("You are currently using custom values. If you want "
                   . "to reset values to the\ndefault ones, use the following "
                   . "form:")
               . "</p>\n\n"
-              . "<form action='field_values_reset.php' method='post' "
-              . "class='center'>\n"
+              . form_tag (
+                  ['action' => 'field_values_reset.php', 'class' => 'center']
+                )
               . form_hidden (['group_id' => $group_id, 'field' => $field])
-              . '<input type="submit" name="submit" value="'
-              . _("Reset values") . "\" />\n</form>\n<p>"
+              . form_footer (_("Reset values"), 'submit') . "<p>"
               . _("For your information, the default active values are:")
               . "</p>\n";
 
@@ -459,7 +450,7 @@ if ($list_value)
       {
         # TRANSLATORS: the argument is field.
         $msg = sprintf (
-          _("The field you requested '%s' is not used by your project "
+          _("The field you requested '%s' is not used by your group "
             . "or you are not\nallowed to customize it"),
           $field
         );
@@ -646,19 +637,18 @@ if ($list_value)
               false, 'Any', false, _("allowed or not")
             )
           . "</td>\n";
-        $mlist   = "<td>\n<input type='text' value='' title=\""
-          . _("Carbon-Copy List")
-          . "\" name='mail_list' size='30' maxlength='60' />\n</td>\n";
-        print "$mlist</tr>\n</table>\n";
-        print '<div align="center"><input type="submit" name="submit" value="'
-          . _("Update Transition") . "\" /></div>\n</form>\n";
+        $mlist = form_input ('text', 'mail_list', '',
+            "title=\"" . _("Carbon-Copy List") . '" size="30" maxlength="60"'
+          );
+        print "<td>\n$mlist</td>\n</tr>\n</table>\n";
+        print form_footer (_("Update Transition"), 'submit');
       }
     else # !$td_select_box ($field)
       {
         print "\n\n<p><b>";
         # TRANSLATORS: the argument is field.
         printf (
-          _("The Bug field you requested '%s' is not used by your project "
+          _("The field you requested '%s' is not used by your group "
             . "or you are not\nallowed to customize it"),
           $field
         );
@@ -675,6 +665,7 @@ if ($update_value)
 
     # Get all attributes of this value.
     $res = trackers_data_get_field_value ($fv_id);
+    $row = db_fetch_array ($res);
 
     print form_tag ()
       . form_hidden (
@@ -683,38 +674,32 @@ if ($update_value)
             "fv_id" => $fv_id, "field" => $field, "group_id" => $group_id,
           ]
         );
-    print '<p><span class="preinput"><label for="title">'
-      . _("Value:") . "</label> </span><br />\n";
+    print '<p><span class="preinput">'
+      . html_label ('title', _("Value:")) . "</span><br />\n";
     print form_input (
        "text", "title",
-       utils_specialchars_decode (db_result ($res, 0, 'value'), ENT_QUOTES),
+       utils_specialchars_decode ($row['value'], ENT_QUOTES),
        'size="30" maxlength="60"'
     );
-    print "\n&nbsp;&nbsp;\n"
-      . '<span class="preinput"><label for="order_id">'
-      . _("Rank:") . '</label> </span>';
+    print "\n&nbsp;&nbsp;\n<span class='preinput'>"
+      . html_label ('order_id', _("Rank:")) . '</span>&nbsp;';
     print form_input (
-       "text", "order_id", db_result ($res, 0, 'order_id'),
-       'size="6" maxlength="6"'
+       "text", "order_id", $row['order_id'], 'size="6" maxlength="6"'
      );
-    $h_selected = '';
-    if (db_result ($res, 0, 'status') == 'H')
-      $h_selected = ' selected="selected"';
-    print "\n&nbsp;&nbsp;\n"
-      . '<span class="preinput"><label for="status">'
-      . _("Status:") . "</label></span>\n"
+    print "\n&nbsp;&nbsp;\n<span class='preinput'>"
+      . html_label ('status', _("Status:")) . "</span>\n"
       . "<select name='status' id='status'>\n"
       # TRANSLATORS: this is field status.
       . form_option ('A', null, _("Active"))
-      . form_option ('H', db_result ($res, 0, 'status'), _("Hidden"))
-      . "</select>\n<p>\n"
-      . '<span class="preinput"><label for="description">'
-      . _("Description (optional):") . "</label></span><br />\n"
-      . '<textarea id="description" name="description" rows="4" '
-      . 'cols="65" wrap="soft">'
-      . db_result ($res, 0, 'description'). "</textarea></p>\n";
+      . form_option ('H', $row['status'], _("Hidden"))
+      . "</select>\n<p>\n<span class='preinput'>"
+      . html_label ('description', _("Description (optional):"))
+      . "</span><br />\n"
+      . form_textarea ('description', $row['description'],
+          'rows="4" cols="65" wrap="soft"')
+      . "</p>\n";
     $count = trackers_data_count_field_value_usage (
-      $group_id, $field, db_result ($res, 0, 'value_id')
+      $group_id, $field, $row['value_id']
     );
     if ($count > 0)
       {
@@ -735,12 +720,41 @@ if ($update_value)
         print "</p>\n";
       }
     print "\n<div class='center'>\n"
-      . '<input type="submit" name="submit" value="' . _("Submit")
-      . "\" />\n</p>\n";
+      . form_submit (_("Submit"), 'submit') . "</div>\n";
 
     trackers_footer ();
     exit (0);
   }
+function canned_hidden ($create)
+{
+  global $group_id, $item_canned_id;
+  $hidden = ['post_changes' => 'y', 'group_id' => $group_id];
+  if ($create)
+    {
+      $hidden['create_canned'] = 'y';
+      return $hidden;
+    }
+  $hidden['update_canned'] = 'y';
+  $hidden['item_canned_id'] = $item_canned_id;
+  return $hidden;
+}
+function print_form_canned ($row = null)
+{
+  $hidden = canned_hidden ($row === null);
+  if ($row === null)
+    $row = ['body' => '', 'order_id' => '', 'title' => ''];
+  print "<p>" . form_tag () . form_hidden ($hidden);
+  print '<span class="preinput">' . html_label ('title', _("Title:"))
+    . "</span><br />\n&nbsp;&nbsp;"
+    . form_input ('text', 'title', $row['title'], "size='50' maxlength='50'")
+    . "<br />\n<span class='preinput'>" . html_label ('order_id', _("Rank:"))
+    . "</span><br />\n&nbsp;&nbsp;"
+    . form_input ('text', 'order_id', $row['order_id'], "maxlength='50'")
+    . "<br />\n<span class='preinput'>"
+    . html_label ("body", _("Message Body:")) . "</span><br />\n&nbsp;&nbsp;"
+    . form_textarea ('body', $row['body'], "rows='20' cols='65' wrap='hard'")
+    . form_footer (_("Submit"), 'submit');
+}
 if ($create_canned || $delete_canned)
   {
     # Show existing responses and UI form.
@@ -754,28 +768,22 @@ if ($create_canned || $delete_canned)
 
     if ($result && $rows > 0)
       {
-        print "\n<h2>" . _("Existing Responses:") . "</h2>\n<p>\n";
-
+        print html_h (2, _("Existing Responses:")) . "<p>\n";
         $title_arr = [
           _("Title"), _("Body (abstract)"), _("Rank"), _("Delete")
         ];
-
         print html_build_list_table_top ($title_arr);
-
-        for ($i = 0; $i < $rows; $i++)
+        $i = 0;
+        while ($row = db_fetch_array ($result))
           {
-            $s_body = substr (db_result ($result, $i, 'body'), 0, 360);
-            print '<tr class="' . utils_altrow ($i) . '">'
+            $s_body = substr ($row['body'], 0, 360);
+            print '<tr class="' . utils_altrow ($i++) . '">'
               . "<td><a href=\"$php_self"
-              . '?update_canned=1&amp;item_canned_id='
-              . db_result ($result, $i, 'bug_canned_id')
-              . "&amp;group_id=$group_id\">"
-              . db_result ($result, $i, 'title') . "</a></td>\n"
-              . "<td>$s_body...</td>\n"
-              . '<td>' . db_result ($result, $i, 'order_id') . "</td>\n"
+              . "?update_canned=1&amp;item_canned_id={$row['bug_canned_id']}"
+              . "&amp;group_id=$group_id\">{$row['title']}</a></td>\n"
+              . "<td>$s_body...</td>\n<td>{$row['order_id']}</td>\n"
               . "<td class='center'><a href=\"$php_self"
-              . '?func=delcanned&amp;item_canned_id='
-              . db_result ($result, $i, 'bug_canned_id')
+              . "?func=delcanned&amp;item_canned_id={$row['bug_canned_id']}"
               . "&amp;group_id=$group_id\">"
               . html_image_trash (['alt' => _("Delete this canned response")])
               . "</a></td></tr>\n";
@@ -783,31 +791,12 @@ if ($create_canned || $delete_canned)
         print "</table>\n";
       }
     else
-      print "\n<h2>" . _("No canned bug responses set up yet") . "</h2>\n";
-    print '<h2>' . _("Create a new response") . "</h2>\n<p>"
+      print html_h (2, _("No canned bug responses set up yet"));
+    print html_h (2,  _("Create a new response")) . "<p>"
       . _("Creating generic quick responses can save a lot of time when "
           . "giving common\nresponses.")
-      . "</p>\n" . form_tag ()
-      . form_hidden (
-          [
-            "create_canned" => "y", "group_id" => $group_id,
-            "post_changes" => "y",
-          ]
-        );
-    print '<span class="preinput"><label for="title">'
-      . _("Title:") . "</label></span><br />\n"
-      . '&nbsp;&nbsp;<input type="text" name="title" id="title" value="" '
-      . "size='50' maxlength='50' /><br />\n"
-      . '<span class="preinput"><label for="order_id">'
-      . _("Rank (useful in multiple canned responses):")
-      . "</label></span><br />\n"
-      . "&nbsp;&nbsp;<input type='text' name='order_id' id='order_id' "
-      . "value='' maxlength='50' /><br />\n"
-      . '<span class="preinput"><label for="body">' . _("Message Body:")
-      . "</label></span><br />\n&nbsp;&nbsp;<textarea id='body' name='body' "
-      . "rows='20' cols='65' wrap='hard'></textarea>\n<div class='center'>\n"
-      . '<input type="submit" name="submit" value="' . _("Submit")
-      . "\" />\n</div>\n</form>\n";
+      . "</p>\n";
+    print_form_canned ();
     trackers_footer ();
     exit (0);
   }
@@ -830,37 +819,17 @@ if ($update_canned)
         print '<p>'
 	  . _("Creating generic messages can save you a lot of time when giving\n"
               . "common responses.");
-        print "</p>\n<p>" . form_tag ()
-          . form_hidden (
-              [
-                "update_canned" => "y", "group_id" => $group_id,
-                "item_canned_id" => $item_canned_id, "post_changes" => "y"
-              ]
-            );
-        print '<span class="preinput">' . _("Title")
-          . ":</span><br />\n&nbsp;&nbsp;"
-          . '<input type="text" name="title" value="'
-          . db_result ($result, 0, 'title')
-          . "\" size='50' maxlength='50' /></p>\n<p>\n"
-          . '<span class="preinput">' . _("Rank") . ":</span><br />\n"
-          . '&nbsp;&nbsp;<input type="text" name="order_id" value="'
-          . db_result ($result, 0, 'order_id') . "\" /></p>\n<p>\n"
-          . '<span class="preinput">' . _("Message Body:") . "</span><br />\n"
-          . '&nbsp;&nbsp;<textarea name="body" rows="20" cols="65" '
-          . 'wrap="hard">' . db_result ($result, 0, 'body')
-          . "</textarea></p>\n<div class='center'>\n"
-          . "<input type='submit' name='submit' value=\"" . _("Submit")
-          . "\" />\n</div>\n</form>\n";
+        print "</p>\n";
+        print_form_canned (db_fetch_array ($result));
       }
     trackers_footer ();
     exit (0);
   }
 
 trackers_header_admin (['title' => _("Edit Field Values")]);
-
 print "<br />\n";
 
-# Loop through the list of all used fields that are project manageable.
+# Loop through the list of all used fields that are group manageable.
 $i = 0;
 $title_arr = [_("Field Label"), _("Description"), _("Scope")];
 print html_build_list_table_top ($title_arr);
@@ -875,7 +844,7 @@ while ($field_name = trackers_list_all_fields ())
       continue;
     $scope_label  = _("System");
     if (trackers_data_is_project_scope ($field_name))
-      $scope_label  = _("Project");
+      $scope_label  = _("Group");
     $desc = trackers_data_get_description ($field_name);
     print '<tr class="' . utils_altrow ($i) . '">'
       . "<td><a href=\"$php_self?group_id=$group_id"
@@ -893,7 +862,7 @@ print "\n<td>"
       . "tracker.\nThese pre-written messages can then be used to quickly "
       . "reply to item\nsubmissions.")
   . " </td>\n";
-print "\n<td>" . _("Project") . "</td></tr>\n";
+print "\n<td>" . _("Group") . "</td></tr>\n";
 print "</table>\n";
 
 trackers_footer ();

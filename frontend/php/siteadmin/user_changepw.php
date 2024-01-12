@@ -113,15 +113,14 @@ else
       $error = '<p><b>' . no_i18n ('Password change failed')
         . ": $error</b></p>\n";
 
-    print "<h2>" . no_i18n ('Savannah Password Change')
-      . "</h2>\n$error<form action='user_changepw.php' method='post'>\n"
-      . '<p>' . no_i18n ('New Password:')
-      . "<br />\n<input type='password' name='form_pw' />\n</p>\n<p>"
-      . no_i18n ('New Password (repeat):')
-      . "<br />\n<input type='password' name='form_pw2' />\n"
-      . form_hidden (['user_id' => $user_id]) . "</p>\n"
-      . '<p><input type="submit" name="update" value=\''
-      . no_i18n ('Update') . "' />\n</p>\n</form>\n";
+    print html_h (2, no_i18n ('Savannah Password Change'))
+      . "\n$error" . form_header () . '<p>'
+      . html_label ('form_pw', no_i18n ('New Password:'))
+      . "<br />\n" . form_input ('password', 'form_pw') . "\n</p>\n<p>"
+      . html_label ('form_pw2', no_i18n ('New Password (repeat):'))
+      . "<br />\n" . form_input ('password', 'form_pw2')
+      . form_hidden (['user_id' => $user_id]) . "</p>\n<p>"
+      . form_footer (no_i18n ('Update'));
   }
 $HTML->footer ([]);
 ?>

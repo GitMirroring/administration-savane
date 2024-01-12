@@ -587,7 +587,7 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
   $post = "</span><br />\n&nbsp;&nbsp;&nbsp;";
   # We do not really bother finding out the realname + email, sendmail_mail ()
   # will do it.
-  print "<form action=\"$form_action\" method='post'>\n"
+  print form_header ($form_action)
     . form_hidden ([
         'touser' => utils_specialchars ($user_id),
         'fromuser' => user_getname ()])
