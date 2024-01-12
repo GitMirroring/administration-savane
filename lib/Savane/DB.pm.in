@@ -72,18 +72,7 @@ $dbd =
 # arg0: table
 sub GetDBDescribe
 {
-  my $table = $_[0];
-  my $hop;
-  my @ret;
-
-  $hop = $dbd->prepare ("DESCRIBE $table");
-  $hop->execute;
-  while (my (@line) = $hop->fetchrow_array)
-    {
-      push (@ret, join (",", map {defined $_? $_: "0"} @line));
-    }
-  $hop->finish;
-  return @ret;
+  return get_db_sql ("DESCRIBE $_[0]", ",");
 }
 
 # Format query string.
@@ -118,7 +107,13 @@ sub GetDBList
 # arg0: SQL command
 sub GetDBAsIs
 {
+  return get_db_sql ($_[0], ",");
+}
+
+sub get_db_sql
+{
   my $sql = $_[0];
+  my $sep = $_[1];
   my $hop;
   my @ret;
 
@@ -126,7 +121,7 @@ sub GetDBAsIs
   $hop->execute;
   while (my (@line) = $hop->fetchrow_array)
     {
-      push (@ret, join (",", map {defined $_? $_: "0"} @line));
+      push (@ret, join ($sep, map {defined $_? $_: "0"} @line));
     }
   $hop->finish;
   return @ret;
@@ -134,18 +129,7 @@ sub GetDBAsIs
 
 sub get_db_separated
 {
-  my $sep = $_[3];
-  my $hop;
-  my @ret;
-
-  $hop = $dbd->prepare (parse_db_args (@_));
-  $hop->execute;
-  while (my (@line) = $hop->fetchrow_array)
-    {
-      push (@ret, join ($sep, map {defined $_? $_: "0"} @line));
-    }
-  $hop->finish;
-  return @ret;
+  return get_db_sql (parse_db_args (@_), $_[3]);
 }
 
 # Return a list of entries.
