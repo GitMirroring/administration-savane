@@ -96,14 +96,7 @@ function html_show_boxoptions ($legend, $text, $form_opening = 0,
   return "$ret\n";
 }
 
-# Function to create a an area in the page that can be hidden or shown
-# in one click with a JavaScript.
-# Per policy, this must work with a browser that does not support at all
-# JavaScript.
-# This is useful on item pages because we have some info that is not
-# essential to be shown (like CC list etc), but still very nice be able to
-# access easily.
-function html_hidsubpart_header ($uniqueid, $title, $deployed=false)
+function html_hidsubpart_set_deployed ($uniqueid, $deployed)
 {
   global $is_deployed;
 
@@ -116,20 +109,35 @@ function html_hidsubpart_header ($uniqueid, $title, $deployed=false)
     $deployed = $is_deployed[$uniqueid];
   if ($deployed != 1)
     $deployed = 0;
+  return $deployed;
+}
 
-  $ret = "\n<h2 id=\"$uniqueid\">\n"
-    . '<script type="text/javascript" src="/js/show-hide.php?'
+function html_hidsubpart_js ($deployed, $title, $uniqueid)
+{
+ return '<script type="text/javascript" src="/js/show-hide.php?'
   . "deploy=$deployed&amp;legend=" . utils_urlencode ($title)
-  . "&amp;box_id=hidsubpart&amp;suffix=$uniqueid\"></script>\n";
-  $ret .= "\n<noscript>\n<a href=\"#$uniqueid\">$title</a>\n</noscript>"
+  . "&amp;box_id=hidsubpart&amp;suffix=$uniqueid\"></script>\n"
+  . "\n<noscript>\n<a href=\"#$uniqueid\">$title</a>\n</noscript>";
+}
+
+# Function to create a an area in the page that can be hidden or shown
+# in one click with a JavaScript.
+# Per policy, this must work with a browser that does not support at all
+# JavaScript.
+# This is useful on item pages because we have some info that is not
+# essential to be shown (like CC list etc), but still very nice be able to
+# access easily.
+function html_hidsubpart_header ($uniqueid, $title, $deployed = false)
+{
+  $deployed = html_hidsubpart_set_deployed ($uniqueid, $deployed);
+  $ret = "\n<h2 id=\"$uniqueid\">\n"
+    . html_hidsubpart_js ($deployed, $title, $uniqueid)
     . "</h2>\n\n";
   $ret .= "<div id=\"hidsubpartcontent$uniqueid\">\n";
-  if (!$deployed)
-    {
-      $ret .= '<script type="text/javascript" src="/js/hide-span.php'
-        . "?box_id=hidsubpartcontent$uniqueid\"></script>\n";
-    }
-  return $ret;
+  if ($deployed)
+    return $ret;
+  return $ret . '<script type="text/javascript" src="/js/hide-span.php'
+    . "?box_id=hidsubpartcontent$uniqueid\"></script>\n";
 }
 
 function html_hidsubpart_footer ()

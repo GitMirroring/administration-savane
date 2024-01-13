@@ -1360,7 +1360,7 @@ function collect_canned_responses ($canned_response)
 namespace {
 function trackers_data_append_canned_response ($details, $resp_ids)
 {
-  if (empty ($resp_ids) || in_array ($resp_ids, [100, '!multiple!']))
+  if (empty ($resp_ids))
     return $details;
   $det = [];
   if (is_string ($details) && $details !== '')

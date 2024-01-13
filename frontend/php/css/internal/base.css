@@ -340,6 +340,12 @@ h4 a { display: block; }
   vertical-align: top;
 }
 
+.floatleft
+{
+  float: left;
+  margin-right: 1em;
+}
+
 .trash
 {
   vertical-align: top;

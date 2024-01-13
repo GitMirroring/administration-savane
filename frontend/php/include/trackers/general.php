@@ -691,38 +691,16 @@ function trackers_check_empty_fields ($field_array, $new_item = true)
   return false;
 }
 
-function trackers_canned_response_box (
-  $group_id, $name = 'canned_response', $checked = null
-)
+function trackers_canned_response_box ($group_id, $checked, $height)
 {
   if (empty ($checked))
-    $checked = 'xzxz';
-  if (!$group_id)
-    {
-      fb (_("Error, no group_id"), 1);
-      return 0;
-    }
-  $vals = $texts = [];
+    $checked = [];
+  $ret = "<select name='canned_response[]' multiple='multiple' "
+    . "size='$height'>\n";
   $result = trackers_data_get_canned_responses ($group_id);
-  if (db_numrows ($result) <= 0)
-    return form_hidden (["canned_response" => "100"])
-      . _("No canned response available");
-
-  if (db_numrows ($result) > 1)
-    {
-      $vals[] = '!multiple!';
-      $texts[] = "> " . _("Multiple Canned Responses");
-    }
-
-  while ($entry = db_fetch_array ($result))
-    {
-      $vals[] = $entry['bug_canned_id'];
-      $texts[] = $entry['title'];
-    }
-  return html_build_select_box_from_arrays (
-    $vals, $texts, $name, $checked, true, 'None', false,' Any', false,
-    _("Canned Responses")
-  );
+  while ($row = db_fetch_array ($result))
+    $ret .= form_option ($row[0], $checked, $row[1]);
+  return "$ret</select>\n";
 }
 
 function trackers_artifact_is_sane (&$artifact)

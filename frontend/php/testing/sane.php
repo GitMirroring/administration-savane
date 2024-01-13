@@ -1248,7 +1248,6 @@ $reference = 'include/trackers_run/index.php';
     'specialchars' => 'cc_comment',
     'preg' =>
       [
-        ['canned_response', '/^(\d+|!multiple!)$/'],
         [
           'originator_email',
           '/^[a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+$/'
@@ -1294,7 +1293,6 @@ $reference = 'include/trackers_run/index.php';
     'new_vote' => 10,
     'quote_no' => 3,
     'cc_comment' => 'a',
-    'canned_response' => '!multiple!',
     'originator_email' => 'agn@test.mil',
     'add_cc' => 'agn,a@b.ca;d@e.fgh',
     'reassign_change_group' => '0-grep_up',

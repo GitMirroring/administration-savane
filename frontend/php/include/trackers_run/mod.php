@@ -390,16 +390,13 @@ $is_deployed["cc"] = $is_deployed["votes"] = $is_deployed["reassign"] = false;
 # multiple canned answer), deploy only the relevant:
 # first set them all to false without question and then set to true only
 # the relevant.
-if ($depends_search || $canned_response == "!multiple!"
-    || $reassign_change_group_search)
+if ($depends_search || $reassign_change_group_search)
   {
     foreach ($is_deployed as $key => $value)
       $is_deployed[$key] = false;
 
     if ($depends_search)
       $is_deployed["dependencies"] = true;
-    if ($canned_response == "!multiple!")
-      $is_deployed["postcomment"] = true;
     if ($reassign_change_group_search)
       $is_deployed["reassign"] = true;
   }
@@ -417,7 +414,7 @@ if (isset ($quote_no))
         $preview = true;
         $quote = '';
         if (!empty ($canned_response))
-          $canned_response = '!multiple!';
+          $canned_response = [];
       }
     $comment = trackers_data_append_canned_response ("$comment$quote", $cr);
   }
@@ -433,68 +430,58 @@ function print_comment_types ($group_id, $comment_type_id)
   if (db_numrows ($comment_types) <= 1)
     {
       unset ($GLOBALS['comment_type_id']);
-      return;
+      return 0;
     }
-  print html_label ('comment_type_id', _("Comment type:")) . "\n";
+  print "<span class='preinput'>";
+  print html_label ('comment_type_id', _("Comment type:")) . "</span>\n";
 
   $checked = '';
   if (($preview || !empty ($anon_check_failed)) && !empty ($comment_type_id))
     $checked = $comment_type_id;
   $box = trackers_field_box ('comment_type_id', '', $group_id, $checked, true);
   print "$box<br />\n";
+  return 1;
 }
 
-function print_canned_box ($group_id, $canned)
+function print_canned_box ($group_id, $canned, $size)
 {
   global $sys_home;
-  print html_label ('canned_response', _("Canned response:")) . "\n";
-  print trackers_canned_response_box ($group_id, 'canned_response', $canned);
-  if (!user_ismember ($group_id, 'A'))
+  $group_admin = user_ismember ($group_id, 'A');
+  if ($group_admin)
+    $size--;
+  print "<span class='preinput'>";
+  print html_label ('canned_response[]', _("Canned response:"))
+    . "</span><br />\n";
+  print trackers_canned_response_box ($group_id, $canned, $size) . "<br />\n";
+  if (!$group_admin)
     return;
   print "&nbsp;&nbsp;&nbsp;<a class='smaller' href=\"$sys_home"
     . ARTIFACT . "/admin/field_values.php?group_id=$group_id"
     . '&amp;create_canned=1">' . _("Define a new canned response") . '</a>';
 }
 
-function print_canned_checkboxes ($group_id, $canned_response)
-{
-  print _("Canned response:") . "\n";
-  $result = trackers_data_get_canned_responses ($group_id);
-  if (db_numrows ($result) <= 0)
-    {
-      print '<span class="warn">'
-        . _("Strangely enough, there is no canned response available.")
-        . '</span>';
-      return;
-    }
-  print '<div>';
-  $cra = is_array ($canned_response);
-  while ($canned = db_fetch_array ($result))
-    {
-      $id = $canned['bug_canned_id'];
-      $ck = $cra && in_array ($id, $canned_response);
-      print '&nbsp;&nbsp;&nbsp;';
-      print form_checkbox ("canned_response[]", $ck, ['value' => $id]);
-      print " {$canned['title']}<br />\n";
-    }
-  print "</div>\n";
-}
-
-function print_canned_selector ($group_id, $canned_response)
-{
-  if ($canned_response == "!multiple!" || is_array ($canned_response))
-    print_canned_checkboxes ($group_id, $canned_response);
-  else
-    print_canned_box ($group_id, $canned_response);
-}
-
 function print_comment_type_and_canned ($group_id, $canned_response, $ct_id)
 {
+  global $sys_home;
   if (!user_ismember ($group_id))
     return;
-  print '<p class="noprint"><span class="preinput">';
-  print_comment_types ($group_id, $ct_id);
-  print_canned_selector ($group_id, $canned_response);
+  print "<p class='noprint'><br />\n";
+  $n = print_comment_types ($group_id, $ct_id);
+  print_canned_box ($group_id, $canned_response, 11 - $n);
+  print "</p>\n";
+}
+
+function print_comment_box ($group_id, $comment)
+{
+  $float = '';
+  if (user_ismember ($group_id))
+    $float = ' floatleft';
+  print "<p class='noprint$float'><span class='preinput'> "
+    . _("Add a New Comment") . ' ' . markup_info ("rich");
+  print form_submit (_('Preview'), 'preview')
+    . "</span><br />&nbsp;&nbsp;&nbsp;\n";
+  print trackers_field_textarea ('comment', utils_specialchars ($comment),
+    0, 0, _("New comment"));
   print "</p>\n";
 }
 
@@ -506,13 +493,7 @@ if ($enable_comments)
     if (!empty ($preambles[ARTIFACT . '_comment_preamble']))
       print markup_rich ($preambles[ARTIFACT . '_comment_preamble']);
 
-    print '<p class="noprint"><span class="preinput"> ' . _("Add a New Comment")
-      . ' ' . markup_info ("rich");
-    print form_submit (_('Preview'), 'preview')
-      . "</span><br />&nbsp;&nbsp;&nbsp;\n";
-    print trackers_field_textarea ('comment', utils_specialchars ($comment),
-      0, 0, _("New comment"));
-    print "</p>\n";
+    print_comment_box ($group_id, $comment);
     print_comment_type_and_canned ($group_id, $canned_response,
       $comment_type_id
     );
@@ -526,7 +507,6 @@ if ($item_discussion_lock)
         . _("Your privileges however allow to override the lock.");
     print "</p>\n";
   }
-
 print html_hidsubpart_header ("discussion", _("Discussion"));
 if ($revert_comment_order)
   print form_hidden (['revert_order' => 1]);

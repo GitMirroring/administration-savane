@@ -112,7 +112,6 @@ extract (sane_import ('post',
     'pass' => 'comment',
     'preg' =>
       [
-        ['canned_response', '/^(\d+|!multiple!)$/'],
         [
           'originator_email',
           '/^[a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+$/'
@@ -172,10 +171,9 @@ foreach (['reassign_change_group_search', 'depends_search'] as $var)
   if (!is_scalar ($$var))
     $$var = '';
 
-if ($canned_response === null)
-  extract (sane_import ('post',
-    ['array' => [['canned_response', [null, 'digits']]]]
-  ));
+extract (sane_import ('post',
+  ['array' => [['canned_response', [null, 'digits']]]]
+));
 
 if (empty ($canned_response))
   $canned_response = null;
@@ -422,8 +420,7 @@ switch ($func)
 
     # Special case: we may be searching for an item, in that case
     # reprint the same page, plus search results.
-    if ($depends_search || $reassign_change_group_search
-        || $canned_response == "!multiple!")
+    if ($depends_search || $reassign_change_group_search)
       {
         if ($depends_search)
           {
@@ -446,12 +443,6 @@ switch ($func)
               $sys_https_url . $_SERVER['SCRIPT_NAME'] . '#reassign'
             );
             fb ($msg);
-          }
-        if ($canned_response == "!multiple!")
-          {
-            fb (_("You selected Multiple Canned Responses: you are free now\n"
-                  . "to select the one you want to use to compose your answer.")
-            );
           }
         include '../include/trackers_run/mod.php';
         exit (0);

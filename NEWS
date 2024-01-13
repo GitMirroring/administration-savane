@@ -28,6 +28,10 @@
 
 * Wrong login diagnostics are improved.
 
+* Canned response selection was replaced with a multiple-selection list;
+  previously, it was a single-selection list with an option to call
+  a list of checkboxes.
+
 * Bug fixes:
 
 ** Email notifications from trackers included a localized
