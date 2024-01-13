@@ -365,10 +365,10 @@ while ($field_name = trackers_list_all_fields ())
         # there will be another field on this line.
         $j++;
       }
-    if ($i % $fields_per_line)
+    if (!($i % $fields_per_line))
       print  "\n<tr$row_class>";
     print "$td width='15%'>$label</td>\n$td width='35%'>$value</td>\n";
-    if (++$i % $fields_per_line)
+    if (!(++$i % $fields_per_line))
       print "</tr>\n";
   } # while ($field_name = trackers_list_all_fields ())
 
