@@ -232,7 +232,7 @@ sub sort_and_output_entries
 }
 
 my @db = GetDBLists (
-  "groups", "status = 'A' AND use_git = 1",
+  "groups", "status = 'A' AND use_git = 1 AND is_public <> 0",
   "unix_group_name, group_name, group_id"
 );
 

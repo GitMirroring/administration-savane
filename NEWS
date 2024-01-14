@@ -100,6 +100,8 @@
 
 ** Except CVS, new repositories for private groups were created world-readable.
 
+** sv_cgit.pl listed private as well as public repositories.
+
 [BUILD]
 
 * frontend part is installed to $(pkgdatadir); a few PHP checks are run
