@@ -136,7 +136,7 @@ utils_get_content ("admin/groupedit_intro");
 
 print '<p>';
 print "<a href='../projects/{$row_grp['unix_group_name']}'>"
-  . no_i18n ("Group public page") . "</a>";
+  . no_i18n ("Group main page") . "</a>";
 print '</p>
 ';
 
