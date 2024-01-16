@@ -150,7 +150,7 @@ function add_list_to_db ()
     'is_public' => $public,
     # list_admin doesn't really matter: the notifications on password
     # changes are sent to those who request the reset, anyway.
-    'list_admin' => user_getid (), 'description' => $list_data['description']
+    'list_admin' => user_getid (), 'description' => $desc
   ];
   mailman_add_list_to_db ($fields);
 }

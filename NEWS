@@ -81,6 +81,9 @@
 ** When editing canned responses, special chars were escaped
    excessively.
 
+** In siteadmin/mailman.php, the description wasn't used when registering
+   a list from mailman in the database.
+
 ** More PHP 8.0 => 8.2 incompatibilities were resolved.
 
 ** Sessions from IPv6 addresses couldn't be deleted in /my/admin/sessions.php;
