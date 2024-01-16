@@ -657,6 +657,21 @@ if ($list_value)
     trackers_footer ();
     exit (0);
   } # if ($list_value)
+
+function print_value_rank ($row, $title)
+{
+  print '<span class="preinput">' . html_label ('title', $title);
+  print form_input (
+    "text", "title", utils_specialchars_decode ($row['value'], ENT_QUOTES),
+    'size="40" maxlength="60"'
+  );
+  print "\n&nbsp;&nbsp;\n<span class='preinput'>"
+    . html_label ('order_id', _("Rank:")) . '</span>&nbsp;';
+  print form_input (
+     "text", "order_id", $row['order_id'], 'size="6" maxlength="6"'
+   );
+}
+
 if ($update_value)
   {
     # Show the form to update an existing field_value.
@@ -674,18 +689,7 @@ if ($update_value)
             "fv_id" => $fv_id, "field" => $field, "group_id" => $group_id,
           ]
         );
-    print '<p><span class="preinput">'
-      . html_label ('title', _("Value:")) . "</span><br />\n";
-    print form_input (
-       "text", "title",
-       utils_specialchars_decode ($row['value'], ENT_QUOTES),
-       'size="30" maxlength="60"'
-    );
-    print "\n&nbsp;&nbsp;\n<span class='preinput'>"
-      . html_label ('order_id', _("Rank:")) . '</span>&nbsp;';
-    print form_input (
-       "text", "order_id", $row['order_id'], 'size="6" maxlength="6"'
-     );
+    print_value_rank ($row, _("Value:"));
     print "\n&nbsp;&nbsp;\n<span class='preinput'>"
       . html_label ('status', _("Status:")) . "</span>\n"
       . "<select name='status' id='status'>\n"
@@ -738,19 +742,16 @@ function canned_hidden ($create)
   $hidden['item_canned_id'] = $item_canned_id;
   return $hidden;
 }
+
 function print_form_canned ($row = null)
 {
   $hidden = canned_hidden ($row === null);
   if ($row === null)
     $row = ['body' => '', 'order_id' => '', 'title' => ''];
   print "<p>" . form_tag () . form_hidden ($hidden);
-  print '<span class="preinput">' . html_label ('title', _("Title:"))
-    . "</span><br />\n&nbsp;&nbsp;"
-    . form_input ('text', 'title', $row['title'], "size='50' maxlength='50'")
-    . "<br />\n<span class='preinput'>" . html_label ('order_id', _("Rank:"))
-    . "</span><br />\n&nbsp;&nbsp;"
-    . form_input ('text', 'order_id', $row['order_id'], "maxlength='50'")
-    . "<br />\n<span class='preinput'>"
+  $row['value'] = $row['title'];
+  print_value_rank ($row, _("Title:"));
+  print "<br />\n<span class='preinput'>"
     . html_label ("body", _("Message Body:")) . "</span><br />\n&nbsp;&nbsp;"
     . form_textarea ('body', $row['body'], "rows='20' cols='65' wrap='hard'")
     . form_footer (_("Submit"), 'submit');

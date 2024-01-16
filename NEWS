@@ -78,6 +78,9 @@
 ** In bugs/index.php, voting only worked for tracker admins,
    broken since 2022-04 (302fce4c); Savannah sr #110896.
 
+** When editing canned responses, special chars were escaped
+   excessively.
+
 ** More PHP 8.0 => 8.2 incompatibilities were resolved.
 
 ** Sessions from IPv6 addresses couldn't be deleted in /my/admin/sessions.php;
