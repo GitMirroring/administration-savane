@@ -70,6 +70,7 @@ sub make_git_area
   # Forbid access to hooks.
   system ('chown', '-R', 'root:', "$dir_git/hooks");
   system ('chmod', '-R', 'a-w', "$dir_git/hooks");
+  system ('chmod', 'a+rx', "$dir_git/hooks");
 
   # 'git-cvsserver' support
   system ('git', 'config', 'gitcvs.pserver.enabled', 1);
