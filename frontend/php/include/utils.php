@@ -247,9 +247,9 @@ if (function_exists ("strftime"))
     # Used until strftime is dropped from PHP.
     function utils_strftime ($timestamp, $format)
     {
-      $old_level = error_reporting (E_ALL & ~E_DEPRECATED);
+      $state = utils_disable_warnings (E_DEPRECATED);
       $ret = strftime ($format, $timestamp);
-      error_reporting ($old_level);
+      utils_restore_warnings ($state);
       return $ret;
     }
   }
@@ -887,14 +887,13 @@ function utils_disable_warnings ($level = E_ALL, $dry_run = false)
 {
   if ($dry_run)
     return null;
-  $h = set_error_handler (function ($errno, $str) {return true;}, $level);
-  return [$h, $level];
+  return [error_reporting (E_ALL ^ $level)];
 }
 
 function utils_restore_warnings ($state)
 {
   if ($state !== null)
-    set_error_handler ($state[0], $state[1]);
+    error_reporting ($state[0]);
 }
 
 # Try to move $tmp_path to $path without overwriting if the latter exists;
