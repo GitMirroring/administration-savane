@@ -1420,7 +1420,7 @@ function fetch_data ($group_id, $item_id, $vfl)
   return [db_fetch_array ($res), trackers_transition_get_update ($group_id)];
 }
 
-function vals_differ ($field, $old_value, $value)
+function vals_differ ($field, $old_value, &$value)
 {
   if (trackers_data_is_text ($field))
     return $old_value != utils_specialchars ($value);
@@ -1523,7 +1523,7 @@ function update_cookbook (
   return 1;
 }
 
-function transition_not_needed ($field, $row, $value)
+function transition_not_needed ($field, $row)
 {
   # Skip over special fields  except for summary which in this
   # particular case can be processed normally.
@@ -1534,8 +1534,7 @@ function transition_not_needed ($field, $row, $value)
   # special by the database.
   if ($field == 'comment')
     return true;
-
-  return !vals_differ ($field, $row[$field], $value);
+  return false;
 }
 
 function update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists)
@@ -1591,7 +1590,7 @@ function handle_update (
     $extra_addr[] = $extra_addresses;
   foreach ($vfl as $field => $value)
     {
-      if (transition_not_needed ($field, $row, $value))
+      if (transition_not_needed ($field, $row))
         continue;
       $old_value = $row[$field];
 
@@ -1602,6 +1601,8 @@ function handle_update (
       $field_transition_accepted =
         array_merge ($field_transition_accepted, $trans_id);
 
+      if (!vals_differ ($field, $old_value, $value))
+        continue;
       $upd_list[$field] = $value;
       if (trackers_data_is_text ($field))
         $upd_list[$field] = utils_specialchars ($value);
