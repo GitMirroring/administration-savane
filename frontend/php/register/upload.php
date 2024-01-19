@@ -47,7 +47,7 @@ extract (sane_import ('files', ['pass' => 'tarball']));
 session_require (['isloggedin' => '1']);
 $title = ['title' => _("Temporary upload")];
 
-if (!isset ($tarball))
+if (empty ($tarball['tmp_name']))
  {
    $HTML->header ($title);
    print form_tag (['enctype' => 'multipart/form-data'])
@@ -59,6 +59,8 @@ if (!isset ($tarball))
    exit (0);
  }
 
+if (!is_uploaded_file ($tarball['tmp_name']))
+  exit (0);
 if ($tarball['error'] != 0)
   exit_error (sprintf (_("Error during upload: %s"), $tarball['error']));
 
