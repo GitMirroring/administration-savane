@@ -59,6 +59,8 @@ if (empty ($tarball['tmp_name']))
    exit (0);
  }
 
+form_check ();
+
 if (!is_uploaded_file ($tarball['tmp_name']))
   exit (0);
 if ($tarball['error'] != 0)

@@ -50,26 +50,24 @@ $vcs = 'git';
 
 $res_grp = group_get_result ($group_id);
 
-if (db_numrows ($res_grp) < 1)
+if (!db_numrows ($res_grp))
   exit_error (_("Invalid Group"));
 
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
-$functions = ['up', 'down'];
 $repos = vcs_get_repos ($vcs, $group_id);
 $desc = $readme = [];
-$submit_tarballs = ['submit'];
 $n = count ($repos);
 for ($i = 0; $i < $n; $i++)
   {
     $desc[] = "desc$i";
     $readme[] = "readme$i";
-    $submit_tarballs[] = "disable_tarballs$i";
   }
 
-extract (sane_import ('get',
-  ['strings' => [['func', $functions]], 'path' => ['name']]
+extract (sane_import ('get', ['strings' => [['func', ['up', 'down']]]]));
+extract (sane_import ('post',
+  ['digits' => ['repo_no'], 'true' => ['submit'], 'path' => ['name']]
 ));
-extract (sane_import ('post', ['digits' => ['repo_no'], 'true' => ['submit']]));
+form_check ('submit');
 
 function page_start ()
 {
@@ -185,22 +183,21 @@ function show_edit ($name, $label, $val, $repo_no)
   if (!empty ($show_edit_help[$name]) && !$repo_no)
     $help = $show_edit_help[$name];
   $id = "$name$repo_no";
-  print "<p><label for='$id'>$label</label> &nbsp; &nbsp;\n";
+  print "<p>" . html_label ($id, $label) . " &nbsp; &nbsp;\n";
   print form_input ("text", "$id", $val, 'size="34" maxlength="102"');
   print "</p>\n";
   if ($help !== null)
     print "<p class='smaller'>$help</p>\n";
 }
 
-function show_disable_tarballs ($repo_no)
+function show_disable_tarballs ($repo_no, $name)
 {
-  global $group_id, $name, $vcs;
+  global $group_id, $vcs;
   $no_tarball = vcs_tarballs_disabled ($vcs, $group_id, $name);
   $cb_name = "disable_tarballs$repo_no";
   print "<p>";
   print form_checkbox ($cb_name, $no_tarball) . "\n";
-  print "<label for='$cb_name'>"
-    . _("don't provide links to snapshot tarballs") . "</label>";
+  print html_label ($cb_name, _("don't provide links to snapshot tarballs"));
   print "</p>\n";
 }
 
@@ -212,9 +209,9 @@ function show_repo_form ($r, $repo_no, $name)
     "desc", _("Description:"),
     utils_specialchars_decode ($r['desc'], ENT_QUOTES), $repo_no
   );
-  print "<h3>" . _("Web browsing settings") . "</h3>\n\n";
+  print html_h (3, _("Web browsing settings"));
   show_edit ("readme", _("README file:"), $readme, $repo_no);
-  show_disable_tarballs ($repo_no);
+  show_disable_tarballs ($repo_no, $name);
   print form_hidden (['repo_no' => $repo_no]);
 }
 
@@ -223,17 +220,13 @@ function show_repo ($r, $repo_no)
   global $group_name, $anchor, $name;
   $name = $r['name'];
   $anchor = repo_html_id ($name);
-  $suff = "?group=$group_name&amp;name=$name#$anchor";
-  $form_tag = form_tag ([], $suff);
 
   show_repo_title ($r);
-  print $form_tag;
+  print form_tag ([], "#$anchor")
+    . form_hidden (['group' => $group_name, 'name' => $name]);
+
   show_repo_form ($r, $repo_no, $name);
-  print form_input (
-    'submit', "submit", _("Update"), 'class="' . utils_altrow ($repo_no) . '"'
-  );
-  if (!($repo_no % 2))
-    print "<p> &nbsp;</p>\n";
+  print form_submit (_("Update"), 'submit');
   print "</form>\n";
 }
 

@@ -46,6 +46,7 @@ require_once ('../include/init.php');
 extract (sane_import ('post',
   ['true' => 'update', 'specialchars' => ['summary', 'details']]
 ));
+form_check ('update');
 
 if (!group_restrictions_check ($group_id, "news"))
   {
@@ -57,7 +58,6 @@ if (!group_restrictions_check ($group_id, "news"))
 
 if ($update)
   {
-    form_check ();
     $result = false;
     if ($summary)
       {
@@ -95,11 +95,10 @@ print '<p class="warn">'
   . form_header () . form_hidden (["group_id" => $group_id])
   . "<span class='preinput'>" . html_label ('summary', _("Subject:"))
   . "</span><br/>&nbsp;&nbsp;\n"
-  . "<input type='text' id='summary' name='summary' value=\"$summary\" "
-  . "size='65' maxlength='80' /><br />\n"
-  . "<span class='preinput'>" . html_label ('details', _("Details"))
+  . form_input ('text', 'summary', $summary, "size='65' maxlength='80'")
+  . "<br />\n<span class='preinput'>" . html_label ('details', _("Details"))
   . markup_info ("full") . "</span><br />&nbsp;&nbsp;\n"
-  . "<textarea name='details' id='details' rows='20' cols='65' wrap='soft'>\n"
-  . "$details</textarea><br />\n" . form_footer ();
+  . form_textarea ('details', $details, "rows='20' cols='65' wrap='soft'")
+  . "<br />\n" . form_footer ();
 site_project_footer ([]);
 ?>

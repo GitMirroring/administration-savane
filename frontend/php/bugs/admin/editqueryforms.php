@@ -45,13 +45,13 @@
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 extract (sane_import ('request', ['digits' => 'report_id']));
-extract (sane_import ('get',
-  ['true' => ['show_report', 'new_report', 'delete_report']]
-));
+extract (sane_import ('get', ['true' => ['show_report', 'new_report']]));
 $names = [];
-$names['true'] = [
-  'post_changes', 'set_default', 'create_report', 'update_report'
+$submits = [
+  'post_changes', 'set_default', 'create_report', 'update_report',
+  'delete_report'
 ];
+$names['true'] = $submits;
 $names['specialchars'] = ['rep_name', 'rep_desc'];
 $names['strings'] = [['rep_scope', 'P']];
 
@@ -80,7 +80,7 @@ foreach ($prefices as $pref)
     $names['digits'][] = "{$pref}_$suf";
 
 extract (sane_import ('post', $names));
-
+form_check ($submits);
 # HELP: what we call now "query form" was previously called "report",
 # that name is still in the database.
 
@@ -241,7 +241,7 @@ if ($new_report)
       . "<input type='text' name='rep_name' id='rep_name' value='' size='20' "
       . "maxlength='20' />\n</p>\n<p><span class='preinput'>"
       . _("Scope:") . "</span><br />\n";
-    print _("Project") . form_hidden (["rep_scope" => "P"]);
+    print _("Group") . form_hidden (["rep_scope" => "P"]);
     print "</p>\n<p>\n<span class='preinput'><label for='rep_desc'>"
       . _("Description:") . "</label></span><br />\n"
       . "<input type='text' name='rep_desc' id='rep_desc' value='' size='50' "
@@ -365,15 +365,16 @@ if ($show_report)
           "update_report" => "y", "group_id" => $group_id,
           "report_id" => $report_id, "post_changes" => "y"
         ]);
-    print '<span class="preinput"><label for="rep_name">'
+    print '<p><span class="preinput"><label for="rep_name">'
       . _("Name:") . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" name="rep_name" id="rep_name" value="'
-      . db_result ($res, 0, 'name') . "\" size='20' maxlength='20' />\n";
+      . form_input ('text', 'rep_name', db_result ($res, 0, 'name'),
+          "size='20' maxlength='20'")
+      . "\n</p>\n";
     print "<p>\n<span class='preinput'><label for='rep_desc'>"
       . _("Description:") . "</label></span><br />&nbsp;&nbsp;&nbsp;\n"
-      . '<input type="text" name="rep_desc" id="rep_desc" value="'
-      . db_result ($res, 0, 'description')
-      . "\" size='50' maxlength='120' /></p>\n<p>";
+      . form_input ('text', 'rep_desc', db_result ($res, 0, 'description'),
+          "size='50' maxlength='120'")
+      . "\n</p>\n";
 
     print html_build_list_table_top ($title_arr);
     $i = 0;
@@ -508,19 +509,18 @@ if ($rows)
 
         print "\n<td>{$arr['description']}</td>\n"
           . "\n<td align=\"center\">"
-          . (($arr['scope'] == 'P')? _("Project"): _("Personal")) . '</td>'
+          . (($arr['scope'] == 'P')? _("Group"): _("Personal")) . '</td>'
           . "\n<td align=\"center\">";
 
         if (($arr['scope'] == 'P') && !user_ismember ($group_id, 'A'))
           print '-';
         else
-          {
-            print '<a href="'
-              . "$php_self?group=$group"
-              . '&amp;delete_report=1&amp;report_id='.$arr['report_id']
-              . '&amp;rep_name=' . utils_urlencode ($arr['name']) . '">'
-              .  html_image_trash () . '</a>';
-          }
+          print form_tag ()
+            . form_hidden([
+                'delete_report' => 1, 'report_id' => $arr['report_id'],
+                'group' => $group, 'rep_name' => utils_urlencode ($arr['name'])
+              ])
+            . form_image_trash ('del_rep') . "</form>\n";
         print "</td>\n</tr>\n";
         $i++;
       }

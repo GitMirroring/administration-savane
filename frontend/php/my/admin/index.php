@@ -39,10 +39,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-require_once ('../../include/sane.php');
-require_once ('../../include/utils.php');
-require_once ('../../include/form.php');
+foreach (['sane', 'utils', 'form'] as $i)
+  require_once ("../../include/$i.php");
 $pref_list = ['email_encrypted', 'nonfixed_feedback', 'keep_only_one_session',
   'quiet_ssh', 'reverse_comments_order', 'stone_age_menu', 'use_bookmarks'
 ];
@@ -94,8 +92,12 @@ if ($update)
         fb (_("Failed to update the database"),1);
     }
   }
+# FIXME init.php has to be included after parsing POST variables and defining
+# update_theme that may be used in theme.php that is included in init.php.
+# This isn't the most clear possible way to do these things.
 require_once ('../../include/init.php');
 require_once ('../../include/timezones.php');
+form_check ('update');
 extract (sane_import ('request', ['pass' => 'feedback']));
 session_require (['isloggedin' => 1]);
 
@@ -127,7 +129,7 @@ print '<p>' . _("You can change all of your account features from here.")
   . "</p>\n";
 utils_get_content ("account/index_intro");
 print form_tag ();
-print '<h2>' . _("Significant Arrangements") . "</h2>\n";
+print html_h (2, _("Significant Arrangements"));
 
 print $HTML->box_top (_('Authentication Setup'));
 print '<p><a href="change.php?item=password">' . _("Change Password")
@@ -201,6 +203,9 @@ print '<p class="smaller">'
       . "time, killing previous\nsessions each time you log in.");
 print "</p>\n";
 print $HTML->box_bottom ();
+$update_btn = '<p class="center"><span class="clearr" />'
+  . form_submit (_("Update")) . "</span></p>\n";
+print $update_btn;
 
 print $HTML->box_top (_('Identity Record'));
 
@@ -271,12 +276,7 @@ print '<p class="smaller">' . _("Here, you can cancel all mail notifications.")
 
 print $HTML->box_bottom ();
 
-$update_btn = '<p class="center"><span class="clearr" />'
-  . '<input type="submit" name="update" value="'
-  . _("Update") . "\" /></span></p>\n";
-print $update_btn;
-
-print "\n<h2>" . _("Secondary Arrangements") . "</h2>\n";
+print html_h (2, _("Secondary Arrangements"));
 
 print $HTML->box_top (_('Optional Features'));
 
@@ -320,6 +320,7 @@ print '<p class="smaller">'
   . "</p>\n";
 
 print $HTML->box_bottom ();
+print $update_btn;
 print $HTML->box_top (_('Cosmetics Setup'));
 
 # The select box comes before the name of the category so all the clickable
@@ -414,11 +415,8 @@ print '<p class="smaller">'
    . "</p>\n";
 
 print $HTML->box_bottom ();
-
-print $update_btn;
-print "</form>\n";
-
-print "\n<h2>" . _('Account Deletion') . "</h2>\n";
+print "$update_btn</form>\n";
+print html_h (2, _('Account Deletion'));
 
 print '<p><a href="change.php?item=delete">' . _("Delete Account")
   . "</a></p>\n";

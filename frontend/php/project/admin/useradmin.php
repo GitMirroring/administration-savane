@@ -48,6 +48,7 @@ require_once ('../../include/sendmail.php');
 
 extract (sane_import ('post',
   [
+    'true' => 'update',
     'array' => [['user_ids', [null, 'digits']]],
     'pass' => 'words',
     'strings' =>
@@ -62,8 +63,10 @@ extract (sane_import ('post',
       ],
   ]
 ));
-
+form_check ('update');
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
+if (!$update)
+  $action = '';
 
 if (!$group_id)
   exit_no_group();
@@ -75,7 +78,7 @@ function usr_string ($usr)
 
 function show_pending_users_list ($result, $group_id)
 {
-  print "<h2>" . _("Users Pending for Group") . "</h2>\n<p>";
+  print html_h (2, _("Users Pending for Group")) . "<p>";
   print html_label ('pending_user_list',
     _("Users that have requested to be member of the group are listed\n"
       . "here. To approve their requests, select their names and push "
@@ -99,14 +102,13 @@ function show_pending_users_list ($result, $group_id)
     }
 
   print "$select$options</select>\n" . form_hidden (['group_id' => $group_id])
-    . "<p>\n<input type=\"submit\" name=\"Submit\" value=\""
-    . _("Approve users for group") . "\" />\n</p>\n</form>\n";
+    . form_footer (_("Approve users for group"));
 }
 
 function show_all_users_remove_list ($result, $result2, $group_id)
 {
   $exists = false;
-  print "<h2>" . _("Removing users from group") . "</h2>\n<p>";
+  print html_h (2, _("Removing users from group")) . "<p>";
   print html_label ('rm_user_list',
     _("To remove users, select their names and push the button\nbelow. "
       . "The administrators of a project cannot be removed unless they "
@@ -133,13 +135,12 @@ function show_all_users_remove_list ($result, $result2, $group_id)
     }
   print "$select$options</select>\n<br />\n";
   print form_hidden (['group_id' => $group_id])
-    . "<p>\n<input type=\"submit\" name=\"Submit\" value=\""
-    . _("Remove users from group") . "\" />\n</p></form>\n";
+    . form_footer (_("Remove users from group"));
 }
 
 function show_all_users_add_searchbox ($group_id, $previous_search)
 {
-  print '<h2 id="searchuser">' . _("Adding users to group") . "</h2>\n<p>";
+  print html_h (2, _("Adding users to group"), "searchuser") . "\n<p>";
   print html_label ('words',
     _("You can search one or several users to add in the whole users\n"
       . "database with the following search tool. A list of users, "

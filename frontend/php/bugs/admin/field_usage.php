@@ -49,12 +49,10 @@ $is_admin_page = 'y';
 extract (sane_import ('request',
   ['name' => 'field', 'true' => 'update_field']
 ));
+$submits = ['post_changes', 'submit', 'reset'];
 extract (sane_import ('post',
   [
-    'true' =>
-      [
-        'post_changes', 'submit', 'reset'
-      ],
+    'true' => $submits,
     'specialchars' => ['label', 'description'],
     'digits' =>
       [
@@ -70,6 +68,7 @@ extract (sane_import ('post',
        ]
   ]
 ));
+form_check ($submits);
 
 if (!$group_id)
   exit_no_group ();
@@ -350,32 +349,26 @@ if ($update_field)
         if (db_numrows ($result) > 0)
           $transition_default_auth =
             db_result ($result, 0, 'transition_default_auth');
-        $ck_str = ' checked="checked"';
         $ck = $transition_default_auth !='F';
-        $ck1 = $ck? $ck_str: '';
-        $ck2 = $ck? '': $ck_str;
         print "\n\n<p>&nbsp;</p>\n<h2>"
           . _("By default, transitions (from one value to another) are:")
           . "</h2>\n";
-        print '<input type="radio" '
-          . "name='form_transition_default_auth'\n"
-          . "id='form_transition_default_auth_allowed' value='A'$ck1"
-          . ' />'
-          . html_label ("form_transition_default_auth_allowed", _("Allowed"))
-          . "<br />\n<input "
-          . "type='radio' id='form_transition_default_auth_forbidden'\n"
-          . "name='form_transition_default_auth' value='F'$ck2"
-          . ' />'
-          . html_label (
-              "form_transition_default_auth_forbidden", _("Forbidden")
+        print
+          form_radio ('form_transition_default_auth', 'A',
+            [ 'checked' => $ck, 'label' => _("Allowed"),
+              'id' => 'form_transition_default_auth_allowed']
+          )
+          . "<br />\n"
+          . form_radio ('form_transition_default_auth', 'F',
+              [ 'checked' => !$ck, 'label' => _("Forbidden"),
+                'id' => 'form_transition_default_auth_forbidden']
             )
           . "\n";
       }
     print "\n<p align='center'>"
-      . "<input type='submit' name='submit' value=\""
-      . _("Update") . "\" />\n&nbsp;&nbsp;\n<input type='submit' "
-      . "name='reset' value=\"" . _("Reset to defaults")
-      . "\" /></p>\n</form>\n";
+      . form_submit (_("Update"), 'submit') . "\n&nbsp;&nbsp;\n"
+      . form_submit (_("Reset to defaults"), 'reset')
+      . "</p>\n</form>\n";
     trackers_footer ();
     exit (0);
   } # if ($update_field)

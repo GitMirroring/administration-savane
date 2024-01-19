@@ -54,6 +54,7 @@ extract (sane_import ('post',
     'digits' => [['form_frequency', [0, 3]]],
   ]
 ));
+form_check ('update');
 
 if (empty ($form_news_address))
   $form_news_address = '';
@@ -87,12 +88,10 @@ site_project_header (
 );
 print form_tag () . form_hidden (['group_id' => $group_id]);
 
-$show_intro = 1;
 foreach ($artifacts as $art => $label)
   {
     print html_h (2, $label);
-    trackers_data_show_notification_settings ($group_id, $art, $show_intro);
-    $show_intro = 0;
+    trackers_data_show_notification_settings ($group_id, $art);
     print "<br />\n";
   }
 print html_h (2, _("News Manager Email Notification Settings"));
@@ -101,8 +100,6 @@ print '<span class="preinput">' . _("Carbon-Copy List:")
   . form_input ('text', 'form_news_address', $row_grp['new_news_address'],
       "size='40' maxlength='255'")
   . "<br /><br />\n";
-
-print "\n<p align='center'><input type='submit' name='update' value='"
-  . _("Update") . "' />\n</form>\n";
+print form_footer (_("Update"));
 site_project_footer ([]);
 ?>

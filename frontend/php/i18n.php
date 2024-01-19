@@ -49,9 +49,10 @@ extract (sane_import('request',
   [
     'preg' => [['language', '/^(([a-z]{2}((-[a-z]{2})?))|100)$/']],
     'internal_uri' => 'lang_uri',
-    'true' => ['cookie_test', 'cookie_for_a_year']
+    'true' => ['cookie_test', 'cookie_for_a_year', 'update']
   ]
 ));
+form_check ('update');
 
 # Check cookie support.
 if (!isset ($_COOKIE["cookie_probe"]))
@@ -132,8 +133,6 @@ print "</p>\n<p><span class=\"text\">"
       . "immediately.")
   . "</span></p>\n";
 
-print '<div class="center"><input type="submit" name="set" value="'
-  . _("Set language") . '" tabindex="1" /></div>';
-print '</form>';
+print form_footer (_("Set language"));
 $HTML->footer ([]);
 ?>

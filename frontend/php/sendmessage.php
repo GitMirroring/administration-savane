@@ -53,6 +53,8 @@ extract (sane_import ('request',
   ])
 );
 
+form_check ('send_mail');
+
 if (!user_isloggedin ())
   exit_not_logged_in ();
 

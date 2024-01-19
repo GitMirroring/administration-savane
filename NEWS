@@ -40,6 +40,9 @@
 
 * News are previewed more realistically, including titles and attributes.
 
+* Whenever the user requests an update in the database, the POST method
+  is used, and the form_id is checked.
+
 * Bug fixes:
 
 ** Email notifications from trackers included a localized

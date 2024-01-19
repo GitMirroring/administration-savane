@@ -55,24 +55,28 @@ require_once ('../include/trackers/data.php');
 session_require (['group' => '1','admin_flags' => 'A']);
 
 $actions = ['remove_user_from_group', 'update_user_group',
-  'update_user', 'add_user_to_group', 'rename'
+  'update_user', 'add_user_to_group', 'rename', 'delete'
 ];
 
 extract (sane_import ('request',
   [
-    'digits' => ['user_id', 'comment_max_rows', 'comment_offset'],
-    'strings' => [['action', array_merge ($actions, ['delete'])],],
+    'digits' => ['user_id', 'comment_max_rows', 'comment_offset']
   ]
 ));
 extract (sane_import ('post',
   [
+    'strings' => [['action', $actions]],
     'name' => 'new_name',
+    'true' => 'update',
     'preg' => [
       ['email', '/^[a-zA-Z\d_.+-]+@(([a-zA-Z\d-])+\.)+[a-zA-Z\d]+$/'],
       ['admin_flags', '/^[A-Z\d]+$/'],
-    ],
+    ]
   ]
 ));
+form_check ('update');
+if (empty ($update))
+  $action = null;
 
 if (empty ($comment_max_rows))
   $comment_max_rows = 50;
@@ -92,7 +96,7 @@ function print_contribution_heading ($user_id)
 {
   if ($user_id == 100)
     return;
-  print "<h2>". no_i18n ("Contributions") . "</h2>\n";
+  print html_h (2, no_i18n ("Contributions"));
 }
 
 function tracker_query ($user_id, $tracker)
@@ -207,6 +211,11 @@ function report_db_result ($result, $msg_err, $msg_ok)
     fb ($msg_ok);
 }
 
+function action_delete ()
+{
+  user_delete ($GLOBALS['user_id']);
+}
+
 function action_remove_user_from_group ()
 {
   global $user_id, $group_id;
@@ -277,8 +286,8 @@ function rename_form ($user_id, $user_name)
     . form_hidden (['action' => 'rename', 'user_id' => $user_id])
     . "<p>Account:\n<input type='text' title=\"" . no_i18n ("New name")
     . '" name="new_name" size="22"  value="' . $user_name
-    . '" maxlength="55">' . "&nbsp;\n<input type='submit' name='update_name'"
-    . ' value="' . no_i18n ('Rename') . "\"></p>\n</form>\n";
+    . '" maxlength="55">' . "&nbsp;\n"
+    . form_submit (no_i18n ('Rename')) . "</p>\n</form>\n";
 }
 
 function email_form ($user_id, $email)
@@ -287,19 +296,16 @@ function email_form ($user_id, $email)
     . form_hidden (['action' => 'update_user', 'user_id' => $user_id])
     . "<p>Email:\n<input type='text' size='25' title=\"" . no_i18n ("Email")
     . "\" name='email' value=\"$email\" maxlength='55'>"
-    . "&nbsp;\n" . '<input type="submit" name="update_user" value="'
-    . no_i18n ('Update') . "\"></p>\n</form>\n";
+    . "&nbsp;\n" . form_submit (no_i18n ('Update')) . "</p>\n</form>\n";
 }
 
 function add_to_group_form ($user_id)
 {
   return form_tag ()
     . form_hidden (["action" => "add_user_to_group", "user_id" => $user_id])
-    . "<label for='group_id'>\n" . no_i18n ('Add to group (group_id):')
-    . "</label>\n&nbsp;\n"
-    . '<input type="text" name="group_id" id="group_id" size="17" '
-    . "/>&nbsp;\n" . '<input type="submit" name="Submit" value="'
-    . no_i18n ('Submit') . "\" />\n</form>\n\n";
+    . html_label ('group_id', no_i18n ('Add to group (group_id):'))
+    . "\n&nbsp;\n" . form_input ('text', "group_id", '',  'size="17"')
+    . "&nbsp;\n" . form_submit (no_i18n ('Update')) . "</p>\n</form>\n";
 }
 
 function change_passwd_link ($user_id)
@@ -310,14 +316,15 @@ function change_passwd_link ($user_id)
 
 function delete_account_link ($user_id)
 {
-  return '<a href="/siteadmin/userlist.php?action=delete&amp;user_id='
-    . $user_id . '">' . no_i18n ('[Delete account]') . "</a>\n\n";
+  return form_tag ()
+    . form_hidden (["action" => "delete", "user_id" => $user_id])
+    . form_submit (no_i18n ('Delete account')) . "\n</form>\n";
 }
 
 function account_title ($user_id)
 {
-  return '<h2>' . no_i18n ('Account info:')
-    . " #$user_id &lt;" . user_getname ($user_id) . "&gt;</h2>\n";
+  return html_h (2,  no_i18n ('Account info:')
+    . " #$user_id &lt;" . user_getname ($user_id) . "&gt;");
 }
 
 function account_form ($user_id, $row_user)
@@ -360,13 +367,13 @@ function group_entry ($user_id, $status, $row_cat)
   if ($status == 'SQD')
     return "<p>\n<a href=\"/project/admin/squadadmin.php?"
       . "squad_id=$user_id&amp;group_id=$grp_id\">$grp_name</a></p>\n";
-  $ret = "\n<h3>$grp_name</h3>\n";
+  $ret = html_h (3, $grp_name);
   return $ret . user_group_form ($user_id, $grp_id, $row_cat['admin_flags']);
 }
 
 function list_groups ($user_id, $status)
 {
-  print '<h2>' . no_i18n ('Current Groups') . "</h2>\n";
+  print html_h (2, no_i18n ('Current Groups'));
   $res_cat = db_execute ("
     SELECT g.group_name, g.group_id, u.admin_flags FROM groups g, user_group u
     WHERE u.user_id = ? AND g.group_id = u.group_id", [$user_id]
@@ -393,6 +400,14 @@ if (in_array ($action, $actions))
 
 $HTML->header (['title' => no_i18n ('Admin: Manage user')]);
 $res_user = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
+if (!db_numrows ($res_user))
+  {
+    print '<p>';
+    printf (no_i18n ('User #%s not found.'), $user_id);
+    print "</p>\n";
+    $HTML->footer ([]);
+    exit;
+  }
 $row_user = db_fetch_array ($res_user);
 
 print account_form ($user_id, $row_user);

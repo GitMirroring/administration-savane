@@ -40,22 +40,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
+require_once ('../include/init.php');
+if (!user_is_super_user ())
+  exit_error (_("You need to be site administrator to use this feature."));
 
-if (!user_is_super_user())
-  exit_error(_("You need to be site administrator to use this feature."));
+extract (sane_import ('post',
+  ['name' => 'user_name', 'internal_uri' => 'uri', true => 'impersonate']
+));
+form_check ('impersonate');
 
-extract(sane_import('post', ['name' => 'user_name', 'internal_uri' => 'uri']));
-
-$new_uid = user_getid($user_name);
+$new_uid = user_getid ($user_name);
 if ($new_uid == 0)
-  exit_error(_("This user doesn't exist."));
+  exit_error (_("This user doesn't exist."));
 
 # Modify session information to become the target user.
-extract(sane_import('cookie', ['hash' => 'session_hash']));
-$result = db_execute("UPDATE session SET user_id=? WHERE session_hash=?",
-                     array($new_uid, $session_hash));
-session_cookie('session_uid', $new_uid);
-
-header("Location: $uri");
+extract (sane_import ('cookie', ['hash' => 'session_hash']));
+$result = db_execute (
+  "UPDATE session SET user_id = ? WHERE session_hash = ?",
+  [$new_uid, $session_hash]
+);
+session_cookie ('session_uid', $new_uid);
+header ("Location: $uri");
 ?>

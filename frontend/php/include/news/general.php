@@ -119,7 +119,7 @@ function news_print_news_list ($result, $group_id, $group)
   while ($row = db_fetch_array ($result))
     {
       print "<li>";
-      print "<a href=\"$php_self?approve=1&amp;group=$group&amp;";
+      print "<a href=\"$php_self?show=1&amp;group=$group&amp;";
       print "id={$row['id']}\">{$row['summary']}</a></li>\n";
     }
   print "</ul>\n";
@@ -137,10 +137,10 @@ function news_list_news_to_manage ($group_id, $group)
       $result = news_query_news ($group_id, $set);
       if (!db_numrows ($result))
         {
-          print "<h2>{$t[1]}</h2>\n";
+          print html_h (2, $t[1]);
           continue;
         }
-      print "<h2>{$t[0]}</h2>\n";
+      print html_h (2, $t[0]);
       news_print_news_list ($result, $group_id, $group);
     }
 }

@@ -50,7 +50,7 @@ extract (sane_import ('post',
     'name' => 'form_loginname',
     'pass' => ['form_pw', 'form_pw2', 'form_realname', 'form_email'],
     'digits' => 'form_year',
-    'true' => ['update', 'form_usepam']
+    'true' => ['update']
   ]
 ));
 foreach (['form_realname', 'form_email', 'form_year'] as $v)
@@ -117,9 +117,9 @@ if (!empty ($update))
 
     if ($form_pw == '')
       fb (_("You must supply a password."), 1);
-    elseif ($form_usepam != 1 && $form_pw != $form_pw2)
+    elseif ($form_pw != $form_pw2)
       fb (_("Passwords do not match."), 1);
-    elseif ($form_usepam != 1 && !account_pwvalid ($form_pw))
+    elseif (!account_pwvalid ($form_pw))
       {
         # Feedback included by the check function.
       }

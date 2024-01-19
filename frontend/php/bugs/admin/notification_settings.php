@@ -50,6 +50,7 @@ require_directory ('project');
 $is_admin_page = 'y';
 
 extract (sane_import ('post', ['true' => 'submit']));
+form_check ('submit');
 
 if (!$group_id)
   exit_no_group ();
@@ -106,7 +107,7 @@ if ($submit)
         );
       }
     else
-      fb (_("Update failed"));
+      fb (_("Update failed"), 1);
   }
 
 trackers_header_admin (['title' => _("Set Notifications")]);
@@ -114,7 +115,7 @@ trackers_header_admin (['title' => _("Set Notifications")]);
 print form_tag () . form_hidden (["group_id" => $group_id]);
 
 if (user_ismember ($group_id, 'A'))
-  trackers_data_show_notification_settings ($group_id, ARTIFACT, 1);
+  trackers_data_show_notification_settings ($group_id, ARTIFACT);
 
 print "\n<p align='center'><input type='submit' name='submit' class='bold' "
   . 'value="' . _("Submit Changes") . "\" /></p>\n</form>\n";

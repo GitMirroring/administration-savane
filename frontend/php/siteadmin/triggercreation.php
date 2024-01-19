@@ -61,6 +61,7 @@ $res_type = db_execute (
   "SELECT * FROM group_type WHERE type_id = ?", [$group_type]
 );
 $user_id = user_getid ();
+form_check ();
 
 $to_update = ["homepage", "download", "cvs", "forum", "mailing_list", "task",
   "news", "support", "bug"

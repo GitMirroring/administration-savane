@@ -48,18 +48,19 @@ require_once ('../../include/gpg.php');
 $gpg_heading_level = 3;
 require (utils_get_content_filename ("gpg-sample"));
 
+$submit_buttons = [
+  'update', 'update_keyring', 'reset_keyring', 'test_keyring'
+];
+
 extract (sane_import ('post',
   [
-    'true' =>
-      [
-        'update', 'update_keyring', 'reset_keyring', 'test_keyring',
-        'upgrade_gpl',
-      ],
+    'true' => array_merge (['upgrade_gpl'], $submit_buttons),
     'pass' => ['new_keyring', 'form_longdesc'],
     'specialchars' => ['form_group_name', 'form_shortdesc'],
     'digits' => 'form_devel_status',
   ]
 ));
+form_check ($submit_buttons);
 
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
@@ -130,8 +131,8 @@ $print_preinput = function ($label, $name, $markup = '')
 {
   if (!empty ($markup))
     $markup = ' ' . markup_info ($markup);
-  print "<p><span class='preinput'><label for='$name'>"
-    . "$label</label>$markup</span><br />\n&nbsp;&nbsp;&nbsp;";
+  print "<p><span class='preinput'>" . html_label ($name, $label)
+    . "$markup</span><br />\n&nbsp;&nbsp;&nbsp;";
 };
 
 $print_preinput (_("Group Name:"), 'form_group_name');
@@ -186,20 +187,17 @@ if ($project->getLicense () == 'gpl')
   {
     print '<p><span class="preinput">' . _("GNU GPL v3:")
       . "</span>\n<br />&nbsp;&nbsp;";
-    print form_checkbox ("upgrade_gpl");
-    print "\n<label for=\"upgrade_gpl\">"
-      . _("Upgrade license to &quot;GNU GPLv3 or later&quot;");
-    print "</label></p>\n";
+    print form_checkbox ("upgrade_gpl") . "\n";
+    print html_label (
+      "upgrade_gpl", _("Upgrade license to &quot;GNU GPLv3 or later&quot;")
+    );
+    print "</p>\n";
   }
 
 print form_submit ();
 
-print "\n<h2>" . _("GPG Keys Used for Releases") . "</h2>\n";
-
-print $gpg_sample_text;
-
-if ($project->getTypeBaseHost () == "savannah.gnu.org")
-  print $gpg_gnu_maintainers_note;
+print html_h (2, _("GPG Keys Used for Releases"));
+gpg_sample_output ();
 
 if (!$new_keyring)
   $new_keyring = $keyring;

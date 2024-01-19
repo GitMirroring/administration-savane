@@ -50,12 +50,13 @@ site_admin_header (
   ['title' => no_i18n ("Group List"), 'context' => 'admgroup']
 );
 
-extract (sane_import ('post', ['pass' => 'search', 'true' => 'groupsearch']));
 extract (sane_import ('get',
   [
     'digits' => ['offset', 'max_rows'],
     'name' => 'group_name_search',
     'preg' => [['status', '/^[A-Z]$/']],
+    'pass' => 'search',
+    'true' => 'groupsearch'
   ]
 ));
 
@@ -117,12 +118,10 @@ print "<br />\n"
   . no_i18n ("or search by group_id, group_unix_name or group_name:");
 
 print "\n"
-  . form_tag (['name' => 'gpsrch'])
-  . form_input ('text', 'search', $search,
-     'title="' . no_i18n ("Group name") . '"') . "\n"
+  . form_tag (['name' => 'gpsrch', 'method' => 'get'])
+  . form_input ('text', 'search', $search) . "\n"
   . form_hidden (['groupsearch' => '1'])
-  . "<input type='submit' value=\"" . no_i18n ("Search") . "\" />\n"
-  . "</form>\n</p>\n";
+  . form_submit (no_i18n ("Search")) . "</form>\n</p>\n";
 
 print '<h2>' . no_i18n ("Group List") . "</h2>\n";
 

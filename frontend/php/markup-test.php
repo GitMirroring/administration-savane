@@ -44,10 +44,15 @@ require_once('include/init.php');
 require_once('include/markup.php');
 require_once('include/trackers/general.php');
 
+$submit_buttons = ['basic', 'rich', 'full'];
 extract (sane_import ('post',
-  ['specialchars' => 'comment', 'true' => ['basic', 'rich', 'full']]
+  ['specialchars' => 'comment', 'true' => $submit_buttons]
 ));
 $text = $comment;
+# The request doesn't commit any changes in the database, so we could
+# use GET rather than POST, without checking form_id; howerver,
+# the user may submit a longer text than GET can pass.
+form_check ($submit_buttons);
 
 $HTML->header (['title' => _("Test Markup"), 'notopmenu' => 1]);
 html_feedback_top ();

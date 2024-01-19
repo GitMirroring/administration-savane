@@ -262,11 +262,27 @@ function form_reset_form_id ($form_id)
   return 1;
 }
 
+# Return false either if $submit_list is null or any listed
+# global variables are set; else return true.
+function form_vars_empty ($submit_list)
+{
+  if ($submit_list === null)
+    return false;
+  if (!is_array ($submit_list))
+    $submit_list = [$submit_list];
+  foreach ($submit_list as $var)
+    if (!empty ($GLOBALS[$var]))
+      return false;
+  return true;
+}
+
 # Check whether this is a duplicate or not: exit when the form_id is absent
 # in the DB, which may mean that it has already been submitted (user's mistake)
 # or has never been registered (CSRF).
-function form_check ()
+function form_check ($submit_list = null)
 {
+  if (form_vars_empty ($submit_list))
+    return;
   $form_id = '';
   extract (sane_import ('post', ['hash' => 'form_id']));
   form_preliminary_check ($form_id);

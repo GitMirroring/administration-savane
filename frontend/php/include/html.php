@@ -356,9 +356,14 @@ function html_label ($for, $title)
   return "<label for='$for'>$title</label>";
 }
 
-function html_h ($no, $title)
+function html_h ($no, $title, $attr = [])
 {
-  return "<h$no>$title</h$no>\n";
+  $extra = '';
+  if (!is_array ($attr))
+    $attr = ['id' => $attr];
+  foreach ($attr as $k => $v)
+    $extra .= " $k='$v'";
+  return "<h$no$extra>$title</h$no>\n";
 }
 
 # Start a list table from an array of titles and builds.
@@ -848,7 +853,7 @@ function site_admin_header ($params)
   html_header ($params);
 }
 
-function site_admin_footer ($params)
+function site_admin_footer ($params = [])
 {
   html_footer ($params);
 }

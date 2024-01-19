@@ -46,14 +46,13 @@
 require_once ('../../include/init.php');
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
-# Internal function to determine if a squad permission must override user perm
-# or not.
-# * If user got lower rights, we override, because we assume that user has
-#   been added to obtain at least the rights given the squad.
-# * If user got higher rights, we let as it is because the user may be
-#   member of a squad that provides somes rights to its members but being
-#   himself someone that have other duties requiring in some cases more
-#   rights.
+# Internal function to determine if squad's permissions override user's
+# permissions.
+# * If the user has lower permissions, we override, we assume that the user
+#   has been added to obtain at least the permissions given to the squad.
+# * If the user has higher permissions, the user may be a member of a squad
+#   that provides some permissions to its members, but the user has
+#   other duties requiring in some cases more permissions.
 # Return true in the first item when squad permissions will be used.
 # The second item is the actual value.
 function effective_permissions ($squad_perm, $user_perm)
@@ -86,7 +85,7 @@ function effective_permissions ($squad_perm, $user_perm)
   if (($user_perm == "1" && $squad_perm == "3")
       || ($squad_perm == "1" && $user_perm == "3"))
     return [true, "2"];
-  # If we end here, nothing conclusive, keep the user's perm.
+  # Default to the user's perm.
   return [false, $user_perm];
 }
 
@@ -498,7 +497,7 @@ function print_squad_rows ($project, $titles)
 function list_squads ($group_id, $project)
 {
   global $squad_list;
-  print "<h2>" . _("Permissions per squad") . "</h2>\n";
+  print html_h (2, _("Permissions per squad"));
   if (empty ($squad_list))
     {
       print '<p class="warn">' . _("No Squads Found") . "</p>\n";
@@ -578,7 +577,7 @@ function print_member_rows ($project, $titles)
 function list_members ($group_id, $project)
 {
   global $user_list;
-  print "<h2>" . _("Permissions per member") . "</h2>\n";
+  print html_h (2, _("Permissions per member"));
   if (empty ($user_list))
     {
       print '<p class="warn">' . _("No Members Found") . "</p>\n";
@@ -594,7 +593,7 @@ function list_members ($group_id, $project)
 
 function print_group_posting_title ($project)
 {
-  print '<h2>' . _("Group trackers posting restrictions") . "</h2>\n";
+  print html_h (2, _("Group trackers posting restrictions"));
   $titles = [
     # TRANSLATORS: this is the header for a column with two rows,
     # "Posting new items" and "Posting comments".
@@ -656,7 +655,7 @@ function print_group_posting_defaults ($group_id, $project)
 function print_member_defaults ($group_id, $project)
 {
   global $trackers, $group_permissions;
-  print "<h2>" . _("Group Default Permissions") . "</h2>\n";
+  print html_h (2, _("Group Default Permissions"));
   $titles = [];
   append_tracker_titles ($titles, $project);
   member_explain_roles ();
@@ -691,6 +690,7 @@ function init_data ()
 init_data ();
 
 extract (sane_import ('post', ['true' => 'update']));
+form_check ('update');
 if ($update)
   {
     $feedback_able = $feedback_unable = $feedback_squad_override = '';
@@ -711,7 +711,6 @@ if ($update)
     fetch_user_list ($group_id);
     fetch_group_data ($group_id);
   } # if ($update)
-
 
 site_project_header (
   ['title' => _("Set Permissions"), 'group' => $group_id, 'context' => 'ahome']

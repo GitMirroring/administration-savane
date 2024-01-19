@@ -71,7 +71,6 @@ print form_tag (['action' => $GLOBALS['sys_home'] . 'people/editjob.php'])
   . "</b><br />\n"
   . form_textarea ('description', '', 'rows="10" cols="60" wrap="soft"')
   . "</p>\n<p>"
-  . '<input type="submit" name="add_job" value="'
-  . _("continue >>") . "\" />\n</p>\n</form>\n";
+  . form_submit (_("continue >>"), "add_job") . "\n</p>\n</form>\n";
 site_project_footer ([]);
 ?>

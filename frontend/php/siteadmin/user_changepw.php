@@ -54,6 +54,7 @@ extract (sane_import ('request', ['digits' => 'user_id']));
 extract (sane_import ('post',
   ['true' => 'update', 'pass' => ['form_pw', 'form_pw2']]
 ));
+form_check ('update');
 
 $error = '';
 

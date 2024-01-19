@@ -80,9 +80,11 @@ function show_checkbox ($title, $field, $row)
     . "</p>\n";
 }
 
+$submits = ['delete', 'update'];
 extract (sane_import ('request', ['digits' => 'type_id']));
 extract (sane_import ('get', ['true' => 'create']));
-extract (sane_import ('post', ['true' => ['delete', 'update']]));
+extract (sane_import ('post', ['true' => $submits]));
+form_check ($submits);
 
 $trackers_labelled = [
   'cookbook' => no_i18n ("Cookbook Manager"),
@@ -236,7 +238,7 @@ if (empty ($type_id))
 
   print "<a href=\"$php_self?type_id=$type&amp;create=1\">"
     . no_i18n ('Create new group type') . '</a>';
-  site_admin_footer ([]);
+  site_admin_footer ();
   exit (0);
 }
 
@@ -702,5 +704,5 @@ foreach ($checkboxes as $k => $v)
   }
 
 print "$update_delete_buttons</form>\n";
-site_admin_footer ([]);
+site_admin_footer ();
 ?>

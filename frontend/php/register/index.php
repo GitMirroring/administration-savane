@@ -60,13 +60,12 @@ require_once ('../include/sendmail.php');
 # require maintainance, since some people interrupt registration and
 # try to redoit later with another name.
 # And even if a name clash happens, admins will notice it during approval.
-function group_does_not_already_exist ($form_unix_name)
+function group_does_not_already_exist ($unix_name)
 {
-  $res = db_execute ("
-    SELECT group_id FROM groups
-    WHERE unix_group_name LIKE ? AND status <> 'I'", [$form_unix_name]
+  $res = db_execute (
+    "SELECT group_id FROM groups WHERE unix_group_name LIKE ?", [$unix_name]
   );
-  return db_numrows ($res) < 1;
+  return !db_numrows ($res);
 }
 
 function license_exists ($form_license)

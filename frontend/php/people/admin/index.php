@@ -51,38 +51,43 @@ extract (sane_import ('post',
     'specialchars' => ['skill_name', 'cat_name'],
   ]
 ));
+form_check ('post_changes');
 
 # This page is for site admins only.
 if (!user_ismember (1, 'A'))
   exit_permission_denied ();
 
+function report_db_result ($result, $success_msg)
+{
+  if ($result)
+    {
+      fb ($success_msg);
+      return;
+    }
+  print db_error ();
+  fb (_("Error inserting value"), 1);
+}
+
+function add_people_cat ($name)
+{
+  $result = db_execute (
+    "INSERT INTO people_job_category (name) VALUES (?)", [$name]
+  );
+  report_db_result ($result, _("Category Inserted"));
+}
+
+function add_skill ($name)
+{
+  $result = db_execute ("INSERT INTO people_skill (name) VALUES (?)", [$name]);
+  report_db_result ($result, _("Skill Inserted"));
+}
+
 if ($post_changes)
   {
-    # Update the database.
     if ($people_cat)
-      {
-        $result = db_execute (
-          "INSERT INTO people_job_category (name) VALUES (?)", [$cat_name]
-        );
-        if (!$result)
-          {
-            print db_error();
-            fb (_("Error inserting value"));
-          }
-        fb (_("Category Inserted"));
-      }
+      add_people_cat ($cat_name);
     elseif ($people_skills)
-      {
-        $result = db_execute ("INSERT INTO people_skill (name) VALUES (?)",
-           [$skill_name]
-        );
-        if (!$result)
-          {
-            print db_error ();
-            fb (_("Error inserting value"));
-          }
-        fb (_("Skill Inserted"));
-      }
+      add_skill ($skill_name);
   }
 
 if ($people_cat)
@@ -97,17 +102,16 @@ if ($people_cat)
       );
     else
       print '<p>' . _("No job categories"). "</p>\n". db_error ();
-    print '<h2>'. _("Add a new job category:"). "</h2>\n"
+    print html_h (2, _("Add a new job category:"))
       . form_tag ()
       . form_hidden (['people_cat' => 'y', 'post_changes' => 'y'])
       . "</p>\n<p><label for='cat_name'>"
       . _("New Category Name:") . "</label></p>\n"
-      . "<input type='text' name='cat_name' id='cat_name' value='' size='15' "
-      . "maxlength='30' /><br />\n<p><strong><span class='warn'>"
+      . form_input ('text', 'cat_name', '', " size='15' maxlength='30'")
+      . "<br />\n<p><strong><span class='warn'>"
       . _("Once you add a category, it cannot be deleted")
       . "</span></strong></p>\n<p>\n"
-      . '<input type="submit" name="submit" value="' . _("Add") . "\" /></p>\n"
-      . "</form>\n";
+      . form_submit (_("Add"), "submit") . "</p>\n</form>\n";
   } # $people_cat
 elseif ($people_skills)
   {
@@ -125,24 +129,23 @@ elseif ($people_skills)
         print db_error ();
         print "<p>" . _("No Skills Found") . "</p>\n";
       }
-    print '<h2>' . _("Add a new skill:") . "</h2>\n";
+    print html_h (2, _("Add a new skill:"));
     print "<p>" . form_tag ()
       . form_hidden (['people_skills' => 'y', 'post_changes' => 'y'])
       . "</p>\n<p><label for='skill_name'>"
       . _("New Skill Name:") . "</label></p>\n"
-      . "<input type='text' name='skill_name' id='skill_name' value=''\n"
-      . "size='15' maxlength='30' /><br />\n"
+      . form_input ('text', 'skill_name', '', " size='15' maxlength='30'")
+      . "<br />\n"
       . '<p><strong><span class="warn">'
       . _("Once you add a skill, it cannot be deleted")
       . "</span></strong></p>\n"
-      . '<p><input type="submit" name="submit" value="' . _("Add")
-      . "\" /></p>\n</form>\n";
+      . form_submit (_("Add"), "submit") . "</p>\n</form>\n";
   }
 else # ! $people_skills
   {
     # Show main page.
     site_header (['title' => _('People Administration')]);
-    print '<h1>' . _("Help Wanted Administration") . '</h1>';
+    print html_h (1, _("Help Wanted Administration"));
     print "<p><a href=\"$php_self?people_cat=1\">"
       . _("Add Job Categories") . "</a><br />\n";
     print "\n<a href=\"$php_self?people_skills=1\">"

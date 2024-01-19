@@ -124,17 +124,17 @@ function send_pending_user_email ($group_id, $user_id, $user_message)
   );
 }
 
-# Request for inclusion.
+$submits = ['update', 'searchgroup'];
 extract (sane_import ('post',
   [
-    'true' => 'update', 'pass' => 'form_message',
+    'true' => $submits, 'pass' => 'form_message',
     'array' => [['form_groups', ['digits', 'true']]],
   ]
 ));
+form_check ($submits);
 
 if ($update)
   {
-    form_check ();
     $result_upd = db_query ("
       SELECT group_id FROM groups WHERE status = 'A' AND is_public = '1'
       ORDER BY group_id"
@@ -268,7 +268,7 @@ print
     . "this form.");
 print "</p>\n\n";
 
-print form_tag () . form_hidden (['action' => 'searchgroup']);
+print form_tag () . form_hidden (['searchgroup' => '1']);
 print form_input ('text', 'words', $words,
   "title=\"" . _("Group to look for") . "\" size='35'");
 print "<br /><br />\n";
@@ -319,20 +319,22 @@ if ($words)
                 print _('(already a member)') . "<br />\n";
                 continue;
               }
-            print form_checkbox ("form_groups[{$val['group_id']}]")
-              . "\n<label for=\"form_groups[{$val['group_id']}]\">";
-            print "{$val['group_name']}</label><br />\n";
+            print form_checkbox ("form_groups[{$val['group_id']}]") . "\n"
+              . html_label (
+                  "form_groups[{$val['group_id']}]", $val['group_name']
+                )
+              . "<br />\n";
           }
 
-        print "<br />\n<label for='form_message'>" . _("Comments (required):")
-          . "</label><br />\n"
+        print "<br />\n"
+          . html_label ('form_message', _("Comments (required):")) . "<br />\n"
           . "<textarea name='form_message' id='form_message' cols='40'\n"
           . "rows='7'></textarea><br /><br />\n";
         print form_submit (_("Request Inclusion"), 'update');
         print "</form>\n";
       }
     print "</div><!-- end boxitemalt -->\n";
-  }
+  } # if ($words)
 print $HTML->box_bottom (1);
 print html_splitpage (2);
 

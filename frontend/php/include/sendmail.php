@@ -589,12 +589,6 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
     # TRANSLATORS: the argument is user's name.
     sprintf (_("Send a message to %s"), user_getrealname ($user_id))
   );
-  print '<p class="warn">'
-    . _("If you are writing for help, did you read the\nproject documentation "
-        . "first? Try to provide any potentially useful information\n"
-        . "you can think of.")
-     . "</p>\n";
-
   $pre = '<span class="preinput">';
   $post = "</span><br />\n&nbsp;&nbsp;&nbsp;";
   # We do not really bother finding out the realname + email, sendmail_mail ()
@@ -603,20 +597,20 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
     . form_hidden ([
         'touser' => utils_specialchars ($user_id),
         'fromuser' => user_getname ()])
-    . "\n$pre" . _("From:") . "$post"
+    . "\n$pre" . _("From:") . $post
     . user_getrealname (user_getid (), 1) . ' &lt;'
     . user_getemail (user_getid ()) . "&gt;<br />\n"
     . $pre . _("Mailer:") . $post
     . utils_cutstring ($_SERVER['HTTP_USER_AGENT'], "50")
-    . "<br />\n$pre<label for='subject'>" . _("Subject:") . "</label>$post"
-    . '<input type="text" id="subject" name="subject" '
-    . "size='60' maxlength='45' value='' /><br />\n$pre"
-    . form_checkbox ("cc_me", $cc_me, ['value' => 'cc_me'])
-    . " <label for='cc_me'>" . _("Send me a copy") . "</label>$post"
-    . "$pre<label for='body'>" . _("Message:") . "</label>$post"
-    . "<textarea id='body' name='body' rows='20' cols='60'></textarea>\n\n"
-    . '<p align="center"><input type="submit" name="send_mail" value="'
-    . _('Send Message') . "\" /></p>\n</form>\n";
+    . "<br />\n$pre" . html_label ('subject', _("Subject:")) . $post
+    . form_input ('text', "subject", '', "size='60' maxlength='45'")
+    . "<br />\n$pre"
+    . form_checkbox ("cc_me", $cc_me,
+        ['value' => 'cc_me', 'label' => _("Send me a copy")]
+      )
+    . $post . $pre . html_label ('body', _("Message:")) . $post
+    . form_textarea ('body', '', "rows='20' cols='60'") . "\n\n"
+    . form_footer (_('Send Message'), "send_mail");
   print $HTML->box_bottom ();
 }
 

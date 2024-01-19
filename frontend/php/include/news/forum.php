@@ -504,8 +504,8 @@ function show_post_form (
     . "wrap='SOFT'></textarea>\n</td></tr>\n"
     . "<tr><td colspan='2' align='middle'>\n<span class='warn'>"
     . "HTML tags will display in your post as text</span>\n<br />\n"
-    . '<input type="submit" name="submit" value="' . _("Post Comment")
-    . "\" />\n</td></tr></table>\n</form>\n</center>\n";
+    . form_input ('submit', 'submit', _("Post Comment"))
+    . "\n</td></tr></table>\n</form>\n</center>\n";
 }
 
 # Take a message id and recurse, deleting all followups.

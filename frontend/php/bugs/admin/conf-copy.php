@@ -48,6 +48,7 @@ require_once ('../../include/trackers/conf.php');
 extract (sane_import ('post',
   ['true' => 'update', 'digits' => 'from_group_id']
 ));
+form_check ('update');
 
 if (!$group_id)
   exit_no_group ();

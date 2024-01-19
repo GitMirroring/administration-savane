@@ -50,9 +50,10 @@ define ('PUBLIC_UNLINK', 10);
 
 $key_func = ['preg', '/^(\d+|new)$/'];
 $list_name_func = ['name', ['min_len' => 0, 'max_len' => 80]];
+$submit_buttons = ['post_changes', 'add_list'];
 extract (sane_import ('post',
   [
-    'true' => ['post_changes', 'add_list'],
+    'true' => $submit_buttons,
     'digits' => 'newlist_format_index',
     'array' =>
       [
@@ -64,6 +65,7 @@ extract (sane_import ('post',
       ],
   ]
 ));
+form_check ($submit_buttons);
 
 if (!$group_id)
   exit_no_group ();

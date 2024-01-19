@@ -42,11 +42,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../../include/init.php');
-require_once('../../include/sane.php');
-
-session_require(array('group' => $group_id,
-                      'admin_flags' => 'A'));
+require_once ('../../include/init.php');
+require_once ('../../include/sane.php');
+session_require (['group' => $group_id, 'admin_flags' => 'A']);
 
 $post_names = function ()
 {
@@ -108,6 +106,7 @@ function type_usable ($group, $type, $field_name, $field)
 
 $names = $post_names ();
 extract (sane_import ('post', $names));
+form_check ('update');
 
 $query = sane_import ('get',
   ['specialchars' => 'feedback', 'digits' => 'error']

@@ -54,10 +54,10 @@ $min_keys = 5; # Minumum key fields to show.
 
 $keys = account_get_authorized_keys ();
 $user_id = user_getid ();
+form_check ('update');
 
 if ($update)
   {
-    form_check ();
     $orig_keys = $keys;
     $keys = [];
     for ($i = 0; $i < $key_limit; $i++)

@@ -61,7 +61,7 @@ function match_type_box ($arr_match_type, $row_match_type)
 # Get current information.
 $res_grp = group_get_result ($group_id);
 
-if (db_numrows ($res_grp) < 1)
+if (!db_numrows ($res_grp))
   exit_error (_("Invalid Group"));
 
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
@@ -96,6 +96,7 @@ extract (sane_import ('post',
       ['arr_enable_diff', [$key_func, ['digits', [1, 1]]]]
     ]
   ]));
+form_check ('log_accum');
 
 if (isset ($log_accum))
   {
@@ -188,54 +189,65 @@ $result =  db_execute ("
   WHERE group_id = ?", [$group_id]
 );
 
-print "<h2>" . _("Current notifications") . "</h2>\n";
-print form_tag ([], "?group=$group");
-print "<table>\n";
-print html_build_list_table_top (
-  [
-    html_image_trash (), _('Repo'), _('Match'), _('Modules'), _('Branches'),
-    _('Send to'), _('Diff?'), _('Diffs to')
-  ]
-);
-
 $repo_keys =  ['sources', 'web'];
 # TRANSLATORS: this is the type of repository (sources  or web).
 $repo_vals = [_('sources'), _('web')];
 
-while ($row = db_fetch_array ($result))
-  {
-    $cur= $row['hook_id'];
-    print "<tr>\n<td>";
-    print form_hidden (["arr_id[$cur]" => "$cur"]);
-    print form_checkbox ("arr_remove[$cur]", 0);
-    print "</td>\n<td>";
-    print html_build_select_box_from_arrays (
-      $repo_keys, $repo_vals, "arr_repo_name[$cur]", $row['repo_name'], false
-    );
-    print "</td>\n<td>";
-    print match_type_box ("arr_match_type[$cur]", $row['match_type']);
-    print "</td>\n";
-    print "<td><input type='text' name='arr_dir_list[$cur]' "
-      . "value='{$row['dir_list']}' size='10' /></td>\n";
-    print "<td><input type='text' name='arr_branches[$cur]' "
-      . "value='{$row['branches']}' size='10' /></td>\n";
-    print "<td><input type='text' name='arr_emails_notif[$cur]' "
-      . "value='{$row['emails_notif']}' size='13' /></td>\n";
-    print "<td>";
-    print form_checkbox ("arr_enable_diff[$cur]", $row['enable_diff']);
-    print "</td>\n";
-    print "<td><input type='text' name='arr_emails_diff[$cur]' "
-      . "value='{$row['emails_diff']}' size='13' /></td>\n";
-    print "</tr>\n";
-  }
+function current_notifications ($result)
+{
+  global $repo_keys, $repo_vals;
+  $ret = '';
+  while ($row = db_fetch_array ($result))
+    {
+      $cur = $row['hook_id'];
+      $ret .= "<tr>\n<td>";
+      $ret .= form_hidden (["arr_id[$cur]" => "$cur"]);
+      $ret .= form_checkbox ("arr_remove[$cur]", 0);
+      $ret .= "</td>\n<td>";
+      $ret .= html_build_select_box_from_arrays (
+        $repo_keys, $repo_vals, "arr_repo_name[$cur]", $row['repo_name'], false
+      );
+      $ret .= "</td>\n<td>";
+      $ret .= match_type_box ("arr_match_type[$cur]", $row['match_type']);
+      $ret .= "</td>\n";
+      $ret .= "<td><input type='text' name='arr_dir_list[$cur]' "
+        . "value='{$row['dir_list']}' size='10' /></td>\n";
+      $ret .= "<td><input type='text' name='arr_branches[$cur]' "
+        . "value='{$row['branches']}' size='10' /></td>\n";
+      $ret .= "<td><input type='text' name='arr_emails_notif[$cur]' "
+        . "value='{$row['emails_notif']}' size='13' /></td>\n";
+      $ret .= "<td>";
+      $ret .= form_checkbox ("arr_enable_diff[$cur]", $row['enable_diff']);
+      $ret .= "</td>\n";
+      $ret .= "<td><input type='text' name='arr_emails_diff[$cur]' "
+        . "value='{$row['emails_diff']}' size='13' /></td>\n";
+      $ret .= "</tr>\n";
+    }
+  return $ret;
+}
 
-print "</table>\n";
-$caption = _("Modify");
-print "<input name='log_accum' type='submit' value='$caption' />\n";
-print "</form>\n";
+function show_current_notifications ($group, $result)
+{
+  $cur_notif = current_notifications ($result);
+  if (empty ($cur_notif))
+    return;
+  print form_tag () . form_hidden (["group" => $group]);
+  print html_build_list_table_top (
+    [
+      html_image_trash (), _('Repo'), _('Match'), _('Modules'), _('Branches'),
+      _('Send to'), _('Diff?'), _('Diffs to')
+    ]
+  );
+  print $cur_notif;
+  print "</table>\n";
+  print form_footer (_("Modify"), 'log_accum');
+}
 
-print "<h2>" . _("New notification") . "</h2>\n";
-print form_tag ([], "?group=$group");
+print html_h (2, _("Current notifications"));
+show_current_notifications ($group, $result);
+
+print html_h (2, _("New notification"));
+print form_tag () . form_hidden (["group" => $group]);
 print "<ol>\n";
 print "<li>" . _("Repository:") . " ";
 print html_build_select_box_from_arrays (
@@ -263,7 +275,7 @@ print _("Filter by directory: if match is <i>Module list</i>, enter a list of
 print "<input type='text' name='arr_dir_list[new]' value='' />";
 print "</li>\n<li>";
 print _("List of comma-separated emails to send notifications to, e.g.
-  winnie@the-pooh.mil, yu@guan.edu):") . "<br />";
+  winnie@the-pooh.mil, yu@guan.edu:") . "<br />";
 print "<input type='text' name='arr_emails_notif[new]' "
   . "value='' />";
 print "</li>\n<li>";
@@ -285,8 +297,7 @@ print _("Filter by branch: you will be notified only commits in these branches,
 print "<input type='text' name='arr_branches[new]' value='' />";
 print "</li>\n</ol>\n";
 print form_hidden (['arr_id[new]' => 'new']);
-$caption = _('Add');
-print "<input type='submit' name='log_accum' value='$caption' />\n</form>\n";
+print form_footer (_('Add'), 'log_accum');
 
 print "<p>" . _("The changes come into effect within an hour.") . "</p>\n";
 

@@ -73,6 +73,7 @@ extract (sane_import ('post',
     'digits' => $name_digits
   ]
 ));
+form_check ('update');
 
 $result = db_execute ("
   SELECT field_id, from_value_id, to_value_id

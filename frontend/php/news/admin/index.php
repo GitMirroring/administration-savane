@@ -51,7 +51,7 @@ extract (sane_import ('post',
     'preg' => [['form_news_address', '/^[-+_@.,;\s\da-zA-Z]*$/']],
   ]
 ));
-
+form_check ('update');
 if (!$group_id)
   exit_no_group ();
 
@@ -73,24 +73,20 @@ if ($update)
   }
 site_project_header (['group' => $group_id, 'context' => 'anews']);
 
-print '<p>'
-  . _("You can change all of this tracker configuration from this page.")
-  . "</p>\n";
-
 $res_grp = db_execute (
  "SELECT new_news_address FROM groups WHERE group_id = ?", [$group_id]
 );
 $row_grp = db_fetch_array ($res_grp);
 
-print '<h2>' . _("News Tracker Email Notification Settings") . "</h2>\n"
+print html_h (2, _("News Tracker Email Notification Settings"))
   . form_tag () . form_hidden (['group_id' => $group_id])
-  . '<span class="preinput"><label for="form_news_address">'
-  . _("Carbon-Copy List:") . "</label></span>\n<br />\n"
-  . "&nbsp;&nbsp;<input type=\"text\" name=\"form_news_address\" "
-  . "id=\"form_news_address\" value=\"{$row_grp['new_news_address']}"
-  . "\" size=\"40\" maxlength=\"255\" />\n"
-  . '<p align="center"><input type="submit" name="update" value="'
-  . _("Update") . "\" />\n</form>\n";
+  . '<span class="preinput">'
+  . html_label ("form_news_address", _("Carbon-Copy List:"))
+  . "</span>\n<br />\n&nbsp;&nbsp;"
+  . form_input ('text', 'form_news_address', $row_grp['new_news_address'],
+      "size='40' maxlength='255'"
+    )
+  . "\n" . form_footer (_("Update"));
 
 site_project_footer ();
 ?>

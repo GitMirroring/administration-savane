@@ -48,13 +48,13 @@ require_directory ("people");
 if (!user_isloggedin ())
   exit_not_logged_in ();
 
+$submits = [
+  'update_profile', 'add_to_skill_inventory', 'update_skill_inventory',
+  'delete_from_skill_inventory'
+];
 extract (sane_import ('post',
   [
-    'true' =>
-      [
-        'update_profile', 'add_to_skill_inventory', 'update_skill_inventory',
-        'delete_from_skill_inventory'
-      ],
+    'true' => $submits,
     'digits' =>
       [
         'skill_id', 'skill_level_id', 'skill_year_id', 'skill_inventory_id',
@@ -63,6 +63,7 @@ extract (sane_import ('post',
     'pass' => 'people_resume'
   ]
 ));
+form_check ($submits);
 
 # Check if resume should be editable at all.
 $allow_resume = false;
@@ -70,9 +71,8 @@ $allow_resume = false;
 $result = db_execute (
  "SELECT people_resume FROM user WHERE user_id = ?", [user_getid ()]
 );
-if (db_numrows ($result) > 0)
-  if ('' != db_result ($result, 0, 'people_resume'))
-    $allow_resume = true;
+if (db_numrows ($result))
+  $allow_resume = ('' != db_result ($result, 0, 'people_resume'));
 # Let members of any group edit their resume.
 if (!$allow_resume)
   {
@@ -83,8 +83,7 @@ if (!$allow_resume)
         AND user_id=? AND admin_flags != 'P'
       LIMIT 1", [user_getid ()]
     );
-    if (db_numrows ($result) > 0)
-      $allow_resume = true;
+    $allow_resume = db_numrows ($result);
   }
 
 if ($update_profile)
@@ -109,7 +108,7 @@ if ($update_profile)
 elseif ($add_to_skill_inventory)
   {
     if ($skill_id == 100 || $skill_level_id == 100 || $skill_year_id == 100)
-      fb (_("Missing info: fill in all required fields"), 1);
+      fb (_("Missing information: fill in all required fields"), 1);
     else
       people_add_to_skill_inventory (
         $skill_id, $skill_level_id, $skill_year_id
@@ -120,7 +119,7 @@ elseif ($update_skill_inventory)
     if (
       $skill_level_id == 100 || $skill_year_id == 100  || !$skill_inventory_id
     )
-      fb (_("Missing info: fill in all required fields"));
+      fb (_("Missing information: fill in all required fields"));
     else
       {
         $result = db_execute ("
@@ -130,8 +129,8 @@ elseif ($update_skill_inventory)
           [$skill_level_id, $skill_year_id, user_getid (), $skill_inventory_id]
         );
 
-        if (!$result || db_affected_rows ($result) < 1)
-          fb (_("User Skill update failed"),1);
+        if (!db_affected_rows ($result))
+          fb (_("User Skill update failed"), 1);
         else
           fb (_("User Skills updated successfully"));
       }
@@ -146,8 +145,8 @@ elseif ($delete_from_skill_inventory)
       WHERE user_id = ? AND skill_inventory_id = ?",
       [user_getid (), $skill_inventory_id]
     );
-    if (!$result || db_affected_rows ($result) < 1)
-      fb (_("User Skill Delete failed"),1);
+    if (!db_affected_rows ($result))
+      fb (_("User Skill Delete failed"), 1);
     else
       fb (_("User Skill Deleted successfully"));
   }
@@ -162,33 +161,32 @@ print '<p>'
   . "</p>\n";
 
 $result = db_execute ("SELECT * FROM user WHERE user_id = ?", [user_getid ()]);
-if (db_numrows ($result) < 1)
+if (!db_numrows ($result))
   exit_error (_("No such user"));
 utils_get_content ("people/editresume");
 
-$viewableoptions = ["0" => _("No"), "1" => _("Yes")];
-
-print form_tag ()
-  . '<h2>' . _("Publicly Viewable") . "</h2>\n"
+print form_tag () . html_h (2, _("Publicly Viewable"))
   . '<span class="preinput">' . _("Do you want your resume to be activated?")
   . '</span>&nbsp;&nbsp;'
   . html_build_select_box_from_array (
-      $viewableoptions, 'people_view_skills',
+      ["0" => _("No"), "1" => _("Yes")], 'people_view_skills',
       db_result ($result, 0, 'people_view_skills'), 0, _("Activate resume")
     );
 
 if ($allow_resume)
-  print '<h2><label for="people_resume">'
-    . _("Resume - Description of Experience")
-    . "</label></h2>\n<p>" . markup_info ("full") . "</p>\n"
-    . '<textarea id="people_resume" name="people_resume" rows="15" '
-    . 'cols="60" wrap="soft">'. db_result ($result, 0, 'people_resume')
-    . "</textarea>\n<br /><br />\n";
+  print
+    html_h (2,
+      html_label ("people_resume", _("Resume - Description of Experience"))
+    )
+    . "<p>" . markup_info ("full") . "</p>\n"
+    . form_textarea ("people_resume",  db_result ($result, 0, 'people_resume'),
+        ' rows="15" cols="60" wrap="soft"'
+      )
+    . "\n<br /><br />\n";
 
-print '<div class="center"><input type="submit" name="update_profile" '
-  . 'value="' . _("Update Profile") . '" /></div></form>' . "\n";
+print form_footer (_("Update Profile"), 'update_profile');
 
-print '<h2>' . _("Skills") . "</h2>\n";
+print html_h (2, _("Skills"));
 # Now show the list of desired skills.
 people_edit_skill_inventory (user_getid ());
 

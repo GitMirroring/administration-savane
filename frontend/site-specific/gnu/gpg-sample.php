@@ -76,4 +76,13 @@ See the GNU Maintainer Information, node
 <a href="%s">Automated Upload Registration</a>.'),
 "//www.gnu.org/prep/maintain/maintain.html#Automated-Upload-Registration")
 . "</p>\n";
+
+function gpg_sample_output ()
+{
+  global $project, $gpg_sample_text, $gpg_gnu_maintainers_note;
+  print $gpg_sample_text;
+
+  if ($project->getTypeBaseHost () == "savannah.gnu.org")
+    print $gpg_gnu_maintainers_note;
+}
 ?>

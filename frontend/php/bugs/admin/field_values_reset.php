@@ -43,19 +43,16 @@
 
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
-extract (sane_import ('post',
-  [
-    'name' => 'field',
-    'true' => ['confirm', 'cancel']
-  ]
-));
+extract (sane_import ('post', ['name' => 'field', 'true' => ['confirm', 'cancel']]));
+# This page is only accessible with POST; check form_id unconditionally.
+form_check ();
 
 if (!$group_id)
   exit_no_group ();
 if (!user_ismember ($group_id, 'A'))
   exit_permission_denied ();
 
-trackers_init($group_id);
+trackers_init ($group_id);
 
 if (!$field)
   exit_missing_param ();
@@ -87,8 +84,8 @@ printf (
   trackers_data_get_label ($field)
 );
 print '</span>';
-print '<div class="center"><input type="submit" name="confirm" value="'
-  . _("Confirm") . '" /> <input type="submit" name="cancel" value="'
-  . _("Cancel") . "\" /></div>\n";
+print '<div class="center">'
+  . form_submit (_("Confirm"), "confirm") . ' '
+  . form_submit (_("Cancel"), "cancel") . "</div>\n";
 print "</form>\n";
 ?>

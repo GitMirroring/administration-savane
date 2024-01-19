@@ -52,49 +52,17 @@ extract (sane_import ('get',
   [
     'digits' => ['offset', 'user_id'],
     'specialchars' => 'text_search',
-    'strings' => [
-      ['action', ['delete', 'suspend', 'activate']],
-    ],
     'name' => 'user_name_search',
   ]
 ));
 extract (sane_import ('request', ['pass' => 'search']));
-
-# Get user_name and realname as they were before the action to display
-# in further feedback.
-if ($action)
-  $result = db_execute (
-    "SELECT user_name, realname FROM user WHERE user_id = ?", [$user_id]
-  );
-
-if ($action == 'delete' || $action == 'suspend')
-  {
-    user_delete ($user_id);
-    $out = no_i18n("DELETE");
-  }
-if ($action == 'activate')
-  {
-    db_execute("UPDATE user SET status='A' WHERE user_id=?", array($user_id));
-    $out = no_i18n("ACTIVE");
-  }
-
-if ($action)
-  {
-    print '<h2>' . no_i18n("Action done") . ":</h2>\n</p>";
-
-    $usr = db_fetch_array($result);
-    printf(no_i18n('Status updated to %s for user %s %s.'), $out, $user_id,
-           utils_user_link ($usr['user_name'], $usr['realname']));
-    print "</p>\n";
-    print db_error();
-  }
 
 $abc_array = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1',
   '2', '3', '4', '5', '6', '7', '8', '9', '_'
 ];
 
-print '<h2>' . no_i18n ("User Search") . "</h2>\n<p>"
+print html_h (2, no_i18n ("User Search"))
   . no_i18n ("Display users beginning with:") . ' ';
 
 for ($i = 0; $i < count ($abc_array); $i++)
@@ -105,7 +73,7 @@ for ($i = 0; $i < count ($abc_array); $i++)
 print "<br />\n"
   . no_i18n ("Search by email, username, realname or userid:") . "\n";
 print form_tag (['method' => 'get', 'name' => 'usersrch'])
-  . "<input type='text' name='text_search' value=\"$text_search\" />\n"
+  . form_input ('text', 'text_search',  $text_search)
   . form_hidden (['usersearch' => '1'])
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
@@ -172,10 +140,7 @@ print "</h2>\n";
 $rows = $rows_returned = db_numrows ($result);
 
 print html_build_list_table_top (
-  [
-    no_i18n ("Id"), no_i18n ("User"), no_i18n ("Status"),
-    no_i18n ("Member Profile"), no_i18n ("Action")
-  ]
+  [no_i18n ("Id"), no_i18n ("User"), no_i18n ("Status"), no_i18n ("Profile")]
 );
 
 function finish_page ()
@@ -229,14 +194,7 @@ for ($i = 0; $i < $rows; $i++)
         . no_i18n ("View") . "]</a></td>\n";
     else
       print '<td>(' . no_i18n ("Private") . ")</td>\n";
-    print '<td>';
-    if ($stat != 'D' && $stat != 'S' && $stat != 'SQD')
-      print "<a href='?action=delete&user_id=$usr_id'>["
-        . no_i18n ("Delete") . "]</a>\n";
-    if ($stat != 'A' && $stat != 'SQD')
-      print "<a href='?action=activate&user_id=$usr_id'>["
-        . no_i18n ("Activate") . "]</a>\n";
-    print "</td>\n</tr>\n";
+    print "\n</tr>\n";
   }
 finish_page ()
 ?>

@@ -53,7 +53,6 @@ $notif_arr = [
   'notify_item_statuschanged', 'skipcc_postcomment',
   'skipcc_updateitem', 'removecc_notassignee',
 ];
-
 $names = [
   'true' => ['update'],
   'digits' => [['form_frequency', [0, 3]]],
@@ -64,6 +63,7 @@ foreach ($notif_arr as $n)
   $names['true'][] = "form_$n";
 
 extract (sane_import ('post', $names));
+form_check ('update');
 
 function update_subject_line ($form_subject_line)
 {
@@ -114,7 +114,7 @@ site_user_header (
   ['title' => _("Mail Notification Settings"), 'context' => 'account']
 );
 
-print '<h2>' . _("Notification Exceptions") . "</h2>\n";
+print html_h (2, _("Notification Exceptions"));
 print '<p>'
   . _("When you post or update an item, you are automatically added to\nits "
       . "Carbon-Copy list to receive notifications regarding future updates. "
@@ -135,8 +135,8 @@ print '&nbsp;&nbsp;<span class="preinput">'
 
 function pref_cbox ($name, $title)
 {
-  print form_checkbox ("form_$name", user_get_preference ($name));
-  print " <label for=\"form_$name\">$title</label><br />\n&nbsp;&nbsp;";
+  print form_checkbox ("form_$name", user_get_preference ($name)) . " ";
+  print html_label ("form_$name", $title) . "<br />\n&nbsp;&nbsp;";
 }
 
 $pref_arr = [
@@ -166,7 +166,7 @@ print '<span class="preinput">' . _("Remove me from Carbon-Copy when:")
 
 pref_cbox ("removecc_notassignee", _("I am no longer assigned to the item"));
 
-print '<h2>' . _("Subject Line") . "</h2>\n";
+print html_h (2, _("Subject Line"));
 print '<p>';
 printf (_("The header &ldquo;%s&rdquo; will always be included, and when\n"
   . "applicable, so will &ldquo;%s,&rdquo; &ldquo;%s,&rdquo; and "
@@ -183,13 +183,14 @@ printf (_("Another option for message filtering is to configure the prefix "
 );
 print "</p>\n";
 
-print '<span class="preinput"><label for="form_subject_line">'
-  . _("Subject Line:") . "</label></span><br />\n&nbsp;&nbsp;";
+print '<span class="preinput">'
+  . html_label ("form_subject_line", _("Subject Line:"))
+  . "</span><br />\n&nbsp;&nbsp;";
 print "<input name='form_subject_line' id='form_subject_line' size='50'\n"
   . "type='text' value=\"" . user_get_preference ("subject_line")
   . "\" />\n\n";
 
-print '<h2>' . _("Reminder") . "</h2>\n";
+print html_h (2, _("Reminder"));
 print '<p>' . _("You can also receive reminders about opened items assigned to\n"
   . "you, when their priority is higher than 5.")
   . "</p>\n";
@@ -199,8 +200,9 @@ $frequency = [
   "0" => _("Never"), "1" => _("Daily"), "2" => _("Weekly"), "3" => _("Monthly")
 ];
 
-print '<span class="preinput"><label for="form_frequency">'
-  . _("Frequency of reminders:") . "</label></span><br />\n&nbsp;&nbsp;";
+print '<span class="preinput">'
+  . html_label ("form_frequency", _("Frequency of reminders:"))
+  . "</span><br />\n&nbsp;&nbsp;";
 
 print html_build_select_box_from_array (
   $frequency, "form_frequency", user_get_preference("batch_frequency")

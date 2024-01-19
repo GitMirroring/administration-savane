@@ -46,12 +46,11 @@ foreach (['init', 'sane', 'sendmail', 'random-bytes'] as $inc)
   require_once ("../include/$inc.php");
 
 extract (sane_import ('post', ['name' => 'form_loginname']));
+form_check ();
 
 # Logged users have no business here.
 if (user_isloggedin ())
   session_redirect ("{$sys_home}my/");
-
-form_check ();
 
 $confirm_hash = md5 (random_bytes (8));
 # Account check.

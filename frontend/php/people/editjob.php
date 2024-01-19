@@ -47,13 +47,12 @@ require_once ('../include/form.php');
 require_once ('../include/people/general.php');
 
 extract (sane_import ('request', ['digits' => 'job_id']));
+$submits = ['add_job', 'update_job', 'add_to_job_inventory',
+  'update_job_inventory', 'delete_from_job_inventory',
+];
 extract (sane_import ('post',
   [
-    'true' =>
-      [
-       'add_job', 'update_job', 'add_to_job_inventory', 'update_job_inventory',
-       'delete_from_job_inventory',
-      ],
+    'true' => $submits,
     'digits' =>
       [
         'status_id', 'category_id', 'job_inventory_id', 'skill_id',
@@ -63,6 +62,7 @@ extract (sane_import ('post',
     'pass' => 'description',
   ]
 ));
+form_check ($submits);
 
 if (!$group_id)
   exit_no_group ();
@@ -199,7 +199,6 @@ if ($job_id)
       {
         print db_error ();
         fb (_("POSTING fetch FAILED"));
-        print '<h1>' . _("No Such Posting For This Project") . "</h1>\n";
       }
     else
       {
@@ -217,17 +216,19 @@ if ($job_id)
           . people_job_status_box (
               'status_id', db_result ($result, 0, 'status_id')
             )
-          . "</p>\n<p><strong><label for='title'>"
-          . _("Short Description:") . "</label></strong><br />\n"
+          . "</p>\n<p><strong>"
+          . html_label ('title', _("Short Description:"))
+          . "</strong><br />\n"
           . "<input type='text' id='title' name='title' value=\""
           . db_result ($result, 0, 'title')
           . "\" size='40' maxlength='60' /></p>\n<p><strong>"
-          . "<label for='description'>" . _("Long Description:")
-          . "</label></strong><br />\n"
+          . html_label ('description', _("Long Description:"))
+          . "</strong><br />\n"
           . "<textarea name='description' id='description' rows='10' "
           . "cols='60' wrap='soft'>$description</textarea>\n</p>\n"
-          . '<p><input type="submit" name="update_job" value="'
-          . _("Update Descriptions") . "\" />\n</form>\n";
+          . '<p>'
+          . form_submit (_("Update Descriptions"), "update_job")
+          . "\n</form>\n";
         print '<p>' . people_edit_job_inventory ($job_id, $group_id)
           . "</p>\n<p>[<a href='/people'>" . _("Back to jobs listing")
           . "</a>]</p>\n";

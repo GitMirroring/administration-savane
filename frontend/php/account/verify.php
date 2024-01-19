@@ -53,6 +53,7 @@ extract (sane_import ('post',
 # Must accept all ways of providing confirm_hash because in the mail it is a GET
 # but if the form fails (wrong password, etc), it will be a POST.
 extract (sane_import ('request', ['hash' => 'confirm_hash']));
+form_check ('update');
 
 # Logged users have no business here.
 if (user_isloggedin ())

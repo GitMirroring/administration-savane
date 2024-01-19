@@ -45,12 +45,14 @@ require_once ("../include/mailman.php");
 
 session_require (['group' => '1', 'admin_flags' => 'A']);
 
+$submits = ['assign', 'confirm'];
 extract (sane_import ('request',
   [
     'preg' => [['list_name', '/^[a-zA-Z0-9-]+$/']],
-    'name' => ['new_group'], 'true' => ['assign', 'confirm']
+    'name' => ['new_group'], 'true' => $submits
   ]
 ));
+form_check ($submits);
 
 if (!empty ($confirm))
   $assign = null;
@@ -284,7 +286,7 @@ function show_assign_form ()
     $label = no_i18n ("Assign list");
   else
     $label = no_i18n ("Confirm assignment");
-  print "<p><input type='submit' value=\"$label\" /></p>\n";
+  print "<p>" . form_submit ($label, 'submit') . "</p>\n";
   print "</form>\n";
 }
 
@@ -316,10 +318,10 @@ function show_page ($may_assign)
   $extra = empty ($assign)? '': " disabled='disabled'";
 
   print form_tag (['name' => 'search_list']);
-  print "<h2>" . no_i18n ('Search for mailing list') . "</h2>\n";
+  print html_h (2, no_i18n ('Search for mailing list'));
   show_list_input ($extra);
   display_list_data ();
-  print "<h2>" . no_i18n ('Search for group') . "</h2>\n";
+  print html_h (2, no_i18n ('Search for group'));
   show_group_input ($extra);
   display_group_found ();
   show_search_button ();

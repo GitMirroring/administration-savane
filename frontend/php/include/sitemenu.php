@@ -430,23 +430,24 @@ function sitemenu_help ()
   $HTML->menuhtml_bottom ();
 }
 
-function menu_loggedin ($page_title, $page_toptab=0, $page_group=0)
+function menu_loggedin ($page_title, $page_toptab = 0, $page_group = 0)
 {
   return sitemenu_loggedin ($page_title, $page_toptab, $page_group);
 }
 
-function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
+function sitemenu_loggedin ($page_title, $page_toptab = 0, $page_group = 0)
 {
   global $HTML, $sys_home;
+  $uname = user_getname ();
+  $req_uri = utils_urlencode ($_SERVER['REQUEST_URI']);
   # Show links appropriate for logged in people, like account maintenance, etc.
   if (!user_is_super_user ())
     # TRANSLATORS: the argument is user's name.
-   $HTML->menuhtml_top (sprintf (_("Logged in as %s"), user_getname ()));
+    $HTML->menuhtml_top (sprintf (_("Logged in as %s"), $uname));
   else
     # TRANSLATORS: the argument is user's name.
     $HTML->menuhtml_top ('<span class="warn">'
-      . sprintf (_("%s logged in as superuser"), user_getname())
-      . '</span>'
+      . sprintf (_("%s logged in as superuser"), $uname) . '</span>'
     );
   if (user_can_be_super_user () && !user_is_super_user ())
     $HTML->menu_entry ("{$sys_home}account/su.php?action=login&amp;uri="
@@ -456,22 +457,17 @@ function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
   if (user_is_super_user ())
     {
       print form_tag (['action' => "{$sys_home}account/impersonate.php"])
-        . '<label for="user_name">' . _("Become this user:")
-        . "</label><br/>\n";
-      print form_hidden (["uri" => utils_urlencode ($_SERVER['REQUEST_URI'])]);
-      print '<input type="text" id="user_name" name="user_name" size=10 '
-        . '/>&nbsp;';
-      print '<input type="submit" name="impersonate" value="'
-        . _("Impersonate") . '" />';
-      print "</form>\n";
+        . html_label ("user_name", _("Become this user:")) . "<br/>\n";
+      print form_hidden (["uri" => $req_uri]);
+      print form_input ('text', "user_name", '', 'size=10') . '&nbsp;';
+      print form_submit (_("Impersonate"), "impersonate") . "</form>\n";
     }
   $HTML->menu_entry ("{$sys_home}my/", _("My Incoming Items"), 1,
     _("What's new for me: new items I should have a look at")
   );
-  $HTML->menu_entry ("{$sys_home}my/items.php",
-                    _("My Items"),
-                    1,
-                    _("Browse my items (submitted by me or assigned to me)"));
+  $HTML->menu_entry ("{$sys_home}my/items.php", _("My Items"), 1,
+    _("Browse my items (submitted by me or assigned to me)")
+  );
   if (user_use_votes ())
     $HTML->menu_entry ("{$sys_home}my/votes.php", _("My Votes"), 1,
       _("Browse items I voted for")
@@ -491,8 +487,7 @@ function sitemenu_loggedin ($page_title, $page_toptab=0, $page_group=0)
 
   if (user_is_super_user ())
     $HTML->menu_entry (
-      "{$sys_home}account/su.php?action=logout&amp;uri="
-      . utils_urlencode ($_SERVER['REQUEST_URI']),
+      "{$sys_home}account/su.php?action=logout&amp;uri=$req_uri",
       _("Logout Superuser"), 1,
       _("End the Superuser session, go back to normal user session")
     );

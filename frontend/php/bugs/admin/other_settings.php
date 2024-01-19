@@ -76,9 +76,9 @@ $form_preambles = $form_pref_preambles;
 $form_preambles[] = 'form_preamble';
 
 extract (sane_import ('post',
-  ['true' => 'submit', 'specialchars' => $form_preambles]
+  ['true' => 'update', 'specialchars' => $form_preambles]
 ));
-
+form_check ('update');
 require_directory ("project");
 
 $is_admin_page = 'y';
@@ -126,7 +126,7 @@ fetch_pref_preambles ($group_id);
 $changed = $form_preamble != $current_preamble;
 $pref_changed = !empty ($new_pref_keys);
 
-if ($submit && ($changed || $pref_changed))
+if ($update && ($changed || $pref_changed))
   {
     group_add_history ('Changed Tracking System Settings', '', $group_id);
     $update_failed = false;
@@ -149,32 +149,34 @@ if ($submit && ($changed || $pref_changed))
           $update_failed = true;
       }
     if ($update_failed)
-      fb (_("Update failed"));
+      fb (_("Update failed"), 1);
     else
-      fb (_("SUCCESSFUL UPDATE"));
+      fb (_("Updated successfully"));
   }
 
 trackers_header_admin (['title' => _("Other Settings")]);
 
-print '<h2>' . _("Item Post Form Preamble") . "</h2>\n";
+print html_h (2, _("Item Post Form Preamble"));
 print form_tag () . form_hidden (['group_id' => $group_id]);
-print '<span class="preinput"><label for="form_preamble">';
-print _("Introductory message showing at the top of the item submission form");
-print '</label> ' . markup_info ("rich")
-  . "</span>\n<br />\n"
-  . "<textarea cols='70' rows='8' wrap='virtual' id='form_preamble'"
-  . " name='form_preamble'>$current_preamble</textarea>\n";
+print '<span class="preinput">'
+ . html_label ("form_preamble",
+    _("Introductory message showing at the top of the item submission form")
+   );
+print markup_info ("rich") . "</span>\n<br />\n"
+  . form_textarea ('form_preamble', $current_preamble,
+      "cols='70' rows='8' wrap='virtual'"
+    )
+  . "\n";
 
 function pref_preamble_input ($form_name, $title, $current)
 {
   $heading = $title[0]; $info = $title[1];
 
-  print "<h2>$heading</h2>\n";
-  print "<span class='preinput'><label for='$form_name'>";
-  print "$info</label> " . markup_info ("rich")
-    . "</span>\n<br />\n"
-    . "<textarea cols='70' rows='8' wrap='virtual' id='$form_name'"
-    . " name='$form_name'>$current</textarea>\n";
+  print html_h (2, $heading);
+  print "<span class='preinput'>" . html_label ($form_name, $info);
+  print markup_info ("rich") . "</span>\n<br />\n"
+    . form_textarea ($form_name, $current, "cols='70' rows='8' wrap='virtual'")
+    . "\n";
 }
 
 foreach ($pref_preamble_titles as $pre => $title)
@@ -184,8 +186,6 @@ foreach ($pref_preamble_titles as $pre => $title)
     pref_preamble_input ($form_name, $title, $cur_pref_preambles[$name]);
   }
 
-print '<div class="center"><input type="submit" name="submit" value="'
- . _("Submit") . '" />' . "</div>\n</form>\n";
-
+print form_footer ();
 trackers_footer ();
 ?>

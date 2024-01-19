@@ -47,16 +47,17 @@ require_once ('../include/trackers/votes.php');
 
 extract (sane_import ('post',
   [
-    'true' => 'submit',
+    'true' => 'update',
     'array' => [['new_votes', ['digits', 'digits']]],
   ]
 ));
+form_check ('update');
 
 if (!user_isloggedin ())
   exit_not_logged_in ();
 $remaining_votes = trackers_votes_remaining ();
 
-if ($submit)
+if ($update)
   {
     $result = db_execute ("
        SELECT vote_id, tracker, item_id FROM user_votes
@@ -154,9 +155,8 @@ if ($remaining_votes < 100)
           . group_getname ($res_row['group_id']) . ")</span></a></div>\n";
       }
 
-    print "<br />\n<div align=\"center\" class=\"noprint\">"
-      . '<input type="submit" name="submit" class="bold" value="'
-      . _("Submit Changes") . "\" /></div>\n</form>\n";
+    print "<br />\n"
+      . form_footer (_("Submit Changes"));
     print "\n\n" . show_priority_colors_key ();
   }
 $HTML->footer ([]);

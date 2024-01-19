@@ -55,7 +55,7 @@ function bookmark_add ($bookmark_url, $bookmark_title = null)
     print db_error ();
 }
 
-function bookmark_edit ($bookmark_id, $bookmark_url, $bookmark_title)
+function bookmark_update ($bookmark_id, $bookmark_url, $bookmark_title)
 {
   db_autoexecute('user_bookmarks',
     ['bookmark_url' => $bookmark_url, 'bookmark_title' => $bookmark_title],
@@ -70,5 +70,44 @@ function bookmark_delete ($bookmark_id)
     "DELETE from user_bookmarks WHERE bookmark_id = ? AND user_id = ?",
     [$bookmark_id, user_getid ()]
   );
+}
+
+function bookmark_edit_form ($bm_id, $result)
+{
+  $title = db_result ($result, 0, 'bookmark_title');
+  $url = db_result ($result, 0, 'bookmark_url');
+
+  print form_tag ();
+  print '<span class="preinput">' . _("Title:") . "</span><br />\n";
+  print '&nbsp;&nbsp;&nbsp;'
+    . form_input ('text', 'title', $title, 'size="50"');
+  print "<br />\n<span class='preinput'>"
+    . html_label ('url', _("Address:")) . "</span><br />\n&nbsp;&nbsp;&nbsp;";
+  print form_input ('text', "url",  $url, 'size="50"') . "\n";
+  print form_hidden (['edit' => $bm_id]) . "\n<p>";
+  print form_submit (_("Update"), 'update', false, true) . "</p>\n";
+  print "</form>\n";
+}
+
+function bookmark_edit ($edit, $url, $title)
+{
+  if (!$edit)
+    return;
+  if ($url && $title)
+    {
+      # The URL and title were in the request, we update the database.
+      bookmark_update ($edit, $url, $title);
+      return;
+    }
+  $result = db_execute ("
+    SELECT * from user_bookmarks WHERE bookmark_id = ? AND user_id = ?",
+    [$edit, user_getid ()]
+  );
+  if (!$result)
+    {
+      fb (_("Bookmark not found"), 1);
+      return;
+    }
+  bookmark_edit_form ($edit, $result);
 }
 ?>

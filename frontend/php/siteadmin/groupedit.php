@@ -50,14 +50,16 @@ session_require (['group' => $sys_group_id, 'admin_flags' => 'A']);
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
 
+$submit_buttons = ['update', 'fastok', 'fastdel'];
 $post_names = function ()
 {
+  global $submit_buttons;
   $names = [
-    'true' => 'update',
+    'true' => $submit_buttons,
     'name' => 'form_name',
     'digits' => ['group_type', 'form_public'],
     'specialchars' => ['form_license', 'form_license_other'],
-    'preg' => [['form_status', '/^[A-Z]$/']]
+    'strings' => [['form_status', ['A', 'D']]]
   ];
   return $names;
 };
@@ -78,11 +80,9 @@ if (project_get_object ($group_id)->getStatus () == 'X')
   }
 
 extract (sane_import ('post', $post_names ()));
-extract (sane_import ('get',
-  ['true' => 'updatefast', 'preg' => [['status', '/^[A-Z]$/']]]
-));
+form_check ($submit_buttons);
 
-if ($update || $updatefast)
+if (!form_vars_empty ($submit_buttons))
   {
     # Full details update.
     if ($update)
@@ -121,9 +121,9 @@ if ($update || $updatefast)
           DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
         );
       } # $update
-    if ($updatefast)
+    if ($fastok || $fastdel)
       db_execute ("UPDATE groups SET status = ? WHERE group_id = ?",
-        [$status, $group_id]
+        [$form_status, $group_id]
       );
     fb (no_i18n ("Updating group info"));
   }
@@ -151,10 +151,21 @@ print "<a href='../projects/{$row_grp['unix_group_name']}'>"
 print '</p>
 ';
 
-print '<h2>' . no_i18n ("Registration Management Shortcuts") . "</h2>\n";
-print "<a href=\"$php_self?status=A&amp;updatefast=1&amp;group_id=$group_id\">"
-  . html_image ("bool/ok.orig.png", ['alt' => no_i18n ("Approve")])
-  . '</a>';
+function print_updatefast ($status, $image, $label, $name)
+{
+  global $group_id;
+  print form_tag ();
+  print form_hidden ([
+    'form_status' => $status, 'group_id' => $group_id, $name => 1
+  ]);
+  # The variables from <input type="image" /> are ignored, the previously
+  # defined <input type="hidden" /> is used instead.
+  print form_image ($image, $label, "submit_$name");
+  print "\n</form>\n<br />\n";
+}
+
+print html_h (2, no_i18n ("Registration Management Shortcuts"));
+print_updatefast ('A', 'bool/ok.orig.png', no_i18n ("Approve"), 'fastok');
 $res = db_execute (
   "SELECT COUNT(group_list_id) AS cnt FROM mail_group_list WHERE group_id = ?",
   [$group_id]
@@ -164,10 +175,7 @@ $list_row = db_fetch_array ($res);
 if (!empty ($list_row))
   $no_lists = $list_row['cnt'] < 1;
 if ($no_lists)
-  print "&nbsp;&nbsp;&nbsp;<a href=\"$php_self"
-    . "?status=D&amp;updatefast=1&amp;group_id=$group_id\">"
-    . html_image ("bool/wrong.orig.png", ['alt' => no_i18n ("Discard")])
-    . '</a>';
+  print_updatefast ('D', 'bool/wrong.orig.png', no_i18n ("Discard"), 'fastdel');
 else
   {
     $msg = sprintf (
@@ -178,9 +186,8 @@ else
     );
     print "<br />\n$msg<br />\n";
   }
-
 print form_tag ();
-print '<h2>' . no_i18n ("Detailed Interface") . "</h2>\n";
+print html_h (2, no_i18n ("Detailed Interface"));
 $HTML->box1_top (no_i18n ("General Settings"));
 
 print '<p><span class="preinput">' . no_i18n ("Group Type:")
@@ -198,7 +205,7 @@ function next_altrow ()
 $i = 0;
 next_altrow ();
 print '<p><span class="preinput"><label for="form_name">'
-  . no_i18n("System Name:") . "</label></span><br />\n";
+  . no_i18n ("System Name:") . "</label></span><br />\n";
 print '<input type="text" name="form_name" id="form_name" value="'
   . $row_grp['unix_group_name'] . '" />';
 
@@ -274,12 +281,14 @@ print '<p><input type="submit" name="update" value="' . no_i18n ("Update")
 
 $HTML->box1_bottom ();
 
-print "<p><a href='triggercreation.php?group_id=$group_id'>"
-  . no_i18n (
-      "Send new group instruction email and trigger group creation "
-      . "(should be done only once)"
-    )
-  . "</a></p>\n";
+print "<p>";
+print form_tag (['action' => "triggercreation.php"]);
+print form_hidden (['group_id' => $group_id]);
+print form_submit (no_i18n (
+  "Send new group instruction email and trigger group creation "
+  . "(should be done only once)"
+));
+print "</p>\n";
 
 $HTML->box1_top (no_i18n ("Submitted Information"));
 project_admin_registration_info ($row_grp);

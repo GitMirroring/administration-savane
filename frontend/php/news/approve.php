@@ -45,15 +45,17 @@ require_once ('../include/init.php');
 require_once ('../include/sendmail.php');
 require_once ('../include/news/general.php');
 
-extract (sane_import ('all',
+$submits = ['post_changes', 'approve'];
+extract (sane_import ('request',
   [
     'digits' => ['id', 'status'],
     'strings' => [['status', ['0', '4', '5']]],
-    'true' => ['update', 'post_changes', 'approve'],
     'specialchars' => ['summary', 'details'],
+    'true' => 'show'
   ]
 ));
-
+extract (sane_import ('post', ['true' => $submits]));
+form_check ($submits);
 if (!($group_id && member_check (0, $group_id, 'N3')))
   exit_error (_("Action unavailable: only news managers can approve news."));
 
@@ -63,14 +65,12 @@ if ($post_changes && $approve)
     [ 'id' => $id, 'status' => $status, 'summary' => $summary,
       'details' => $details]
   );
-if ($post_changes)
-  $approve = null;
 
 site_project_header (
   ['title' => _("Manage"), 'group' => $group_id, 'context' => 'news']
 );
 
-if ($approve)
+if ($show)
   {
     $result = db_execute ("
       SELECT * FROM news_bytes WHERE id = ? AND group_id = ?", [$id, $group_id]

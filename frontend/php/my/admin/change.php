@@ -50,6 +50,7 @@ require_once ('../../include/gpg.php');
 require (utils_get_content_filename ("gpg-sample"));
 
 session_require (['isloggedin' => '1']);
+$submit_buttons = ['update', 'test_gpg_key'];
 extract (sane_import ('request',
   [
     'strings' =>
@@ -60,12 +61,12 @@ extract (sane_import ('request',
         ],
         ['step', ['confirm', 'confirm2', 'discard']],
       ],
-    'true' => ['update', 'test_gpg_key'],
+    'true' => $submit_buttons,
     'hash' => ['session_hash', 'confirm_hash'],
   ]
 ));
-if ($update || $test_gpg_key)
-  form_check ();
+
+form_check ($submit_buttons);
 
 if (!$item)
   exit_missing_param ();

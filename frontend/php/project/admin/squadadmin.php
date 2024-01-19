@@ -44,15 +44,14 @@
 require_once ('../../include/init.php');
 require_once ('../../include/account.php');
 
+$submit_buttons = [
+  'update', 'update_general', 'update_delete_step1', 'update_delete_step2',
+  'add_to_squad', 'remove_from_squad'
+];
 extract (sane_import ('request', ['digits' => 'squad_id']));
 extract (sane_import ('post',
   [
-    'true' =>
-      [
-        'update', 'update_general', 'update_delete_step1',
-        'update_delete_step2', 'deletionconfirmed', 'add_to_squad',
-        'remove_from_squad',
-      ],
+    'true' => array_merge ($submit_buttons, ['deletionconfirmed']),
     'array' => [['user_ids', ['digits', 'digits']]],
     'digits' => ['squad_id_to_delete'],
      # form_realname is sanitized further.
@@ -66,11 +65,7 @@ session_require (['group' => $group_id, 'admin_flags' => 'A']);
 if (!$group_id)
   exit_no_group ();
 
-if (
-  $update || $update_general || $add_to_squad || $update_delete_step1
-  || $update_delete_step2 || $remove_from_squad
-)
-  form_check ();
+form_check ($submit_buttons);
 
 function finish_page ()
 {
@@ -187,7 +182,7 @@ if ($squad_id)
     print form_submit (_("Update"), "update_general") . ' '
       . form_submit (_("Delete Squad"), "update_delete_step1") . "</form>\n";
 
-    print '<h2>' . _("Removing members") . "</h2>\n";
+    print html_h (2, _("Removing members"));
 
     $result_delusers = db_execute ("
       SELECT user.user_id, user.user_name, user.realname
@@ -216,14 +211,15 @@ if ($squad_id)
         $already_in_squad[$thisuser['user_id']] = true;
         $exists = true;
       }
-    $users_none_found = '<h3>' . _("Users") . "</h3>\n<p>" . _("None found") . "</p>\n";
+    $users_none_found =
+      html_h (3, _("Users")) . "\n<p>" . _("None found") . "</p>\n";
 
     if ($exists)
       print "$select</select><br />\n";
     else
       print $users_none_found;
     print form_submit (_("Remove Members"), "remove_from_squad") . "</form>\n";
-    print '<h2>' . _("Adding members") . "</h2>\n";
+    print html_h (2, _("Adding members"));
     $result_addusers =  db_execute ("
       SELECT user.user_id, user.user_name, user.realname
       FROM user, user_group
@@ -257,7 +253,7 @@ if ($squad_id)
     else
       print $users_none_found;
     print form_submit (_("Add Members"), "add_to_squad") . "</form>\n";
-    print '<h2>' . _("Setting permissions") . "</h2>\n";
+    print html_h (2, _("Setting permissions"));
     print "<p><a href=\"userperms.php?group=$group#$squad_name\">"
       . _("Set Permissions") . "</a></p>\n";
     finish_page ();
@@ -369,7 +365,7 @@ print '<p>'
     . "useful\nif you want to assign some items to several members at once.")
   . "</p>\n";
 
-print '<h2 id="form">' . _("Squad List") . "</h2>\n";
+print html_h (2, _("Squad List"), ['id' => 'form']);
 
 if ($rows < 1)
   print '<p class="warn">' . _("None found") . "</p>\n";
@@ -387,7 +383,7 @@ else
 # restriction by creating fake users, but the point is only to incitate
 # to create squads only if necessary, not to really enforce something
 # important).
-print '<h2>' . _("Create a New Squad") . "</h2>\n";
+print html_h (2, _("Create a New Squad"));
 
 $result = db_execute ("
   SELECT user_id FROM user_group
@@ -402,8 +398,9 @@ if ($rows < db_numrows ($result))
       . _("Squad Login Name:") . "</label></span>\n<br />&nbsp;&nbsp;";
     print "$group-" . form_input ("text", "form_loginname", $form_loginname)
       . "</p>\n";
-    print '<p><span class="preinput"><label for="form_realname">'
-      . _("Squad Full Name:") . "</label></span>\n<br />&nbsp;&nbsp;";
+    print '<p><span class="preinput">'
+      . html_label ("form_realname", _("Squad Full Name:"))
+      . "</span>\n<br />&nbsp;&nbsp;";
     print form_input ("text", "form_realname", $form_realname) . "</p>\n";
     print form_footer ();
   }

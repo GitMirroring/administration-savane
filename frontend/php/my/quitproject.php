@@ -48,9 +48,10 @@ require_once ('../include/form.php');
 require_once ('../include/sendmail.php');
 
 session_require (['isloggedin'=>'1']);
-
+$submits = ['confirm', 'cancel'];
 extract (sane_import ('request', ['digits' => 'quitting_group_id']));
-extract (sane_import ('post', ['true' => ['confirm', 'cancel']]));
+extract (sane_import ('post', ['true' => $submits]));
+form_check ($submits);
 
 $pending = member_check_pending (0, $quitting_group_id);
 
@@ -116,19 +117,18 @@ if ($confirm || $pending)
     if (!$pending)
       notify_admins ($quitting_group_id);
     session_redirect ($GLOBALS['sys_home'] . "my/groups.php");
+    exit (0);
   }
-else
-  {
-    site_user_header (['title' => _("Quit a group"), 'context' => 'mygroups']);
-    print form_tag ();
-    print form_hidden (["quitting_group_id" => $quitting_group_id]);
-    print '<span class="preinput">';
-    printf (_("You are about to leave the group %s, please confirm:"),
-      group_getname ($quitting_group_id)
-    );
-    print '</span>';
-    print '<div class="center"><input type="submit" name="confirm" value="'
-      . _("Confirm") . '" /> <input type="submit" name="cancel" value="'
-      . _("Cancel") . "\" /></div>\n</form>\n";
-  }
+site_user_header (['title' => _("Quit a group"), 'context' => 'mygroups']);
+print form_tag ();
+print form_hidden (["quitting_group_id" => $quitting_group_id]);
+print '<span class="preinput">';
+printf (_("You are about to leave the group %s, please confirm:"),
+  group_getname ($quitting_group_id)
+);
+print "</span>\n";
+print '<div class="center">'
+  . form_submit (_("Confirm"), "confirm") . "\n"
+  . form_submit (_("Cancel"), "cancel")
+  . "</div>\n</form>\n";
 ?>

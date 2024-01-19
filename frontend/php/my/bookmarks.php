@@ -52,44 +52,14 @@ extract (sane_import ('request',
   [
     'digits' => 'edit', 'pass' => ['url', 'title']
   ]));
+extract (sane_import ('post', ['true' => 'update']));
+form_check ('update');
 
 if ($add && $url)
   bookmark_add ($url, $title);
 if ($delete)
   bookmark_delete ($delete);
-if ($edit)
-  {
-    if ($url && $title)
-      # The url and title were in the request, we update the database.
-      bookmark_edit ($edit, $url, $title);
-    else
-      {
-        # No url and title? Print the form.
-        $result = db_execute ("
-          SELECT * from user_bookmarks WHERE bookmark_id = ? AND user_id = ?",
-          [$edit, user_getid ()]
-        );
-        if ($result)
-          {
-            $title = db_result ($result, 0, 'bookmark_title');
-            $url = db_result ($result, 0, 'bookmark_url');
-
-            print form_tag ();
-            print '<span class="preinput">' . _("Title:") . "</span><br />\n";
-            print '&nbsp;&nbsp;&nbsp;'
-              . form_input ('text', 'title', $title, 'size="50"');
-            print "<br />\n" . '<span class="preinput">';
-            print  _("Address:") . "</span><br />\n&nbsp;&nbsp;&nbsp;";
-            print form_input ('text', "url",  $url, 'size="50"') . "\n";
-            print form_hidden (['edit' => $edit]) . "\n<p>";
-            print form_submit (_("Update"), 'update', false, true) . "</p>\n";
-            print "</form>\n";
-          }
-        else
-          # No result? Gives feedback and print the usual page.
-          fb (_("Item not found"), 1);
-      }
-  }
+bookmark_edit ($edit, $url, $title);
 $result = db_execute ("
   SELECT bookmark_url, bookmark_title, bookmark_id FROM user_bookmarks
   WHERE user_id = ? ORDER BY bookmark_title",

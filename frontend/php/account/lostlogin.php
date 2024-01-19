@@ -54,8 +54,7 @@ extract (sane_import ('post',
   ]
 ));
 
-if ($update)
-  form_check ();
+form_check ('update');
 
 $res_lostuser = db_execute (
   "SELECT * FROM user WHERE confirm_hash = ?", [$confirm_hash]

@@ -249,15 +249,14 @@ function trackers_print_item_list_img ($items, $dependencies)
 function trackers_print_view_deps_controls ()
 {
   global $include_closed, $chunksz, $offset, $group;
-  print form_tag ();
+  print form_tag (['method' => 'get']);
   print form_hidden (['func' => 'view-dependencies', 'group' => $group]);
   print trackers_chunksz_control ();
   print "&nbsp; &nbsp;\n";
   print form_checkbox ('include_closed', !empty ($include_closed),
     ['label' => _('Include closed items')]);
   print " &nbsp; ";
-  print form_input ('submit', 'apply', _('Apply'));
-  print "</form>\n";
+  print form_input ('submit', 'apply', _('Apply')) . "</form>\n";
 }
 function trackers_show_dep ($d)
 {

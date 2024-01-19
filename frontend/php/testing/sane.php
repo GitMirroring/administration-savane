@@ -2095,23 +2095,22 @@ $reference = 'sendmessage.php';
 
 $reference = 'siteadmin/groupedit.php';
 {
-  $names = ['true' => 'updatefast', 'preg' => [['status', '/^[A-Z]$/']]];
-  $in = $out = ['updatefast' => 'true', 'status' => 'P'];
-  test_sane_import ($in, $names, $out);
   $names = [
-    'true' => 'update',
+    'true' => ['update', 'fastok', 'fastdel'],
     'name' => 'form_name',
     'digits' => ['group_type', 'form_public'],
     'specialchars' => ['form_license', 'form_license_other'],
-    'preg' => [['form_status', '/^[A-Z]$/']]
+    'strings' => [['form_status', ['A', 'D']]]
   ];
   $dirs = ['cvs', 'arch', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'];
   foreach ($dirs as $d)
     $names['specialchars'][] = "form_dir_$d";
   $in = $out = [
-    'update' => true, 'form_public' => 0, 'form_status' => 'A',
+    'update' => true, 'fastok' => true,
+    'form_public' => 0, 'form_status' => 'A',
     'form_name' => 'grep', 'group_type' => 1,
   ];
+  $out['fastdel'] = false;
   foreach ($names['specialchars'] as $n)
     $in[$n] = $out[$n] = $n;
   test_sane_import ($in, $names, $out);

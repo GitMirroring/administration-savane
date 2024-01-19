@@ -52,7 +52,7 @@ if (user_isloggedin () && !$from_brother)
   session_redirect ("{$sys_home}my/");
 
 # Input checks.
-extract(sane_import('request',
+extract (sane_import('request',
   [
     'true' => ['brotherhood', 'cookie_for_a_year', 'login', 'cookie_test'],
     'name' => 'form_loginname',
@@ -60,6 +60,8 @@ extract(sane_import('request',
     'internal_uri' => 'uri'
   ]
 ));
+if (!$from_brother)
+  form_check ('login');
 
 $stay_in_ssl = session_stay_in_ssl ();
 $uri_enc = utils_urlencode ($uri);

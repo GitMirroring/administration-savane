@@ -59,6 +59,7 @@ extract (sane_import ('post',
     'true' => 'update', 'digits' => [$event1_name, [$event2_name, [0, 99]]]
   ]
 ));
+form_check ('update');
 
 if ($update)
   {
@@ -99,7 +100,7 @@ if ($update)
 
 trackers_header_admin (['title' => _("Set Permissions")]);
 
-print '<h2>' . _("Posting Restrictions") . "</h2>\n";
+print html_h (2, _("Posting Restrictions"));
 print form_tag () . form_hidden (["group" => $group]);
 
 print '<span class="preinput">'
@@ -120,8 +121,6 @@ print html_select_restriction_box (
   ARTIFACT, group_getrestrictions ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT),
   $group, '', TRACKER_EVENT_COMMENT
 );
-print "\n<p align='center'><input type='submit' name='update' value=\""
-  . _("Update Permissions") . "\" /></p>\n</form>\n";
-
+print form_footer (_("Update Permissions"));
 trackers_footer ();
 ?>

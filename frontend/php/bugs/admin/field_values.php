@@ -64,7 +64,7 @@ extract (sane_import ('get',
 ));
 extract (sane_import ('post',
   [
-    'true' => ['post_changes', 'create_value', 'by_field_id'],
+    'true' => ['post_changes', 'create_value', 'by_field_id', 'submit'],
     'specialchars' => ['title', 'description', 'body'],
     'digits' => ['order_id', 'from', 'to'],
     'strings' =>
@@ -75,6 +75,7 @@ extract (sane_import ('post',
     'preg' => [['mail_list', '/^[-+_@.,\s\da-zA-Z]*$/']]
   ]
 ));
+form_check (['create_value', 'post_changes', 'submit']);
 
 if (!$group_id)
   exit_no_group ();
@@ -233,6 +234,35 @@ $td_select_box = function ($field)
   return trackers_data_get_field_id ($field)
     && trackers_data_is_select_box ($field);
 };
+
+function print_predefined_val_entry ($fld_val)
+{
+  extract ($fld_val);
+  # Non-active value are not important here.
+  if ($status != "A")
+    return;
+  print "<dt><b>$value</b> ($order_id)</dt>\n";
+  print "<dd>$description</dd>\n";
+}
+
+function list_predefined_values ($field)
+{
+  $res = trackers_data_get_field_predefined_values (
+    $field, '100', false, false, false
+  );
+  if (!db_numrows ($res))
+    {
+      $msg =
+        _("No default values found. You should report this problem to\n"
+          . "administrators.");
+      fb ($msg, 1);
+      return;
+    }
+  print "<dl>\n";
+  while ($fld_val = db_fetch_array ($res))
+    print_predefined_val_entry ($fld_val);
+  print "</dl>\n";
+}
 
 if ($list_value)
   {
@@ -412,38 +442,7 @@ if ($list_value)
               . _("For your information, the default active values are:")
               . "</p>\n";
 
-            $default_result = trackers_data_get_field_predefined_values (
-              $field, '100', false, false, false
-            );
-            $default_rows = db_numrows ($default_result);
-            $previous = false;
-            if ($default_result && $default_rows > 0)
-              {
-                while ($fld_val = db_fetch_array ($default_result))
-                  {
-                    $status = $fld_val['status'];
-                    $value = $fld_val['value'];
-                    $description = $fld_val['description'];
-                    $order = $fld_val['order_id'];
-
-                    # Non-active value are not important here.
-                    if ($status != "A")
-                      continue;
-
-                    if ($previous)
-                      print ", ";
-
-                    print "<b>$value</b> <span class='smaller'>"
-                      . "($order, \"$description\")</span>";
-                    $previous = true;
-                  }
-              }
-            else
-              fb (
-                _("No default values found. You should report this problem "
-                  . "to\nadministrators."),
-                1
-              );
+            list_predefined_values ($field);
           }
       }
     else # ! $td_select_box ($field)
@@ -587,10 +586,7 @@ if ($list_value)
 
         print form_tag ([], "#registered");
         print form_hidden (
-          [
-            "post_transition_changes" => "y", "list_value" => "y",
-            "field" => $field, "group_id" => $group_id
-          ]
+          ["list_value" => "y", "field" => $field, "group_id" => $group_id]
         );
 
         $result = db_execute ("
@@ -756,6 +752,25 @@ function print_form_canned ($row = null)
     . form_textarea ('body', $row['body'], "rows='20' cols='65' wrap='hard'")
     . form_footer (_("Submit"), 'submit');
 }
+
+function print_canned_row ($row, $group_id, $i)
+{
+  global $php_self;
+  $id = $row['bug_canned_id'];
+  $s_body = utils_cutstring ($row['body'], 360);
+  print '<tr class="' . utils_altrow ($i) . '">'
+    . "<td><a href=\"$php_self?update_canned=1&amp;"
+    . "item_canned_id=$id&amp;group_id=$group_id\">{$row['title']}</a></td>\n"
+    . "<td>$s_body</td>\n<td>{$row['order_id']}</td>\n"
+    . "<td class='center'>";
+  print form_tag ()
+    . form_hidden (['func' => 'delcanned', 'item_canned_id' => $id,
+        'group_id' => $group_id]
+      )
+    . form_image_trash ('submit') . "</form>\n";
+  print "</td></tr>\n";
+}
+
 if ($create_canned || $delete_canned)
   {
     # Show existing responses and UI form.
@@ -776,19 +791,7 @@ if ($create_canned || $delete_canned)
         print html_build_list_table_top ($title_arr);
         $i = 0;
         while ($row = db_fetch_array ($result))
-          {
-            $s_body = substr ($row['body'], 0, 360);
-            print '<tr class="' . utils_altrow ($i++) . '">'
-              . "<td><a href=\"$php_self"
-              . "?update_canned=1&amp;item_canned_id={$row['bug_canned_id']}"
-              . "&amp;group_id=$group_id\">{$row['title']}</a></td>\n"
-              . "<td>$s_body...</td>\n<td>{$row['order_id']}</td>\n"
-              . "<td class='center'><a href=\"$php_self"
-              . "?func=delcanned&amp;item_canned_id={$row['bug_canned_id']}"
-              . "&amp;group_id=$group_id\">"
-              . html_image_trash (['alt' => _("Delete this canned response")])
-              . "</a></td></tr>\n";
-          }
+          print_canned_row ($row, $group_id, $i++);
         print "</table>\n";
       }
     else

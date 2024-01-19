@@ -163,10 +163,10 @@ function trackers_data_get_notification_settings ($group_id, $tracker)
   return $settings;
 }
 
-function trackers_data_show_notification_settings (
-  $group_id, $tracker, $show_intro_msg
-)
+function trackers_data_show_notification_settings ($group_id, $tracker)
 {
+  static $hide_intro = -1;
+  $hide_intro++;
   $grtrsettings = trackers_data_get_notification_settings (
     $group_id, $tracker
   );
@@ -182,7 +182,7 @@ function trackers_data_show_notification_settings (
   $cat_n = $grtrsettings['nb_categories'];
   if ($cat_n > 0)
     {
-      if ($show_intro_msg != 0)
+      if (!$hide_intro)
           print '<p>'
             . _("Here you can decide whether the lists "
                 . "of persons to be notified on new submissions and updates "
@@ -206,7 +206,7 @@ function trackers_data_show_notification_settings (
           ['checked' => $data[0], 'label' => $data[1]]
         )
         . "<br />\n";
-      print "\n<h2>" . _("Category-related lists") . "</h2>\n";
+      print html_h (2, _("Category-related lists"));
       print form_hidden (["{$tracker}_nb_categories" => $cat_n]);
 
       for ($i = 0; $i < $cat_n ; $i++)
@@ -225,9 +225,9 @@ function trackers_data_show_notification_settings (
             . html_label ($cb_name, _("Send on all updates"))
             . ")</span><br />\n";
         }
-      print '<h2>' . _("Global list") . "</h2>\n";
+      print html_h (2, _("Global list"));
     }
-  elseif ($show_intro_msg != 0)
+  elseif (!$hide_intro)
     print '<p>'
         . _("Here you can decide whether the lists "
             . "of persons to be notified on new submissions and updates "
@@ -245,8 +245,8 @@ function trackers_data_show_notification_settings (
     . form_checkbox ($cb_name, $grtrsettings['glsendall'])
     . html_label ($cb_name, _("Send on all updates")). ")</span>\n";
 
-  print "\n<h2>" . _("Exclusions for private items") . "</h2>\n";
-  if ($show_intro_msg != 0)
+  print html_h (2, _("Exclusions for private items"));
+  if (!$hide_intro)
     print '<p>'
       . _("Addresses registered in this list will be excluded from default "
           . "mail\nnotification for private items.")

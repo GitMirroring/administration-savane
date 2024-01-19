@@ -66,6 +66,7 @@ extract (sane_import ('post',
     'digits' => ['is_followup_to', 'thread_id']
   ]
 ));
+form_check ('post_message');
 
 if ($forum_id)
   {

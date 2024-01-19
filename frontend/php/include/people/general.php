@@ -336,9 +336,7 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
     $infix = 'job';
 
   $title_arr = [_('Skill'), _('Level'), _('Experience'), _('Action')];
-
-  $rows = db_numrows ($result);
-  if ($rows < 1)
+  if (!db_numrows ($result))
     {
       print html_build_list_table_top ($title_arr);
       print "\n<tr><td colspan='4'><strong>"
@@ -363,15 +361,12 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
         . "</span></td>\n<td><span class='smaller'>"
         . people_skill_year_box ('skill_year_id', $row['skill_year_id'])
         . "</span></td>\n<td nowrap><span class='smaller'>"
-        . "<input type='submit' name='update_{$infix}_inventory' "
-        . "value='" . _("Update") . "'> &nbsp;\n"
-        . "<input type='submit' name='delete_from_{$infix}_inventory' "
-        . "value='" . _("Delete") . "'></span></td>\n</tr></table>\n"
+        . form_submit (_("Update"), "update_{$infix}_inventory") . "&nbsp;\n"
+        . form_submit (_("Delete"), "delete_from_{$infix}_inventory")
+        . "</span></td>\n</tr></table>\n"
         . "</form>\n";
     }
-
-  print "\n<h3>" . _("Add a New Skill") . "</h3>\n";
-
+  print html_h (3, _("Add a New Skill"));
   print form_tag ();
   print html_build_list_table_top ($title_arr);
   print "\n<tr class='" . utils_altrow (0) . "'>\n<td>";
@@ -384,9 +379,9 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
     . people_skill_level_box ('skill_level_id')
     . "</span></td>\n<td><span class='smaller'>"
     . people_skill_year_box ('skill_year_id')
-    . "</span></td>\n<td nowrap><span class='smaller'><input type='submit' "
-    . "name='add_to_{$infix}_inventory'\n value='" . _("Add Skill")
-    . "'></span></td>\n</tr></table>\n</form>\n";
+    . "</span></td>\n<td nowrap><span class='smaller'>"
+    . form_submit (_("Add Skill"), "add_to_{$infix}_inventory")
+    . "</span></td>\n</tr></table>\n</form>\n";
 }
 
 function people_edit_job_inventory ($job_id, $group_id)
@@ -592,9 +587,9 @@ function people_add_to_skill_inventory (
     SELECT * FROM people_skill_inventory WHERE user_id = ? AND skill_id = ?",
     [user_getid (), $skill_id]
   );
-  if (db_numrows ($result) > 0)
+  if (db_numrows ($result))
     {
-      fb (_('ERROR - skill already in your inventory'));
+      fb (_('ERROR - skill already in your inventory'), 1);
       return;
     }
   $result = db_autoexecute ('people_skill_inventory',
@@ -604,7 +599,7 @@ function people_add_to_skill_inventory (
     ],
     DB_AUTOQUERY_INSERT
   );
-  if ($result && db_affected_rows ($result) > 0)
+  if ($result && db_affected_rows ($result))
     {
       fb (_('Added to skill inventory'));
       return;
