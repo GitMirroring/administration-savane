@@ -1002,6 +1002,22 @@ function trackers_mail_followup (
   );
 }
 
+function trackers_add_file ($item_id, $file, $file_description, &$changes)
+{
+  if (empty ($file['tmp_name']))
+    return '';
+  if ($file['error'] != UPLOAD_ERR_OK)
+    return '';
+
+  $id = trackers_attach_file ($item_id, $file, $file_description, $changes);
+  if (!$id)
+    return '';
+  $changes['attach'][] = [
+    'name' => $file['name'], 'size' => $file['size'], 'id' => $id
+  ];
+  return "file #$id, ";
+}
+
 # Wrapper for trackers_attach_file that will find out if one or more files
 # were attached.
 function trackers_attach_several_files ($item_id, $group_id, &$changes)
@@ -1018,21 +1034,9 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
   $files = sane_import ('files', ['pass' => $filenames]);
   extract (sane_import ('post', ['specialchars' => 'file_description']));
   foreach ($files as $file)
-    {
-      if ($file['error'] != UPLOAD_ERR_OK)
-        continue;
-
-      $file_id = trackers_attach_file (
-        $item_id, $file['tmp_name'], $file['name'], $file['type'],
-        $file['size'], $file_description, $changes
-      );
-      if (!$file_id)
-        continue;
-      $comment .= "file #$file_id, ";
-      $changes['attach'][] = [
-        'name' => $file['name'], 'size' => $file['size'], 'id' => $file_id
-      ];
-    }
+    $comment .= trackers_add_file (
+      $item_id, $file, $file_description, $changes
+    );
 
   if ($comment)
     {
@@ -1045,16 +1049,14 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
   return [$changed, $comment];
 }
 
-function trackers_attach_file (
-  $item_id, $input_file, $input_file_name, $input_file_type,
-  $input_file_size, $file_description, &$changes
-)
+function trackers_attach_file ($item_id, $file, $file_description, &$changes)
 {
   global $sys_trackers_attachments_dir;
-
-  $input_file_name = preg_replace ('/[&<\s"\';?!*]/', '@', $input_file_name);
-
-  $user_id = (user_isloggedin () ? user_getid (): 100);
+  $input_file = $file['tmp_name'];
+  $input_file_name = preg_replace ('/[&<\s"\';?!*]/', '@', $file['name']);
+  $input_file_type = $file['type'];
+  $input_file_size = $file['size'];
+  $user_id = (user_isloggedin ()? user_getid (): 100);
 
   if (!is_writable ($sys_trackers_attachments_dir))
     {
