@@ -209,6 +209,19 @@ function form_submit ($text = false, $submit_name = "update", $extra = false)
   return form_input ("submit", $submit_name, $text, $extra) . $trap;
 }
 
+function form_image ($img, $text, $name)
+{
+  $extra = html_image_attributes ($img, ['alt' => $text]);
+  return form_input ('image', $name, '', $extra);
+}
+
+function form_image_trash ($name, $text = null)
+{
+  if ($text === null)
+    $text = _('Delete');
+  $extra = html_image_trash_attributes (['alt' => $text]);
+  return form_input ('image', $name, '', $extra);
+}
 # Close the form, with submit button.
 function form_footer ($text = false, $submit_name = "update")
 {

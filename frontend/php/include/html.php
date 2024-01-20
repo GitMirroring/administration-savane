@@ -292,9 +292,21 @@ function html_feedback_bottom ()
   html_feedback (1);
 }
 
-function html_image ($src, $args = [])
+# Return image size attributes for a file.
+function html_image_get_size ($src, $path)
 {
-  GLOBAL $img_attr, $sys_home, $sys_www_topdir;
+  static $img_attr = [];
+  # Check to see if we've already fetched the image data.
+  if (!array_key_exists ($src, $img_attr) && is_file ($path))
+    list ($width, $height, $type, $img_attr[$src]) =
+      @getimagesize ($path);
+  return $img_attr[$src];
+}
+
+# Compile attributes for <img /> and <input type="image" />.
+function html_image_attributes ($src, $args)
+{
+  global $sys_home, $sys_www_topdir;
   $base = "images/" . SV_THEME . ".theme/$src";
   $path = "$sys_www_topdir/$base";
 
@@ -304,31 +316,39 @@ function html_image ($src, $args = [])
   if (empty ($args['border']))
     $args['border'] = 0;
 
-  $return = "<img src=\"$sys_home$base\"";
+  $return = "src=\"$sys_home$base\"";
 
   foreach ($args as $k => $v)
     $return .= " $k=\"$v\"";
 
   # If there is neither height nor width tag, insert them both.
   if (empty ($args['height']) && empty ($args['width']))
-    {
-      # Check to see if we've already fetched the image data.
-      if (empty ($img_attr[$src]) && is_file ($path))
-        {
-          list ($width, $height, $type, $img_attr[$src]) =
-            @getimagesize ($path);
-        }
-      $return .= ' ' . $img_attr[$src];
-    }
+    $return .= ' ' . html_image_get_size ($src, $path);
 
-  return "$return />";
+  return $return;
+}
+
+function html_image_base ($attr)
+{
+  return "<img $attr />";
+}
+
+function html_image ($src, $args = [])
+{
+  return html_image_base (html_image_attributes ($src, $args));
+}
+
+function html_image_trash_attributes ($args)
+{
+  if (!array_key_exists ('alt', $args))
+    $args['alt'] = _("Delete");
+  return html_image_attributes ('misc/trash.png', $args);
 }
 
 function html_image_trash ($args = [])
 {
-  if (!array_key_exists ('alt', $args))
-    $args['alt'] = _("Delete");
-  return html_image ('misc/trash.png', $args);
+  $attr = html_image_trash_attributes ($args);
+  return html_image_base ($attr);
 }
 
 function html_label ($for, $title)

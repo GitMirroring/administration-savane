@@ -80,6 +80,17 @@ $sane_sanitizers['specialchars'] = function ($in, &$out, $i, $arg)
   return 0;
 };
 
+# The <input "image" name="submit" /> elements return
+# submit.x and submit.y which don't work when extracting
+# them; this fucntion maps them to submit_x and submit_y.
+function sane_var_names ($values)
+{
+  $out = [];
+  foreach ($values as $k => $v)
+    $out[preg_replace (',[^_[:alnum:]]$,', '_', $k)] = $v;
+  return $out;
+}
+
 # Assign true when exists in input array.
 $sane_sanitizers['true'] = function ($in, &$out, $i, $arg)
 {
@@ -417,12 +428,13 @@ function sane_import ($method, $names)
 {
   $values = [];
   $input = &sane_input_array ($method);
+  $in = sane_var_names ($input);
 
   foreach ($names as $fnc => $name)
     {
       $func = sane_func ($fnc);
       if ($func !== null)
-        sane_apply_func ($func, $input, $name, $values);
+        sane_apply_func ($func, $in, $name, $values);
       else
         $values[$name] = null;
     }
