@@ -38,6 +38,8 @@
    '[(Error - Not Found)]' string when a language other than
    English was selected; broken since 2022-02 (50bd0b7c399).
 
+** Tracker permissions were set incorrectly since 2023-03 (88a43d629).
+
 ** When adding dependencies to tracker items, the search didn't
    include private items even when accessible.
 

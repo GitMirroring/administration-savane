@@ -74,7 +74,7 @@ if ($update)
         [$group_id]
       );
 
-    $flags = $$event2_name * TRACKER_FLAG_FACTOR + $$event2_name;
+    $flags = $$event1_name * TRACKER_FLAG_FACTOR + $$event2_name;
     if (!$flags)
       # If equal to 0, manually set to NULL, since 0 has a different meaning.
       $flags = NULL;
