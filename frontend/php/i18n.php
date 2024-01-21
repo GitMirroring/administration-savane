@@ -83,17 +83,12 @@ if (!isset ($_COOKIE["cookie_probe"]))
 if (!empty ($language)
     && ($language == 100 || isset ($locale_names[$language])))
   {
+    $period = 0; # Clear cookie at the end of the session.
     if ($language == 100)
-      # Request to reset - clear cookie.
-      utils_setcookie ('LANGUAGE', "", time () - 3600 * 24);
-    else
-      {
-        $period = 0;
-        if ($cookie_for_a_year)
-          $period = time () + 60 * 60 * 24 * 365;
-        else
-          utils_setcookie ('LANGUAGE', $language, $period);
-      }
+      $period = time () - 3600 * 24; # Request to reset - clear cookie.
+    elseif ($cookie_for_a_year)
+      $period = time () + 60 * 60 * 24 * 365;
+    utils_setcookie ('LANGUAGE', $language, $period);
     header ("Location: $lang_uri");
     exit;
   }

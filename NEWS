@@ -68,6 +68,8 @@
 ** Updating votes in my/votes.php tried to write in non-existing my_cc
    table since 2022-11 (d7b66a1be).
 
+** Language cookie expiration time wasn't set correctly.
+
 ** In bugs/index.php, voting only worked for tracker admins,
    broken since 2022-04 (302fce4c); Savannah sr #110896.
 
