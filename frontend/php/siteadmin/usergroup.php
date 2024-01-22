@@ -246,7 +246,8 @@ function action_update_user ()
 function action_add_user_to_group ()
 {
   global $user_id, $group_id;
-
+  if (empty ($group_id))
+    exit_no_group ();
   $result = member_add ($user_id, $group_id);
   report_db_result (
     $result, no_i18n ('Error adding user to group:'),
@@ -384,14 +385,13 @@ if ($user_id == 100)
     exit;
   }
 
-$HTML->header (['title' => no_i18n ('Admin: Manage user')]);
-
 if (in_array ($action, $actions))
   {
     $f = "action_$action";
     $f ();
   }
 
+$HTML->header (['title' => no_i18n ('Admin: Manage user')]);
 $res_user = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
 $row_user = db_fetch_array ($res_user);
 
