@@ -103,12 +103,12 @@ function member_remove ($user_id, $group_id)
       group_add_history ('Removed User', user_getname ($user_id), $group_id);
       # If it is not a squad, make sure the user is no longer associated
       # to squads of the group.
-      db_execute (
+      return db_execute (
         "DELETE FROM user_squad WHERE user_id = ? AND group_id = ?",
         [$user_id, $group_id]
       );
-      return $result;
     }
+  # A squad may only belong to a single group.
   group_add_history ('Deleted Squad', user_getname ($user_id), $group_id);
   db_execute ("DELETE FROM user WHERE user_id = ?", [$user_id]);
   db_execute (

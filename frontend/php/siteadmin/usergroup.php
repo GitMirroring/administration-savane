@@ -201,7 +201,7 @@ function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
 
 function report_db_result ($result, $msg_err, $msg_ok)
 {
-  if (!$result || db_affected_rows ($result) < 1)
+  if (!$result)
     fb ($msg_err . ' ' . db_error (), 1);
   else
     fb ($msg_ok);
