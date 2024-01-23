@@ -128,7 +128,7 @@ function news_print_news_list ($result, $group_id, $group)
 function news_list_news_to_manage ($group_id, $group)
 {
   $news_sets = [
-    '5' => [_("News wating for approval"), _("No news wating for approval")],
+    '5' => [_("News waiting for approval"), _("No news waiting for approval")],
     '4' => [_("Recently deleted news"), _("No recently deleted news")],
     '0, 1' => [_("Recently approved news"), _("No recently approved news")]
   ];
