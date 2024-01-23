@@ -44,12 +44,8 @@
 require_once ('./include/init.php');
 require_once ('./include/sane.php');
 
-Header("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
-Header("Cache-Control: no-cache");
-Header("Cache-Control: must-revalidate");
-
-# Input checks.
-extract(sane_import('request',
+utils_disable_cache ();
+extract (sane_import('request',
   [
     'preg' => [['language', '/^(([a-z]{2}((-[a-z]{2})?))|100)$/']],
     'internal_uri' => 'lang_uri',

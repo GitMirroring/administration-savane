@@ -44,10 +44,7 @@ require_once ('../include/init.php');
 require_once ('../include/account.php');
 require_once ('../include/sane.php');
 
-Header ("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
-Header ("Cache-Control: no-cache");
-Header ("Cache-Control: must-revalidate");
-
+utils_disable_cache ();
 extract (sane_import ('request', ['true' => 'from_brother']));
 
 # Logged users have no business here.

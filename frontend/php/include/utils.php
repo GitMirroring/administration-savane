@@ -1038,5 +1038,12 @@ function utils_urlencode ($string)
     $string = '';
   return urlencode ($string);
 }
+function utils_disable_cache ()
+{
+  header ("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
+  header ("Cache-Control: max-age=0");
+  header ("Cache-Control: no-cache", false);
+  header ("Cache-Control: must-revalidate", false);
+}
 } # namespace {
 ?>
