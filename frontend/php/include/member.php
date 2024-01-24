@@ -48,7 +48,7 @@ function member_add ($user_id, $group_id, $status = '')
 {
   if (member_check ($user_id, $group_id))
     {
-      fb (_("This user is already member of the group."));
+      fb (_("This user is already member of the group."), 1);
       return 0;
     }
   $result = db_autoexecute ('user_group',

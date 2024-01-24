@@ -32,6 +32,9 @@
   previously, it was a single-selection list with an option to call
   a list of checkboxes.
 
+* On the member management page, the search in the "Adding users to group"
+  doesn't list people who are already members of the group.
+
 * Bug fixes:
 
 ** Email notifications from trackers included a localized

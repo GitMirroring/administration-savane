@@ -149,38 +149,60 @@ function show_all_users_add_searchbox ($group_id, $previous_search)
   print "</p>\n" . form_tag ([], "#searchuser")
     . form_hidden (['action' => 'add_to_group_list', 'group_id' => $group_id])
     . form_input ('text', 'words', $previous_search, "size='35'")
-    . "<br />\n<p>\n<input type='submit' name='Submit' value=\""
-    . _("Search users") . "\" />\n</p>\n</form>\n";
+    . "<br />\n" . form_footer (_("Search users"));
 }
 
-function show_all_users_add_list ($result, $group_id)
+function look_for_non_members ($group_id, $words)
 {
-  print "<p>"
-    . html_label ('user_add_list', _("Below is the result of your search."))
-    . "</p>\n";
-  $select = form_tag () . form_hidden (['action' => 'add_to_group'])
-    . "<select id='user_add_list' name=\"user_ids[]\" size='10' "
-    . "multiple='multiple'>\n";
+  $keywords = explode (' ', $words);
+  list ($kw_sql, $sql_params) =
+    search_keywords_in_fields (
+      $keywords, ['user_name', 'realname', 'u.user_id'], 'OR'
+    );
+  array_unshift ($sql_params, $group_id);
+  return db_execute ("
+    SELECT u.user_id, user_name, realname
+    FROM
+      user u LEFT JOIN
+        (select * from user_group ug WHERE group_id = ?) ug
+      ON u.user_id = ug.user_id
+    WHERE $kw_sql AND status = 'A' AND ug.onduty IS NULL
+    GROUP BY u.user_id ORDER BY user_name LIMIT 26", $sql_params
+    );
+}
+
+function found_user_select_box ($result, $group_id)
+{
   $options = '';
   while ($usr = db_fetch_array ($result))
     $options .= form_option ($usr['user_id'], null, usr_string ($usr));
-
   if (empty ($options))
-    {
-      print '<p id="user_add_list">' . _("None found") . "</p>\n";
-      return;
-    }
-  print "$select$options</select>\n";
-  print "<p>" . form_hidden (['group_id' => $group_id])
-    . "<input type=\"submit\" name=\"Submit\" value=\""
-    . _("Add users to group") . "\" />\n</p>\n</form>\n";
+    return '<p id="user_add_list">' . _("None found") . "</p>\n</form>";
+  return form_tag () . form_hidden (['action' => 'add_to_group'])
+    . "<select id='user_add_list' name=\"user_ids[]\" size='10' "
+    . "multiple='multiple'>\n$options</select>\n"
+    . form_hidden (['group_id' => $group_id])
+    . form_footer (_("Add users to group"));
+}
+
+function show_all_users_add_list ($group_id, $words)
+{
+  if (!$words)
+    return;
+  print "<p>"
+    . html_label ('user_add_list', _("Below is the result of your search."))
+    . "</p>\n";
+  $result = look_for_non_members ($group_id, $words);
+  print found_user_select_box ($result, $group_id);
 }
 
 if ($action == 'add_to_group' && $user_ids)
   foreach ($user_ids as $user)
     {
-      member_add($user, $group_id);
-      fb(sprintf(_("User %s added to the group."), user_getname($user)));
+      $res = member_add ($user, $group_id);
+      $msg = sprintf (_("User %s added to the group."), user_getname ($user));
+      if ($res)
+        fb ($msg);
     }
 
 if ($action == 'remove_from_group' && $user_ids)
@@ -240,31 +262,10 @@ $res_pending = user_admin_query ("admin_flags = 'P'");
 show_pending_users_list ($res_pending, $group_id);
 db_data_seek ($res_pending);
 print "<br />\n";
-
 $res_active = user_admin_query ("NOT admin_flags IN ('A', 'P', 'SQD')");
-
 show_all_users_remove_list ($res_active, $res_pending, $group_id);
-
 print "<br />\n";
-
-if ($words)
-  {
-    $keywords = explode (' ', $words);
-    list ($kw_sql, $kw_sql_params) =
-      search_keywords_in_fields (
-        $keywords, ['user_name', 'realname', 'user_id'], 'OR'
-      );
-    $result = db_execute ("
-      SELECT user_id, user_name, realname
-      FROM user WHERE $kw_sql AND status = 'A'
-      ORDER BY user_name LIMIT 26",
-      $kw_sql_params
-    );
-  }
 show_all_users_add_searchbox ($group_id, $words);
-
-if ($words)
-  show_all_users_add_list ($result, $group_id);
-
+show_all_users_add_list ($group_id, $words);
 site_project_footer ([]);
 ?>
