@@ -43,6 +43,9 @@
 * Whenever the user requests an update in the database, the POST method
   is used, and the form_id is checked.
 
+* New configuration variable, $sys_cc_error, to email error reposts
+  to specified addresses.
+
 * Bug fixes:
 
 ** Email notifications from trackers included a localized

@@ -174,22 +174,92 @@ function error_format_request ()
   return "request params $ret";
 }
 
-function error_handler_function (
-  $errno, $errstr, $errfile = null, $errline = null
-)
+function error_title_filter ($title, $excludes)
+{
+  if (!is_array ($excludes) || !is_string ($title))
+    return false;
+  foreach ($excludes as $ex)
+    if (!is_string ($ex) || strpos ($title, $ex) !== false)
+      return false;
+  return true;
+}
+
+function error_sendmail_from ()
+{
+  global $sys_mail_replyto, $sys_mail_domain;
+  $from = 'savane-no-reply@localhost';
+  if (empty ($sys_mail_replyto) || empty ($sys_mail_domain))
+    return $from;
+  return "$sys_mail_replyto@$sys_mail_domain";
+}
+
+# A simplisic version of sendmail_mail to avoid possible recursive errors.
+function error_sendmail ($addr, $subj, $msg)
+{
+  $headers = "From: " . error_sendmail_from () . "\n";
+  list ($usec, $sec) = explode (' ', microtime ());
+  $msg_id = date ("Ymd-His", $sec) . ".$usec.sv.@error";
+  $headers .= "Message-Id: <$msg_id>\n";
+  mail ($addr, $subj, $msg, $headers);
+}
+
+function error_normalize_conf ($conf)
+{
+  $ret = ['subject' => '[savane error]', 'exclude' => []];
+  if (!empty ($conf['exclude']))
+    {
+      $ex = $conf['exclude'];
+      if (!is_array ($ex))
+        $ex = [$ex];
+      foreach ($ex as $e)
+        if (is_string ($e))
+          $ret['exclude'][] = $e;
+    }
+  if (!empty ($conf['subject']) && is_string ($conf['subject']))
+    {
+      $ret['subject'] = $conf['subject'];
+      $ret['subject'] = preg_replace (
+        [',[^[:ascii:]],', ',[^[:graph:][:blank:]],'],
+        '', $ret['subject']
+       );
+    }
+  return $ret;
+}
+
+function error_cc_log ($location, $title, $msg)
+{
+  global $sys_cc_error;
+  if (empty ($sys_cc_error))
+    return;
+  $cc_err = $sys_cc_error;
+  if (!is_array ($cc_err))
+    $cc_err = [$cc_err => []];
+  $location = preg_replace (',^[^:]*/frontend/,', '', $location);
+  foreach ($cc_err as $addr => $conf)
+    {
+      $conf = error_normalize_conf ($conf);
+      if (error_title_filter ($title, $conf['exclude']))
+        error_sendmail ($addr, "{$conf['subject']} $location", $msg);
+    }
+}
+
+function error_handler_function ($errno, $errstr, $file = null, $line = null)
 {
   if (!($errno & error_reporting ()))
     return true;
-  $msg = '';
-  if ($errfile !== null)
-    $msg .= $errfile;
-  $msg .= ':';
-  if ($errline !== null)
-    $msg .= $errline;
-  $msg .= ": [" . error_level_name ($errno) . "] $errstr";
-  $msg .=  "\nbacktrace:\n{\n" . error_format_backtrace ();
+  $location = '';
+  if ($file !== null)
+    $location .= $file;
+  $location .= ':';
+  if ($line !== null)
+    $location .= $line;
+  if (!is_string ($errstr))
+    $errstr = print_r ($errstr, true);
+  $title = "$location: [" . error_level_name ($errno) . "] $errstr";
+  $msg =  "$title\nbacktrace:\n{\n" . error_format_backtrace ();
   $msg .= "\n}\n" . error_format_request ();
   error_log ($msg);
+  error_cc_log ($location, $title, $msg);
   return true;
 }
 
