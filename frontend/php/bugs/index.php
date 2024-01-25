@@ -307,7 +307,7 @@ switch ($func)
                   trackers_add_cc (
                     $item_id, $originator_email, "-SUB-", $changes
                   );
-                else
+                elseif (!empty ($originator_email))
                   fb (_("Originator E-mail is not valid, thus was not added\n"
                         . "to the Carbon-Copy list."), 1);
               }
