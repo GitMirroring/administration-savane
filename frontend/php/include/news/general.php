@@ -83,14 +83,14 @@ function news_fetch_item ($news_id)
   return $row;
 }
 
-function news_show_news_item ($item)
+function news_show_news_item ($item, $level = 2)
 {
   if (empty ($item))
     {
       fb (_("No news item found"), 1);
       return;
     }
-  print "<h2>" . $item['summary'] . "</h2>\n";
+  print html_h ($level, $item['summary']);
   print "<p><i>";
   # TRANSLATORS: the first argument is user's name, the second
   # argument is date.
@@ -246,9 +246,9 @@ function news_print_approve_form ($row)
   );
   news_print_status_selector ($row['is_approved']);
   news_print_news_fields ($row['summary'], $row['details']);
-  print '<p><input type="submit" name="submit" value="'
-    . _("Submit") . "\" /></p>\n</form>\n";
-  print '<h2>' . _("Preview") . "</h2>\n" . markup_full ($row['details']);
+  print '<p>' . form_submit (_("Submit"), "submit") . "</p>\n</form>\n";
+  print html_h (2, _("Preview"));
+  news_show_news_item ($row, 3);
 }
 
 function news_new_subbox ($row)

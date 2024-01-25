@@ -35,6 +35,8 @@
 * On the member management page, the search in the "Adding users to group"
   doesn't list people who are already members of the group.
 
+* News are previewed more realistically, including titles and attributes.
+
 * Bug fixes:
 
 ** Email notifications from trackers included a localized
