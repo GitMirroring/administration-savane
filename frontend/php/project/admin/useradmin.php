@@ -237,8 +237,7 @@ if ($action == 'approve_for_group' && $user_ids)
           . "\n\n" . sprintf ("-- the %s team.", $sys_name) . "\n";
 
         sendmail_mail (
-          ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $email],
-          ['subject' => $title, 'body' => $message]
+          ['to' => $email], ['subject' => $title, 'body' => $message]
         );
       }
   }

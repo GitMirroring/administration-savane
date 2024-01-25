@@ -160,13 +160,12 @@ list ($fail, $gpg_error) =
   sendmail_encrypt_message ($row_user['user_id'], $message);
 
 sendmail_mail (
-  ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $row_user['email']],
+  ['to' => $row_user['email']],
   ['subject' => "$sys_default_domain Verification", 'body' => $message]
 );
 
 sendmail_mail (
-  [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
-    'to' =>  "$sys_mail_admin@$sys_mail_domain"],
+  ['to' =>  "$sys_mail_admin@$sys_mail_domain"],
   [ 'subject' => "password change - $sys_default_domain",
     'body' => $message_for_admin],
   ['tracker' => "lostpw", 'skip_format_body' => true]

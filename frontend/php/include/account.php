@@ -546,8 +546,7 @@ function account_register_keys ($keys, $uid = 0)
 
 function account_new_keys_alert ($user_id)
 {
-  global $sys_name, $sys_mail_replyto, $sys_mail_domain;
-  $from = "$sys_mail_replyto@$sys_mail_domain";
+  global $sys_name;
   $subject = "$sys_name " . _("SSH key changed on your account");
   # TRANSLATORS: the argument is site name (like Savannah).
   $message = sprintf (
@@ -558,7 +557,7 @@ function account_new_keys_alert ($user_id)
   # TRANSLATORS: the argument is site name (like Savannah).
   $message .= "\n" . sprintf (_("-- the %s team."), $sys_name) . "\n";
   sendmail_mail (
-    ['from' => $from, 'to' => user_get_email ($user_id)],
+    ['to' => user_get_email ($user_id)],
     ['subject' => $subject, 'body' => $message]
   );
 }

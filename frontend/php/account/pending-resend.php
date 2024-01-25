@@ -67,7 +67,7 @@ $message =
 # TRANSLATORS: the argument is the name of the system (like "Savannah").
 $message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
 sendmail_mail (
-  ['from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $row_user['email']],
+  ['to' => $row_user['email']],
   ['subject' => "$sys_name " . _("Account Registration"), 'body' => $message]
 );
 

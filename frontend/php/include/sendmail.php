@@ -182,9 +182,13 @@ function sendmail_explode_addr_list ($to)
   return $ret;
 }
 
-# If $from is a login name, write a nice From: field.
+# If $addresses['from'] is a login name, replace it with a nice From: field.
+# if no $addresses['from'] is empty, set it to default.
 function sendmail_format_from (&$addresses)
 {
+  global $sys_mail_replyto, $sys_mail_domain;
+  if (empty ($addresses['from']))
+    $addresses['from'] = "$sys_mail_replyto@$sys_mail_domain";
   $uid = user_getid ($addresses['from']);
   if (!user_exists ($uid))
     return;

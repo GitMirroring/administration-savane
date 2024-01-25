@@ -56,8 +56,7 @@ $GLOBALS['int_delayspamcheck_comment_id'] = false;
 
 function spam_flag_notification ($item, $comment, $user, $reporter)
 {
-  global $sys_mail_replyto, $sys_mail_domain, $sys_mail_admin;
-  global $sys_default_domain, $sys_home;
+  global $sys_mail_domain, $sys_mail_admin, $sys_default_domain, $sys_home;
 
   # No i18n: the message is sent to Savannah admins.
   $message['subject'] = 'Spam reported';
@@ -70,8 +69,7 @@ function spam_flag_notification ($item, $comment, $user, $reporter)
     . ARTIFACT . "/index.php?item_id=$item"
     . "&func=viewspam&comment_internal_id=$comment#spam$comment";
   sendmail_mail (
-    [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
-      'to' =>  "$sys_mail_admin@$sys_mail_domain"],
+    ['to' =>  "$sys_mail_admin@$sys_mail_domain"],
     $message, ['tracker' => ARTIFACT, 'item' => $item]
   );
 }

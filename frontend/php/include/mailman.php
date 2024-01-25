@@ -177,14 +177,13 @@ function format_msg ($group_id, $list_name, $res)
 
 function report_results ($res, $group_id, $list_name)
 {
-  global $sys_mail_replyto, $sys_mail_domain;
   if (report_errors ($res))
     return true;
   $uid = user_getid ();
   $msg = format_msg ($group_id, $list_name, $res);
   sendmail_encrypt_message ($uid, $msg);
   sendmail_mail (
-    [ 'from' => "$sys_mail_replyto@$sys_mail_domain", 'to' => $uid],
+    ['to' => $uid],
     # TRANSLATORS: this is a subject line of a message
     ['subject' => sprintf (_("Mailman list %s"), $list_name), 'body' => $msg],
     ['skip_format_body' => true]

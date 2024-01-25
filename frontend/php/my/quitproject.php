@@ -99,12 +99,8 @@ function notify_admins ($quitting_group_id)
         . "($user_name <$login>)\nhas chosen to quit the group.\n\n"
         . "As result, the group is orphan.\n";
     }
-  $from = "$sys_mail_replyto@$sys_mail_domain";
   $subject = "$user_name has quit the group $group_name";
-  sendmail_mail (
-    ['from' => $from, 'to' => $to],
-    ['subject' => $subject, 'body' => $message]
-  );
+  sendmail_mail (['to' => $to], ['subject' => $subject, 'body' => $message]);
 }
 
 # If we get here, the user is actually member of the group.

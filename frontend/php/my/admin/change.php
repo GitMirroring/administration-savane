@@ -283,8 +283,7 @@ if ($update)
                       sprintf (_("-- the %s team."), $sys_name) . "\n";
 
                     $success = sendmail_mail (
-                      [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
-                        'to' => $newvalue],
+                      ['to' => $newvalue],
                       [ 'subject' => $sys_name . ' ' . _("Verification"),
                         'body' => $message]
                     );
@@ -301,8 +300,7 @@ if ($update)
                     # The next step is probably to print the mail change
                     # request on account with the possibility to discard.
                     sendmail_mail (
-                      [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
-                        'to' => $row_user['email']],
+                      ['to' => $row_user['email']],
                       [ 'subject' => $sys_name . ' ' . _("Verification"),
                         'body' => $warning_message]
                     );
@@ -445,8 +443,7 @@ if ($update)
                 # TRANSLATORS: the argument is site name (like Savannah).
                 $message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
                 $success = sendmail_mail (
-                  [ 'from' => "$sys_mail_replyto@$sys_mail_domain",
-                    'to' => $row_user['email']],
+                  ['to' => $row_user['email']],
                   [ 'subject' => $sys_name . ' ' . _("Verification"),
                     'body' => $message]
                 );
