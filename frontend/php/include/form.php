@@ -50,10 +50,10 @@ function form_get_id ()
   static $form_id = null;
   if (!empty ($form_id))
     return $form_id;
-  $form_id = random_hash ();
+  $uid = user_getid ();
+  $form_id = random_hash ($uid);
   $result = db_autoexecute ('form',
-    [ 'form_id' => $form_id, 'timestamp' => time (),
-      'user_id' => user_getid ()],
+    ['form_id' => $form_id, 'timestamp' => time (), 'user_id' => $uid],
     DB_AUTOQUERY_INSERT
   );
   if (db_affected_rows ($result) != 1)

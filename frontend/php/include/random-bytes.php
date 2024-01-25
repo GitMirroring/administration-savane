@@ -98,7 +98,11 @@ if (!function_exists ('random_bytes'))
     function random_bytes ($count) { return phpass_get_random_bytes ($count); }
   }
 
-function random_hash ($random_count = 16)
+function random_hash ($quality = 1)
 {
-  return md5 (random_bytes ($random_count));
+  if ($quality)
+    $rand = random_bytes (16);
+  else
+    $rand = utils_mt_rand ();
+  return md5 ($rand);
 }
