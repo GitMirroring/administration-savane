@@ -420,12 +420,10 @@ if (isset ($quote_no))
 if (!empty ($comment))
   $is_deployed['postcomment'] = $enable_comments;
 
-function print_comment_types ($group_id, $comment_type_id)
+function print_comment_types ($group_id, $comment_type_id, $comment_types)
 {
   global $preview, $anon_check_failed;
 
-  $comment_types =
-    trackers_data_get_field_predefined_values ('comment_type_id', $group_id);
   if (db_numrows ($comment_types) <= 1)
     {
       unset ($GLOBALS['comment_type_id']);
@@ -442,16 +440,15 @@ function print_comment_types ($group_id, $comment_type_id)
   return 1;
 }
 
-function print_canned_box ($group_id, $canned, $size)
+function print_canned_box ($group_id, $canned, $size, $res_canned)
 {
   global $sys_home;
   $group_admin = user_ismember ($group_id, 'A');
-  if ($group_admin)
-    $size--;
   print "<span class='preinput'>";
   print html_label ('canned_response[]', _("Canned response:"))
     . "</span><br />\n";
-  print trackers_canned_response_box ($group_id, $canned, $size) . "<br />\n";
+  print trackers_canned_response_box ($group_id, $canned, $size, $res_canned)
+    . "<br />\n";
   if (!$group_admin)
     return;
   print "&nbsp;&nbsp;&nbsp;<a class='smaller' href=\"$sys_home"
@@ -459,21 +456,31 @@ function print_canned_box ($group_id, $canned, $size)
     . '&amp;create_canned=1">' . _("Define a new canned response") . '</a>';
 }
 
-function print_comment_type_and_canned ($group_id, $canned_response, $ct_id)
+function print_comment_type_and_canned (
+  $group_id, $canned_response, $ct_id, $res_canned
+)
 {
   global $sys_home;
   if (!user_ismember ($group_id))
     return;
-  print "<p class='noprint'><br />\n";
-  $n = print_comment_types ($group_id, $ct_id);
-  print_canned_box ($group_id, $canned_response, 11 - $n);
+  $canned_num = db_numrows ($res_canned);
+  $comment_types =
+    trackers_data_get_field_predefined_values ('comment_type_id', $group_id);
+  if ($canned_num == 0 && db_numrows ($comment_types) < 2)
+    return;
+  print "<p class='noprint'>";
+  if ($canned_num)
+    print "<br />\n";
+  $n = print_comment_types ($group_id, $ct_id, $comment_types);
+  if ($canned_num)
+    print_canned_box ($group_id, $canned_response, 11 - $n, $res_canned);
   print "</p>\n";
 }
 
-function print_comment_box ($group_id, $comment)
+function print_comment_box ($group_id, $comment, $have_canned)
 {
   $float = '';
-  if (user_ismember ($group_id))
+  if (user_ismember ($group_id) && $have_canned)
     $float = ' floatleft';
   print "<p class='noprint$float'><span class='preinput'> "
     . _("Add a New Comment") . ' ' . markup_info ("rich");
@@ -492,9 +499,11 @@ if ($enable_comments)
     if (!empty ($preambles[ARTIFACT . '_comment_preamble']))
       print markup_rich ($preambles[ARTIFACT . '_comment_preamble']);
 
-    print_comment_box ($group_id, $comment);
-    print_comment_type_and_canned ($group_id, $canned_response,
-      $comment_type_id
+    $res_canned = trackers_data_get_canned_responses ($group_id);
+    $canned_num = db_numrows ($res_canned);
+    print_comment_box ($group_id, $comment, $canned_num);
+    print_comment_type_and_canned (
+      $group_id, $canned_response, $comment_type_id, $res_canned
     );
     print html_hidsubpart_footer ();
   } # $enable_comments

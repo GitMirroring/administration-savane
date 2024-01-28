@@ -691,13 +691,12 @@ function trackers_check_empty_fields ($field_array, $new_item = true)
   return false;
 }
 
-function trackers_canned_response_box ($group_id, $checked, $height)
+function trackers_canned_response_box ($group_id, $checked, $height, $result)
 {
   if (empty ($checked))
     $checked = [];
   $ret = "<select name='canned_response[]' multiple='multiple' "
     . "size='$height'>\n";
-  $result = trackers_data_get_canned_responses ($group_id);
   while ($row = db_fetch_array ($result))
     $ret .= form_option ($row[0], $checked, $row[1]);
   return "$ret</select>\n";
