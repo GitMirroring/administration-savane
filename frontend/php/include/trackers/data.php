@@ -2189,16 +2189,13 @@ function trackers_data_get_value (
   return "$value_id " . _('(Error - Not Found)');
 }
 
-# Show defined and site-wide responses.
+# Fetch canned responses for a group.  Return database handle.
 function trackers_data_get_canned_responses ($group_id)
 {
-  # Return handle for use by select box.
   return db_execute ("
     SELECT bug_canned_id, title, body, order_id
     FROM " . ARTIFACT . "_canned_responses
-    WHERE (group_id = ? OR group_id = 0)
-    ORDER BY order_id ASC",
-    [$group_id]
+    WHERE group_id = ? ORDER BY order_id ASC", [$group_id]
   );
 }
 
