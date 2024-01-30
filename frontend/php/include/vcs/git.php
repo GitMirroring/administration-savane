@@ -113,7 +113,7 @@ function git_list_subdirs ($dir_name)
   return $ret;
 }
 
-function git_list_repos ($group_name, $git_dir, $clone_path)
+function git_list_dirs ($group_name, $git_dir, $clone_path)
 {
   $ret = [];
   $entry = git_make_entry ($git_dir, "$group_name.git", $clone_path);
@@ -129,6 +129,12 @@ function git_list_repos ($group_name, $git_dir, $clone_path)
       if (!empty ($entry))
         $ret[] = $entry;
     }
+  return $ret;
+}
+
+function git_list_repos ($group_name, $git_dir, $clone_path)
+{
+  $ret = git_list_dirs ($group_name, $git_dir, $clone_path);
   if (empty ($ret))
     return git_get_list_from_cgitrepos ($group_name);
   return $ret;
