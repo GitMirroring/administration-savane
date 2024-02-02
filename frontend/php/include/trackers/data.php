@@ -2366,7 +2366,7 @@ function tracker_data_file_out_of_item ($item_id, $file_id)
   );
   if (db_numrows ($res))
     return false;
-   $msg = sprintf (_('File #%$1s doesn\'t belong to item #%$2s'),
+   $msg = sprintf (_('File #%1$s doesn\'t belong to item #%2$s'),
      $file_id, $item_id
    );
    fb ($msg, 1);
