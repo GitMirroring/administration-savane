@@ -151,7 +151,7 @@ substituted = \
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
 
-$(substituted): %: %.in dirs.stamp; $(subst_in_files) < $< > $@
+$(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
 
 # Force trivial cgitrepos for the time being.
 cgirepos: ; echo -n > $@
