@@ -38,7 +38,6 @@ POTFILES = \
 	frontend/php/testing/format_date.php \
 	frontend/php/testing/index.php \
 	frontend/php/testing/test.php \
-	frontend/php/svn/index.php \
 	frontend/php/file.php \
 	frontend/php/stats/index.php \
 	frontend/php/people/resume.php \
@@ -87,8 +86,8 @@ POTFILES = \
 	frontend/php/siteadmin/groupedit.php \
 	frontend/php/siteadmin/userlist.php \
 	frontend/php/siteadmin/usergroup.php \
-	frontend/php/hg/index.php \
 	frontend/php/testconfig.php \
+	frontend/php/vcs/index.php \
 	frontend/php/my/groups.php \
 	frontend/php/my/quitproject.php \
 	frontend/php/my/bookmarks.php \
@@ -185,8 +184,6 @@ POTFILES = \
 	frontend/php/news/admin/index.php \
 	frontend/php/news/approve.php \
 	frontend/php/users.php \
-	frontend/php/arch/index.php \
-	frontend/php/bzr/index.php \
 	frontend/php/css/graph-widths.php \
 	frontend/php/sr/index.php \
 	frontend/php/markup-test.php \

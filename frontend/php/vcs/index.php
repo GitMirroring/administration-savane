@@ -1,5 +1,5 @@
 <?php
-# Mercurial instruction page.
+# VCS instruction page.
 # 
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -41,13 +41,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once('../include/init.php');
-require_once('../include/http.php');
-require_once('../include/vcs.php');
-
-# TRANSLATORS: This string is used in the context of
-# "Browsing the Mercurial repository" and "You can browse the Mercurial repository",
-# "Getting a copy of the Mercurial repository", see include/vcs.php.
-vcs_page (_('Mercurial'), 'hg', $group_id);
-
+foreach (['init', 'http', 'vcs'] as $i)
+  require_once ("../include/$i.php");
+vcs_page (basename (dirname ($_SERVER['SCRIPT_NAME'])), $group_id);
 ?>

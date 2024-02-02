@@ -46,7 +46,7 @@ require_once (dirname (__FILE__) . "/utils.php");
 # Base function. The alternatives below should be used whenever relevant,
 # as they may wrap this one with additional useful things
 # (set HTTP response, etc).
-function exit_error ($title, $text = 0, $status = false)
+function exit_error ($title = '', $text = null, $status = false)
 {
   global $HTML, $feedback;
 

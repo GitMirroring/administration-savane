@@ -156,10 +156,8 @@ function vcs_get_repos ($vcs, $group_id)
 
 function vcs_print_browsing_preface ($vcs_name)
 {
-  print '<h2>';
   # TRANSLATORS: The argument is a name of VCS (like Arch, CVS, Git).
-  printf (_("Browsing the %s Repository"), $vcs_name);
-  print "</h2>\n";
+  print html_h (2, sprintf (_("Browsing the %s Repository"), $vcs_name));
   print '<p>';
   # TRANSLATORS: The argument is a name of VCS (like Arch, CVS, Git).
   printf (_("You can browse the %s repository of this group with\nyour web "
@@ -173,9 +171,9 @@ function vcs_print_browsing_preface ($vcs_name)
 
 # Enable cache for this page if the user isn't logged in, because
 # crawlers particularly like it.
-function vcs_exit_if_not_modified ($vcs_exfix)
+function vcs_exit_if_not_modified ($vcs)
 {
-  $file = utils_get_content_filename ("$vcs_exfix/index");
+  $file = utils_get_content_filename ("$vcs/index");
   if ($file == null || user_isloggedin ())
     return;
   $stat = stat ($file);
@@ -202,51 +200,68 @@ function vcs_print_source_repo_links ($group, $vcs, $repo_list)
       . $repo_list[$i]['desc'] . "</a></li>\n";
 }
 
-function vcs_print_links_to_repos ($group, $group_id, $vcs_exfix, $vcs_name)
+function vcs_label ($vcs)
+{
+  # TRANSLATORS: These strings are used in the context of
+  # "Browsing the CVS repository" and "You can browse the CVS repository",
+  # "Getting a copy of the CVS repository", see include/vcs.php.
+  $names = [
+    'arch' => _('Arch'), 'bzr' => _('Bazaar'), 'cvs' => _('CVS'),
+    'git' => _('Git'), 'hg' => _('Mercurial'), 'svn' => _('Subversion')
+  ];
+  if (empty ($names[$vcs]))
+    return null;
+  return $names[$vcs];
+}
+
+function vcs_print_links_to_repos ($group, $group_id, $vcs)
 {
   global $repo_list;
 
-  $repo_list = vcs_get_repos ($vcs_exfix, $group_id);
-  $have_links = $group->Uses ($vcs_exfix)
-    && pagemenu_url_is_set ($group, "{$vcs_exfix}_viewcvs");
-  $have_web_links = $group->UsesForHomepage ($vcs_exfix)
+  $repo_list = vcs_get_repos ($vcs, $group_id);
+  $have_links = $group->Uses ($vcs)
+    && pagemenu_url_is_set ($group, "{$vcs}_viewcvs");
+  $have_web_links = $group->UsesForHomepage ($vcs)
      && pagemenu_url_is_set ($group, "cvs_viewcvs_homepage");
   if (!($have_links || $have_web_links))
     return;
-  vcs_print_browsing_preface ($vcs_name);
+  vcs_print_browsing_preface (vcs_label ($vcs));
   print "<ul>\n";
   if ($have_links)
-    vcs_print_source_repo_links ($group, $vcs_exfix, $repo_list);
+    vcs_print_source_repo_links ($group, $vcs, $repo_list);
   if ($have_web_links)
     print '<li><a href="' . $group->getUrl ("cvs_viewcvs_homepage") . '">'
       . _("Browse Web Pages Repository") . "</a></li>\n";
   print "</ul>\n";
 }
 
-function vcs_page ($vcs_name, $vcs_exfix, $group_id)
+function vcs_page ($vcs, $group_id)
 {
   if (!$group_id)
     exit_no_group ();
+  $vcs_name = vcs_label ($vcs);
+  if ($vcs_name === null)
+    exit_error ();
 
   $group = project_get_object ($group_id);
-  if (!$group->Uses ($vcs_exfix) && !$group->UsesForHomepage ($vcs_exfix))
+  if (!$group->Uses ($vcs) && !$group->UsesForHomepage ($vcs))
     exit_error (_("This group doesn't use this tool."));
 
-  vcs_exit_if_not_modified ($vcs_exfix);
-  site_project_header (['group' => $group_id,'context' => $vcs_exfix]);
-  vcs_print_links_to_repos ($group, $group_id, $vcs_exfix, $vcs_name);
+  vcs_exit_if_not_modified ($vcs);
+  site_project_header (['group' => $group_id,'context' => $vcs]);
+  vcs_print_links_to_repos ($group, $group_id, $vcs, $vcs_name);
 
-  print '<h2>';
   # TRANSLATORS: The argument is a name of VCS (like Arch, CVS, Git).
-  printf (_("Getting a Copy of the %s Repository"), $vcs_name);
-  print "</h2>\n";
-  utils_get_content ("$vcs_exfix/index");
+  print html_h (2,
+    sprintf (_("Getting a Copy of the %s Repository"), vcs_label ($vcs))
+  );
+  utils_get_content ("$vcs/index");
   site_project_footer ([]);
 }
 
 function vcs_compile_repo_ul ($repos, $scm_url)
 {
-  $u = preg_replace(':/[^/]*$:', '/', $scm_url);
+  $u = preg_replace (':/[^/]*$:', '/', $scm_url);
   $ret = '';
   foreach ($repos as $r)
     $ret .= "<li><a href=\"$u{$r['url']}\">{$r['desc']}</a></li>\n";

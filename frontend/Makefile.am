@@ -335,7 +335,6 @@ ordinary_files = \
   php/account/register.php \
   php/account/su.php \
   php/account/verify.php \
-  php/arch/index.php \
   php/bug/index.php \
   php/bugs/admin/conf-copy.php \
   php/bugs/admin/editqueryforms.php \
@@ -353,7 +352,6 @@ ordinary_files = \
   php/bugs/index.php \
   php/bugs/item.php \
   php/bugs/reporting.php \
-  php/bzr/index.php \
   php/captcha.php \
   php/contact.php \
   php/css/Cafe.css \
@@ -394,7 +392,6 @@ ordinary_files = \
   php/forum/message.php \
   php/git/admin/index.php \
   php/git/index.php \
-  php/hg/index.php \
   php/i18n.php \
   php/images/common/COPYING.CC0 \
   php/images/common/COPYING.GPL \
@@ -553,7 +550,6 @@ ordinary_files = \
   php/siteadmin/userlist.php \
   php/sr/index.php \
   php/stats/index.php \
-  php/svn/index.php \
   php/testconfig.php \
   php/testing/format_date.php \
   php/testing/index.php \
@@ -565,6 +561,7 @@ ordinary_files = \
   php/us \
   php/users \
   php/users.php \
+  php/vcs/index.php \
   site-specific/gnu/account/editsshkeys.php \
   site-specific/gnu/account/first.php \
   site-specific/gnu/account/index_gpg.php \
@@ -621,7 +618,10 @@ ordinary_files = \
   site-specific/nongnu/project/admin/index_misc.php
 
 dir_links = \
+  php/arch \
+  php/bzr \
   php/cookbook \
+  php/hg \
   php/images/Cafe.theme \
   php/images/Cappuccino.theme \
   php/images/CERN.theme \
@@ -704,6 +704,7 @@ dir_links = \
   php/images/www.gnu.org.theme/roles \
   php/patch \
   php/support \
+  php/svn \
   php/task \
   site-specific/gnu-content \
   site-specific/nongnu-content \
