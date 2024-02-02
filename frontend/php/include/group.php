@@ -452,20 +452,9 @@ class Group extends savane_error
     return $this->CanUse ($artifact);
   }
 
-  function UsesForHomepage ($artifact)
+  function UsesForHomepage ($vcs)
   {
-    # Useful to determine whether the project is a specific artifact
-    # to manage its homepage:
-    #   - must use homepage
-    #   - must be set as homepage SCM for the group type
-    #   - the projet url must be empty or equal to the group setting
-    return
-      $this->Uses ("homepage")
-      && $this->type_data_array['homepage_scm'] == $artifact
-      && (
-           $this->data_array['url_homepage'] == $this->getTypeUrl ('homepage')
-           || $this->data_array['url_homepage'] == ""
-         );
+    return $this->Uses ("homepage") && $vcs == 'cvs';
   }
 
   # Related to mail notification.

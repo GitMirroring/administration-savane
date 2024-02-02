@@ -346,10 +346,7 @@ function pagemenu_vcs_web_browse_url ($group, $vcs)
 {
   if (!pagemenu_url_is_set ($group, "cvs_viewcvs_homepage"))
     return '';
-  if ($vcs == 'cvs')
-    $have_entry = $group->Uses ('homepage');
-  else
-    $have_entry = $group->UsesForHomepage ($vcs);
+  $have_entry = $group->UsesForHomepage ($vcs);
   if (!$have_entry)
     return '';
   return $group->getUrl ("cvs_viewcvs_homepage");

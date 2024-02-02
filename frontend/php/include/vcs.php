@@ -221,16 +221,15 @@ function vcs_print_links_to_repos ($group, $group_id, $vcs)
   $repo_list = vcs_get_repos ($vcs, $group_id);
   $have_links = $group->Uses ($vcs)
     && pagemenu_url_is_set ($group, "{$vcs}_viewcvs");
-  $have_web_links = $group->UsesForHomepage ($vcs)
-     && pagemenu_url_is_set ($group, "cvs_viewcvs_homepage");
-  if (!($have_links || $have_web_links))
+  $web_link = pagemenu_vcs_web_browse_url ($group, $vcs);
+  if (!($have_links || $web_link !== ''))
     return;
   vcs_print_browsing_preface (vcs_label ($vcs));
   print "<ul>\n";
   if ($have_links)
     vcs_print_source_repo_links ($group, $vcs, $repo_list);
-  if ($have_web_links)
-    print '<li><a href="' . $group->getUrl ("cvs_viewcvs_homepage") . '">'
+  if ($web_link !== '')
+    print "<li><a href=\"$web_link\">"
       . _("Browse Web Pages Repository") . "</a></li>\n";
   print "</ul>\n";
 }
