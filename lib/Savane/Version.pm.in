@@ -40,7 +40,7 @@
 
 # Report package version.
 
-use strict "vars";
+use strict;
 use Getopt::Long qw(GetOptionsFromArray);
 require Exporter;
 
@@ -113,7 +113,7 @@ sub PrintVersionOrHelp
   Getopt::Long::Configure ("no_pass_through");
   return unless $help || $version;
   $version = 0 if $help;
-  
+
   print "$_[0]\n\n" if $help;
   print "$0 is part of Savane.\n\n" if $version;
   print "Savane version: @VERSION@\n";
