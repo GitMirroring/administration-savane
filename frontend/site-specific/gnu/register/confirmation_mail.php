@@ -1,5 +1,5 @@
 <?php
-# Savannah - Project registration STEP 6 Confirmation mail
+# Project registration STEP 6 Confirmation mail
 #    Here, you can configure the mail sent to user and admins.
 #    BEWARE, this file's content must be PHP, with no syntax errors.
 #    Do not modify it until you really know what you're doing.
@@ -45,40 +45,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# we include this as function, it's easier to work with vars
-# in this way
-
 # This string is not localized because it's sent to admins.
-
 function confirmation_gen_email ($type_base_host, $user_realname, $user_email,
-   $type_admin_email_address, $form_license, $form_license_other, $form_full_name,
-   $unix_name, $type, $form_purpose, $form_required_sw, $form_comments) {
-   $message = sprintf (('
-A package was submitted to %s
-This mail was sent to %s
-
-
-%s described the package as follows:
-License:       %s
-Other License: %s
-Package:       %s
-System name:   %s
-Type:          %s
-
-Description:
-%s
-Other Software Required:
-%s
-
-Other Comments:
-%s'),
-       $type_base_host, $user_email.', '.$type_admin_email_address,
-       $user_realname.' <'.$user_email.'>',
-       $form_license, $form_license_other, $form_full_name,
-       $unix_name, $type, $form_purpose, $form_required_sw,
-       $form_comments);
+   $type_admin_email_address, $form_license, $form_license_other,
+   $form_full_name, $unix_name, $type, $form_purpose, $form_required_sw,
+   $form_comments)
+{
+   $message = sprintf (
+     no_i18n ("\nA package was submitted to %s\n"
+       . "This mail was sent to %s\n\n\n"
+       . "%s described the package as follows:\n"
+       . "License:       %s\n"
+       . "Other License: %s\n"
+       . "Package:       %s\n"
+       . "System name:   %s\n"
+       . "Type:          %s\n"
+       . "\n"
+       . "Description:\n"
+       . "%s\n"
+       . "Other Software Required:\n"
+       . "%s\n"
+       . "\n"
+       . "Other Comments:\n"
+       . "%s"),
+     $type_base_host, "$user_email, $type_admin_email_address",
+     "$user_realname <$user_email>",
+     $form_license, $form_license_other, $form_full_name,
+     $unix_name, $type, $form_purpose, $form_required_sw,
+     $form_comments);
    return $message;
 }
-
 ?>

@@ -1,5 +1,5 @@
 <?php
-# Savannah - Group registration STEP 0
+# Group registration STEP 0
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2003 Jaime E. Villate
@@ -44,64 +44,65 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 print '<p>';
-print _("Savannah is a hosting facility for the free software movement.  Our\n"
-  . "mission is to spread the freedom to copy and modify software.");
+print no_i18n ("Savannah is a hosting facility for the free software "
+  . "movement.  Our\nmission is to spread the freedom to copy and modify "
+  . "software.");
 
 print "</p>\n<p>";
 
 printf (
-  _("<strong>Important</strong>: check <a href=\"%s\">\n"
+  no_i18n ("<strong>Important</strong>: check <a href=\"%s\">\n"
     . "Group - How to get it approved quickly</a>."),
   '//savannah.gnu.org/maintenance/HowToGetYourProjectApprovedQuickly'
 );
 
 print "</p>\n<p>";
-print _("It contains a few advices to get your package compliant with\n"
+print no_i18n ("It contains a few advices to get your package compliant with\n"
   . "our hosting policies. Following them will considerably speed up the\n"
   . "registration process.");
 
 print "</p>\n<p>";
 
-print _("You are welcome to host your project in Savannah if it falls within "
-  . "one\nof these groups:");
+print no_i18n ("You are welcome to host your software in Savannah if it falls "
+  . "within one\nof these groups:");
 
 print "</p>\n";
 
 print "<dl>\n<dt>";
-print _('Free software');
+print no_i18n ('Free software');
 print "</dt>\n<dd>";
-print _("A free software package that can run on a completely free operating\n"
-  . "system, without depending on any nonfree software. You can only provide\n"
-  . "versions for nonfree operating systems if you also provide free\n"
-  . "operating systems versions with the same or more functionalities. Large\n"
-  . "software distributions are not allowed; they should be split into "
-  . "separate\nprojects.");
+print no_i18n ("A free software package that can run on a completely free "
+  . "operating\nsystem, without depending on any nonfree software. You can "
+  . "only provide\nversions for nonfree operating systems if you also "
+  . "provide free\noperating systems versions with the same or more "
+  . "functionalities. Large\nsoftware distributions are not allowed; they "
+  . "should be split into separate\npackages.");
 print "</dd>\n<dt>";
 
-print _('Free documentation');
+print no_i18n ('Free documentation');
 print "</dt>\n<dd>";
-print _("Documentation for free software, released under a free\n"
+print no_i18n ("Documentation for free software, released under a free\n"
   . "documentation license.");
 print "</dd>\n<dt>";
 
-print _('Free Educational Textbook Projects');
+print no_i18n ('Free Educational Textbook Projects');
 print "</dt>\n<dd>";
-print _("Projects aimed to create educational textbooks, released under "
-  . "a free\ndocumentation license.");
+print no_i18n ("Projects aimed to create educational textbooks, released "
+  . "under a free\ndocumentation license.");
 print "</dd>\n<dt>";
 
-print _('GNU and FSF groups');
+print no_i18n ('GNU and FSF groups');
 
 print "</dt>\n<dd>";
-print _("Specific groups requested by the FSF or the GNU Project.");
+print no_i18n ("Specific groups requested by the FSF or the GNU Project.");
 print "</dd>\n<dt>";
 
-print _('GNU/Linux User Groups (GUG)');
+print no_i18n ('GNU/Linux User Groups (GUG)');
 print "</dt>\n<dd>";
 
 # TRANSLATORS: the second argument is a link to a mailing list.
 printf (
-  _('Your group should be listed at <a href="%1$s">GNU user group '
+  no_i18n ('Your group should be listed at <a href="%1$s">GNU user group '
     . 'page</a>&mdash;contact %2$s for details.'),
   '//www.gnu.org/gnu/gnu-user-groups.html',
   '<a href="mailto:user-groups@gnu.org">user-groups@gnu.org</a>'
@@ -109,28 +110,28 @@ printf (
 print "</dd>\n</dl>";
 
 print '<p>';
-print _("In the following registration steps you will be asked\n"
+print no_i18n ("In the following registration steps you will be asked\n"
   . "to describe your package and choose a free license for it.");
 
 print "</p>\n<p>";
-printf (_("To keep compatibility among Savannah packages, we only accept\n"
-  . "free software licenses that are <a href=\"%s\">compatible\n"
+printf (no_i18n ("To keep compatibility among Savannah packages, we only "
+  . "accept\nfree software licenses that are <a href=\"%s\">compatible\n"
   . "with the GPL</a>."),
   '//www.gnu.org/philosophy/license-list.html#GPLCompatibleLicenses'
 );
 
 print "</p>\n<p>";
-print _("Keep in mind that your group is not approved automatically\n"
+print no_i18n ("Keep in mind that your group is not approved automatically\n"
   . "after you follow the registration steps; it will be evaluated\n"
   . "by Savannah administrators first."
 );
 
 print "</p>\n<p>";
-print _("Please fill in this submission form. Savannah administrators\n"
+print no_i18n ("Please fill in this submission form. Savannah administrators\n"
   . "will then review it for hosting compliance.");
 
 print "</p>\n<p><em>";
-printf (_("If you wish to submit your package for GNU evaluation,\n"
+printf (no_i18n ("If you wish to submit your package for GNU evaluation,\n"
   . "please check the <a href='%s'>GNU software evaluation</a> webpage\n"
   . "instead."),
   '//www.gnu.org/help/evaluation.html');

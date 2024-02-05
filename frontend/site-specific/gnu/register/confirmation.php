@@ -1,5 +1,5 @@
 <?php
-# Savannah - Project registration STEP 6 Confirmation
+# Project registration STEP 6 Confirmation
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2003 Jaime E. Villate
@@ -42,15 +42,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-print '<h2>'._('Registration Complete!').'</h2>
-<p>';
+print html_h (2, _('Registration Complete!')) . '<p>';
 print
-_('Your project has been submitted and is waiting to be reviewed by a
-Savannah administrator. You will shortly receive a mail message telling you whether
-your project has been approved, or you have to do some changes before it is
-approved.').'
-</p>
-';
-print "<hr />\n";
-
+  no_i18n ("Your project has been submitted and is waiting to be reviewed by "
+    . "a\nSavannah administrator. You will shortly receive a mail message "
+    . "telling you whether\nyour project has been approved, or you have to "
+    . "do some changes before it is\napproved.");
+print "</p>\n<hr />\n";
 ?>
