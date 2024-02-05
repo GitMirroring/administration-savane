@@ -50,19 +50,6 @@ print no_i18n ("Savannah is a hosting facility for the free software "
 
 print "</p>\n<p>";
 
-printf (
-  no_i18n ("<strong>Important</strong>: check <a href=\"%s\">\n"
-    . "Group - How to get it approved quickly</a>."),
-  '//savannah.gnu.org/maintenance/HowToGetYourProjectApprovedQuickly'
-);
-
-print "</p>\n<p>";
-print no_i18n ("It contains a few advices to get your package compliant with\n"
-  . "our hosting policies. Following them will considerably speed up the\n"
-  . "registration process.");
-
-print "</p>\n<p>";
-
 print no_i18n ("You are welcome to host your software in Savannah if it falls "
   . "within one\nof these groups:");
 
@@ -75,7 +62,7 @@ print no_i18n ("A free software package that can run on a completely free "
   . "operating\nsystem, without depending on any nonfree software. You can "
   . "only provide\nversions for nonfree operating systems if you also "
   . "provide free\noperating systems versions with the same or more "
-  . "functionalities. Large\nsoftware distributions are not allowed; they "
+  . "functionalities.  Large\nsoftware distributions are not allowed; they "
   . "should be split into separate\npackages.");
 print "</dd>\n<dt>";
 
@@ -135,5 +122,24 @@ printf (no_i18n ("If you wish to submit your package for GNU evaluation,\n"
   . "please check the <a href='%s'>GNU software evaluation</a> webpage\n"
   . "instead."),
   '//www.gnu.org/help/evaluation.html');
-print "</em></p>\n";
+print "</em></p>\n<p>";
+
+print no_i18n (
+  "<strong>These days, 90% submissions are cancelled.</strong>"
+);
+
+print "\n";
+
+printf (
+  no_i18n ("Please check <a href=\"%s\">"
+    . "Group - How to get it approved quickly</a>."),
+  '//savannah.gnu.org/maintenance/HowToGetYourProjectApprovedQuickly'
+);
+
+print "\n";
+print no_i18n ("It contains a few advices to get your package compliant with\n"
+  . "our hosting policies.  Following them will greatly improve the chances\n"
+  . "for approval.");
+
+print "</p>\n";
 ?>
