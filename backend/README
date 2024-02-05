@@ -47,6 +47,11 @@ accounts/sv_membersh
 Restricted shell provided to Savane users who connect through SSH.
 Used on download0, vcs0, vcs1, vcs2.
 
+external/mirror-redirect
+========================
+
+A URL mirror redirector for "download" and "ftpmirror" servers.
+
 extra/git/sv_cgit_about_filter.pl
 =================================
 

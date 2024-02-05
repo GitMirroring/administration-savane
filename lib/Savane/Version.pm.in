@@ -77,7 +77,7 @@ sub print_license_notice
 {
   my $fh = shift;
   my $line;
-  $line = <$fh>;
+  $line = <$fh>; # Skip "This file is " (or "isn't") " part of Savane".
   while ($line = <$fh>)
     {
       last if $line eq "\n";

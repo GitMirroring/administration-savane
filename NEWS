@@ -132,6 +132,9 @@
 * Script to run git-gc for every repository, rewritten in Perl
   and added to Savane.
 
+* New CGI script for download (GPLv3-or-later, not part of Savane,
+  but used with it), mirror-redirect.
+
 * New scripts from download, sv_gnu-mirmon, sv_mirmon-to-geoip.
 
 * Bug fixes:

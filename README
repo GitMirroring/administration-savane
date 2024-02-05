@@ -118,6 +118,7 @@ Run Time
 ** Mail::Send (libmailtools-perl in Trisquel)
 ** Date::Calc (libdate-calc-perl in Trisquel)
 ** Digest::MD5 (in an unmaintained test suite)
+** Geo::Mirror (absent in current Trisquel)
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
 * MySQL or MariaDB
