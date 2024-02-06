@@ -24,19 +24,23 @@ use Geo::IP;
 use Geo::Mirror;
 use Savane::Version;
 
-my $help =
-'Usage: $0 [OPTIONS]
+my $geoip_db = '/usr/share/GeoIP/GeoIP.dat';
 
-A URL Mirror redirector for GNU Savannah "dl" and "ftpmirror" servers.
+my $help =
+"Usage: $0 [OPTIONS]
+
+A URL Mirror redirector for GNU Savannah \"dl\" and \"ftpmirror\" servers.
 
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
 
   Environment variables
 
+GEOIP_DB: path to GeoIP.dat ('$geoip_db' by default);
+
 MIRROR_FILE: the mirror list to use.
   Suggested values:
-  For mirroring \'dl.sv.gnu.org\': /opt/mirror-lists/dl-mirrors.txt
+  For mirroring 'dl.sv.gnu.org': /opt/mirror-lists/dl-mirrors.txt
   For mirroring ftpmirror.gnu.org: /opt/mirror-lists/gnu-ftpmirrors.txt
 
 PATH_INFO: the relative path of the requested file from the topmost directory.
@@ -57,19 +61,19 @@ From NGINX:
 
     location /releases-redirect {
         gzip off;
-        fastcgi_split_path_info            ^(/releases-redirect)(/?.+)$;
-        fastcgi_param PATH_INFO            $fastcgi_path_info;
+        fastcgi_split_path_info            ^(/releases-redirect)(/?.+)\$;
+        fastcgi_param PATH_INFO            \$fastcgi_path_info;
         fastcgi_param MIRROR_FILE          /opt/mirror-lists/dl-mirrors.txt;
         fastcgi_param SCRIPT_FILENAME      /opt/cgi-bin/mirror-redirect;
 
         include fastcgi_params;
         fastcgi_pass unix:/var/run/fcgiwrap.socket;
-    }';
+    }";
 
 PrintVersionOrHelp ($help, 1);
 
+$geoip_db = $ENV{'GEOIP_DB'} if $ENV{'GEOIP_DB'};
 # Ensure GeoIP Database is installed.
-my $geoip_db = "/usr/share/GeoIP/GeoIP.dat";
 die "configuration error: file '$geoip_db' not found"
   unless -e "$geoip_db";
 
