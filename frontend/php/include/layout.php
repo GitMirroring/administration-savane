@@ -5,14 +5,11 @@
 # Copyright (C) 2000-2006 Derek Feichtinger <derek.feichtinger--cern.ch>
 # Copyright (C) 2000-2006 Free Software Foundation, Inc.
 # Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2004-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2000-2006 Stéphane Urbanovski <s.urbanovski--ac-nancy-metz.fr>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2013, 2014, 2017-2024 Ineiev
-#
-# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
-# Copyright (C) 2004-2006 Yves Perrin <yves.perrin--cern.ch>
-# Copyright (C) 2017, 2018, 2019, 2023 Ineiev
 #
 # This file is part of Savane.
 #
