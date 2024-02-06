@@ -53,7 +53,7 @@ my $min_uidNumber = 5000;
 my $min_gidNumber = 5000;
 
 my $help =
-"Usage: $0 [group] [OPTIONS]
+"Usage: $0 [OPTIONS]
 
 Assign uidNumber for users and gidNumber for groups.
 
