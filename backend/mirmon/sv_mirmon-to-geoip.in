@@ -1,0 +1,128 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Update active mirror lists for mirror multiplexor.
+#
+# Based on public domain script originally written by Karl Berry.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler <beuc--beuc.net>
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Use mirmon state (first arg) to filter a list of hosts (second arg)
+# to write another list of hosts (third arg) with the stale hosts removed.
+#
+# This is the common script called to make the host lists
+# for all three multiplexors.
+#
+# See http://savannah.gnu.org/maintenance/Mirroring.
+
+use strict;
+use warnings;
+use Savane::Version;
+
+my $help_msg =
+"Usage: $0 [OPTIONS] STATE MIRRORS HTTP_LIST HTTPS_LIST
+
+Update active mirror lists for mirror multiplexor.
+
+Run indirectly from dl:/etc/cron.d/sv-mirmon.
+See https://savannah.gnu.org/maintenance/Mirroring.
+
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+
+Other arguments list paths to the files,
+
+STATE:      mirmon state (input)
+MIRRORS:    list of all mirrors (input)
+HTTP_LIST:  active HTTP mirrors (output)
+HTTPS_LIST: active HTTP mirrors (output)";
+
+PrintVersionOrHelp ($help_msg);
+
+die qq{Too few command line arguments\n} unless $#ARGV < 3;
+
+my ($mirror_state, $mirror_list, $active_http, $active_https) = @ARGV;
+
+my $sites;
+my $ok = 60 * 60 * 30;  # Older than this, skip it.
+my $time = time;
+open (my $state, "<$mirror_state") or die qq{Cannot open $mirror_state: $!};
+while (my $line = <$state>)
+  {
+    chomp $line;
+    my @a = split(' ', $line);
+    next unless ($a[1] =~ /^[0-9.]*$/);
+    my $diff = $time - $a[1];
+    next unless ($ok - $diff > 0);
+    $sites->{$a[0]}++;
+  }
+close ($state);
+
+open (my $list, "<$mirror_list")
+  or die qq{Cannot open $mirror_list: $!};
+while (my $line = <$list>)
+  {
+    next if $line =~ /^#/;
+    chomp $line;
+    my ($country, $url) = split (' ', $line);
+
+    next if $country =~ /partial/i;
+    next unless $url =~ /^http/;
+    $sites->{$url} = $country if (defined $sites->{$url});
+  }
+close ($list);
+
+open (my $txt_http, ">$active_http")
+  or die qq{Cannot open $active_http for writing: $!};
+open (my $txt_https, ">$active_https")
+  or die qq{Cannot open $active_https for writing: $!};
+foreach my $key(keys %$sites)
+  {
+    (my $site = $key) =~ s/\/$//;
+    my $country_code = $sites->{$key};
+    $site .= '/' unless $site =~ /\/$/;
+    next unless $country_code =~ /^[a-z]+$/;
+    my $out = $txt_http;
+    $out = $txt_https if ($site =~ /^https/);
+    print $out "$site $country_code\n";
+  }
+close ($txt_http) or die qq{close(>$active_http) failed: $!};
+close ($txt_https) or die qq{close(>$active_https) failed: $!};
+
+exit (0);

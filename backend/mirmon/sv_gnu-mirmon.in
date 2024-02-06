@@ -1,0 +1,195 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Extract mirror lists from https://www.gnu.org/prep/FTP.
+# Based on public domain script originally written by Karl Berry.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler <beuc--beuc.net>
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Run from dl:/etc/cron.d/sv-mirmon.
+# See https://savannah.gnu.org/maintenance/Mirroring.
+#
+# Convert the plain text FTP file listing ftp.gnu.org mirrors into
+# mirmon format.  Extract either just the http mirrors (used for
+# the automatic redirect at ftpmirror.gnu.org) or all the
+# mirrors (used by humans for checking).
+#
+# Output is to the second cmdline argument.  stdout isn't good because
+# we don't want to blindly overwrite a good file if something goes wrong.
+
+use LWP::Simple;
+use Locale::Country;
+use Getopt::Long;
+use Savane::Version;
+
+sub get_loc_and_urls
+{
+  my ($line, $http_only) = @_;
+  my ($loc, $url);
+  # The lines we care about look like:
+  #   LOCATION - URL[, URL]...
+  return ('', '')
+    unless $line =~ m,^(.*?) - (.*://.*)$,;  # Non-greedy just in case.
+
+  ($loc, $urls) = ($1, $2);
+  # Additional marks at the end of location like [cn, js]:
+  # when using for redirections, such mirrors are skipped,
+  # in the --all mode, the marks are ignored.
+  if ($loc =~ m/(.*) \[.*\]$/)
+    {
+      return ('', '') if $http_only;
+      $loc = $1;
+    }
+  $urls =~ s,\(.*\)*,,;  # Eliminate random text in parens.
+
+  # The location might have a subpart, as in US-Oregon; drop that.
+  $loc =~ s/-.*//;
+  return ($loc, $urls);
+}
+
+sub get_country_code
+{
+  my $loc = shift;
+  my $country_code = Locale::Country::country2code ($loc);
+  warn "no country code for $loc (from line: $line)" unless $country_code;
+  return $country_code;
+}
+
+sub add_country_name
+{
+  my ($code, $alias) = @_;
+  my $name = Locale::Country::code2country ($code);
+  Locale::Country::add_country_alias ($name, $alias);
+}
+
+sub split_urls
+{
+  my ($u, $country_code, $http_only) = @_;
+  # Drop leading and trailing whitespace, better not be any more.
+  $u =~ s,^\s*,,;
+  $u =~ s,\s*$,,;
+  if ($u =~ /\s/)
+    {
+      warn "URL contains whitespace character: $u";
+      return '';
+    }
+  # Need trailing / (mirmon adds it anyway).
+  $u .= "/" unless $u =~ m,/$,;
+  return '' unless ($u =~ /^http/ || !$http_only);;
+  return "$country_code $u\n";
+}
+
+my $all = '';
+my $http_only = '';
+my $origin = 'https://www.gnu.org/prep/FTP';
+my $help_msg =
+"Usage: $0 [OPTIONS] DEST-FILE
+
+Extract mirror lists from $origin.
+Run from dl:/etc/cron.d/sv-mirmon.
+See https://savannah.gnu.org/maintenance/Mirroring.
+
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+      --http-only      only extract HTTP and HTTPS URLs
+      --all            extract all URLs, including FTP and RSYNC
+      --prep-ftp       URL of the source [$origin]";
+
+PrintVersionOrHelp ($help_msg);
+
+GetOptions (
+  "all" => \$all, "http-only" => \$http_only, 'prep-ftp=s' => \$origin
+) or die "Wrong command line.\n";
+
+die "Destination file is unspecified.\n" if $#ARGV < 0;
+die ("Specify --all or --http-only.\n") unless ($all || $http_only);
+# $all is mutually exclusive with $http_only and is ignored further.
+
+my $dest = $ARGV[0];
+open (DEST, ">$dest") || die ("open(>$dest) failed: $!");
+
+my $origlist = LWP::Simple::get ($origin);
+die 'GNU mirror list unavailable' unless $origlist;
+my @ret = ();
+
+# Zap everything up to the start of the mirror list.
+# Try to check for the substitutions failing,
+# since if we don't eliminate the header/trailer text,
+# nothing good can result.
+my $srclist = $origlist;
+$srclist =~ s,.*\n\* GNU mirror list\n,,s;
+die "no \"* GNU mirror list\", source text changed? (in $srclist)"
+  unless $srclist ne $origlist;
+
+# And everything after the end.
+$origlist = $srclist;
+$srclist =~ s,\n\* Add your mirror.*$,,s;
+die "no \"* Add your mirror\", source text changed? (in $srclist)"
+  unless $srclist ne $origlist;
+
+# We want UK to work, not just Great Britain.
+add_country_name ('gb', 'UK');
+# Use 'uk' for that country.
+Locale::Country::rename_country_code ('gb', 'uk');
+# Cases we've noticed where the function fails; extend as needed.
+add_country_name ('us', "US");
+add_country_name ('kr', "Korea");
+add_country_name ('rs', "Serbia");
+add_country_name ('ru', "Russia");
+
+# In the main mirror list.
+for my $line (split ("\n", $srclist))
+  {
+    my ($loc, $urls) = get_loc_and_urls ($line, $http_only);
+    next if $loc eq '';
+    my $country_code = get_country_code ($loc);
+
+    for my $u (split (/, */, $urls))
+      {
+        $u = split_urls ($u, $country_code, $http_only);
+        push (@ret, $u) unless $u eq '';
+      }
+  } # for my $line (split ("\n", $srclist))
+die "found no mirmon entries?! (from $origlist)" unless @ret;
+
+# Order doesn't matter to mirmon, so write it as we read it.
+print DEST @ret;
+close (DEST) || die ("close(>$dest) failed $!");
+
+exit (0);

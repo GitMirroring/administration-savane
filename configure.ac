@@ -142,6 +142,14 @@ AC_MSG_RESULT([$enable_frontend])
 AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
+AC_MSG_CHECKING([whether to install mirror scripts])
+AC_ARG_ENABLE([mirror],
+  [AS_HELP_STRING([--enable-mirror], [install scripts])],
+  [], [enable_mirror=no])
+AS_CASE(["x$enable_mirror"], [xyes], [], [enable_mirror=no])
+AC_MSG_RESULT([$enable_mirror])
+AM_CONDITIONAL([HAVE_MIRROR], [test "x$enable_mirror" = xyes])
+
 AC_MSG_CHECKING([for Git commit])
 SV_GIT_COMMIT=`"$SED" 's,^commit ,,;q' $srcdir/ChangeLog`
 commit_source='guessed from ChangeLog'
@@ -275,10 +283,12 @@ AS_ECHO(["Database port: $db_port"])
 AS_ECHO(["Run database over network: $enable_db_networking"])
 AS_ECHO(["Install frontend (PHP) part: $enable_frontend"])
 AS_ECHO(["Install database: $enable_database"])
+AS_ECHO(["Install miror scripts: $enable_mirror"])
 AS_ECHO(["Update ChangeLog from git: $enable_changelog"])
 AS_CASE(["x$SV_DB_OPTIONS"], [x], [],
   [AS_ECHO(["Database options: $SV_DB_OPTIONS"])]
 )
+AS_ECHO([])
 
 AS_IF([test "$WWW_SERVER_PORT" -lt 1024],
   [

@@ -132,6 +132,8 @@
 * Script to run git-gc for every repository, rewritten in Perl
   and added to Savane.
 
+* New scripts from download, sv_gnu-mirmon, sv_mirmon-to-geoip.
+
 * Bug fixes:
 
 ** sv_membersh didn't offer the corresponding source code.

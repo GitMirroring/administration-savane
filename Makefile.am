@@ -8,6 +8,10 @@ ACLOCAL_AMFLAGS = -I autotools/m4
 # The list of subdirectories containing Makefiles.
 SUBDIRS = . frontend po
 
+if HAVE_MIRROR
+mirmon_bin = backend/mirmon/sv_gnu-mirmon backend/mirmon/sv_mirmon-to-geoip
+endif
+
 backend_bin_scripts = \
   backend/accounts/sv_assign_uid_gid \
   backend/accounts/sv_get_authorized_keys \
@@ -20,7 +24,8 @@ backend_bin_scripts = \
   backend/mail/sv_mailman-wrapper.pl \
   backend/mail/sv_sendmail.pl \
   backend/misc/sv_cleaner \
-  backend/misc/sv_reminder
+  backend/misc/sv_reminder \
+  $(mirmon_bin)
 
 frontend_sbin = sv_frontendctl.pl sv_php_server.pl
 frontend_php_built = frontend/php/include/ac_config.php frontend/local.php
@@ -39,7 +44,7 @@ conf_files = apache.conf savane.conf.pl membersh-conf.pl php.ini \
   savane.conf.php cgitrepos
 
 directories = backend/accounts backend/sbin backend/extra/git backend/mail \
-  backend/misc db sysconf lib/Savane frontend/php/include
+  backend/misc backend/mirmon db sysconf lib/Savane frontend/php/include
 
 modules = \
   lib/Savane.pm \
