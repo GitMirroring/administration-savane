@@ -9,7 +9,7 @@ ACLOCAL_AMFLAGS = -I autotools/m4
 SUBDIRS = . frontend po
 
 if HAVE_MIRROR
-mirmon_bin = backend/mirmon/sv_gnu-mirmon backend/mirmon/sv_mirmon-to-geoip
+mirmon_bin = backend/misc/sv_gnu-mirmon backend/misc/sv_mirmon-to-geoip
 endif
 
 backend_bin_scripts = \
@@ -44,7 +44,7 @@ conf_files = apache.conf savane.conf.pl membersh-conf.pl php.ini \
   savane.conf.php cgitrepos
 
 directories = backend/accounts backend/sbin backend/extra/git backend/mail \
-  backend/misc backend/mirmon db sysconf lib/Savane frontend/php/include
+  backend/misc db sysconf lib/Savane frontend/php/include
 
 modules = \
   lib/Savane.pm \

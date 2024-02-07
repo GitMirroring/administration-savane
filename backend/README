@@ -76,6 +76,18 @@ misc/sv_cleaner
 Removes parts of the database that belong to removed entities.
 Runs twice an hour on mgt0.
 
+misc/sv_gnu-mirmon
+==================
+
+Extracts miror lists from www.gnu.org/prep/FTP.
+Runs from dl:/etc/cron.d/sv-mirmon.
+
+misc/sv_mirmon-to-geoip
+=======================
+
+Updates active mirror lists for mirror multiplexer.
+Runs indirectly from dl:/etc/cron.d/sv-mirmon.
+
 misc/sv_reminder
 ================
 

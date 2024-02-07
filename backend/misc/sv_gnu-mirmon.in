@@ -85,15 +85,19 @@ sub get_loc_and_urls
 
 sub get_country_code
 {
-  my $loc = shift;
+  my ($loc, $line) = @_;
+  # Locale::Codes 3.25 coming with Trisquel 7.0 doesn't let the 'Russia' alias
+  # register saying it's already in use, but country2code returns undef for it.
+  return 'ru' if lc ($loc) eq 'russia';
   my $country_code = Locale::Country::country2code ($loc);
-  warn "no country code for $loc (from line: $line)" unless $country_code;
+  warn "no country code for '$loc' (line $line)" unless defined $country_code;
   return $country_code;
 }
 
 sub add_country_name
 {
   my ($code, $alias) = @_;
+  return if Locale::Country::country2code ($alias);
   my $name = Locale::Country::code2country ($code);
   Locale::Country::add_country_alias ($name, $alias);
 }
@@ -171,14 +175,15 @@ Locale::Country::rename_country_code ('gb', 'uk');
 add_country_name ('us', "US");
 add_country_name ('kr', "Korea");
 add_country_name ('rs', "Serbia");
-add_country_name ('ru', "Russia");
 
+my $line_no = 0;
 # In the main mirror list.
 for my $line (split ("\n", $srclist))
   {
+    $line_no++;
     my ($loc, $urls) = get_loc_and_urls ($line, $http_only);
     next if $loc eq '';
-    my $country_code = get_country_code ($loc);
+    my $country_code = get_country_code ($loc, "$line_no: $line");
 
     for my $u (split (/, */, $urls))
       {
