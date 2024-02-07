@@ -161,12 +161,6 @@ $srclist =~ s,.*\n\* GNU mirror list\n,,s;
 die "no \"* GNU mirror list\", source text changed? (in $srclist)"
   unless $srclist ne $origlist;
 
-# And everything after the end.
-$origlist = $srclist;
-$srclist =~ s,\n\* Add your mirror.*$,,s;
-die "no \"* Add your mirror\", source text changed? (in $srclist)"
-  unless $srclist ne $origlist;
-
 # We want UK to work, not just Great Britain.
 add_country_name ('gb', 'UK');
 # Use 'uk' for that country.
@@ -191,7 +185,7 @@ for my $line (split ("\n", $srclist))
         push (@ret, $u) unless $u eq '';
       }
   } # for my $line (split ("\n", $srclist))
-die "found no mirmon entries?! (from $origlist)" unless @ret;
+die "found no mirmon entries?! (from $srclist)" unless @ret;
 
 # Order doesn't matter to mirmon, so write it as we read it.
 print DEST @ret;
