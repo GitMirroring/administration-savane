@@ -137,6 +137,9 @@
 
 * New scripts from download, sv_gnu-mirmon, sv_mirmon-to-geoip.
 
+* New script to reduce size of city database coming from GeoNames,
+  sv_city-filter.
+
 * Bug fixes:
 
 ** sv_membersh didn't offer the corresponding source code.

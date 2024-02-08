@@ -1,0 +1,26 @@
+Copyright (C) 2024 Ineiev
+
+This file is part of Savane.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+
+All other files in this directory are not part of Savane.
+
+* mirror-redirect is exempt from Savane because of technical reasons:
+  the protocol it uses has no reasonable option to prominently offer
+  the interacting user its source code, so it's released under the GPL
+   rather than the AGPL.
+
+* cities15000 and its source file cities15000.txt come from GeoNames
+  and are distributed under the CC BY-4.0; it's used as the input
+  for the script preparing mirror lists, so there is no reason
+  to apply other additional licenses to it, that would only add
+  unneeded complexity. cities15000.txt is effectively taken from GeoNames,
+  cities15000 is generated from it.
+
+* CC0 and CC_BY-4.0 are copies of Creative Commons licenses.
+  CC_BY-4.0 is the license for GeoNames data, CC0 is the license
+  for CC_BY-4.0 and CC0 itself.

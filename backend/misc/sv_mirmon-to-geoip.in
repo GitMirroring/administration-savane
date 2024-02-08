@@ -53,18 +53,25 @@
 
 use strict;
 use warnings;
+use Getopt::Long;
+use File::Copy;
+use File::Temp qw(tempfile);
 use Savane::Version;
+
+my $geonames = '@pkgdatadir@/backend/external/cities15000';
 
 my $help_msg =
 "Usage: $0 [OPTIONS] STATE MIRRORS HTTP_LIST HTTPS_LIST
 
-Update active mirror lists for mirror multiplexor.
+Update active mirror lists for mirror multiplexer.
 
 Run indirectly from dl:/etc/cron.d/sv-mirmon.
 See https://savannah.gnu.org/maintenance/Mirroring.
 
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
+      --geonames       path to GeoNames city list [$geonames]
+      --ignore-state   accept any mirrors listed in STATE
 
 Other arguments list paths to the files,
 
@@ -75,54 +82,228 @@ HTTPS_LIST: active HTTP mirrors (output)";
 
 PrintVersionOrHelp ($help_msg);
 
-die qq{Too few command line arguments\n} unless $#ARGV < 3;
+my $ignore_state;
 
-my ($mirror_state, $mirror_list, $active_http, $active_https) = @ARGV;
+GetOptions ('geonames=s' => \$geonames, 'ignore-state' => \$ignore_state)
+  or die ("Wrong command line.\n");
 
-my $sites;
+die qq{Too few command line arguments $#ARGV\n} if $#ARGV < 3;
+my @schemes = ('http', 'https');
+
+my ($mirror_state, $mirror_list, $active);
+$mirror_state = shift @ARGV;
+$mirror_list = shift @ARGV;
+foreach my $sch (@schemes)
+  {
+    $active->{$sch} = shift @ARGV;
+  }
+
+# Data loaded from GeoNames list.
+my ($xc, $yc, $zc);   # Cartezian coordinates on a unit sphere.
+my ($pop, $cnt);      # Population, number of records processed.
+my @known_codes = ();
+
+my $sites;            # URLs of active mirrors.
+my $countries;        # Countries having any active mirrors.
+
 my $ok = 60 * 60 * 30;  # Older than this, skip it.
 my $time = time;
-open (my $state, "<$mirror_state") or die qq{Cannot open $mirror_state: $!};
-while (my $line = <$state>)
-  {
-    chomp $line;
-    my @a = split(' ', $line);
-    next unless ($a[1] =~ /^[0-9.]*$/);
-    my $diff = $time - $a[1];
-    next unless ($ok - $diff > 0);
-    $sites->{$a[0]}++;
-  }
-close ($state);
+my $pi_180 = (atan2 (1, 1) * 4) / 180;
 
-open (my $list, "<$mirror_list")
-  or die qq{Cannot open $mirror_list: $!};
-while (my $line = <$list>)
-  {
-    next if $line =~ /^#/;
-    chomp $line;
-    my ($country, $url) = split (' ', $line);
+sub lat_lon_to_xyz
+{
+  my ($lat, $lon) = @_;
+  my ($x, $y, $z);
+  $lat *= $pi_180;
+  $lon *= $pi_180;
+  $z = sin ($lat);
+  $x = sin ($lon) * cos ($lat);
+  $y = cos ($lon) * cos ($lat);
+  return ($x, $y, $z);
+}
 
-    next if $country =~ /partial/i;
-    next unless $url =~ /^http/;
-    $sites->{$url} = $country if (defined $sites->{$url});
-  }
-close ($list);
+sub skip_unused_fields
+{
+  my $full_record = $#_ > 5;
+  return ($_[4], $_[5], $_[8], $_[14]) if ($full_record);
+  chomp $_[3];
+  return @_;
+}
 
-open (my $txt_http, ">$active_http")
-  or die qq{Cannot open $active_http for writing: $!};
-open (my $txt_https, ">$active_https")
-  or die qq{Cannot open $active_https for writing: $!};
-foreach my $key(keys %$sites)
+sub parse_geoname_record
+{
+  my @ret = skip_unused_fields (@_);
+  my $population = pop @ret;
+  my $cc = pop @ret;
+  push @ret, lc ($cc);
+  $population = 1 unless $population > 1;
+  push @ret, $population;
+  return @ret;
+}
+
+sub assign_geoname
+{
+  my ($lat, $lon, $cc, $po) = parse_geoname_record (split /\t/, $_[0]);
+  my ($x, $y, $z) = lat_lon_to_xyz ($lat, $lon);
+  $xc->{$cc} += $x * $po;
+  $yc->{$cc} += $y * $po;
+  $zc->{$cc} += $z * $po;
+  $pop->{$cc} += $po;
+  $cnt->{$cc}++;
+}
+
+sub normalize_xyz
+{
+  foreach my $cc (@known_codes)
+    {
+      my $r = $xc->{$cc} * $xc->{$cc} + $yc->{$cc} * $yc->{$cc}
+        + $zc->{$cc} * $zc->{$cc};
+      $r = sqrt ($r);
+      $xc->{$cc} /= $r;
+      $yc->{$cc} /= $r;
+      $zc->{$cc} /= $r;
+    }
+}
+
+sub load_geonames
+{
+  my $path = shift;
+  open (my $names, "<$path") or die qq{Cannot open $path: $!};
+  while (<$names>)
+    {
+      next if /^\s*#/;
+      assign_geoname ($_);
+    }
+  close ($path);
+  die qq{City list $path seems empty\n} unless defined $pop;
+  @known_codes = sort (keys %$pop);
+  normalize_xyz ();
+}
+
+sub add_geoname_alias
+{
+  my ($old, $new) = @_;
+  $xc->{$new} = $xc->{$old};
+  $yc->{$new} = $yc->{$old};
+  $zc->{$new} = $zc->{$old};
+  $pop->{$new} = $pop->{$old};
+  $cnt->{$new} = $cnt->{$old};
+}
+
+sub load_mirmon_state
+{
+  my $path = shift;
+  open (my $state, "<$path") or die qq{Cannot open $path: $!};
+  while (my $line = <$state>)
+    {
+      chomp $line;
+      my @a = split (' ', $line);
+      next unless ($a[1] =~ /^[0-9.]*$/);
+      my $diff = $time - $a[1];
+      next if (($ok - $diff < 0) && !$ignore_state);
+      next unless $a[0] =~ m,^(https?)://,;
+      $sites->{$1}->{$a[0]}++;
+    }
+  close ($state);
+  foreach my $sch (@schemes)
+    {
+      die "No active " . uc ($sch) . " mirrors found in $path.\n"
+        unless defined $sites->{$sch};
+    }
+}
+
+sub load_mirror_entry
+{
+  my ($line, $line_no) = @_;
+  return if $line =~ /^#/;
+  chomp $line;
+  my ($country, $url) = split (' ', $line);
+  unless (defined $pop->{$country})
+    {
+      warn "Country $country unknown";
+      return;
+    }
+  return if $country =~ /partial/i;
+  return unless $url =~ /^(https?)/;
+  return unless defined $sites->{$1}->{$url};
+  $sites->{$1}->{$url} = $country;
+  $countries->{$1}->{$country} = $country;
+}
+
+sub load_mirror_list
+{
+  my $path = shift;
+  my $line_no = 0;
+  my $line;
+  open (my $list, "<$path") or die qq{Cannot open $path: $!};
+  load_mirror_entry ($line, $line_no++) while ($line = <$list>);
+  close ($list);
+  foreach my $sch (@schemes)
+    {
+      die uc ($sch) . " mirror list $path seems empty\n"
+        unless defined $countries->{$sch};
+    }
+}
+
+# The metric isn't exactly Euclidian on the geoid, but it must do for us.
+sub country_distance
+{
+  my ($c0, $c1) = @_;
+  my ($dx, $dy, $dz);
+  $dx = $xc->{$c0} - $xc->{$c1};
+  $dy = $yc->{$c0} - $yc->{$c1};
+  $dz = $zc->{$c0} - $zc->{$c1};
+  return $dx * $dx + $dy * $dy + $dz * $dz;
+}
+
+sub find_source_country
+{
+  my ($code, $sch) = @_;
+  return $code if defined $countries->{$sch}->{$code};
+  my ($min_dist, $min_code);
+  foreach my $c (keys %{$countries->{$sch}})
+    {
+      my $dist = country_distance ($code, $c);
+      next if (defined $min_code && $min_dist < $dist);
+      $min_dist = $dist;
+      $min_code = $c;
+    }
+  return $min_code;
+}
+
+sub output_mirrors
+{
+  my ($sch, $path) = @_;
+  my $source_countries;
+  my ($tmp_h, $tmp_name) = tempfile (UNLINK => 1);
+  foreach my $code (@known_codes)
+    {
+      $source_countries->{$code} = find_source_country ($code, $sch);
+    }
+  foreach my $site (keys %{$sites->{$sch}})
+    {
+      my $country_code = $sites->{$sch}->{$site};
+      next unless $country_code =~ /^[a-z]+$/;
+      $site =~ s,/*$,/,;
+      print $tmp_h "$site $country_code\n";
+    }
+  foreach my $cc (@known_codes)
+    {
+      print $tmp_h "$cc\t$source_countries->{$cc}\n";
+    }
+  close ($tmp_h);
+  system ("chmod", "a+r", $tmp_name);
+  move ($tmp_name, $path) or die qq{Cannot open $path for writing: $!};
+}
+
+load_geonames ($geonames);
+add_geoname_alias ('gb', 'uk');
+
+load_mirmon_state ($mirror_state);
+load_mirror_list ($mirror_list);
+foreach my $sch (@schemes)
   {
-    (my $site = $key) =~ s/\/$//;
-    my $country_code = $sites->{$key};
-    $site .= '/' unless $site =~ /\/$/;
-    next unless $country_code =~ /^[a-z]+$/;
-    my $out = $txt_http;
-    $out = $txt_https if ($site =~ /^https/);
-    print $out "$site $country_code\n";
+    output_mirrors ($sch, $active->{$sch});
   }
-close ($txt_http) or die qq{close(>$active_http) failed: $!};
-close ($txt_https) or die qq{close(>$active_https) failed: $!};
 
 exit (0);

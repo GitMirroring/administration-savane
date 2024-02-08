@@ -1,0 +1,95 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Exclude excessive info from GeoNames cities15000.txt to reduce size.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler <beuc--beuc.net>
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use Getopt::Long;
+use Savane::Version;
+
+my $max_cities = 51;
+
+my $help_msg =
+"Usage: $0 [OPTIONS] < cities15000.txt > cities15000
+
+Exclude excessive info from GeoNames cities15000.txt to reduce size.
+
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+      --max-cities     maximum number of cities per country [$max_cities]";
+
+PrintVersionOrHelp ($help_msg);
+
+GetOptions ("max-cities=i" => \$max_cities) or die ("Wrong command line.\n");
+
+my $out_lines;
+my $population;
+
+while (<>)
+  {
+    if (/^\s*#/)
+      {
+        print;
+        next;
+      }
+    chomp;
+    my @a = split /\t/;
+    # Cut lat and lon precision to 1/100 degree.
+    $a[4] =~ s,(\...).*,$1,;
+    $a[5] =~ s,(\...).*,$1,;
+    $out_lines->{$a[8]}->{$a[0]} = "$a[4]\t$a[5]\t$a[8]\t$a[14]\n";
+    $population->{$a[8]}->{$a[0]} = $a[14];
+  }
+
+my @codes = sort keys %{$out_lines};
+
+foreach my $cc (@codes)
+  {
+    my %cities = %{$population->{$cc}};
+    my @entries = sort { $cities{$a} <=> $cities{$b} } keys %cities;
+    my $i = 0;
+    foreach my $e (@entries)
+      {
+        last if (++$i > $max_cities && $max_cities > 0);
+        print $out_lines->{$cc}->{$e};
+      }
+  }
+exit (0);

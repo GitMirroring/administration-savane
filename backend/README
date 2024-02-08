@@ -75,6 +75,12 @@ mail/sv_mailman-wrapper.pl
 
 Stub mailman wrapper, it's only used for testing purposes.
 
+misc/sv_city-filter
+===================
+
+Reduces amount of data from GeoNames city list.  The result is used
+in misc/sv_mirmon-to-geoip.
+
 misc/sv_cleaner
 ===============
 

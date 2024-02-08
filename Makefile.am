@@ -10,7 +10,9 @@ SUBDIRS = . frontend po
 
 if HAVE_MIRROR
 mirmon_bin = backend/misc/sv_gnu-mirmon backend/misc/sv_mirmon-to-geoip \
-  backend/external/mirror-redirect
+  backend/misc/sv_city-filter backend/external/mirror-redirect
+mirmon_pkgdata = backend/external/cities15000 backend/external/CC0 \
+  backend/external/CC_BY-4.0 backend/external/README
 endif
 
 backend_bin_scripts = \
@@ -68,7 +70,7 @@ modules = \
 bin_SCRIPTS = $(backend_bin_scripts)
 sbin_SCRIPTS = $(backend_sbin_scripts)
 noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built)
-nobase_pkgdata_DATA = $(modules)
+nobase_pkgdata_DATA = $(modules) $(mirmon_pkgdata)
 confdir = $(sysconfdir)/$(PACKAGE)
 pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
 logdir = $(pkgstatedir)/log
@@ -163,8 +165,8 @@ $(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
 # Force trivial cgitrepos for the time being.
 cgirepos: ; echo -n > $@
 
-EXTRA_DIST = bootstrap AUTHORS.Savannah AUTHORS.SourceForge \
-  db/initial.sql db/mk-db.sql.in db/sample.sql \
+EXTRA_DIST = backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
+  AUTHORS.SourceForge db/initial.sql db/mk-db.sql.in db/sample.sql \
   tests $(substituted:%=%.in) backend/README autotools/README \
   caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
