@@ -340,7 +340,7 @@ foreach ($vcs_list as $title => $name)
     }
 $vals = array_keys ($vcs_list);
 $select_box =
-   html_build_select_box_from_array ($vals, no_i18n ("VCS"), $sel_val);
+   html_build_select_box_from_array ($vals, no_i18n ("homepage_scm"), $sel_val);
 
 print "<p>";
 specific_showinput (no_i18n ("Selected SCM:"), $select_box);
