@@ -142,6 +142,10 @@ AC_MSG_RESULT([$enable_frontend])
 AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
+AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0 Date::Calc 0],
+  [have_perl_modules=yes], [have_perl_modules=no]
+)
+
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],
   [AS_HELP_STRING([--enable-mirror], [install scripts])],
@@ -149,6 +153,9 @@ AC_ARG_ENABLE([mirror],
 AS_CASE(["x$enable_mirror"], [xyes], [], [enable_mirror=no])
 AC_MSG_RESULT([$enable_mirror])
 AM_CONDITIONAL([HAVE_MIRROR], [test "x$enable_mirror" = xyes])
+AX_PERL_MODULE_VERSION([Geo::IP 0 Locale::Codes 0 LWP::Simple 0],
+  [have_mirror_perl=yes], [have_mirror_perl=no]
+)
 
 AC_MSG_CHECKING([for Git commit])
 SV_GIT_COMMIT=`"$SED" 's,^commit ,,;q' $srcdir/ChangeLog`
@@ -317,6 +324,18 @@ AS_CASE(["x$GRAPHVIZ_BIN"], [x],
   [
     AS_ECHO(["Note: graphviz is unconfigured."])
     AS_ECHO(["      Dependency graphs will not be shown."])
+  ])
+
+AS_CASE(["x$have_perl_modules"], [xno],
+  [
+    AS_ECHO(["Note: Some Perl modules are missing."])
+    AS_ECHO(["      Backend scripts may not work."])
+  ])
+
+AS_CASE(["x-$have_mirror_perl-$enable_mirror"], [x-no-yes],
+  [
+    AS_ECHO(["Note: Perl modules for mirror scripts are missing."])
+    AS_ECHO(["      The installcheck target will fail."])
   ])
 
 AS_ECHO([])

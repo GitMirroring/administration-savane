@@ -153,6 +153,9 @@
 
 [BUILD]
 
+* The configure script checks the availability of the Perl modules
+  used by the scripts.
+
 * New configure option to redirect mail to
   @localstatedir@/lib/@PACKAGE@/log/sendmail.mbox,
   --disable-sendmail.
