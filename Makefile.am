@@ -43,8 +43,8 @@ backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
 
 build_time_scripts = db/init-database.pl
 
-conf_files = apache.conf savane.conf.pl membersh-conf.pl php.ini \
-  savane.conf.php cgitrepos
+conf_files = apache.conf savane.conf.pl membersh-conf.pl mirmon-to-geoip.conf \
+  php.ini savane.conf.php cgitrepos
 
 directories = backend/accounts backend/sbin backend/external \
   backend/extra/git backend/mail backend/misc db sysconf lib/Savane \

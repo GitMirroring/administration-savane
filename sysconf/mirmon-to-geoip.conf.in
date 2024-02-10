@@ -1,0 +1,2 @@
+# Initial configuration for sv_mirmon-to-geoip.
+1; # Make 'do mirmon-to-geoip.conf' return true.

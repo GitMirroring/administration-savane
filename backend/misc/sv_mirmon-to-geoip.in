@@ -90,6 +90,16 @@ GetOptions ('geonames=s' => \$geonames, 'ignore-state' => \$ignore_state)
 die qq{Too few command line arguments $#ARGV\n} if $#ARGV < 3;
 my @schemes = ('http', 'https');
 
+our %source_overrides = ('am' => '!az,am,bg,de');
+my $fallback_country = 'us';
+my $conf_file = "@confdir@/mirmon-to-geoip.conf";
+die "No $conf_file found. Exiting" unless -e $conf_file;
+unless (do $conf_file)
+  {
+    die "Can't compile $conf_file: $@. Exiting" if defined $@;
+    die "Can't run $conf_file: $!. Exiting";
+  }
+
 my ($mirror_state, $mirror_list, $active);
 $mirror_state = shift @ARGV;
 $mirror_list = shift @ARGV;
@@ -256,18 +266,53 @@ sub country_distance
   return $dx * $dx + $dy * $dy + $dz * $dz;
 }
 
+sub denied_countries
+{
+  my $cc = shift;
+  my %ret = ();
+  return %ret unless defined $source_overrides{$cc};
+  foreach my $c (split /,/, $source_overrides{$cc})
+    {
+      $c =~ s/\s*//g;
+      continue unless $c =~ m/^!(.*)/;
+      $ret{$1} = 1;
+    }
+  return %ret;
+}
+
+sub preferred_countries
+{
+  my $cc = shift;
+  my @ret = ();
+  return @ret unless defined $source_overrides{$cc};
+  foreach my $c (split /,/, $source_overrides{$cc})
+    {
+      $c =~ s/\s*//g;
+      next if $c =~ m/^!(.*)/;
+      push @ret, $c;
+    }
+  return @ret;
+}
+
 sub find_source_country
 {
   my ($code, $sch) = @_;
-  return $code if defined $countries->{$sch}->{$code};
+  my $c;
+  foreach $c (preferred_countries ($code))
+    {
+      return $c if defined $countries->{$sch}->{$c};
+    }
+  my %denied = denied_countries ($code);
   my ($min_dist, $min_code);
-  foreach my $c (keys %{$countries->{$sch}})
+  foreach $c (keys %{$countries->{$sch}})
     {
       my $dist = country_distance ($code, $c);
+      next if defined $denied{$c};
       next if (defined $min_code && $min_dist < $dist);
       $min_dist = $dist;
       $min_code = $c;
     }
+  $min_code ||= $fallback_country;
   return $min_code;
 }
 
