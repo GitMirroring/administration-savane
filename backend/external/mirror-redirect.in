@@ -23,7 +23,7 @@ use warnings;
 use Geo::IP;
 use Savane::Version;
 
-my $geoip_db;
+my ($geoip_db, $geoip_db6);
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -35,7 +35,9 @@ A URL Mirror redirector for GNU Savannah \"dl\" and \"ftpmirror\" servers.
 
   Environment variables
 
-GEOIP_DB: path to GeoIP.dat;
+GEOIP_DB: path to GeoIP.dat (use GeoIP library default when undefined);
+
+GEOIP6_DB: path to GeoIP6.dat (use GeoIP library default when undefined);
 
 MIRROR_FILE: the mirror list to use.
   Suggested values:
@@ -46,6 +48,8 @@ PATH_INFO: the relative path of the requested file from the topmost directory.
   It will be concatenated to the URL of the mirror.
 
 REMOTE_ADDR: The IP of the user.
+
+REQUEST_SCHEME: http or https.
 
 TEST: output a test page instead of redirecting.
 
@@ -64,6 +68,8 @@ From NGINX:
         fastcgi_split_path_info            ^(/releases-redirect)(/?.+)\$;
         fastcgi_param PATH_INFO            \$fastcgi_path_info;
         fastcgi_param MIRROR_FILE          /opt/mirror-lists/dl-mirrors.txt;
+        fastcgi_param GEOIP_DB             /usr/share/GeoIP/GeoIP.dat;
+        fastcgi_param GEOIP6_DB            /usr/share/GeoIP/GeoIPv6.dat;
         fastcgi_param SCRIPT_FILENAME      /opt/cgi-bin/mirror-redirect;
 
         include fastcgi_params;
@@ -73,6 +79,7 @@ From NGINX:
 PrintVersionOrHelp ($help, 1);
 
 $geoip_db = $ENV{'GEOIP_DB'} if $ENV{'GEOIP_DB'};
+$geoip_db6 = $ENV{'GEOIP6_DB'} if $ENV{'GEOIP6_DB'};
 
 # Ensure we have a "REMOTE_ADDR" (this is a CGI script, after all).
 my $remote_addr = $ENV{'REMOTE_ADDR'};
@@ -81,6 +88,8 @@ die "REMOTE_ADDR envvar not found or empty."
     unless $remote_addr;
 die "Invalid REMOTE_ADDR ($remote_addr)"
   unless $remote_addr =~ /^[0-9a-fA-F\.\:\/]+$/;
+my $ip_v6 = $remote_addr =~ /:/;
+$geoip_db = $geoip_db6 if $ip_v6;
 
 my $scheme = $ENV{'REQUEST_SCHEME'};
 die "REQUEST_SCHEME envvar not found or empty."
@@ -129,18 +138,32 @@ sub load_mirrors
   close ($txt);
 }
 
+my $gi;
+
 sub open_geoip
 {
-  return Geo::IP->new (GEOIP_STANDARD) unless defined $geoip_db;
-  return Geo::IP->open ($geoip_db, GEOIP_STANDARD);
+  my $db = shift;
+  return Geo::IP->new (GEOIP_STANDARD) unless defined $db;
+  return Geo::IP->open ($db, GEOIP_STANDARD);
+}
+
+sub remote_country
+{
+  my $remote_addr = shift;
+  my $ret = ($ip_v6 && $gi->can ('country_code_by_addr_v6'))?
+    $gi->country_code_by_addr_v6 ($remote_addr):
+    $gi->country_code_by_addr ($remote_addr);
+  return lc ($ret || 'us');
 }
 
 load_mirrors ($mirror_file);
 
-my $gi = open_geoip ();
-my $remote_cc = lc ($gi->country_code_by_addr ($remote_addr) || 'us');
-$remote_cc = $source_countries->{$remote_cc} || 'us';
-my @mirror_list = @{$mirrors->{$remote_cc}};
+$gi = open_geoip ($geoip_db, $remote_addr)
+  or die qq{Cannot open GeoIP database: $!};
+
+my $remote_cc = remote_country ($remote_addr);
+my $source_cc = $source_countries->{$remote_cc} || 'us';
+my @mirror_list = @{$mirrors->{$source_cc}};
 my $mirror = $mirror_list[rand (1 + $#mirror_list)];
 my $url;
 
@@ -163,18 +186,19 @@ unless ($ENV{'TEST'})
     exit (0);
   }
 
-my $geoip = open_geoip ();
-my $country_code = $geoip->country_code_by_addr ($remote_addr);
-my $country_name = $geoip->country_name_by_addr ($remote_addr);
+my $country = ($ip_v6 && $gi->can ('country_name_by_addr_v6'))?
+  $gi->country_name_by_addr_v6 ($remote_addr):
+  $gi->country_name_by_addr ($remote_addr);
+$country ||= "(unknown)";
 
 print<<"EOF";
 content-type: text/plain\r
 \r
 GNU Savannah - mirror check
 
-Detected remote address: $remote_addr
-Detected country: $country_code ($country_name)
-Suggested mirror: $mirror
+Detected remote address: $remote_addr [$remote_cc]
+Detected country: $country
+Suggested mirror: $mirror [$source_cc]
 
 (reload the page to see other mirrors for your country)
 EOF
