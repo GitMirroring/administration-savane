@@ -238,6 +238,7 @@ foreach ($items_for_digest as $item)
     # Show summary if requested.
     if (!(isset ($field_used['summary']) && $field_used['summary'] == 1))
       $res_arr['summary'] = '';
+    $res_arr['tracker'] = ARTIFACT;
     print '<div class="' . utils_altrow ($i++) . '"><span class="large">';
     trackers_print_item_link ($res_arr);
     print "</span><br /><br />\n";
