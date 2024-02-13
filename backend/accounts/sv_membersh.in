@@ -135,7 +135,7 @@ sub offer_source_code
   my $script = $0;
   $script =~ s,.*/,,;
   my $msg = <<"    EOF";
-    $script is part of Savane.
+    AGPL notice: $script is part of Savane.
     In order to download the corresponding source code of Savane, run
 
       rsync -avz --cvs-exclude $ENV{'USER'}\@$source_code_url .
