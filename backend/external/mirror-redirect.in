@@ -20,6 +20,8 @@
 
 use strict;
 use warnings;
+use Time::HiRes 'time';
+use File::Temp 'tempfile';
 use Geo::IP;
 use Savane::Version;
 
@@ -39,6 +41,8 @@ GEOIP_DB: path to GeoIP.dat (use GeoIP library default when undefined);
 
 GEOIP6_DB: path to GeoIP6.dat (use GeoIP library default when undefined);
 
+LOG_DIR: path to log directory (no logs when undefined);
+
 MIRROR_FILE: the mirror list to use.
   Suggested values:
   For mirroring 'dl.sv.gnu.org': /opt/mirror-lists/dl-mirrors.txt
@@ -57,7 +61,8 @@ Running from the command line:
 
     REMOTE_ADDR=5.6.111.43 \
     REQUEST_SCHEME=http \
-    MIRROR_FILE=/opt/mirrors/active/dl-mirrors.txt \
+    MIRROR_FILE=mirrors.txt \
+    LOG_DIR=log \
     PATH_INFO=/datamash/datamash-latest.tar.gz \
     ./mirror-redirect
 
@@ -70,6 +75,7 @@ From NGINX:
         fastcgi_param MIRROR_FILE          /opt/mirror-lists/dl-mirrors.txt;
         fastcgi_param GEOIP_DB             /usr/share/GeoIP/GeoIP.dat;
         fastcgi_param GEOIP6_DB            /usr/share/GeoIP/GeoIPv6.dat;
+        fastcgi_param LOG_DIR              /opt/mirror-lists/log/dl;
         fastcgi_param SCRIPT_FILENAME      /opt/cgi-bin/mirror-redirect;
 
         include fastcgi_params;
@@ -139,6 +145,7 @@ sub load_mirrors
 }
 
 my $gi;
+my $default_cc = 'us';
 
 sub open_geoip
 {
@@ -153,7 +160,38 @@ sub remote_country
   my $ret = ($ip_v6 && $gi->can ('country_code_by_addr_v6'))?
     $gi->country_code_by_addr_v6 ($remote_addr):
     $gi->country_code_by_addr ($remote_addr);
-  return lc ($ret || 'us');
+  return $ret unless defined $ret;
+  return lc ($ret);
+}
+
+sub mk_subdirs
+{
+  my $d = '';
+  while (my $s = shift)
+    {
+      $d .= "$s/";
+      mkdir $d;
+      die "can't create $d: $!" unless -d $d;
+    }
+  return $d;
+}
+
+sub log_request
+{
+  use integer;
+  my $t = time ();
+  my $hour = $t / 3600;
+  my $min = sprintf ('%2.2i', ($t % 3600) / 60);
+  unshift @_, $t;
+  foreach my $field (@_)
+    {
+      return if $field =~ /\s/;
+    }
+  my $log_subdir = mk_subdirs ($ENV{'LOG_DIR'}, $hour, $min);
+  return unless $log_subdir;
+  my ($fh, $log_file) = tempfile (DIR => $log_subdir, UNLINK => 0);
+  print $fh join ("\t", @_) . "\n";
+  close ($fh);
 }
 
 load_mirrors ($mirror_file);
@@ -162,23 +200,20 @@ $gi = open_geoip ($geoip_db, $remote_addr)
   or die qq{Cannot open GeoIP database: $!};
 
 my $remote_cc = remote_country ($remote_addr);
-my $source_cc = $source_countries->{$remote_cc} || 'us';
-my @mirror_list = @{$mirrors->{$source_cc}};
-my $mirror = $mirror_list[rand (1 + $#mirror_list)];
+my $source_cc = $source_countries->{$remote_cc || $default_cc};
+my @mirror_list = @{$mirrors->{$source_cc || $default_cc}};
+
+my $fallback_mirror = "$scheme://download-mirror.savannah.gnu.org/releases";
+# $fallback_mirror shouldn't be used.  That can't occur unless
+# we have no mirrors in $default_cc.
+my $mirror = $mirror_list[rand (1 + $#mirror_list)] || $fallback_mirror;
 my $url;
 
-if ($mirror)
-  {
-    $mirror =~ s|/*$||;
-    $url = "$mirror$path_info";
-  }
-else
-  {
-    # Something was wrong. No mirror found.  And we have painted ourselves
-    # in a corner.  We can't serve the file locally or it will redirect
-    # again.  Disabled the redirection temporarily to avoid the problem.
-    $url = "$scheme://download-mirror.savannah.gnu.org/releases$path_info";
-  }
+$mirror =~ s|/*$||;
+$url = "$mirror$path_info";
+
+log_request ($path_info, $mirror, $source_cc || 'n/a', $remote_cc || 'n/a')
+  if $ENV{'LOG_DIR'};
 
 unless ($ENV{'TEST'})
   {
@@ -191,16 +226,18 @@ my $country = ($ip_v6 && $gi->can ('country_name_by_addr_v6'))?
   $gi->country_name_by_addr ($remote_addr);
 $country ||= "(unknown)";
 
-print<<"EOF";
-content-type: text/plain\r
-\r
-GNU Savannah - mirror check
+my $msg =<<"EOF";
+  content-type: text/plain\r
+  \r
+  GNU Savannah - mirror check
 
-Detected remote address: $remote_addr [$remote_cc]
-Detected country: $country
-Suggested mirror: $mirror [$source_cc]
+  Detected remote address: $remote_addr [$remote_cc]
+  Detected country: $country
+  Suggested mirror: $mirror [$source_cc]
 
-(reload the page to see other mirrors for your country)
+  (reload the page to see other mirrors for your country)
 EOF
+$msg =~ s,  ,,mg;
+print $msg;
 
 exit (0);

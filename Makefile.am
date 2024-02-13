@@ -10,7 +10,10 @@ SUBDIRS = . frontend po
 
 if HAVE_MIRROR
 mirmon_bin = backend/misc/sv_gnu-mirmon backend/misc/sv_mirmon-to-geoip \
-  backend/misc/sv_city-filter backend/external/mirror-redirect
+  backend/misc/sv_city-filter backend/misc/sv_collect-mirror-stats \
+  backend/misc/sv_regen-stat-index backend/misc/sv_regen-stats \
+  backend/misc/sv_summarize-latest-stats \
+  backend/external/mirror-redirect
 mirmon_pkgdata = backend/external/cities15000 backend/external/CC0 \
   backend/external/CC_BY-4.0 backend/external/README
 endif
@@ -62,6 +65,7 @@ modules = \
   lib/Savane/Hg.pm \
   lib/Savane/Locks.pm \
   lib/Savane/Mail.pm \
+  lib/Savane/Mirror.pm \
   lib/Savane/Svn.pm \
   lib/Savane/User.pm \
   lib/Savane/Util.pm \
@@ -74,6 +78,9 @@ nobase_pkgdata_DATA = $(modules) $(mirmon_pkgdata)
 confdir = $(sysconfdir)/$(PACKAGE)
 pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
 logdir = $(pkgstatedir)/log
+mirror_logdir = $(logdir)/mirror
+mirror_redirect_logdir = $(mirror_logdir)/redirect
+mirror_stat_dir = $(mirror_logdir)/stat
 rundir = $(runstatedir)/$(PACKAGE)
 apache_logdir = $(logdir)/apache
 php_log_file = sv.php-error.log
@@ -140,6 +147,9 @@ subst_in_files = \
     -e 's,[@]logdir[@],$(logdir),g' \
     -e 's,[@]rundir[@],$(rundir),g' \
     -e 's,[@]apache_logdir[@],$(apache_logdir),g' \
+    -e 's,[@]mirror_logdir[@],$(mirror_logdir),g' \
+    -e 's,[@]mirror_redirect_logdir[@],$(mirror_redirect_logdir),g' \
+    -e 's,[@]mirror_stat_dir[@],$(mirror_stat_dir),g' \
     -e 's,[@]php_log_file[@],$(php_log_file),g' \
     -e 's,[@]apache_rundir[@],$(apache_rundir),g' \
     -e 's,[@]apache_pid[@],$(apache_pid),g' \
@@ -176,7 +186,11 @@ CLEANFILES = $(substituted) dirs.stamp db/init.stamp
 
 dest_local = $(DESTDIR)$(pkgstatedir)
 dest_run = $(DESTDIR)$(rundir)
-dest_log = $(DESTDIR)$(logdir)
+if HAVE_MIRROR
+dest_mirror_log_dirs = \
+  $(DESTDIR)$(mirror_redirect_logdir) $(DESTDIR)$(mirror_stat_dir)
+endif
+dest_log_dirs = $(DESTDIR)$(logdir) $(dest_mirror_log_dirs)
 if HAVE_DATABASE
 db_dirs = $(DESTDIR)$(mysql_rundir) $(DESTDIR)$(mysql_tmpdir)
 # Database data directory is created with the initializatoin utility,
@@ -191,7 +205,8 @@ if HAVE_FRONTEND
 frontend_dirs = $(DESTDIR)$(apache_rundir) $(DESTDIR)$(apache_logdir)
 frontend_cache_dirs = $(dest_local)/submissions_uploads/trackers_attachments
 endif # HAVE_FRONTEND
-dirs_to_make = $(db_dirs) $(dest_log) $(frontend_dirs) $(frontend_cache_dirs)
+dirs_to_make = $(db_dirs) $(dest_log_dirs) $(frontend_dirs) \
+  $(frontend_cache_dirs)
 uninstalled_dirs = $(dirs_to_make) $(uninstalled_db_dirs)
 
 uninstall-hook:

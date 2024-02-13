@@ -1,0 +1,272 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Collect statistics from mirror-redirect.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use Cwd 'abs_path';
+use File::Copy 'move';
+use Getopt::Long;
+use Savane::Locks;
+use Savane::Mirror;
+use Savane::Version;
+
+my $in_dir = '@mirror_redirect_logdir@';
+my $out_dir = '@mirror_stat_dir@';
+my $site_name = default_dl_site_name ();
+# Maximum number of requests listed in the 'latest-requests' file.
+my $max_latest = 83521;
+
+my $help_msg =
+"Usage: $0 [OPTIONS]
+
+Collect mirror-redirect statistics.
+
+  -h, --help    show this help and exit
+  -v, --version show Savane version and exit
+  -i, --input   directory with mirror-redirect logs
+                [$in_dir]
+  -o, --output  directory to output statistics in
+                [$out_dir]
+  -n, --name    website name [$site_name]";
+
+PrintVersionOrHelp ($help_msg);
+GetOptions (
+  'i|input=s' => \$in_dir, 'o|output=s' => \$out_dir, 'n|name=s' => \$site_name
+)
+  or die ("Wrong command line");
+
+AcquireReplicationLock ();
+
+sub check_dir
+{
+  my ($label, $dir) = @_;
+  die qq{$label directory isn't specified, exiting} unless defined $dir;
+  die qq{$label directory $dir doesn't exist, exiting} unless -d $dir;
+  die qq{$label directory $dir isn't writable, exiting} unless -w $dir;
+}
+
+my $stat;
+
+sub normalize_path
+{
+  my $path = shift;
+  return undef if $path =~ m:/[.]{0,2}$:; # We don't care about directories.
+  $path =~ s,^/gnu/,/,; # ftpmirror-specific, but doesn't break dl as well.
+  $path =~ s,/([.]?/)*,/,g; # NOPs like '//' and '/.'.
+  $path = "$1$2"
+    while $path =~ m,^(.*?)/[^/]+/[.][.]((/.*|$))$,; # Unwrap '/../'.
+  return undef if $path =~ m,/[.][.](/|$),; # Rooter than the root?
+  return $path;
+}
+sub process_log_record
+{
+  my ($rec, $date, $fh) = @_;
+  my @fields = split "\t", $rec;
+  return unless $fields[1] =~ /^[-+_a-zA-Z\d.,\/]+$/; # Requested path.
+  $fields[1] = normalize_path ($fields[1]);
+  return unless defined $fields[1];
+  for (my $i = 1; $i <= $#fields; $i++)
+    {
+      $stat->{$date}->{$i}->{$fields[$i]}++;
+    }
+  print $fh join ("\t", @fields) . "\n";
+}
+
+sub process_minute_dir
+{
+  my ($date, $fh_latest) = @_;
+  foreach my $file (<*>)
+    {
+      next unless -f $file;
+      open (my $fh, "<$file")
+        or die qq{Can't open $file for reading: $!};
+      my $rec = <$fh>;
+      close ($fh);
+      next unless $rec =~ /\n$/; # No closing end-of-line: probably
+                                 # mirror-redirect is still writing this file.
+      unlink $file; # Having read the record sucessfully, remove the file.
+      chomp $rec;
+      process_log_record ($rec, $date, $fh_latest);
+    }
+}
+
+sub get_monthly_date
+{
+  my @date = gmtime ($_[0] * 3600);
+  return sprintf ("%4.4i-%2.2i", $date[5] + 1900, $date[4] + 1);
+}
+
+sub purge_hourly_dir
+{
+  use integer;
+  my $hour = shift;
+  my $current_hour = time () / 3600;
+  return unless $current_hour > $hour + 1;
+  chdir $hour or die qq{Can't chdir hourly dir $hour: $!};
+  foreach my $path (<*>)
+    {
+      rmdir $path;
+    }
+  chdir '..' or die qq{Can't chdir back from hourly dir $hour: $!};
+  rmdir $hour;
+}
+
+sub process_hourly_dir
+{
+  my ($hour, $fh_latest) = @_;
+  my $date = get_monthly_date ($hour);
+  chdir $hour or die qq{Can't chdir hourly dir $hour: $!};
+  foreach my $path (<*>)
+    {
+      next unless -d $path;
+      next unless $path =~ /^[0-9]{2}$/;
+      chdir $path or die qq{Can't chdir minute dir $hour/$path: $!};
+      process_minute_dir ($date, $fh_latest);
+      chdir '..' or die qq{Can't chdir back from minute dir $hour/$path: $!};
+    }
+  chdir '..' or die qq{Can't chdir back from hourly dir $hour: $!};
+  purge_hourly_dir ($hour);
+}
+
+sub open_latest_requests
+{
+  my $filename = "$out_dir/latest-requests";
+  open (my $fh, ">>$filename")
+    or die qq{Can't open $filename for appending: $!};
+  return ($fh, $filename);
+}
+
+sub sort_latest_requests
+{
+  my $fn = shift;
+  return 1 if system ("sort -rn $fn -o $fn.tmp");
+  return 1 if system ("head -n $max_latest < $fn.tmp > $fn");
+  unlink "$fn.tmp";
+  return 0;
+}
+
+sub load_input
+{
+  my $in_dir = shift;
+  my $initial_wd = abs_path ('.');
+  my ($fh, $filename) = open_latest_requests ();
+  $in_dir = abs_path ($in_dir);
+  chdir $in_dir or die qq{Can't chdir $in_dir: $!};
+  foreach my $path (<*>)
+    {
+      next unless -d $path;
+      next unless $path =~ /^[0-9]*$/;
+      process_hourly_dir ($path, $fh);
+    }
+  chdir $initial_wd or die qq{Can't chdir back to $initial_wd: $!};
+  close ($fh);
+  return sort_latest_requests ($filename);
+}
+
+sub merge_stat
+{
+  my $out = shift;
+  chdir $out or die qq{Can't chdir output directory $out: $!};
+  foreach my $date (keys %{$stat})
+    {
+      foreach my $idx (keys %{$stat->{$date}})
+        {
+          next unless -f "$date.$idx";
+          open (my $txt, "<$date.$idx")
+            or die qq{Can't open $date.$idx for reading: $!};
+          foreach my $line (<$txt>)
+            {
+              chomp $line;
+              my ($val, $n) = split /\t/, $line;
+              $stat->{$date}->{$idx}->{$val} += $n;
+            }
+          close ($txt);
+        }
+    }
+}
+
+sub output_stat
+{
+  foreach my $date (keys %{$stat})
+    {
+      foreach my $idx (keys %{$stat->{$date}})
+        {
+          open (my $fh, ">$date.$idx")
+            or die qq{Can't open $date for writing: $!};
+          foreach my $val (sort keys %{$stat->{$date}->{$idx}})
+            {
+              print $fh "$val\t$stat->{$date}->{$idx}->{$val}\n";
+            }
+          close ($fh);
+       }
+    }
+}
+
+sub regen_stat
+{
+  my ($date, $file);
+  while ($date = shift)
+    {
+      foreach $file (<"$date.*">)
+        {
+          !system ("@bindir@/sv_regen-stats", '-n', $site_name, $file)
+            or die qq{@bindir@/sv_regen-stats failed};
+        }
+    }
+}
+
+check_dir ('Input', $in_dir);
+check_dir ('Output', $out_dir);
+unless (load_input ($in_dir))
+  {
+    !system (
+      "@bindir@/sv_summarize-latest-stats", '-d', $out_dir, '-n', $site_name
+    )
+      or die qq{@bindir@/sv_summarize-latest-stats failed};
+  }
+merge_stat ($out_dir);
+output_stat ();
+regen_stat (keys %$stat);
+!system ("@bindir@/sv_regen-stat-index", '-d', '.', '-n', $site_name)
+  or die qq{@bindir@/sv_regen-stat-index failed};
+
+exit (0);

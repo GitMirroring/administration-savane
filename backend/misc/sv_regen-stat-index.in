@@ -1,0 +1,182 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Regenerate HTML index for reports from sv_collect-mirror-stats data.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use File::Copy 'move';
+use Getopt::Long;
+use Savane::Mirror;
+use Savane::Version;
+
+my $out_dir = '@mirror_stat_dir@';
+my $site_name = default_dl_site_name ();
+
+my $help_msg =
+"Usage: $0 [OPTIONS]
+
+Regenerate HTML index for reports from sv_collect-mirror-stats data.
+Typically used indirectly from sv_collect-mirror-stats.
+
+  -h, --help    show this help and exit
+  -v, --version show Savane version and exit
+  -d, --dir     working directory [$out_dir]
+  -n, --name    website name [$site_name]";
+
+PrintVersionOrHelp ($help_msg);
+
+GetOptions ('d|dir=s' => \$out_dir, 'n|name=s' => \$site_name)
+  or die ("Wrong command line");
+
+sub output_html_header
+{
+  my $fh = shift;
+  my $date = `TZ=UTC date`;
+  chomp $date;
+  print $fh html_header ("$site_name statistics");
+  print $fh "<h1>$site_name statistics</h1>\n";
+  print $fh "<p>Date: $date</p>\n";
+}
+
+sub list_periods
+{
+  my $ret = ();
+  foreach my $path (<????-??.1>)
+    {
+      $path =~ s,\.1$,,;
+      push @{$ret}, $path;
+    }
+  return $ret;
+}
+
+sub output_latest_stats
+{
+  my $fh = shift;
+  my $i = 0;
+  my $l;
+  print $fh "<h2 id='latest'>Latest requests</h2>\n\n<ul>\n";
+  while (1)
+    {
+      $l = stat_field_label ($i + 1);
+      last if $l eq '';
+      print $fh "<li><a href='latest-requests.$i.html'>$l</a></li>\n";
+      $i++;
+    }
+  print $fh "</ul>\n\n";
+}
+
+sub output_period_stats
+{
+  my ($fh, $i, $label, $periods) = @_;
+  print $fh "<h2 id='by-$i'>$label</h2>\n\n<ul>\n";
+  foreach my $p (@{$periods})
+    {
+      print $fh "<li><a href='$p/$p.$i.html'>$p</a></li>\n";
+    }
+  print $fh "</ul>\n\n";
+}
+
+sub output_periods
+{
+  my ($fh, $periods) = @_;
+  my $i = '1-groupped';
+  my $l = 'by path (groupped by package)';
+  output_period_stats ($fh, $i, $l, $periods);
+  my ($i, $l);
+  for ($i = 1; ($l = stat_field_label ($i)) ne ''; $i++)
+    {
+      output_period_stats ($fh, $i, $l, $periods);
+    }
+  print $fh "</body>\n</html>\n";
+}
+
+sub open_index_html
+{
+  open (my $fh, ">index.html")
+    or die qq{Can't open index.html for writing: $!};
+  return $fh;
+}
+
+sub close_index_html
+{
+  my ($fh, $period) = @_;
+  close ($fh);
+  my $html_dir = mk_html_dir ('.', $period);
+  move ('index.html', $html_dir)
+    or die qq{Can't move index.html to $html_dir: $!};
+}
+
+sub output_root_indicem
+{
+  my $fh = open_index_html ();
+  my $periods = list_periods ();
+  output_html_header ($fh);
+  output_latest_stats ($fh);
+  output_periods ($fh, $periods);
+  close_index_html ($fh);
+  return $periods;
+}
+
+sub output_period_indicem
+{
+  my $period = shift;
+  my $fh = open_index_html ();
+  print $fh html_header ("$site_name $period statistics");
+  print $fh "<h1>$site_name statistics [$period]</h1>\n";
+  print $fh "<ul>\n";
+  print $fh "<li><a href='$period.1-groupped.html'>"
+    . "by path (groupped by package)</a></li>\n";
+  my ($i, $l);
+  for ($i = 1; ($l = stat_field_label ($i)) ne ''; $i++)
+    {
+      print $fh "<li><a href='$period.$i.html'>$l</a></li>\n";
+    }
+  print $fh "</ul>\n</body>\n</html>\n";
+  close_index_html ($fh, $period);
+}
+
+chdir $out_dir or die qq{Can't chdir $out_dir: $!};
+my $periods = output_root_indicem ();
+foreach my $p (@{$periods})
+  {
+    output_period_indicem ($p);
+  }
+exit (0);

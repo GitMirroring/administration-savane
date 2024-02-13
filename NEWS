@@ -140,6 +140,9 @@
 * New script to reduce size of city database coming from GeoNames,
   sv_city-filter.
 
+* New scripts to process mirror-redirect logs, sv_collect-mirror-stats,
+  sv_regen-stat-index, sv_regen-stats, sv_summarize-latest-stats.
+
 * Bug fixes:
 
 ** sv_membersh didn't offer the corresponding source code.

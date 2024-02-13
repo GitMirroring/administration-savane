@@ -87,6 +87,12 @@ misc/sv_cleaner
 Removes parts of the database that belong to removed entities.
 Runs twice an hour on mgt0.
 
+misc/sv_collect-mirror-stats
+============================
+
+Collects logs of external/mirror-redirect.
+Runs from dl:/etc/cron.d/sv-ftpmirror-stats.
+
 misc/sv_gnu-mirmon
 ==================
 
@@ -98,6 +104,24 @@ misc/sv_mirmon-to-geoip
 
 Updates active mirror lists for mirror multiplexer.
 Runs indirectly from dl:/etc/cron.d/sv-mirmon.
+
+misc/sv_regen-stat-index
+========================
+
+Generates index.html files for external/mirror-redirect statistics.
+Used in misc/sv_collect-mirror-stats.
+
+misc/sv_regen-stats
+===================
+
+Generates a single HTML file for external/mirror-redirect statistics.
+Used in misc/sv_collect-mirror-stats.
+
+misc/sv_summarize-latest-stats
+==============================
+
+Generates a HTML file for external/mirror-redirect statistics
+of latest requests.  Used in misc/sv_collect-mirror-stats.
 
 misc/sv_reminder
 ================

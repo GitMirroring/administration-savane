@@ -1,0 +1,95 @@
+# Common mirror-related functions.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+require Exporter;
+
+our @ISA = qw (Exporter);
+our @EXPORT = qw (mk_html_dir html_header);
+
+sub html_header
+{
+  my $title = shift;
+  my $header = <<"  EOF";
+    <html>
+    <head>
+      <meta http-equiv='content-type'; content='text/html; charset=utf-8' />
+      <title>$title</title>
+    </head>
+    <body>
+  EOF
+  $header =~ s,^ {4},,mg;
+  return $header;
+}
+
+sub html_path
+{
+  my $pre = shift;
+  my $aff = shift;
+  $aff = "/$aff" if defined $aff;
+  $aff = '' unless defined $aff;
+  $pre .= '/html';
+  return ("$pre$aff", $pre);
+}
+
+sub mk_html_dir
+{
+  my ($full, $pre) = html_path (@_);
+  mkdir $pre;
+  die qq{Can't create $pre directory: $!} unless -d $pre;
+  mkdir $full;
+  die qq{Can't create $full directory: $!} unless -d $full;
+  return $full;
+}
+
+sub stat_field_label
+{
+  my @l = ('path', 'mirror', 'mirror country code', 'request country code');
+  return '' if $_[0] - 1 > $#l;
+  my $ret = $l[$_[0] - 1];
+  return " by $ret";
+}
+
+sub default_dl_site_name
+{
+  return 'download.savannah.nongnu.org';
+}
