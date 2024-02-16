@@ -234,6 +234,7 @@ sub load_mirror_entry
       return;
     }
   return if $country =~ /partial/i;
+  $url =~ s,/*$,/,; # URLs in mirmon state always end in '/'.
   return unless $url =~ /^(https?)/;
   return unless defined $sites->{$1}->{$url};
   $sites->{$1}->{$url} = $country;
