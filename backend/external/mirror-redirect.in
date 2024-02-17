@@ -26,6 +26,7 @@ use Geo::IP;
 use Savane::Version;
 
 my ($geoip_db, $geoip_db6);
+my $query_string = '';
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -51,6 +52,9 @@ MIRROR_FILE: the mirror list to use.
 PATH_INFO: the relative path of the requested file from the topmost directory.
   It will be concatenated to the URL of the mirror.
 
+QUERY_STRING: in the TEST mode, allow overriding REMOTE_ADDR with the
+  'addr' parameter and remote country code with the 'cc' parameter.
+
 REMOTE_ADDR: The IP of the user.
 
 REQUEST_SCHEME: http or https.
@@ -64,19 +68,34 @@ Running from the command line:
     MIRROR_FILE=mirrors.txt \
     LOG_DIR=log \
     PATH_INFO=/datamash/datamash-latest.tar.gz \
-    ./mirror-redirect
+    $0
 
 From NGINX:
 
+    # REQUEST_SCHEME and QUERY_STRING are set in fastcgi_params.
     location /releases-redirect {
         gzip off;
-        fastcgi_split_path_info            ^(/releases-redirect)(/?.+)\$;
-        fastcgi_param PATH_INFO            \$fastcgi_path_info;
-        fastcgi_param MIRROR_FILE          /opt/mirror-lists/dl-mirrors.txt;
-        fastcgi_param GEOIP_DB             /usr/share/GeoIP/GeoIP.dat;
-        fastcgi_param GEOIP6_DB            /usr/share/GeoIP/GeoIPv6.dat;
-        fastcgi_param LOG_DIR              /opt/mirror-lists/log/dl;
-        fastcgi_param SCRIPT_FILENAME      /opt/cgi-bin/mirror-redirect;
+        fastcgi_split_path_info       ^(/releases-redirect)(/?.+)\$;
+        fastcgi_param PATH_INFO       \$fastcgi_path_info;
+        fastcgi_param MIRROR_FILE     /opt/mirror-lists/dl-mirrors.txt;
+        fastcgi_param GEOIP_DB        /usr/share/GeoIP/GeoIP.dat;
+        fastcgi_param GEOIP6_DB       /usr/share/GeoIP/GeoIPv6.dat;
+        fastcgi_param LOG_DIR         /opt/mirror-lists/log/dl;
+        fastcgi_param SCRIPT_FILENAME /opt/cgi-bin/mirror-redirect;
+
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/fcgiwrap.socket;
+    }
+
+    location /mirror-check/ {
+        gzip off;
+        fastcgi_split_path_info       ^(/mirror-check)(/?.+)\$;
+        fastcgi_param TEST            1
+        fastcgi_param PATH_INFO       \$fastcgi_path_info;
+        fastcgi_param MIRROR_FILE     /opt/mirror-lists/dl-mirrors.txt;
+        fastcgi_param GEOIP_DB        /usr/share/GeoIP/GeoIP.dat;
+        fastcgi_param GEOIP6_DB       /usr/share/GeoIP/GeoIPv6.dat;
+        fastcgi_param SCRIPT_FILENAME /opt/cgi-bin/mirror-redirect;
 
         include fastcgi_params;
         fastcgi_pass unix:/var/run/fcgiwrap.socket;
@@ -86,43 +105,35 @@ PrintVersionOrHelp ($help, 1);
 
 $geoip_db = $ENV{'GEOIP_DB'} if $ENV{'GEOIP_DB'};
 $geoip_db6 = $ENV{'GEOIP6_DB'} if $ENV{'GEOIP6_DB'};
+$query_string = $ENV{'QUERY_STRING'} if exists $ENV{'QUERY_STRING'};
 
-# Ensure we have a "REMOTE_ADDR" (this is a CGI script, after all).
 my $remote_addr = $ENV{'REMOTE_ADDR'};
-die "REMOTE_ADDR envvar not found or empty."
-  . "If running from command-line, set REMOTE_ADDR=w.x.y.z "
-    unless $remote_addr;
-die "Invalid REMOTE_ADDR ($remote_addr)"
-  unless $remote_addr =~ /^[0-9a-fA-F\.\:\/]+$/;
+die "REMOTE_ADDR environment variable is empty.\n" unless $remote_addr;
+die "Invalid REMOTE_ADDR ($remote_addr)" unless ip_is_valid ($remote_addr);
 my $ip_v6 = $remote_addr =~ /:/;
 $geoip_db = $geoip_db6 if $ip_v6;
 
 my $scheme = $ENV{'REQUEST_SCHEME'};
-die "REQUEST_SCHEME envvar not found or empty."
-  . "If running from command-line, set REQUEST_SCHEME=https "
-    unless $scheme;
+die "REQUEST_SCHEME environment variable is empty.\n" unless $scheme;
 
-# Ensure we have a "MIRROR_FILE" variable
-# (should be set by the upstream webserver CGI configuration).
 my $mirror_file = $ENV{'MIRROR_FILE'};
-die "MIRROR_FILE envvar not found or empty."
-  . "If running from command line, set MIRROR_FILE=/path/to/file.txt "
-    unless $mirror_file;
+die "MIRROR_FILE envrionment variable is empty.\n" unless $mirror_file;
 die "MIRROR_FILE ($mirror_file) not found " unless -e $mirror_file;
 
-# Ensure there is a PATH_INFO component.
 my $path_info = $ENV{'PATH_INFO'};
-die "PATH_INFO envvar not found or empty."
-  . "If running from command line, set PATH_INFO=/path/to/file.txt "
-    unless $path_info;
+die "PATH_INFO environment variable is empty.\n"
+  unless ($path_info || $ENV{'TEST'});
 # Silently discard any funky character in the requested URL.
 $path_info =~ s/[^\041-\177]//g;
-
-# Make a pretty URL, without extra slashes.
-$path_info = "/" . $path_info unless substr ($path_info, 0, 1) eq "/";
+$path_info =~ s,^/*,/,; # Make a pretty URL, without extra slashes.
 
 my $mirrors;
 my $source_countries;
+
+sub ip_is_valid
+{
+  return shift =~ /^[[:xdigit:]\.\:\/]+$/;
+}
 
 sub load_mirrors
 {
@@ -194,12 +205,32 @@ sub log_request
   close ($fh);
 }
 
+sub set_overrides
+{
+  return (undef, undef) unless ($ENV{'TEST'});
+  my @vars = split /[&]/, shift;
+  my %ret = ('addr' => '', 'cc' => '');
+  foreach my $v (@vars)
+    {
+      next unless $v =~ /(.*?)=(.*)/;
+      next unless exists $ret{$1};
+      $2 =~ s,[^\w.:],,gm;
+      $ret{$1} = lc ($2);
+    }
+  $ret{'addr'} = undef unless ip_is_valid ($ret{'addr'});
+  $ret{'cc'} = undef unless $ret{'cc'} =~ /^[a-z]{2}$/;
+  return ($ret{'addr'}, $ret{'cc'});
+}
+
 load_mirrors ($mirror_file);
 
 $gi = open_geoip ($geoip_db, $remote_addr)
   or die qq{Cannot open GeoIP database: $!};
 
+my ($addr_ovr, $cc_ovr) = set_overrides ($query_string);
+$remote_addr = $addr_ovr || $remote_addr;
 my $remote_cc = remote_country ($remote_addr);
+$remote_cc = $cc_ovr || $remote_cc;
 my $source_cc = $source_countries->{$remote_cc || $default_cc};
 my @mirror_list = @{$mirrors->{$source_cc || $default_cc}};
 
@@ -226,18 +257,29 @@ my $country = ($ip_v6 && $gi->can ('country_name_by_addr_v6'))?
   $gi->country_name_by_addr ($remote_addr);
 $country ||= "(unknown)";
 
+$remote_addr .= ' (overridden in query string)' if defined $addr_ovr;
+$remote_cc .= ' (overridden in query string)' if defined $cc_ovr;
+
+my $cc_mirrors = join ("\n    ", @mirror_list);
+
 my $msg =<<"EOF";
   content-type: text/plain\r
   \r
   GNU Savannah - mirror check
 
-  Detected remote address: $remote_addr [$remote_cc]
-  Detected country: $country
-  Suggested mirror: $mirror [$source_cc]
+  Requested path: $path_info
+  Query string:   $query_string
 
-  (reload the page to see other mirrors for your country)
+  Detected remote address: $remote_addr
+  Detected country: $country
+  Country code: $remote_cc
+  Suggested mirror: $mirror
+
+  All mirrors from $source_cc:
+
+    $cc_mirrors
 EOF
-$msg =~ s,  ,,mg;
+$msg =~ s,^  ,,mg;
 print $msg;
 
 exit (0);
