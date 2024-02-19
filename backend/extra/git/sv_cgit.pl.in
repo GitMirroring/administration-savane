@@ -48,28 +48,40 @@ use File::Temp qw/ tempfile /;
 
 our $dbd;
 my $verbose;
-my $output_filename = "cgitrepos";
+my $git_bin = '@GIT@';
+$git_bin = 'git' if $git_bin eq '';
+my $cgitrepos_file = "cgitrepos";
+my $repo_list = 'project-list';
+my $update_repos;
+my $git_suff;
 my $topdir = "/srv/git";
 my $pfx = "/srv/git";
 
 my $help_msg =
 "Usage: $0 [OPTIONS]
 
-Generate the list of Git repositories for CGit.
+Generate lists of Git repositories for CGit and gitweb.
 
-  -h, --help                   show this help and exit
-  -v, --version                show Savane version and exit
-      --verbose                output extra warnings
-      --topdir                 the working directory [$topdir]
-      --output                 the file to write [$output_filename]
-      --path-prefix            prefix for the URL part [$pfx]";
+  -h, --help               show this help and exit
+  -v, --version            show Savane version and exit
+      --verbose            output extra warnings
+      --topdir             the working directory [$topdir]
+      --output             the file to write CGit index of repos
+                           [$cgitrepos_file]
+      --repo-list          the file to write repo list for gitweb [$repo_list]
+      --update-repos       update repo configurations for gitweb
+      --gitconf-suffix     write to a file with the specified suffix
+                           instead of updating repo configurations
+      --path-prefix        prefix for the URL part [$pfx]";
 
 PrintVersionOrHelp ($help_msg);
 
 GetOptions (
-  "output=s" => \$output_filename, "topdir=s" => \$topdir,
+  "output=s" => \$cgitrepos_file, "topdir=s" => \$topdir,
+  "repo-list=s" => $repo_list, "update-repos" => \$update_repos,
+  "gitconf-suffix=s" => \$git_suff, 'git-bin=s' => \$git_bin,
   "path-prefix=s" => \$pfx, "verbose" => \$verbose
-) or die ("Wrong command line.");
+) or die ("Wrong command line\n");
 
 $dbd->{mysql_enable_utf8} = 1;
 
@@ -85,11 +97,17 @@ sub htmlspecialchars
 my %group_names;
 my %group_ids;
 
-sub get_group_id
+sub repo_name_to_group
 {
   my $group = shift;
-  my $group_id;
   $group =~ s,/.*,,;
+  return $group;
+}
+
+sub get_group_id
+{
+  my $group = repo_name_to_group (shift);
+  my $group_id;
   return 0 unless exists $group_ids{$group};
   $group_id = $group_ids{$group};
 }
@@ -135,7 +153,8 @@ sub get_desc
   my ($path, $url, $repo_name, $group_id) = @_;
   my $desc = fetch_repo_pref ("desc", $repo_name, $group_id, "");
   return $desc unless $desc eq "";
-  open (DESC, "<:encoding(UTF-8)", "$path/description") or warn "$path/description: $!";
+  open (DESC, "<:encoding(UTF-8)", "$path/description")
+    or warn "Can't open $path/description: $!";
   $desc = <DESC>;
   close (DESC);
   chomp ($desc);
@@ -146,20 +165,14 @@ sub get_desc
 
 sub output_section
 {
-  my $out = shift;
   my $group = shift;
-  my $group_name = "";
-
-  if (exists $group_names{$group})
+  unless (exists $group_names{$group})
     {
-      $group_name = $group_names{$group};
-    }
-  else
-    {
-      warn "No group $group using Git in the database.\n" if $verbose;
+      warn "No public group $group using Git in the database.\n" if $verbose;
       return 0;
     }
-  print { $out } "section=$group_name\n";
+  my $out = shift;
+  print { $out } "section=$group_names{$group}\n";
   return 1;
 }
 
@@ -171,10 +184,10 @@ sub repo_entry
   my $dsc = get_desc ($desc_path, $url, $repo_name, $group_id);
   my $no_tarballs = fetch_repo_pref ("no-tarball", $repo_name, $group_id, 0);
   my $readme = fetch_repo_pref ("readme", $repo_name, $group_id, "");
-  my $out = "repo.url=$url\nrepo.path=$pfx/$url\nrepo.desc=$dsc\n";
-  $out .= "repo.readme=$readme\n" unless $readme eq "";
-  $out .= "repo.snapshots=\n" if $no_tarballs;
-  return $out;
+  my %out = ('url' => $url, 'path' => "$pfx/$url", 'desc' => $dsc);
+  $out{'readme'} = $readme unless $readme eq "";
+  $out{'snapshots'} = '' if $no_tarballs;
+  return \%out;
 }
 
 sub enumerate_subrepos
@@ -220,15 +233,87 @@ sub sort_entries
   return @sorted;
 }
 
-sub sort_and_output_entries
+sub run_git_config
 {
-  my ($ent_ref, $name_ref, $group, $out) = @_;
-  my $group_id = get_group_id ($group);
-  my @sorted = sort_entries ($ent_ref, $name_ref, $group_id);
-  foreach my $ent (@sorted)
+  my ($conf, $file) = @_;
+  system ('touch', $file); # Git only updates existing files.
+  foreach my $k (keys %$conf)
     {
-      print { $out } $ent;
+      system ($git_bin, 'config', '--replace-all', '--file', $file,
+        "gitweb.$k", $conf->{$k}
+      );
     }
+}
+
+sub update_git_config
+{
+  my $ent = shift;
+  my $group = shift;
+  my $name = $ent->{'url'};
+  my $file = "$name/config";
+  $file .= $git_suff if defined $git_suff;
+  my %conf = ('category' => $group);
+  $conf{'snaphsot'} = 'none' if exists $ent->{'snapshots'};
+  run_git_config (\%conf, $file);
+}
+
+sub url_encode
+{
+  my $ret = shift;
+  $ret =~ s/{+}/%2B/g;
+  $ret =~ s/\s/+/g;
+  return $ret;
+}
+
+sub output_gitweb_entry
+{
+  my ($out, $ent, $group) = @_;
+  return unless exists ($ent->{'url'});
+  $group = $group_names{$group} if exists $group_names{$group};
+  print { $out } "$ent->{'url'} " . url_encode ($group) . "\n";
+  return unless $update_repos;
+  update_git_config ($ent, $group);
+}
+
+sub output_entries
+{
+  my $out = shift;
+  my $repo_out = shift;
+  my $group = shift;
+  foreach my $ent (@_)
+    {
+      my @ordered = ('url', 'path', 'desc');
+      my ($k, $v);
+      foreach $k (@ordered)
+        {
+          next unless exists $ent->{$k};
+          print { $out } "repo.$k=$ent->{$k}\n";
+          delete $ent->{$k};
+        }
+      foreach $k (keys %$ent)
+        {
+          print { $out } "repo.$k=$ent->{$k}\n";
+        }
+      output_gitweb_entry ($repo_out, $ent, $group);
+    }
+}
+
+sub open_tmp
+{
+  my $pref = shift;
+  my ($fh, $fn) = tempfile ("$pref-XXXXXXXX", UNLINK => 1);
+  binmode $fh, ":utf8";
+  return ($fh, $fn);
+}
+
+sub close_and_move
+{
+  my ($out, $tmp_name, $final_name) = @_;
+  chmod 0644, $out;
+  close $out;
+  return if $final_name eq '/dev/null' || $final_name eq '';
+  rename $tmp_name, $final_name
+    or die "Can't rename $tmp_name to $final_name: $!";
 }
 
 my @db = GetDBLists (
@@ -243,12 +328,10 @@ foreach my $line (@db)
     $group_ids{$unix_group_name} = $group_id;
   }
 
-my $out;
-my $tmp_filename;
-
 chdir ($topdir) or die $!;
-($out, $tmp_filename) = tempfile ("cgitrepos-XXXXXXXX", UNLINK => 1);
-binmode $out, ":utf8";
+my ($out, $tmp_filename) = open_tmp ("cgitrepos");
+my ($repo_out, $repo_filename) = open_tmp ("repolist");
+
 foreach my $path (<*.git>)
   {
     next if ! -d $path;
@@ -256,12 +339,13 @@ foreach my $path (<*.git>)
     my @entries;
     my @names;
     $group =~ s/[.]git$//;
-    next unless output_section ($out, $group);
+    next unless output_section ($group, $out);
     push @names, get_repo_name ($path);
     push @entries, (repo_entry ($path, $path));
     push @entries, enumerate_subrepos ($group, \@names);
-    sort_and_output_entries (\@entries, \@names, $group, $out);
+    my @sorted = sort_entries (\@entries, \@names, get_group_id ($group));
+    output_entries ($out, $repo_out, $group, @sorted);
   }
-chmod 0644, $out;
-close ($out);
-rename $tmp_filename,  $output_filename or die $!;
+
+close_and_move ($out, $tmp_filename, $cgitrepos_file);
+close_and_move ($repo_out, $repo_filename, $repo_list);

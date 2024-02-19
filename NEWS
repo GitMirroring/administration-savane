@@ -119,6 +119,8 @@
 
 [BACKEND]
 
+* sv_cgit.pl acquired options for generating data for gitweb.
+
 * New commands in sv_membersh, rm and rmdir.
 
 * sv_groups doesn't create GNU Arch directories any more.
