@@ -88,13 +88,11 @@ function test_gpg ()
     "'" . $GLOBALS['sys_gpg_name'] . "' --version", $gpg_output,
      $gpg_stderr
   );
-  $dd_pre = "<dd style='border: thin dashed black; border-right: none'>"
-            ."<pre style='padding-left: 1em'>\n";
   print "<dt><code>--version</code> output</dt>\n";
-  print $dd_pre . utils_specialchars ($gpg_output) . "</pre></dd>\n";
+  print "<dd><pre>\n" . utils_specialchars ($gpg_output) . "</pre></dd>\n";
   print "<dt>Exit code</dt><dd><code>" . $gpg_result . "</code></dd>\n";
   print "<dt><code>stderr</code> output</dt>\n";
-  print $dd_pre . utils_specialchars ($gpg_stderr) . "</pre></dd>\n";
+  print "<dd><pre>\n" . utils_specialchars ($gpg_stderr) . "</pre></dd>\n";
   print "</dl>\n";
 }
 
