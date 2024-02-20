@@ -320,7 +320,7 @@ AS_CASE(["x$SENDMAIL"], [x],
     AS_ECHO(["      Email will be directed to $mbox."])
   ])
 
-AS_CASE(["x$GRAPHVIZ_BIN"], [x],
+AS_CASE(["$enable_frontend.$GRAPHVIZ_BIN"], [yes.],
   [
     AS_ECHO(["Note: graphviz is unconfigured."])
     AS_ECHO(["      Dependency graphs will not be shown."])
@@ -332,7 +332,7 @@ AS_CASE(["x$have_perl_modules"], [xno],
     AS_ECHO(["      Backend scripts may not work."])
   ])
 
-AS_CASE(["x-$have_mirror_perl-$enable_mirror"], [x-no-yes],
+AS_CASE(["$have_mirror_perl.$enable_mirror"], [no.yes],
   [
     AS_ECHO(["Note: Perl modules for mirror scripts are missing."])
     AS_ECHO(["      The installcheck target will fail."])
