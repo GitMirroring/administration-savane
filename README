@@ -109,7 +109,7 @@ Run Time
 * GNU Coreutils
 * Grep
 * GnuPG
-* PHP (5.4, 5.5, 5.6, 7.0, 7.2, 7.4, 8.0, 8.1 or 8.2) - frontend
+* PHP (5.4, 5.5, 5.6, 7.0, 7.2, 7.4, 8.0, 8.1, 8.2 or 8.3) - frontend
 ** Text_CAPTCHA (php-text-captcha, php-image-text in Trisquel)
 ** mysqli extension (php-mysqli in Trisquel)
 * Perl >= 5.6
@@ -121,10 +121,11 @@ Run Time
 ** Geo::IP (libgeo-ip-perl, geoip-database in Trisquel) - mirror-redirect
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
-* MySQL or MariaDB
+* MariaDB (MySQL may also work)
 * Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel) - frontend
 * Pwqcheck (passwdqc in Trisquel) - handling new passwords in frontend
-* Graphviz (graphviz in Trisquel) - displaying inter-item dependency graphs.
+* Graphviz (graphviz in Trisquel) - frontend, optionally displaying inter-item
+    dependency graphs.
 
 Documentation
 =============
