@@ -55,7 +55,7 @@ require_once ('../include/trackers/data.php');
 session_require (['group' => '1','admin_flags' => 'A']);
 
 $actions = ['remove_user_from_group', 'update_user_group',
-  'update_user', 'add_user_to_group', 'rename', 'delete'
+  'update_user', 'add_user_to_group', 'rename', 'delete', 'activate'
 ];
 
 extract (sane_import ('request',
@@ -211,6 +211,12 @@ function report_db_result ($result, $msg_err, $msg_ok)
     fb ($msg_ok);
 }
 
+function action_activate ()
+{
+  global $user_id;
+  db_execute("UPDATE user SET status='A' WHERE user_id = ?", [$user_id]);
+}
+
 function action_delete ()
 {
   user_delete ($GLOBALS['user_id']);
@@ -321,6 +327,22 @@ function delete_account_link ($user_id)
     . form_submit (no_i18n ('Delete account')) . "\n</form>\n";
 }
 
+function show_status ($user_id, $status)
+{
+  $labels = ['A' => no_i18n ('Active'), 'P' => no_i18n ('Pending')];
+  $ret = "<p>Status: ";
+  if (array_key_exists ($status, $labels))
+    $ret .= $labels[$status];
+  else
+    $ret .= "[$status]";
+  if ($status == 'P')
+    $ret .= ' ' . form_tag ()
+      . form_hidden (['action' => 'activate', 'user_id' => $user_id])
+      . form_submit (no_i18n ('Activate')) . "\n</form>\n";
+  $ret .= "</p>\n";
+  return $ret;
+}
+
 function account_title ($user_id)
 {
   return html_h (2,  no_i18n ('Account info:')
@@ -333,6 +355,7 @@ function account_form ($user_id, $row_user)
    if ($row_user['status'] == 'SQD')
      return $ret . '<p>' . no_i18n ('This is a squad.') . "</p>\n";
   $ret .= rename_form ($user_id, $row_user['user_name']);
+  $ret .= show_status ($user_id, $row_user['status']);
   $ret .= email_form ($user_id, $row_user['email']);
   $ret .= '<p>' . change_passwd_link ($user_id) . '&nbsp;';
   $ret .= delete_account_link ($user_id) . "</p>\n";
