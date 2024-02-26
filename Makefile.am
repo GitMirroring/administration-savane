@@ -4,6 +4,7 @@
 # General automake options.
 AUTOMAKE_OPTIONS = gnits
 ACLOCAL_AMFLAGS = -I autotools/m4
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-mirror
 
 # The list of subdirectories containing Makefiles.
 SUBDIRS = . frontend po
