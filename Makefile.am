@@ -7,18 +7,39 @@ ACLOCAL_AMFLAGS = -I autotools/m4
 
 # The list of subdirectories containing Makefiles.
 SUBDIRS = . frontend po
+bin_SCRIPTS =
+EXTRA_DIST =
+nobase_pkgdata_DATA =
 
-if HAVE_MIRROR
 mirmon_bin = backend/misc/sv_gnu-mirmon backend/misc/sv_mirmon-to-geoip \
   backend/misc/sv_city-filter backend/misc/sv_collect-mirror-stats \
   backend/misc/sv_regen-stat-index backend/misc/sv_regen-stats \
   backend/misc/sv_summarize-latest-stats \
   backend/external/mirror-redirect
+
+bin_all = $(mirmon_bin)
+sbin_files =
+conf_files =
+
+mirmon_conf = mirmon-to-geoip.conf
+frontend_conf = apache.conf php.ini savane.conf.php
+conf_all = $(frontend_conf) $(mirmon_conf)
+frontend_sbin = sv_frontendctl.pl sv_php_server.pl
+sbin_all = $(frontend_sbin)
 mirmon_pkgdata = backend/external/cities15000 backend/external/CC0 \
   backend/external/CC_BY-4.0 backend/external/README
+if HAVE_MIRROR
+bin_SCRIPTS += $(mirmon_bin)
+EXTRA_DIST += $(mirmon_pkgdata)
+conf_files += $(mirmon_conf)
+nobase_pkgdata_DATA += $(mirmon_pkgdata)
+endif
+if HAVE_FRONTEND
+conf_files += $(frontend_conf)
+sbin_files += $(frontend_sbin)
 endif
 
-backend_bin_scripts = \
+backend_bin_common = \
   backend/accounts/sv_assign_uid_gid \
   backend/accounts/sv_get_authorized_keys \
   backend/accounts/sv_groups \
@@ -30,24 +51,27 @@ backend_bin_scripts = \
   backend/mail/sv_mailman-wrapper.pl \
   backend/mail/sv_sendmail.pl \
   backend/misc/sv_cleaner \
-  backend/misc/sv_reminder \
-  $(mirmon_bin)
+  backend/misc/sv_reminder
 
-frontend_sbin = sv_frontendctl.pl sv_php_server.pl
+bin_SCRIPTS += $(backend_bin_common)
+bin_all += $(backend_bin_common)
+
 frontend_php_built = frontend/php/include/ac_config.php frontend/local.php
-if HAVE_DATABASE
 db_sbin = sv_launch_db.pl sv_kill_db.pl
+sbin_all += $(db_sbin)
+if HAVE_DATABASE
+sbin_files += $(db_sbin)
 endif
-backend_sbin = $(frontend_sbin) $(db_sbin)
-
-backend_sbin_scripts = $(backend_sbin:%=backend/sbin/%)
+backend_sbin_scripts = $(sbin_files:%=backend/sbin/%)
 
 backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
+all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 
 build_time_scripts = db/init-database.pl
 
-conf_files = apache.conf savane.conf.pl membersh-conf.pl mirmon-to-geoip.conf \
-  php.ini savane.conf.php cgitrepos
+common_conf = savane.conf.pl membersh-conf.pl
+conf_files += $(common_conf)
+conf_all += $(common_conf)
 
 directories = backend/accounts backend/sbin backend/external \
   backend/extra/git backend/mail backend/misc db sysconf lib/Savane \
@@ -71,10 +95,9 @@ modules = \
   lib/Savane/Util.pm \
   lib/Savane/Version.pm
 
-bin_SCRIPTS = $(backend_bin_scripts)
 sbin_SCRIPTS = $(backend_sbin_scripts)
 noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built)
-nobase_pkgdata_DATA = $(modules) $(mirmon_pkgdata)
+nobase_pkgdata_DATA += $(modules)
 confdir = $(sysconfdir)/$(PACKAGE)
 pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
 logdir = $(pkgstatedir)/log
@@ -166,7 +189,7 @@ subst_in_files = \
     -e 's,[@]sysconfdir[@],$(sysconfdir),g'
 
 substituted = \
-  $(backend_scripts) $(build_time_scripts) $(conf_files:%=sysconf/%) $(modules) \
+  $(all_scripts) $(build_time_scripts) $(conf_all:%=sysconf/%) $(modules) \
   $(frontend_php_built)
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
@@ -176,10 +199,10 @@ $(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
 # Force trivial cgitrepos for the time being.
 cgirepos: ; echo -n > $@
 
-EXTRA_DIST = backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
+EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
   AUTHORS.SourceForge db/initial.sql db/mk-db.sql.in db/sample.sql \
-  tests $(substituted:%=%.in) backend/README autotools/README \
-  caboose/cleanup-dump.sed \
+  tests $(substituted:%=%.in) $(mirmon_pkgdata) backend/README \
+  autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
   caboose/parse-files.awk
 
