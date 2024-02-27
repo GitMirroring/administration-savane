@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: savane 3.12\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
 "POT-Creation-Date: 2023-06-06 08:03+0000\n"
-"PO-Revision-Date: 2024-01-08 16:38-0500\n"
-"Last-Translator: Boyuan Yang <073plan@gmail.com>\n"
+"PO-Revision-Date: 2024-02-22 14:28+0800\n"
+"Last-Translator: Poesty Li <poesty7450@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -31,12 +31,16 @@ msgid "Repository %s not found"
 msgstr "仓库 %s 未找到"
 
 #: frontend/php/git/admin/index.php:189
+#, fuzzy
 msgid ""
 "On this page, group administrators can configure some settings of\n"
 "the repositories of the group. The changes are in effect immediately\n"
 "for Savane web pages and within an hour for our repository browsing\n"
 "web server."
 msgstr ""
+"在此页面上，群组管理员可以配置群组中存储库的一些设置。\n"
+"更改将立即生效于 Savane 的网页，并在一个小时内生效于我\n"
+"们的存储库浏览网页服务器。"
 
 #: frontend/php/git/admin/index.php:204
 msgid "Move up"
@@ -59,7 +63,7 @@ msgstr ""
 
 #: frontend/php/git/admin/index.php:244
 msgid "don't provide links to snapshot tarballs"
-msgstr ""
+msgstr "未提供快照 tarball 链接"
 
 #: frontend/php/git/admin/index.php:253
 #: frontend/php/bugs/admin/field_usage.php:164
@@ -71,11 +75,11 @@ msgstr "描述："
 
 #: frontend/php/git/admin/index.php:256
 msgid "Web browsing settings"
-msgstr ""
+msgstr "网页浏览设置"
 
 #: frontend/php/git/admin/index.php:257
 msgid "README file:"
-msgstr ""
+msgstr "README 文件："
 
 #: frontend/php/git/admin/index.php:274
 #: frontend/php/bugs/admin/field_values.php:404
@@ -124,7 +128,7 @@ msgstr ""
 
 #: frontend/php/bugs/download.php:94
 msgid "File has a null size"
-msgstr ""
+msgstr "文件大小为空"
 
 #: frontend/php/bugs/export.php:55
 msgid "Data Export requires an access to private data of the group"
@@ -140,7 +144,7 @@ msgstr ""
 
 #: frontend/php/bugs/export.php:65
 msgid "Download tracker data"
-msgstr ""
+msgstr "下载跟踪器数据"
 
 #: frontend/php/bugs/index.php:71
 #, php-format
@@ -157,7 +161,7 @@ msgstr ""
 #: frontend/php/my/admin/change.php:108
 #: frontend/php/my/admin/editsshkeys.php:67
 msgid "Exiting"
-msgstr ""
+msgstr "正在退出"
 
 #: frontend/php/bugs/index.php:316
 msgid ""
@@ -199,7 +203,7 @@ msgstr ""
 
 #: frontend/php/bugs/reporting.php:108
 msgid "Other statistics:"
-msgstr ""
+msgstr "其他统计数据："
 
 #. TRANSLATORS: aging statistics is statistics by date.
 #: frontend/php/bugs/reporting.php:114
@@ -215,7 +219,7 @@ msgstr ""
 #: frontend/php/bugs/reporting.php:148 frontend/php/stats/index.php:408
 #: frontend/php/include/sitemenu.php:200
 msgid "Statistics"
-msgstr ""
+msgstr "统计"
 
 #. TRANSLATORS: aging statistics is statistics by date.
 #: frontend/php/bugs/reporting.php:161
@@ -242,7 +246,7 @@ msgstr ""
 
 #: frontend/php/bugs/reporting.php:207
 msgid "Field Description:"
-msgstr ""
+msgstr "字段描述："
 
 #: frontend/php/bugs/reporting.php:216
 #, php-format
@@ -255,15 +259,15 @@ msgstr ""
 
 #: frontend/php/bugs/reporting.php:273
 msgid "No item found."
-msgstr ""
+msgstr "未找到项目。"
 
 #: frontend/php/bugs/reporting.php:278
 msgid "All Items"
-msgstr ""
+msgstr "所有项目"
 
 #: frontend/php/bugs/reporting.php:316
 msgid "No item found. This field is probably unused"
-msgstr ""
+msgstr "未找到项目。此字段可能未被使用"
 
 #: frontend/php/bugs/admin/field_values.php:97
 msgid "Transition deleted"
@@ -326,7 +330,7 @@ msgstr ""
 #: frontend/php/bugs/admin/field_values.php:254
 #: frontend/php/bugs/admin/field_usage.php:142
 msgid "Field Label:"
-msgstr ""
+msgstr "字段标签："
 
 #: frontend/php/bugs/admin/field_values.php:260
 msgid "Jump to this field usage"
@@ -344,11 +348,11 @@ msgstr ""
 #: frontend/php/bugs/admin/field_values.php:281
 #: frontend/php/bugs/admin/editqueryforms.php:492
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: frontend/php/bugs/admin/field_values.php:282
 msgid "Value label"
-msgstr ""
+msgstr "值标签"
 
 #: frontend/php/bugs/admin/field_values.php:283
 #: frontend/php/bugs/admin/field_values.php:865
@@ -358,7 +362,7 @@ msgstr ""
 #: frontend/php/search/index.php:123
 #: frontend/php/include/search/general.php:528
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
 #: frontend/php/bugs/admin/field_values.php:284
 #: frontend/php/bugs/admin/field_values.php:760
@@ -418,7 +422,7 @@ msgstr ""
 #: frontend/php/bugs/admin/field_values.php:383
 #: frontend/php/bugs/admin/field_values.php:687
 msgid "Value:"
-msgstr ""
+msgstr "值："
 
 #: frontend/php/bugs/admin/field_values.php:386
 #: frontend/php/bugs/admin/field_values.php:695
@@ -435,12 +439,12 @@ msgstr ""
 #: frontend/php/bugs/admin/field_values.php:399
 #: frontend/php/bugs/admin/field_values.php:712
 msgid "Description (optional):"
-msgstr ""
+msgstr "描述（可选）："
 
 #: frontend/php/bugs/admin/field_values.php:410
 #: frontend/php/bugs/admin/field_values.php:420
 msgid "Reset values"
-msgstr ""
+msgstr "重置值"
 
 #: frontend/php/bugs/admin/field_values.php:412
 msgid ""
@@ -510,12 +514,12 @@ msgstr "删除"
 #: frontend/php/bugs/admin/field_values.php:521
 #: frontend/php/my/admin/resume.php:169
 msgid "Yes"
-msgstr ""
+msgstr "是"
 
 #: frontend/php/bugs/admin/field_values.php:523
 #: frontend/php/my/admin/resume.php:169
 msgid "No"
-msgstr ""
+msgstr "否"
 
 #. TRANSLATORS: this refers to transitions.
 #: frontend/php/bugs/admin/field_values.php:528
@@ -587,7 +591,7 @@ msgstr ""
 #: frontend/php/people/viewjob.php:107 frontend/php/mail/admin/index.php:265
 #: frontend/php/mail/admin/index.php:331
 msgid "Status:"
-msgstr ""
+msgstr "状态："
 
 #: frontend/php/bugs/admin/field_values.php:724
 #, php-format
@@ -612,7 +616,7 @@ msgstr ""
 #: frontend/php/include/pagemenu.php:569 frontend/php/include/pagemenu.php:655
 #: frontend/php/include/news/general.php:228 frontend/php/include/form.php:185
 msgid "Submit"
-msgstr ""
+msgstr "提交"
 
 #: frontend/php/bugs/admin/field_values.php:747
 msgid "Modify Canned Responses"
@@ -627,7 +631,7 @@ msgstr ""
 #: frontend/php/include/people/general.php:413
 #: frontend/php/include/markup.php:86 frontend/php/include/markup.php:151
 msgid "Title"
-msgstr ""
+msgstr "标题"
 
 #: frontend/php/bugs/admin/field_values.php:760
 msgid "Body (abstract)"
@@ -685,18 +689,18 @@ msgstr ""
 #: frontend/php/bugs/admin/field_usage.php:396
 #: frontend/php/bugs/admin/editqueryforms.php:226
 msgid "Field Label"
-msgstr ""
+msgstr "字段标签"
 
 #: frontend/php/bugs/admin/field_values.php:865
 #: frontend/php/bugs/admin/field_usage.php:397
 #: frontend/php/bugs/admin/editqueryforms.php:492
 msgid "Scope"
-msgstr ""
+msgstr "范围"
 
 #: frontend/php/bugs/admin/field_values.php:876
 #: frontend/php/bugs/admin/field_usage.php:431
 msgid "System"
-msgstr ""
+msgstr "系统"
 
 #: frontend/php/bugs/admin/field_values.php:878
 #: frontend/php/bugs/admin/field_values.php:896
@@ -704,7 +708,7 @@ msgstr ""
 #: frontend/php/bugs/admin/editqueryforms.php:244
 #: frontend/php/bugs/admin/editqueryforms.php:516
 msgid "Project"
-msgstr ""
+msgstr "项目"
 
 #: frontend/php/bugs/admin/field_values.php:890
 #: frontend/php/include/trackers/general.php:726
@@ -731,13 +735,13 @@ msgstr ""
 #: frontend/php/include/utils.php:438 frontend/php/include/html.php:461
 #: frontend/php/include/html.php:645
 msgid "None"
-msgstr ""
+msgstr "无"
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:135
 #: frontend/php/include/trackers_run/mod.php:315
 #: frontend/php/include/html.php:463
 msgid "Any"
-msgstr ""
+msgstr "任何"
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:145
 msgid "Field Value Transitions: Update Other Fields"
@@ -768,7 +772,7 @@ msgstr ""
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:173
 msgid "New Value"
-msgstr ""
+msgstr "新值"
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:205
 msgid "No automatic update"
@@ -785,11 +789,11 @@ msgstr ""
 #: frontend/php/bugs/admin/field_usage.php:180
 #: frontend/php/bugs/admin/field_usage.php:427
 msgid "Required"
-msgstr ""
+msgstr "必填"
 
 #: frontend/php/bugs/admin/field_usage.php:187
 msgid "Usage status"
-msgstr ""
+msgstr "使用状况"
 
 #: frontend/php/bugs/admin/field_usage.php:188
 #: frontend/php/bugs/admin/field_usage.php:427
@@ -803,7 +807,7 @@ msgstr ""
 
 #: frontend/php/bugs/admin/field_usage.php:197
 msgid "Item History:"
-msgstr ""
+msgstr "项目历史："
 
 #: frontend/php/bugs/admin/field_usage.php:199
 msgid "whether to keep in history"
@@ -823,7 +827,7 @@ msgstr ""
 
 #: frontend/php/bugs/admin/field_usage.php:221
 msgid "This field is:"
-msgstr ""
+msgstr "此字段是："
 
 #: frontend/php/bugs/admin/field_usage.php:223
 msgid "whether the field is mandatory"
@@ -831,11 +835,11 @@ msgstr ""
 
 #: frontend/php/bugs/admin/field_usage.php:227
 msgid "Optional (empty values are accepted)"
-msgstr ""
+msgstr "可选的（可接受空值）"
 
 #: frontend/php/bugs/admin/field_usage.php:229
 msgid "Mandatory"
-msgstr ""
+msgstr "强制的"
 
 #: frontend/php/bugs/admin/field_usage.php:232
 msgid "Mandatory only if it was presented to the original submitter"
@@ -871,7 +875,7 @@ msgstr ""
 
 #: frontend/php/bugs/admin/field_usage.php:306
 msgid "Display:"
-msgstr ""
+msgstr "显示："
 
 #: frontend/php/bugs/admin/field_usage.php:309
 msgid "Rank on page:"
@@ -919,7 +923,7 @@ msgstr ""
 #: frontend/php/include/people/general.php:413
 #: frontend/php/include/search/general.php:528
 msgid "Type"
-msgstr ""
+msgstr "类型"
 
 #: frontend/php/bugs/admin/field_usage.php:396
 msgid "Rank on page"
@@ -1643,7 +1647,7 @@ msgstr ""
 #: frontend/php/people/editjob.php:212 frontend/php/people/createjob.php:62
 #: frontend/php/people/viewjob.php:99
 msgid "Category:"
-msgstr ""
+msgstr "类别："
 
 #: frontend/php/people/editjob.php:221
 msgid "Short Description:"
@@ -1749,7 +1753,7 @@ msgstr ""
 #: frontend/php/people/admin/index.php:109
 #: frontend/php/people/admin/index.php:138 frontend/php/cvs/admin/index.php:289
 msgid "Add"
-msgstr ""
+msgstr "添加"
 
 #: frontend/php/people/admin/index.php:115
 msgid "Change People Skills"
@@ -1798,7 +1802,7 @@ msgstr ""
 #: frontend/php/include/exit.php:133 frontend/php/include/news/forum.php:351
 #: frontend/php/forum/forum.php:331 frontend/php/news/admin/index.php:64
 msgid "Error"
-msgstr ""
+msgstr "错误"
 
 #: frontend/php/people/viewjob.php:52
 msgid "Posting ID not found"
@@ -1823,7 +1827,7 @@ msgstr "提交者："
 
 #: frontend/php/people/viewjob.php:105
 msgid "Date:"
-msgstr ""
+msgstr "日期："
 
 #: frontend/php/people/viewjob.php:119
 msgid "License"
@@ -1877,7 +1881,7 @@ msgstr ""
 
 #: frontend/php/i18n.php:108 frontend/php/i18n.php:145
 msgid "Set language"
-msgstr ""
+msgstr "设置语言"
 
 #: frontend/php/i18n.php:112
 msgid ""
@@ -1903,7 +1907,7 @@ msgstr ""
 
 #: frontend/php/i18n.php:137
 msgid "Reset"
-msgstr ""
+msgstr "重置"
 
 #: frontend/php/i18n.php:140
 msgid ""
@@ -1934,11 +1938,11 @@ msgstr ""
 #: frontend/php/account/login.php:285 frontend/php/account/verify.php:93
 #: frontend/php/account/verify.php:119 frontend/php/include/sitemenu.php:512
 msgid "Login"
-msgstr ""
+msgstr "登录"
 
 #: frontend/php/search/index.php:163
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
 #: frontend/php/search/index.php:184
 msgid "Invalid Search!!"
@@ -1946,11 +1950,11 @@ msgstr ""
 
 #: frontend/php/search/index.php:202
 msgid "Item Id"
-msgstr ""
+msgstr "项目 Id"
 
 #: frontend/php/search/index.php:202
 msgid "Item Summary"
-msgstr ""
+msgstr "项目摘要"
 
 #: frontend/php/search/index.php:205
 msgid "Submitter"
@@ -1960,7 +1964,7 @@ msgstr "提交者"
 #: frontend/php/include/project/admin.php:63
 #: frontend/php/include/news/forum.php:233 frontend/php/forum/forum.php:231
 msgid "Date"
-msgstr ""
+msgstr "日期"
 
 #: frontend/php/account/lostpw-confirm.php:68
 msgid "This account does not exist"
@@ -2057,7 +2061,7 @@ msgstr ""
 #: frontend/php/account/login.php:199
 #: frontend/php/account/pending-resend.php:76
 msgid "Pending Account"
-msgstr ""
+msgstr "待处理的账号"
 
 #: frontend/php/account/login.php:201
 msgid ""
@@ -2067,11 +2071,11 @@ msgstr ""
 
 #: frontend/php/account/login.php:206
 msgid "Resend Confirmation Email"
-msgstr ""
+msgstr "重新发送确认邮件"
 
 #: frontend/php/account/login.php:212
 msgid "Troubleshooting:"
-msgstr ""
+msgstr "故障排除："
 
 #: frontend/php/account/login.php:214
 msgid "Is the &ldquo;Caps Lock&rdquo; or &ldquo;A&rdquo; light on your keyboard on?"
@@ -2083,7 +2087,7 @@ msgstr ""
 
 #: frontend/php/account/login.php:218
 msgid "Did you forget or misspell your password?"
-msgstr ""
+msgstr "您是否忘记或拼错了密码？"
 
 #: frontend/php/account/login.php:222
 msgid "You can recover your password using the lost password form."
@@ -2091,20 +2095,20 @@ msgstr ""
 
 #: frontend/php/account/login.php:225
 msgid "Still having trouble?"
-msgstr ""
+msgstr "仍然有问题吗？"
 
 #: frontend/php/account/login.php:229
 msgid "Fill a support request."
-msgstr ""
+msgstr "请填写一个支持请求。"
 
 #: frontend/php/account/login.php:246 frontend/php/account/lostpw.php:64
 #: frontend/php/account/register.php:288 frontend/php/link-to-users.php:162
 msgid "Login Name:"
-msgstr ""
+msgstr "登录名："
 
 #: frontend/php/account/login.php:250
 msgid "No account yet?"
-msgstr ""
+msgstr "还没有账号吗？"
 
 #: frontend/php/account/login.php:252
 msgid "Password:"
@@ -2112,7 +2116,7 @@ msgstr "密码："
 
 #: frontend/php/account/login.php:256 frontend/php/account/lostpw.php:51
 msgid "Lost your password?"
-msgstr ""
+msgstr "忘记密码了吗？"
 
 #: frontend/php/account/login.php:263
 msgid ""
@@ -2123,7 +2127,7 @@ msgstr ""
 
 #: frontend/php/account/login.php:270
 msgid "Remember me"
-msgstr ""
+msgstr "记住我"
 
 #: frontend/php/account/login.php:272
 msgid ""
@@ -2136,11 +2140,11 @@ msgstr ""
 #: frontend/php/account/login.php:282
 #, php-format
 msgid "Login also in %s"
-msgstr ""
+msgstr "同时登录到 %s"
 
 #: frontend/php/account/lostpw.php:50
 msgid "Lost Account Password"
-msgstr ""
+msgstr "丢失账号密码"
 
 #: frontend/php/account/lostpw.php:53
 msgid ""
@@ -2165,12 +2169,12 @@ msgstr ""
 #. TRANSLATORS: confirmation hash is a secret code mailed to the user.
 #: frontend/php/account/lostlogin.php:64
 msgid "This confirmation hash exists more than once."
-msgstr ""
+msgstr "此确认哈希值存在多次。"
 
 #: frontend/php/account/lostlogin.php:67 frontend/php/my/admin/change.php:348
 #: frontend/php/my/admin/change.php:353 frontend/php/my/admin/change.php:486
 msgid "Invalid confirmation hash."
-msgstr ""
+msgstr "无效的确认哈希值。"
 
 #: frontend/php/account/lostlogin.php:73
 msgid "Passphrases do not match."
@@ -2183,30 +2187,30 @@ msgstr ""
 #: frontend/php/account/lostlogin.php:89
 #, php-format
 msgid "Welcome, %s."
-msgstr ""
+msgstr "欢迎，$%s。"
 
 #: frontend/php/account/lostlogin.php:90
 msgid "You may now change your passphrase."
-msgstr ""
+msgstr "您现在可以更改密码。"
 
 #: frontend/php/account/lostlogin.php:96
 msgid "New passphrase:"
-msgstr ""
+msgstr "新密码："
 
 #: frontend/php/account/lostlogin.php:101
 msgid "New passphrase (repeat):"
-msgstr ""
+msgstr "新密码（重复输入）："
 
 #. TRANSLATORS: the argument is system name (like Savannah).
 #: frontend/php/account/first.php:48
 #, php-format
 msgid "Welcome to %s"
-msgstr ""
+msgstr "欢迎来到 %s"
 
 #: frontend/php/account/first.php:53
 #, php-format
 msgid "You are now a registered user on %s."
-msgstr ""
+msgstr "您现在是 %s 上的注册用户。"
 
 #: frontend/php/account/first.php:58
 #, php-format
@@ -2243,33 +2247,33 @@ msgstr ""
 
 #: frontend/php/account/verify.php:105
 msgid "Login Name"
-msgstr ""
+msgstr "登录名"
 
 #: frontend/php/account/verify.php:110
 msgid "Password"
-msgstr ""
+msgstr "密码"
 
 #: frontend/php/account/pending-resend.php:58
 msgid "This account is not pending verification."
-msgstr ""
+msgstr "此账号无需验证。"
 
 #: frontend/php/account/pending-resend.php:61
 #, php-format
 msgid "Thank you for registering on the %s web site."
-msgstr ""
+msgstr "感谢您在 %s 网站上注册。"
 
 #: frontend/php/account/pending-resend.php:63
 msgid "In order to complete your registration, visit the following URL:"
-msgstr ""
+msgstr "要完成注册，请访问以下 URL："
 
 #: frontend/php/account/pending-resend.php:71
 #: frontend/php/account/register.php:250
 msgid "Account Registration"
-msgstr ""
+msgstr "账号注册"
 
 #: frontend/php/account/pending-resend.php:74
 msgid "Account Pending Verification"
-msgstr ""
+msgstr "账号待验证"
 
 #: frontend/php/account/pending-resend.php:78
 msgid ""
@@ -2283,21 +2287,21 @@ msgstr "返回主页"
 
 #: frontend/php/account/register.php:88
 msgid "Please answer the antispam test!"
-msgstr ""
+msgstr "请完成反垃圾信息测试！"
 
 #: frontend/php/account/register.php:98
 #: frontend/php/project/admin/squadadmin.php:322
 msgid "You must supply a username."
-msgstr ""
+msgstr "您必须提供用户名。"
 
 #: frontend/php/account/register.php:109 frontend/php/account/register.php:213
 #: frontend/php/project/admin/squadadmin.php:278
 msgid "That username already exists."
-msgstr ""
+msgstr "该用户名已存在。"
 
 #: frontend/php/account/register.php:116
 msgid "That username is blocked to avoid conflict with mailing-list addresses."
-msgstr ""
+msgstr "该用户名被屏蔽，以避免与邮件列表地址冲突。"
 
 #: frontend/php/account/register.php:124 frontend/php/my/admin/change.php:166
 msgid "You must supply a password."
@@ -2305,15 +2309,15 @@ msgstr "您必须提供一个密码。"
 
 #: frontend/php/account/register.php:126
 msgid "Passwords do not match."
-msgstr ""
+msgstr "密码不匹配。"
 
 #: frontend/php/account/register.php:135
 msgid "You must supply a valid email address."
-msgstr ""
+msgstr "您必须提供有效的电子邮件地址。"
 
 #: frontend/php/account/register.php:144
 msgid "You must supply a real name."
-msgstr ""
+msgstr "您必须提供真实姓名。"
 
 #: frontend/php/account/register.php:155 frontend/php/include/session.php:153
 msgid "phpkrb5 module failure"
@@ -2354,17 +2358,17 @@ msgstr ""
 
 #: frontend/php/account/register.php:254
 msgid "Register Confirmation"
-msgstr ""
+msgstr "注册确认"
 
 #: frontend/php/account/register.php:256
 msgid "New Account Registration Confirmation"
-msgstr ""
+msgstr "新账号注册确认"
 
 #. TRANSLATORS: the argument is the name of the system (like "Savannah").
 #: frontend/php/account/register.php:258
 #, php-format
 msgid "Congratulations. You have registered on %s."
-msgstr ""
+msgstr "恭喜。您已在 %s 上注册。"
 
 #: frontend/php/account/register.php:261 frontend/php/my/admin/index.php:221
 #, php-format
@@ -2387,7 +2391,7 @@ msgstr ""
 
 #: frontend/php/account/register.php:283
 msgid "User account registration"
-msgstr ""
+msgstr "用户账号注册"
 
 #: frontend/php/account/register.php:291
 msgid "Password / passphrase:"
@@ -2395,13 +2399,13 @@ msgstr ""
 
 #: frontend/php/account/register.php:293
 msgid "Re-type Password:"
-msgstr ""
+msgstr "重新输入密码："
 
 #: frontend/php/account/register.php:295
 #: frontend/php/project/admin/squadadmin.php:182
 #: frontend/php/link-to-users.php:160
 msgid "Real Name:"
-msgstr ""
+msgstr "真名："
 
 #: frontend/php/account/register.php:298 frontend/php/link-to-users.php:171
 msgid "Email Address:"
@@ -2409,11 +2413,11 @@ msgstr "电子邮件地址："
 
 #: frontend/php/account/register.php:301
 msgid "This email address will be verified before account activation."
-msgstr ""
+msgstr "在账号激活之前，此电子邮件地址将进行验证。"
 
 #: frontend/php/account/register.php:306 frontend/php/account/register.php:326
 msgid "Antispam test:"
-msgstr ""
+msgstr "反垃圾信息测试："
 
 #: frontend/php/account/register.php:310
 #, php-format
@@ -2422,11 +2426,11 @@ msgstr ""
 
 #: frontend/php/account/register.php:320
 msgid "CAPTCHA"
-msgstr ""
+msgstr "CAPTCHA"
 
 #: frontend/php/account/register.php:321
 msgid "Try another image"
-msgstr ""
+msgstr "换一张图片"
 
 #: frontend/php/account/register.php:324
 msgid "Play captcha"
@@ -2438,7 +2442,7 @@ msgstr ""
 
 #: frontend/php/account/impersonate.php:52
 msgid "This user doesn't exist."
-msgstr ""
+msgstr "此用户不存在。"
 
 #: frontend/php/account/su.php:100
 msgid "You shouldn't have come to this page."
@@ -2618,7 +2622,7 @@ msgid ""
 "What is your package? (Purpose, topic, programming language...)\n"
 "What is special about it?"
 msgstr ""
-"你的软件包是什么？（目的、主题、编程语言……）\n"
+"您的软件包是什么？（目的、主题、编程语言……）\n"
 "它有何特别之处？"
 
 #: frontend/php/register/index.php:116
@@ -3215,7 +3219,7 @@ msgstr ""
 #: frontend/php/include/context.php:205 frontend/php/include/pagemenu.php:564
 #: frontend/php/project/admin/editgroupfeatures.php:320
 msgid "News"
-msgstr ""
+msgstr "新闻"
 
 #: frontend/php/my/index.php:210
 msgid "New and Unassigned Items"
@@ -3265,7 +3269,7 @@ msgstr ""
 
 #: frontend/php/my/admin/resume.php:166
 msgid "No such user"
-msgstr ""
+msgstr "无此用户"
 
 #: frontend/php/my/admin/resume.php:172
 msgid "Publicly Viewable"
@@ -3273,15 +3277,15 @@ msgstr ""
 
 #: frontend/php/my/admin/resume.php:173
 msgid "Do you want your resume to be activated?"
-msgstr ""
+msgstr "您希望激活您的履历吗？"
 
 #: frontend/php/my/admin/resume.php:177
 msgid "Activate resume"
-msgstr ""
+msgstr "激活履历"
 
 #: frontend/php/my/admin/resume.php:182
 msgid "Resume - Description of Experience"
-msgstr ""
+msgstr "履历 - 经历描述"
 
 #: frontend/php/my/admin/resume.php:189
 msgid "Update Profile"
@@ -3946,7 +3950,7 @@ msgstr "您是 %s。"
 
 #: frontend/php/my/admin/index.php:240
 msgid "Edit Resume and Skills"
-msgstr "编辑简历和技能"
+msgstr "编辑履历与技能"
 
 #: frontend/php/my/admin/index.php:249
 msgid "View your Public Profile"
@@ -4628,7 +4632,7 @@ msgstr ""
 
 #: frontend/php/include/mailman.php:163
 msgid "Hello,"
-msgstr ""
+msgstr "您好，"
 
 #: frontend/php/include/mailman.php:167
 #, php-format
@@ -4815,7 +4819,7 @@ msgstr ""
 
 #: frontend/php/include/trackers_run/mod.php:551
 msgid "Discussion"
-msgstr ""
+msgstr "讨论"
 
 #: frontend/php/include/trackers_run/mod.php:580
 #: frontend/php/include/trackers_run/add.php:207
@@ -4881,7 +4885,7 @@ msgstr ""
 
 #: frontend/php/include/trackers_run/mod.php:651
 msgid "The Bug Tracker Only"
-msgstr ""
+msgstr "仅限错误跟踪器"
 
 #: frontend/php/include/trackers_run/mod.php:652
 msgid "The Task Manager Only"
@@ -5315,7 +5319,7 @@ msgstr ""
 #: frontend/php/include/trackers_run/digest.php:294
 #: frontend/php/include/utils.php:440 frontend/php/include/html.php:708
 msgid "Anonymous"
-msgstr ""
+msgstr "匿名"
 
 #: frontend/php/include/trackers_run/digest.php:303
 #, php-format
@@ -5596,19 +5600,19 @@ msgstr ""
 
 #: frontend/php/include/graphs.php:50
 msgid "n/a"
-msgstr ""
+msgstr "无"
 
 #. TRANSLATORS: printing percentage.
 #: frontend/php/include/graphs.php:54
 #, php-format
 msgid "%s%%"
-msgstr ""
+msgstr "%s%%"
 
 #. TRANSLATORS: the arguments mean "%1$s of (total) %2$s".
 #: frontend/php/include/graphs.php:82
 #, php-format
 msgid "%1$s/%2$s"
-msgstr ""
+msgstr "%1$s/%2$s"
 
 #: frontend/php/include/graphs.php:99
 msgid "No data to work on, no graph will be built"
@@ -5638,7 +5642,7 @@ msgstr ""
 #: frontend/php/include/trackers/format.php:213
 #: frontend/php/include/user.php:129
 msgid "anonymous"
-msgstr ""
+msgstr "匿名"
 
 #: frontend/php/include/trackers/format.php:224
 msgid ""
@@ -5673,7 +5677,7 @@ msgstr "群组成员"
 
 #: frontend/php/include/trackers/format.php:334
 msgid "This is a preview"
-msgstr ""
+msgstr "这是一个预览"
 
 #: frontend/php/include/trackers/format.php:340
 #: frontend/php/include/trackers/data.php:2495
@@ -5692,7 +5696,7 @@ msgstr ""
 
 #: frontend/php/include/trackers/format.php:351
 msgid "Quote"
-msgstr ""
+msgstr "引用"
 
 #: frontend/php/include/trackers/format.php:367
 msgid "In charge of this item."
@@ -5738,11 +5742,11 @@ msgstr ""
 
 #: frontend/php/include/trackers/cookbook.php:48
 msgid "Anonymous Users"
-msgstr ""
+msgstr "匿名用户"
 
 #: frontend/php/include/trackers/cookbook.php:49
 msgid "Logged-in Users"
-msgstr ""
+msgstr "已登录用户"
 
 #: frontend/php/include/trackers/cookbook.php:50
 msgid "All Group Members"
@@ -5769,14 +5773,14 @@ msgstr "群组主页"
 #: frontend/php/include/project_home.php:348
 #: frontend/php/project/admin/editgroupfeatures.php:261
 msgid "Download Area"
-msgstr ""
+msgstr "下载区域"
 
 #: frontend/php/include/trackers/cookbook.php:63
 #: frontend/php/project/admin/index.php:82
 #: frontend/php/project/admin/userperms.php:675
 #: frontend/php/project/admin/editgroupfeatures.php:321
 msgid "Support Tracker"
-msgstr ""
+msgstr "支持跟踪器"
 
 #: frontend/php/include/trackers/cookbook.php:64
 #: frontend/php/include/project_home.php:564
@@ -5784,26 +5788,26 @@ msgstr ""
 #: frontend/php/project/admin/userperms.php:675
 #: frontend/php/project/admin/editgroupfeatures.php:321
 msgid "Bug Tracker"
-msgstr ""
+msgstr "错误跟踪器"
 
 #: frontend/php/include/trackers/cookbook.php:65
 #: frontend/php/include/project_home.php:565
 #: frontend/php/project/admin/index.php:83
 msgid "Task Manager"
-msgstr ""
+msgstr "任务管理器"
 
 #: frontend/php/include/trackers/cookbook.php:66
 #: frontend/php/project/admin/index.php:84
 #: frontend/php/project/admin/userperms.php:676
 #: frontend/php/project/admin/editgroupfeatures.php:322
 msgid "Patch Tracker"
-msgstr ""
+msgstr "补丁跟踪器"
 
 #: frontend/php/include/trackers/cookbook.php:67
 #: frontend/php/project/admin/index.php:84
 #: frontend/php/project/admin/userperms.php:677
 msgid "News Manager"
-msgstr ""
+msgstr "新闻管理器"
 
 #: frontend/php/include/trackers/cookbook.php:69
 msgid "Source Code Manager: CVS Repositories"
@@ -5819,11 +5823,11 @@ msgstr ""
 
 #: frontend/php/include/trackers/cookbook.php:77
 msgid "User Personal Area"
-msgstr ""
+msgstr "用户个人区域"
 
 #: frontend/php/include/trackers/cookbook.php:78
 msgid "Site Statistics"
-msgstr ""
+msgstr "站点统计"
 
 #: frontend/php/include/trackers/cookbook.php:143
 msgid "Browsing"
@@ -6611,7 +6615,7 @@ msgstr ""
 
 #: frontend/php/include/search/general.php:194
 msgid "Area to search in"
-msgstr ""
+msgstr "搜索区域"
 
 #. TRANSLATORS: this is search area.
 #. TRANSLATORS: this string is the section to look in; it is used as
@@ -7125,7 +7129,7 @@ msgstr ""
 #: frontend/php/include/exit.php:60 frontend/php/include/pagemenu.php:80
 #: frontend/php/include/sitemenu.php:250
 msgid ": "
-msgstr ""
+msgstr "："
 
 #: frontend/php/include/exit.php:65
 msgid "Exiting with Error"
@@ -7200,7 +7204,7 @@ msgstr ""
 
 #: frontend/php/include/session.php:189 frontend/php/include/session.php:195
 msgid "Invalid Password"
-msgstr ""
+msgstr "无效的密码"
 
 #: frontend/php/include/session.php:328
 msgid ""
@@ -7274,15 +7278,15 @@ msgstr ""
 
 #: frontend/php/include/html.php:707
 msgid "Logged-in User"
-msgstr ""
+msgstr "已登录用户"
 
 #: frontend/php/include/html.php:777
 msgid "Website theme"
-msgstr ""
+msgstr "网站主题"
 
 #: frontend/php/include/html.php:789
 msgid "(default)"
-msgstr ""
+msgstr "（默认）"
 
 #: frontend/php/include/html.php:796
 msgid "Pick theme alphabetically every day"
@@ -7381,11 +7385,11 @@ msgstr ""
 
 #: frontend/php/include/user.php:152
 msgid "Invalid User ID"
-msgstr ""
+msgstr "无效的用户 ID"
 
 #: frontend/php/include/user.php:509 frontend/php/include/user.php:534
 msgid "Account deleted."
-msgstr ""
+msgstr "账号已删除。"
 
 #: frontend/php/include/user.php:636
 #, php-format
@@ -7418,16 +7422,16 @@ msgstr ""
 
 #: frontend/php/include/project/admin.php:61
 msgid "Field"
-msgstr ""
+msgstr "字段"
 
 #: frontend/php/include/project/admin.php:62
 msgid "Value"
-msgstr ""
+msgstr "值"
 
 #: frontend/php/include/project/admin.php:64
 #: frontend/php/include/news/forum.php:233 frontend/php/forum/forum.php:231
 msgid "Author"
-msgstr ""
+msgstr "作者"
 
 #: frontend/php/include/project/admin.php:98
 msgid "Group Admins"
@@ -7455,26 +7459,26 @@ msgstr ""
 
 #: frontend/php/include/pagemenu.php:89
 msgid "My"
-msgstr ""
+msgstr "我的"
 
 #: frontend/php/include/pagemenu.php:90
 msgid "Site Admin"
-msgstr ""
+msgstr "站点管理员"
 
 #: frontend/php/include/pagemenu.php:95
 msgid "Site Wide"
-msgstr ""
+msgstr "全站"
 
 #. TRANSLATORS: the argument is context like "My", "Group", "Site Admin",
 #. "Site wide", "Submenu".
 #: frontend/php/include/pagemenu.php:101 frontend/php/include/pagemenu.php:140
 #, php-format
 msgid "%s Scope"
-msgstr ""
+msgstr "%s 范围"
 
 #: frontend/php/include/pagemenu.php:134
 msgid "Submenu"
-msgstr ""
+msgstr "子菜单"
 
 #: frontend/php/include/pagemenu.php:244
 msgid "Incoming Items"
@@ -7486,7 +7490,7 @@ msgstr ""
 
 #: frontend/php/include/pagemenu.php:245
 msgid "Items"
-msgstr ""
+msgstr "项目"
 
 #: frontend/php/include/pagemenu.php:246
 msgid "Browse my items (bugs, tasks, bookmarks...)"
@@ -7522,11 +7526,11 @@ msgstr ""
 
 #: frontend/php/include/pagemenu.php:290
 msgid "Administer:"
-msgstr ""
+msgstr "管理员："
 
 #: frontend/php/include/pagemenu.php:291
 msgid "Edit public info"
-msgstr ""
+msgstr "编辑公共信息"
 
 #: frontend/php/include/pagemenu.php:292
 msgid "Select features"
@@ -7599,7 +7603,7 @@ msgstr "浏览 %s 仓库"
 #: frontend/php/include/pagemenu.php:391
 #: frontend/php/include/project_home.php:513
 msgid "Administer"
-msgstr ""
+msgstr "管理员"
 
 #: frontend/php/include/pagemenu.php:426 frontend/php/include/pagemenu.php:431
 msgid "Main"
@@ -7901,7 +7905,7 @@ msgstr ""
 
 #: frontend/php/include/news/general.php:194
 msgid "Display"
-msgstr ""
+msgstr "显示"
 
 #: frontend/php/include/news/general.php:200
 msgid "Approve later"
@@ -7939,29 +7943,29 @@ msgstr "托管的项目"
 
 #: frontend/php/include/sitemenu.php:189
 msgid "Register New Project"
-msgstr ""
+msgstr "注册新项目"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
 #: frontend/php/include/sitemenu.php:191
 #, php-format
 msgid "Register your project at %s"
-msgstr ""
+msgstr "在 %s 上注册您的项目"
 
 #: frontend/php/include/sitemenu.php:195
 msgid "Full List"
-msgstr ""
+msgstr "完整列表"
 
 #: frontend/php/include/sitemenu.php:195
 msgid "Browse the full list of hosted projects"
-msgstr ""
+msgstr "浏览托管项目的完整列表"
 
 #: frontend/php/include/sitemenu.php:197
 msgid "Contributors Wanted"
-msgstr ""
+msgstr "寻找贡献者"
 
 #: frontend/php/include/sitemenu.php:198
 msgid "Browse the list of request for contributions"
-msgstr ""
+msgstr "浏览请求贡献的列表"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
 #: frontend/php/include/sitemenu.php:202
@@ -7971,7 +7975,7 @@ msgstr ""
 
 #: frontend/php/include/sitemenu.php:217
 msgid "This Page"
-msgstr ""
+msgstr "此页面"
 
 #: frontend/php/include/sitemenu.php:226
 msgid "Language"
@@ -7979,15 +7983,15 @@ msgstr "语言"
 
 #: frontend/php/include/sitemenu.php:226
 msgid "Choose website language"
-msgstr ""
+msgstr "选择网站语言"
 
 #: frontend/php/include/sitemenu.php:237
 msgid "Clean Reload"
-msgstr ""
+msgstr "重新加载"
 
 #: frontend/php/include/sitemenu.php:238
 msgid "Reload the page without risk of reposting data"
-msgstr ""
+msgstr "重新加载页面，无需担心重新提交数据"
 
 #: frontend/php/include/sitemenu.php:255
 msgid "Bookmark It"
@@ -8007,34 +8011,34 @@ msgstr "站点帮助"
 
 #: frontend/php/include/sitemenu.php:399
 msgid "User Docs: FAQ"
-msgstr ""
+msgstr "用户文档： 常见问题"
 
 #: frontend/php/include/sitemenu.php:400
 msgid "User Docs: In Depth Guide"
-msgstr ""
+msgstr "用户文档： 深入指南"
 
 #: frontend/php/include/sitemenu.php:402
 msgid "In-depth Documentation dedicated to any users, including group admins"
-msgstr ""
+msgstr "专为任何用户（包括群组管理员）提供的深入文档"
 
 #: frontend/php/include/sitemenu.php:408
 #, php-format
 msgid "Get help from the Admins of %s, when documentation is not enough"
-msgstr ""
+msgstr "当文档不足以提供帮助时，请向 %s 的管理员寻求帮助"
 
 #: frontend/php/include/sitemenu.php:412
 msgid "Get Support"
-msgstr ""
+msgstr "获取支持"
 
 #: frontend/php/include/sitemenu.php:415
 msgid "Contact Savannah"
-msgstr ""
+msgstr "联系 Savannah"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
 #: frontend/php/include/sitemenu.php:417
 #, php-format
 msgid "Contact address of %s Admins"
-msgstr ""
+msgstr "%s 管理员的联系地址"
 
 #. TRANSLATORS: the argument is user's name.
 #: frontend/php/include/sitemenu.php:433
@@ -8089,7 +8093,7 @@ msgstr ""
 
 #: frontend/php/include/sitemenu.php:488
 msgid "Logout"
-msgstr ""
+msgstr "登出"
 
 #: frontend/php/include/sitemenu.php:489
 msgid "End the session, remove the session cookie"
@@ -8097,7 +8101,7 @@ msgstr ""
 
 #: frontend/php/include/sitemenu.php:502
 msgid "Not Logged in"
-msgstr ""
+msgstr "未登录"
 
 #: frontend/php/include/sitemenu.php:513
 msgid "Login page - you must have registered an account first"
@@ -8105,7 +8109,7 @@ msgstr ""
 
 #: frontend/php/include/sitemenu.php:516
 msgid "New User"
-msgstr ""
+msgstr "新用户"
 
 #: frontend/php/include/sitemenu.php:517
 msgid "Account registration form"
@@ -8251,7 +8255,7 @@ msgstr ""
 
 #: frontend/php/include/project_home.php:80
 msgid "Membership Info"
-msgstr ""
+msgstr "成员信息"
 
 #: frontend/php/include/project_home.php:97
 msgid "Group Admin:"
@@ -8272,22 +8276,23 @@ msgid "View Members"
 msgstr "查看成员"
 
 #: frontend/php/include/project_home.php:148
+#, fuzzy
 msgid "Group identification"
-msgstr ""
+msgstr "群组认证"
 
 #. TRANSLATORS: the group id (a number) will follow.
 #. TRANSLATORS: user's id (a number) shall follow this message.
 #: frontend/php/include/project_home.php:153 frontend/php/link-to-users.php:169
 msgid "Id:"
-msgstr ""
+msgstr "Id："
 
 #: frontend/php/include/project_home.php:154
 msgid "System Name:"
-msgstr ""
+msgstr "系统名称："
 
 #: frontend/php/include/project_home.php:156
 msgid "Group Type:"
-msgstr ""
+msgstr "群组类型："
 
 #: frontend/php/include/project_home.php:192
 #, php-format
@@ -8359,7 +8364,7 @@ msgstr "群组主管理页面"
 
 #: frontend/php/include/project_home.php:326
 msgid "Quick Overview"
-msgstr ""
+msgstr "快速概览"
 
 #: frontend/php/include/project_home.php:369
 msgid "Browse docs (external to Savane)"
@@ -8528,7 +8533,7 @@ msgstr ""
 
 #: frontend/php/project/memberlist.php:176
 msgid "Group memberlist"
-msgstr ""
+msgstr "群组成员列表"
 
 #: frontend/php/project/memberlist.php:187
 msgid "basic or detailed"
@@ -8579,7 +8584,7 @@ msgstr ""
 #: frontend/php/project/memberlist.php:228
 #: frontend/php/project/admin/userperms.php:588
 msgid "Member"
-msgstr ""
+msgstr "成员"
 
 #: frontend/php/project/memberlist.php:230
 msgid "Specific Role"
@@ -8587,7 +8592,7 @@ msgstr ""
 
 #: frontend/php/project/memberlist.php:231
 msgid "Resume and Skills"
-msgstr ""
+msgstr "履历与技能"
 
 #: frontend/php/project/memberlist.php:233
 msgid "Watch"
@@ -8757,7 +8762,7 @@ msgstr ""
 
 #: frontend/php/project/admin/squadadmin.php:204
 msgid "Users"
-msgstr ""
+msgstr "用户"
 
 #: frontend/php/project/admin/squadadmin.php:220
 msgid "Remove Members"
@@ -9430,31 +9435,31 @@ msgstr "通用信息"
 
 #: frontend/php/link-to-users.php:158
 msgid "Note:"
-msgstr ""
+msgstr "备注："
 
 #: frontend/php/link-to-users.php:159
 msgid "The account was deleted"
-msgstr ""
+msgstr "账号已被删除"
 
 #: frontend/php/link-to-users.php:178
 msgid "Send this user a mail"
-msgstr ""
+msgstr "向此用户发送邮件"
 
 #: frontend/php/link-to-users.php:186
 msgid "Site Member Since:"
-msgstr ""
+msgstr "站点成员自："
 
 #: frontend/php/link-to-users.php:199
 msgid "This user did not enable Resume & Skills."
-msgstr ""
+msgstr "此用户未启用履历与技能。"
 
 #: frontend/php/link-to-users.php:203
 msgid "View Resume & Skills"
-msgstr ""
+msgstr "浏览履历与技能"
 
 #: frontend/php/link-to-users.php:210
 msgid "Download GPG Key"
-msgstr ""
+msgstr "下载 GPG 密钥"
 
 #: frontend/php/link-to-users.php:229
 msgid "Group Information"
@@ -9509,12 +9514,12 @@ msgstr "消息已发出"
 
 #: frontend/php/404.php:44
 msgid "Requested Page not Found (Error 404)"
-msgstr ""
+msgstr "未找到请求的页面（错误 404）"
 
 #: frontend/php/404.php:48
 #, php-format
 msgid "The web page you are trying to access doesn't exist on %s."
-msgstr ""
+msgstr "您尝试访问的网页不存在于 %s。"
 
 #: frontend/php/404.php:53
 #, php-format
@@ -9526,15 +9531,15 @@ msgstr ""
 
 #: frontend/site-specific/gnu/git/index.php:51
 msgid "Note: this group has multiple Git repositories."
-msgstr ""
+msgstr "注：此群组有多个 Git 仓库。"
 
 #: frontend/site-specific/gnu/git/index.php:53
 msgid "Anonymous clone:"
-msgstr ""
+msgstr "匿名克隆："
 
 #: frontend/site-specific/gnu/git/index.php:65
 msgid "Member clone:"
-msgstr ""
+msgstr "成员克隆："
 
 #: frontend/site-specific/gnu/git/index.php:70
 #: frontend/site-specific/gnu/svn/index.php:89
@@ -9543,7 +9548,7 @@ msgstr ""
 #: frontend/site-specific/gnu/arch/index.php:72
 #: frontend/site-specific/gnu/bzr/index.php:93
 msgid "membername"
-msgstr ""
+msgstr "成员名称"
 
 #: frontend/site-specific/gnu/git/index.php:82
 #: frontend/site-specific/gnu/svn/index.php:83
@@ -9572,7 +9577,7 @@ msgstr ""
 
 #: frontend/site-specific/gnu/svn/index.php:58
 msgid "Access using the SVN protocol:"
-msgstr ""
+msgstr "使用 SVN 协议访问："
 
 #: frontend/site-specific/gnu/svn/index.php:63
 #: frontend/site-specific/gnu/svn/index.php:69
@@ -9584,7 +9589,7 @@ msgstr ""
 
 #: frontend/site-specific/gnu/svn/index.php:64
 msgid "Access using HTTP (slower):"
-msgstr ""
+msgstr "使用 HTTP 访问（速度较慢）："
 
 #: frontend/site-specific/gnu/svn/index.php:71
 msgid ""
@@ -9603,7 +9608,7 @@ msgstr ""
 
 #: frontend/site-specific/gnu/svn/index.php:92
 msgid "Software repository (over SSH):"
-msgstr ""
+msgstr "软件仓库（通过 SSH）："
 
 #: frontend/site-specific/gnu/svn/index.php:102
 msgid "Importing into Subversion on Savannah"
@@ -10538,7 +10543,7 @@ msgstr ""
 
 #: frontend/site-specific/gnu/project/admin/index_misc.php:49
 msgid "Backup"
-msgstr ""
+msgstr "备份"
 
 #: frontend/site-specific/gnu/project/admin/index_misc.php:50
 msgid ""
@@ -10560,7 +10565,7 @@ msgstr ""
 
 #: frontend/site-specific/gnu/menu.php:49
 msgid "GNU Project"
-msgstr ""
+msgstr "GNU 项目"
 
 #: frontend/site-specific/gnu/menu.php:50
 msgid "Help GNU"
@@ -10568,7 +10573,7 @@ msgstr "帮助 GNU"
 
 #: frontend/site-specific/gnu/menu.php:51
 msgid "All GNU Packages"
-msgstr ""
+msgstr "所有 GNU 软件包"
 
 #: frontend/site-specific/gnu/menu.php:52
 msgid "Dev Resources"
@@ -10597,11 +10602,11 @@ msgstr "支持自由"
 msgid ""
 "Help us protect your freedom and the rights of computer\n"
 "users everywhere by becoming a member of the FSF."
-msgstr ""
+msgstr "成为 FSF 会员，帮助我们保护您的自由和世界各地计算机用户的权利。"
 
 #: frontend/site-specific/gnu/menu.php:69
 msgid "Join Now!"
-msgstr ""
+msgstr "立即加入！"
 
 #: frontend/site-specific/gnu/menu.php:73
 msgid "Free Software Foundation"
@@ -10609,51 +10614,51 @@ msgstr "自由软件基金会"
 
 #: frontend/site-specific/gnu/menu.php:74
 msgid "Coming Events"
-msgstr ""
+msgstr "近期活动"
 
 #: frontend/site-specific/gnu/menu.php:76
 msgid "Free Software Directory"
-msgstr ""
+msgstr "自由软件目录"
 
 #: frontend/site-specific/gnu/menu.php:78
 msgid "Cryptographic software legal notice"
-msgstr ""
+msgstr "加密软件法律声明"
 
 #: frontend/site-specific/gnu/menu.php:80
 msgid "Copyright infringement notification"
-msgstr ""
+msgstr "版权侵权通知"
 
 #: frontend/site-specific/gnu/menu.php:83
 msgid "Related Forges"
-msgstr ""
+msgstr "相关 Forge"
 
 #: frontend/site-specific/gnu/menu.php:87
 msgid "Savannah Non-GNU"
-msgstr ""
+msgstr "Savannah Non-GNU"
 
 #: frontend/site-specific/gnu/menu.php:90
 msgid "GNU Savannah"
-msgstr ""
+msgstr "GNU Savannah"
 
 #: frontend/site-specific/gnu/menu.php:92
 msgid "Puszcza"
-msgstr ""
+msgstr "Puszcza"
 
 #: frontend/site-specific/gnu/gpg-sample.php:48
 msgid "Sample GPG export"
-msgstr ""
+msgstr "GPG 导出示例"
 
 #: frontend/site-specific/gnu/gpg-sample.php:49
 msgid "The exported public GPG keys should look like this:"
-msgstr ""
+msgstr "导出的 GPG 公钥应如下所示："
 
 #: frontend/site-specific/gnu/gpg-sample.php:63
 msgid "Do not remove the begin and end markers when submitting your GPG keys."
-msgstr ""
+msgstr "提交 GPG 密钥时，请勿删除开始和结束标记。"
 
 #: frontend/site-specific/gnu/gpg-sample.php:65
 msgid "Update your keys in this input area"
-msgstr ""
+msgstr "在此输入区域更新您的密钥"
 
 #: frontend/site-specific/gnu/gpg-sample.php:68
 msgid "Insert your (ASCII) public keys here (made with gpg --export --armor KEYID...):"
