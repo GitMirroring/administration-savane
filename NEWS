@@ -195,6 +195,10 @@
 
 * GNU gettext version 0.16.1 or later is required.
 
+[I18N]
+
+* Update French, Hebrew, Russian.  Some progress in (simplified) Chinese.
+
 2023-06-06 3.12
 
 * Per-group reminders are not supported any more.  Users shall decide if they
