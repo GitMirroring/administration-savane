@@ -1,5 +1,8 @@
 ????-??-?? 3.14
 
+* A short commit ID was added to displayed Savane version unless built
+  from an exact release.
+
 [FRONTEND]
 
 * In atom feeds, an alternate link to group page is added.

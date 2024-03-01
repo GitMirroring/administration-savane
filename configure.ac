@@ -40,7 +40,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([Savane], [3.13], [savannah-hackers-public@gnu.org], [savane],
+# Use a version without trailing '-gamma*' for releases; with '-gamma*',
+# a short commit ID is appended to the displayed Savane version.
+AC_INIT([Savane], [3.13-gamma], [savannah-hackers-public@gnu.org], [savane],
   [https://savannah.gnu.org/projects/administration])
 
 AC_CONFIG_AUX_DIR(autotools)
