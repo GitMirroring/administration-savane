@@ -280,7 +280,8 @@ EXTRA_LOCALE_CATEGORIES =
 # Useful options are in particular:
 #   --previous            to keep previous msgids of translated messages,
 #   --quiet               to reduce the verbosity.
-MSGMERGE_OPTIONS = --previous
+#   --backup=none         to avoid backup PO files.
+MSGMERGE_OPTIONS = --previous --backup=none
 
 # These options get passed to msginit.
 # If you want to disable line wrapping when writing PO files, add
