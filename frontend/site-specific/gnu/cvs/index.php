@@ -65,7 +65,7 @@ if ($project->isPublic ())
 
     if ($project->Uses ("cvs"))
       {
-        $cvs_cmd = "$cvs_cmd_base " . $project->getTypeDir ('cvs') . " co ";
+        $cvs_cmd = $cvs_cmd_base . $project->getTypeDir ('cvs') . " co ";
         print "<h4>" . _('Software repository:') . "</h4>\n";
         print "<pre>$cvs_cmd$proj_unix_name</pre>\n";
         print "<p>" . _('With other project modules:') . "</p>\n";

@@ -1,3 +1,14 @@
+????-??-?? 3.14
+
+[FRONTEND]
+
+* In atom feeds, an alternate link to group page is added.
+
+* Bug fixes:
+
+** Instructions for anonymous CVS were broken since bb2d0d189 in
+   site-specific/gnu/cvs/index.php.
+
 2024-02-29 3.13
 
 [FRONTEND]
