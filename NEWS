@@ -12,6 +12,9 @@
 ** Instructions for anonymous CVS were broken since bb2d0d189 in
    site-specific/gnu/cvs/index.php.
 
+** In some cases, notifications of new item submissions included
+   spurious empty addresses.
+
 2024-02-29 3.13
 
 [FRONTEND]

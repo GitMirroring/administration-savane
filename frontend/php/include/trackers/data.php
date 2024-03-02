@@ -406,6 +406,9 @@ function trackers_data_get_item_notification_info ($item, $artifact, $updated)
     $addr = trackers_data_catnotif ($item, $artifact, $updated, $newad);
   if ($notif > 0)
     $addr = array_merge ($addr, $newad);
+  $addr = array_filter (
+    $addr, function ($x) { return !empty (trim (strval ($x))); }
+  );
   $addr = trim (join (',', array_unique ($addr)));
   return [$addr, $addr !== ""];
 }
