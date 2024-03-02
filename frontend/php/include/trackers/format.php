@@ -520,7 +520,7 @@ function format_item_changes ($changes, $item_id, $group_id)
 {
   $separator =
     "\n    _______________________________________________________\n\n";
-  $item_group = utils_get_tracker_prefix (ARTIFACT) . "#$item_id"
+  $item_group = utils_get_tracker_prefix (ARTIFACT) . " #$item_id"
     . " (group " . group_getunixname ($group_id) . ")";
   $out = format_change_fields ($changes, $separator);
 
