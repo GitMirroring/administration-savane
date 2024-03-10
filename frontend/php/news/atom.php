@@ -93,6 +93,7 @@ elseif ($_SERVER['SERVER_PORT'] == 80)
   $port = '';
 $myself = "$protocol{$_SERVER['SERVER_NAME']}$port"
    . utils_urlencode ($_SERVER['REQUEST_URI']);
+$group_page = "$protocol{$_SERVER['SERVER_NAME']}$port/projects/$group";
 
 # Nice doc here: http://www.atomenabled.org/developers/syndication/
 header ('Content-type: application/atom+xml;charset=UTF-8');
@@ -106,6 +107,7 @@ print "<?xml version=\"1.0\" encoding=\"utf-8\"?>
   </generator>
   <id>$id</id>
   <link rel=\"self\" href=\"$myself\"/>
+  <link rel=\"alternate\" href=\"$group_page\"/>
   <title>$title</title>
   <updated>$last_updated</updated>\n\n";
 
