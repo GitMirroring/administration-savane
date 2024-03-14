@@ -2383,7 +2383,7 @@ function trackers_unlink_attachment ($file_id)
   return true;
 }
 
-function trackers_delete_attachment ($file_id)
+function trackers_delete_attachment ($file_id, $item_id)
 {
   if (trackers_unlink_attachment ($file_id))
     return;
@@ -2409,7 +2409,7 @@ function trackers_data_delete_file ($group_id, $item_id, $file_id)
     return;
   if (tracker_data_file_out_of_item ($item_id, $file_id))
     return;
-  trackers_delete_attachment ($file_id);
+  trackers_delete_attachment ($file_id, $item_id);
 }
 
 function trackers_data_count_field_value_usage (
