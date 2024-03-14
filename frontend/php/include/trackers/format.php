@@ -580,7 +580,7 @@ function format_item_file_details ($row, $href)
 function format_delete_file_link ($item_id, $file_id)
 {
   global $php_self;
-  return '<span class="trash"><a href="$php_self?func=delete_file'
+  return "<span class='trash'><a href=\"$php_self?func=delete_file"
     . "&amp;item_id=$item_id&amp;item_file_id=$file_id\">"
     . html_image_trash (['class' => 'icon']) . '</a></span>';
 }
