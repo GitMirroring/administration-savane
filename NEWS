@@ -15,6 +15,10 @@
 ** In some cases, notifications of new item submissions included
    spurious empty addresses.
 
+[I18N]
+
+* Update French, Hebrew.  Some progress in (simplified) Chinese.
+
 2024-02-29 3.13
 
 [FRONTEND]
