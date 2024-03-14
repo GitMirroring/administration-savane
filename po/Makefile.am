@@ -6,7 +6,8 @@
 # - set POTFILES, DOMAIN, COPYRIGHT_HOLDER, MSGMERGE_OPTIONS
 # - verify POTFILES in dist-hook
 # - use configured ${SED} value
-# - use sed instead of basename.
+# - use sed instead of basename
+# - use msgmerge --update with --backup=none.
 #
 # Makefile configuration - processed by automake.
 
@@ -280,8 +281,7 @@ EXTRA_LOCALE_CATEGORIES =
 # Useful options are in particular:
 #   --previous            to keep previous msgids of translated messages,
 #   --quiet               to reduce the verbosity.
-#   --backup=none         to avoid backup PO files.
-MSGMERGE_OPTIONS = --previous --backup=none
+MSGMERGE_OPTIONS = --previous
 
 # These options get passed to msginit.
 # If you want to disable line wrapping when writing PO files, add
@@ -290,7 +290,7 @@ MSGMERGE_OPTIONS = --previous --backup=none
 MSGINIT_OPTIONS =
 
 MSGMERGE = @MSGMERGE@
-MSGMERGE_UPDATE = @MSGMERGE@ --update
+MSGMERGE_UPDATE = @MSGMERGE@ --update --backup=none
 MSGMERGE_FOR_MSGFMT_OPTION = @MSGMERGE_FOR_MSGFMT_OPTION@
 MSGINIT = msginit
 MSGCONV = msgconv
@@ -639,7 +639,7 @@ update-po: Makefile
 	tmpdir=`pwd`; \
 	echo "$$lang:"; \
 	test "$(srcdir)" = . && cdcmd="" || cdcmd="cd $(srcdir) && "; \
-	cmd_start="$(MSGMERGE_UPDATE) $(MSGMERGE_OPTIONS)"; \
+	cmd_start="$(MSGMERGE) $(MSGMERGE_OPTIONS)"; \
 	cmd_tail="--lang=$${lang} --previous $${lang}.po $(DOMAIN).pot"; \
 	echo "$${cdcmd}$${cmd_start} $${cmd_tail} -o $$lang.new.po"; \
 	cmd_tail="-o $$tmpdir/$$lang.new.po  $${lang}.po $(DOMAIN).pot"; \
