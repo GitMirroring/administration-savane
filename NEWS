@@ -19,6 +19,13 @@
 
 ** Since 39180aea8, file removal records in tracker history didn't work.
 
+[BACKEND]
+
+* Bug fixes:
+
+** In sv_membersh.pl.in, spurious carriage returns at the end of lines
+   are removed before outputting the lines.
+
 [I18N]
 
 * Update French, Hebrew.  Some progress in (simplified) Chinese.

@@ -56,4 +56,8 @@ my $logdir = "@logdir@";
 my $log = "$logdir/sendmail.mbox";
 die "Can't open $log for writing: $!\n" unless open FH, '>>', $log;
 print FH "From @PACKAGE@ " . `LC_ALL=C date -u +'%a %b %d %T %Y'`;
-print FH $_ while (<>);
+while (<>)
+  {
+    s/\r*\n/\n/;
+    print FH $_;
+  }
