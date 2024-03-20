@@ -68,20 +68,20 @@ AC_ARG_VAR([PHP], [PHP executable])
 AC_PATH_PROG([SENDMAIL], [sendmail])
 AC_ARG_VAR([SENDMAIL], [sendmail executable])
 
-# Look for Apache2 and MySQL server, needed for local testing.
+# Look for Apache2 and database server, needed for local testing.
 AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [], [$PATH$PATH_SEPARATOR/usr/sbin])
 AC_ARG_VAR([WWW_SERVER_BIN], [Apache2 executable])
 AC_PATH_PROG([MYSQLD_BIN], [mysqld], [], [$PATH$PATH_SEPARATOR/usr/sbin])
-AC_ARG_VAR([MYSQLD_BIN], [MySQL daemon])
+AC_ARG_VAR([MYSQLD_BIN], [MariaDB daemon])
 AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
   [$PATH$PATH_SEPARATOR/usr/sbin])
-AC_ARG_VAR([MYSQLD_SAFE_BIN], [MySQL '"safe"' daemon])
+AC_ARG_VAR([MYSQLD_SAFE_BIN], [MariaDB 'safe' daemon])
 AC_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db], [],
   [$PATH$PATH_SEPARATOR/usr/sbin])
 AC_ARG_VAR([MYSQL_INSTALLDB_BIN], [mysql_install_db executable])
 AC_PATH_PROG([MYSQL_BIN], [mysql])
-AC_ARG_VAR([MYSQL_BIN], [MySQL client])
-AS_CASE(["x$MYSQL_BIN"], [x], [AC_MSG_ERROR([MySQL client not found])])
+AC_ARG_VAR([MYSQL_BIN], [Database client])
+AS_CASE(["x$MYSQL_BIN"], [x], [AC_MSG_ERROR([Database client not found])])
 AC_PATH_PROG([GRAPHVIZ_BIN], [dot])
 AC_ARG_VAR([GRAPHVIZ_BIN], [Graphviz executable])
 
@@ -122,7 +122,7 @@ AC_ARG_ENABLE([sample-db],
 AS_CASE(["x$enable_sample_db"], [xyes], [], [enable_sample_db=no])
 AC_MSG_RESULT([$enable_sample_db])
 AS_CASE(["$enable_database.$MYSQL_BIN"], [yes.],
-  [AC_MSG_ERROR([MySQL client not found])])
+  [AC_MSG_ERROR([Database client not found])])
 AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN$MYSQLD_BIN"], [yes.],
   [AC_MSG_ERROR([Neither mysql_install_db nor mysqld found.])])
 AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN"], [yes.],
@@ -150,7 +150,7 @@ AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0 Date::Calc 0],
 
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],
-  [AS_HELP_STRING([--enable-mirror], [install scripts])],
+  [AS_HELP_STRING([--enable-mirror], [install mirror-related scripts])],
   [], [enable_mirror=no])
 AS_CASE(["x$enable_mirror"], [xyes], [], [enable_mirror=no])
 AC_MSG_RESULT([$enable_mirror])
@@ -220,14 +220,14 @@ AC_MSG_RESULT([$enable_db_networking])
 AC_MSG_CHECKING([for database options])
 AC_ARG_WITH([db-options],
   AS_HELP_STRING([--with-db-options],
-    [parameters to give MySQL when initializing the database []]),
+    [parameters to give MariaDB when initializing the database []]),
   [SV_DB_OPTIONS="$withval"])
 AC_MSG_RESULT([$SV_DB_OPTIONS])
 
 AC_MSG_CHECKING([for database credentials])
 AC_ARG_WITH([db-credentials],
   AS_HELP_STRING([--with-db-credentials],
-    [path to the file with MySQL credentials in form password=_PASSWD_]))
+    [path to the file with database credentials in form password=_PASSWD_]))
 AC_MSG_RESULT([$with_db_credentials])
 AS_CASE(["x$with_db_credentials"], [xno], [],
   [ AS_IF([test -f  "$with_db_credentials"],
