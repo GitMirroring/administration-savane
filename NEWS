@@ -7,6 +7,9 @@
 
 * In atom feeds, an alternate link to group page is added.
 
+* When exiting on error, the error message is shown in the 'main' text
+  area rather than in the feedback frame.
+
 * Bug fixes:
 
 ** Instructions for anonymous CVS were broken since bb2d0d189 in

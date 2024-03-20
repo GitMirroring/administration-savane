@@ -48,7 +48,7 @@ require_once (dirname (__FILE__) . "/utils.php");
 # (set HTTP response, etc).
 function exit_error ($title = '', $text = null, $status = false)
 {
-  global $HTML, $feedback;
+  global $HTML;
 
   exit_header ($status);
   $msg = $title;
@@ -59,12 +59,9 @@ function exit_error ($title = '', $text = null, $status = false)
       # . _("That user does not exist.")
       _(': ') . $text;
 
-  if ($msg)
-    fb ($msg, 1);
-
   $HTML->header (['title' => _("Exiting with Error"), 'notopmenu' => 1]);
   html_feedback_top ();
-
+  print html_h (1, _("Error")) . "<p>$msg</p>\n";
   $HTML->footer ([]);
   exit;
 }
