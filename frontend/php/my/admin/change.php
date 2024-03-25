@@ -216,12 +216,14 @@ if ($update)
         if (!$step)
           {
             require_once ('../../include/account.php');
+            if (empty ($newvalue))
+              $newvalue = '';
             $newvalue = preg_replace ('/\s/', '', $newvalue);
             # Proceed only if it is a valid email address.
-            if (account_emailvalid($newvalue))
+            if (account_emailvalid ($newvalue))
               {
                 # Build a new confirm hash.
-                $confirm_hash = substr (md5 ($session_hash . time()), 0, 16);
+                $confirm_hash = substr (md5 ($session_hash . time ()), 0, 16);
                 $res_user = db_execute (
                   "SELECT * FROM user WHERE user_id = ?", [user_getid ()]
                 );
