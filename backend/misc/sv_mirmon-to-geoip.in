@@ -275,7 +275,7 @@ sub denied_countries
   foreach my $c (split /,/, $source_overrides{$cc})
     {
       $c =~ s/\s*//g;
-      continue unless $c =~ m/^!(.*)/;
+      next unless $c =~ m/^!(.*)/;
       $ret{$1} = 1;
     }
   return %ret;

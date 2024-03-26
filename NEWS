@@ -29,6 +29,8 @@
 ** In sv_membersh.pl.in, spurious carriage returns at the end of lines
    are removed before outputting the lines.
 
+** In sv_mirmon-to-geoip, source country overrides weren't parsed correctly.
+
 [I18N]
 
 * Update French, Hebrew.  Some progress in (simplified) Chinese.
