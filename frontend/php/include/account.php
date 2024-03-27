@@ -506,7 +506,9 @@ function account_key_separator ()
 
 function account_filter_empty_keys ($keys)
 {
-  return array_filter ($keys, function ($x) { return !empty (trim ($x)); });
+  return array_filter (
+    $keys, function ($x) { $y = trim ($x); return !empty ($y); }
+  );
 }
 
 function account_get_authorized_keys ($uid = 0)

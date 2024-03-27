@@ -335,7 +335,8 @@ function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
 }
 function member_check ($user_id, $group_id, $flag = 0, $strict = 0)
 {
-  return !empty (member_check_array ([$user_id], $group_id, $flag, $strict));
+  $a = member_check_array ([$user_id], $group_id, $flag, $strict);
+  return !empty ($a);
 }
 
 function member_check_admin_flags ($user_id, $group_id, $flags)

@@ -407,7 +407,7 @@ function trackers_data_get_item_notification_info ($item, $artifact, $updated)
   if ($notif > 0)
     $addr = array_merge ($addr, $newad);
   $addr = array_filter (
-    $addr, function ($x) { return !empty (trim (strval ($x))); }
+    $addr, function ($x) { $x = trim (strval ($x)); return !empty ($x); }
   );
   $addr = trim (join (',', array_unique ($addr)));
   return [$addr, $addr !== ""];
@@ -575,7 +575,8 @@ function trackers_data_is_custom ($field, $by_field_id = false)
 
 function trackers_data_nonempty ($field, $idx, $by_field_id = false)
 {
-  return !empty (trackers_data_field_val ($field, $idx, $by_field_id));
+  $x = trackers_data_field_val ($field, $idx, $by_field_id);
+  return !empty ($x);
 }
 
 function trackers_data_is_special ($field, $by_field_id = false)

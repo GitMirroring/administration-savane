@@ -179,7 +179,8 @@ function user_squad_exists ($user_id)
 
 function user_exists ($user_id)
 {
-  return $user_id && !empty (user_get_field ($user_id, 'user_id'));
+  $a = user_get_field ($user_id, 'user_id');
+  return $user_id && !empty ($a);
 }
 
 function user_is_active ($user_id)
