@@ -65,6 +65,7 @@ ServerName @WWW_SERVER_HOST@
     php_admin_flag file_uploads on
 
     php_admin_flag allow_url_fopen on
+    php_admin_value date.timezone UTC
     # NOTE: the next line seems to have no effect, actually.
     php_admin_value disable_functions passthru,popen,shell_exec,system
     @WWW_SENDMAIL_LINE@

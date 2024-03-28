@@ -50,4 +50,5 @@ error_log = "@apache_logdir@/@php_log_file@"
 
 allow_url_fopen = on
 disable_functions = passthru,popen,shell_exec,system
+date.timezone = "UTC"
 @PHP_SENDMAIL_LINE@
