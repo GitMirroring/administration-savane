@@ -175,8 +175,7 @@ function show_newest_groups ($group_type, $limit)
   );
   $row_newgrp_type = db_fetch_array ($res_newgrp_type);
   if ($row_newgrp_type['base_host'])
-    $base_url = 'http' . (session_issecure () ? 's' : '') . '://'
-      . $row_newgrp_type['base_host'];
+    $base_url = session_protocol () . '://' . $row_newgrp_type['base_host'];
 
   $return = '';
   while ($row = db_fetch_array ($res_newgrp))

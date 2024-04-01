@@ -379,12 +379,16 @@ $reference = 'cvs/admin/index.php';
   test_sane_import ($in, $names, $out);
 }
 
-$reference = 'file';
+$reference = 'file.php';
 {
-  $names = ['preg' => [['file_id', '/^(\d+|test[.]png)$/']]];
+  $names = [
+    'preg' => [['file_id', '/^(\d+|test[.]png)$/']],
+    'digits' => 'file_uid', 'hash' => 'form_id'
+  ];
   $in = $out = ['file_id' => 'test.png'];
+  $out['file_uid'] = $out['form_id'] = null;
   test_sane_import ($in, $names, $out);
-  $in = $out = ['file_id' => '12345'];
+  $in = $out = ['file_id' => '12345', 'file_uid' => 543, 'form_id' => 'ab3'];
   test_sane_import ($in, $names, $out);
   $in['file_id'] = '124a';
   $out['file_id'] = null;
@@ -504,7 +508,7 @@ $reference = 'include/context.php';
   test_sane_import ($in, $names, $out);
 }
 
-$reference = 'include/form.php';
+$reference = 'include/form-check.php';
 {
   $names = ['pass' => 'website'];
   $in = ['website' => ''];

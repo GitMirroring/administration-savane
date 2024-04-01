@@ -88,10 +88,11 @@ if ($preview)
 $item_name = utils_get_tracker_prefix (ARTIFACT) . " #$item_id";
 $item_link = utils_link ("?$item_id", $item_name);
 
+$privacy = $res_arr['privacy'];
 # Check whether this item is private or not. If it is private, show only to
 # the submitter or to people that got the right to see private items
 $private_intro = '';
-if ($res_arr['privacy'] == "2")
+if ($privacy == "2")
   {
     if (member_check_private (0, $group_id))
       {
@@ -585,7 +586,8 @@ if ($enable_comments)
 
 print "<p>";
 
-show_item_attached_files ($item_id, $group_id);
+$public = trackers_item_is_public ($privacy, $group_id);
+show_item_attached_files ($item_id, $group_id, $public);
 
 print "</p>\n<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();

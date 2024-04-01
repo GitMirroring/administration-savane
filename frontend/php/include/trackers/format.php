@@ -431,9 +431,10 @@ function format_item_summary ($res, $bug_ref, $artifact)
     'date', $group_id, $res['date'], false, true, true, true
   );
   $body .= "\n" . format_item_regular_fields ($res, $group_id);
+  $public = trackers_item_is_public ($res['privacy'], $res['group_id']);
   if (ARTIFACT === $artifact)
-    $body .= "\n\n" . format_item_details ($item_id, $group_id, true)
-      . "\n\n" . format_item_attached_files ($item_id, $group_id, true);
+    $body .= "\n\n" . format_item_details ($item_id, $group_id, true) . "\n\n"
+      . format_item_attached_files ($item_id, $group_id, true, $public);
   return $body;
 }
 
@@ -442,40 +443,63 @@ function format_file_agpl_notice ()
   return git_agpl_notice ('These attachments are served by Savane.');
 }
 
-function format_change_files ($out, $changes, $separator, $item_group)
+function format_file_url ($file, $public = true)
 {
-  global $sys_file_domain;
+  global $sys_file_domain, $sys_home;
+  $lnk = session_protocol ()
+    . "://$sys_file_domain{$sys_home}file/{$file['name']}?file_id={$file['id']}";
+  if ($public)
+    return $lnk;
+  $uid = user_getid ();
+  $fid = form_get_id ();
+  return "$lnk&file_uid=$uid&form_id=$fid";
+}
+
+function format_attachment_link ($file, $public)
+{
+  if ($public)
+    return sprintf ("    <%s>\n\n", format_file_url ($file));
+  return '';
+}
+
+function format_item_change_separator ()
+{
+  return "\n    _______________________________________________________\n\n";
+}
+
+function format_change_files ($out, $changes, $item_group, $public)
+{
   if (empty ($changes['attach']))
     return $out;
-  if ($out)
-    $out .= $separator;
-
   $out_att = "Additional Item Attachment";
-  if (!$out)
+  if ($out)
+    $out .= format_item_change_separator ();
+  else
     $out_att .= ", $item_group";
   $out_att .= ":\n\n";
 
   foreach ($changes['attach'] as $file)
-    $out_att .= sprintf (
-       "File name: %-30s Size:%d KB\n    <%s>\n\n",
-       $file['name'], intval ($file['size'] / 1024),
-       "https://$sys_file_domain/file/{$file['name']}?file_id={$file['id']}"
-    );
-  return "$out$out_att" . format_file_agpl_notice ();
+    {
+      $out_att .= sprintf ("File name: %-30s Size: %s\n",
+        $file['name'], utils_filesize (null, intval ($file['size']))
+      );
+      $out_att .= format_attachment_link ($file, $public);
+    }
+  $out .= $out_att;
+  if ($public)
+    $out .= format_file_agpl_notice ();
+  return $out;
 }
 
-function format_change_comments (
-  $out, $changes, $separator, $item_group, $item_id
-)
+function format_change_comments ($out, $changes, $item_group, $item_id)
 {
   if (empty ($changes['details']))
     return $out;
-  if ($out)
-    $out .= $separator;
-
   $out_com = "Follow-up Comment #"
     . db_numrows (trackers_data_get_followups ($item_id));
-  if (!$out)
+  if ($out)
+    $out .= format_item_change_separator ();
+  else
     $out_com .= ", $item_group";
 
   $out_com .= ":\n\n";
@@ -485,7 +509,7 @@ function format_change_comments (
   return "$out$out_com";
 }
 
-function format_change_fields ($changes, $separator)
+function format_change_fields ($changes)
 {
   # FIXME: strange, with %25s it does not behave exactly like
   # trackers_field_label_display.
@@ -516,50 +540,46 @@ function format_change_fields ($changes, $separator)
 }
 
 # FIXME: shouldn't this be localized?
-function format_item_changes ($changes, $item_id, $group_id)
+function format_item_changes ($changes, $item_id, $res)
 {
-  $separator =
-    "\n    _______________________________________________________\n\n";
+  $group_id = $res['group_id'];
+  $public = trackers_item_is_public ($res['privacy'], $group_id);
   $item_group = utils_get_tracker_prefix (ARTIFACT) . " #$item_id"
     . " (group " . group_getunixname ($group_id) . ")";
-  $out = format_change_fields ($changes, $separator);
+  $out = format_change_fields ($changes);
 
   if ($out)
     $out = "Update of $item_group:\n\n$out";
 
-  $out =
-    format_change_comments ($out, $changes, $separator, $item_group, $item_id);
-  return format_change_files ($out, $changes, $separator, $item_group);
+  $out = format_change_comments ($out, $changes, $item_group, $item_id);
+  return format_change_files ($out, $changes, $item_group, $res['privacy'] != 2);
 }
 
-function format_item_fetch_attachments ($item_id, $ascii)
+function format_item_file_header ($list_is_empty, $ascii)
 {
   global $HTML;
-  $result = trackers_data_get_attached_files ($item_id);
-  if (!db_numrows ($result))
+  if ($list_is_empty)
     {
       if ($ascii)
-        return [$result, ''];
-      return [$result,
-        '<span class="warn">' . _("No files currently attached") . '</span>'
-      ];
+        return '';
+      return
+        '<span class="warn">' . _("No files currently attached") . '</span>';
     }
   if ($ascii)
-    $msg = "    _______________________________________________________\n"
+    return "    _______________________________________________________\n"
       . "File Attachments:\n\n";
-  else
-    $msg = $HTML->box_top (_("Attached Files"), '', 1);
-  return [$result, $msg];
+  return $HTML->box_top (_("Attached Files"), '', 1);
 }
 
-function format_item_attachment_ascii ($row, $href)
+function format_item_attachment_ascii ($row, $href, $public)
 {
   $ret = "\n-------------------------------------------------------\n";
-  $ret .= sprintf ("Name: %s  Size: %s\n",
-    $row['filename'], utils_filesize (0, intval ($row['filesize']))
+  $ret .= sprintf ("Name: %s  Size: %s",
+    $row['filename'], utils_filesize (null, intval ($row['filesize']))
   );
-  return $ret . '<http://' . $GLOBALS['sys_default_domain']
-    . utils_unconvert_htmlspecialchars ($href) . '>';
+  if ($public)
+    $ret .= "\n<$href>";
+  return $ret;
 }
 function format_item_file_details ($row, $href)
 {
@@ -569,7 +589,7 @@ function format_item_file_details ($row, $href)
     $lnk . utils_specialchars ($row['filename']) . '</a>',
     utils_user_link ($row['user_name'])
   );
-  $out .= ' <span class="smaller">(' . utils_filesize (0, $row['filesize']);
+  $out .= ' <span class="smaller">(' . utils_filesize (null, $row['filesize']);
   if ($row['filetype'])
     $out .= ' - ' . $row['filetype'];
   if ($row['description'])
@@ -577,51 +597,56 @@ function format_item_file_details ($row, $href)
   return "$out)</span>";
 }
 
-function format_delete_file_link ($item_id, $file_id)
+function format_item_attachment_html ($row, $may_delete, $url)
 {
   global $php_self;
-  return "<span class='trash'><a href=\"$php_self?func=delete_file"
-    . "&amp;item_id=$item_id&amp;item_file_id=$file_id\">"
-    . html_image_trash (['class' => 'icon']) . '</a></span>';
+  $delete_link = '';
+  if ($may_delete)
+    $delete_link = "<span class='trash'><a href=\"$php_self?func=delete_file"
+      . "&amp;item_id={$row['item_id']}&amp;item_file_id={$row['file_id']}\">"
+      . html_image_trash (['class' => 'icon']) . '</a></span>';
+  return $delete_link . format_item_file_details ($row, $url);
 }
 
-function format_item_single_attachment ($row, $may_delete, $ascii, $i)
+function format_list_item_files ($result, $may_delete, $ascii, $public)
 {
-  global $sys_home;
-  $file_id = $row['file_id'];
-  $href = $sys_home . ARTIFACT . "/download.php?file_id=$file_id";
   $out = '';
-  if ($ascii)
+  for ($i = 0; $row = db_fetch_array ($result); $i++)
     {
-      # The description is common for all files in the original
-      # submission, so only write it once.
-      if (!$i && $row['description'] !== '')
-        $out .= $row['description'] . "\n";
-      return $out . format_item_attachment_ascii ($row, $href);
+      $url = format_file_url (
+        ['id' => $row['file_id'], 'name' => $row['filename']], $public
+      );
+      if ($ascii)
+        $out .= format_item_attachment_ascii ($row, $url, $public);
+      else
+        $out .= '<div class="' . utils_altrow ($i) . '">'
+          . format_item_attachment_html ($row, $may_delete, $url) . "</div>\n";
     }
-  $out .= '<div class="' . utils_altrow ($i++) . '">';
-  if ($may_delete)
-    $out .= format_delete_file_link ($row['item_id'], $file_id);
-  return $out . format_item_file_details ($row, $href) . "</div>\n";
+  if ($ascii && !empty ($row['description']))
+    # The description is common for all files in the original submission,
+    # so only write it once.
+    $out = $row['description'] . $out;
+  if ($ascii && $public)
+    $out .= "\n" . format_file_agpl_notice ();
+  return $out;
 }
 
 # Show the files attached to this tracker item.
-function format_item_attached_files ($item_id, $group_id, $ascii = false)
+function format_item_attached_files ($item_id, $group_id, $ascii, $public)
 {
   global $HTML;
-  list ($result, $out) = format_item_fetch_attachments ($item_id, $ascii);
+  $result = trackers_data_get_attached_files ($item_id);
+  $out = format_item_file_header (!db_numrows ($result), $ascii);
   if (!db_numrows ($result))
     return $out;
 
   $manager = member_check (
     0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
   );
-  for ($i = 0; $row = db_fetch_array ($result); $i++)
-    $out .= format_item_single_attachment ($row, $manager, $ascii, $i);
-
-  if ($ascii)
-    return "$out\n" . format_file_agpl_notice ();
-  return  $out . $HTML->box_bottom (1);
+  $out .= format_list_item_files ($result, $manager, $ascii, $public);
+  if (!$ascii)
+    $out .= $HTML->box_bottom (1);
+  return  $out;
 }
 
 function format_item_cc_list_header ($rows)

@@ -422,9 +422,7 @@ function init_run_redirections ($group_id)
   $type_host = $group->getTypeBaseHost ();
   if (!(strcasecmp ($_SERVER['HTTP_HOST'], $type_host) && $type_host))
     return;
-  $prot = 'http://';
-  if (session_issecure ())
-    $prot = 'https://';
+  $prot = session_protocol () . '://';
   header ("Location: $prot$type_host{$_SERVER["REQUEST_URI"]}");
   exit (0);
 }

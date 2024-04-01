@@ -265,12 +265,27 @@ AC_ARG_WITH([apache-host],
   [WWW_SERVER_HOST="$withval"], [WWW_SERVER_HOST="127.0.0.85"])
 AC_MSG_RESULT([$WWW_SERVER_HOST])
 AC_SUBST([WWW_SERVER_HOST])
+AC_MSG_CHECKING([for Apache file host])
+AC_ARG_WITH([apache-file-host],
+  AS_HELP_STRING([--with-apache-file-host], [file server host [127.0.0.86]]),
+  [FILE_SERVER_HOST="$withval"], [FILE_SERVER_HOST="127.0.0.86"])
+AC_MSG_RESULT([$FILE_SERVER_HOST])
+AC_SUBST([FILE_SERVER_HOST])
 AC_MSG_CHECKING([for Apache port])
 AC_ARG_WITH([apache-port],
   AS_HELP_STRING([--with-apache-port], [webserver port [4913]]),
   [WWW_SERVER_PORT="$withval"], [WWW_SERVER_PORT="4913"])
 AC_MSG_RESULT([$WWW_SERVER_PORT])
 AC_SUBST([WWW_SERVER_PORT])
+WWW_HOST=$WWW_SERVER_HOST
+FILE_HOST=$FILE_SERVER_HOST
+AS_IF([test "x$WWW_SERVER_PORT" != x80 -a "x$WWW_SERVER_PORT" != x],
+  [
+    WWW_HOST="$WWW_HOST:$WWW_SERVER_PORT"
+    FILE_HOST="$FILE_HOST:$WWW_SERVER_PORT"
+  ])
+AC_SUBST([WWW_HOST])
+AC_SUBST([FILE_HOST])
 
 AC_CONFIG_FILES([Makefile frontend/Makefile db/mk-db.sql])
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
@@ -284,6 +299,7 @@ AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Apache user: $WWW_SERVER_USER"])
 AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
 AS_ECHO(["Apache host: $WWW_SERVER_HOST"])
+AS_ECHO(["Apache file host: $FILE_SERVER_HOST"])
 AS_ECHO(["Apache port: $WWW_SERVER_PORT"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
 AS_ECHO(["Database user: $SV_DB_USER"])

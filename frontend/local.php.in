@@ -64,9 +64,9 @@ foreach ($sym as $file => $aliases)
         return true;
       }
 
-if ($path === '/file')
+if (preg_match ('#^/file\b#', $path))
   {
-    include "$phpdir$path";
+    include "$phpdir/file.php";
     return true;
   }
 

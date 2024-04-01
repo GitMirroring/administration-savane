@@ -156,6 +156,7 @@ POTFILES = \
 	frontend/php/include/news/general.php \
 	frontend/php/include/sitemenu.php \
 	frontend/php/include/form.php \
+	frontend/php/include/form-check.php \
 	frontend/php/include/vars.php \
 	frontend/php/include/calendar.php \
 	frontend/php/include/group.php \

@@ -42,8 +42,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 $dir_name = dirname (__FILE__);
-require_once ("$dir_name/spam.php");
-require_once ("$dir_name/random-bytes.php");
+foreach (['spam', 'random-bytes', 'form-check'] as $i)
+  require_once ("$dir_name/$i.php");
 
 function form_get_id ()
 {
@@ -227,77 +227,5 @@ function form_footer ($text = false, $submit_name = "update")
 {
   return "\n<div class='center'>\n" . form_submit ($text, $submit_name)
     . "</div>\n</form>\n";
-}
-
-# Check whether the trap field has been filled. If so, refuse the post.
-# This test should probably be made before remove form id, to be
-# dumbuser-compliant.
-function form_check_nobot ()
-{
-  extract (sane_import ('request', ['pass' => 'website']));
-  if (in_array ($website, ["", "http://"]))
-    return;
-  # Not much explanation on the reject, since we are hunting spammers.
-  exit_log ("filled the spam trap special field");
-  exit_missing_param ();
-}
-
-function form_preliminary_check ($form_id)
-{
-  form_check_nobot ();
-  if (empty ($form_id))
-    exit_missing_param (['form_id']);
-}
-
-# Remove form_id from the database; make sure it belongs to the current
-# user.  Return 0 in case of success, else 1.
-function form_reset_form_id ($form_id)
-{
-  $result = db_execute ("DELETE FROM form WHERE user_id = ? AND form_id = ?",
-    [user_getid (), $form_id]
-  );
-  if (db_affected_rows ($result))
-    return 0;
-  fb (_("Duplicate Post: this form was already submitted."), 1);
-  return 1;
-}
-
-# Return false either if $submit_list is null or any listed
-# global variables are set; else return true.
-function form_vars_empty ($submit_list)
-{
-  if ($submit_list === null)
-    return false;
-  if (!is_array ($submit_list))
-    $submit_list = [$submit_list];
-  foreach ($submit_list as $var)
-    if (!empty ($GLOBALS[$var]))
-      return false;
-  return true;
-}
-
-# Check whether this is a duplicate or not: exit when the form_id is absent
-# in the DB, which may mean that it has already been submitted (user's mistake)
-# or has never been registered (CSRF).
-function form_check ($submit_list = null)
-{
-  if (form_vars_empty ($submit_list))
-    return;
-  $form_id = '';
-  extract (sane_import ('post', ['hash' => 'form_id']));
-  form_preliminary_check ($form_id);
-  # See Savannah bug #6983.
-  # We must clean the form ID right now.  Originally, form ID was deleted
-  # only when we were sure that the form was posted.
-  #
-  # However, since apache & all are multithreaded, you can end up with the
-  # case that the delay between the initial check and the end of the form
-  # is long enough to make possible a duplicate.
-  #
-  # Now, the check will remove the ID.  If the remove fail, it means that
-  # the form ID no longer exists and then we exit.  We will have only one
-  # SQL request, reducing as much as possible delays.
-  if (form_reset_form_id ($form_id))
-    exit_error (_("Exiting"));
 }
 ?>

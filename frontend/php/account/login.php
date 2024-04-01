@@ -134,8 +134,7 @@ if (!empty ($login))
         # already coming from there.
         if (!empty ($sys_brother_domain) && $brotherhood)
           {
-            $root_url = session_issecure ()? "https": "http";
-            $root_url .= "://$sys_brother_domain";
+            $root_url = session_protocol () . "://$sys_brother_domain";
 
             if (!$from_brother)
               {

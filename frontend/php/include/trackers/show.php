@@ -346,9 +346,9 @@ function show_item_details (
   return "<p>$ctl</p>\n$text";
 }
 
-function show_item_attached_files ($item_id, $group_id, $ascii = false)
+function show_item_attached_files ($item_id, $group_id, $public)
 {
-  print format_item_attached_files ($item_id, $group_id, $ascii);
+  print format_item_attached_files ($item_id, $group_id, false, $public);
 }
 
 function show_item_cc_list ($item_id, $group_id)

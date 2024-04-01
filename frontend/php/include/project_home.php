@@ -58,7 +58,7 @@ if (
     && strcasecmp ($_SERVER['HTTP_HOST'], $host)
 )
   {
-    $prot = session_issecure()? 'https://': 'http://';
+    $prot = session_protocol () . '://';
     header ("Location: $prot$host{$_SERVER['PHP_SELF']}");
     exit;
   }

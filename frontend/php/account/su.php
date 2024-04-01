@@ -68,7 +68,7 @@ $hdr = [
     . "account/su.php?action=logout&from_brother=1&uri="
     . utils_urlencode ($uri)
 ];
-$prot = su_getprotocol ();
+$prot = session_protocol ();
 foreach ($hdr as $k => $v)
   $hdr[$k] = "Location: $prot://$v";
 $hdr[0] = "Location: $uri";
@@ -100,11 +100,4 @@ else
   exit_error (_("You shouldn't have come to this page."));
 
 header ($hdr[$i]);
-
-function su_getprotocol ()
-{
-  if (session_issecure ())
-    return "https";
-  return "http";
-}
 ?>

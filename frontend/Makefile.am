@@ -421,6 +421,7 @@ ordinary_files = \
   php/include/exit.php \
   php/include/features_boxes.php \
   php/include/form.php \
+  php/include/form-check.php \
   php/include/gpg.php \
   php/include/gpl-quick-form.php \
   php/include/graphs.php \

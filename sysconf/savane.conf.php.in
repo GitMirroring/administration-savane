@@ -43,8 +43,11 @@
 $sys_default_domain = "@WWW_SERVER_HOST@";
 $sys_www_server_port = '@WWW_SERVER_PORT@';
 if ($sys_www_server_port != 80)
-  $sys_default_domain .= ":@WWW_SERVER_PORT@";
+  $sys_default_domain .= ":$sys_www_server_port";
 $sys_brother_domain = $sys_default_domain;
+$sys_file_domain = "@FILE_SERVER_HOST@";
+if ($sys_www_server_port != 80)
+  $sys_file_domain .= ":$sys_www_server_port";
 
 $sys_debug_nobasehost = true;
 # Set this variable to redirect all emails to one address:

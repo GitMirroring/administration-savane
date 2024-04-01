@@ -140,6 +140,9 @@ subst_in_files = \
     -e 's,[@]WWW_SERVER_BIN[@],$(WWW_SERVER_BIN),g' \
     -e 's,[@]WWW_SERVER_GROUP[@],$(WWW_SERVER_GROUP),g' \
     -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),g' \
+    -e 's,[@]FILE_SERVER_HOST[@],$(FILE_SERVER_HOST),g' \
+    -e 's,[@]WWW_HOST[@],$(WWW_HOST),g' \
+    -e 's,[@]FILE_HOST[@],$(FILE_HOST),g' \
     -e 's,[@]WWW_SERVER_PORT[@],$(WWW_SERVER_PORT),g' \
     -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
     -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \

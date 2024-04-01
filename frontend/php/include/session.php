@@ -169,6 +169,13 @@ function session_issecure ()
   return (getenv ('HTTPS') == 'on');
 }
 
+function session_protocol ()
+{
+  if (session_issecure ())
+    return 'https';
+  return 'http';
+}
+
 function session_needsstayinssl ()
 {
   $res = db_execute ("SELECT stay_in_ssl FROM session WHERE session_hash = ?",

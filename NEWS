@@ -10,6 +10,9 @@
 * When exiting on error, the error message is shown in the 'main' text
   area rather than in the feedback frame.
 
+* The auxiliary file domain is configured and listened to
+  separately from and in parallel to the main ('control') domain.
+
 * Bug fixes:
 
 ** Instructions for anonymous CVS were broken since bb2d0d189 in
@@ -21,6 +24,12 @@
 ** Links for deleting attachments in trackers were broken since 3b884877e.
 
 ** Since 39180aea8, file removal records in tracker history didn't work.
+
+** Since 02c3255f7e7b, session and other cookies were passed
+   to the auxiliary file domain.
+
+** In frontend/php/file.php, error messages were output in a way that
+   made little sense.
 
 [BACKEND]
 

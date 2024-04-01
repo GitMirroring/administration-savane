@@ -228,7 +228,7 @@ function test_captcha ()
       return;
     }
   print "<p>Sample image:</p>\n"
-    . "<p><img id='captcha' src='/captcha.php' alt='CAPTCHA' /></p>";
+    . "<p><img id='captcha' src='/captcha.php' alt='CAPTCHA' /></p>\n";
 }
 
 function test_mailman_failed ($ver)
@@ -279,7 +279,7 @@ function output_mailman_query ($q)
 
 function test_mailman ()
 {
-  print "<h3>Mailman connection</h3>";
+  print "\n<h3>Mailman connection</h3>\n";
   print "<dl>\n";
   $ver = mailman_get_version ();
   $have_version = output_mailman_version ($ver);
@@ -287,19 +287,16 @@ function test_mailman ()
     output_mailman_query (mailman_query_list ('savannah-users'));
   else
     printf ("<dt>Run time</dt><dd>%s ms</dd></dl>\n", $ver['timestamp']);
+  print "</dl>\n";
   if ($have_version && preg_match ("/^stub /", $ver['version']))
     print "<p><strong>This is a stub; write the real command "
       . "in \$sys_mailman_wrapper.</strong></p>\n";
 }
 
-$page = "<?xml version=\"1.0\" encoding=\"utf-8\"?"
-  # Separate the previous "?" from ">" to workaround broken syntax
-  # highlighting in some editors.
-  . ">\n";
-$page .= "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
-    \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n\n";
-
-$page .= "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en_US\">\n"
+$page = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n"
+      . "  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
+$page .=
+  "<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en_US' lang='en_US'>\n"
   . "<head>\n"
   . "<meta http-equiv='content-type' content='text/html; charset=utf-8' />\n"
   . "<title>Basic configuration tests</title>\n"
@@ -401,9 +398,9 @@ foreach ($phptags as $tag => $good)
     $have_unset = true;
 $page .= "</table>\n\n";
 if ($have_unset)
-  $page .= "<blockquote>* This tag was not found at all. It is probably "
-    . "irrelevant to your PHP version so you may ignore this "
-    . "entry.</blockquote>\n";
+  $page .= "<blockquote><p>* This tag was not found at all. "
+    . "It is probably irrelevant to your PHP version so you may ignore this "
+    . "entry.</p></blockquote>\n";
 
 $page .= "\n<h2>PHP functions</h2>\n\n";
 
@@ -457,18 +454,16 @@ function test_i18n ()
   i18n_setup ("en_US.UTF-8");
 }
 
-$page .= "\n<h2>Apache environment vars</h2>\n\n<p>";
-if (getenv ('SAVANE_CONF'))
-  {
-    $conf_var = getenv ('SAVANE_CONF');
-    $page .= "SAVANE_CONF configured to $conf_var<br />\n";
-  }
-if (getenv('SV_LOCAL_INC_PREFIX'))
-  {
-    $conf_var = getenv ('SV_LOCAL_INC_PREFIX');
-    $page .= "SV_LOCAL_INC_PREFIX configured to $conf_var<br />\n";
-  }
-$page .= "</p>\n\n<h2>Savane configuration:</h2>\n\n<p>";
+$page .= "\n<h2>Apache environment vars</h2>\n\n";
+$vv = [];
+foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
+  if (getenv ($var))
+    {
+      $conf_var = getenv ($var);
+      $vv[] = "<code>$var</code> configured to <code>$conf_var</code>";
+    }
+$page .= "<p>" . join ("<br />\n", $vv) . "</p>\n\n";
+$page .= "<h2>Savane configuration:</h2>\n\n<p>";
 
 if (empty ($sys_conf_file))
   $page .= "<strong>sys_conf_file not set!</strong>\n";
@@ -533,13 +528,22 @@ function test_mysql ()
   print "</dl>\n";
 }
 
-function test_sysconfigs ()
+function list_sysvar ($tag)
 {
-  global $sys_conf_file, $page;
-  include $sys_conf_file;
+  $var = "sys_$tag";
+  $value = '<strong>unset</strong>';
+  if (isset ($GLOBALS[$var]))
+    $value = utils_specialchars (print_r ($GLOBALS[$var], true));
+  if ($var == "sys_dbpasswd")
+    $value = "**************";
+  printf ("<dt>%s</dt>\n<dd>%s</dd>\n", $var, $value);
+}
+
+function output_sysvars ()
+{
   $variables = [
     'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
-    'default_domain', 'etc_dir', 'file_domain', 'https_host', 'incdir',
+    'default_domain', 'file_domain', 'etc_dir', 'https_host', 'incdir',
     'url_topdir', 'www_topdir',
     'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
@@ -547,36 +551,39 @@ function test_sysconfigs ()
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_url', 'savane_cgit'
   ];
-  if (empty ($inside_siteadmin))
-    utils_set_csp_headers ();
-  print $page;
-  $page = '';
-
   print "<dl>\n";
   foreach ($variables as $tag)
-    {
-      $var = "sys_$tag";
-      $value = '<strong>unset</strong>';
-      if (isset ($GLOBALS[$var]))
-        $value = utils_specialchars (print_r ($GLOBALS[$var], true));
-      if ($var == "sys_dbpasswd")
-        $value = "**************";
+    list_sysvar ($tag);
+  print "</dl>\n";
+}
 
-      printf ("<dt>%s</dt>\n<dd>%s</dd>\n", $var, $value);
-    }
+function test_sysvars ()
+{
+  global $page, $sys_file_domain, $sys_default_domain;
+  print $page;
+  $page = '';
+  if (empty ($inside_siteadmin))
+    utils_set_csp_headers ();
+  output_sysvars ();
   if (!isset ($GLOBALS['sys_debug_on']))
     $GLOBALS['sys_debug_on'] = false;
+  if ($sys_file_domain === $sys_default_domain)
+    print "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
+      . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
+  print "<p>Savane generally uses safe default values when variables\n"
+    . "are not set in the configuration file.</p>\n";
+}
 
-  print "</dl>\n";
-  print "<p>Savane uses safe default values when variables are not set "
-    . "in the configuration file.</p>\n";
+function test_sysconfigs ()
+{
+  include $GLOBALS['sys_conf_file'];
+  test_sysvars ();
   print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
   test_captcha ();
   test_mailman ();
   test_mysql ();
 
   print "\n<h3>Other tests</h3>\n\n";
-  print "<table border=\"1\">\n";
   print "<dl>\n";
   test_repos ();
   print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
@@ -620,8 +627,9 @@ foreach ($phptags as $tag => $good)
     $have_unset = true;
 print "$page</table>\n\n";
 if ($have_unset)
-  print "<blockquote>* This tag was not found at all. It is probably irrelevant "
-       . "to your PHP version so you may ignore this entry.</blockquote>\n\n";
+  print "<blockquote><p>* This tag was not found at all. "
+    . "It is probably irrelevant to your PHP version "
+    . "so you may ignore this entry.</p></blockquote>\n\n";
 
-print "</body>\n<html>\n";
+print "</body>\n</html>\n";
 ?>

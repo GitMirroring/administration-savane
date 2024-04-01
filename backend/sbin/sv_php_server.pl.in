@@ -49,6 +49,7 @@ use Cwd qw (abs_path);
 
 my $port = "@WWW_SERVER_PORT@";
 my $host = "@WWW_SERVER_HOST@";
+my $file_host = "@FILE_SERVER_HOST@";
 my $php_bin = "@PHP@";
 
 my $help =
@@ -79,7 +80,12 @@ chdir '@frontenddir@/php';
 $ENV{'LANG'} = 'C';
 $ENV{'SAVANE_CONF'} = '@confdir@';
 
+my $pid = 0;
+$pid = fork () if $file_host ne $host;
+die "Can't fork: $!" unless defined $pid;
+my $h = $pid? $file_host: $host;
 system (
-  $php_bin, '-c', '@confdir@/php.ini', '-S', "$host:$port",
+  $php_bin, '-c', '@confdir@/php.ini', '-S', "$h:$port",
   '-t', "@frontenddir@/php", "@frontenddir@/local.php"
 );
+kill ($pid) if $pid;

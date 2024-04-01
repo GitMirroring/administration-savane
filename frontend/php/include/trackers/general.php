@@ -907,7 +907,7 @@ function trackers_build_mail ($artifact, $res, $item_id, $changes)
   # Text of the mail must not be localized.
   $bug_ref = trackers_mail_bug_ref ($artifact, $item_id);
   if ($changes)
-    $body = format_item_changes ($changes, $item_id, $res['group_id']) . "\n";
+    $body = format_item_changes ($changes, $item_id, $res) . "\n";
   else
     $body = format_item_summary ($res, $bug_ref, $artifact);
   $body .= format_message_trailer ($bug_ref);
@@ -949,6 +949,11 @@ function trackers_followup_mail_addresses (
 
   $exclude = trackers_exclude_list ($tracker, $group_id, $exclude, $privacy);
   return [$from, $to, $exclude];
+}
+
+function trackers_item_is_public ($privacy, $group_id)
+{
+  return $privacy != 2 && group_get_object ($group_id)->isPublic ();
 }
 
 function trackers_reported_subject ($subject)

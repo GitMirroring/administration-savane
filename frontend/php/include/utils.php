@@ -765,16 +765,8 @@ function help ($text, $explanation_array)
 
 function utils_setcookie ($name, $value, $expire, $secure = false)
 {
-  global $sys_home, $sys_default_domain;
-  $domain = preg_replace ('/:\d*$/', '', $sys_default_domain);
-
-  # The domain argument is used in order to pass cookies to sys_file_domain,
-  # which is assumed to be a subdomain of sys_default_domain.
-  # When the session cookies don't come to sys_file_domain, attachments
-  # to private items are inaccessible.
-  setcookie (
-    $name, $value, $expire, $sys_home, $domain, $secure, true
-  );
+  global $sys_home;
+  setcookie ($name, $value, $expire, $sys_home, '', $secure, true);
 }
 
 function utils_set_csp_headers ()

@@ -1,4 +1,4 @@
-<?php # -*- PHP -*-
+<?php
 # Provide an URL with a valid filename that browsers will use (save as...)
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
@@ -44,21 +44,33 @@
 
 $GLOBALS['skip_csp_headers'] = 1;
 
-require_once ('include/init.php');
-require_once ('include/http.php');
+foreach (['init', 'http', 'form-check'] as $i)
+  require_once ("include/$i.php");
+
+function file_exit ($func, $param)
+{
+  unset ($GLOBALS['skip_csp_headers']);
+  utils_set_csp_headers ();
+  $func = "exit_$func";
+  $func ($param);
+}
 
 extract (sane_import ('request',
-  ['preg' => [['file_id', '/^(\d+|test[.]png)$/']]]
+  [
+    'preg' => [['file_id', '/^(\d+|test[.]png)$/']],
+    'digits' => 'file_uid', 'hash' => 'form_id'
+  ]
 ));
 
 if (!$file_id)
-  exit_missing_param (['file_id']);
+  file_exit ('missing_param', ['file_id']);
 
 if ($file_id == 'test.png')
   {
     header ('Content-Type: image/png');
     $fname = $GLOBALS['sys_www_topdir'] . '/images/common/floating.png';
     header ('Content-Length: ' . stat ($fname)['size']);
+    header ("Content-Disposition: attachment; filename=$file_id");
     readfile ($fname);
     exit (0);
   }
@@ -66,9 +78,8 @@ if ($file_id == 'test.png')
 # Check privacy of the item this file is attached to and reject access by
 # non-authorized users.
 
-$result = db_execute ("
-  SELECT item_id, artifact FROM trackers_file WHERE file_id = ?",
-  [$file_id]
+$result = db_execute (
+  "SELECT item_id, artifact FROM trackers_file WHERE file_id = ?", [$file_id]
 );
 
 if (db_numrows ($result) > 0)
@@ -78,41 +89,53 @@ if (db_numrows ($result) > 0)
   }
 else
   # TRANSLATORS: the argument is file id (a number).
-  exit_error (sprintf (_("File #%s not found"), $file_id));
+  file_exit ('error', sprintf (_("File #%s not found"), $file_id));
 
 $in = [0 => $artifact];
 $out = [];
 
 if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
-  # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
-  exit_error (sprintf (_('Invalid artifact %s'), "<em>$artifact</em>"));
+  {
+    # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
+    $str = sprintf (_('Invalid artifact %s'), "<em>$artifact</em>");
+    unset ($artifact);
+    file_exit ("error", $str);
+  }
 
-$result = db_execute ("
-  SELECT group_id, privacy FROM $artifact WHERE bug_id = ?",
-  [$item_id]
+$result = db_execute (
+  "SELECT group_id, privacy FROM $artifact WHERE bug_id = ?", [$item_id]
 );
 
-if (db_numrows ($result) > 0)
-  {
-    $group_id = db_result ($result, 0, 'group_id');
-    if ((db_result ($result, 0, 'privacy') == '2')
-        && !member_check_private (0, $group_id))
-      exit_error (_("Non-authorized access to file attached to private item"));
-  }
+function assert_file_access ($result, $form_id, $file_uid)
+{
+  if (!db_numrows ($result))
+    return;
+  if (db_result ($result, 0, 'privacy') != '2')
+    return;
+  $group_id = db_result ($result, 0, 'group_id');
+  if (!member_check_private ($file_uid, $group_id))
+    file_exit (
+      "error", _("Non-authorized access to file attached to private item")
+    );
+  form_check_id ($form_id, $file_uid);
+}
+
+assert_file_access ($result, $form_id, $file_uid);
 
 $result = db_execute ("
   SELECT description, filename, filesize, filetype, date
-  FROM trackers_file WHERE file_id = ? LIMIT 1",
-  [$file_id]
+  FROM trackers_file WHERE file_id = ? LIMIT 1", [$file_id]
 );
 
 if (!db_numrows ($result))
-  exit_error (sprintf (_("Couldn't find attached file #%s."), $file_id));
+  file_exit ("error",
+    sprintf (_("Couldn't find attached file #%s."), $file_id)
+  );
 
 $row = db_fetch_array ($result);
 
 if ($row['filesize'] < 0)
-  exit_error (
+  file_exit ("error",
     sprintf (_("Attached file #%s was lost."), $file_id) . " "
     . sprintf (
         _("File attributes: name '%s', size %s, type '%s', date %s."),
@@ -129,14 +152,14 @@ header ('Last-Modified: ' . date ('r', $mtime));
 # a file with a given name like "myimage.png" when actually downloading
 # something completely different like "mystupidvirus.scr".
 if ($row['filename'] != basename (rawurldecode ($_SERVER['PHP_SELF'])))
-  exit_error (
+  file_exit ("error",
     _("The filename in the URL does not match the filename "
       . "registered in the database")
   );
 
 $path = $sys_trackers_attachments_dir . '/' . $file_id;
 if (!is_readable ($path))
-  exit_error (_("No access to the file."));
+  file_exit ("error", _("No access to the file."));
 
 # Download the patch with the correct filetype.
 $headers = [

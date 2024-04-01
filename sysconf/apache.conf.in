@@ -52,11 +52,27 @@ ErrorLog ${APACHE_LOG_DIR}/error.log
 LogLevel warn
 IncludeOptional mods-enabled/*.load
 IncludeOptional mods-enabled/*.conf
-Listen @WWW_SERVER_HOST@:@WWW_SERVER_PORT@
+Listen @WWW_HOST@
+Listen @FILE_HOST@
 IncludeOptional conf-enabled/*.conf
-
 ServerName @WWW_SERVER_HOST@
-<VirtualHost @WWW_SERVER_HOST@>
+<VirtualHost @WWW_HOST@ @FILE_HOST@>
+  ServerName @WWW_SERVER_HOST@
+  ServerAlias @FILE_SERVER_HOST@
+  RewriteEngine on
+
+  # Redirect file requests to restricted domain, @FILE_SERVER_HOST@.
+  RewriteCond "%{HTTP_HOST}" "=@WWW_HOST@"
+  RewriteCond "%{REQUEST_URI}" "^/(submissions_uploads/|file)"
+  RewriteRule "^(/(submissions_uploads/|file).*)" \
+    "%{REQUEST_SCHEME}://@FILE_HOST@$1" [R,L]
+
+  # Redirect non-file requests to general domain, @WWW_SERVER_HOST@.
+  # Note: Savane style definitions and images may be served from any domain.
+  RewriteCond "%{HTTP_HOST}" "=@FILE_HOST@"
+  RewriteCond "%{REQUEST_URI}" "!^/(submissions_uploads/|file|images|css)"
+  RewriteRule "(.*)" "%{REQUEST_SCHEME}://@WWW_HOST@$1" [R,L]
+
   DocumentRoot @frontenddir@/php
   SetEnv SAVANE_CONF @SV_CONF@
   <Directory "@frontenddir@/php/">
@@ -71,7 +87,6 @@ ServerName @WWW_SERVER_HOST@
     @WWW_SENDMAIL_LINE@
 
     DirectoryIndex index.php
-    Require all granted
   </Directory>
   <Files ~ "^(users|us|u|projects|pr|p|file)$">
     SetHandler application/x-httpd-php
@@ -80,7 +95,7 @@ ServerName @WWW_SERVER_HOST@
 
   # Restrict access into include/
   <Directory "@frontenddir@/php/include/">
-   Require all denied
+    Require all denied
   </Directory>
 
   <Location "/register">
@@ -88,7 +103,7 @@ ServerName @WWW_SERVER_HOST@
     php_admin_value upload_max_filesize 52428800
   </Location>
 
-  # Uploads for new project registrations and bug-report attachments.
+  # Uploads for new group registrations and tracker attachments.
   # This directory must be writable by Apache user.
   # NOTE: Ensure this directory matches the '$sys_upload_dir' value
   #       in the custom savanne configuration file
