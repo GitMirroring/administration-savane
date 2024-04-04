@@ -69,16 +69,20 @@ function form_check_query ($prefix, $args)
 }
 
 # Exit with error unless form_id exists and belongs to the user defined
-# in file_uid; else return normally.
-function form_check_id ($form_id, $file_uid)
+# in file_uid; else return normally.  When $assert_uid, make sure additionally
+# that current user ID is the same as provided in file_uid.
+function form_check_id ($assert_uid = false)
 {
+  $v = sane_import ('request', ['digits' => 'file_uid', 'hash' => 'form_id']);
   $missing = [];
   foreach (['form_id', 'file_uid'] as $k)
-    if (empty (${$k}))
+    if (empty ($v[$k]))
       $missing[] = $k;
   if (!empty ($missing))
     exit_missing_param ($missing);
-  $result = form_check_query ("SELECT *", [$file_uid, $form_id]);
+  if ($assert_uid && user_getid () != $v['file_uid'])
+    exit_permission_denied ();
+  $result = form_check_query ("SELECT *", [$v['file_uid'], $v['form_id']]);
   if (db_numrows ($result))
     return;
   exit_error (_("Form ID is absent in the database"));

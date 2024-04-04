@@ -57,8 +57,7 @@ function file_exit ($func, $param)
 
 extract (sane_import ('request',
   [
-    'preg' => [['file_id', '/^(\d+|test[.]png)$/']],
-    'digits' => 'file_uid', 'hash' => 'form_id'
+    'preg' => [['file_id', '/^(\d+|test[.]png)$/']], 'digits' => 'file_uid'
   ]
 ));
 
@@ -105,22 +104,27 @@ if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
 $result = db_execute (
   "SELECT group_id, privacy FROM $artifact WHERE bug_id = ?", [$item_id]
 );
+if (!db_numrows ($result))
+  exit_error (_('Item not found'));
 
-function assert_file_access ($result, $form_id, $file_uid)
+function assert_file_access ($result, $file_uid)
 {
-  if (!db_numrows ($result))
-    return;
   if (db_result ($result, 0, 'privacy') != '2')
+    return;
+  if (user_can_be_super_user ($file_uid))
+    # We are in the file domain and have no access to cookies, so we can't tell
+    # if the user has become a superuser; therefore, we let site admins access
+    # any files in any case.
     return;
   $group_id = db_result ($result, 0, 'group_id');
   if (!member_check_private ($file_uid, $group_id))
     file_exit (
       "error", _("Non-authorized access to file attached to private item")
     );
-  form_check_id ($form_id, $file_uid);
+  form_check_id ();
 }
 
-assert_file_access ($result, $form_id, $file_uid);
+assert_file_access ($result, $file_uid);
 
 $result = db_execute ("
   SELECT description, filename, filesize, filetype, date

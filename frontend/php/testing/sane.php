@@ -382,13 +382,12 @@ $reference = 'cvs/admin/index.php';
 $reference = 'file.php';
 {
   $names = [
-    'preg' => [['file_id', '/^(\d+|test[.]png)$/']],
-    'digits' => 'file_uid', 'hash' => 'form_id'
+    'preg' => [['file_id', '/^(\d+|test[.]png)$/']], 'digits' => 'file_uid'
   ];
   $in = $out = ['file_id' => 'test.png'];
-  $out['file_uid'] = $out['form_id'] = null;
+  $out['file_uid'] = null;
   test_sane_import ($in, $names, $out);
-  $in = $out = ['file_id' => '12345', 'file_uid' => 543, 'form_id' => 'ab3'];
+  $in = $out = ['file_id' => '12345', 'file_uid' => 543];
   test_sane_import ($in, $names, $out);
   $in['file_id'] = '124a';
   $out['file_id'] = null;

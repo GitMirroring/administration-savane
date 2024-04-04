@@ -443,6 +443,11 @@ function format_file_agpl_notice ()
   return git_agpl_notice ('These attachments are served by Savane.');
 }
 
+function format_file_credentials ($sep)
+{
+  return "{$sep}file_uid=" . user_getid () . "{$sep}form_id=" . form_get_id ();
+}
+
 function format_file_url ($file, $public = true)
 {
   global $sys_file_domain, $sys_home;
@@ -450,9 +455,7 @@ function format_file_url ($file, $public = true)
     . "://$sys_file_domain{$sys_home}file/{$file['name']}?file_id={$file['id']}";
   if ($public)
     return $lnk;
-  $uid = user_getid ();
-  $fid = form_get_id ();
-  return "$lnk&file_uid=$uid&form_id=$fid";
+  return $lnk . format_file_credentials ('&');
 }
 
 function format_attachment_link ($file, $public)
@@ -600,12 +603,14 @@ function format_item_file_details ($row, $href)
 function format_item_attachment_html ($row, $may_delete, $url)
 {
   global $php_self;
-  $delete_link = '';
-  if ($may_delete)
-    $delete_link = "<span class='trash'><a href=\"$php_self?func=delete_file"
-      . "&amp;item_id={$row['item_id']}&amp;item_file_id={$row['file_id']}\">"
-      . html_image_trash (['class' => 'icon']) . '</a></span>';
-  return $delete_link . format_item_file_details ($row, $url);
+  $ret = format_item_file_details ($row, $url);
+  if (!$may_delete)
+    return $ret;
+  $cred = format_file_credentials ('&amp;');
+  $del = "<span class='trash'><a href=\"$php_self?func=delete_file"
+    . "&amp;item_id={$row['item_id']}&amp;item_file_id={$row['file_id']}"
+    . "$cred\">" . html_image_trash (['class' => 'icon']) . '</a></span>';
+  return $del . $ret;
 }
 
 function format_list_item_files ($result, $may_delete, $ascii, $public)

@@ -13,6 +13,8 @@
 * The auxiliary file domain is configured and listened to
   separately from and in parallel to the main ('control') domain.
 
+* Tracker attachment deletion is protected with form_id.
+
 * Bug fixes:
 
 ** Instructions for anonymous CVS were broken since bb2d0d189 in

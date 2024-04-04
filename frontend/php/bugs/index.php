@@ -564,7 +564,8 @@ switch ($func)
     # Remove an attached file.
     if ($is_trackeradmin)
       {
-        trackers_data_delete_file($group_id, $item_id, $item_file_id);
+        form_check_id (true);
+        trackers_data_delete_file ($group_id, $item_id, $item_file_id);
 
          # Unset previous settings and return to the item.
          $depends_search = $reassign_change_group_search = $add_cc

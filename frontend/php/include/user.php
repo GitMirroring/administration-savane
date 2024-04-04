@@ -53,19 +53,23 @@ function user_isloggedin ()
   return !empty ($G_USER['user_id']);
 }
 
-function user_can_be_super_user ()
+function user_can_be_super_user ($user_id = 0)
 {
   global $USER_IS_SUPER_USER;
   if (isset ($USER_IS_SUPER_USER))
     return $USER_IS_SUPER_USER;
   $USER_IS_SUPER_USER = false;
-  if (!user_isloggedin ())
-    return false;
+  if (empty ($user_id))
+    {
+      if (!user_isloggedin ())
+        return false;
+      $user_id = user_getid ();
+    }
   # Admins of sys_group_id are admins and have superuser privs site-wide.
   $result = db_execute ("
     SELECT * FROM user_group
     WHERE user_id = ? AND group_id = ? AND admin_flags = 'A'",
-    [user_getid (), $GLOBALS['sys_group_id']]
+    [$user_id, $GLOBALS['sys_group_id']]
   );
   $USER_IS_SUPER_USER = (db_numrows ($result) >= 1);
   return $USER_IS_SUPER_USER;
