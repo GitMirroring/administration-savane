@@ -448,14 +448,20 @@ function format_file_credentials ($sep)
   return "{$sep}file_uid=" . user_getid () . "{$sep}form_id=" . form_get_id ();
 }
 
-function format_file_url ($file, $public = true)
+function format_file_url_path ($file, $public)
 {
-  global $sys_file_domain, $sys_home;
-  $lnk = session_protocol ()
-    . "://$sys_file_domain{$sys_home}file/{$file['name']}?file_id={$file['id']}";
+  global $sys_home;
+  $lnk = "{$sys_home}file/{$file['name']}?file_id={$file['id']}";
   if ($public)
     return $lnk;
   return $lnk . format_file_credentials ('&');
+}
+
+function format_file_url ($file, $public = true)
+{
+  global $sys_file_domain;
+  return session_protocol () . "://$sys_file_domain"
+    . format_file_url_path ($file, $public);
 }
 
 function format_attachment_link ($file, $public)

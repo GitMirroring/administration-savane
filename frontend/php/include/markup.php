@@ -801,14 +801,56 @@ function markup_substitute_underscored ($line)
   return markup_substitute_highlighted ($line, '_', 'i');
 }
 
-function markup_substitute_img_file_domain ($line)
+function markup_substitute_file_domain ($line)
 {
-  global $sys_file_domain;
+  global $sys_file_domain, $sys_home;
   if ($GLOBALS['sys_default_domain'] == $sys_file_domain)
     return $line;
-  return preg_replace (
-    '/<img src="\/file/', "<img src=\"//$sys_file_domain/file", $line
+  return str_replace (
+    "<img src=\"{$sys_home}file",
+    "<img src=\"//$sys_file_domain{$sys_home}file", $line
   );
+}
+
+function markup_mark_item_publicity ($items, $res)
+{
+  $ret = $priv = [];
+  while ($row = db_fetch_array ($res))
+    $priv[$row['art']][$row['bug_id']] = [$row['privacy'], $row['group_id']];
+  foreach (array_keys ($items) as $file_id)
+    {
+      $it = $items[$file_id];
+      $ret[$file_id] = $it;
+      # As of 2024-04-11, Savannah has 134 files associated with bugs that
+      # don't exist, the latest was attached on 2005-07-14.  Other trackers
+      # have no such irregularities.  Treat those files as public, though
+      # file.php will result in exit_error (_('Item not found')).
+      $ret[$file_id]['public'] = true;
+      if (empty ($priv[$it['artifact']][$it['item_id']]))
+        continue;
+      $p = $priv[$it['artifact']][$it['item_id']];
+      $ret[$file_id]['public'] = trackers_item_is_public ($p[0], $p[1]);
+    }
+  return $ret;
+}
+
+function markup_fetch_item_publicity ($items, $artifact_set)
+{
+  $sqls = $params = [];
+  foreach ($artifact_set as $art)
+    {
+      $p = [];
+      foreach ($items as $it)
+        if ($it['artifact'] == $art)
+          $p[$it['item_id']] = 1;
+      $qry = "
+        SELECT bug_id, privacy, group_id, '$art' as art FROM $art
+        WHERE bug_id " . utils_in_placeholders ($p);
+      $params = array_merge ($params, array_keys ($p));
+      $sqls[] = $qry;
+    }
+  $res = db_execute (join (' UNION ', $sqls), $params);
+  return markup_mark_item_publicity ($items, $res);
 }
 
 # Return array [ file_id => filename ] for the given list of file_ids.
@@ -817,28 +859,32 @@ function markup_fetch_file_list ($file_ids)
   if (empty ($file_ids))
     return [];
   $in_ph = utils_in_placeholders ($file_ids);
-  $result =  db_execute ("
-    SELECT file_id, filename FROM trackers_file WHERE file_id $in_ph",
-    $file_ids
+  $result =  db_execute (
+    "SELECT * FROM trackers_file WHERE file_id $in_ph", $file_ids
   );
-  $ret = [];
+  $items = $artifacts = [];
   while ($row = db_fetch_array ($result))
-    $ret[$row['file_id']] = $row['filename'];
-  return $ret;
+    {
+      $items[$row['file_id']] = $row;
+      $artifacts[$row['artifact']] = 1;
+    }
+  return markup_fetch_item_publicity ($items, array_keys ($artifacts));
 }
 
-function markup_expand_img ($line, $file_id, $file_name, $comment)
+function markup_expand_img ($line, $entry, $comment)
 {
-  if (!(preg_match ('/\.(jpe?g|png)$/', strtolower ($file_name))))
-    return $line;
+  $file_id = $entry['file_id'];
+  $entry['filename'] = utils_specialchars ($entry['filename']);
   $alt = $comment;
   if (substr ($alt, 0, 1) === ' ')
     $alt = substr ($alt, 1);
   if ($alt !== '')
     $alt = 'alt="' . utils_specialchars ($alt) . '" ';
-  $file_name = utils_specialchars ($file_name);
+  $url = format_file_url_path (
+    ['name' => $entry['filename'], 'id' => $file_id], $entry['public']
+  );
   return preg_replace ("/\(?((files? ))#{$file_id}[^),]*((\)|, )?)/",
-    "<img src=\"/file/$file_name?file_id=$file_id\" $alt/> ", $line
+    "<img src=\"$url\" $alt/> ", $line
   );
 }
 
@@ -854,11 +900,11 @@ function markup_expand_img_files ($line)
     {
       if (empty ($file_list[$file_id]))
         continue;
-      $line = markup_expand_img ($line, $file_id,
-        $file_list[$file_id], $matches['comment'][$key]
-      );
+      $entry = $file_list[$file_id];
+      if (preg_match ('/\.(jpe?g|png)$/', strtolower ($entry['filename'])))
+        $line = markup_expand_img ($line, $entry, $matches['comment'][$key]);
     }
-  return markup_substitute_img_file_domain ($line);
+  return markup_substitute_file_domain ($line);
 }
 
 # Prepare usual links: prefix "www." with "$protocol_relative://"
