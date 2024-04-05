@@ -374,19 +374,15 @@ function member_check_private ($user_id, $group_id)
   if (!$user_id)
     {
       if (!user_isloggedin ())
-        # Not able to get a valid user id.
-        return false;
+        return false; # No valid user ID.
       if (user_is_super_user ())
-        # Site admins: always return true.
-        return true;
+        return true; # Site admins: always return true.
       $user_id = user_getid ();
     }
-  # Check if its a project admin. If so, give access.
   if (member_check ($user_id, $group_id, 'A'))
-    return true;
+    return true; # Give access to admins of the group.
 
-  # Determine whether someone is member allowed to read private date
-  # of a project or not.
+  # Determine whether the user is a member allowed to read private data.
   $res = db_execute ("
     SELECT user_id FROM user_group
     WHERE user_id = ? AND group_id = ? AND admin_flags <> 'P'
