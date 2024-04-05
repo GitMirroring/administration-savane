@@ -1034,5 +1034,10 @@ function utils_disable_cache ()
   header ("Cache-Control: no-cache", false);
   header ("Cache-Control: must-revalidate", false);
 }
+function utils_public_file_url ($file)
+{
+  global $sys_home;
+  return "{$sys_home}file/{$file['name']}?file_id={$file['id']}";
+}
 } # namespace {
 ?>

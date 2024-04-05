@@ -47,12 +47,37 @@
 #
 # In case of fail, diagnositc text is output to stdout.
 require_once ('include/utils.php');
+function markup_fetch_file_list_override ($file_ids)
+{
+  global $files;
+  $ret = [];
+  foreach ($file_ids as $id)
+    if (!empty ($files[$id]))
+      $ret[$id] = $files[$id];
+  return $ret;
+}
 require_once ('include/markup.php');
+$filenames = [
+  17 => ['example.txt', 'text', true],
+  19 => ['floating.png', 'image', true],
+  23 => ['sample.dat', 'data', false]
+];
+foreach ($filenames as $id => $n)
+  {
+    $it['file_id'] = $id;
+    list ($it['filename'], $it['comment'], $it['public']) = $n;
+    $files[$id] = $it;
+  }
 
-$sys_default_domain = 'i18n.sv.gnu.org';
-$sys_file_domain = "file.$sys_default_domain";
+$sys_default_domain = 'example.org';
+$sys_file_domain = "test.org";
+$sys_home = '/';
 function user_isloggedin () { return true; }
 function session_issecure () { return true; }
+function format_file_url_path ($file, $public)
+{
+  return utils_public_file_url ($file);
+}
 
 $in = '= Title =
 0 item 1
@@ -203,6 +228,29 @@ $out_html = '<p><br />
 line<br />
 nomarkup</p>
 <p>&nbsp;<a href="//www.gnu.org">continued</a><br />
+<br />
+</p>
+';
+
+run_test ($in, $out, $out_html);
+
+$in = '
+file #19
+bug #289
+sr #4913
+task #83521
+file #17
+file #23
+';
+
+$out = "$in\n";
+$out_html = '<p><br />
+<img src="//test.org/file/floating.png?file_id=19" /> <br />
+<i><a href="/bugs/?289">bug&nbsp;#289</a></i><br />
+<i><a href="/support/?4913">sr&nbsp;#4913</a></i><br />
+<i><a href="/task/?83521">task&nbsp;#83521</a></i><br />
+<i><a href="//test.org/file/example.txt?file_id=17">file&nbsp;#17</a></i><br />
+<i><a href="//test.org/file/sample.dat?file_id=23">file&nbsp;#23</a></i><br />
 <br />
 </p>
 ';

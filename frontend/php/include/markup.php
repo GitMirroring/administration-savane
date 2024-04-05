@@ -807,8 +807,11 @@ function markup_substitute_file_domain ($line)
   if ($GLOBALS['sys_default_domain'] == $sys_file_domain)
     return $line;
   return str_replace (
-    "<img src=\"{$sys_home}file",
-    "<img src=\"//$sys_file_domain{$sys_home}file", $line
+    ["<img src=\"{$sys_home}file", "<a href=\"{$sys_home}file"],
+    [
+      "<img src=\"//$sys_file_domain{$sys_home}file",
+      "<a href=\"//$sys_file_domain{$sys_home}file"
+    ], $line
   );
 }
 
@@ -858,6 +861,8 @@ function markup_fetch_file_list ($file_ids)
 {
   if (empty ($file_ids))
     return [];
+  if (function_exists ("markup_fetch_file_list_override"))
+    return markup_fetch_file_list_override ($file_ids);
   $in_ph = utils_in_placeholders ($file_ids);
   $result =  db_execute (
     "SELECT * FROM trackers_file WHERE file_id $in_ph", $file_ids
@@ -871,25 +876,22 @@ function markup_fetch_file_list ($file_ids)
   return markup_fetch_item_publicity ($items, array_keys ($artifacts));
 }
 
-function markup_expand_img ($line, $entry, $comment)
+function markup_expand_img ($line, $entry, $comment, $url)
 {
   $file_id = $entry['file_id'];
-  $entry['filename'] = utils_specialchars ($entry['filename']);
   $alt = $comment;
   if (substr ($alt, 0, 1) === ' ')
     $alt = substr ($alt, 1);
   if ($alt !== '')
     $alt = 'alt="' . utils_specialchars ($alt) . '" ';
-  $url = format_file_url_path (
-    ['name' => $entry['filename'], 'id' => $file_id], $entry['public']
-  );
   return preg_replace ("/\(?((files? ))#{$file_id}[^),]*((\)|, )?)/",
     "<img src=\"$url\" $alt/> ", $line
   );
 }
 
-# Replace references to image files with <img>.
-function markup_expand_img_files ($line)
+# Replace references to files with HTML elements: <img> for images
+# and <a> for other files.
+function markup_expand_file_links ($line)
 {
   preg_match_all ('/\(?((files? ))#(?P<file_id>\d+)'
     . '(?P<comment>[^),]*)((\)|, )?)/',
@@ -901,8 +903,14 @@ function markup_expand_img_files ($line)
       if (empty ($file_list[$file_id]))
         continue;
       $entry = $file_list[$file_id];
+      $comment = $matches['comment'][$key];
+      $url = format_file_url_path (
+        ['name' => $entry['filename'], 'id' => $file_id], $entry['public']
+      );
       if (preg_match ('/\.(jpe?g|png)$/', strtolower ($entry['filename'])))
-        $line = markup_expand_img ($line, $entry, $matches['comment'][$key]);
+        $line = markup_expand_img ($line, $entry, $comment, $url);
+      else
+        $line = markup_expand_tracker_links ($line, 'files?', $url, $file_id);
     }
   return markup_substitute_file_domain ($line);
 }
@@ -977,23 +985,21 @@ function markup_convert_mail_links ($line, $protocols)
   );
 }
 
-function markup_expand_tracker_links ($line, $regexp, $link)
+function markup_expand_tracker_links ($line, $regexp, $link, $item_id = null)
 {
-  global $sys_home;
-  $line = markup_expand_img_files ($line);
-  # Allow only two white spaces between the string and the numeric id
-  # to avoid having too time consuming regexp. People just have to pay
-  # attention.
-
+  # $id_re and $item_no are used to adjust regexps and substitutions:
+  # they either expand all tracker links like bugs #N -> {$link}N...
+  list ($id_re, $item_no) = ['([0-9]+)', "\\3"];
+  # ...or, in case of files, only for single file: file #1234 -> $link.
+  if ($item_id !== null)
+    list ($id_re, $item_no) = ["$item_id()", $item_id];
   # Handle named links like [bug #4913 text of the link].
   $line = preg_replace (
-    "/(^|\s|\W)\[($regexp)\s{0,2}#([0-9]+)\s+(.+?)\]/i",
-    "\\1<i><a href=\"$sys_home$link\\3\">\\4</a></i>", $line
-  );
-
+    "/(^|\s|\W)\[($regexp)\s{0,2}#$id_re\s+(.+?)\]/i",
+    "\\1<i><a href=\"$link\\3\">\\4</a></i>", $line);
   # Now process "usual" links like bug #4913.
-  return preg_replace ("/(^|\s|\W)($regexp)\s{0,2}#([0-9]+)/i",
-    "\\1<i><a href=\"$sys_home$link\\3\">\\2&nbsp;#\\3</a></i>",
+  return preg_replace ("/(^|\s|\W)($regexp)\s{0,2}#$id_re\b/i",
+    "\\1<i><a href=\"$link\\3\">\\2&nbsp;#$item_no</a></i>",
     $line);
 }
 
@@ -1083,11 +1089,7 @@ function markup_tracker_list ()
     "support|sr" => "support/?",
     "tasks?" => "task/?",
     "recipes?|rcp" => "cookbook/?func=detailitem$comingfrom&amp;item_id=",
-    "patch" => "patch/?",
-    # In this case, we make the link pointing to support, it won't matter,
-    # the download page is in every tracker and does not check if the tracker
-    # is actually used.
-    "files?" => "support/download.php?file_id=",
+    "patch" => "patch/?"
   ];
 }
 
@@ -1106,6 +1108,7 @@ function markup_protocol_regex ()
 
 function markup_expand_links ($line)
 {
+  global $sys_home;
   $trackers = markup_tracker_list ();
   $artifact_regex = join ('|', array_keys ($trackers)) . '|comments?';
   list ($protocols, $protocol_relative) = markup_protocol_regex ();
@@ -1116,9 +1119,10 @@ function markup_expand_links ($line)
   $line = markup_insert_prot_rel ($line, $protocol_relative);
   $line = markup_convert_standalone_URLs ($line, $protocols);
   $line = markup_convert_mail_links ($line, $protocols);
+  $line = markup_expand_file_links ($line);
 
   foreach ($trackers as $regexp => $link)
-    $line = markup_expand_tracker_links ($line, $regexp, $link);
+    $line = markup_expand_tracker_links ($line, $regexp, "$sys_home$link");
 
   $line = markup_expand_comment_links ($line);
   $line = markup_expand_named_links ($line, $protocols);

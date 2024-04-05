@@ -450,8 +450,7 @@ function format_file_credentials ($sep)
 
 function format_file_url_path ($file, $public)
 {
-  global $sys_home;
-  $lnk = "{$sys_home}file/{$file['name']}?file_id={$file['id']}";
+  $lnk = utils_public_file_url ($file);
   if ($public)
     return $lnk;
   return $lnk . format_file_credentials ('&');
