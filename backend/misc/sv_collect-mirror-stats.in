@@ -144,6 +144,13 @@ sub purge_hourly_dir
   chdir $hour or die qq{Can't chdir hourly dir $hour: $!};
   foreach my $path (<*>)
     {
+      foreach my $file (<$path/*>)
+        {
+          # Sometimes mirror-redirect fails to write anything into the file
+          # it opens.  Remove the files that haven't successfully written
+          # within an hour.
+          unlink $file;
+        }
       rmdir $path;
     }
   chdir '..' or die qq{Can't chdir back from hourly dir $hour: $!};

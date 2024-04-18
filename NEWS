@@ -37,6 +37,9 @@
 
 * Bug fixes:
 
+** sv_miror-redirect sometimes opens log files, bug fails to write any entries.
+   sv_collect-mirror-stats.in now removes such stale files.
+
 ** In sv_membersh.pl.in, spurious carriage returns at the end of lines
    are removed before outputting the lines.
 
