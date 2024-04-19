@@ -17,6 +17,9 @@
 
 * Bug fixes:
 
+** In /git/admin/index.php, the controls for reordering repositories
+   didn't work since 2024-01, d3962d3feb.
+
 ** Instructions for anonymous CVS were broken since bb2d0d189 in
    site-specific/gnu/cvs/index.php.
 

@@ -65,8 +65,9 @@ for ($i = 0; $i < $n; $i++)
 
 extract (sane_import ('get', ['strings' => [['func', ['up', 'down']]]]));
 extract (sane_import ('post',
-  ['digits' => ['repo_no'], 'true' => ['submit'], 'path' => ['name']]
+  ['digits' => ['repo_no'], 'true' => ['submit']]
 ));
+extract (sane_import ('request', ['path' => ['name']]));
 form_check ('submit');
 
 function page_start ()
