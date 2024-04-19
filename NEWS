@@ -17,6 +17,8 @@
 
 * Bug fixes:
 
+** /include/markup.php didn't recognize lists with PHP 5.
+
 ** In /git/admin/index.php, the controls for reordering repositories
    didn't work since 2024-01, d3962d3feb.
 

@@ -655,7 +655,8 @@ function markup_match_lists ($prev, $next, &$stack)
   $m = $p > $n? $n: $p;
   if ($m < $n - 1)
     return false; # Only allow one level increase at once.
-  if (substr ($prev, 0, $m) !== substr ($next, 0, $m))
+  # In PHP 5, substr ('', 0, 0) returns false; substr ('0', 0, 0) returns ''.
+  if ($m && substr ($prev, 0, $m) !== substr ($next, 0, $m))
     return false; # List nesting doesn't match (like '0*0' and '*0*').
   if ($p > $n)
     return 'end';
