@@ -6,26 +6,12 @@
 #
 # This file is part of Savane.
 #
-# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
-# under the terms of the GNU General Public license version 3 or (at your
-# option) any later version; further contributions are covered by
-# the GNU Affero General Public license version 3 or (at your option)
-# any later version.  The license notices for the AGPL and the GPL follow.
+# As an exception from the general Savane distribution terms, this file
+# is distributed under the GPL.  The AGPL doesn't apply to it unless used
+# in a greater work with other parts covered by the AGPL, so this module
+# may be combined with works under the GPL without complying with the AGPL.
 #
-# Savane is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# Savane is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Savane is free software: you can redistribute it and/or modify
+# This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
@@ -90,10 +76,11 @@ sub print_license_notice
 
 sub print_legal_notices
 {
+  my $external = shift;
   my $libdir = '@pkgdatadir@/lib';
-  my $line;
-  my $fh;
-  my $path = "$libdir/Savane/Version.pm";
+  my ($line, $fh);
+  my $path = "$libdir/Savane.pm";
+  $path = $0 if $external;
   open ($fh, "<:encoding(UTF-8)", $path) or die $!;
   print_copyright_notice ($path, $fh);
   print_license_notice ($fh);
@@ -104,11 +91,12 @@ sub print_legal_notices
 # print the requested info and exit.
 
 # $_[0] is help string.
+# if $_[1], modify the output to say it isn't part of Savane,
+# and extract the legal notices from that script rather than Savane.pm.
 sub PrintVersionOrHelp
 {
-  my $help;
-  my $version;
-  my $getopt;
+  my ($help_string, $external) = @_;
+  my ($help, $version, $getopt);
   my @my_argv = @ARGV;
   Getopt::Long::Configure ("pass_through");
   GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
@@ -116,10 +104,15 @@ sub PrintVersionOrHelp
   return unless $help || $version;
   $version = 0 if $help;
 
-  print "$_[0]\n\n" if $help;
-  print "$0 is part of Savane.\n\n" if $version;
+  print "$help_string\n\n" if $help;
+  if ($version)
+    {
+      my $intro = "$0 isn't part of Savane, but is used with it.\n\n";
+      $intro = "$0 is part of Savane.\n\n" unless $external;
+      print $intro;
+    }
   print "Savane version: ". GetVersion () . "\n";
-  print_legal_notices if $version;
+  print_legal_notices ($external) if $version;
   exit (0);
 }
 

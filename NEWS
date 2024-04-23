@@ -55,6 +55,8 @@
 
 ** In sv_mirmon-to-geoip, source country overrides weren't parsed correctly.
 
+** In mirror-redirect, --version output was wrong.
+
 [I18N]
 
 * Update French, Hebrew.  Some progress in (simplified) Chinese.
