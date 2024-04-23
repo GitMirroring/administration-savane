@@ -59,7 +59,7 @@ $post_names = function ()
     'name' => 'form_name',
     'digits' => ['group_type', 'form_public'],
     'specialchars' => ['form_license', 'form_license_other'],
-    'strings' => [['form_status', ['A', 'D']]]
+    'strings' => [['form_status', ['A', 'D', 'P']]]
   ];
   return $names;
 };
@@ -87,29 +87,22 @@ if (!form_vars_empty ($submit_buttons))
     # Full details update.
     if ($update)
       {
-        $res_grp = db_execute (
+        $res = db_execute (
           "SELECT * FROM groups WHERE group_id = ?", [$group_id]
         );
-        $res_type = db_execute (
-          "SELECT * FROM group_type WHERE type_id = ?", [$group_type]
-        );
+        $row = db_fetch_array ($res);
+        if (empty ($form_status))
+          $form_status = $row['status'];
 
-        if (db_result ($res_grp, 0, 'status') != $form_status)
+        if ($row['status'] != $form_status)
+          group_add_history ('status', $row['status'], $group_id);
+        if ($row['is_public'] != $form_public)
+          group_add_history ('is_public', $row['is_public'], $group_id);
+        if ($row['type'] != $group_type)
+          group_add_history ('type', $row['type'], $group_id);
+        if ($row['unix_group_name'] != $form_name)
           group_add_history (
-           'status', db_result ($res_grp, 0, 'status'), $group_id
-          );
-        if (db_result ($res_grp, 0, 'is_public') != $form_public)
-          group_add_history (
-            'is_public', db_result ($res_grp, 0, 'is_public'), $group_id
-          );
-        if (db_result ($res_grp, 0, 'type') != $group_type)
-          group_add_history (
-            'type', db_result ($res_grp, 0, 'type'), $group_id
-          );
-        if (db_result ($res_grp, 0, 'unix_group_name') != $form_name)
-          group_add_history (
-            'unix_group_name', db_result ($res_grp, 0, 'unix_group_name'),
-            $group_id
+            'unix_group_name', $row['unix_group_name'], $group_id
           );
         db_autoexecute ('groups',
           [ 'is_public' => $form_public, 'status' => $form_status,
@@ -128,7 +121,7 @@ if (!form_vars_empty ($submit_buttons))
     fb (no_i18n ("Updating group info"));
   }
 # Get current information.
-$res_grp = db_execute ("SELECT * FROM groups WHERE group_id=?", [$group_id]);
+$res_grp = db_execute ("SELECT * FROM groups WHERE group_id = ?", [$group_id]);
 
 site_admin_header (
   ['title' => no_i18n ("Group List"), 'context' => 'admgroup']

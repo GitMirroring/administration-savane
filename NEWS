@@ -17,6 +17,9 @@
 
 * Bug fixes:
 
+** Since 2024-01 (d3962d3fe), form processing in /siteadmin/groupedit.php
+   didn't work for pending groups.
+
 ** /include/markup.php didn't recognize lists with PHP 5.
 
 ** In /git/admin/index.php, the controls for reordering repositories
