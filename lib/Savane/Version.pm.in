@@ -87,30 +87,38 @@ sub print_legal_notices
   close ($fh);
 }
 
-# Parse command line, check if help or version options are present,
-# print the requested info and exit.
-
-# $_[0] is help string.
-# if $_[1], modify the output to say it isn't part of Savane,
-# and extract the legal notices from that script rather than Savane.pm.
-sub PrintVersionOrHelp
+sub parse_argv
 {
-  my ($help_string, $external) = @_;
-  my ($help, $version, $getopt);
+  my ($help, $version);
   my @my_argv = @ARGV;
   Getopt::Long::Configure ("pass_through");
   GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
   Getopt::Long::Configure ("no_pass_through");
+  return ($help, $version);
+}
+
+# Parse command line, check if help or version options are present,
+# print the requested info and exit.
+
+# $_[0] is help string.
+# If $_[1], modify the output to say it isn't part of Savane,
+# and extract the legal notices from $0 rather than Savane.pm.
+sub PrintVersionOrHelp
+{
+  my ($help_string, $external) = @_;
+  my ($prog_escaped, $prog_name);
+  my ($help, $version) = parse_argv ();
   return unless $help || $version;
   $version = 0 if $help;
+  ($prog_name = $0) =~ s,.*/,,;
+  ($prog_escaped = $0) =~ s,.,[$&],g;
+  $prog_escaped =~ s/,/\\,/g;
+  $help_string =~ s,(^|\W)$prog_escaped(\W|$),\1$prog_name\2,g;
 
   print "$help_string\n\n" if $help;
-  if ($version)
-    {
-      my $intro = "$0 isn't part of Savane, but is used with it.\n\n";
-      $intro = "$0 is part of Savane.\n\n" unless $external;
-      print $intro;
-    }
+  my $intro = $external?
+    "isn't part of Savane, but is used with it.": "is part of Savane.";
+  print "$prog_name $intro\n\n" if $version;
   print "Savane version: ". GetVersion () . "\n";
   print_legal_notices ($external) if $version;
   exit (0);
