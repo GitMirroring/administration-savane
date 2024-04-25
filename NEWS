@@ -41,6 +41,8 @@
 ** In frontend/php/file.php, error messages were output in a way that
    made little sense.
 
+** Field value transition editing was broken since 2022-04 (8a7f2c11f).
+
 [BACKEND]
 
 * Bug fixes:

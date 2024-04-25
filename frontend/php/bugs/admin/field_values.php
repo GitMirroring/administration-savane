@@ -465,11 +465,10 @@ if ($list_value)
         # Get all the value_id - value pairs.
         $res_value = db_execute ($sql, [$group_id, $field_id]);
 
-        $rows = db_numrows ($res_value);
-        if ($rows <= 0)
+        if (!db_numrows ($res_value))
           $res_value = db_execute ($sql, [100, $field_id]);
 
-        if ($rows > 0)
+        if (db_numrows ($res_value))
           {
             $val_label = [];
             while ($val_row = db_fetch_array ($res_value))
