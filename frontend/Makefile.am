@@ -729,6 +729,7 @@ extra_dist = $(basic_png) $(ordinary_files) $(png_src)
 EXTRA_DIST = $(extra_dist)
 
 if HAVE_FRONTEND
+confdir = $(sysconfdir)/$(PACKAGE)
 $(derived_png): %.png: %.orig.png
 	$(MKDIR_P) `echo "$@" | ${DIRNAME}`
 	convert -resize 24x24 -background white -antialias $< $@
@@ -761,7 +762,9 @@ installcheck-local: $(installcheck_local_targets)
 installcheck-run-tests: ; \
   cd $(dest_dir)/php; \
   for t in markup sane format_date; do \
-    res=`$(PHP) testing/$$t.php`; \
+    res=`$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php \
+      || echo Exit code of \
+         \'$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php\' is $$?`; \
     if test "x$$res" = x; then continue; fi; \
     echo $$t failed: ; echo $$res; exit 1; \
   done
