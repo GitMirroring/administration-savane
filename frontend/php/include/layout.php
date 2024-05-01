@@ -5,8 +5,8 @@
 # Copyright (C) 2000-2006 Derek Feichtinger <derek.feichtinger--cern.ch>
 # Copyright (C) 2000-2006 Free Software Foundation, Inc.
 # Copyright (C) 2000-2006 Mathieu Roy
-# Copyright (C) 2004-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2000-2006 Stéphane Urbanovski <s.urbanovski--ac-nancy-metz.fr>
+# Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2013, 2014, 2017-2024 Ineiev
@@ -30,7 +30,7 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
@@ -43,7 +43,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $dir_name = dirname (__FILE__);
 require_once ("$dir_name/savane_error.php");

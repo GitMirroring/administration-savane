@@ -28,7 +28,7 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
@@ -41,7 +41,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Use mirmon state (first arg) to filter a list of hosts (second arg)
 # to write another list of hosts (third arg) with the stale hosts removed.

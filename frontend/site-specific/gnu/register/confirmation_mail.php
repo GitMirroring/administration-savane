@@ -30,7 +30,7 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
@@ -43,7 +43,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # This string is not localized because it's sent to admins.
 function confirmation_gen_email ($type_base_host, $user_realname, $user_email,

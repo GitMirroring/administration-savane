@@ -26,7 +26,7 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
@@ -39,7 +39,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 $vcs_fingerprints = '
 <pre>
 1024 MD5:80:5a:b0:0c:ec:93:66:29:49:7e:04:2b:fd:ba:2c:d5 (RSA)

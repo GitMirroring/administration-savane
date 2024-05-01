@@ -27,7 +27,7 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Savane is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
@@ -40,7 +40,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Get an array of fields that should be updated on field transitions.
 function trackers_transition_get_update ($group_id)
