@@ -52,16 +52,18 @@ function exit_error ($title = '', $text = null, $status = false)
 
   exit_header ($status);
   $msg = $title;
-  if ($text)
-    $msg .=
-      # TRANSLATORS: this string separates error title from further
-      # description, like _("Invalid User") . _(': ')
-      # . _("That user does not exist.")
-      _(': ') . $text;
+  if ($msg === null)
+    $msg = $text;
+  elseif ($text)
+    # TRANSLATORS: this string separates error title from further description,
+    # like _("Invalid User") . _(': ') . _("That user does not exist.")
+    $msg .= _(': ') . $text;
+  if ($title !== null)
+    $msg = html_h (1, _("Error")) . "<p>$msg</p>\n";
 
   $HTML->header (['title' => _("Exiting with Error"), 'notopmenu' => 1]);
   html_feedback_top ();
-  print html_h (1, _("Error")) . "<p>$msg</p>\n";
+  print $msg;
   $HTML->footer ([]);
   exit;
 }

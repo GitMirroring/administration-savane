@@ -113,6 +113,66 @@ function form_vars_empty ($submit_list)
   return true;
 }
 
+# Return a request array for a summary with unneeded fields removed.
+function form_filter_request ()
+{
+  $suppress_keys = [
+    'depends_search', 'depends_search_only_artifact',
+    'depends_search_only_group',
+    'file_description', 'form_id', 'func',
+    'reassign_change_artifact', 'reassign_change_new_group',
+    'reassign_change_group_search',
+    'submit', 'submitreturn'
+  ];
+  $ret = [];
+  foreach (array_replace ($_GET, $_POST) as $k => $v)
+    {
+      if (in_array ($k, $suppress_keys) || !is_scalar ($v))
+        continue;
+      $ret[$k] = $v;
+    }
+  return $ret;
+}
+
+# Sort request fields in a summary of a rejected request:
+# put longer entries first, and when the lengths equal, fall back to strcmp.
+function form_summary_cmp ($a, $b, $request)
+{
+  $a_ = strlen (strval ($request[$a]));
+  $b_ = strlen (strval ($request[$b]));
+  if ($a_ == $b_)
+    {
+      # Favor shorter keys.
+      $b_ = strlen (strval ($a));
+      $a_ = strlen (strval ($b));
+    }
+  if ($a_ == $b_)
+    {
+      $c = strcmp (strval ($request[$a]), strval ($request[$b]));
+      if ($c)
+        return $c;
+      return strcmp (strval ($a), strval ($b));
+    }
+  return $a_ > $b_? -1: 1;
+}
+
+# Return a HTML summary of a rejected request.
+function form_summarize_request ()
+{
+  $request = form_filter_request ();
+  uksort ($request,
+    function ($a, $b) use ($request)
+    {
+      return form_summary_cmp ($a, $b, $request);
+    }
+  );
+  $ret = html_h (1, _("Rejected Request")) . "<dl>";
+  foreach ($request as $k => $v)
+    $ret .= "<dt>" . utils_specialchars ($k) . "</dt>\n"
+      . "<dd><pre>" . utils_specialchars ($v) . "</pre></dd>\n";
+  return $ret . "</dl>\n";
+}
+
 # Check whether this is a duplicate or not: exit when the form_id is absent
 # in the DB, which may mean that it has already been submitted (user's mistake)
 # or has never been registered (CSRF).
@@ -135,6 +195,6 @@ function form_check ($submit_list = null)
   # the form ID no longer exists and then we exit.  We will have only one
   # SQL request, reducing as much as possible delays.
   if (form_reset_form_id ($form_id))
-    exit_error (_("Exiting"));
+    exit_error (null, form_summarize_request ());
 }
 ?>

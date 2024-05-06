@@ -5,6 +5,9 @@
 
 [FRONTEND]
 
+* When rejecting 'duplicate' forms, a summary of the rejected report is displayed
+  so that the users could restore their input, per Savannah sr #111059.
+
 * In atom feeds, an alternate link to group page is added.
 
 * When exiting on error, the error message is shown in the 'main' text
