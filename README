@@ -70,7 +70,8 @@ the "administration" group of GNU Savannah,
 
 https://savannah.nongnu.org/git/?group=administration
 
-GNU Savannah generally runs the master branch of that repository.
+GNU Savannah generally runs the master branch of that repository;
+for more info, see https://savannah.nongnu.org/maintenance/SavaneReleases/.
 
 Tarballs of Savane are released periodically, mainly for the reference
 of the Translation Project, in the download area of Savannah
@@ -85,6 +86,13 @@ See https://savannah.gnu.org/contact.php
 
 Dependencies
 ============
+
+Getting a release
+-----------------
+
+* A web browser or any program that can download files using HTTP, FTP,
+  or RSYNC protocol
+* GnuPG - checking the integrity
 
 Bootstrapping from Git checkout
 -------------------------------

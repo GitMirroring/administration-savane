@@ -21,27 +21,44 @@ Install dependencies.  If you are going to use localizations, make
 sure the languages are listed when running locale -a (in Trisquel,
 look for language-pack-*).
 
-Clone Savane to $HOME/sv:
+Download the latest tarball and its signature:
 
-$ mkdir ~/sv && cd ~/sv \
-  && git clone https://git.savannah.nongnu.org/git/administration/savane.git
-git clone https://git.savannah.nongnu.org/git/administration/savane.git
-Cloning into 'savane'...
-remote: Counting objects: 14454, done.
-remote: Compressing objects: 100% (3394/3394), done.
-remote: Total 14454 (delta 10514), reused 14454 (delta 10514)
-Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
-Resolving deltas: 100% (10514/10514), done.
-
-Bootstrap, write database password file, configure and build:
-
-$ cd savane; ./bootstrap
-autoreconf: Entering directory `.'
+$ wget \
+https://download.savannah.nongnu.org/releases/administration/savane-latest.tar.gz{.sig,}
 ...
-autoreconf: Leaving directory `.'
 
-$ cd ..; mkdir build; cd build
-$ ../savane/configure --prefix=$HOME/sv/install
+Download and import Savane release keyring:
+
+$ wget -O savane.asc \
+  'https://savannah.nongnu.org/project/release-gpgkeys.php?group=administration&download=1'
+...
+$ gpg --import savane.asc
+...
+
+As an alternative, you can get the public key from a keyserver:
+
+$ gpg --recv-key BD9D4DEE7B2FF1CBEF2EE0C4E0ACD3E0CBE7874A
+...
+gpg: key E0ACD3E0CBE7874A: public key "Ineiev (fencepost) <ineiev@gnu.org>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+Verify and unpack the tarball:
+
+$ gpg --verify savane-latest.tar.gz{.sig,} && tar xzf savane-latest.tar.gz
+gpg: Signature made Thu 29 Feb 2024 03:37:07 PM UTC
+gpg:                using RSA key BD9D4DEE7B2FF1CBEF2EE0C4E0ACD3E0CBE7874A
+gpg: Good signature from "Ineiev (fencepost) <ineiev@gnu.org>" [unknown]
+gpg:                 aka "Павел Харитонов <ineiev@gnu.org>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: BD9D 4DEE 7B2F F1CB EF2E  E0C4 E0AC D3E0 CBE7 874A
+
+Configure and build:
+
+$ tar_dir=`tar tzf savane-latest.tar.gz | head -n1`
+$ mkdir build; cd build
+$ ../${tar_dir}configure --prefix=$HOME/sv/install
 checking for a BSD-compatible install... /usr/bin/install -c
 ...
 Now you can run
@@ -81,6 +98,35 @@ Adding sample database
 When configured with --enable-sample-db, non-administrator users
 'alice', 'bob', 'carol', 'dave', 'eve' are added, with the same
 password '-'.
+
+Bootstrapping Git sources
+-------------------------
+
+If you want something more recent than a released tarball, you are to use
+our Git repository.
+
+Clone Savane to $HOME/sv:
+
+$ mkdir ~/sv && cd ~/sv \
+  && git clone https://git.savannah.nongnu.org/git/administration/savane.git
+git clone https://git.savannah.nongnu.org/git/administration/savane.git
+Cloning into 'savane'...
+remote: Counting objects: 14454, done.
+remote: Compressing objects: 100% (3394/3394), done.
+remote: Total 14454 (delta 10514), reused 14454 (delta 10514)
+Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
+Resolving deltas: 100% (10514/10514), done.
+
+Checkout the commit you need, e.g.
+
+$ git checkout -b i18n origin/i18n
+
+Bootstrap:
+
+$ cd savane; ./bootstrap
+autoreconf: Entering directory `.'
+...
+autoreconf: Leaving directory `.'
 
 Advanced and troubleshooting
 ----------------------------
