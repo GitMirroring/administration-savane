@@ -312,7 +312,6 @@ function session_set_new ($user_id, $cookie_for_a_year)
 function session_set_new_cookies ($user_id, $cookie_for_a_year = 0)
 {
   $stay_in_ssl = session_stay_in_ssl ();
-  # Concatinate current time, and random seed for MD5 hash.
   # Set a non-secure cookie so that Savane automatically redirects to HTTPS.
   if ($stay_in_ssl)
     session_cookie ('redirect_to_https', 1, $cookie_for_a_year, 0);

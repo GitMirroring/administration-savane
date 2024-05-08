@@ -45,14 +45,14 @@ require_once ('../include/account.php');
 require_once ('../include/sane.php');
 
 utils_disable_cache ();
-extract (sane_import ('request', ['true' => 'from_brother']));
+extract (sane_import ('get', ['true' => 'from_brother']));
 
 # Logged users have no business here.
 if (user_isloggedin () && !$from_brother)
   session_redirect ("{$sys_home}my/");
 
 # Input checks.
-extract (sane_import('request',
+extract (sane_import ('request',
   [
     'true' => ['brotherhood', 'cookie_for_a_year', 'login', 'cookie_test'],
     'name' => 'form_loginname',
@@ -116,7 +116,7 @@ if (!empty ($login))
       {
         # Set up the theme, if the user has selected any in the user
         # preferences -- but give priority to a cookie, if set.
-        if (!isset($_COOKIE['SV_THEME']))
+        if (!isset ($_COOKIE['SV_THEME']))
           {
             $theme_result = user_get_result_set (user_getid ());
             $theme = db_result ($theme_result, 0, 'theme');
@@ -136,34 +136,22 @@ if (!empty ($login))
           {
             $root_url = session_protocol () . "://$sys_brother_domain";
 
-            if (!$from_brother)
-              {
-                # Go there saying hello to your brother.
-                header (
-                  "Location: $root_url{$sys_home}"
-                  . "account/login.php?session_uid=" . user_getid ()
-                  . "&session_hash={$session_hash}&login=1"
-                  . "&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
-                  . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_enc"
-                );
-                exit;
-              }
-            else
-              {
-                header ("Location: $root_url$uri");
-                exit;
-              }
+            if ($from_brother)
+              # Redirect back after logging in the 'brother' domain.
+              session_redirect ("$root_url$uri");
+            # Log in the 'brother' domain.
+            session_redirect ("$root_url{$sys_home}account/login.php?"
+              . "session_uid=" . user_getid () . "&session_hash=$session_hash"
+              . "&login=1&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
+              . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_enc"
+            );
           }
-        else
-          {
-            # If No brother server exists, just go to 'my' page
-            # unless we are request to go to an uri.
-            $url = $uri;
-            if ($stay_in_ssl) # Enforce HTTPS mode.
-              $url = "$sys_https_url$url";
-            header ("Location: $url");
-            exit;
-          }
+        # If no brother domain is defined, just return
+        # to the page the login was requested from.
+        $url = $uri;
+        if ($stay_in_ssl)
+          $url = "$sys_https_url$url";
+        session_redirect ($url);
       } # $success
   } # !empty ($login)
 
@@ -182,7 +170,7 @@ if (!empty ($login) && !$success)
   {
     if (isset ($signal_pending_account) && $signal_pending_account == 1)
       {
-        print '<h2>' . _("Pending Account") . "</h2>\n";
+        print html_h (2, _("Pending Account"));
         print '<p>'
           . _("Your account is currently pending your email confirmation.\n"
               . "Visiting the link sent to you in this email will activate "
