@@ -54,7 +54,7 @@ if (user_isloggedin () && !$from_brother)
 # Input checks.
 extract (sane_import ('request',
   [
-    'true' => ['brotherhood', 'cookie_for_a_year', 'login', 'cookie_test'],
+    'true' => ['brotherhood', 'cookie_for_a_year', 'login'],
     'name' => 'form_loginname',
     'pass' => 'form_pw',
     'internal_uri' => 'uri'
@@ -66,34 +66,8 @@ if (!$from_brother)
 $stay_in_ssl = session_stay_in_ssl ();
 $uri_enc = utils_urlencode ($uri);
 
-# Check cookie support.
-if (!$from_brother && !isset ($_COOKIE["cookie_probe"]))
-  {
-    if ($cookie_test)
-      {
-        # TRANSLATORS: the first argument is a domain (like
-        # "savannah.gnu.org" vs. "savannah.nongnu.org");
-        # the second argument is a URL ("[URL label]" transforms to a link).
-        $msg =
-          sprintf (
-            _("Savane thinks your cookies are not activated for %s.\nPlease "
-              . "activate cookies in your web browser for this website\n"
-              . "and [%s try to login again]."),
-            $sys_default_domain,
-            "$sys_https_url{$sys_home}account/login.php?uri=$uri"
-          );
-        fb ($msg, 1);
-      }
-    else
-      {
-        # Attempt to set a cookie to go to a new page to see
-        # if the client will indeed send that cookie.
-        session_cookie ('cookie_probe', 1);
-        # $uri used to be not url-encoded, it caused login problems,
-        # see Savannah sr #108277.
-        header ("Location: login.php?uri=$uri_enc&cookie_test=1");
-      }
-  }
+if (!$from_brother)
+  session_check_cookies ($uri, $uri_enc);
 
 if (!empty ($login))
   {
@@ -114,15 +88,7 @@ if (!empty ($login))
         session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
     if ($success)
       {
-        # Set up the theme, if the user has selected any in the user
-        # preferences -- but give priority to a cookie, if set.
-        if (!isset ($_COOKIE['SV_THEME']))
-          {
-            $theme_result = user_get_result_set (user_getid ());
-            $theme = db_result ($theme_result, 0, 'theme');
-            if (strlen ($theme) > 0)
-              utils_setcookie ('SV_THEME', $theme, time () + 60 * 60 * 24);
-          }
+        session_set_theme ();
         # We return to our brother 'my', where we login originally,
         # unless we are request to go to an uri.
         if (!$uri)
@@ -130,22 +96,7 @@ if (!empty ($login))
             $uri = "{$sys_home}my/";
             $uri_enc = utils_urlencode ($uri);
           }
-        # If a brother server exists, login there too, if we are not
-        # already coming from there.
-        if (!empty ($sys_brother_domain) && $brotherhood)
-          {
-            $root_url = session_protocol () . "://$sys_brother_domain";
-
-            if ($from_brother)
-              # Redirect back after logging in the 'brother' domain.
-              session_redirect ("$root_url$uri");
-            # Log in the 'brother' domain.
-            session_redirect ("$root_url{$sys_home}account/login.php?"
-              . "session_uid=" . user_getid () . "&session_hash=$session_hash"
-              . "&login=1&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
-              . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_enc"
-            );
-          }
+        session_login_brother ($uri, $uri_enc);
         # If no brother domain is defined, just return
         # to the page the login was requested from.
         $url = $uri;

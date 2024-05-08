@@ -142,7 +142,7 @@ $reference = 'account/impersonate.php';
 $reference = 'account/login.php';
 {
   $names = [
-    'true' => ['brotherhood', 'cookie_for_a_year', 'login', 'cookie_test'],
+    'true' => ['brotherhood', 'cookie_for_a_year', 'login'],
     'name' => 'form_loginname',
     'pass' => 'form_pw',
     'internal_uri' => 'uri'
@@ -157,7 +157,6 @@ $reference = 'account/login.php';
   $out = $in;
   $out['login'] = true;
   $out['cookie_for_a_year'] = null;
-  $out['cookie_test'] = null;
 
   test_sane_import ($in, $names, $out);
 }

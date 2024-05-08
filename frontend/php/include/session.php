@@ -384,4 +384,66 @@ function session_logout ()
   session_delete_cookie ('session_hash');
   session_delete_cookie ('session_uid');
 }
+
+# Check if cookies are enabled.
+function session_check_cookies ($uri, $uri_urlencoded)
+{
+  global $sys_default_domain, $sys_https_url, $sys_home;
+  $url_prefix = "$sys_https_url{$sys_home}account/login.php?uri=";
+  if (isset ($_COOKIE["cookie_probe"]))
+    return;
+  extract (sane_import ('get', ['true' => 'cookie_test']));
+  if (empty ($cookie_test))
+    {
+      # Request a cookie and reload the page to see
+      # if the client actually sends that cookie.
+      session_cookie ('cookie_probe', 1);
+      # $uri used to be not URL-encoded, it caused login problems,
+      # see Savannah sr #108277.
+      session_redirect ("$url_prefix$uri_urlencoded&cookie_test=1");
+    }
+  # TRANSLATORS: the first argument is a domain (like "savannah.gnu.org");
+  # the second argument is a URL ("[URL label]" transforms to a link).
+  $msg = sprintf (
+    _("Savane thinks your cookies are not activated for %s.\nPlease activate "
+      . "cookies in your web browser for this website\nand [%s try to login "
+      . "again]."), $sys_default_domain, "$url_prefix$uri"
+  );
+  fb ($msg, 1);
+}
+
+# Set the theme from user's preferences unless the cookie is already set.
+function session_set_theme ()
+{
+  if (isset ($_COOKIE['SV_THEME']))
+    return;
+  $theme = db_result (user_get_result_set (user_getid ()), 0, 'theme');
+  if (strlen ($theme) > 0)
+    utils_setcookie ('SV_THEME', $theme, time () + 60 * 60 * 24);
+}
+
+# Log in the 'brother' domain if needed, and return back.
+# Only returns when the action isn't needed; otherwise exits
+# in session_redirect ().
+function session_login_brother ($uri, $uri_urlencoded)
+{
+  global $sys_brother_domain, $sys_home;
+  global $brotherhood, $session_hash, $cookie_for_a_year, $stay_in_ssl;
+  global $from_brother;
+  if (empty ($sys_brother_domain) || empty ($brotherhood))
+    return;
+  # If a brother server exists, login there too, if we are not
+  # already coming from there.
+  $root_url = session_protocol () . "://$sys_brother_domain";
+
+  if ($from_brother)
+    # Redirect back after logging in the 'brother' domain.
+    session_redirect ("$root_url$uri");
+  # Log in the 'brother' domain.
+  session_redirect ("$root_url{$sys_home}account/login.php?"
+    . "session_uid=" . user_getid () . "&session_hash=$session_hash"
+    . "&login=1&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
+    . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_urlencoded"
+  );
+}
 ?>
