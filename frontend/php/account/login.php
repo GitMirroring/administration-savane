@@ -54,12 +54,15 @@ if (user_isloggedin () && !$from_brother)
 # Input checks.
 extract (sane_import ('request',
   [
-    'true' => ['brotherhood', 'cookie_for_a_year', 'login'],
+    'true' => ['brotherhood', 'login'],
+    'digits' => 'cookie_for_a_year',
     'name' => 'form_loginname',
     'pass' => 'form_pw',
     'internal_uri' => 'uri'
   ]
 ));
+if (empty ($cookie_for_a_year))
+  $cookie_for_a_year = 0;
 if (!$from_brother)
   form_check ('login');
 

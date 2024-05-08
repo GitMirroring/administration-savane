@@ -22,6 +22,8 @@
 
 * Bug fixes:
 
+** Login-related cookies in the 'brother domain' were always set for a year.
+
 ** Since 2024-01 (d3962d3fe), form processing in /siteadmin/groupedit.php
    didn't work for pending groups.
 
