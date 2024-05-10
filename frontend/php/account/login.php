@@ -167,13 +167,14 @@ print form_hidden (['uri' => $uri]);
 # Shortcuts to New Account and Lost Password have a tabindex superior to
 # the rest of form, so they don't mess with the normal order when you
 # press TAB on the keyboard (login -> password -> post).
-print '<p><span class="preinput">' . _("Login Name:")
+print '<p><span class="preinput">'
+  . html_label ('form_loginname', _("Login Name:"))
   . "</span><br />&nbsp;&nbsp;\n";
 print "<input type='text' name='form_loginname' value=\"$form_loginname"
   . '" tabindex="1" /> <a class="smaller" href="register.php" tabindex="2">['
   . _("No account yet?") . "]</a></p>\n";
 
-print '<p><span class="preinput">' . _("Password:")
+print '<p><span class="preinput">' . html_label ('form_pw', _("Password:"))
   . "</span><br />\n&nbsp;&nbsp;";
 print '<input type="password" name="form_pw" tabindex="1" /> '
   . '<a class="smaller" href="lostpw.php" tabindex="2">['
@@ -191,23 +192,24 @@ if (!isset ($sys_https_host))
       . "</p>\n";
   }
 
+$attr_list['label'] = '<span class="preinput">' . _("Remember me")
+  . "</span><br />\n"
+  . _("For a year, your login information will be stored in a cookie. Use\n"
+      . "this only if you are using your own computer.");
 print '<p>'
   . form_checkbox ('cookie_for_a_year', $cookie_for_a_year, $attr_list)
-  . '<span class="preinput">' . _("Remember me") . "</span><br />\n";
-print '<span class="text">'
-  . _("For a year, your login information will be stored in a cookie. Use\n"
-      . "this only if you are using your own computer.")
-  . '</span>';
+  . "</p>\n";
 
 if (!empty ($sys_brother_domain))
   {
-    print '<p>'
-      .  form_checkbox ('brotherhood', $brotherhood || !$login, $attr_list)
-      . '<span class="preinput">';
-    # TRANSLATORS: the argument is a domain (like "savannah.gnu.org"
-    # vs. "savannah.nongnu.org").
-    printf (_("Login also in %s"), $sys_brother_domain);
-    print  "</span><br />\n";
+    print '<p>';
+    print form_checkbox ('brotherhood', $brotherhood || !$login,
+      # TRANSLATORS: the argument is a domain (like "savannah.gnu.org"
+      # vs. "savannah.nongnu.org").
+      ['label' => '<span class="preinput">'
+        . sprintf (_("Login also in %s"), $sys_brother_domain) . '</span>']
+    );
+    print  "</p>\n";
   }
 print form_footer (_("Login"), 'login');
 $HTML->footer ([]);

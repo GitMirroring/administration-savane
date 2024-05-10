@@ -10,6 +10,8 @@
 
 * In atom feeds, an alternate link to group page is added.
 
+* In the login form, input labels are enclosed in <label> elements.
+
 * When exiting on error, the error message is shown in the 'main' text
   area rather than in the feedback frame.
 
