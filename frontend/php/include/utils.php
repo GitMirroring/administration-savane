@@ -763,9 +763,22 @@ function help ($text, $explanation_array)
   return $text;
 }
 
+# Remove old $domain-based cookies, see Savannah sr #111062.
+# After 2025-05-13 all such cookies will expire, and this function
+# may be removed.
+function utils_clear_spurious_cookie ($name, $value, $secure = false)
+{
+  global $sys_home, $sys_default_domain;
+  $domain = preg_replace ('/:\d*$/', '', $sys_default_domain);
+  setcookie (
+    $name, $value, time () - 3600, $sys_home, $domain, $secure, true
+  );
+}
+
 function utils_setcookie ($name, $value, $expire, $secure = false)
 {
   global $sys_home;
+  utils_clear_spurious_cookie ($name, $value, $secure);
   setcookie ($name, $value, $expire, $sys_home, '', $secure, true);
 }
 
