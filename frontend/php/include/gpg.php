@@ -172,7 +172,7 @@ function find_enc_key ($home)
         continue;
       if ($fields[0] !== 'pub')
         continue;
-      if (false === stripos ($fields[11], 'e'))
+      if (false === strpos ($fields[11], 'E'))
         continue;
       $key_id = $fields[4];
       if (preg_match ("/^[0-9A-F]*$/", $key_id))
