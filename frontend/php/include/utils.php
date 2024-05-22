@@ -925,18 +925,20 @@ function utils_mktemp ($template, $type = 'file')
       $type = 'dir';
       $cmd .= "-d ";
     }
-  $is_func = "is_$type";
+  if (substr ($template, -3) !== 'XXX')
+    $template .= '.XXXXXXXXX';
   $cmd .= $template;
   $res = utils_run_proc ($cmd, $out, $err);
   if ($res)
     {
-      trigger_error ("$cmd failed, $res: $err");
+      trigger_error ("'$cmd' failed, $res: $err");
       return null;
     }
   $out = trim ($out);
+  $is_func = "is_$type";
   if ($is_func ($out))
     return $out;
-  trigger_error ("$cmd failed: no $out $type");
+  trigger_error ("'$cmd' failed: no $out $type");
   return null;
 }
 

@@ -186,7 +186,7 @@ function get_enc_key ($user_id)
   $key = user_get_field ($user_id, 'gpg_key');
   if (empty ($key))
     return [null, null, 3];
-  $temp_dir = utils_mktemp ("sv-gpg.XXXXXXXXX", 'dir');
+  $temp_dir = utils_mktemp ("sv-gpg", 'dir');
   if (empty ($temp_dir))
     return [null, null, 4];
   if (import_key ($key, $temp_dir))
@@ -249,7 +249,7 @@ function gpg_run_checks ($key, $run_encryption = true, $level = '2')
   $ret .= utils_specialchars (gpg\gpg_version ());
   $ret .= "</pre>\n";
 
-  $temp_dir = utils_mktemp ("sv-gpg.XXXXXXXXX", 'dir');
+  $temp_dir = utils_mktemp ("sv-gpg", 'dir');
   if (empty ($temp_dir))
     $ret .= "<p>" . _("Can't create temporary directory.") . "</p>\n";
   else
