@@ -554,6 +554,10 @@ ordinary_files = \
   php/stats/index.php \
   php/testconfig.php \
   php/testing/format_date.php \
+  php/testing/gpg/ecc25519-pub.asc \
+  php/testing/gpg/ecc25519-priv.asc \
+  php/testing/gpg/rsa-pub.asc \
+  php/testing/gpg/rsa-priv.asc \
   php/testing/index.php \
   php/testing/markup.php \
   php/testing/sane.php \

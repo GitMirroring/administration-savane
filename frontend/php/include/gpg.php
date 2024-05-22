@@ -99,20 +99,36 @@ function test_import ($key, $temp_dir, $level, &$output)
   return $gpg_result;
 }
 
-function test_encryption ($temp_dir, $level, &$output)
+define ('GPG_ERROR_GPG_FAILED', 1);
+define ('GPG_ERROR_VERIFY_FAILED', 2);
+define ('GPG_ERROR_NO_USABLE_KEY', 3);
+define ('GPG_ERROR_NO_USER_ID', 4);
+define ('GPG_ERROR_NO_TEMP_DIR', 5);
+define ('GPG_ERROR_INVALID_KEY', 6);
+
+define ('GNUPG_ENCRYPT_CAPABILITY', 'E');
+define ('GNUPG_SIGN_CAPABILITY', 'S');
+
+# The message is a slightly modified ASCII art
+# from https://www.gnu.org/graphics/gnu-ascii2.html .
+function test_message ()
 {
-  $gpg_name = gpg_name ();
-  # The message is a slightly modified ASCII art
-  # from https://www.gnu.org/graphics/gnu-ascii2.html .
-  $message = "
+  return "
   ,' ,-_-. '.
  ((_/)o o(\\_))
   `-'(. .)`-'
       \\_/\n";
-  list ($key_id, $gpg_result) = find_enc_key ($temp_dir);
+
+}
+
+function test_encryption ($temp_dir, $level, &$output)
+{
+  $gpg_name = gpg_name ();
+  $message = test_message ();
+  list ($key_id, $gpg_result) = find_appropriate_key ($temp_dir);
   if ($gpg_result)
     {
-      $gpg_result = 2;
+      $gpg_result = GPG_ERROR_NO_USABLE_KEY;
       $gpg_error = error_str ($gpg_result);
     }
   else
@@ -141,11 +157,19 @@ function run_tests ($key, $temp_dir, &$output, $run_encryption, $level)
     test_encryption ($temp_dir, $level, $output);
 }
 
-function import_key ($key, $home)
+function import_key ($key)
 {
   global $sys_gpg_name;
-  $cmd = "$sys_gpg_name --home '$home' --batch -q --import";
-  return utils_run_proc ($cmd, $out, $err, ['in' => $key]);
+  $error = 0;
+  if (empty ($key))
+    return GPG_ERROR_NO_USER_ID;
+  $temp_dir = utils_mktemp ("sv-gpg", 'dir');
+  if (empty ($temp_dir))
+    return [$temp_dir, GPG_ERROR_NO_TEMP_DIR];
+  $cmd = "$sys_gpg_name --home '$temp_dir' --batch -q --import";
+  if (utils_run_proc ($cmd, $out, $err, ['in' => $key]))
+    $error = GPG_ERROR_NO_USABLE_KEY;
+  return [$temp_dir, $error];
 }
 
 function list_keys ($home)
@@ -158,13 +182,12 @@ function list_keys ($home)
   return explode ("\n", $out);
 }
 
-# Find first encryption-capable key listed; this doesn't take into account
-# expiry dates etc.
-function find_enc_key ($home)
+# Find first key with the given capability listed.
+function find_appropriate_key ($home, $capability = GNUPG_ENCRYPT_CAPABILITY)
 {
   $key_list = list_keys ($home);
   if (empty ($key_list))
-    return [null, 2];
+    return [null, GPG_ERROR_NO_USABLE_KEY];
   foreach ($key_list as $line)
     {
       $fields = explode (':', $line);
@@ -172,28 +195,33 @@ function find_enc_key ($home)
         continue;
       if ($fields[0] !== 'pub')
         continue;
-      if (false === strpos ($fields[11], 'E'))
+      if (false === strpos ($fields[11], $capability))
         continue;
       $key_id = $fields[4];
       if (preg_match ("/^[0-9A-F]*$/", $key_id))
         return [$key_id, 0];
     }
-  return [null, 2];
+  return [null, GPG_ERROR_NO_USABLE_KEY];
 }
 
-function get_enc_key ($user_id)
+# Import keys of user $uid_k when it's a number, or use $uid_k as the keys
+# to import, look for a key with requested $capability.  Return an array
+# with key ID, the directory where the keys are imported, and the error code.
+function get_key ($uid_k, $capability = GNUPG_ENCRYPT_CAPABILITY)
 {
-  $key = user_get_field ($user_id, 'gpg_key');
-  if (empty ($key))
-    return [null, null, 3];
-  $temp_dir = utils_mktemp ("sv-gpg", 'dir');
-  if (empty ($temp_dir))
-    return [null, null, 4];
-  if (import_key ($key, $temp_dir))
-    list ($key_id, $error) = ['', 2];
-  else
-    list ($key_id, $error) = find_enc_key ($temp_dir);
-  if ($error)
+  $key = $uid_k;
+  if (ctype_digit ($uid_k))
+    {
+      if (user_exists ($uid_k))
+        $key = user_get_field ($uid_k, 'gpg_key');
+      else
+        return [null, null, GPG_ERROR_NO_USER_ID];
+    }
+  list ($temp_dir, $error) = import_key ($key);
+  $key_id = null;
+  if (empty ($error))
+    list ($key_id, $error) = find_appropriate_key ($temp_dir, $capability);
+  if ($error && !empty ($temp_dir))
     utils_rm_fr ($temp_dir);
   return [$key_id, $temp_dir, $error];
 }
@@ -201,49 +229,91 @@ function get_enc_key ($user_id)
 function error_str ($code)
 {
   $codes = [
-    1 => _("Encryption failed."),
-    2 => _("No key for encryption found."),
-    3 => _("Can't extract user_id from database."),
-    4 => _("Can't create temporary files."),
-    5 => _("Extracted GPG key ID is invalid.")
+    GPG_ERROR_GPG_FAILED => _("GnuPG invocation failed."),
+    GPG_ERROR_VERIFY_FAILED => _("GPG signature verification failed."),
+    GPG_ERROR_NO_USABLE_KEY => _("No usable key found."),
+    GPG_ERROR_NO_USER_ID => _("Can't extract user_id from database."),
+    GPG_ERROR_NO_TEMP_DIR => _("Can't create temporary files."),
+    GPG_ERROR_INVALID_KEY => _("Extracted GPG key ID is invalid.")
   ];
   if (array_key_exists ($code, $codes))
     return $codes[$code];
   return '';
 }
 
+function expand_error ($res, $e_code, $out = null, $err = null)
+{
+  if (empty ($res))
+    return [0, ''];
+  $error_msg = error_str ($e_code);
+  foreach (['output' => $out, 'error' => $err] as $k => $v)
+    if ($v !== null)
+      $error_msg .= "\n$k: $v\n";
+  if ($error_msg === '')
+    {
+      trigger_error ("Unknown error code $e_code");
+      $e_code = -1;
+    }
+  return [$e_code, $error_msg];
+}
+
 function run_encryption ($key, $message, $home)
 {
   global $sys_gpg_name;
-  $error_code = 0;
-  $error_msg = '';
   $cmd = "$sys_gpg_name --home='$home' --trust-model always --batch "
     . "-a --encrypt -r $key";
   $res = utils_run_proc ($cmd, $encrypted, $err, ['in' => $message]);
-  if ($res)
-    {
-      $error_code = 1;
-      $encrypted = '';
-    }
-  if ($error_code != 0 || $encrypted === "")
-    {
-      $encrypted = $error_msg = "";
-      $error_msg = error_str ($error_code);
-      if ($error_msg === '')
-        {
-          trigger_error ("Unknown error code $error_code");
-          $error_code = -1;
-        }
-    }
+  list ($error_code, $error_msg) =
+    expand_error ($res, GPG_ERROR_GPG_FAILED);
+  if ($error_code)
+    $encrypted = '';
   return [$error_code, $error_msg, $encrypted];
+}
+
+# Write signed data and signature to temporary files.  Return
+# an array with temporary file names.
+function make_verify_input ($input)
+{
+  $ret = [];
+  foreach ($input as $i => $data)
+    {
+      $t = utils_mktemp ("sv-gpgv$i");
+      if (empty ($t))
+        {
+          foreach ($ret as $f)
+            unlink ($f);
+          return null;
+        }
+      $ret[] = $t;
+      $fd = fopen ($t, 'w');
+      fwrite ($fd, $data);
+      fclose ($fd);
+    }
+  return $ret;
+}
+
+function verify ($home, $input)
+{
+  $cmd = gpg_name () . " --home='$home' --batch --trust-model always";
+  $op = count ($input) > 1? 'verify': 'decrypt';
+  $in_files = make_verify_input ($input);
+  if (empty ($in_files))
+    return [GPG_ERROR_NO_TEMP_DIR, error_str (GPG_ERROR_NO_TEMP_DIR), ''];
+  $files = join (' ', $in_files);
+  $res = utils_run_proc ("$cmd --$op $files", $out, $err);
+  list ($error_code, $error_msg) =
+    expand_error ($res, GPG_ERROR_VERIFY_FAILED);
+  $decrypted = $op == 'decrypt'? $out: $input[1];
+  foreach ($in_files as $f)
+    unlink ($f);
+  return [$error_code, $error_msg, $decrypted];
 }
 } # namespace gpg {
 
 namespace {
 function gpg_run_checks ($key, $run_encryption = true, $level = '2')
 {
-  $ret = "";
-  $ret .= "<h$level>" . _("GnuPG version") . "</h$level>\n";
+  $ret = html_h ($level, _("GnuPG version"));
 
   $ret .= "<pre>\n";
   $ret .= utils_specialchars (gpg\gpg_version ());
@@ -264,7 +334,7 @@ function gpg_run_checks ($key, $run_encryption = true, $level = '2')
 function gpg_encrypt_to_user ($user_id, $message)
 {
   global $sys_gpg_name;
-  list ($key, $temp_dir, $error) = gpg\get_enc_key ($user_id);
+  list ($key, $temp_dir, $error) = gpg\get_key ($user_id);
   if ($error)
     return [$error, gpg\error_str ($error), ''];
   $ret = gpg\run_encryption ($key, $message, $temp_dir);

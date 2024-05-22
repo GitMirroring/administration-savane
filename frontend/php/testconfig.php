@@ -71,28 +71,120 @@ function return_bytes ($v)
   return (int) $val;
 }
 
-function test_gpg ()
+# Test if GPG executable is configured and can run, basically.
+# Return zero on success.
+function check_gpg_executable ()
 {
-  print "\n<h3>GnuPG</h3>\n\n";
-
-  if (!isset ($GLOBALS['sys_gpg_name']))
+  global $sys_gpg_name;
+  print html_h (3, "GnuPG");
+  if (!isset ($sys_gpg_name))
     {
       print "<p><strong>GnuPG is not configured.</strong></p>\n";
-      return;
+      return true;
     }
 
-  print "<dl><dt>GPG command</dt>\n<dd><code>" . $GLOBALS['sys_gpg_name']
-        . "</code></dd>\n";
-
+  print "<dl><dt>GPG command</dt>\n<dd><code>$sys_gpg_name</code></dd>\n";
   $gpg_result = utils_run_proc  (
-    "'" . $GLOBALS['sys_gpg_name'] . "' --version", $gpg_output,
-     $gpg_stderr
+    "'$sys_gpg_name' --version", $gpg_output, $gpg_stderr
   );
   print "<dt><code>--version</code> output</dt>\n";
   print "<dd><pre>\n" . utils_specialchars ($gpg_output) . "</pre></dd>\n";
   print "<dt>Exit code</dt><dd><code>" . $gpg_result . "</code></dd>\n";
   print "<dt><code>stderr</code> output</dt>\n";
   print "<dd><pre>\n" . utils_specialchars ($gpg_stderr) . "</pre></dd>\n";
+  print "</dl>\n";
+  return $gpg_result;
+}
+
+function read_test_key ($algo)
+{
+  $dir = dirname (__FILE__) . "/testing/gpg";
+  $keys = [];
+  foreach (["$algo-pub.asc", "$algo-priv.asc"] as $p)
+   {
+     $k = utils_read_file ("$dir/$p");
+     $keys[] = $k;
+     if (!empty ($k))
+       continue;
+     print "Can't read $dir/$p";
+     return null;
+   }
+  return join ("\n", $keys);
+}
+
+function gen_signature ($key_id, $home, $option, $input)
+{
+  global $sys_gpg_name;
+  $cmd = "$sys_gpg_name --batch --home '$home' -u '$key_id' $option";
+  $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
+  if (!$res)
+    return [[$out], $res];
+  print "Can't generate test signature, exit code $res<br />\n";
+  print "<pre>$out</pre>\n";
+  print "<pre>$err</pre>\n";
+  return [[$out], $res];
+}
+
+function run_gpg_verify ($home, $signature, $input)
+{
+  list ($error_code, $error_msg, $dec) = gpg\verify ($home, $signature);
+  if ($dec !== $input)
+    return '<b>Extracted message differs from the signed one.</b>';
+  if ($error_code)
+    $error_msg;
+  return 'OK';
+}
+
+function run_gpg_sign ($key_id, $home, $algo)
+{
+  global $sys_gpg_name;
+  $input = gpg\test_message ();
+  foreach (['-a --sign', '--clearsign', '--detach-sign'] as $option)
+    {
+      print "<dt>$algo, $option<dt>\n<dd>";
+      list ($signature, $error) =
+        gen_signature ($key_id, $home, $option, $input);
+      if ($error)
+        {
+          print "</dd>\n";
+          continue;
+        }
+      if ($option == '--detach-sign')
+        $signature[] = $input;
+      print run_gpg_verify ($home, $signature, $input) . "</dd>\n";
+    }
+}
+
+function test_gpg_algo_list ()
+{
+  return ['RSA', 'ECC25519'];
+}
+
+function test_gpg_verify ($algo)
+{
+  $key = read_test_key (strtolower ($algo));
+  if (empty ($key))
+    return;
+  list ($key_id, $home, $error) =
+    gpg\get_key ($key, GNUPG_SIGN_CAPABILITY);
+  if ($error)
+    {
+      print "<dt>$algo<dt>\n<dd>";
+      print gpg\error_str ($error) . "</dd>\n";
+      return;
+    }
+  run_gpg_sign ($key_id, $home, $algo);
+  utils_rm_fr ($home);
+}
+
+function test_gpg ()
+{
+  if (check_gpg_executable ())
+    return;
+  print html_h (4, "Verify signature");
+  print "<dl>\n";
+  foreach (test_gpg_algo_list () as $algo)
+    test_gpg_verify ($algo);
   print "</dl>\n";
 }
 
@@ -207,7 +299,7 @@ function test_captcha ()
   global $sys_captchadir;
   $default_dir = '/usr/share/php';
 
-  print "<h3>Captcha</h3>\n\n";
+  print html_h (3, "Captcha");
   if (empty ($sys_captchadir))
     {
       print "<p><strong>sys_captchadir isn't set.</strong></p>\n";
@@ -279,7 +371,7 @@ function output_mailman_query ($q)
 
 function test_mailman ()
 {
-  print "\n<h3>Mailman connection</h3>\n";
+  print html_h (3, "Mailman connection");
   print "<dl>\n";
   $ver = mailman_get_version ();
   $have_version = output_mailman_version ($ver);
@@ -305,14 +397,14 @@ $page .=
   . "</head>\n\n"
   . "<body>\n";
 
-$page .= "<h1>Basic pre-tests for Savane installation</h1>\n\n";
+$page .= html_h (1, "Basic pre-tests for Savane installation");
 if (empty ($inside_siteadmin))
   $page .= "<p>This page should help you to check whether your installation\n"
     . "is properly configured. It shouldn't display any sensitive\n"
     . "information, since it could give details about your setup\n"
     . "to anybody.</p>\n";
 
-$page .= "\n<h2>Savane source code</h2>\n\n";
+$page .= html_h (2, "Savane source code");
 function check_source_code ()
 {
   $commit = git_get_commit ();
@@ -336,9 +428,7 @@ function check_source_code ()
   return "$ret</dd>\n</dl>\n";
 }
 $page .= check_source_code ();
-
-$page .= "\n<h2>Basic PHP configuration</h2>\n\n";
-
+$page .= html_h (2, "Basic PHP configuration");
 $page .= "<p>PHP version: " . phpversion () . "</p>\n";
 
 # cf. http://php.net/manual/en/ini.php
@@ -457,7 +547,7 @@ function test_i18n ()
   i18n_setup ("en_US.UTF-8");
 }
 
-$page .= "\n<h2>Apache environment vars</h2>\n\n";
+$page .= html_h (2, "Apache environment variables");
 $vv = [];
 foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
   if (getenv ($var))
@@ -466,7 +556,7 @@ foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
       $vv[] = "<code>$var</code> configured to <code>$conf_var</code>";
     }
 $page .= "<p>" . join ("<br />\n", $vv) . "</p>\n\n";
-$page .= "<h2>Savane configuration:</h2>\n\n<p>";
+$page .= html_h (2, "Savane configuration") . '<p>';
 
 if (empty ($sys_conf_file))
   $page .= "<strong>sys_conf_file not set!</strong>\n";
@@ -484,7 +574,7 @@ $page .= "</p>\n";
 
 function test_mysql ()
 {
-  print "\n<h3>MySQL configuration</h3>\n\n";
+  print html_h (3, "MySQL configuration");
   $db_err = db_connect ();
   if ($db_err !== null)
     {
@@ -586,7 +676,7 @@ function test_sysconfigs ()
   test_mailman ();
   test_mysql ();
 
-  print "\n<h3>Other tests</h3>\n\n";
+  print html_h (3, "Other tests");
   print "<dl>\n";
   test_repos ();
   print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
@@ -599,7 +689,7 @@ function test_sysconfigs ()
   test_gpg ();
 }
 
-$page .= "<h2>Configured settings</h2>\n";
+$page .= html_h (2, "Configured settings");
 
 if (is_readable ($sys_conf_file))
   test_sysconfigs ();
@@ -607,7 +697,7 @@ else
   print "Since $sys_conf_file does not exist or is not readable, "
     . "this part cannot be checked.";
 
-print "\n<h2>Optional PHP configuration</h2>\n\n";
+print html_h (2, "Optional PHP configuration");
 
 print "<p>The following is not required to run Savane, but could enhance\n"
   . "security of your production server. Displaying errors is recommended:\n"

@@ -17,6 +17,8 @@
 * When exiting on error, the error message is shown in the 'main' text
   area rather than in the feedback frame.
 
+* In testconfig.php, basic 'gpg --verify' tests are added.
+
 * The auxiliary file domain is configured and listened to
   separately from and in parallel to the main ('control') domain.
 
