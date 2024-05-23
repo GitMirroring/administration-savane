@@ -112,16 +112,23 @@ function read_test_key ($algo)
   return join ("\n", $keys);
 }
 
-function gen_signature ($key_id, $home, $option, $input)
+function run_gpg ($command, $msg, $input)
 {
   global $sys_gpg_name;
-  $cmd = "$sys_gpg_name --batch --home '$home' -u '$key_id' $option";
+  $cmd = "$sys_gpg_name $command";
   $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
   if (!$res)
-    return [[$out], $res];
-  print "Can't generate test signature, exit code $res<br />\n";
+    return [$out, $res];
+  print "Can't $msg, exit code $res<br />\n";
   print "<pre>$out</pre>\n";
   print "<pre>$err</pre>\n";
+  return [$out, $res];
+}
+
+function gen_signature ($key_id, $home, $option, $input)
+{
+  list ($out, $res) = run_gpg ("--batch --home '$home' -u '$key_id' $option",
+    'generate test signature', $input);
   return [[$out], $res];
 }
 
@@ -160,32 +167,73 @@ function test_gpg_algo_list ()
   return ['RSA', 'ECC25519'];
 }
 
-function test_gpg_verify ($algo)
+function encrypt_test ($key_id, $home, $input)
+{
+  return run_gpg (
+    "--batch --trust-model always --home '$home' -r '$key_id' --encrypt",
+    'encrypt', $input
+  );
+}
+
+function decrypt_test ($key_id, $home, $input)
+{
+  return run_gpg ("--batch --home '$home' --decrypt", 'decrypt', $input);
+}
+
+function run_gpg_encrypt ($key_id, $home, $algo)
+{
+  $input = gpg\test_message ();
+  print "<dt>$algo</dt>\n<dd>";
+  list ($enc, $res) = encrypt_test ($key_id, $home, $input);
+  if (!$res)
+    list ($dec, $res) = decrypt_test ($key_id, $home, $enc);
+  if (!$res)
+    {
+      if ($dec === $input)
+        print 'OK';
+      else
+        print "Decrypted sample doesn't match the clear text";
+    }
+  print "</dd>\n";
+}
+
+function test_gpg_func ($algo, $capability, $func)
 {
   $key = read_test_key (strtolower ($algo));
   if (empty ($key))
     return;
   list ($key_id, $home, $error) =
-    gpg\get_key ($key, GNUPG_SIGN_CAPABILITY);
+    gpg\get_key ($key, $capability);
   if ($error)
     {
       print "<dt>$algo<dt>\n<dd>";
       print gpg\error_str ($error) . "</dd>\n";
       return;
     }
-  run_gpg_sign ($key_id, $home, $algo);
+  $func ($key_id, $home, $algo);
   utils_rm_fr ($home);
+}
+
+function test_gpg_verify ($algo)
+{
+  test_gpg_func ($algo, GNUPG_SIGN_CAPABILITY, 'run_gpg_sign');
+}
+
+function test_gpg_encrypt ($algo)
+{
+  test_gpg_func ($algo, GNUPG_ENCRYPT_CAPABILITY, 'run_gpg_encrypt');
 }
 
 function test_gpg ()
 {
   if (check_gpg_executable ())
     return;
-  print html_h (4, "Verify signature");
-  print "<dl>\n";
+  print html_h (4, "Verify signature") . "<dl>\n";
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_verify ($algo);
-  print "</dl>\n";
+  print "</dl>\n" . html_h (4, 'Encrypt');
+  foreach (test_gpg_algo_list () as $algo)
+    test_gpg_encrypt ($algo);
 }
 
 function test_cgitrepos ()

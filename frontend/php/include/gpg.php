@@ -308,6 +308,18 @@ function verify ($home, $input)
     unlink ($f);
   return [$error_code, $error_msg, $decrypted];
 }
+
+function encrypt_to ($uid_k, $message)
+{
+  global $sys_gpg_name;
+  list ($key, $temp_dir, $error) = get_key ($uid_k);
+  if ($error)
+    return [$error, error_str ($error), ''];
+  $ret = run_encryption ($key, $message, $temp_dir);
+  utils_rm_fr ($temp_dir);
+  return $ret;
+
+}
 } # namespace gpg {
 
 namespace {
@@ -333,13 +345,7 @@ function gpg_run_checks ($key, $run_encryption = true, $level = '2')
 
 function gpg_encrypt_to_user ($user_id, $message)
 {
-  global $sys_gpg_name;
-  list ($key, $temp_dir, $error) = gpg\get_key ($user_id);
-  if ($error)
-    return [$error, gpg\error_str ($error), ''];
-  $ret = gpg\run_encryption ($key, $message, $temp_dir);
-  utils_rm_fr ($temp_dir);
-  return $ret;
+  return gpg\encrypt_to ($user_id, $message);
 }
 } # namespace {
 ?>
