@@ -2258,7 +2258,6 @@ CREATE TABLE `user` (
   `theme` varchar(15) DEFAULT '',
   `email_hide` char(3) DEFAULT '0',
   `gpg_key` mediumtext DEFAULT NULL,
-  `gpg_key_count` int(11) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   KEY `idx_user_user` (`status`),
   KEY `user_name` (`user_name`),
