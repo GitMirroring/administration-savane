@@ -47,6 +47,7 @@ require_once (dirname (__FILE__) . "/user.php");
 }
 
 namespace gpg {
+# Path to gpg, quoted just in case for using in command line.
 function gpg_name ()
 {
   return "'{$GLOBALS['sys_gpg_name']}'";
@@ -59,10 +60,9 @@ function gpg_version ()
 
 function test_listing ($temp_dir, $level, &$ret)
 {
-  $gpg_name = gpg_name ();
   $ret .= "<h$level>" . _("Listing key") . "</h$level>\n"
     . "<p>" . _("Output:") . "</p>\n";
-  $cmd = "$gpg_name --home $temp_dir --list-keys --fingerprint ";
+  $cmd = gpg_name () . " --home $temp_dir --list-keys --fingerprint";
   $my_env = $_ENV;
   # Let non-ASCII user IDs show up in a readable way.
   $my_env['LC_ALL'] = "C.UTF-8";
@@ -82,9 +82,8 @@ function test_listing ($temp_dir, $level, &$ret)
 
 function test_import ($key, $temp_dir, $level, &$output)
 {
-  $gpg_name = gpg_name ();
   $output .= "<h$level>" . _("Importing keyring") . "</h$level>\n";
-  $cmd = "$gpg_name --home '$temp_dir' --batch --import";
+  $cmd = gpg_name () . " --home '$temp_dir' --batch --import";
   $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
   $my_env = $_ENV;
   $my_env['LC_ALL'] = "C.UTF-8";
@@ -118,12 +117,10 @@ function test_message ()
  ((_/)o o(\\_))
   `-'(. .)`-'
       \\_/\n";
-
 }
 
 function test_encryption ($temp_dir, $level, &$output)
 {
-  $gpg_name = gpg_name ();
   $message = test_message ();
   list ($key_id, $gpg_result) = find_appropriate_key ($temp_dir);
   if ($gpg_result)
@@ -134,15 +131,15 @@ function test_encryption ($temp_dir, $level, &$output)
   else
     list ($gpg_result, $gpg_error, $gpg_out) =
       run_encryption ($key_id, $message, $temp_dir);
-  $output .= "<h$level>" . _("Test Encryption") . "</h$level>\n";
+  $output .= html_h ($level, _("Test Encryption"));
   if ($gpg_result)
-    $output .= "<p>" . _("Errors:") . " " . $gpg_error . "</p>\n";
+    $output .= "<p>" . _("Errors:") . " $gpg_error</p>\n";
   else
     {
       $output .= "<p>"
        . _("Encryption succeeded; you should be able to decrypt this with\n"
            . "<em>gpg --decrypt</em>:") . "</p>\n";
-      $output .= "<pre>" . $gpg_out . "</pre>\n";
+      $output .= "<pre>$gpg_out</pre>\n";
     }
   return $gpg_result;
 }
@@ -159,14 +156,13 @@ function run_tests ($key, $temp_dir, &$output, $run_encryption, $level)
 
 function import_key ($key)
 {
-  global $sys_gpg_name;
   $error = 0;
   if (empty ($key))
     return GPG_ERROR_NO_USER_ID;
   $temp_dir = utils_mktemp ("sv-gpg", 'dir');
   if (empty ($temp_dir))
     return [$temp_dir, GPG_ERROR_NO_TEMP_DIR];
-  $cmd = "$sys_gpg_name --home '$temp_dir' --batch -q --import";
+  $cmd = gpg_name () . " --home '$temp_dir' --batch -q --import";
   if (utils_run_proc ($cmd, $out, $err, ['in' => $key]))
     $error = GPG_ERROR_NO_USABLE_KEY;
   return [$temp_dir, $error];
@@ -174,8 +170,7 @@ function import_key ($key)
 
 function list_keys ($home)
 {
-  global $sys_gpg_name;
-  $cmd = "$sys_gpg_name --home='$home' --list-keys --with-colons";
+  $cmd = gpg_name () . " --home='$home' --list-keys --with-colons";
   $res = utils_run_proc ($cmd, $out, $err);
   if ($res)
     return null;
@@ -259,8 +254,7 @@ function expand_error ($res, $e_code, $out = null, $err = null)
 
 function run_encryption ($key, $message, $home)
 {
-  global $sys_gpg_name;
-  $cmd = "$sys_gpg_name --home='$home' --trust-model always --batch "
+  $cmd = gpg_name () . " --home='$home' --trust-model always --batch "
     . "-a --encrypt -r $key";
   $res = utils_run_proc ($cmd, $encrypted, $err, ['in' => $message]);
   list ($error_code, $error_msg) =
@@ -311,7 +305,6 @@ function verify ($home, $input)
 
 function encrypt_to ($uid_k, $message)
 {
-  global $sys_gpg_name;
   list ($key, $temp_dir, $error) = get_key ($uid_k);
   if ($error)
     return [$error, error_str ($error), ''];

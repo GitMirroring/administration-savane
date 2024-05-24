@@ -85,11 +85,11 @@ function check_gpg_executable ()
 
   print "<dl><dt>GPG command</dt>\n<dd><code>$sys_gpg_name</code></dd>\n";
   $gpg_result = utils_run_proc  (
-    "'$sys_gpg_name' --version", $gpg_output, $gpg_stderr
+    gpg\gpg_name () . " --version", $gpg_output, $gpg_stderr
   );
   print "<dt><code>--version</code> output</dt>\n";
   print "<dd><pre>\n" . utils_specialchars ($gpg_output) . "</pre></dd>\n";
-  print "<dt>Exit code</dt><dd><code>" . $gpg_result . "</code></dd>\n";
+  print "<dt>Exit code</dt><dd><code>$gpg_result</code></dd>\n";
   print "<dt><code>stderr</code> output</dt>\n";
   print "<dd><pre>\n" . utils_specialchars ($gpg_stderr) . "</pre></dd>\n";
   print "</dl>\n";
@@ -114,8 +114,7 @@ function read_test_key ($algo)
 
 function run_gpg ($command, $msg, $input)
 {
-  global $sys_gpg_name;
-  $cmd = "$sys_gpg_name $command";
+  $cmd = gpg\gpg_name () . " $command";
   $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
   if (!$res)
     return [$out, $res];
@@ -144,7 +143,6 @@ function run_gpg_verify ($home, $signature, $input)
 
 function run_gpg_sign ($key_id, $home, $algo)
 {
-  global $sys_gpg_name;
   $input = gpg\test_message ();
   foreach (['-a --sign', '--clearsign', '--detach-sign'] as $option)
     {
