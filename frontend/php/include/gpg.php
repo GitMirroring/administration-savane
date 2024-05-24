@@ -302,6 +302,18 @@ function verify ($home, $input)
   return [$error_code, $error_msg, $decrypted];
 }
 
+# Check if the message is signed with a key registered for the given user,
+# and extract it.
+function verify_for ($user_id, $input)
+{
+  list ($key, $home, $error) = get_key ($user_id, GNUPG_SIGN_CAPABILITY);
+  if ($error)
+    return [$error, error_str ($error), ''];
+  $ret = verify ($home, $input);
+  utils_rm_fr ($home);
+  return $ret;
+}
+
 function encrypt_to ($uid_k, $message)
 {
   list ($key, $temp_dir, $error) = get_key ($uid_k);

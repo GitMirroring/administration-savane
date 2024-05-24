@@ -583,7 +583,12 @@ function list_facilities ($func, $items, $labels = [])
 }
 
 $page .= html_h (2, "PHP extensions");
-$php_extensions = ['mysqli' => 'Database access (php-mysqli) ! [REQUIRED]'];
+$php_extensions =
+  [
+    'mysqli' => 'Database access (php-mysqli) ! [REQUIRED]',
+    'mailparse' =>
+      'Used to parse email messages (php-mailparse) ! [RECOMMENDED]',
+  ];
 $page .=
   list_facilities ('extension_loaded', $php_extensions, [true => 'Loaded.']);
 

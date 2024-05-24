@@ -18,6 +18,7 @@ POTFILES = \
 	frontend/php/git/admin/index.php \
 	frontend/php/git/index.php \
 	frontend/php/docs/index.php \
+	frontend/php/bugs/comment.php \
 	frontend/php/bugs/item.php \
 	frontend/php/bugs/dependencies.php \
 	frontend/php/bugs/download.php \
@@ -109,6 +110,7 @@ POTFILES = \
 	frontend/php/include/theme.php \
 	frontend/php/include/account.php \
 	frontend/php/include/mailman.php \
+	frontend/php/include/parsemail.php \
 	frontend/php/include/trackers_run/mod.php \
 	frontend/php/include/trackers_run/search.php \
 	frontend/php/include/trackers_run/add.php \

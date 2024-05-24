@@ -5,6 +5,8 @@
 
 [FRONTEND]
 
+* A facility to post on trackers using GPG-signed emails is added.
+
 * Git commit detection supports git bisect-ed trees.
 
 * When rejecting 'duplicate' forms, a summary of the rejected report is displayed

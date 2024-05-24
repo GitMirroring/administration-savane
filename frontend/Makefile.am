@@ -346,6 +346,7 @@ ordinary_files = \
   php/bugs/admin/notification_settings.php \
   php/bugs/admin/other_settings.php \
   php/bugs/admin/userperms.php \
+  php/bugs/comment.php \
   php/bugs/dependencies.php \
   php/bugs/download.php \
   php/bugs/export.php \
@@ -441,6 +442,7 @@ ordinary_files = \
   php/include/news/forum.php \
   php/include/news/general.php \
   php/include/pagemenu.php \
+  php/include/parsemail.php \
   php/include/people/general.php \
   php/include/project/admin.php \
   php/include/project_home.php \
