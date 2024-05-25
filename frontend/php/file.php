@@ -101,22 +101,16 @@ if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
     file_exit ("error", $str);
   }
 
-$result = db_execute (
-  "SELECT group_id, privacy FROM $artifact WHERE bug_id = ?", [$item_id]
-);
-if (!db_numrows ($result))
-  exit_error (sprintf (_('Item #%s not found'), $item_id));
-
-function assert_file_access ($result, $file_uid)
+function assert_file_access ($item_fields, $file_uid)
 {
-  if (db_result ($result, 0, 'privacy') != '2')
+  if ($item_fields['privacy'] != '2')
     return;
   if (user_can_be_super_user ($file_uid))
     # We are in the file domain and have no access to cookies, so we can't tell
     # if the user has become a superuser; therefore, we let site admins access
     # any files in any case.
     return;
-  $group_id = db_result ($result, 0, 'group_id');
+  $group_id = $item_fields['group_id'];
   if (!member_check_private ($file_uid, $group_id))
     file_exit (
       "error", _("Non-authorized access to file attached to private item")
@@ -124,7 +118,8 @@ function assert_file_access ($result, $file_uid)
   form_check_id ();
 }
 
-assert_file_access ($result, $file_uid);
+$item_fields = utils_find_item ($artifact, $item_id, ['privacy'], 'file_exit');
+assert_file_access ($item_fields, $file_uid);
 
 $result = db_execute ("
   SELECT description, filename, filesize, filetype, date

@@ -1686,13 +1686,12 @@ function trackers_get_msgid ($artifact, $item_id)
 
 function trackers_fetch_item_access_data ($item_id, $user_id)
 {
-  $result = db_execute ("
-    SELECT group_id, privacy, discussion_lock, submitted_by
-    FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
+  $fields = utils_find_item (
+    ARTIFACT, $item_id, ['privacy', 'discussion_lock', 'submitted_by'],
+    function ($x) { return null; }
   );
-  if (!db_numrows ($result))
+  if ($fields === null)
     return null;
-  $fields = db_fetch_array ($result);
 
   $group = project_get_object ($fields['group_id']);
   if ($group->isError ())

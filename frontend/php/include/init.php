@@ -331,17 +331,11 @@ if (
   && in_array (ARTIFACT, $tracker_list)
 )
   {
-    $result = db_execute (
-      "SELECT group_id FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
-    );
-    if (db_numrows ($result))
-      $group_id = db_result ($result, 0, 'group_id');
-    else
-      exit_error (sprintf (_("Item #%s not found"), $item_id));
+    $group_id = utils_find_item (ARTIFACT, $item_id)['group_id'];
 
-  # Special case: if it the item is from the system group and we are on the
-  # cookbook, we may want to pretend that an item belong a given group while
-  # it actually belongs to the system group.
+    # Special case: if it the item is from the system group and we are on the
+    # cookbook, we may want to pretend that an item belong a given group while
+    # it actually belongs to the system group.
     if (ARTIFACT == 'cookbook'
         && $group_id == $sys_group_id && isset ($comingfrom)
         && $comingfrom && ctype_digit (strval ($comingfrom)))

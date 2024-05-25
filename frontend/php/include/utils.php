@@ -1054,5 +1054,27 @@ function utils_public_file_url ($file)
   global $sys_home;
   return "{$sys_home}file/{$file['name']}?file_id={$file['id']}";
 }
+
+# Find an item in a tracker, fetch the fields listed in $fields
+# (but group_id in any case), return the array of fields on success,
+# invoke $error_handler ('Item not found') on fail.
+function utils_find_item (
+  $tracker, $item_id, $fields = [], $error_handler = 'exit_error'
+)
+{
+  if (!in_array ('group_id', $fields))
+    $fields[] = 'group_id';
+  $field_list = join (', ', $fields);
+  $result = db_execute (
+    "SELECT $field_list FROM $tracker WHERE bug_id = ?", [$item_id]
+  );
+  if (!db_numrows ($result))
+    return $error_handler (sprintf (_("Item #%s not found."), $item_id));
+  $arr = db_fetch_array ($result);
+  $ret = [];
+  foreach ($fields as $k)
+    $ret[$k] = $arr[$k];
+  return $ret;
+}
 } # namespace {
 ?>

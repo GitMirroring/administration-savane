@@ -1318,14 +1318,7 @@ function trackers_data_add_history (
   # Useless if already considered to be spam.
   if ($spamscore < 5)
     {
-      $result = db_execute ("
-        SELECT group_id FROM $artifact WHERE bug_id = ?",
-        [$item_id]
-      );
-      if (db_numrows ($result))
-        $group_id = db_result ($result, 0, 'group_id');
-      else
-        exit_error (sprintf (_("Item #%s not found"), $item_id));
+      $group_id = utils_find_item ($artifact, $item_id)['group_id'];
       spam_add_to_spamcheck_queue (
         $item_id, db_insertid ($result), $artifact, $group_id, $spamscore
       );

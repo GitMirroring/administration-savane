@@ -56,20 +56,9 @@ $tracker = ARTIFACT;
 if (empty ($item_id))
   exit_missing_param (['item_id']);
 
-$fields = ['group_id', 'privacy'];
-$field_list = join (', ', $fields);
-
-$result = db_execute (
-  "SELECT $field_list FROM $tracker WHERE bug_id = ? AND spamscore < ?",
-  [$item_id, 5]
-);
-
-if (!db_numrows ($result))
-  exit_error (sprintf (_("Item #%s not found"), $item_id));
-
-$arr = db_fetch_array ($result);
-foreach ($fields as $k)
-  $$k = $arr[$k];
+extract (utils_find_item ($tracker, $item_id, ['privacy', 'spamscore']));
+if ($spamscore >= 5)
+  exit_error (sprintf (_("Item #%s not found."), $item_id));
 
 $group = project_get_object ($group_id);
 if ($group->isError ())
