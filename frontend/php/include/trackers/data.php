@@ -2458,5 +2458,37 @@ function trackers_data_quote_comment ($item_id, $quote_no)
   $quote = "\n\n[comment #$quote_no $label]\n$quote";
   return $quote;
 }
+
+# Add an entry to spam_stats table.
+function trackers_data_add_spam_stats ($bug_id, $fields)
+{
+  # The spam_stats table is maintained since 2010 in Savannah.
+  # As of 2024-04, it's never read by Savane routines, the old
+  # records are never cleared.
+  $type = $bug_id? 'comment': 'new';
+  $details = 'comment';
+  if (array_key_exists ('details', $fields))
+    $details = 'details';
+  db_autoexecute (
+    'spam_stats',
+    [
+      'tracker' => ARTIFACT, 'bug_id' => $bug_id, 'type' => $type,
+      'user_id' => user_getid (), 'form_id' => $fields['form_id'],
+      'ip' => '127.0.0.1', 'check_value' => $fields['check'],
+      'details' => $fields[$details]
+    ]
+  );
+  return db_insertid (null);
+}
+
+# Update the bug_id field in spam_stats record.  Used when a new item
+# is created: the record is created before the item is created in the
+# tracker, so an update is needed when bug_id is assigned.
+function trackers_data_update_spam_stats_bug_id ($stat_id, $item_id)
+{
+  db_execute (
+    'UPDATE spam_stats SET bug_id = ? WHERE id = ?', [$item_id, $stat_id]
+  );
+}
 } # namespace {
 ?>

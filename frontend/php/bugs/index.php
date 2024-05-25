@@ -236,23 +236,14 @@ switch ($func)
     $fields = sane_import ('post',
       [
         'strings' => [['check', '1984']],
-        # As of 2022-02, frontend never reads from the spam_stats table,
+        # As of 2024-04, frontend never reads from the spam_stats table,
         # so we may safely 'pass' 'details' and 'form_id'.
         'pass' => ['form_id', 'details'], 'true' => 'submit'
       ]
     );
     if (!isset ($fields['submit']))
       $preview = true;
-    db_autoexecute (
-      'spam_stats',
-      [
-        'tracker' => ARTIFACT, 'bug_id' => 0, 'type' => 'new',
-        'user_id' => user_getid (), 'form_id' => $fields['form_id'],
-        'ip' => '127.0.0.1', 'check_value' => $fields['check'],
-        'details' => $fields['details']
-      ]
-    );
-    $stat_id = db_insertid (NULL);
+    $stat_id = trackers_data_add_spam_stats (0, $fields);
 
     $anon_check_failed = false;
     if (!user_isloggedin ())
@@ -266,12 +257,8 @@ switch ($func)
     $item_id = null;
     if (empty ($preview) && !$anon_check_failed)
       {
-        # Data control layer.
         $item_id = trackers_data_create_item ($group_id, $vfl, $address);
-        db_execute (
-          'UPDATE spam_stats SET bug_id = ? WHERE id = ?',
-         [$item_id, $stat_id]
-        );
+        trackers_data_update_spam_stats_bug_id ($stat_id, $item_id);
       }
     if ($previous_form_bad_fields || !empty ($preview) || $anon_check_failed)
        warn_about_uploads ();
@@ -364,15 +351,7 @@ switch ($func)
         'strings' => [['check', '1984']], 'pass' => ['comment', 'form_id']
       ]
     );
-    db_autoexecute (
-      'spam_stats',
-      [
-        'tracker' => ARTIFACT, 'bug_id' => $fields['item_id'],
-        'type' => 'comment', 'user_id' => user_getid (),
-        'form_id' => $fields['form_id'], 'ip' => '127.0.0.1',
-        'check_value' => $fields['check'], 'details' => $fields['comment']
-      ]
-    );
+    trackers_data_add_spam_stats ($fields['item_id'], $fields);
     form_check ();
     $anon_check_failed = false;
     if (!user_isloggedin ())
