@@ -349,36 +349,8 @@ switch ($func)
     if (!user_isloggedin ())
       $anon_check_failed = empty ($fields['check']) && !$process_comment;
 
-    # Filter out people that would submit data while they are not allowed
-    # too (obviously by using an old form, or something else).
-    $result = db_execute ("
-      SELECT privacy, discussion_lock, submitted_by
-      FROM " . ARTIFACT . " WHERE bug_id = ? AND group_id = ?",
-      [$item_id, $group_id]
-    );
-
-    if (db_numrows ($result) > 0)
-      {
-        # Check if the item is private, refuse post if it is and the
-        # users has no appropriate rights (not member, not submitter).
-        if (db_result ($result, 0, 'privacy') == '2')
-          {
-            if (
-              !member_check (user_getid (), $group_id)
-              && db_result ($result, 0, 'submitted_by') != user_getid ()
-            )
-              {
-                # As the user here is expected to behave maliciously,
-                # return an error message that does not give too much info.
-                exit_permission_denied ();
-              }
-          }
-        if (!$is_trackeradmin && db_result ($result, 0, 'discussion_lock'))
-          exit_permission_denied ();
-        if (!group_restrictions_check ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT))
-          exit_permission_denied ();
-      }
-    elseif (!$is_trackeradmin)
+    list ($may_comment) = trackers_may_user_comment (user_getid (), $item_id);
+    if (!$may_comment)
       exit_permission_denied ();
 
     # To keep track of changes.

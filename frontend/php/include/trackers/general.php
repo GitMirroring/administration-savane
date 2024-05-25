@@ -1683,4 +1683,43 @@ function trackers_get_msgid ($artifact, $item_id)
     $msg_ids[] = "<{$row['msg_id']}>";
   return $msg_ids;
 }
+
+function trackers_fetch_item_access_data ($item_id, $user_id)
+{
+  $result = db_execute ("
+    SELECT group_id, privacy, discussion_lock, submitted_by
+    FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
+  );
+  if (!db_numrows ($result))
+    return null;
+  $fields = db_fetch_array ($result);
+
+  $group = project_get_object ($fields['group_id']);
+  if ($group->isError ())
+    exit_no_group ();
+
+  $fields['is_trackeradmin'] = member_check (
+    $user_id, $fields['group_id'],
+    member_create_tracker_flag (ARTIFACT) . '2'
+  );
+  return $fields;
+}
+
+function trackers_may_user_comment ($user_id, $item_id)
+{
+  $fields = trackers_fetch_item_access_data ($item_id, $user_id);
+  if (empty ($fields))
+    return [false, $fields];
+  if (
+    $fields['privacy'] == 2 && !member_check ($user_id, $group_id)
+    && $fields['submitted_by'] != $user_id
+  )
+    return [false, $fields];
+  if ($fields['discussion_lock'] && !$fields['is_trackeradmin'])
+    return [false, $fields];
+  $ret = group_restrictions_check (
+    $fields['group_id'], ARTIFACT, TRACKER_EVENT_COMMENT
+  );
+  return [$ret, $fields];
+}
 ?>
