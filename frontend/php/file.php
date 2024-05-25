@@ -105,7 +105,7 @@ $result = db_execute (
   "SELECT group_id, privacy FROM $artifact WHERE bug_id = ?", [$item_id]
 );
 if (!db_numrows ($result))
-  exit_error (_('Item not found'));
+  exit_error (sprintf (_('Item #%s not found'), $item_id));
 
 function assert_file_access ($result, $file_uid)
 {

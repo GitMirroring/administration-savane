@@ -1325,7 +1325,7 @@ function trackers_data_add_history (
       if (db_numrows ($result))
         $group_id = db_result ($result, 0, 'group_id');
       else
-        exit_error (_("Item not found"));
+        exit_error (sprintf (_("Item #%s not found"), $item_id));
       spam_add_to_spamcheck_queue (
         $item_id, db_insertid ($result), $artifact, $group_id, $spamscore
       );

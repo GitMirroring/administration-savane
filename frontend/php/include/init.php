@@ -337,7 +337,7 @@ if (
     if (db_numrows ($result))
       $group_id = db_result ($result, 0, 'group_id');
     else
-      exit_error (_("Item not found"));
+      exit_error (sprintf (_("Item #%s not found"), $item_id));
 
   # Special case: if it the item is from the system group and we are on the
   # cookbook, we may want to pretend that an item belong a given group while

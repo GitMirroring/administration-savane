@@ -828,7 +828,7 @@ function markup_mark_item_publicity ($items, $res)
       # As of 2024-04-11, Savannah has 134 files associated with bugs that
       # don't exist, the latest was attached on 2005-07-14.  Other trackers
       # have no such irregularities.  Treat those files as public, though
-      # file.php will result in exit_error (_('Item not found')).
+      # file.php will result in exit_error ("Item #$item_id not found").
       $ret[$file_id]['public'] = true;
       if (empty ($priv[$it['artifact']][$it['item_id']]))
         continue;

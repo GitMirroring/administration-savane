@@ -64,8 +64,8 @@ $result = db_execute (
   [$item_id, 5]
 );
 
-if (db_numrows ($result) < 1)
-  exit_error (_("Item not found."));
+if (!db_numrows ($result))
+  exit_error (sprintf (_("Item #%s not found"), $item_id));
 
 $arr = db_fetch_array ($result);
 foreach ($fields as $k)
