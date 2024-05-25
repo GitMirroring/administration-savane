@@ -47,17 +47,12 @@ extract (sane_import ('get', ['digits' => 'user_id']));
 if (empty ($user_id))
   exit_missing_param (['user_id']);
 
-$result = db_execute (
-  "SELECT user_name, gpg_key FROM user WHERE user_id = ?", [$user_id]
-);
+if (!user_exists ($user_id))
+  exit_error (sprintf (_("User #%s not found."), $user_id));
+foreach (['user_name', 'gpg_key'] as $k)
+  $$k = user_get_field ($user_id, $k);
 
-if (db_numrows ($result) < 1)
-  exit_error (_("User not found."));
-
-$user_name = db_result ($result, 0, 'user_name');
-$gpg_key = db_result ($result, 0, 'gpg_key');
-
-if (!$gpg_key)
+if (empty ($gpg_key))
   exit_error (_("This user hasn't registered a GPG key."));
 
 header ('Content-Type: application/pgp-keys');

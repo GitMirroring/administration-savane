@@ -83,13 +83,9 @@ if ($data_are_private)
     if (empty ($user))
       exit_missing_param (['user']);
 
-    $result = db_execute (
-      "SELECT user_id FROM user WHERE user_name = ?", [$user]
-    );
-
-    if (db_numrows ($result) < 1)
-      exit_error (_("User not found."));
-    $user_id = db_fetch_array ($result)['user_id'];
+    $user_id = user_getid ($user);
+    if (empty ($user_id))
+      exit_error (markup_rich (sprintf (_("User *%s* not found."), $user)));
 
     if ($privacy == '2' && !member_check_private ($user_id, $group_id))
       exit_permission_denied ();

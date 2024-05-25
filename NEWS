@@ -24,6 +24,8 @@
 
 * Tracker attachment deletion is protected with form_id.
 
+* The 'user not found' error specifies the user.
+
 * Bug fixes:
 
 ** Login-related cookies in the 'brother domain' were always set for a year.

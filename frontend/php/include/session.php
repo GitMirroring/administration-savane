@@ -129,15 +129,13 @@ function session_login_is_disallowed ($status, $allow_pending)
 
 function session_fetch_login_data ($name)
 {
-  $resq = db_execute (
-    "SELECT user_id, user_pw, status FROM user WHERE user_name = ?",
-    [$name]
-  );
-  if (db_numrows ($resq) < 1)
+  $resq = user_get_result_set_from_user_name ($name);
+  if ($resq === null)
     {
-      fb (sprintf (_('User *%s* not found'), $name), 1);
+      fb (sprintf (_('User *%s* not found.'), $name), 1);
       return null;
     }
+  db_data_seek ($resq);
   return db_fetch_array ($resq);
 }
 

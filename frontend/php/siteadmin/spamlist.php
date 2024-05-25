@@ -55,7 +55,7 @@ extract (sane_import ('get',
 if ($ban_user_id)
   {
     if (!user_exists ($ban_user_id))
-      fb (no_i18n ("User not found"), 1);
+      fb (sprintf (no_i18n ("User #%s not found."), $ban_user_id), 1);
     else
       user_delete ($ban_user_id);
   }
@@ -63,7 +63,7 @@ if ($ban_user_id)
 if ($wash_user_id)
   {
     if (!user_exists ($wash_user_id))
-      fb (no_i18n ("User not found"), 1);
+      fb (sprintf (no_i18n ("User #%s not found."), $wash_user_id), 1);
     else
       {
         # Update the user spamscore field.
