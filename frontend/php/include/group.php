@@ -322,12 +322,12 @@ class Group extends savane_error
   {
     if (isset($this->data_array['group_name']))
       return $this->data_array['group_name'];
-    # TRANSLATORS: this is a placeholder for the name of a deleted group;
-    # the argument is group id (a number).
-    return sprintf (_("[Deleted group #%s]"), $this->group_id);
+    # TRANSLATORS: this is a placeholder for the name of a group that doesn't
+    # exist; the argument is group id (a number).
+    return sprintf (_("[Nonexistent group #%d]"), intval ($this->group_id));
   }
 
-  fuNction getName ()
+  function getName ()
   {
     return $this->getPublicName ();
   }
