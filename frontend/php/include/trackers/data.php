@@ -409,8 +409,7 @@ function trackers_data_get_item_notification_info ($item, $artifact, $updated)
   $addr = array_filter (
     $addr, function ($x) { $x = trim (strval ($x)); return !empty ($x); }
   );
-  $addr = trim (join (',', array_unique ($addr)));
-  return [$addr, $addr !== ""];
+  return trim (join (',', array_unique ($addr)));
 }
 
 function trackers_data_cmp ($ar1, $ar2, $field)
@@ -1646,9 +1645,8 @@ function handle_update (
 
           # Check if we are supposed to send all modifications
           # to an address.
-          list ($address, $sendall) =
-            trackers_data_get_item_notification_info ($dep, $art, 1);
-          if ($sendall && trim ($address) != "")
+          $address = trackers_data_get_item_notification_info ($dep, $art, 1);
+          if (trim ($address) != "")
             $extra_addr[] = $address;
         }
     }
@@ -1932,15 +1930,12 @@ function trackers_data_reassign_item (
     ],
     DB_AUTOQUERY_INSERT
   );
-
-  # Now send the notification (this must be done here, because we got
-  # here the proper new id, etc).
-  list ($additional_address, $sendall) =
-    trackers_data_get_item_notification_info (
-      $new_item_id, $reassign_change_artifact, 1
-    );
+  $address = '';
+  trackers_append_followup_notif_addresses (
+    $address, $new_item_id, true, $reassign_change_artifact
+  );
   trackers_mail_followup (
-    $new_item_id, $additional_address, false, false, $reassign_change_artifact
+    $new_item_id, $address, false, false, $reassign_change_artifact
   );
 
   # If we get here, assume everything went properly.

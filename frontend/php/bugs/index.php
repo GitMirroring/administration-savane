@@ -292,15 +292,7 @@ switch ($func)
                         . "to the Carbon-Copy list."), 1);
               }
           }
-        # Send an email to notify the user of the item update
-        # (third arg of get_item_notification must be 0 for a first
-        # submission).
-        list ($additional_address, $sendall) =
-          trackers_data_get_item_notification_info ($item_id, ARTIFACT, 0);
-
-        if ((trim ($address) != "") && $sendall)
-          $address .= ", ";
-        $address .= $additional_address;
+        trackers_append_followup_notif_addresses ($address, $item_id, 0);
         trackers_mail_followup ($item_id, $address);
       }
     else # !($item_id && empty ($preview) && !$anon_check_failed)
@@ -440,13 +432,7 @@ switch ($func)
     # Now handle notification, after all necessary actions has been.
     if ($changed)
       {
-        # Check if we re supposed to send all modifications to an address.
-        list ($additional_address, $sendall) =
-          trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
-
-        if ($sendall && trim ($address) != "")
-          $address .= ", ";
-        $address .= $additional_address;
+        trackers_append_followup_notif_addresses ($address, $item_id);
         trackers_mail_followup ($item_id, $address, $changes);
 
         # If the assigned_to was changed and the previously assigned guy
@@ -537,13 +523,8 @@ switch ($func)
     );
     if ($changed)
       {
-        # See if we are supposed to send all modifications to an address.
-        list ($additional_address, $sendall) =
-          trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
-        if ($sendall && trim ($address) != "")
-          $address .= ", ";
-        $address .= $additional_address;
-        trackers_mail_followup($item_id, $address, $changes);
+        trackers_append_followup_notif_addresses ($address, $item_id);
+        trackers_mail_followup ($item_id, $address, $changes);
       }
 
     # Unset previous settings and return to the item.

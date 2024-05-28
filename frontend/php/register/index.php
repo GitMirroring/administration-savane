@@ -335,13 +335,7 @@ sendmail_mail (
   $item_id = trackers_data_create_item (
     $GLOBALS['sys_group_id'], $vfl, $address
   );
-  # Send an email to notify the admins of the ite update.
-  list ($additional_address, $sendall) =
-    trackers_data_get_item_notification_info ($item_id, ARTIFACT, 1);
-  if ((trim ($address) != "") && $sendall)
-    $address .= ", ";
-  $address .= $additional_address;
-  # Exclude the submitter who has already been sent a notification.
+  $address .= trackers_append_followup_notif_addresses ($address, $item_id);
   trackers_mail_followup ($item_id, $address, false, $user_id);
 }
 

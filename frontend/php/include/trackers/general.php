@@ -979,6 +979,8 @@ function trackers_reported_subject ($subject)
 function trackers_send_followup ($addresses, $message, $context)
 {
   global $sys_mail_admin, $sys_mail_domain;
+  if (empty ($context['group']))
+    $context['group'] = group_getunixname ($context['group_id']);
   sendmail_mail ($addresses, $message, $context);
   $addresses['to'] = "$sys_mail_admin@$sys_mail_domain";
   $message['subject'] = trackers_reported_subject ($message['subject']);
@@ -987,26 +989,38 @@ function trackers_send_followup ($addresses, $message, $context)
   sendmail_mail ($addresses, $message, $context);
 }
 
-function trackers_mail_followup (
-  $item_id, $more_addresses = '', $changes = false,
-  $exclude_list = false, $artifact = null
+function trackers_append_followup_notif_addresses (
+  &$addresses, $item_id, $updated = true, $tracker = null
 )
 {
-  $res = trackers_mail_fetch_followup ($artifact, $item_id);
+  $tracker = $tracker !== null? $tracker: ARTIFACT;
+  $additional_address =
+    trackers_data_get_item_notification_info ($item_id, $tracker, $updated);
+  if ($additional_address !== '' && trim ($addresses) !== '')
+    $addresses .= ', ';
+  $addresses .= $additional_address;
+}
+
+function trackers_mail_followup (
+  $item_id, $addresses = '', $changes = false,
+  $exclude_list = false, $tracker = null
+)
+{
+  $tracker = $tracker !== null? $tracker: ARTIFACT;
+  $res = trackers_mail_fetch_followup ($tracker, $item_id);
   if ($res === false)
     return;
 
-  list ($body, $subject, $item_id) =
-    trackers_build_mail ($artifact, $res, $item_id, $changes);
+  list ($body, $subject, $item) =
+    trackers_build_mail ($tracker, $res, $item_id, $changes);
   list ($from, $to, $exclude) =
     trackers_followup_mail_addresses (
-      $res, $more_addresses, $exclude_list, $artifact, $changes
+      $res, $addresses, $exclude_list, $tracker, $changes
     );
-  $group = group_getunixname ($res['group_id']);
   trackers_send_followup (
     ['from' => $from, 'to' => $to, 'exclude' => $exclude],
     ['subject' => $subject, 'body' => $body],
-    ['group' => $group, 'tracker' => $artifact, 'item' => $item_id]
+    ['group_id' => $res['group_id'], 'tracker' => $tracker, 'item' => $item]
   );
 }
 
