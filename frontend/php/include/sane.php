@@ -344,16 +344,17 @@ $sane_sanitizers['array'] = function ($in, &$out, $i, $arg)
 
 # Functions to access user input.
 
-function &sane_input_array ($method)
+function &sane_input_array ($input)
 {
-  global $sane_test_input;
+  if (is_array ($input))
+    return $input;
   $arrays = [
     'get' => &$_GET, 'post' => &$_POST, 'cookie' => &$_COOKIE,
-    'files' => &$_FILES, 'test' => &$sane_test_input, 'request' => &$_REQUEST
+    'files' => &$_FILES, 'request' => &$_REQUEST
   ];
-  if (!array_key_exists ($method, $arrays))
-    $method = 'request';
-  return $arrays[$method];
+  if (!array_key_exists ($input, $arrays))
+    $input = 'request';
+  return $arrays[$input];
 }
 
 # Apply function $func to a number of $input items.
@@ -395,7 +396,8 @@ function sane_apply_func ($func, $input, $name, &$values)
 #           'true' => 'insert_group_name', 'hash' => 'rand_hash',
 #           'name' => ['form_full_name', 'form_unix_name']
 #         ]));
-# $method is the way the parameters are passed ('get', 'post', 'cookie'...)
+# $input is the way the parameters are passed ('get', 'post', 'cookie'...)
+# or the input array, directly.
 # $name describes how the parameters are filtered: the keys are indices
 # of functions from $sane_sanitizers[] to apply, the values define the names
 # of parameters to import and additional arguments for the function to use.
@@ -424,10 +426,10 @@ function sane_apply_func ($func, $input, $name, &$values)
 #   ],
 # ]
 # For more examples, see testing/sane.php.
-function sane_import ($method, $names)
+function sane_import ($input, $names)
 {
   $values = [];
-  $input = &sane_input_array ($method);
+  $input = &sane_input_array ($input);
   $in = sane_var_names ($input);
 
   foreach ($names as $fnc => $name)

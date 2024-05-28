@@ -75,7 +75,7 @@ function test_sane_import ($in, $names, $out)
   global $sane_test_input;
 
   $sane_test_input = $in;
-  $res = sane_import('test', $names);
+  $res = sane_import ($sane_test_input, $names);
   if ($res == $out)
     return;
   print_reference ();
