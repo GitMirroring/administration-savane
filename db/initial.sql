@@ -994,19 +994,17 @@ INSERT INTO `groups` SET
 INSERT INTO `groups` SET
   group_id = 101, unix_group_name = 'administration', type = 2, is_public = 1,
   status = 'A', group_name = 'Savane administration', license = 'website',
-  support_preamble = CONCAT (
-    'Before posting,\n\n',
-    '* Make sure you are logged in, so as to authenticate your request, and ',
-      'to be able to see or comment your private requests.  You can check ',
-      'whether you are logged in by looking at the top of the left menu.\n',
-    '* Non logged-in users can use the Originator E-mail field.\n',
-    '* This is the support for Savane administration, *not* for a hosted ',
-      'group.\n'
-  ),
-  long_description = CONCAT (
-    'This is the first active group in the database. ',
-    'Its purpose is managing this Savane instance.'
-  ),
+  support_preamble =
+    'Before posting,\n\n'
+    '* Make sure you are logged in, so as to authenticate your request, and '
+      'to be able to see or comment your private requests.  You can check '
+      'whether you are logged in by looking at the top of the left menu.\n'
+    '* Non logged-in users can use the Originator E-mail field.\n'
+    '* This is the support for Savane administration, *not* for a hosted '
+      'group.\n',
+  long_description =
+    'This is the first active group in the database. '
+    'Its purpose is managing this Savane instance.',
   register_time = UNIX_TIMESTAMP (), devel_status = '5',
   use_homepage = 1, use_mail = 1, use_task = 1, use_support = 1, use_cvs = 1,
   use_git = 1, use_news = 1, use_download = 1, url_homepage = '/';
@@ -1976,7 +1974,114 @@ CREATE TABLE `task_field_value` (
 
 LOCK TABLES `task_field_value` WRITE;
 /*!40000 ALTER TABLE `task_field_value` DISABLE KEYS */;
-INSERT INTO `task_field_value` VALUES (101,101,100,1,'Open','The bug has been submitted',20,'P',NULL,0),(102,101,100,3,'Closed','The bug is no longer active. See the Resolution field for details on how it was resolved.',400,'P',NULL,0),(131,102,100,1,'1 - Wish','Issue which is mainly a matter of taste',10,'A',NULL,0),(132,102,100,2,'1,5','',20,'H',NULL,0),(133,102,100,3,'2 - Minor','Issue which doesn\'t affect the object\'s usefulness, and is presumably trivial to handle',30,'A',NULL,0),(134,102,100,4,'2,5','',40,'H',NULL,0),(135,102,100,5,'3 - Normal','',50,'A',NULL,0),(136,102,100,6,'3,5','',60,'H',NULL,0),(137,102,100,7,'4 - Important','Issue which has a major effect on the usability of the object, without rendering it completely unusable to everyone',70,'A',NULL,0),(138,102,100,8,'5 - Blocker','Issue which makes the object in question unusable or mostly so, or causes data loss',80,'A',NULL,0),(139,102,100,9,'6 - Security','Issue which introduces a security breach',90,'A',NULL,0),(150,103,100,100,'None','',10,'P',NULL,0),(160,107,100,100,'None','',10,'P',NULL,0),(177,108,100,7,'Duplicate','This item is already covered by another item',120,'H',NULL,0),(174,108,100,4,'Postponed','The issue will be handled later',80,'A',NULL,0),(176,108,100,6,'Works For Me','No problem found for the group team',60,'H',NULL,0),(173,108,100,8,'Need Info','More information is need to be able to handle this item',90,'A',NULL,0),(178,108,100,3,'Cancelled','The item will not be carried out (see comments)',40,'A',NULL,0),(172,108,100,2,'Invalid','This item is not valid for some reason (see comments)',130,'H',NULL,0),(200,200,100,100,'None','',10,'P',NULL,0),(210,201,100,100,'None','',10,'P',NULL,0),(220,202,100,100,'None','',10,'P',NULL,0),(221,202,100,110,'Every Time','',20,'P',NULL,0),(222,202,100,120,'Intermittent','',30,'P',NULL,0),(223,202,100,130,'Once','',40,'P',NULL,0),(240,203,100,100,'None','',10,'P',NULL,0),(241,203,100,110,'Low <30','',20,'A',NULL,0),(242,203,100,120,'Medium 30 - 200','',30,'A',NULL,0),(243,203,100,130,'High >200','',40,'A',NULL,0),(250,204,100,100,'None','',10,'P',NULL,0),(260,205,100,100,'None','',10,'P',NULL,0),(270,207,100,100,'None','',10,'P',NULL,0),(281,211,100,1,'1 - Later','',10,'A',NULL,0),(282,211,100,2,'2','',20,'A',NULL,0),(283,211,100,3,'3 - Low','',30,'A',NULL,0),(284,211,100,4,'4','',40,'A',NULL,0),(285,211,100,5,'5 - Normal','',50,'A',NULL,0),(286,211,100,6,'6','',60,'A',NULL,0),(287,211,100,7,'7 - High','',70,'A',NULL,0),(298,211,100,8,'8','',80,'A',NULL,0),(299,211,100,9,'9 - Immediate','',90,'A',NULL,0),(300,213,100,100,'None','',10,'P',NULL,0),(400,500,100,100,'None','',10,'P',NULL,0),(401,501,100,100,'None','',10,'P',NULL,0),(402,502,100,100,'None','',10,'P',NULL,0),(403,503,100,100,'None','',10,'P',NULL,0),(404,504,100,100,'None','',10,'P',NULL,0),(405,505,100,100,'None','',10,'P',NULL,0),(406,506,100,100,'None','',10,'P',NULL,0),(407,507,100,100,'None','',10,'P',NULL,0),(408,508,100,100,'None','',10,'P',NULL,0),(409,509,100,100,'None','',10,'P',NULL,0),(719,220,100,1,'0%','',1,'A',NULL,0),(720,220,100,10,'10%','',10,'A',NULL,0),(721,220,100,20,'20%','',20,'A',NULL,0),(722,220,100,30,'30%','',30,'A',NULL,0),(723,220,100,40,'40%','',40,'A',NULL,0),(724,220,100,50,'50%','',50,'A',NULL,0),(725,220,100,60,'60%','',60,'A',NULL,0),(726,220,100,70,'70%','',70,'A',NULL,0),(727,220,100,80,'80%','',80,'A',NULL,0),(728,220,100,90,'90%','',90,'A',NULL,0),(729,220,100,100,'100%','',100,'A',NULL,0),(111,109,100,1,'Public','This item can be seen by everybody.',10,'A',NULL,1),(112,109,100,2,'Private','This item can be seen only by group members.',20,'A',NULL,1),(211,201,100,110,'GNU/Linux','',20,'A',NULL,0),(212,201,100,120,'Microsoft Windows','',30,'A',NULL,0),(213,201,100,130,'*BSD','',40,'A',NULL,0),(214,201,100,140,'Mac OS','',50,'A',NULL,0),(170,108,100,100,'None','',10,'P',NULL,0),(171,108,100,1,'Done','The item was succesfuly done',30,'A',NULL,0),(179,108,100,9,'In Progress','This item is currently being worked on',70,'A',NULL,0),(180,108,100,10,'Ready For Test','This item should be tested now',65,'A',NULL,0),(175,108,100,5,'Remind','This field is a deprecated duplicate of Postponed, existing only for historical reason',60,'H',NULL,0),(181,108,100,11,'Confirmed','The issue is confirmed',82,'H',NULL,0),(2955,112,100,0,'Unlocked','Comment can be added freely',20,'P',NULL,1),(2956,112,100,1,'Locked','Discussion about this item is over',30,'P',NULL,1);
+INSERT INTO `task_field_value` VALUES
+  (101, 101, 100, 1, 'Open', 'The bug has been submitted', 20, 'P', NULL, 0),
+  (102, 101, 100, 3, 'Closed',
+    'The bug is no longer active. See the Resolution field '
+      'for details on how it was resolved.',
+    400, 'P', NULL, 0),
+  (131, 102, 100, 1, '1 - Wish',
+    'Issue which is mainly a matter of taste', 10, 'A', NULL, 0),
+  (132, 102, 100, 2, '1, 5', '', 20, 'H', NULL,0),
+  (133, 102, 100, 3, '2 - Minor',
+    "Issue which doesn't affect the object's usefulness, "
+      'and is presumably trivial to handle',
+    30, 'A', NULL, 0),
+  (134, 102, 100, 4, '2, 5', '', 40, 'H', NULL,0),
+  (135, 102, 100, 5, '3 - Normal', '', 50, 'A', NULL, 0),
+  (136, 102, 100, 6, '3, 5', '', 60, 'H', NULL,0),
+  (137, 102, 100, 7, '4 - Important',
+    'Issue which has a major effect on the usability of the object, '
+      'without rendering it completely unusable to everyone',
+    70, 'A', NULL, 0),
+  (138, 102, 100, 8, '5 - Blocker',
+    'Issue which makes the object in question unusable or mostly so, '
+      'or causes data loss',
+    80, 'A', NULL, 0),
+  (139, 102, 100, 9, '6 - Security',
+     'Issue which introduces a security breach', 90, 'A', NULL, 0),
+  (150, 103, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (160, 107, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (177, 108, 100, 7, 'Duplicate',
+    'This item is already covered by another item', 120, 'H', NULL, 0),
+  (174, 108, 100, 4, 'Postponed', 'The issue will be handled later', 80, 'A',
+     NULL, 0),
+  (176, 108, 100, 6, 'Works For Me', 'No problem found for the group team',
+    60, 'H', NULL, 0),
+  (173, 108, 100, 8, 'Need Info',
+    'More information is need to be able to handle this item', 90, 'A', NULL,
+    0),
+  (178, 108, 100, 3, 'Cancelled',
+    'The item will not be carried out (see comments)', 40, 'A', NULL, 0),
+  (172, 108, 100, 2, 'Invalid',
+    'This item is not valid for some reason (see comments)', 130, 'H', NULL,
+    0),
+  (200, 200, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (210, 201, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (220, 202, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (221, 202, 100, 110, 'Every Time', '', 20, 'P', NULL, 0),
+  (222, 202, 100, 120, 'Intermittent', '', 30, 'P', NULL, 0),
+  (223, 202, 100, 130, 'Once', '', 40, 'P', NULL, 0),
+  (240, 203, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (241, 203, 100, 110, 'Low <30', '', 20, 'A', NULL, 0),
+  (242, 203, 100, 120, 'Medium 30 - 200', '', 30, 'A', NULL, 0),
+  (243, 203, 100, 130, 'High >200', '', 40, 'A', NULL, 0),
+  (250, 204, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (260, 205, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (270, 207, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (281, 211, 100, 1, '1 - Later', '', 10, 'A', NULL, 0),
+  (282, 211, 100, 2, '2', '', 20, 'A', NULL, 0),
+  (283, 211, 100, 3, '3 - Low', '', 30, 'A', NULL, 0),
+  (284, 211, 100, 4, '4', '', 40, 'A', NULL, 0),
+  (285, 211, 100, 5, '5 - Normal', '', 50, 'A', NULL, 0),
+  (286, 211, 100, 6, '6', '', 60, 'A', NULL, 0),
+  (287, 211, 100, 7, '7 - High', '', 70, 'A', NULL, 0),
+  (298, 211, 100, 8, '8', '', 80, 'A', NULL, 0),
+  (299, 211, 100, 9, '9 - Immediate', '', 90, 'A', NULL, 0),
+  (300, 213, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (400, 500, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (401, 501, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (402, 502, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (403, 503, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (404, 504, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (405, 505, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (406, 506, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (407, 507, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (408, 508, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (409, 509, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (719, 220, 100, 1,  '0%', '', 1, 'A', NULL, 0),
+  (720, 220, 100, 10, '10%', '', 10, 'A', NULL, 0),
+  (721, 220, 100, 20, '20%', '', 20, 'A', NULL, 0),
+  (722, 220, 100, 30, '30%', '', 30, 'A', NULL, 0),
+  (723, 220, 100, 40, '40%', '', 40, 'A', NULL, 0),
+  (724, 220, 100, 50, '50%', '', 50, 'A', NULL, 0),
+  (725, 220, 100, 60, '60%', '', 60, 'A', NULL, 0),
+  (726, 220, 100, 70, '70%', '', 70, 'A', NULL, 0),
+  (727, 220, 100, 80, '80%', '', 80, 'A', NULL, 0),
+  (728, 220, 100, 90, '90%', '', 90, 'A', NULL, 0),
+  (729, 220, 100, 100, '100%', '', 100, 'A', NULL, 0),
+  (111, 109, 100, 1, 'Public', 'This item can be seen by everybody.', 10, 'A',
+    NULL, 1),
+  (112, 109, 100, 2, 'Private', 'This item can be seen only by group members.',
+    20, 'A', NULL, 1),
+  (211, 201, 100, 110, 'GNU/Linux', '', 20, 'A', NULL, 0),
+  (212, 201, 100, 120, 'Microsoft Windows', '', 30, 'A', NULL, 0),
+  (213, 201, 100, 130, '*BSD', '', 40, 'A', NULL, 0),
+  (214, 201, 100, 140, 'Mac OS', '', 50, 'A', NULL, 0),
+  (170, 108, 100, 100, 'None', '', 10, 'P', NULL, 0),
+  (171, 108, 100, 1, 'Done', 'The item was succesfuly done', 30, 'A', NULL, 0),
+  (179, 108, 100, 9, 'In Progress', 'This item is currently being worked on',
+    70, 'A', NULL, 0),
+  (180, 108, 100, 10, 'Ready For Test', 'This item should be tested now', 65,
+    'A', NULL, 0),
+  (175, 108, 100, 5, 'Remind',
+    CONCAT ('This field is a deprecated duplicate of Postponed, ',
+      'existing only for historical reason'), 60, 'H', NULL, 0),
+  (181, 108, 100, 11, 'Confirmed', 'The issue is confirmed', 82, 'H', NULL, 0),
+  (2955, 112, 100, 0, 'Unlocked', 'Comment can be added freely', 20, 'P',
+     NULL, 1),
+  (2956, 112, 100, 1, 'Locked', 'Discussion about this item is over', 30, 'P',
+    NULL, 1);
 /*!40000 ALTER TABLE `task_field_value` ENABLE KEYS */;
 UNLOCK TABLES;
 
