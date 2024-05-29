@@ -45,6 +45,7 @@ require_once (dirname (__FILE__) . '/member.php');
 
 # Unset these globals until register_globals if off everywhere.
 unset ($USER_IS_SUPER_USER);
+# User records in this array can be accessed by user_id as well as by user_name.
 $USER_RES = [];
 
 function user_isloggedin ()
@@ -107,9 +108,7 @@ function user_groups ($uid)
 # Get the email of a user.
 function user_get_email ($uid)
 {
-  $result = db_execute ("SELECT * FROM user WHERE user_id = ?", [$uid]);
-  $val = db_fetch_array ($result);
-  return $val['email'];
+  return user_get_field ($uid, 'email');
 }
 
 function user_getname ($user_id = 0, $getrealname = 0)
@@ -141,14 +140,11 @@ function user_getname ($user_id = 0, $getrealname = 0)
   if (!empty ($USER_NAMES["{$prefix}_$user_id"]))
     return $USER_NAMES["{$prefix}_$user_id"];
   # Fetch the user name and store it for future reference.
-  $result = db_execute ("
-    SELECT user_id, user_name, realname FROM user WHERE user_id = ?",
-    [$user_id]
-  );
-  if (db_numrows ($result))
+  $user = user_get_array ($user_id);
+  if (!empty ($user))
     {
       # Valid user - store and return.
-      $USER_NAMES["{$prefix}_$user_id"] = db_result ($result, 0, $column);
+      $USER_NAMES["{$prefix}_$user_id"] = $user[$column];
       return $USER_NAMES["{$prefix}_$user_id"];
     }
   $uid = "#$user_id";
@@ -168,12 +164,10 @@ function user_getid  ($username = 0)
         return $G_USER['user_id'];
       return 0;
     }
-  $result = db_execute (
-    "SELECT user_id FROM user WHERE user_name = ?", [$username]
-  );
-  if (db_numrows ($result) > 0)
-    return db_result ($result, 0, "user_id");
-  return 0;
+  $user = user_get_array ($username);
+  if (empty ($user))
+    return 0;
+  return $user['user_id'];
 }
 
 function user_squad_exists ($user_id)
@@ -206,22 +200,27 @@ function user_getrealname ($user_id = 0, $rfc822_compliant = 0)
   return $ret;
 }
 
-function user_getemail($user_id=0)
+function user_getemail ($user_id = 0)
 {
   return user_get_field ($user_id, 'email');
 }
 
-# Fetch a row from user table by user_id unless already cached,
-# put it to $USER_RES[$user_id].
-function user_get_result_set ($user_id)
+# Fetch a row from user table by user_id or user_name unless already cached,
+# put it to $USER_RES under both user_id and user_name.  Return the result.
+function user_get_result_set ($user)
 {
   global $USER_RES;
-  if (empty ($user_id))
+  if (empty ($user))
     return null;
-  if (empty ($USER_RES[$user_id]))
-    $USER_RES[$user_id] =
-      db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
-  return $USER_RES[$user_id];
+  if (!empty ($USER_RES[$user]))
+    return $USER_RES[$user];
+  $key_field = ctype_digit ($user)? 'user_id': 'user_name';
+  $res = db_execute ("SELECT * FROM user WHERE $key_field = ?", [$user]);
+  if (!db_numrows ($res))
+    return null;
+  $USER_RES[db_result ($res, 0, 'user_id')] = $res;
+  $USER_RES[db_result ($res, 0, 'user_name')] = $res;
+  return $res;
 }
 
 function user_get_field ($user_id, $field)
@@ -234,15 +233,13 @@ function user_get_field ($user_id, $field)
   return null;
 }
 
-# Fetch a row from user table by user_name, put it to $USER_RES[$user_id].
-function user_get_result_set_from_user_name ($user_name)
+function user_get_array ($user)
 {
-  global $USER_RES;
-  $res = db_execute ("SELECT * FROM user WHERE user_name = ?", [$user_name]);
+  $res = user_get_result_set ($user);
   if (!db_numrows ($res))
     return null;
-  $USER_RES[db_result ($res, 0, 'user_id')] = $res;
-  return $res;
+  db_data_seek ($res);
+  return db_fetch_array ($res);
 }
 
 function user_get_timezone ()

@@ -50,19 +50,18 @@ require_once ('include/sendmail.php');
 # Extract user's name.
 $pathinfo = preg_replace ("/\?.*/", "", basename ($_SERVER['REQUEST_URI']));
 
-$res_user = user_get_result_set_from_user_name ($pathinfo);
+$user_arr = user_get_array ($pathinfo);
 
-if (db_numrows ($res_user) < 1)
-  exit_error (_("Invalid User"), _("That user does not exist."));
+if (empty ($user_arr))
+  exit_error (markup_rich (sprintf (_("User *%s* not found."), $pathinfo)));
 
 $extra_script_name = "/$pathinfo";
-
-$user_id = db_result ($res_user, 0, 'user_id');
+$user_id = $user_arr['user_id'];
 
 require_directory ("my");
 
-$realname = db_result ($res_user, 0, 'realname');
-$account_status = db_result ($res_user, 0, 'status');
+$realname = $user_arr['realname'];
+$account_status = $user_arr['status'];
 
 # For deleted account, we will print only very basic info:
 # accound id, login + description as deleted account.
@@ -80,7 +79,7 @@ site_header (
 );
 
 $is_squad = false;
-if (db_result ($res_user, 0, 'status') == 'SQD')
+if ($user_arr['status'] == 'SQD')
   $is_squad = true;
 
 # For squad account, we will print some specific info.
@@ -88,7 +87,7 @@ print '<p>';
 # TRANSLATORS: the argument is user's name (like J. Random Hacker).
 printf (
   _("Follows the Profile of %s."),
-  utils_user_link (db_result ($res_user, 0, 'user_name'), $realname)
+  utils_user_link ($user_arr['user_name'], $realname)
 );
 
 if ($is_squad)
@@ -160,31 +159,31 @@ if ($is_suspended && user_is_super_user ())
 print "$tr_head<td>" . _("Real Name:")
   . " </td>\n<td><strong>$realname</strong></td>\n</tr>\n"
   . "$tr_head<td>" . _("Login Name:") . " </td>\n<td><strong>"
-  . db_result ($res_user, 0, 'user_name') . "</strong></td>\n</tr>\n";
+  . $user_arr['user_name'] . "</strong></td>\n</tr>\n";
 
 if (user_is_super_user () || !$is_suspended)
   {
     print "$tr_head<td>";
     # TRANSLATORS: user's id (a number) shall follow this message.
     print _("Id:") . " </td>\n<td><strong>#"
-      . db_result ($res_user, 0, 'user_id') . "</strong></td>\n</tr>\n"
+      . $user_arr['user_id'] . "</strong></td>\n</tr>\n"
       . "$tr_head<td>" . _("Email Address:") . " </td>\n<td>"
       . "<strong><a href=\"{$GLOBALS['sys_home']}sendmessage.php?touser="
-      . db_result ($res_user, 0, 'user_id') . '&cc_me=cc_me">';
+      . $user_arr['user_id'] . '&cc_me=cc_me">';
     # Do not print email address to anonymous user.
     if (
-        db_result ($res_user, 0, 'email_hide') == "1" && !user_is_super_user ()
+        $user_arr['email_hide'] == "1" && !user_is_super_user ()
     )
       print _("Send this user a mail");
     else
-      print utils_email_basic (db_result ($res_user, 0, 'email'), 1);
+      print utils_email_basic ($user_arr['email'], 1);
     print "</a></strong></td>\n</tr>\n";
   }
 
 if (!$is_squad && (!$is_suspended || user_is_super_user ()))
   {
     print "$tr_head<td>" . _("Site Member Since:") . "</td>\n<td><strong>"
-      . utils_format_date (db_result ($res_user, 0, 'add_date'))
+      . utils_format_date ($user_arr['add_date'])
       . "</strong>\n</td>\n</tr>\n$tr_head<td>";
     if (user_is_super_user ())
       {
@@ -195,18 +194,18 @@ if (!$is_squad && (!$is_suspended || user_is_super_user ()))
       }
     print "</td>\n<td>";
 
-    if (db_result ($res_user, 0, 'people_view_skills') != 1)
+    if ($user_arr['people_view_skills'] != 1)
       print _("This user did not enable Resume & Skills.");
     else
       print '<a href="' . $GLOBALS['sys_home'] . 'people/resume.php?user_id='
-        . db_result ($res_user, 0, 'user_id') . '"><strong>'
+        . $user_arr['user_id'] . '"><strong>'
         . _("View Resume & Skills") . '</strong></a>';
     print "</td>\n</tr>\n";
-    if (db_result ($res_user, 0, 'gpg_key') != "")
+    if ($user_arr['gpg_key'] != "")
       {
         print '<tr valign="top"><td></td><td>';
         print "<a href=\"{$GLOBALS['sys_home']}people/viewgpg.php?user_id="
-          . db_result ($res_user, 0, 'user_id') . '"><strong>'
+          . $user_arr['user_id'] . '"><strong>'
           . _("Download GPG Key") . '</strong></a>';
         print "</td>\n</tr>\n";
       }

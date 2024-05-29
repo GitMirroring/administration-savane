@@ -129,14 +129,10 @@ function session_login_is_disallowed ($status, $allow_pending)
 
 function session_fetch_login_data ($name)
 {
-  $resq = user_get_result_set_from_user_name ($name);
-  if ($resq === null)
-    {
-      fb (sprintf (_('User *%s* not found.'), $name), 1);
-      return null;
-    }
-  db_data_seek ($resq);
-  return db_fetch_array ($resq);
+  $ret = user_get_array ($name);
+  if (empty ($ret))
+    fb (sprintf (_('User *%s* not found.'), $name), 1);
+  return $ret;
 }
 
 function session_login_valid (
@@ -147,7 +143,7 @@ function session_login_valid (
     return false;
 
   $usr = session_fetch_login_data ($name);
-  if ($usr === null)
+  if (empty ($usr))
     return false;
 
   if (session_login_is_disallowed ($usr['status'], $allowpending))
