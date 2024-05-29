@@ -2078,7 +2078,9 @@ INSERT INTO `task_field_value` VALUES
   (2955, 112, 100, 0, 'Unlocked', 'Comment can be added freely', 20, 'P',
      NULL, 1),
   (2956, 112, 100, 1, 'Locked', 'Discussion about this item is over', 30, 'P',
-    NULL, 1);
+    NULL, 1),
+   (2957, 103, 101, 101, 'Group approval', 'Pending group registration', 10,
+     'P', NULL, 0);
 /*!40000 ALTER TABLE `task_field_value` ENABLE KEYS */;
 UNLOCK TABLES;
 
