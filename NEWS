@@ -5,6 +5,8 @@
 
 [FRONTEND]
 
+* Git commit detection supports git bisect-ed trees.
+
 * When rejecting 'duplicate' forms, a summary of the rejected report is displayed
   so that the users could restore their input, per Savannah sr #111059.
 
@@ -68,6 +70,10 @@
 
 * Update French, Hebrew.  Some progress in (simplified) Chinese.
 * The .nop.po-update target in po/Makefile.am was broken since 2d769017.
+
+[BUILD]
+
+* The configure script supports detecting HEAD commit while using git bisect.
 
 2024-02-29 3.13
 

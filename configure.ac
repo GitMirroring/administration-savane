@@ -164,7 +164,9 @@ SV_GIT_COMMIT=`"$SED" 's,^commit ,,;q' $srcdir/ChangeLog`
 commit_source='guessed from ChangeLog'
 AS_IF([test -d "$srcdir/.git"], [
   head=`"$SED" 's,^ref: ,,;q' $srcdir/.git/HEAD`
-  SV_GIT_COMMIT=`cat $srcdir/.git/$head`
+  AS_CASE(["$head"], [*/*],
+    [SV_GIT_COMMIT=`cat $srcdir/.git/$head`],
+    [SV_GIT_COMMIT="$head"])
   commit_source='extracted from Git repository'
 ])
 AC_MSG_RESULT([$SV_GIT_COMMIT])

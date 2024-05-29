@@ -53,6 +53,8 @@ function git_get_commit ()
   if (!is_file ($ref_file) || !is_readable ($ref_file))
     return $default_val;
   $ref = file_get_contents ($ref_file);
+  if (ctype_xdigit ($ref))
+    return $ref;
   if (!preg_match ("/^ref: ([^\n]*)\n$/", $ref, $matches))
     return $default_val;
   $ref_file = "$git_dir/{$matches[1]}";
