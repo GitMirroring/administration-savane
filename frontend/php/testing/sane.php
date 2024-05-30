@@ -1541,13 +1541,13 @@ $reference = 'my/admin/change.php';
 $reference = 'my/admin/editsshkeys.php';
 {
   $names = [
-    'true' => 'update',
+    'true' => ['update', 'form_quiet_ssh'],
     'array' => [['form_keys', ['digits', 'no_quotes']]]
   ];
   $in = $out = [
     'form_keys' => ['a', 'b', 'c', 3 => '"']
   ];
-  $out['update'] = null;
+  $out['update'] = $out['form_quiet_ssh'] = null;
   unset ($out['form_keys'][3]);
   test_sane_import ($in, $names, $out);
 }

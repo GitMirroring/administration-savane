@@ -148,6 +148,7 @@ POTFILES = \
 	frontend/php/include/html.php \
 	frontend/php/include/sendmail.php \
 	frontend/php/include/user.php \
+	frontend/php/include/my/admin/general.php \
 	frontend/php/include/my/general.php \
 	frontend/php/include/my/bookmarks.php \
 	frontend/php/include/project/admin.php \

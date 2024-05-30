@@ -39,12 +39,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-foreach (['sane', 'utils', 'form'] as $i)
+foreach (['sane', 'utils', 'form', 'my/admin/general'] as $i)
   require_once ("../../include/$i.php");
 $pref_list = ['email_encrypted', 'nonfixed_feedback', 'keep_only_one_session',
   'quiet_ssh', 'reverse_comments_order', 'stone_age_menu', 'use_bookmarks'
 ];
-$pref_fb_on_set = [
+$fb_on_set = [
  'stone_age_menu' =>
    _("Stone age menu activated, it will be effective the next time "
      . "a page is loaded")
@@ -101,21 +101,13 @@ form_check ('update');
 extract (sane_import ('request', ['pass' => 'feedback']));
 session_require (['isloggedin' => 1]);
 
-function sync_preference ($pref)
-{
-  global $pref_fb_on_set;
-  if ($GLOBALS["form_$pref"] == "1")
-    {
-      user_set_preference ($pref, 1);
-      if (array_key_exists ($pref, $pref_fb_on_set))
-        fb ($pref_fb_on_set[$pref]);
-    }
-  else
-    user_unset_preference ($pref);
-}
 if ($update)
-  foreach ($pref_list as $p)
-    sync_preference ($p);
+  foreach ($pref_list as $pref)
+    {
+      global $fb_on_set;
+      $fb = array_key_exists ($pref, $fb_on_set)? $fb_on_set[$pref]: null;
+      my_sync_preference ($pref, $fb);
+    }
 
 # Print form and links.
 site_user_header (['context' => 'account']);
@@ -185,15 +177,7 @@ printf (
 print "</a></p>\n";
 print_box_next_item ();
 
-function pref_cbox ($name, $label, $checked = null)
-{
-  if ($checked === null)
-    $checked = user_get_preference ($name);
-  print "<p>" .form_checkbox ("form_$name", $checked) . "\n";
-  print "<label for=\"form_$name\">$label</label></p>\n";
-}
-
-pref_cbox (
+my_pref_cbox (
   'keep_only_one_session',
   _("Keep only one session opened at a time")
 );
@@ -280,7 +264,7 @@ print html_h (2, _("Secondary Arrangements"));
 
 print $HTML->box_top (_('Optional Features'));
 
-pref_cbox ("use_bookmarks", _("Use integrated bookmarks"));
+my_pref_cbox ("use_bookmarks", _("Use integrated bookmarks"));
 print '<p class="smaller">'
   . _("By default, integrated bookmarks are deactivated to avoid redundancy "
       . "with\nthe bookmark feature provided by most modern web browsers. "
@@ -292,7 +276,7 @@ print '<p class="smaller">'
 $i = 0;
 print_box_next_item ();
 
-pref_cbox (
+my_pref_cbox (
   "email_hide", _("Hide email address from your account information"),
   $row_user['email_hide']
 );
@@ -305,7 +289,7 @@ print '<p class="smaller">'
 
 $i++;
 print_box_next_item ();
-pref_cbox ('email_encrypted', _("Encrypt emails when resetting password"));
+my_pref_cbox ('email_encrypted', _("Encrypt emails when resetting password"));
 print '<p class="smaller">'
   . _("When checked, Savannah will encrypt email messages\nwith your "
       . "registered public GPG key when resetting password is requested.\n"
@@ -314,10 +298,7 @@ print '<p class="smaller">'
 
 $i++;
 print_box_next_item ();
-pref_cbox ('quiet_ssh', _("Quiet SSH member shell"));
-print '<p class="smaller">'
-  . _("Suppress the message that offers Savane source code when using SSH.")
-  . "</p>\n";
+my_quiet_ssh_control ();
 
 print $HTML->box_bottom ();
 print $update_btn;
@@ -380,7 +361,7 @@ if (!theme_guidelines_check (SV_THEME))
 $i++;
 print_box_next_item ();
 
-pref_cbox (
+my_pref_cbox (
   "reverse_comments_order",
   _("Print comments from the oldest to the latest")
 );
@@ -394,7 +375,7 @@ print '<p class="smaller">'
 $i++;
 print_box_next_item ();
 
-pref_cbox ("stone_age_menu", _("Use the Stone Age menu"));
+my_pref_cbox ("stone_age_menu", _("Use the Stone Age menu"));
 print '<p class="smaller">'
   . _("By default, the top menu includes links to all relevant pages\n"
       . "context (group area, personal area) in dropdown submenus. However,\n"
@@ -407,7 +388,7 @@ print '<p class="smaller">'
 $i++;
 print_box_next_item ();
 
-pref_cbox ("nonfixed_feedback", _("Show feedback in relative position"));
+my_pref_cbox ("nonfixed_feedback", _("Show feedback in relative position"));
 print '<p class="smaller">'
   . _("By default, the feedback box appear as a fixed box on top of the "
       . "window.\nIf you check this option, the feedback will\n"

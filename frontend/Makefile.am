@@ -435,6 +435,7 @@ ordinary_files = \
   php/include/mailman.php \
   php/include/markup.php \
   php/include/member.php \
+  php/include/my/admin/general.php \
   php/include/my/bookmarks.php \
   php/include/my/general.php \
   php/include/news/forum.php \
