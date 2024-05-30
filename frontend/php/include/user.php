@@ -113,48 +113,29 @@ function user_get_email ($uid)
 
 function user_getname ($user_id = 0, $getrealname = 0)
 {
-  global $G_USER, $USER_NAMES;
-
   # Use current user if one is not passed in.
-  if (!$user_id && $getrealname)
+  if (!$user_id)
     $user_id = user_getid ();
 
-  $prefix = 'realname';
-  $column = 'realname';
-  if (!$getrealname)
-    {
-      $prefix = 'user';
-      $column = 'user_name';
-    }
+  $column = $getrealname? 'realname': 'user_name';
   if (!$user_id)
    {
       if ($getrealname)
         return _("anonymous");
-      if ($G_USER)
-        return $G_USER['user_name'];
       # TRANSLATORS: "Not applicable".
       return _("NA");
    }
 
-  # Lookup name.
-  if (!empty ($USER_NAMES["{$prefix}_$user_id"]))
-    return $USER_NAMES["{$prefix}_$user_id"];
-  # Fetch the user name and store it for future reference.
   $user = user_get_array ($user_id);
   if (!empty ($user))
-    {
-      # Valid user - store and return.
-      $USER_NAMES["{$prefix}_$user_id"] = $user[$column];
-      return $USER_NAMES["{$prefix}_$user_id"];
-    }
+    return $user[$column];
   $uid = "#$user_id";
   if ($getrealname)
     $uid = _("Invalid User ID");
-  $USER_NAMES["{$prefix}_$user_id"] = "<strong>$uid</strong>";
-  return $USER_NAMES["{$prefix}_$user_id"];
+  return "<b>$uid</b>";
 }
 
-function user_getid  ($username = 0)
+function user_getid ($username = 0)
 {
   if (!$username)
     {
