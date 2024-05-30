@@ -236,30 +236,23 @@ switch ($func)
     $fields = sane_import ('post',
       [
         'strings' => [['check', '1984']],
-        # As of 2024-04, frontend never reads from the spam_stats table,
-        # so we may safely 'pass' 'details' and 'form_id'.
         'pass' => ['form_id', 'details'], 'true' => 'submit'
       ]
     );
     if (!isset ($fields['submit']))
       $preview = true;
-    $stat_id = trackers_data_add_spam_stats (0, $fields);
 
     $anon_check_failed = false;
     if (!user_isloggedin ())
       $anon_check_failed = empty ($fields['check']);
 
     form_check ();
-
     # Get the list of bug fields used in the form.
     $vfl = trackers_extract_field_list ();
 
     $item_id = null;
     if (empty ($preview) && !$anon_check_failed)
-      {
-        $item_id = trackers_data_create_item ($group_id, $vfl, $address);
-        trackers_data_update_spam_stats_bug_id ($stat_id, $item_id);
-      }
+      $item_id = trackers_data_create_item ($group_id, $vfl, $address);
     if ($previous_form_bad_fields || !empty ($preview) || $anon_check_failed)
        warn_about_uploads ();
     if ($item_id && empty ($preview) && !$anon_check_failed)
@@ -351,7 +344,6 @@ switch ($func)
         'strings' => [['check', '1984']], 'pass' => ['comment', 'form_id']
       ]
     );
-    trackers_data_add_spam_stats ($fields['item_id'], $fields);
     form_check ();
     $anon_check_failed = false;
     if (!user_isloggedin ())

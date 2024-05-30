@@ -1487,24 +1487,6 @@ CREATE TABLE `session` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-DROP TABLE IF EXISTS `spam_stats`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `spam_stats` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `tracker` varchar(7) DEFAULT NULL,
-  `bug_id` int(11) NOT NULL,
-  `type` enum('new','comment') DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `form_id` tinytext DEFAULT NULL,
-  `ip` varchar(15) DEFAULT NULL,
-  `check_value` tinytext DEFAULT NULL,
-  `details` text DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 DROP TABLE IF EXISTS `support`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
