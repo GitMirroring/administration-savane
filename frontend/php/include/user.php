@@ -257,7 +257,7 @@ function user_set_preference ($preference_name, $value)
   global $user_pref;
   if (!user_isloggedin ())
     return false;
-      $preference_name = strtolower(trim($preference_name));
+  $preference_name = strtolower (trim ($preference_name));
   $res = db_execute ("
     SELECT NULL FROM user_preferences
     WHERE user_id = ? AND preference_name = ?",
