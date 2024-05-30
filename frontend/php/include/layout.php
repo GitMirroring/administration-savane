@@ -147,8 +147,7 @@ class Layout extends savane_error
 
   function generic_header_start ($params)
   {
-    global $G_USER, $G_SESSION, $sys_name, $savane_version;
-    global $sys_home, $stone_age_menu;
+    global $sys_name, $savane_version, $sys_home, $stone_age_menu;
 
     $url = git_get_savane_url (git_get_commit ());
 
