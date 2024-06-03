@@ -535,9 +535,6 @@ function sendmail_mail ($addresses, $message, $context = [])
   sendmail_format_from ($addresses);
   $to = sendmail_make_to_list ($addresses);
   sendmail_build_headers ($addresses['from'], $context, $message);
-  list ($recipients, $subj_pfx, $emails) =
-    sendmail_compile_custom_subject_lines ($to, $context);
-  sendmail_debug_override_address ($recipients, $subj_pfx, $message, $emails);
   list ($subj, $emails) = sendmail_make_subjects ($to, $message, $context);
   return sendmail_send_to_list ($emails, $subj, $message, $context);
 }
