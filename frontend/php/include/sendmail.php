@@ -57,10 +57,19 @@ function sendmail_signature ()
 
 function sendmail_format_body (&$message, $context)
 {
+  $message['sig'] = '';
   if (!empty ($context['skip_format_body']))
     return;
   $body = $message['body'];
-  $body = wordwrap ($body, 78) . sendmail_signature ();
+  $body = wordwrap ($body, 78);
+  $message['body'] = $body;
+  $message['sig'] = sendmail_signature ();
+}
+
+function sendmail_post_format ($body, $context)
+{
+  if (!empty ($context['skip_format_body']))
+     return $body;
   # Beuc - 20050316
   # That is what I intended to do:
 
@@ -69,7 +78,7 @@ function sendmail_format_body (&$message, $context)
   # $message = preg_replace("/(?<!\r)\n/", "\r\n", $message);
 
   # However the opposite is certainly more Mailman-compliant.
-  $message['body'] = str_replace ("\r\n", "\n", $body);
+  return str_replace ("\r\n", "\n", $body);
 }
 
 function sendmail_x_savane_server_header ()
@@ -87,6 +96,33 @@ function sendmail_x_savane_server_header ()
         $ret .= "$sep$val";
     }
   return "X-Savane-Server: $ret\n";
+}
+
+function sendmail_cc_addresses ($user_name, $context)
+{
+  if (!sendmail_have_reply_to ($context))
+    return '';
+  $emails = [];
+  foreach ($user_name as $n)
+    foreach ($n as $e)
+      $emails[$e] = 1;
+  return $emails;
+}
+
+function sendmail_reply_to_headers ($uid, $u_email, $context)
+{
+  global $sys_reply_to;
+  if (!sendmail_have_reply_to ($context, $uid))
+    return '';
+  $reply_to = null;
+  $cc = $context['cc'];
+  $context['uid'] = $uid;
+  unset ($cc[$u_email[0]]);
+  $reply_to = sendmail_expand_template ($sys_reply_to, $context);
+  $cc = array_keys ($cc);
+  if ($reply_to !== null)
+    array_unshift ($cc, $reply_to);
+  return "Reply-To: " . sendmail_encode_recipients ($cc) . "\n";
 }
 
 function sendmail_savane_headers ($context)
@@ -245,15 +281,32 @@ function sendmail_spamcheck_queue ($context, $u_name, $u_subj, $message)
   );
 }
 
+# Return the parameter line for bugs/comment.php unless $sys_reply_to
+# is unconfigured or $uid is an email address rather than a number.
+function sendmail_tracker_line ($uid, $context)
+{
+  if (!sendmail_have_reply_to ($context, $uid))
+    return '';
+  $note = _("Include the next line when replying by email.");
+  return "\n\n{savane: $note}\n"
+    . "{savane: user = $uid; tracker = {$context['tracker']}; "
+    . "item = {$context['item']}}";
+}
+
 # Send mails with specific subject line.
-function sendmail_send_to_list ($user_name, $user_subj, &$message, &$context)
+function sendmail_send_to_list ($user_name, $user_subj, $message, $context)
 {
   global $int_delayspamcheck;
   $ret = '';
+  $context['cc'] = sendmail_cc_addresses ($user_name, $context);
   foreach ($user_subj as $v => $u_subj)
     {
       $u_name = sendmail_encode_recipients ($user_name[$v]);
-      $body = $message['body']; $headers = $message['headers'];
+      $body = $message['body']
+        . sendmail_tracker_line ($v, $context) . $message['sig'];
+      $body = sendmail_post_format ($body, $context);
+      $headers = $message['headers'];
+      $headers .= sendmail_reply_to_headers ($v, $user_name[$v], $context);
       if (empty ($int_delayspamcheck))
         {
           $ret .= mail ($u_name, $u_subj, $body, $headers);
@@ -403,6 +456,17 @@ function sendmail_email_lines ($uids)
   return $lines;
 }
 
+function sendmail_have_reply_to ($context, $uid = 289)
+{
+  if (empty ($GLOBALS['sys_reply_to']))
+    return false;
+  if (!sendmail_addr_is_uid ($uid))
+    return false;
+  if (empty ($context['tracker']) || empty ($context['item']))
+    return false;
+  return true;
+}
+
 function sendmail_user_prefs ($uids, $context)
 {
   if (empty ($uids))
@@ -413,6 +477,9 @@ function sendmail_user_prefs ($uids, $context)
     WHERE preference_name = \"subject_line\" AND user_id $ph", $uids
   );
   $subj = [];
+  if (sendmail_have_reply_to ($context))
+    foreach ($uids as $u)
+      $subj[$u] = '';
   while ($row = db_fetch_array ($result))
     $subj[$row['id']] =
       sendmail_format_subject_line ($row['val'], $context);
@@ -453,20 +520,20 @@ function sendmail_compile_custom_subject_lines ($to, $context)
 {
   $recipients = [];
   $uids = sendmail_list_uids ($to);
-  $email_lines = sendmail_email_lines ($uids);
-  $subj_pfx =
-    sendmail_user_prefs (array_keys ($email_lines), $context);
+  $emails = sendmail_email_lines ($uids);
+  $subj_pfx = sendmail_user_prefs (array_keys ($emails), $context);
   foreach ($to as $v => $ignore)
     {
-      if (empty ($email_lines[$v]))
+      if (empty ($emails[$v]))
         {
           $recipients[] = $v;
           continue;
         }
-      if (empty ($subj_pfx[$v]))
-        $recipients[] = $email_lines[$v];
+      if (array_key_exists ($v, $subj_pfx))
+        continue;
+      $recipients[] = $emails[$v];
     }
-  return [$recipients, $subj_pfx, $email_lines];
+  return [$recipients, $subj_pfx, $emails];
 }
 
 function sendmail_add_context_to_subject ($message, $context)
@@ -487,9 +554,13 @@ function sendmail_make_subjects ($to, $message, $context)
 
   $user_subj = [];
   foreach ($subj_pfx as $k => $v)
-    $user_subj[$k] =  "$v $subject";
+    {
+      if (strlen ($v))
+        $v .= ' ';
+      $user_subj[$k] = "$v$subject";
+    }
   if (empty ($recipients))
-    return [$user_subj, $emails];
+    return [array_map ("sendmail_encode_header", $user_subj), $emails];
   $v = join (', ', $recipients);
   $emails[$v] = $recipients;
   $user_subj[$v] = $subject;
@@ -526,6 +597,9 @@ function sendmail_mail ($addresses, $message, $context = [])
   $to = sendmail_make_to_list ($addresses);
   sendmail_build_headers ($addresses['from'], $context, $message);
   list ($subj, $emails) = sendmail_make_subjects ($to, $message, $context);
+  foreach (array_keys ($subj) as $k)
+    if (!is_array ($emails[$k]))
+      $emails[$k] = [$emails[$k]];
   return sendmail_send_to_list ($emails, $subj, $message, $context);
 }
 

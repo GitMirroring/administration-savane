@@ -717,7 +717,7 @@ function output_sysvars ()
     'default_domain', 'etc_dir', 'file_domain', 'graphviz', 'https_host',
     'incdir', 'url_topdir', 'www_topdir',
     'linguas', 'localedir',
-    'mail_admin', 'mail_domain', 'mail_replyto', 'name',
+    'mail_admin', 'mail_domain', 'mail_replyto', 'name', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_cgit'
