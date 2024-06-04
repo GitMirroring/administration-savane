@@ -538,6 +538,33 @@ if ($have_unset)
     . "It is probably irrelevant to your PHP version so you may ignore this "
     . "entry.</p></blockquote>\n";
 
+$page .= html_h (2, "Optional PHP configuration");
+
+$page .= "<p>The following is not required to run Savane, but could enhance\n"
+  . "security of your production server. Displaying errors is recommended:\n"
+  . "they may annoy the user with warnings, but allow you to spot "
+  . "and report\npotentially harmful bugs.</p>\n";
+
+$phptags = [
+  'disable_functions' => 'passthru,popen,shell_exec,system',
+  'display_errors' => '1', 'error_reporting' => (string)(E_ALL),
+  'log_errors' => '1',
+];
+
+$page .= "\n<table border=\"1\">\n"
+. "<tr><th>PHP Tag name</th><th>Local value</th>"
+. "<th>Suggested value</th></tr>\n";
+$have_unset = false;
+$cmp = function ($a, $b) { return $a === $b; };
+foreach ($phptags as $tag => $good)
+  if (compare_ini_vals ($tag, $good, $cmp))
+    $have_unset = true;
+$page .= "</table>\n\n";
+if ($have_unset)
+  $page .= "<blockquote><p>* This tag was not found at all. "
+    . "It is probably irrelevant to your PHP version "
+    . "so you may ignore this entry.</p></blockquote>\n\n";
+
 function list_facilities ($func, $items, $labels = [])
 {
   $lab = [true => 'Exists.', false => 'Not found.'];
@@ -742,33 +769,6 @@ if (is_readable ($sys_conf_file))
 else
   print "Since $sys_conf_file does not exist or is not readable, "
     . "this part cannot be checked.";
-
-print html_h (2, "Optional PHP configuration");
-
-print "<p>The following is not required to run Savane, but could enhance\n"
-  . "security of your production server. Displaying errors is recommended:\n"
-  . "they may annoy the user with warnings, but allow you to spot "
-  . "and report\npotentially harmful bugs.</p>\n";
-
-$phptags = [
-  'disable_functions' => 'passthru,popen,shell_exec,system',
-  'display_errors' => '1', 'error_reporting' => (string)(E_ALL),
-  'log_errors' => '1',
-];
-
-print "\n<table border=\"1\">\n"
-. "<tr><th>PHP Tag name</th><th>Local value</th>"
-. "<th>Suggested value</th></tr>\n";
-$have_unset = false;
-$cmp = function ($a, $b) { return $a === $b; };
-foreach ($phptags as $tag => $good)
-  if (compare_ini_vals ($tag, $good, $cmp))
-    $have_unset = true;
-print "$page</table>\n\n";
-if ($have_unset)
-  print "<blockquote><p>* This tag was not found at all. "
-    . "It is probably irrelevant to your PHP version "
-    . "so you may ignore this entry.</p></blockquote>\n\n";
 
 print "</body>\n</html>\n";
 ?>
