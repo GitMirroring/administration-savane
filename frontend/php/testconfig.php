@@ -543,8 +543,8 @@ function output_sysvars ()
 {
   $variables = [
     'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
-    'default_domain', 'file_domain', 'etc_dir', 'https_host', 'incdir',
-    'url_topdir', 'www_topdir',
+    'default_domain', 'etc_dir', 'file_domain', 'graphviz', 'https_host',
+    'incdir', 'url_topdir', 'www_topdir',
     'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
     'themedefault', 'unix_group_name', 'upload_max',
