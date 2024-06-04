@@ -402,12 +402,32 @@ if ($have_unset)
     . "It is probably irrelevant to your PHP version so you may ignore this "
     . "entry.</p></blockquote>\n";
 
-$page .= "\n<h2>PHP functions</h2>\n\n";
+function list_facilities ($func, $items, $labels = [])
+{
+  $lab = [true => 'Exists.', false => 'Not found.'];
+  foreach ($labels as $k => $v)
+    $lab[$k] = $v;
+  $ret = "<p><dl>\n";
+  foreach ($items as $name => $comment)
+    {
+      $ret .= "<dt><b>$name</b></dt><dd>";
+      if ($func ($name))
+        $ret .= $lab[true];
+      else
+        $ret .= sprintf ("<b>%s</b> <i>%s</i>", $lab[false], $comment);
+      $ret .= "</dd>\n";
+    }
+  return "$ret</dl></p>\n";
+}
 
+$page .= html_h (2, "PHP extensions");
+$php_extensions = ['mysqli' => 'Database access (php-mysqli) ! [REQUIRED]'];
+$page .=
+  list_facilities ('extension_loaded', $php_extensions, [true => 'Loaded.']);
+
+$page .= html_h (2, "PHP functions");
 $phpfunctions =
   [
-    'mysqli_connect' =>
-      'You must install php-mysqli ! [REQUIRED]',
     'gettext' =>
       'You should install PHP with gettext support '
       . '(--with-gettext --enable-intl) ! [RECOMMENDED]',
@@ -420,24 +440,7 @@ $phpfunctions =
       'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
     'sem_get' => 'Used in mailman interface (--enable-sysvsem) ! [REQUIRED]'
  ];
-$page .= "<p>";
-foreach ($phpfunctions as $func => $comment)
-  {
-    $funcs = explode ("|", $func);
-    $have_func = false;
-    foreach ($funcs as $i => $f)
-      if (function_exists ($f))
-        {
-          $have_func = true;
-          break;
-        }
-    if ($have_func)
-      $page .= "function <strong>$f</strong> exists.<br />\n";
-    else
-      $page .=
-        "function <strong>$func</strong> not found. <em>$comment</em><br />\n";
-  }
-$page .= "</p>\n";
+$page .= list_facilities ('function_exists', $phpfunctions);
 
 function test_i18n ()
 {
