@@ -76,8 +76,8 @@
 # http://www.ietf.org/rfc/rfc2965.txt (status: proposed standard)
 # https://savannah.gnu.org/task/?6800 (don't use a leading dot)
 
-require_once (dirname (__FILE__) . '/sane.php');
-require_once (dirname (__FILE__) . '/account.php');
+foreach (['sane', 'account', 'random-bytes'] as $h)
+  require_once (dirname (__FILE__) . "/$h.php");
 
 $G_SESSION = $G_USER = [];
 
