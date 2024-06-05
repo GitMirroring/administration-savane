@@ -49,26 +49,24 @@ extract (sane_import ('get', ['digits' => 'user_id']));
 if (empty ($user_id))
   exit_missing_param (['user_id']);
 
-$result = db_execute ("SELECT * FROM user WHERE user_id = ?", [$user_id]);
+$user_arr = user_get_array ($user_id);
 
-if (db_numrows ($result) < 1)
+if (empty ($user_arr))
   exit_error (sprintf (_("User #%s not found."), $user_id));
 
-if (db_result ($result, 0, 'people_view_skills') != 1)
+if ($user_arr['people_view_skills'] != 1)
   exit_error (_("Resume & Skills page for this user is disabled"));
 
-$user_status = db_result ($result, 0, 'status');
+$user_status = $user_arr['status'];
 
 if (($user_status == 'D' || $user_status == 'S') && !user_is_super_user())
   exit_error (_("This account was deleted."));
 
 # TRANSLATORS: the argument is user's name.
-$title = sprintf (_("%s Resume & Skills"), db_result ($result, 0, 'realname'));
+$title = sprintf (_("%s Resume & Skills"), $user_arr['realname']);
 site_header (['title' => $title, 'context' => 'people']);
 
-$link = utils_user_link (
-  db_result ($result, 0, 'user_name'), db_result($result, 0, 'realname')
-);
+$link = utils_user_link ($user_arr['user_name'], $user_arr['realname']);
 print "<p>";
 # TRANSLATORS: the argument is user's name.
 printf (_("Follows Resume & Skills of %s."), $link);
@@ -76,7 +74,7 @@ print "</p>\n";
 
 utils_get_content ("people/viewprofile");
 
-$resume = db_result ($result, 0, 'people_resume');
+$resume = $user_arr['people_resume'];
 if ($resume != '')
   {
     print '<h2>' . _("Resume") . "</h2>\n";

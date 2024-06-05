@@ -245,11 +245,7 @@ function session_setglobals ($user_id)
   $G_USER = [];
   if ($user_id <= 0)
     return;
-  $result = db_execute (
-    "SELECT user_id, user_name FROM user WHERE user_id = ?", [$user_id]
-  );
-  if (db_numrows ($result))
-    $G_USER = db_fetch_array ($result);
+  $G_USER = user_get_array ($user_id);
 }
 
 # Try inserting new session hash in the table.  Return false if the hash already

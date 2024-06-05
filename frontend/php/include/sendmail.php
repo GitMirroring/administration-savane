@@ -380,11 +380,7 @@ function sendmail_reduce_names_to_uids ($to, $exclude)
    $names = sendmail_extract_account_names ($to, $exclude);
    if (empty ($names))
      return [$to, $exclude];
-   $ph = utils_in_placeholders ($names);
-   $res = db_execute (
-     "SELECT user_id, user_name FROM user WHERE user_name $ph", $names
-   );
-   while ($row = db_fetch_array ($res))
+   foreach (user_get_array ($names) as $row)
      foreach (['to', 'exclude'] as $a)
        if (!empty ($$a[strtolower ($row['user_name'])]))
          {
@@ -398,18 +394,10 @@ function sendmail_email_lines ($uids)
 {
   if (empty ($uids))
     return [];
-  $ph = utils_in_placeholders ($uids);
-  $result = db_execute ("
-    SELECT user_id, email, user_name, realname FROM user WHERE user_id $ph",
-    $uids
-  );
   $lines = [];
-  while ($row = db_fetch_array ($result))
-    {
-      $email = $row['email'];
-      $lines[$row['user_id']] =
-        utils_comply_with_rfc822 ($row['realname']) . " <$email>";
-    }
+  foreach (user_get_array ($uids) as $row)
+    $lines[$row['user_id']] =
+      utils_comply_with_rfc822 ($row['realname']) . " <{$row['email']}>";
   return $lines;
 }
 
