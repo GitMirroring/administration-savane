@@ -49,10 +49,9 @@ if (empty ($user_id))
 
 if (!user_exists ($user_id))
   exit_error (sprintf (_("User #%s not found."), $user_id));
-foreach (['user_name', 'gpg_key'] as $k)
-  $$k = user_get_field ($user_id, $k);
-
-if (empty ($gpg_key))
+$user_name = user_getname ($user_id);
+$key = user_get_gpg_key ($user_id);
+if (empty ($key))
   exit_error (_("This user hasn't registered a GPG key."));
 
 header ('Content-Type: application/pgp-keys');
@@ -60,5 +59,5 @@ header ("Content-Disposition: attachment; filename=$user_name-key.gpg");
 # TRANSLATORS: the argument is user's name.
 $description = sprintf (_('GPG Key of the user %s'), $user_name);
 header ("Content-Description: $description");
-print $gpg_key;
+print $key;
 ?>

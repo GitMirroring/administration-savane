@@ -215,6 +215,21 @@ function user_get_field ($user_id, $field)
   return user_return_val ($user_id, $ret);
 }
 
+function user_get_gpg_key ($user_id)
+{
+  return user_get_field ($user_id, 'gpg_key');
+}
+
+function user_set_gpg_key ($key)
+{
+  if (!user_isloggedin ())
+    return false;
+  return db_autoexecute (
+    'user', ['gpg_key' => $key], DB_AUTOQUERY_UPDATE, "user_id = ?",
+    [user_getid ()]
+  );
+}
+
 function user_filter_missing ($users)
 {
   global $USER_ARR;

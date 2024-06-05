@@ -190,11 +190,7 @@ if ($update)
     elseif ($item == "gpgkey")
       {
         extract (sane_import ('request', ['pass' => ['newvalue']]));
-        $success = db_autoexecute (
-          'user', ['gpg_key' => $newvalue], DB_AUTOQUERY_UPDATE,
-          "user_id = ?", [user_getid ()]
-        );
-        if ($success)
+        if (user_set_gpg_key ($newvalue))
           fb (_("GPG Key updated."));
         else
           fb (_("Failed to update the database."), 1);
@@ -564,16 +560,13 @@ elseif ($item == "password")
 elseif ($item == "gpgkey")
   {
     extract (sane_import ('request', ['pass' => ['newvalue']]));
-    $res_user = db_execute ("SELECT gpg_key FROM user WHERE user_id = ?",
-      [user_getid ()]
-    );
-    $row_user = db_fetch_array ($res_user);
+    $old_key = user_get_gpg_key (user_getid ());
     $title = _("Change GPG Keys");
     $input_titles = [""];
     $input_specific = $gpg_sample_text;
 
     if (!$newvalue)
-      $newvalue = $row_user['gpg_key'];
+      $newvalue = $old_key;
 
     $input_specific .= form_textarea (
       'newvalue', utils_specialchars ($newvalue),

@@ -207,7 +207,7 @@ function get_key ($uid_k, $capability = GNUPG_ENCRYPT_CAPABILITY)
   if (ctype_digit ($uid_k))
     {
       if (user_exists ($uid_k))
-        $key = user_get_field ($uid_k, 'gpg_key');
+        $key = user_get_gpg_key ($uid_k);
       else
         return [null, null, GPG_ERROR_NO_USER_ID];
     }

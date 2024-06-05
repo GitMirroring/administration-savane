@@ -201,7 +201,7 @@ if (!$is_squad && (!$is_suspended || user_is_super_user ()))
         . $user_arr['user_id'] . '"><strong>'
         . _("View Resume & Skills") . '</strong></a>';
     print "</td>\n</tr>\n";
-    if ($user_arr['gpg_key'] != "")
+    if (!empty (user_get_gpg_key ($user_id)))
       {
         print '<tr valign="top"><td></td><td>';
         print "<a href=\"{$GLOBALS['sys_home']}people/viewgpg.php?user_id="

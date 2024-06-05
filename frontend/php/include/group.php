@@ -354,31 +354,38 @@ class Group extends savane_error
       return 0;
     return $this->data_array['devel_status'];
   }
+  function formatGPGKeyring ($users, $keys)
+  {
+    $keyring = '';
+    foreach ($users as $uid => $u)
+      {
+        if (empty ($keys[$uid]))
+          continue;
+        $keyring .=
+          # TRANSLATORS: the first argument is the full name,
+          # the second is the login.
+          sprintf (_("GPG keys of %s <%s>"), $u['realname'], $u['user_name']);
+        $keyring .= "\n{$keys[$uid]}\n";
+      }
+    return $keyring;
+  }
   function getGPGKeyring ()
   {
-    $keyring = "";
     $res =
       db_execute ("
-        SELECT user_name, realname, gpg_key
-        FROM user
-        JOIN user_group ON user.user_id = user_group.user_id
+        SELECT user.user_id
+        FROM user JOIN user_group ON user.user_id = user_group.user_id
         WHERE admin_flags <> 'P' AND status = 'A' AND group_id = ?",
         [$this->group_id]
       );
-    $rows = db_numrows ($res);
-    for ($j = 0; $j < $rows; $j++)
-      {
-        $key = db_result ($res, $j, 'gpg_key');
-        $user = db_result ($res, $j, 'user_name');
-        $name = db_result ($res, $j, 'realname');
-        if (!$key)
-          continue;
-        # TRANSLATORS: the first argument is the full name,
-        # the second is the login.
-        $keyring .= sprintf (_("GPG keys of %s <%s>"), $name, $user);
-        $keyring .= "\n$key\n";
-      }
-    return $keyring;
+    if (!db_numrows ($res))
+      return '';
+    $uids = [];
+    while ($row = db_fetch_array ($res))
+      $uids[] = $row['user_id'];
+    $users = user_get_array ($uids);
+    $keys = user_get_gpg_key ($uids);
+    return $this->formatGPGKeyring ($users, $keys);
   }
 
   function getUrl ($artifact)
