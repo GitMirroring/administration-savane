@@ -46,7 +46,7 @@ require_once (dirname (__FILE__) . '/member.php');
 # Unset these globals until register_globals if off everywhere.
 unset ($USER_IS_SUPER_USER);
 # User records in this array can be accessed by user_id as well as by user_name.
-$USER_RES = [];
+$USER_ARR = [];
 
 function user_isloggedin ()
 {
@@ -186,41 +186,89 @@ function user_getemail ($user_id = 0)
   return user_get_field ($user_id, 'email');
 }
 
-# Fetch a row from user table by user_id or user_name unless already cached,
-# put it to $USER_RES under both user_id and user_name.  Return the result.
-function user_get_result_set ($user)
+# Unify the argument that may be scalar or array (return an array);
+# replace all empty entries with user_getid ().
+function user_get_uids_array ($u)
 {
-  global $USER_RES;
-  if (empty ($user))
-    return null;
-  if (!empty ($USER_RES[$user]))
-    return $USER_RES[$user];
-  $key_field = ctype_digit ($user)? 'user_id': 'user_name';
-  $res = db_execute ("SELECT * FROM user WHERE $key_field = ?", [$user]);
-  if (!db_numrows ($res))
-    return null;
-  $USER_RES[db_result ($res, 0, 'user_id')] = $res;
-  $USER_RES[db_result ($res, 0, 'user_name')] = $res;
-  return $res;
+  if (!is_array ($u))
+    $u = [$u];
+  $uids = [];
+  foreach ($u as $id)
+    $uids[] = empty ($id)? user_getid (): $id;
+  return $uids;
+}
+
+# Convert $ret to the original type passed to user_get_uids_array ().
+function user_return_val ($user_id, $ret)
+{
+  if (!is_array ($user_id))
+    foreach ($ret as $val)
+      return $val;
+  return $ret;
 }
 
 function user_get_field ($user_id, $field)
 {
-  if (!$user_id)
-    $user_id = user_getid ();
-  $result = user_get_result_set ($user_id);
-  if (db_numrows ($result) > 0)
-    return db_result ($result, 0, $field);
-  return null;
+  $uids = user_get_uids_array ($user_id);
+  $u = user_get_array ($uids);
+  $ret = [];
+  foreach ($u as $k => $v)
+    $ret[$k] = $v[$field];
+  return user_return_val ($user_id, $ret);
 }
 
+function user_filter_missing ($users)
+{
+  global $USER_ARR;
+  $missing = $uids = $names = [];
+  foreach ($users as $u)
+    if (!array_key_exists ($u, $USER_ARR))
+      $missing[] = $u;
+  if (empty ($missing))
+    return [$names, $uids];
+  foreach ($missing as $u)
+    if (ctype_digit (strval ($u)))
+      $uids[] = $u;
+    else
+      $names[] = $u;
+  return [$names, $uids];
+}
+
+# Fetch a row from user table by user_id or user_name unless already cached,
+# put it to $USER_ARR under both user_id and user_name.
+function user_fetch_data ($users)
+{
+  global $USER_ARR;
+  list ($names, $uids) = user_filter_missing ($users);
+  $arg = array_merge ($names, $uids);
+  if (empty ($arg))
+    return;
+  $cond = [];
+  if (!empty ($names))
+    $cond[] = "user_name " . utils_in_placeholders ($names);
+  if (!empty ($uids))
+    $cond[] = "user_id " . utils_in_placeholders ($uids);
+  $res = db_execute ("SELECT * FROM user WHERE " . join (' OR ', $cond), $arg);
+  while ($arr = db_fetch_array ($res))
+    $USER_ARR[$arr['user_id']] = $USER_ARR[$arr['user_name']] =
+      $arr;
+  db_free_result ($res);
+}
+
+# Return user data array; when $user is an array, return an array of
+# records with the indices from the input array.
 function user_get_array ($user)
 {
-  $res = user_get_result_set ($user);
-  if (!db_numrows ($res))
-    return null;
-  db_data_seek ($res);
-  return db_fetch_array ($res);
+  global $USER_ARR;
+  if (empty ($user))
+    return [];
+  $users = user_get_uids_array ($user);
+  user_fetch_data ($users);
+  $ret = [];
+  foreach ($users as $name)
+    if (!empty ($USER_ARR[$name]))
+      $ret[$name] = $USER_ARR[$name];
+  return user_return_val ($user, $ret);
 }
 
 function user_get_timezone ()

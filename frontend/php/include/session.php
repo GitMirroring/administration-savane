@@ -411,7 +411,7 @@ function session_set_theme ()
 {
   if (isset ($_COOKIE['SV_THEME']))
     return;
-  $theme = db_result (user_get_result_set (user_getid ()), 0, 'theme');
+  $theme = user_get_field (0, 'theme');
   if (strlen ($theme) > 0)
     utils_setcookie ('SV_THEME', $theme, time () + 60 * 60 * 24);
 }
