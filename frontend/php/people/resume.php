@@ -77,10 +77,10 @@ utils_get_content ("people/viewprofile");
 $resume = $user_arr['people_resume'];
 if ($resume != '')
   {
-    print '<h2>' . _("Resume") . "</h2>\n";
+    print html_h (2, _("Resume"));
     print markup_full (utils_specialchars ($resume));
   }
-print '<h2>' . _("Skills") . "</h2>\n";
+print html_h (2, _("Skills"));
 print people_show_skill_inventory ($user_id);
 
 site_footer ([]);

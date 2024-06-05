@@ -60,8 +60,7 @@ function gpg_version ()
 
 function test_listing ($temp_dir, $level, &$ret)
 {
-  $ret .= "<h$level>" . _("Listing key") . "</h$level>\n"
-    . "<p>" . _("Output:") . "</p>\n";
+  $ret .= html_h ($level, _("Listing key")) . "<p>" . _("Output:") . "</p>\n";
   $cmd = gpg_name () . " --home $temp_dir --list-keys --fingerprint";
   $my_env = $_ENV;
   # Let non-ASCII user IDs show up in a readable way.
@@ -82,7 +81,7 @@ function test_listing ($temp_dir, $level, &$ret)
 
 function test_import ($key, $temp_dir, $level, &$output)
 {
-  $output .= "<h$level>" . _("Importing keyring") . "</h$level>\n";
+  $output .= html_h ($level, _("Importing keyring"));
   $cmd = gpg_name () . " --home '$temp_dir' --batch --import";
   $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
   $my_env = $_ENV;
