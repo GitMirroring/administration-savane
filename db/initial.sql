@@ -2550,7 +2550,7 @@ DROP TABLE IF EXISTS `user_preferences`;
 CREATE TABLE `user_preferences` (
   `user_id` int(11) NOT NULL DEFAULT 0,
   `preference_name` varchar(255) NOT NULL DEFAULT '',
-  `preference_value` text DEFAULT NULL,
+  `preference_value` mediumtext DEFAULT NULL,
   PRIMARY KEY (`user_id`,`preference_name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
