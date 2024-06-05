@@ -324,6 +324,21 @@ function encrypt_to ($uid_k, $message)
   return $ret;
 
 }
+function minify_key ($key)
+{
+  list ($temp_dir, $error) = import_key ($key);
+  if ($error)
+    return [null, $temp_dir, error_str ($error)];
+  $cmd = gpg_name () . " --home='$temp_dir' --batch -a --export "
+    . "--export-options=export-minimal";
+  $res = utils_run_proc ($cmd, $out, $err);
+  if ($res)
+    {
+      $error = GPG_ERROR_GPG_FAILED;
+      return [null, $temp_dir, expand_error ($res, $error, $out, $err)];
+    }
+  return [$out, $temp_dir, $error];
+}
 } # namespace gpg {
 
 namespace {
@@ -350,6 +365,13 @@ function gpg_run_checks ($key, $run_encryption = true, $level = '2')
 function gpg_encrypt_to_user ($user_id, $message)
 {
   return gpg\encrypt_to ($user_id, $message);
+}
+function gpg_minify_key ($key)
+{
+  list ($mini_key, $temp_dir, $error) = gpg\minify_key ($key);
+  if (!empty ($temp_dir))
+    utils_rm_fr ($temp_dir);
+   return [$mini_key, $error];
 }
 } # namespace {
 ?>
