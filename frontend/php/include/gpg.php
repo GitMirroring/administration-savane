@@ -58,43 +58,88 @@ function gpg_version ()
   return $output;
 }
 
-function test_listing ($temp_dir, $level, &$ret)
+function expand_command_results ($res, $out, $err, $skip_output = true)
 {
-  $ret .= html_h ($level, _("Listing key")) . "<p>" . _("Output:") . "</p>\n";
-  $cmd = gpg_name () . " --home $temp_dir --list-keys --fingerprint";
-  $my_env = $_ENV;
-  # Let non-ASCII user IDs show up in a readable way.
-  $my_env['LC_ALL'] = "C.UTF-8";
-  $gpg_result =
-    utils_run_proc ($cmd, $gpg_output, $gpg_errors, ['env' => $my_env]);
-  $ret .= "<pre>\n";
-  $ret .= utils_specialchars ($gpg_output);
-  $ret .= "</pre>\n";
-  $ret .= "<p>" . _("Errors:") . "</p>\n";
-  $ret .= "<pre>\n";
-  $ret .= utils_specialchars ($gpg_errors);
-  $ret .= "</pre>\n";
-  $ret .= "<p>" . _("Exit status:") . " ";
-  $ret .= $gpg_result . "</p>\n";
-  return $gpg_result;
+  $ret = '';
+  $have_out = !($skip_output || empty ($out));
+  if ($have_out)
+    {
+      $ret .= "<p>" . _("Output:") . "</p>\n<pre>\n";
+      $ret .= utils_specialchars ($out);
+      $ret .= "</pre>\n";
+    }
+  if (empty ($err) && empty ($res) && $have_out)
+    return $ret;
+  if (!empty ($err))
+    {
+      $ret .= "<p>" . _("Errors:") . "</p>\n";
+      $ret .= "<pre>\n";
+      $ret .= utils_specialchars ($err);
+      $ret .= "</pre>\n";
+    }
+  return "$ret<p>" . _("Exit status:") . " $res</p>\n";
 }
 
-function test_import ($key, $temp_dir, $level, &$output)
+function minified_tests ($key, $home, $level, &$ret)
 {
-  $output .= html_h ($level, _("Importing keyring"));
-  $cmd = gpg_name () . " --home '$temp_dir' --batch --import";
-  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+  $ret .= html_h ($level, _('Importing minified key'));
+  $res = test_import ($key, $home, $ret);
+  if ($res)
+    return $res;
+  $ret .= html_h ($level, _('Listing minified key'));
+  return test_gpg_command ($home, '--list-sigs --fingerprint', $ret);
+}
+
+function test_minify ($key, $temp_dir, $level, &$ret)
+{
+  list ($minified, $error, $err, $res) = export_minified ($temp_dir);
+  $ret .= html_h ($level, _("Minifying key"));
+  $ret .= expand_command_results ($res, $minified, $err);
+  if ($res)
+    return $res;
+  $ret .= "<dl>\n<dt>"
+    . _("Original key size") . '</dt><dd>' . strlen ($key) . "</dd>\n"
+    . _("Minified key size") . '</dt><dd>' . strlen ($minified)
+    . "</dd>\n</dl>\n";
+  $home = utils_mktemp ("sv-gpg-mini", 'dir');
+  if (empty ($home))
+    {
+      $ret .= "<p>" . _("Can't create temporary directory.") . "</p>\n";
+      return 1;
+    }
+  $res = minified_tests ($minified, $home, $level, $ret);
+  utils_rm_fr ($home);
+  return $res;
+}
+
+# Let non-ASCII user IDs show up in a readable way.
+function no_i18n_env ()
+{
   $my_env = $_ENV;
   $my_env['LC_ALL'] = "C.UTF-8";
-  $gpg_result = utils_run_proc ($cmd, $gpg_output, $gpg_errors,
-    ['in' => $key, 'env' => $my_env]
-  );
-  $output .= "<pre>\n";
-  $output .= utils_specialchars ($gpg_errors);
-  $output .= "</pre>\n";
-  $output .= "<p>" . _("Exit status:") . " ";
-  $output .= $gpg_result . "</p>\n";
-  return $gpg_result;
+  return $my_env;
+}
+
+function test_gpg_command ($temp_dir, $command, &$ret, $in = null)
+{
+  $cmd = gpg_name () . " --home '$temp_dir' $command";
+  $aux = ['env' => no_i18n_env ()];
+  if ($in !== null)
+    $aux['in'] = $in;
+  $res = utils_run_proc ($cmd, $out, $err, $aux);
+  $ret .= expand_command_results ($res, $out, $err, false);
+  return $res;
+}
+
+function test_listing ($temp_dir, $level, &$ret)
+{
+  $ret .= html_h ($level, _("Listing key"));
+  return test_gpg_command ($temp_dir, '--list-keys --fingerprint', $ret);
+}
+
+function test_import ($key, $temp_dir, &$output)
+{
+  return test_gpg_command ($temp_dir, '--batch --import', $output, $key);
 }
 
 define ('GPG_ERROR_GPG_FAILED', 1);
@@ -145,9 +190,12 @@ function test_encryption ($temp_dir, $level, &$output)
 
 function run_tests ($key, $temp_dir, &$output, $run_encryption, $level)
 {
-  if (test_import ($key, $temp_dir, $level, $output))
+  $output .= html_h ($level, _("Importing keyring"));
+  if (test_import ($key, $temp_dir, $output))
     return;
   if (test_listing ($temp_dir, $level, $output))
+    return;
+  if (test_minify ($key, $temp_dir, $level, $output))
     return;
   if ($run_encryption)
     test_encryption ($temp_dir, $level, $output);
@@ -207,7 +255,7 @@ function get_key ($uid_k, $capability = GNUPG_ENCRYPT_CAPABILITY)
   if (ctype_digit ($uid_k))
     {
       if (user_exists ($uid_k))
-        $key = user_get_gpg_key ($uid_k);
+        $key = user_get_gpg_key ($uid_k, true);
       else
         return [null, null, GPG_ERROR_NO_USER_ID];
     }
@@ -324,20 +372,30 @@ function encrypt_to ($uid_k, $message)
   return $ret;
 
 }
+
+function export_minified ($temp_dir)
+{
+  # As of 2024-06, Savannah has the registered GPG keys as long as 2M
+  # due to a big photo id, and as long as 300K due to hundreds of other
+  # people's signatures.  Don't include that data in the minimized version.
+  $cmd = gpg_name () . " --home='$temp_dir' --batch -a --export "
+    . "--export-options=export-minimal,no-export-attributes";
+  $res = utils_run_proc ($cmd, $out, $err, ['env' => no_i18n_env ()]);
+  if ($res)
+    {
+      $error = GPG_ERROR_GPG_FAILED;
+      return [$out, expand_error ($res, $err, $out, $err), $err, $res];
+    }
+  return [$out, expand_error ($res, 0), $err, $res];
+}
+
 function minify_key ($key)
 {
   list ($temp_dir, $error) = import_key ($key);
   if ($error)
     return [null, $temp_dir, error_str ($error)];
-  $cmd = gpg_name () . " --home='$temp_dir' --batch -a --export "
-    . "--export-options=export-minimal";
-  $res = utils_run_proc ($cmd, $out, $err);
-  if ($res)
-    {
-      $error = GPG_ERROR_GPG_FAILED;
-      return [null, $temp_dir, expand_error ($res, $error, $out, $err)];
-    }
-  return [$out, $temp_dir, $error];
+  list ($minified, $error) = export_minified ($temp_dir);
+  return [$minified, $temp_dir, $error[0]];
 }
 } # namespace gpg {
 

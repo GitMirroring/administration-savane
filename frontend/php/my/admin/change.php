@@ -560,7 +560,7 @@ elseif ($item == "password")
 elseif ($item == "gpgkey")
   {
     extract (sane_import ('request', ['pass' => ['newvalue']]));
-    $old_key = user_get_gpg_key (user_getid ());
+    $old_key = user_get_gpg_key ();
     $title = _("Change GPG Keys");
     $input_titles = [""];
     $input_specific = $gpg_sample_text;

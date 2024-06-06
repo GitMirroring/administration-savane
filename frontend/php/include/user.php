@@ -215,19 +215,37 @@ function user_get_field ($user_id, $field)
   return user_return_val ($user_id, $ret);
 }
 
-function user_get_gpg_key ($user_id)
+function user_get_gpg_key ($user_id = 0, $minified = false)
 {
-  return user_get_field ($user_id, 'gpg_key');
+  $uids = user_get_uids_array ($user_id);
+  $user_key = user_get_field ($uids, 'gpg_key');
+  $pref_key = user_get_preference ('gpg_key', $uids);
+  $ret = [];
+  foreach ($uids as $u)
+    {
+      if (empty ($user_key[$u]))
+        $user_key[$u] = $pref_key[$u];
+      if ($minified || empty ($pref_key[$u]))
+        $ret[$u] = $user_key[$u];
+      else
+        $ret[$u] = $pref_key[$u];
+    }
+  return user_return_val ($user_id, $ret);
 }
 
 function user_set_gpg_key ($key)
 {
   if (!user_isloggedin ())
-    return false;
-  return db_autoexecute (
-    'user', ['gpg_key' => $key], DB_AUTOQUERY_UPDATE, "user_id = ?",
-    [user_getid ()]
+    return;
+  list ($minified, $error) = gpg_minify_key ($key);
+  if ($error)
+    $minified = '';
+  $res = db_autoexecute (
+    'user', ['gpg_key' => $minified], DB_AUTOQUERY_UPDATE,
+    "user_id = ?", [user_getid ()]
   );
+  $ret = user_set_preference ('gpg_key', $key);
+  return $res && $ret;
 }
 
 function user_filter_missing ($users)
