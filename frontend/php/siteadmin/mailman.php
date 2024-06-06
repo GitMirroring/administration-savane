@@ -192,15 +192,15 @@ function hidden_vals ()
   return ['list_name' => $list_name, 'new_group' => $new_group];
 }
 
-function print_mailman_data ()
+function list_mailman_data ()
 {
   global $list_data;
+  $ret = [];
   if (empty ($list_data))
     {
-      print "<dt>" . no_i18n ("List data") . "</dt>\n<dd>";
-      print "<strong>" . no_i18n ("List not found on Mailman server.")
-        . "</strong>\n";
-      return;
+      $ret[no_i18n ("List data")] =
+        "<b>" . no_i18n ("List not found on Mailman server.") . "</b>\n";
+      return $ret;
     }
   $fields = [ 'description' => no_i18n ('Description'),
     'host_name' => no_i18n ('Domain'), 'owner' => no_i18n ('Admin email'),
@@ -208,27 +208,26 @@ function print_mailman_data ()
   ];
   foreach ($fields as $k => $label)
     {
-      print "<dt>$label</dt>\n<dd>";
       if (array_key_exists ("qry::$k", $list_data))
-        print utils_specialchars ($list_data["qry::$k"]);
+        $val = utils_specialchars ($list_data["qry::$k"]);
       else
-        print "<b>unknown</b>";
-      print "</dd>\n";
+        $val = "<b>unknown</b>";
+      $ret[$label] = $val;
     }
+  return $ret;
 }
 
-function print_frontend_data ()
+function list_frontend_data ()
 {
   global $frontend_list_data;
-  print "<dt>" . no_i18n ("Current group")
-    . "</dt>\n<dd>{$frontend_list_data['link']}</dd>\n";
+  $ret = [];
+  $ret[no_i18n ("Current group")] = $frontend_list_data['link'];
 
   if (!array_key_exists ('description', $frontend_list_data))
-    return;
-  print "<dt>" . no_i18n ("Description")
-    . "</dt>\n<dd>{$frontend_list_data['description']}</dd>\n";
-  print "<dt>" . no_i18n ("Public")
-    . "</dt>\n<dd>{$frontend_list_data['is_public']}</dd>\n";
+    return $ret;
+  $ret[no_i18n ("Description")] = $frontend_list_data['description'];
+  $ret[no_i18n ("Public")] = $frontend_list_data['is_public'];
+  return $ret;
 }
 
 function display_list_data ()
@@ -236,11 +235,10 @@ function display_list_data ()
   global $frontend_list_data;
   if (empty ($frontend_list_data))
     return;
-  print "<h3>" . no_i18n ('Frontend data') . "</h3>\n<dl>\n";
-  print_frontend_data ();
-  print "</dl>\n<h3>" . no_i18n ('Mailman data') . "</h3>\n<dl>";
-  print_mailman_data ();
-  print "</dl>\n";
+  print html_h (3, no_i18n ('Frontend data'));
+  print html_dl (list_frontend_data ());
+  print html_h (3, no_i18n ('Mailman data'));
+  print html_dl (list_mailman_data ());
 }
 
 function display_group_found ()
@@ -248,14 +246,10 @@ function display_group_found ()
   global $new_group_link, $have_group, $use_mail;
   if (empty ($new_group_link))
     return;
-  print "<dl>\n<dt>Group found</dt>\n<dd>$new_group_link</dd>\n";
+  $defs = ['Group found' => $new_group_link];
   if ($have_group)
-    {
-      print "<dt>Uses mailing lists</dt>\n<dd>";
-      print $use_mail? 'yes': '<strong>no</strong>';
-      print "</dd>\n";
-    }
-  print "</dl>\n\n";
+    $defs['Uses mailing lists'] = $use_mail? 'yes': '<b>no</b>';
+  print html_dl ($defs) . "\n";
 }
 
 function show_search_button ()

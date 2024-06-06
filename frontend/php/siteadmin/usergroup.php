@@ -169,20 +169,20 @@ function entry_text ($entry)
 function output_contributions ($result, $offset, $max_rows)
 {
   $i = 0;
+  $defs = [];
   while ($entry = db_fetch_array ($result))
     {
       if (++$i > $max_rows)
-        return;
+        return $defs;
       $spam = no_i18n ('Spam score') . ' ' . $entry['spamscore'] . '; ';
       $date = utils_format_date ($entry['date'], 'natural');
       $line = "$spam$date {$entry['summary']}";
       if ($entry['spamscore'] > 4)
         $line = "<b>$line</b>";
       $entry_num = $i + $offset;
-      print "  <dt><b>$entry_num</b>: $line</dt>\n";
-      $text = entry_text ($entry);
-      print "<dd>$text</dd>\n";
+      $defs["<b>$entry_num</b>: $line"] = entry_text ($entry);
     }
+  return $defs;
 }
 
 function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
@@ -196,9 +196,9 @@ function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
       return;
     }
   contribution_nextprev ($user_id, $max_rows, $result);
-  print "<dl id=\"comment_results\">\n";
-  output_contributions ($result, $offset, $max_rows);
-  print "</dl>\n";
+  print html_dl (
+    output_contributions ($result, $offset, $max_rows), 'comment_results'
+  );
   contribution_nextprev ($user_id, $max_rows, $result);
 }
 

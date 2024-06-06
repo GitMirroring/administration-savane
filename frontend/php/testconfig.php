@@ -81,17 +81,18 @@ function check_gpg_executable ()
       print "<p><strong>GnuPG is not configured.</strong></p>\n";
       return true;
     }
-
-  print "<dl><dt>GPG command</dt>\n<dd><code>$sys_gpg_name</code></dd>\n";
   $gpg_result = utils_run_proc  (
     gpg\gpg_name () . " --version", $gpg_output, $gpg_stderr
   );
-  print "<dt><code>--version</code> output</dt>\n";
-  print "<dd><pre>\n" . utils_specialchars ($gpg_output) . "</pre></dd>\n";
-  print "<dt>Exit code</dt><dd><code>$gpg_result</code></dd>\n";
-  print "<dt><code>stderr</code> output</dt>\n";
-  print "<dd><pre>\n" . utils_specialchars ($gpg_stderr) . "</pre></dd>\n";
-  print "</dl>\n";
+  $defs = [
+    'GPG command' => "<code>$sys_gpg_name</code>",
+    '<code>--version</code> output' =>
+      "<pre>\n" . utils_specialchars ($gpg_output) . "</pre>",
+    "Exit code" => "<code>$gpg_result</code>",
+    "<code>stderr</code> output" =>
+      "<pre>\n" . utils_specialchars ($gpg_stderr) . "</pre>"
+  ];
+  print html_dl ($defs);
   return $gpg_result;
 }
 
@@ -116,18 +117,19 @@ function run_gpg ($command, $msg, $input)
   $cmd = gpg\gpg_name () . " $command";
   $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
   if (!$res)
-    return [$out, $res];
-  print "Can't $msg, exit code $res<br />\n";
-  print "<pre>$out</pre>\n";
-  print "<pre>$err</pre>\n";
-  return [$out, $res];
+    return [$out, $res, ''];
+  $ret_msg = "Can't $msg, exit code $res<br />\n"
+    . "<pre>$out</pre>\n<pre>$err</pre>\n";
+  return [$out, $res, $ret_msg];
 }
 
 function gen_signature ($key_id, $home, $option, $input)
 {
-  list ($out, $res) = run_gpg ("--batch --home '$home' -u '$key_id' $option",
-    'generate test signature', $input);
-  return [[$out], $res];
+  list ($out, $res, $msg) = run_gpg (
+    "--batch --home '$home' -u '$key_id' $option",
+    'generate test signature', $input
+  );
+  return [[$out], $res, $msg];
 }
 
 function run_gpg_verify ($home, $signature, $input)
@@ -140,22 +142,22 @@ function run_gpg_verify ($home, $signature, $input)
   return 'OK';
 }
 
-function run_gpg_sign ($key_id, $home, $algo)
+function run_gpg_sign ($key_id, $home, $algo, &$defs)
 {
   $input = gpg\test_message ();
   foreach (['-a --sign', '--clearsign', '--detach-sign'] as $option)
     {
-      print "<dt>$algo, $option<dt>\n<dd>";
-      list ($signature, $error) =
+      $term = "$algo, $option";
+      list ($signature, $error, $msg) =
         gen_signature ($key_id, $home, $option, $input);
       if ($error)
         {
-          print "</dd>\n";
+          $defs[$term] = $msg;
           continue;
         }
       if ($option == '--detach-sign')
         $signature[] = $input;
-      print run_gpg_verify ($home, $signature, $input) . "</dd>\n";
+      $defs[$term] = run_gpg_verify ($home, $signature, $input);
     }
 }
 
@@ -177,24 +179,24 @@ function decrypt_test ($key_id, $home, $input)
   return run_gpg ("--batch --home '$home' --decrypt", 'decrypt', $input);
 }
 
-function run_gpg_encrypt ($key_id, $home, $algo)
+function run_gpg_encrypt ($key_id, $home, $algo, &$defs)
 {
   $input = gpg\test_message ();
-  print "<dt>$algo</dt>\n<dd>";
-  list ($enc, $res) = encrypt_test ($key_id, $home, $input);
+  list ($enc, $res, $msg) = encrypt_test ($key_id, $home, $input);
   if (!$res)
-    list ($dec, $res) = decrypt_test ($key_id, $home, $enc);
-  if (!$res)
+    list ($dec, $res, $msg) = decrypt_test ($key_id, $home, $enc);
+  if ($res)
     {
-      if ($dec === $input)
-        print 'OK';
-      else
-        print "Decrypted sample doesn't match the clear text";
+      $defs[$algo] = $msg;
+      return;
     }
-  print "</dd>\n";
+  if ($dec === $input)
+    $defs[$algo] = 'OK';
+  else
+    $defs[$algo] = "Decrypted sample doesn't match the clear text";
 }
 
-function test_gpg_func ($algo, $capability, $func)
+function test_gpg_func ($algo, $capability, $func, &$defs)
 {
   $key = read_test_key (strtolower ($algo));
   if (empty ($key))
@@ -203,72 +205,63 @@ function test_gpg_func ($algo, $capability, $func)
     gpg\get_key ($key, $capability);
   if ($error)
     {
-      print "<dt>$algo<dt>\n<dd>";
-      print gpg\error_str ($error) . "</dd>\n";
+      $defs[$algo] = gpg\error_str ($error);
       return;
     }
-  $func ($key_id, $home, $algo);
+  $func ($key_id, $home, $algo, $defs);
   utils_rm_fr ($home);
 }
 
-function test_gpg_verify ($algo)
+function test_gpg_verify ($algo, &$defs)
 {
-  test_gpg_func ($algo, GNUPG_SIGN_CAPABILITY, 'run_gpg_sign');
+  test_gpg_func ($algo, GNUPG_SIGN_CAPABILITY, 'run_gpg_sign', $defs);
 }
 
-function test_gpg_encrypt ($algo)
+function test_gpg_encrypt ($algo, &$defs)
 {
-  test_gpg_func ($algo, GNUPG_ENCRYPT_CAPABILITY, 'run_gpg_encrypt');
+  test_gpg_func ($algo, GNUPG_ENCRYPT_CAPABILITY, 'run_gpg_encrypt', $defs);
 }
 
 function test_gpg ()
 {
   if (check_gpg_executable ())
     return;
-  print html_h (3, "Verify signature") . "<dl>\n";
+  print html_h (3, "Verify signature");
+  $defs = [];
   foreach (test_gpg_algo_list () as $algo)
-    test_gpg_verify ($algo);
-  print "</dl>\n" . html_h (3, 'Encrypt');
+    test_gpg_verify ($algo, $defs);
+  print html_dl ($defs);
+  print html_h (3, 'Encrypt');
+  $defs = [];
   foreach (test_gpg_algo_list () as $algo)
-    test_gpg_encrypt ($algo);
+    test_gpg_encrypt ($algo, $defs);
+  print html_dl ($defs);
 }
 
 function test_cgitrepos ()
 {
   if (!isset ($GLOBALS['sys_etc_dir']))
-    {
-      print '<strong>no $sys_etc_dir set</strong>';
-      return;
-    }
+    return '<strong>no $sys_etc_dir set</strong>';
   if (!file_exists ($GLOBALS['sys_etc_dir']))
-    {
-      print '<strong>no $sys_etc_dir directory exists</strong>';
-      return;
-    }
+    return '<strong>no $sys_etc_dir directory exists</strong>';
   $fname = $GLOBALS['sys_etc_dir'] . '/cgitrepos';
   if (!file_exists ($fname))
-    {
-      print '<strong>no cgitrepos file exists in $sys_etc_dir</strong>';
-      return;
-    }
+    return '<strong>no cgitrepos file exists in $sys_etc_dir</strong>';
   if (!is_readable ($fname))
-    {
-      print '<strong>cgitrepos in $sys_etc_dir is not readable</strong>';
-      return;
-    }
+    return '<strong>cgitrepos in $sys_etc_dir is not readable</strong>';
   $mtime = time () - filemtime ($fname);
   if ($mtime > 3600)
     {
-      print ('<strong>cgitrepos has not been updated for ');
+      $ret = ('<strong>cgitrepos has not been updated for ');
       if ($mtime < 100)
-        printf ('%.0f minutes</strong>', $mtime / 60);
+        $ret .= sprintf ('%.0f minutes</strong>', $mtime / 60);
       else if ($mtime < 24 * 3600)
-        printf ('%.0f hours</strong>',  $mtime / 3600);
+        $ret .= sprintf ('%.0f hours</strong>',  $mtime / 3600);
       else
-        printf ('%.1f days</strong>',  $mtime / 24. / 3600);
-      return;
+        $ret .= sprintf ('%.1f days</strong>',  $mtime / 24. / 3600);
+      return $ret;
     }
-  print 'OK';
+  return 'OK';
 }
 
 function sys_vcs_dir_not_set ()
@@ -296,47 +289,35 @@ function test_git_dirs ()
 {
   global $sys_vcs_dir;
   if (sys_vcs_dir_not_set ())
-    return;
+    return '';
   $git = $sys_vcs_dir["git"];
-  print "'dir': " . $git["dir"] . ' ';
+  $ret = "'dir': " . $git["dir"] . ' ';
   if (!is_dir ($git["dir"]))
-    {
-      print " <strong>no such directory</strong>";
-      return;
-    }
-  print " (directory exists)";
+    return "$ret <strong>no such directory</strong>";
+  $ret .= " (directory exists)";
   $suf = '[\'clone-path\']';
   if (!empty ($git["clone-path"]))
-    print "<br />\n'clone-path': " . $git["clone-path"];
+    $ret .= "<br />\n'clone-path': " . $git["clone-path"];
+  return $ret;
 }
 
-function test_repos ()
+function test_repos (&$defs)
 {
-  print "<dt id='cgitrepos'>cgitrepos</dt>\n<dd>";
-  test_cgitrepos ();
-  print "</dd>";
-  print "<dt id='gitrepos'>git directories</dt>\n<dd>";
-  test_git_dirs ();
-  print "</dd>\n";
+  $defs['cgitrepos'] = ['cgitrepos', test_cgitrepos ()];
+  $defs['git directories'] = ['gitrepos', test_git_dirs ()];
 }
 function test_sys_upload_dir ()
 {
   $path = utils_make_upload_file ("test.txt", $errors);
   if ($path === null)
-    {
-      print "<b>can't make file:</b> $errors";
-      return;
-    }
-  $error_handler = function ($errno, $errstr)
-  {
-    print "<b>unlink failed:</b> $errstr";
-    return true;
-  };
-  $old_handler = set_error_handler ($error_handler, E_WARNING);
+    return "<b>can't make file:</b> $errors";
+  $state = utils_disable_warnings (E_WARNING);
   $res = unlink ($path);
-  set_error_handler ($old_handler, E_WARNING);
+  utils_restore_warnings ($state);
   if ($res)
-    print 'OK';
+    return 'OK';
+  $e = error_get_last ();
+  return '<b>unlink failed:</b>' . $e['message'];
 }
 
 function test_captcha ()
@@ -368,63 +349,70 @@ function test_captcha ()
     . "<p><img id='captcha' src='/captcha.php' alt='CAPTCHA' /></p>\n";
 }
 
-function test_mailman_failed ($ver)
+function test_mailman_failed ($ver, &$defs)
 {
   $fail = false;
-  $dte = "<dt><strong>Error</strong></td><dd>";
+  $term = "<b>Error</b>";
+  $def = '';
   if (empty ($ver))
     {
-      print "$dte<strong>No response</strong></dd>\n";
+      $defs[$term] = "<b>No response</b>";
       return true;
     }
   if (array_key_exists ('pipe::error', $ver))
     {
-      print "$dte<strong>Pipe error:</strong> "
-        . "<pre>{$ver['pipe::error']}</pre></dd>\n";
+      $def = "<b>Pipe error:</b>\n<pre>{$ver['pipe::error']}</pre>";
       $fail = true;
     }
   if (array_key_exists ('error', $ver))
     {
-      print "$dte<pre>{$ver['error']}</pre></dd>\n";
+      $def .= "<b>Command failed:</b>\n<pre>{$ver['error']}</pre>\n";
       $fail = true;
     }
+  if (!empty ($def))
+    $defs[$term] = $def;
   return $fail;
 }
 
 function output_mailman_version ($ver)
 {
-  if (test_mailman_failed ($ver))
-    return false;
+  $defs = [];
+  if (test_mailman_failed ($ver, $defs))
+    return [false, html_dl ($defs)];
   if (empty ($ver['version']))
-    return false;
-  print "<dt>Version</dt><dd>{$ver['version']}</dd>\n";
-  print "<dt>Generated password</dt><dd>{$ver['password']}</dd>\n";
-  print "<dt>Timestamp</dt><dd>{$ver['timestamp']}</dd>\n";
-  return true;
+    return [false, ''];
+  $defs = [
+    'Version' => $ver['version'],
+    'Generated password' => $ver['password'],
+    'Timestamp' => $ver['timestamp']
+  ];
+  return [true, html_dl ($defs)];
 }
-function output_mailman_query ($q)
+function output_mailman_query ($q, &$defs)
 {
-  if (test_mailman_failed ($q))
+  if (test_mailman_failed ($q, $defs))
     return false;
-  print "<dt>Query results</dt>\n<dd><dl>\n";
+  $nested = [];
   foreach ($q as $k => $v)
-    print "<dt>" . utils_specialchars ($k) . "</dt>\n"
-      . "<dd>" . utils_specialchars ($v) . "</dd>\n";
-  print "</dl>\n</dd>\n";
+     $nested[utils_specialchars ($k)] = utils_specialchars ($v);
+  $defs['Query results'] = html_dl ($nested);
   return true;
 }
 
 function test_mailman ()
 {
   print html_h (2, "Mailman connection");
-  print "<dl>\n";
+  $defs = [];
   $ver = mailman_get_version ();
-  $have_version = output_mailman_version ($ver);
+  list ($have_version, $msg) = output_mailman_version ($ver);
   if ($have_version)
-    output_mailman_query (mailman_query_list ('savannah-users'));
+    {
+      print $msg;
+      output_mailman_query (mailman_query_list ('savannah-users'), $defs);
+    }
   else
-    printf ("<dt>Run time</dt><dd>%s ms</dd></dl>\n", $ver['timestamp']);
-  print "</dl>\n";
+    $defs['Run time'] = sprintf ('%s ms', $ver['timestamp']);
+  print html_dl ($defs);
   if ($have_version && preg_match ("/^stub /", $ver['version']))
     print "<p><strong>This is a stub; write the real command "
       . "in \$sys_mailman_wrapper.</strong></p>\n";
@@ -456,21 +444,20 @@ function check_source_code ()
   $cgit_url = git_get_savane_url ($commit);
   $tarball_name = git_get_tarball_name ();
   $tarball_url = git_get_tarball_url ();
-  $ret = "<dl>\n";
-  $ret .= "<dt>Configured Git commit</dt>\n";
-  $ret .= "<dd>{$GLOBALS['ac_git_commit']}</dd>\n";
-  $ret .= "<dt>Computed Git commit</dt>\n";
-  $ret .= "<dd><a href='$cgit_url'>$commit</a></dd>\n";
-  $ret .= "<dt>Tarball</dt>\n";
-  $ret .= "<dd><a href='$tarball_url'>$tarball_name</a></dd>\n";
-  $ret .= "<dt>Availability</dt>\n<dd>";
   if (git_check_tarball ())
-    $ret .= "<strong>Fail.  You must make sure you offer the source code "
+    $avail = "<strong>Fail.  You must make sure you offer the source code "
       . "correctly before making the website available to other "
       . "users.</strong>";
   else
-    $ret .= "OK";
-  return "$ret</dd>\n</dl>\n";
+    $avail = "OK";
+
+  $defs = [
+    'Configured Git commit' => $GLOBALS['ac_git_commit'],
+    'Computed Git commit' => "<a href='$cgit_url'>$commit</a>",
+    'Tarball' => "<a href='$tarball_url'>$tarball_name</a>",
+    'Availability' => $avail
+  ];
+  return html_dl ($defs);
 }
 $page .= check_source_code ();
 $page .= html_h (2, "Basic PHP configuration");
@@ -569,17 +556,16 @@ function list_facilities ($func, $items, $labels = [])
   $lab = [true => 'Exists.', false => 'Not found.'];
   foreach ($labels as $k => $v)
     $lab[$k] = $v;
-  $ret = "<p><dl>\n";
+  $defs = [];
   foreach ($items as $name => $comment)
     {
-      $ret .= "<dt><b>$name</b></dt><dd>";
       if ($func ($name))
-        $ret .= $lab[true];
+        $res = $lab[true];
       else
-        $ret .= sprintf ("<b>%s</b> <i>%s</i>", $lab[false], $comment);
-      $ret .= "</dd>\n";
+        $res = sprintf ("<b>%s</b> <i>%s</i>", $lab[false], $comment);
+      $defs["<b>$name</b>"] = $res;
     }
-  return "$ret</dl></p>\n";
+  return html_dl ($defs);
 }
 
 $page .= html_h (2, "PHP extensions");
@@ -616,24 +602,23 @@ function test_i18n ()
   $str = 'Any';
   $res = gettext ($str);
   if ($res == $str)
-    {
-      print "<strong>Fail.</strong> Check <code>locale -a</code> output,\n";
-      print "be sure to install language-pack-* in Trisquel";
-    }
+    $ret = "<b>Fail.</b> Check <code>locale -a</code> output,\n"
+      . "be sure to install language-pack-* in Trisquel";
   else
-    print "$str => $res";
+    $ret = "$str => $res";
   i18n_setup ("en_US.UTF-8");
+  return $ret;
 }
 
 $page .= html_h (2, "Apache environment variables");
 $vv = [];
 foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
-  if (getenv ($var))
-    {
-      $conf_var = getenv ($var);
-      $vv[] = "<code>$var</code> configured to <code>$conf_var</code>";
-    }
-$page .= "<p>" . join ("<br />\n", $vv) . "</p>\n\n";
+  {
+    $vv[$var] = getenv ($var);
+    if ($vv[$var] === false)
+      $vv[$var] = '<b>unset</b>';
+  }
+$page .= html_dl ($vv);
 $page .= html_h (2, "Savane configuration") . '<p>';
 
 if (empty ($sys_conf_file))
@@ -680,7 +665,7 @@ function test_mysql ()
     '@@GLOBAL.sql_mode' => 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES',
     '@@SESSION.sql_mode' => 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES'
   ];
-  print "<dl>\n";
+  $defs = [];
   foreach ($mysql_params as $param => $comment)
     {
       $result = db_query ("SELECT $param");
@@ -691,15 +676,15 @@ function test_mysql ()
           foreach ($vals as $i => $v)
             $value = str_replace ($v, "<strong>$v</strong>", $value);
         }
-      print "<dt>$param</dt><dd>'$value'";
+      $value = "'$value'";
       if ($comment !== null)
-        print "<br />\n$comment";
-      print "</dd>\n";
+        $value .= "<br />\n$comment";
+      $defs[$param] = $value;
     }
-  print "</dl>\n";
+  print html_dl ($defs);
 }
 
-function list_sysvar ($tag)
+function list_sysvar ($tag, &$defs)
 {
   $var = "sys_$tag";
   $value = '<strong>unset</strong>';
@@ -707,7 +692,7 @@ function list_sysvar ($tag)
     $value = utils_specialchars (print_r ($GLOBALS[$var], true));
   if ($var == "sys_dbpasswd")
     $value = "**************";
-  printf ("<dt>%s</dt>\n<dd>%s</dd>\n", $var, $value);
+  $defs[$var] = $value;
 }
 
 function output_sysvars ()
@@ -722,10 +707,10 @@ function output_sysvars ()
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_cgit'
   ];
-  print "<dl>\n";
+  $defs = [];
   foreach ($variables as $tag)
-    list_sysvar ($tag);
-  print "</dl>\n";
+    list_sysvar ($tag, $defs);
+  print html_dl ($defs);
 }
 
 function test_sysvars ()
@@ -754,15 +739,12 @@ function test_sysconfigs ()
 
   test_gpg ();
   print html_h (2, "Other tests");
-  print "<dl>\n";
-  test_repos ();
-  print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
-  test_sys_upload_dir ();
-  print "</dd>\n";
-  print "<dt id='i18n'>i18n</dt>\n<dd>";
-  test_i18n ();
-  print "</dd>\n";
-  print "</dl>\n";
+  $defs = [];
+  test_repos ($defs);
+  $defs['sys_upload_dir writability'] =
+    ['sys-upload-dir', test_sys_upload_dir ()];
+  $defs['i18n'] = ['i18n', test_i18n ()];
+  print html_dl ($defs);
 }
 
 $page .= html_h (2, "Configured settings");

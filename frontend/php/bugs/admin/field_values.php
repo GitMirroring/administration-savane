@@ -233,14 +233,13 @@ $td_select_box = function ($field)
     && trackers_data_is_select_box ($field);
 };
 
-function print_predefined_val_entry ($fld_val)
+function print_predefined_val_entry ($fld_val, &$defs)
 {
   extract ($fld_val);
   # Non-active value are not important here.
   if ($status != "A")
     return;
-  print "<dt><b>$value</b> ($order_id)</dt>\n";
-  print "<dd>$description</dd>\n";
+  $defs["<b>$value</b> ($order_id)"] = $description;
 }
 
 function list_predefined_values ($field)
@@ -256,10 +255,10 @@ function list_predefined_values ($field)
       fb ($msg, 1);
       return;
     }
-  print "<dl>\n";
+  $defs = [];
   while ($fld_val = db_fetch_array ($res))
-    print_predefined_val_entry ($fld_val);
-  print "</dl>\n";
+    print_predefined_val_entry ($fld_val, $defs);
+  print html_dl ($defs);
 }
 
 if ($list_value)

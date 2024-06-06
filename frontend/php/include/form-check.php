@@ -166,11 +166,12 @@ function form_summarize_request ()
       return form_summary_cmp ($a, $b, $request);
     }
   );
-  $ret = html_h (1, _("Rejected Request")) . "<dl>";
+  $ret = html_h (1, _("Rejected Request"));
+  $defs = [];
   foreach ($request as $k => $v)
-    $ret .= "<dt>" . utils_specialchars ($k) . "</dt>\n"
-      . "<dd><pre>" . utils_specialchars ($v) . "</pre></dd>\n";
-  return $ret . "</dl>\n";
+    $defs[utils_specialchars ($k)] =
+      "<pre>" . utils_specialchars ($v) . "</pre>";
+  return $ret . html_dl ($defs);
 }
 
 # Check whether this is a duplicate or not: exit when the form_id is absent

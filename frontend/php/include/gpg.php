@@ -97,10 +97,10 @@ function test_minify ($key, $temp_dir, $level, &$ret)
   $ret .= expand_command_results ($res, $minified, $err);
   if ($res)
     return $res;
-  $ret .= "<dl>\n<dt>"
-    . _("Original key size") . '</dt><dd>' . strlen ($key) . "</dd>\n"
-    . _("Minified key size") . '</dt><dd>' . strlen ($minified)
-    . "</dd>\n</dl>\n";
+  $ret .= html_dl ([
+    _("Original key size") => strlen ($key),
+    _("Minified key size") => strlen ($minified)
+  ]);
   $home = utils_mktemp ("sv-gpg-mini", 'dir');
   if (empty ($home))
     {

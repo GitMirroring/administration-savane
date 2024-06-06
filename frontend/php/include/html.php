@@ -356,6 +356,26 @@ function html_label ($for, $title)
   return "<label for='$for'>$title</label>";
 }
 
+function html_dl ($defs, $id = '')
+{
+  if (empty ($defs))
+    return '';
+  if (!empty ($id))
+    $id = " id='$id'";
+  $ret = "<dl$id>\n";
+  foreach ($defs as $k => $v)
+    {
+      $id = '';
+      if (is_array ($v))
+        {
+          $id = " id='" . $v[0] . "'";
+          $v = $v[1];
+        }
+      $ret .= "<dt$id>$k</dt>\n  <dd>$v</dd>\n";
+    }
+  return "$ret</dl>\n";
+}
+
 function html_h ($no, $title, $attr = [])
 {
   $extra = '';

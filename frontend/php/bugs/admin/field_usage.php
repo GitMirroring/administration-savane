@@ -75,6 +75,10 @@ if (!user_ismember ($group_id, 'A'))
   exit_permission_denied ();
 
 trackers_init ($group_id);
+function preinp ($x)
+{
+  return "<span class=\"preinput\">$x</span>";
+}
 
 if ($post_changes)
   {
@@ -165,39 +169,36 @@ if ($update_field)
     else
       print trackers_data_get_label ($field) . $closetag;
 
-    print "<dl>";
-    print '<dt><span class="preinput">' . html_label ('status', _("Status:"))
-      . "</span></dt>\n<dd>";
-
     # Display the Usage box (Used, Unused select box  or hardcoded
     # "required").
     if (trackers_data_is_required ($field))
-      print _("Required") . form_hidden (["status" => "1"]);
+      $def = _("Required") . form_hidden (["status" => "1"]);
     else
-      print form_checkbox (
+      $def = form_checkbox (
         'status', trackers_data_is_used ($field), ['label'=> _("Used")]
       );
-    print "</dd>\n";
+    $defs = [preinp (html_label ('status', _("Status:"))) => $def];
 
     # Ask they want to save the history of the item.
     if (!trackers_data_is_special ($field))
       {
-        print "<dt>\n<span class='preinput'>" . _("Item History:")
-          . "</span>\n<dt>\n<dd>"
-          . "<select title=\"" . _("whether to keep in history")
+        $def =
+          "<select title=\"" . _("whether to keep in history")
           . "\" name='keep_history'>\n";
         $cur = trackers_data_do_keep_history ($field);
-        print form_option ('1', $cur, _("Keep field value changes in history"));
-        print form_option (
+        $def .= form_option (
+          '1', $cur, _("Keep field value changes in history")
+        );
+        $def .= form_option (
          '0', $cur, _("Ignore field value changes in history")
         );
-        print "</select>\n";
+        $def .= "</select>\n";
+        $defs[preinp (_("Item History:"))] = $def;
       }
-    print "</dd>\n</dl>\n";
+    print html_dl ($defs);
+    print "\n\n" . html_h (2, _("Access:"));
 
-    print "\n\n<h2>" . _("Access:") . "</h2>\n";
-
-    print "<dl>\n";
+    $defs = [];
     # Set mandatory bit: if the field is special, meaning it is entered
     # by the system, or if it is "priority", assume the
     # admin is not entitled to modify this behavior.
@@ -207,23 +208,20 @@ if ($update_field)
         # for a user to fill the entry.
         # It is "Mandatory whenever possible".
         $cur = trackers_data_mandatory_flag ($field);
-        print '<dt><span class="preinput">' . _("This field is:")
-          . "</span></dt>\n<dd>\n"
-          . "<select title=\"" . _("whether the field is mandatory")
+        $def = "<select title=\"" . _("whether the field is mandatory")
           . "\" name='mandatory_flag'>\n";
-        print form_option ('1', $cur,
+        $def .= form_option ('1', $cur,
           _("Optional (empty values are accepted)")
         );
-        print form_option ('3', $cur, _("Mandatory"));
-        print form_option ('0', $cur,
+        $def .= form_option ('3', $cur, _("Mandatory"));
+        $def .= form_option ('0', $cur,
           _("Mandatory only if it was presented to the original submitter")
         );
-        print "</select>\n";
+        $def .= "</select>\n";
+        $defs[preinp (_("This field is:"))] = $def;
      }
 
-    print "</dd>\n<dt>";
-    print '<span class="preinput">' . _("On new item submission:") . '</span>';
-    print "</dt>\n";
+    $term = preinp (_("On new item submission:"));
     $sh_add_mem = trackers_data_is_showed_on_add_members ($field);
     $sh_add = trackers_data_is_showed_on_add ($field);
     $sh_anon = trackers_data_is_showed_on_add_nologin ($field);
@@ -285,52 +283,51 @@ if ($update_field)
           }
       } # !trackers_data_is_required ($field)
 
-    print "<dd>" . join ("<br />", $checkboxes) . "</dd>\n</dl>\n";
+    $defs[$term] = join ("<br />", $checkboxes);
+    print html_dl ($defs);
 
     if (trackers_data_is_special ($field))
       print form_hidden (['place' => trackers_data_get_place ($field)]);
     else
       {
-        print "\n\n<h2>" . _("Display:") . "</h2>\n";
-
-        print "<dl>\n<dt><span class='preinput'>"
-          . html_label ("place", _("Rank on page:"))
-          . "</span></dt>\n<dd>";
-        print '<input type="text" id="place" name="place" value="'
-          . trackers_data_get_place ($field)
-          . "\" size='6' maxlength='6' /></dd>\n</dl>\n";
+        print "\n\n" . html_h (2, _("Display:"));
+        $defs = [
+          preinp (html_label ("place", _("Rank on page:"))) =>
+            '<input type="text" id="place" name="place" value="'
+            . trackers_data_get_place ($field) . "\" size='6' maxlength='6' />"
+        ];
+        print html_dl ($defs);
       }
 
     # Customize field size only for text fields and text areas.
     if (trackers_data_is_text_field ($field))
       {
         list ($size, $maxlength) = trackers_data_get_display_size ($field);
-
-        print "<dl>\n<dt><span class='preinput'>"
-          . html_label ("n1", _("Visible size of the field:"))
-          . "</span></dt>\n<dd>";
-        print '<input type="text" id="n1" name="n1" value="' . $size
-          . "\" size='3' maxlength='3' /></dd>\n";
-        print "<dt><span class='preinput'>"
-          . html_label ("n2", _("Maximum size of field text (up to 255):"))
-          . "</span></dt>\n<dd>";
-        print '<input type="text" id="n2" name="n2" value="' . $maxlength
-          . "\" size='3' maxlength='3' /></dd>\n</dl>\n";
+        $defs = [
+          preinp (html_label ("n1", _("Visible size of the field:"))) =>
+            '<input type="text" id="n1" name="n1" value="' . $size
+            . "\" size='3' maxlength='3' />",
+          preinp (
+            html_label ("n2", _("Maximum size of field text (up to 255):"))
+          ) =>
+            '<input type="text" id="n2" name="n2" value="' . $maxlength
+            . "\" size='3' maxlength='3' />"
+        ];
+        print html_dl ($defs);
       }
     elseif (trackers_data_is_text_area ($field))
       {
         list ($rows, $cols) = trackers_data_get_display_size ($field);
 
-        print "<dl>\n<dt><span class='preinput'>"
-          . html_label ("n1", _("Number of columns of the field:"))
-          . "</span></dt>\n><dd>";
-        print '<input type="text" id="n1" name="n1" value="' . $rows
-          . "\" size='3' maxlength='3' /></dd>\n";
-        print "<dt><span class='preinput'>"
-          . html_label ("n2", _("Number of rows  of the field:"))
-          . "</span></dt>\n<dd>";
-        print '<input type="text" id="n2" name="n2" value="' . $cols
-          . "\" size='3' maxlength='3' /></dd>\n</dl>\n";
+        $defs = [
+          preinp (html_label ("n1", _("Number of columns of the field:"))) =>
+            '<input type="text" id="n1" name="n1" value="' . $rows
+            . "\" size='3' maxlength='3' />",
+          preinp (html_label ("n2", _("Number of rows  of the field:"))) =>
+            '<input type="text" id="n2" name="n2" value="' . $cols
+            . "\" size='3' maxlength='3' />"
+        ];
+        print html_dl ($defs);
       }
 
     # Transitions.
