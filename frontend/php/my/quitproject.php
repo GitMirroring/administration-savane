@@ -66,7 +66,7 @@ if ($cancel)
 function notify_admins ($quitting_group_id)
 {
   global $sys_mail_replyto, $sys_mail_domain, $sys_mail_admin;
-  $user_name = user_getname (0, 1);
+  $user_name = user_getrealname ();
   $login = user_getname ();
   $group_name = group_getname ($quitting_group_id);
   $res_admin = db_execute ("

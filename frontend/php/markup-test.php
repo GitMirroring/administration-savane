@@ -104,7 +104,7 @@ if ($rich)
   {
     print "</div>\n</td>\n";
     print '<td class="boxlightextra">'
-      . utils_user_link (user_getname (), user_getname (0, 1));
+      . utils_user_link (user_getname (), user_getrealname ());
     print "</td>\n</tr>\n";
     print "</table>\n";
   }

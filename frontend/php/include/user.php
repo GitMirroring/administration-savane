@@ -111,28 +111,33 @@ function user_get_email ($uid)
   return user_get_field ($uid, 'email');
 }
 
-function user_getname ($user_id = 0, $getrealname = 0)
+function user_getrealname ($user_id = 0, $rfc822_compliant = 0)
 {
-  # Use current user if one is not passed in.
-  if (!$user_id)
-    $user_id = user_getid ();
+  $uids = user_get_uids_array ($user_id);
+  $ret = user_get_field ($uids, 'realname');
+  if ($rfc822_compliant)
+    $ret = array_map ('utils_comply_with_rfc822', $ret);
+  foreach ($uids as $u)
+    {
+      if (array_key_exists ($u, $ret))
+        continue;
+      if (empty ($u))
+        $ret[$u] = _("anonymous");
+      else
+        $ret[$u] = '<b>' . _("Invalid User ID") . '</b>';
+    }
+  return user_return_val ($user_id, $ret);
+}
 
-  $column = $getrealname? 'realname': 'user_name';
-  if (!$user_id)
-   {
-      if ($getrealname)
-        return _("anonymous");
+function user_getname ($user_id = 0)
+{
+  $uids = user_get_uids_array ($user_id);
+  $ret = user_get_field ($uids, 'user_name');
+  foreach ($uids as $u)
+    if (!array_key_exists ($u, $ret))
       # TRANSLATORS: "Not applicable".
-      return _("NA");
-   }
-
-  $user = user_get_array ($user_id);
-  if (!empty ($user))
-    return $user[$column];
-  $uid = "#$user_id";
-  if ($getrealname)
-    $uid = _("Invalid User ID");
-  return "<b>$uid</b>";
+      $ret[$u] = empty ($u)? _("NA"): "<b>#$u</b>";
+  return user_return_val ($user_id, $ret);
 }
 
 function user_getid ($username = 0)
@@ -171,14 +176,6 @@ function user_fetch_name ($user_id)
 {
   $name = user_get_field ($user_id, 'user_name');
   return ($name === null)? '': $name;
-}
-
-function user_getrealname ($user_id = 0, $rfc822_compliant = 0)
-{
-  $ret = user_getname($user_id, 1);
-  if ($rfc822_compliant)
-    return utils_comply_with_rfc822 ($ret);
-  return $ret;
 }
 
 function user_getemail ($user_id = 0)
