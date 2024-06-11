@@ -96,6 +96,29 @@ function format_fetch_details ($item_id, $preview)
   return [$data, $max_entries, $hist_id];
 }
 
+function format_import_detail_params ()
+{
+  $out = sane_import ('get',
+    [
+      'strings' => [
+        [
+          'func',
+          ['flagspam', 'unflagspam', 'viewspam', 'delete_file', 'delete_cc']
+        ]
+      ],
+      'digits' => 'comment_internal_id'
+    ]
+  );
+  $ret = [];
+  foreach (['func', 'comment_internal_id'] as $k)
+    {
+      if (empty ($out[$k]))
+        $out[$k] = 0;
+      $ret[] = $out[$k];
+    }
+  return $ret;
+}
+
 function format_details (
   $item_id, $group_id, $ascii = false, $item_assigned_to = false,
   $preview = [], $allow_quote = true
@@ -141,6 +164,7 @@ function format_details (
   $j = 0; # Counter for background color.
   $previous = false;
   $is_admin = member_check (0, $group_id, 'A');
+  list ($func, $comment_internal_id) = format_import_detail_params ();
   foreach ($data as $entry)
     {
       # Ignore if found an entry without date (should not happen).
@@ -170,20 +194,6 @@ function format_details (
         $comment_number = ($max_entries - $i);
       $i++;
 
-      extract (sane_import ('get',
-        [
-          'strings' => [
-            [
-              'func',
-              [
-               'flagspam', 'unflagspam', 'viewspam', 'delete_file',
-               'delete_cc'
-              ]
-            ]
-          ],
-          'digits' => 'comment_internal_id'
-        ]
-      ));
       # Full markup only for original submission.
       if ($comment_number < 1)
         $markedup_text = markup_full ($entry['text']);
