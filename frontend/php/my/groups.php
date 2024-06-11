@@ -270,8 +270,8 @@ print "</p>\n\n";
 
 extract (sane_import ('request', ['specialchars' => 'words']));
 print form_tag () . form_hidden (['searchgroup' => '1']);
-print form_input ('text', 'words', $words,
-  "title=\"" . _("Group to look for") . "\" size='35'");
+print html_label ('words', _("Group to look for"))
+  . ' ' . form_input ('text', 'words', $words, "size='35'");
 print "<br /><br />\n";
 $int_trapisset = true;
 print form_submit (_("Search Groups"), "Submit");
