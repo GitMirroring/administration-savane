@@ -268,6 +268,7 @@ print
     . "this form.");
 print "</p>\n\n";
 
+extract (sane_import ('request', ['specialchars' => 'words']));
 print form_tag () . form_hidden (['searchgroup' => '1']);
 print form_input ('text', 'words', $words,
   "title=\"" . _("Group to look for") . "\" size='35'");
@@ -276,7 +277,6 @@ $int_trapisset = true;
 print form_submit (_("Search Groups"), "Submit");
 print "</form>\n\n</div><!-- end boxitem -->\n";
 
-extract (sane_import ('request', ['pass' => 'words']));
 if (!is_scalar ($words))
   $words = '';
 if ($words)

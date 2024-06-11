@@ -28,6 +28,9 @@
 
 * Bug fixes:
 
+** In my/groups.php, the 'Search Groups' text input wasn't pre-filled
+   with the previous search.
+
 ** In my/groups.php, search was broken. Reported on sv-hackers@ on 2024-06-10,
   <95fc6bdd-d684-459c-9948-1a2215d7809a@alphapapa.net>.
 
