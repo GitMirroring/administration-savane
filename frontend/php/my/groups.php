@@ -281,6 +281,7 @@ if (!is_scalar ($words))
   $words = '';
 if ($words)
   {
+    $offset = 0; $max_rows = 33; $type = null;
     # Avoid to big search by asking for more than 1 characters.
     # Restricting to more than 2 chars skips a great deal of group names
     # (eg: gv, gdb).
