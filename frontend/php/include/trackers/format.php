@@ -45,64 +45,65 @@
 require_once (dirname (__FILE__) . '/../utils.php');
 require_once (dirname (__FILE__) . '/../savane-git.php');
 
-function format_details (
-  $item_id, $group_id, $ascii = false, $item_assigned_to = false,
-  $preview = [], $allow_quote = true
-)
+function format_entry ($entry, &$hist_id, $preview = false)
 {
-  global $revert_comment_order;
-  # Format the details rows from trackers_history.
-  $data = [];
-  $i = $max_entries = $hist_id = 0;
+  $idx = array_key_exists ('user_id', $entry)? 'user_id': 'submitted_by';
+  $user_id = $entry[$idx];
+  $data['user_id'] = $user_id;
+  $data['user_name'] = user_getname ($user_id);
+  $data['realname'] = user_getrealname ($user_id);
+  $data['date'] = $entry['date'];
+  if (array_key_exists ('comment_type', $entry))
+    $data['comment_type'] = $entry['comment_type'];
+  if (array_key_exists ('old_value', $entry))
+    $data['text'] = trackers_decode_value ($entry['old_value']);
+  else
+    $data['text'] = $entry['details'];
+  $data['comment_internal_id'] = array_key_exists ('bug_history_id', $entry)?
+    $entry['bug_history_id']: 0;
+  if ($data['comment_internal_id'] < 0)
+    $data['comment_internal_id'] = $hist_id;
+  else
+    $hist_id = $data['comment_internal_id'] + 1;
+  $data['spamscore'] = $entry['spamscore'];
+  $data['preview'] = $preview;
+  return $data;
+}
 
-  $add_comment_item = function ($entry, $preview = false)
-    use (&$i, &$max_entries, &$data, &$hist_id)
-  {
-    $i++;
-    $max_entries++;
-    $user_id = $entry['user_id'];
-    $data[$i]['user_id'] = $entry['user_id'];
-    $data[$i]['user_name'] = user_getname ($user_id);
-    $data[$i]['realname'] = user_getname ($user_id, true);
-    $data[$i]['date'] = $entry['date'];
-    $data[$i]['comment_type'] = $entry['comment_type'];
-    $data[$i]['text'] = trackers_decode_value ($entry['old_value']);
-    $data[$i]['comment_internal_id'] = $entry['bug_history_id'];
-    if ($entry['bug_history_id'] < 0)
-      $data[$i]['comment_internal_id'] = $hist_id;
-    else
-      $hist_id = $entry['bug_history_id'] + 1;
-
-    $data[$i]['spamscore'] = $entry['spamscore'];
-    $data[$i]['preview'] = $preview;
-  };
+function format_fetch_details ($item_id, $preview)
+{
+  $max_entries = $hist_id = 0;
 
   # Get original submission.
   $result = db_execute ("
     SELECT submitted_by, date, details, spamscore
     FROM " . ARTIFACT . " WHERE bug_id = ?  LIMIT 1", [$item_id]
   );
-  $entry = db_fetch_array ($result);
-  $user_id = $entry['submitted_by'];
-  $data[$i]['user_id'] = $user_id;
-  $data[$i]['user_name'] = user_getname ($user_id);
-  $data[$i]['realname'] = user_getname ($user_id, true);
-  $data[$i]['date'] = $entry['date'];
-  $data[$i]['text'] = $entry['details'];
-  $data[$i]['comment_internal_id'] = '0';
-  $data[$i]['spamscore'] = $entry['spamscore'];
-  $data[$i]['preview'] = false;
+  $data = [format_entry (db_fetch_array ($result), $hist_id)];
 
   # Get comments (the spam is included to preserve comment No).
   $result = trackers_data_get_followups ($item_id);
-  if (db_numrows ($result))
+  while ($entry = db_fetch_array ($result))
     {
-      while ($entry = db_fetch_array ($result))
-        $add_comment_item ($entry);
+      $data[] = format_entry ($entry, $hist_id);
+      $max_entries++;
     }
-
   if (!empty ($preview))
-    $add_comment_item ($preview, true);
+    {
+      $data[] = format_entry ($preview, $hist_id, true);
+      $max_entries++;
+    }
+  return [$data, $max_entries, $hist_id];
+}
+
+function format_details (
+  $item_id, $group_id, $ascii = false, $item_assigned_to = false,
+  $preview = [], $allow_quote = true
+)
+{
+  global $revert_comment_order;
+  list ($data, $max_entries, $hist_id) =
+    format_fetch_details ($item_id, $preview);
 
   # Sort entries according to user config.
   $comment_order = user_get_preference ("reverse_comments_order");
