@@ -318,22 +318,28 @@ function user_unset_preference ($preference_name)
   return true;
 }
 
+function user_get_preference_by_id ($preference_name, $user_id)
+{
+  $uids = user_get_uids_array ($user_id);
+  $res = db_execute ("
+    SELECT preference_value FROM user_preferences
+    WHERE preference_name = ? AND user_id " . utils_in_placeholders ($uids),
+    array_merge ([$preference_name], $uids)
+  );
+  $ret = [];
+  foreach ($uids as $u)
+    $ret[$u] = null;
+  while ($row = db_fetch_array ($res))
+    $ret[$u] = $row['preference_value'];
+  return user_return_val ($user_id, $ret);
+}
+
 function user_get_preference ($preference_name, $user_id = false)
 {
   global $user_pref;
 
-  if ($user_id)
-    {
-      # Looking for information without being the user.
-      $res = db_execute ("
-        SELECT preference_value FROM user_preferences
-        WHERE user_id = ? AND preference_name = ?",
-        [$user_id, $preference_name]
-      );
-      if (db_numrows ($res) > 0)
-        return db_result ($res, 0, 'preference_value');
-      return null;
-    }
+  if ($user_id !== false)
+    return user_get_preference_by_id ($preference_name, $user_id);
 
   if (!user_isloggedin ())
     return false;

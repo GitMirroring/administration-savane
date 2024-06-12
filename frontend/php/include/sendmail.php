@@ -469,21 +469,16 @@ function sendmail_have_reply_to ($context, $uid = 289)
 
 function sendmail_user_prefs ($uids, $context)
 {
+  $ret = [];
   if (empty ($uids))
-    return [];
-  $ph = utils_in_placeholders ($uids);
-  $result = db_execute ("
-    SELECT user_id AS id, preference_value AS val FROM user_preferences
-    WHERE preference_name = \"subject_line\" AND user_id $ph", $uids
-  );
-  $subj = [];
-  if (sendmail_have_reply_to ($context))
-    foreach ($uids as $u)
-      $subj[$u] = '';
-  while ($row = db_fetch_array ($result))
-    $subj[$row['id']] =
-      sendmail_format_subject_line ($row['val'], $context);
-  return $subj;
+    return $ret;
+  $have_reply_to = sendmail_have_reply_to ($context);
+  foreach (user_get_preference ('subject_line', $uids) as $id => $pref)
+    if ($pref !== null)
+      $ret[$id] = sendmail_format_subject_line ($pref, $context);
+    elseif ($have_reply_to)
+      $ret[$id] = '';
+  return $ret;
 }
 
 # Check for reserved domains, RFC 2606.
