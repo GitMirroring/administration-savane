@@ -605,15 +605,22 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
   print $HTML->box_bottom ();
 }
 
+function sendmail_expand_template ($template, $context)
+{
+  $keys = ['group', 'tracker', 'item', 'uid', 'project', 'server'];
+  $context['server'] = $GLOBALS['sys_default_domain'];
+  foreach ($keys as $k)
+    if (empty ($context[$k]))
+      $context[$k] = '[' . strtoupper ($k) . ']';
+  $context['item'] = '#' . $context['item'];
+  $context['project'] = $context['group'];
+  foreach ($keys as $k)
+    $subst['%' . strtoupper ($k)] = $context[$k];
+  return strtr ($template, $subst);
+}
+
 function sendmail_format_subject_line ($subject_line, $context)
 {
-  foreach (['group', 'tracker', 'item'] as $k)
-    if (empty ($context[$k]))
-      $context[$k] = '';
-  foreach (["%SERVER" => $GLOBALS['sys_default_domain'],
-    "%PROJECT" => $context['group'], "%TRACKER" => $context['tracker'],
-    "%ITEM" => "#{$context['item']}" ] as $k => $v)
-    $subject_line = str_replace ($k, $v, $subject_line);
-  return $subject_line;
+  return sendmail_expand_template ($subject_line, $context);
 }
 ?>
