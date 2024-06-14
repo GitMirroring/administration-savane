@@ -486,6 +486,17 @@ function sendmail_user_prefs ($uids, $context)
   return $subj;
 }
 
+# Check for reserved domains, RFC 2606.
+function sendmail_domain_is_reserved ($addr)
+{
+  $regexp =
+    '/@('
+        . '(example[.]((com)|(net)|(org)))'
+        . '|([a-z0-9._-]*[.]((test)|(example)|(invalid)|(localhost)))'
+    . ')\b/';
+  return preg_match ($regexp, $addr);
+}
+
 # Forge the real to list, by parsing every item of the $to list.
 function sendmail_make_to_list ($addresses)
 {
@@ -502,7 +513,8 @@ function sendmail_make_to_list ($addresses)
     {
       if (sendmail_addr_is_account_name ($v))
         $v = utils_normalize_email ($v);
-      $to1[$v] = true;
+      if (!sendmail_domain_is_reserved ($v))
+        $to1[$v] = true;
     }
   return $to1;
 }
