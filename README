@@ -122,6 +122,7 @@ Run Time
 ** mysqli extension (php-mysqli in Trisquel)
 ** mailparse extension (php-mailparse in Trisquel) - comments on trackers
      via email
+** imap extension (php-imap in Trisquel) - signed email notifications
 * Perl >= 5.6
 ** DBI (libdbi-perl in Trisquel)
 ** DBD::mysql (libdbd-mysql-perl, depends on libdbi-perl in Trisquel)

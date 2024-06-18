@@ -571,9 +571,9 @@ function list_facilities ($func, $items, $labels = [])
 $page .= html_h (2, "PHP extensions");
 $php_extensions =
   [
+    'imap' => 'Composing signed email messages (php-imap) ! [RECOMMENDED]',
+    'mailparse' => 'Parsing email messages (php-mailparse) ! [RECOMMENDED]',
     'mysqli' => 'Database access (php-mysqli) ! [REQUIRED]',
-    'mailparse' =>
-      'Used to parse email messages (php-mailparse) ! [RECOMMENDED]',
   ];
 $page .=
   list_facilities ('extension_loaded', $php_extensions, [true => 'Loaded.']);
@@ -699,8 +699,8 @@ function output_sysvars ()
 {
   $variables = [
     'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
-    'default_domain', 'etc_dir', 'file_domain', 'graphviz', 'https_host',
-    'incdir', 'upload_dir', 'url_topdir', 'www_topdir',
+    'default_domain', 'etc_dir', 'gpg_home', 'file_domain', 'graphviz',
+    'https_host', 'incdir', 'upload_dir', 'url_topdir', 'www_topdir',
     'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',

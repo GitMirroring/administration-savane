@@ -417,6 +417,16 @@ function minify_key ($key)
   list ($minified, $error) = export_minified ($temp_dir);
   return [$minified, $temp_dir, $error[0]];
 }
+
+function extract_micalg ($res, $stderr)
+{
+  if ($res)
+    return null;
+  $pm = preg_match (",\ngpg: [^\s]*/([^\s]*) signature from:,s", $stderr, $m);
+  if (!$pm)
+    return null;
+  return 'pgp-' . strtolower ($m[1]);
+}
 } # namespace gpg {
 
 namespace {
@@ -450,6 +460,14 @@ function gpg_minify_key ($key)
   if (!empty ($temp_dir))
     utils_rm_fr ($temp_dir);
    return [$mini_key, $error];
+}
+function gpg_sign ($input)
+{
+  global $sys_gpg_home;
+  $cmd = gpg\gpg_name () . " --batch --home '$sys_gpg_home' -a -b -v";
+  $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
+  $micalg = gpg\extract_micalg ($res, $err);
+  return [$out, $res, gpg\expand_error ($res, 0, $out, $err), $micalg];
 }
 } # namespace {
 ?>

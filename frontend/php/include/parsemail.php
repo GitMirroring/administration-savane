@@ -1,5 +1,5 @@
 <?php
-# Functions for parsing email messages.
+# Functions for parsing and composing email messages.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -124,5 +124,90 @@ function parsemail_extract_message ($email, $error_handler)
   list ($input, $msg) = parsemail_parse_mime ($mime, $email, $error_handler);
   parsemail_close ($mime);
   return [$input, $msg];
+}
+
+function parsemail_list_headers ($headers)
+{
+  $ret = [];
+  foreach (explode ("\n", $headers) as $l)
+    {
+      $arr = preg_split ("/:/", $l, 2);
+      if (count ($arr) == 2)
+        $ret[$arr[0]] = trim ($arr[1]);
+    }
+  return $ret;
+}
+
+function parsemail_make_multipart ($body)
+{
+  $b = [[
+    'type' => TYPEMULTIPART, 'subtype' => 'signed',
+    'type.parameters' => ['protocol' => 'application/pgp-signature'],
+    'disposition.type' => 'inline'
+  ]];
+  $b[] = ['type' => TYPETEXT, 'subtype' => 'plain',
+    'encoding' => ENCQUOTEDPRINTABLE, 'disposition.type' => 'inline',
+    'charset' => 'utf-8',
+    'contents.data' => imap_8bit ($body)
+  ];
+  $b[] = ['type' => TYPEAPPLICATION, 'subtype' => 'pgp-signature',
+    'type.parameters' => ['name' => 'signature.asc'],
+    'contents.data' => ''
+  ];
+  return $b;
+}
+
+function parsemail_compose ($parts)
+{
+  $msg = imap_mail_compose ([], $parts);
+  $boundary = preg_replace ("/.*\n(--.*)--\s*$/s", '$1', $msg);
+  $chunks = explode ("$boundary", $msg);
+  # /^\r\n/ follows $boundary, it doesn't belong the body; likewise, /\r\n$/
+  # is part of the boundary and must be excluded from the body (the latter
+  # is optional per RFC 3156, but sendmail routines add the newline
+  # unconditionally) .
+  $body = preg_replace ("/^\r\n(.*)\r\n$/s", '$1', $chunks[1]);
+  return [$msg, parsemail_normalize_lines ($body)];
+}
+
+function parsemail_sign_chunk ($msg)
+{
+  list ($out, $res, $msg, $micalg) = gpg_sign ($msg);
+  if ($res)
+    $out = $msg;
+  return [$out, $micalg];
+}
+
+function parsemail_will_sign ()
+{
+  global $sys_gpg_home;
+  if (empty ($sys_gpg_home))
+    return false;
+  return extension_loaded ('imap');
+}
+
+function parsemail_sign_message (&$body, &$headers)
+{
+  if (!parsemail_will_sign ())
+    return;
+  $h = parsemail_list_headers ($headers);
+  $parts = parsemail_make_multipart ($body);
+  list ($msg, $b) = parsemail_compose ($parts);
+  list ($sig, $micalg) = parsemail_sign_chunk ($b);
+  if ($micalg !== null)
+    # IMAP coming with PHP 5.4 omits the 'protocol' part when 'micalg'
+    # is set separately like $parts[0]['type.parameters']['micalg'] = $micalg.
+    $parts[0]['type.parameters'] = [
+      'protocol' => 'application/pgp-signature', 'micalg' => $micalg
+    ];
+  $parts[2]['contents.data'] = $sig;
+  list ($msg) = parsemail_compose ($parts);
+  $r = preg_match (
+    "/Content-Disposition: inline\s*\n(.*)$/s", $msg, $m, PREG_OFFSET_CAPTURE
+  );
+  if (!$r)
+    return;
+  $headers .= substr ($msg, 0, $m[1][1]);
+  $body = substr ($msg, $m[1][1]);
 }
 ?>

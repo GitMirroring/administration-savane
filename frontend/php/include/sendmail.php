@@ -40,8 +40,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-require_once (dirname (__FILE__) . '/utils.php');
-require_once (dirname (__FILE__) . '/gpg.php');
+foreach (['utils', 'gpg', 'parsemail'] as $h)
+  require_once (dirname (__FILE__) . "/$h.php");
 
 function sendmail_signature ()
 {
@@ -132,7 +132,9 @@ function sendmail_savane_headers ($context)
   $ret = sendmail_x_savane_server_header ();
 
   # Necessary for proper utf-8 support.
-  $ret .= "MIME-Version: 1.0\nContent-Type: text/plain;charset=UTF-8\n";
+  # These headers are added in parsemail.php when signed email is formed.
+  if (!parsemail_will_sign ())
+    $ret .= "MIME-Version: 1.0\nContent-Type: text/plain;charset=UTF-8\n";
 
   foreach (['group' => 'X-Savane-Project', 'tracker' => 'X-Savane-Tracker',
     'item' => 'X-Savane-Item-ID'] as $k => $h
@@ -293,6 +295,12 @@ function sendmail_tracker_line ($uid, $context)
     . "item = {$context['item']}}";
 }
 
+function sendmail_mail_signed ($to, $subj, $body, $headers)
+{
+  parsemail_sign_message ($body, $headers);
+  return mail ($to, $subj, $body, $headers);
+}
+
 # Send mails with specific subject line.
 function sendmail_send_to_list ($user_name, $user_subj, $message, $context)
 {
@@ -309,7 +317,7 @@ function sendmail_send_to_list ($user_name, $user_subj, $message, $context)
       $headers .= sendmail_reply_to_headers ($v, $user_name[$v], $context);
       if (empty ($int_delayspamcheck))
         {
-          $ret .= mail ($u_name, $u_subj, $body, $headers);
+          $ret .= sendmail_mail_signed ($u_name, $u_subj, $body, $headers);
           # TRANSLATORS: the argument is a comma-separated list of recipients.
           fb (sprintf (_("Mail sent to %s"), join (', ', $user_name[$v])));
           continue;
