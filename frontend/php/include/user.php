@@ -46,6 +46,7 @@ require_once (dirname (__FILE__) . '/member.php');
 # Unset these globals until register_globals if off everywhere.
 unset ($USER_IS_SUPER_USER);
 # User records in this array can be accessed by user_id as well as by user_name.
+# the user_name keys are in the lower case, user names are case-insensitive.
 $USER_ARR = [];
 
 function user_isloggedin ()
@@ -236,7 +237,8 @@ function user_filter_missing ($users)
 function user_fetch_data ($users)
 {
   global $USER_ARR;
-  list ($names, $uids) = user_filter_missing ($users);
+  $lower_users = array_map ('strtolower', $users);
+  list ($names, $uids) = user_filter_missing ($lower_users);
   $arg = array_merge ($names, $uids);
   if (empty ($arg))
     return;
@@ -247,8 +249,10 @@ function user_fetch_data ($users)
     $cond[] = "user_id " . utils_in_placeholders ($uids);
   $res = db_execute ("SELECT * FROM user WHERE " . join (' OR ', $cond), $arg);
   while ($arr = db_fetch_array ($res))
-    $USER_ARR[$arr['user_id']] = $USER_ARR[$arr['user_name']] =
-      $arr;
+    {
+      $idx = strtolower ($arr['user_name']);
+      $USER_ARR[$arr['user_id']] = $USER_ARR[$idx] = $arr;
+    }
   db_free_result ($res);
 }
 
@@ -263,8 +267,11 @@ function user_get_array ($user)
   user_fetch_data ($users);
   $ret = [];
   foreach ($users as $name)
-    if (!empty ($USER_ARR[$name]))
-      $ret[$name] = $USER_ARR[$name];
+    {
+      $idx = strtolower ($name);
+      if (!empty ($USER_ARR[$idx]))
+        $ret[$name] = $USER_ARR[$idx];
+    }
   return user_return_val ($user, $ret);
 }
 
