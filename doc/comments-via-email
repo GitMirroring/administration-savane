@@ -1,0 +1,129 @@
+Savane supports follow-up comments by email.  This file describes
+the arrangements needed for that.
+
+= Basics
+
+When Savane sends notifications from trackers to specific users, it adds
+information about the relevant tracker, item, and the user who would reply
+to the notitication by email.  When the user replies to the message,
+it comes to a specific address, and a simple script redirects the
+data into a HTTP request to $SERVER_URL/$tracker/comment.php.  Then
+comment.php validates the request and adds a comment to the tracker
+in case of success.
+
+= Users' perspective
+
+Savane accepts messages signed with any of the GnuPG keys registered
+in the respective account.  Both 'clearsigned' messages and messages
+with detached signatures are accepted.  When the user replies
+to a notification, the MUA inserts a specific address in the 'To:' header;
+the address includes the numerical Savane user ID and the name of the tracker,
+for example,
+
+  83521-task-savannah <savannah-trackers@gnu.org>
+
+Also, the quoted body of the message contains a line with the same data plus
+the number of the item, like
+
+  > {savane: user = 83521; tracker = task; item = 4913}
+
+For the request to be accepted, this info should be present in your message.
+The PHP code ignores anything that's written below that line,
+and it also removes the quoted Savane footer, 'Reply to this item&c.'
+Other text is used as the comment.
+
+For basic troubleshooting, you can visit /$tracker/comment.php and fill
+the 'user' field with either your account name or user ID, insert your
+message in the mbox format in the 'email (mbox)' field, submit the request
+manually and see the feedback.
+
+Note that the script checks whether the user has already added the same
+comment in that item, and rejects duplicate comments, so an intercepted
+message can't be used to add more comments signed by the user.
+
+= Savane admin's perspective
+
+In order to enable the feature savane.conf.php should configure a template
+for the reply-to address, like
+
+  $sys_reply_to = '%UID-%TRACKER-savannah <savannah-trackers@gnu.org>';
+
+%UID is replaced with user ID, %TRACKER is replaced with tracker name.
+Other substituted variables are %GROUP (the same as %PROJECT), %ITEM,
+and %SERVER; however, only %UID and %TRACKER are needed in our case.
+
+Savane will add the relevant info to the notifications.  Including %UID
+in the message means that every user is sent a personalized version
+of the notification.
+
+The user ID from the 'To:' header is used to get the registered keys, %TRACKER
+is used as part of the URL of the request sent to comment.php; the comment.php
+script checks if user ID and tracker name match the information coming
+from the '{savane:...}' line in the message.
+
+Then, the admin should make sure to process the data incoming to
+the address listed in $sys_reply_to.  This can be done with a simple
+procmail script; a sample script follows.
+
+  # Public domain.  Originally written by Ineiev <ineiev@gnu.org>.
+
+  WDIR=procmail/sv-trackers
+  HEADER="Content-Type: multipart/form-data; boundary="
+  TRACKER_EMAIL="savannah-trackers@gnu[.]org"
+  SV_HOST=savannah
+  SV_URL=https://savannah.gnu.org
+
+  :0: D
+  * $ ^To: +[0-9]+-[a-z]+-$SV_HOST +<$TRACKER_EMAIL>
+  {
+    :0 w
+    * ^To: +\/[0-9]+
+    { UID=$MATCH }
+    :0 w
+    * ^To: [0-9]+-\/[a-z]+
+    { TRACKER=$MATCH }
+    :0 w
+    # Actual SV_HOST; it isn't actually used, but the script could
+    # modify the URL to process requests from multiple sources.
+    * ^To: [0-9]+-[a-z]+-\/[^ ]+
+    { SV_HOST=$MATCH }
+    # It looks like the length of procmail variable values is limited,
+    # so format messages in files.
+    :0
+    | cat > $WDIR/msg; cat < $WDIR/msg >> $WDIR/../tracker-processed \
+      BOUNDARY=$(date +%sp%N); i=0; \
+      seq 34 | while read i; do \
+        grep -q $BOUNDARY $WDIR/msg || break; \
+        BOUNDARY=$(echo $BOUNDARY | md5sum - | head -c 17); \
+      done; \
+      HEADER="$HEADER$BOUNDARY"; \
+      BOUNDARY="--$BOUNDARY"; \
+      echo "" > $WDIR/post; \
+      echo "$BOUNDARY" >> $WDIR/post; \
+      echo "Content-Disposition: form-data; name=user" >> $WDIR/post; \
+      echo "" >> $WDIR/post; \
+      echo "$UID" >> $WDIR/post; \
+      echo "$BOUNDARY" >> $WDIR/post; \
+      echo "Content-Disposition: form-data; name=mbox" >> $WDIR/post; \
+      echo "" >> $WDIR/post; \
+      cat $WDIR/msg >> $WDIR/post; \
+      echo "$BOUNDARY--" >> $WDIR/post; \
+      echo "$HEADER" > $WDIR/header; \
+      wget --content-on-error --header="$HEADER" --post-file=$WDIR/post \
+        $SV_URL/$TRACKER/comment.php -O $WDIR/wget-file.html \
+        2> $WDIR/wget-err > $WDIR/wget-out
+  }
+  :0
+  * $ ^TO_$TRACKER_EMAIL
+  $WDIR/../tracker-malformed
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2024 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.

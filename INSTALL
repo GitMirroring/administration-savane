@@ -128,8 +128,8 @@ autoreconf: Entering directory `.'
 ...
 autoreconf: Leaving directory `.'
 
-Advanced and troubleshooting
-----------------------------
+Database: advanced and troubleshooting
+--------------------------------------
 
 The procedure above installs a complete instance of database server
 data in user's home directory.  That avoids the need for running
@@ -178,3 +178,8 @@ $ mysql --user=sv --password sv_demo < ../savane/db/sample.sql
 Visit <http://127.0.0.85:4913/testconfig.php> and check the 'MySQL
 configuration' section; you may want to set sql_mode in some file from
 /etc/mysql/.
+
+Configuring follow-up comments via email
+----------------------------------------
+
+See doc/comments-via-email.

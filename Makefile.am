@@ -208,7 +208,7 @@ EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
   tests $(substituted:%=%.in) $(mirmon_pkgdata) backend/README \
   autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
-  caboose/parse-files.awk
+  caboose/parse-files.awk doc/comments-via-email
 
 CLEANFILES = $(substituted) dirs.stamp db/init.stamp
 
