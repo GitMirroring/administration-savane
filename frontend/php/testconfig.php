@@ -652,7 +652,7 @@ $page .= "</p>\n";
 
 function test_mysql ()
 {
-  print html_h (2, "MySQL configuration");
+  print html_h (2, "Database configuration");
   $db_err = db_connect ();
   if ($db_err !== null)
     {
