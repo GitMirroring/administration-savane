@@ -752,6 +752,7 @@ function test_sysconfigs ()
   test_mailman ();
   test_mysql ();
 
+  test_gpg ();
   print html_h (2, "Other tests");
   print "<dl>\n";
   test_repos ();
@@ -762,7 +763,6 @@ function test_sysconfigs ()
   test_i18n ();
   print "</dd>\n";
   print "</dl>\n";
-  test_gpg ();
 }
 
 $page .= html_h (2, "Configured settings");
