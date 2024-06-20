@@ -418,6 +418,15 @@ function minify_key ($key)
   return [$minified, $temp_dir, $error[0]];
 }
 
+function test_sign ($input)
+{
+  global $sys_gpg_home;
+  list ($res, $err_msg) = verify ($sys_gpg_home, $input);
+  if ($res)
+    return "<p><b>Fail.</b></p>\n<pre>$err_msg</pre>\n";
+  return "<p>OK</p>\n";
+}
+
 function extract_micalg ($res, $stderr)
 {
   if ($res)
@@ -432,11 +441,16 @@ function extract_micalg ($res, $stderr)
 namespace {
 function gpg_run_checks ($key, $run_encryption = true, $level = '2')
 {
-  $ret = html_h ($level, _("GnuPG version"));
+  static $have_version = false;
+  if (!$have_version)
+    {
+      $ret = html_h ($level, _("GnuPG version"));
 
-  $ret .= "<pre>\n";
-  $ret .= utils_specialchars (gpg\gpg_version ());
-  $ret .= "</pre>\n";
+      $ret .= "<pre>\n";
+      $ret .= utils_specialchars (gpg\gpg_version ());
+      $ret .= "</pre>\n";
+    }
+  $have_version = true;
 
   $temp_dir = utils_mktemp ("sv-gpg", 'dir');
   if (empty ($temp_dir))
@@ -448,6 +462,25 @@ function gpg_run_checks ($key, $run_encryption = true, $level = '2')
     }
   $ret .= "\n<hr />\n";
   return $ret;
+}
+
+function gpg_run_sys_checks ($key, $level)
+{
+  global $sys_gpg_home;
+  $output = '';
+  gpg\test_listing ($sys_gpg_home, $level, $output);
+  $output .= html_h ($level, 'Signature for an empty file');
+  $input = '';
+  list ($signature, $res, $err_msg) = gpg_sign ($input);
+  if ($res)
+    {
+      $output .= "<p><b>Fail.</b></p>\n<pre>$err_msg</pre>\n";
+      return $output;
+    }
+  $output .= "<pre>$signature</pre>\n";
+  $output .= html_h ($level, 'Signature verification');
+  $output .= gpg\test_sign ([$signature, $input]);
+  return $output;
 }
 
 function gpg_encrypt_to_user ($user_id, $message)

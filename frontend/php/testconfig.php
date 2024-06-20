@@ -222,6 +222,20 @@ function test_gpg_encrypt ($algo, &$defs)
   test_gpg_func ($algo, GNUPG_ENCRYPT_CAPABILITY, 'run_gpg_encrypt', $defs);
 }
 
+function test_sys_gpg_key ()
+{
+  $defs = [];
+  $key = gpg_get_sys_key ();
+  print html_h (3, 'Frontend key');
+  if (empty ($key))
+    {
+      print "<p>GnuPG key isn't defined.</p>\n";
+      return;
+    }
+  print "<pre>" . utils_specialchars ($key) . "</pre>\n";
+  print gpg_run_sys_checks ($key, 4);
+}
+
 function test_gpg ()
 {
   if (check_gpg_executable ())
@@ -236,6 +250,7 @@ function test_gpg ()
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_encrypt ($algo, $defs);
   print html_dl ($defs);
+  test_sys_gpg_key ();
 }
 
 function test_cgitrepos ()
