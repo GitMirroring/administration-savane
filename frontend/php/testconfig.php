@@ -75,7 +75,7 @@ function return_bytes ($v)
 function check_gpg_executable ()
 {
   global $sys_gpg_name;
-  print html_h (3, "GnuPG");
+  print html_h (2, "GnuPG");
   if (!isset ($sys_gpg_name))
     {
       print "<p><strong>GnuPG is not configured.</strong></p>\n";
@@ -225,10 +225,10 @@ function test_gpg ()
 {
   if (check_gpg_executable ())
     return;
-  print html_h (4, "Verify signature") . "<dl>\n";
+  print html_h (3, "Verify signature") . "<dl>\n";
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_verify ($algo);
-  print "</dl>\n" . html_h (4, 'Encrypt');
+  print "</dl>\n" . html_h (3, 'Encrypt');
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_encrypt ($algo);
 }
@@ -344,7 +344,7 @@ function test_captcha ()
   global $sys_captchadir;
   $default_dir = '/usr/share/php';
 
-  print html_h (3, "Captcha");
+  print html_h (2, "Captcha");
   if (empty ($sys_captchadir))
     {
       print "<p><strong>sys_captchadir isn't set.</strong></p>\n";
@@ -416,7 +416,7 @@ function output_mailman_query ($q)
 
 function test_mailman ()
 {
-  print html_h (3, "Mailman connection");
+  print html_h (2, "Mailman connection");
   print "<dl>\n";
   $ver = mailman_get_version ();
   $have_version = output_mailman_version ($ver);
@@ -652,7 +652,7 @@ $page .= "</p>\n";
 
 function test_mysql ()
 {
-  print html_h (3, "MySQL configuration");
+  print html_h (2, "MySQL configuration");
   $db_err = db_connect ();
   if ($db_err !== null)
     {
@@ -752,7 +752,7 @@ function test_sysconfigs ()
   test_mailman ();
   test_mysql ();
 
-  print html_h (3, "Other tests");
+  print html_h (2, "Other tests");
   print "<dl>\n";
   test_repos ();
   print "<dt id='sys-upload-dir'>sys_upload_dir writability</dt>\n<dd>";
