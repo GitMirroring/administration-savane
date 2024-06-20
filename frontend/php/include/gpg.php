@@ -469,5 +469,16 @@ function gpg_sign ($input)
   $micalg = gpg\extract_micalg ($res, $err);
   return [$out, $res, gpg\expand_error ($res, 0, $out, $err), $micalg];
 }
+function gpg_get_sys_key ()
+{
+  global $sys_gpg_home;
+  if (empty ($sys_gpg_home))
+    return '';
+  $cmd = gpg\gpg_name () . " --batch --home '$sys_gpg_home' -a --export";
+  $res = utils_run_proc ($cmd, $out, $err);
+  if ($res)
+    return gpg\expand_error ($res, 0, $out, $err);
+  return $out;
+}
 } # namespace {
 ?>

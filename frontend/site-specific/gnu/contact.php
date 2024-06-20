@@ -88,4 +88,13 @@ print "</li>\n<li>"
       . "use the savannah-help-private list, which is not publicly archived\n"
       . "(unlike all the others here).")
   . "</li>\n</ul>\n";
+require_once (dirname (__FILE__) . "/../../php/include/gpg.php");
+$key = utils_specialchars (gpg_get_sys_key ());
+if (!empty ($key))
+  {
+    print "\n\n<p>"
+      . _("Tracker notifications are signed with the next key,") . "</p>\n";
+    print "<pre>$key</pre>\n";
+  }
+
 ?>
