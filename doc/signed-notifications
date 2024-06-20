@@ -1,0 +1,55 @@
+Savane can sign with GnuPG all messages sent from the frontend.
+This file describes setting that up.
+
+First, generate a sign-only GnuPG key with an empty password (the next
+sample assumes using pinentry-tty as GnuPG pinentry program):
+
+  $ cd /var/lib/savane; mkdir -m og= gnupg
+  $ gpg --home gnupg --quick-gen-key \
+    'Savane trackers (unattended signatures) <INVALID.NOREPLY@gnu.org>' \
+     ed25519 sign 0
+  We need to generate a lot of random bytes. It is a good idea to perform
+  some other action (type on the keyboard, move the mouse, utilize the
+  disks) during the prime generation; this gives the random number
+  generator a better chance to gain enough entropy.
+  Please enter the passphrase to
+  protect your new key
+  Passphrase:
+  Repeat:
+  You have not entered a passphrase - this is in general a bad idea!
+  Please confirm that you do not want to have any protection on your key.
+    Yes, protection is not needed
+    Enter new passphrase
+  [ye]? y
+  gpg: revocation certificate stored as \
+    '[...]revocs.d/47E203CF0DA7AD3D6F3061F1CF765D6441A6E2E6.rev'
+  public and secret key created and signed.
+
+  pub   ed25519 2024-06-20 [SC]
+        47E203CF0DA7AD3D6F3061F1CF765D6441A6E2E6
+  uid                      Savane trackers (unattended signatures) \
+    <INVALID.NOREPLY@gnu.org>
+
+Set appropriate group and owner for the home GnuPG directory if needed,
+
+  $ chown -R www-data:www-data /var/lib/savane/gnupg
+
+Set the $sys_gpg_home in savane.conf.php with a line like this:
+
+  $sys_gpg_home = "/var/lib/savane/gnupg";
+
+Visit /testconfig.php and look for errors at the bottom of the 'GnuPG' section.
+
+If you already have a key, just make $sys_gpg_home points to its GnuPG
+home directory and be sure to set the proper owner and group for it.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2024 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.

@@ -5,6 +5,9 @@
 
 [FRONTEND]
 
+* Emails sent from Savane frontend can be GPG-signed, see
+  doc/signed-notifications.
+
 * A facility to post on trackers using GPG-signed emails is added.
 
 * Git commit detection supports git bisect-ed trees.

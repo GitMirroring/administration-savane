@@ -179,6 +179,11 @@ Visit <http://127.0.0.85:4913/testconfig.php> and check the 'MySQL
 configuration' section; you may want to set sql_mode in some file from
 /etc/mysql/.
 
+Configuring GnuPG-signed tracker notifications
+----------------------------------------------
+
+See doc/signed-notifications.
+
 Configuring follow-up comments via email
 ----------------------------------------
 
