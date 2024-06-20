@@ -41,9 +41,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require('include/init.php');
-
-$HTML->header(array('title'=>_("Contact Us")));
-utils_get_content("contact");
-$HTML->footer(array());
+require ('include/init.php');
+$HTML->header (['title' => _("Contact Us")]);
+utils_get_content ("contact");
+$HTML->footer ([]);
 ?>
