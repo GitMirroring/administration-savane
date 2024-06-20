@@ -56,7 +56,12 @@ LOCK TABLES `user` WRITE;
 -- A set of accounts.   The password is '-', the same for all accounts.
 -- The GnuPG keys are passwordless test keys from frontend/php/testing/gpg.
 INSERT INTO `user` SET
-  user_id = 102, user_name = 'alice', realname = 'Alice',
+  -- Since the start of Git history, register.php applies strtolower ()
+  -- before writing user_name to the database; however, as of 2024-06,
+  -- a few accounts with capitals in user_name exist that were registered
+  -- before 2005, see Savannah sr #111079.
+  user_name = 'Alice',
+  user_id = 102, realname = 'Alice',
   email = 'alice@test.net', user_pw = '00WKk4u6PmmLA', status = 'A',
   gpg_key =
     'Test RSA public key.  This file contains no copyrightable data.\n'
