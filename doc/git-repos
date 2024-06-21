@@ -1,0 +1,43 @@
+This file describes how Savane PHP frontend code lists Git repositories.
+
+Savane lists Git repositories on the main pages of the groups (/p/$group_name),
+on their 'Use Git' pages (/git/?group=$group_name), and on their
+Git administration pages (/git/admin/?group=$group_name) (the access
+to the latter requires the privileges of group admins).
+
+Historically, Savane can get the information about the repositories either
+from the cgitrepos located in $sys_etc_dir (in Savannah, it is generated
+with sv_cgit.pl and passed to CGit to implement Git web browsing) or directly
+from the repositories.  The latter is newer and the preferred method; cgitrepos
+is only used when the direct listing fails.
+
+The listing from the repositories is configured with the $sys_vcs_dir variable.
+It should be an array with the VCS names as keys (currently, only 'git'
+is supported).  The entries of that array are also arrays with the 'dir'
+element pointing to the directory where the repositories are located,
+and 'clone-path' is prefix for Git clone URL, e.g.
+
+  $sys_vcs_dir = [
+    'git' => ['dir' => '/net/vcs/git', 'clone-path' => '/srv/git']
+  ];
+
+Savane assumes that the first repository of each group is located in
+the directory $group_name.git, and when a group has additional Git
+repositories, they are located in the directories $group_name/$repo_name.git.
+
+When group admins define a description for a repository, it is used
+on the web pages and in sv_cgit.pl.  Until then, the 'description' file
+is read.  If it contains the default text 'Unnamed repository; edit this
+file...', then the name of the repository is used instead ('$group_name'
+or '$group_name/$repo_name').
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2024 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
