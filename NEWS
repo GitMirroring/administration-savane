@@ -110,7 +110,7 @@
 
 [I18N]
 
-* Update French, Hebrew.  Some progress in (simplified) Chinese.
+* Update French, Hebrew, Russian.  Some progress in (simplified) Chinese.
 * The .nop.po-update target in po/Makefile.am was broken since 2d769017.
 
 [BUILD]
