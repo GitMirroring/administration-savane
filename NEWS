@@ -14,6 +14,9 @@
 
 * In atom feeds, an alternate link to group page is added.
 
+* On the 'My Account Configuration: Change GPG Keys' page, a test was added
+  for whether any keys for user's registered email are present.
+
 * In the login form, input labels are enclosed in <label> elements.
 
 * When exiting on error, the error message is shown in the 'main' text

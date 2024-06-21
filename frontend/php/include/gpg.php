@@ -131,10 +131,29 @@ function test_gpg_command ($temp_dir, $command, &$ret, $in = null)
   return $res;
 }
 
-function test_listing ($temp_dir, $level, &$ret)
+function test_listing ($temp_dir, $level, &$ret, $test_against_email = false)
 {
-  $ret .= html_h ($level, _("Listing key"));
-  return test_gpg_command ($temp_dir, '--list-keys --fingerprint', $ret);
+  $label = _("Listing key");
+  if ($test_against_email)
+    {
+      $email = user_get_email (0);
+      $email_string = utils_specialchars ("<$email>");
+      # TRANSLATORS: The argument is email address.
+      $label = sprintf (_("Listing keys for %s"), $email_string);
+    }
+  $ret .= html_h ($level, $label);
+  $options = '--list-keys --fingerprint';
+  if ($test_against_email)
+    $options .= " $email";
+  $res = test_gpg_command ($temp_dir, $options, $ret);
+  if (!$test_against_email || !$res)
+    return $res;
+  # TRANSLATORS: The argument is email address.
+  $msg = sprintf (
+    _("Note: no key for your registered email %s is found."), $email_string
+  );
+  $ret .= "<p><b>$msg</b></p>\n";
+  return $res;
 }
 
 function test_import ($key, $temp_dir, &$output)
@@ -165,6 +184,7 @@ function test_message ()
 
 function test_encryption ($temp_dir, $level, &$output)
 {
+  test_listing ($temp_dir, $level, $output, true);
   $message = test_message ();
   list ($key_id, $gpg_result) = find_appropriate_key ($temp_dir);
   if ($gpg_result)
