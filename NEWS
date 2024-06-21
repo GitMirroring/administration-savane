@@ -44,6 +44,8 @@
 ** In my/groups.php, the 'Search Groups' text input wasn't pre-filled
    with the previous search.
 
+** Field usage assignment was broken in bugs/admin/field_usage.php.
+
 ** In my/groups.php, search was broken. Reported on sv-hackers@ on 2024-06-10,
   <95fc6bdd-d684-459c-9948-1a2215d7809a@alphapapa.net>.
 

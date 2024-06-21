@@ -1044,18 +1044,19 @@ function trackers_data_update_usage (
 
   $field_id = trackers_data_get_field_id ($field_name);
 
-  $lbl = isset ($label) ? $label : null;
-  $desc = isset ($description) ? $description : null;
-  $disp_size = isset ($display_size) ? $display_size : null;
-  $emp_ok = isset ($empty_ok) ? $empty_ok : null;
-  $keep_hist = isset ($keep_history) ? $keep_history : null;
+  $lbl = isset ($label)? $label: null;
+  $desc = isset ($description)? $description: null;
+  $disp_size = isset ($display_size)? $display_size: null;
+  $emp_ok = isset ($empty_ok)? $empty_ok: null;
+  $keep_hist = isset ($keep_history)? $keep_history: null;
 
-  if (!isset ($show_on_add))
-    $show_on_add = 0;
-  if (!isset ($show_on_add_members))
-    $show_on_add_members = 0;
-  if (!isset ($transition_default_auth))
-    $transition_default_auth = '';
+  foreach (
+    [ 'show_on_add' => 0, 'show_on_add_members' => 0, 'use_it' => 0,
+      'transition_default_auth' => '']
+    as $var => $val
+  )
+    if (!isset ($$var))
+      $$var = $val;
 
   # See if this field usage exists in the table for this group.
   $result = db_execute ("
