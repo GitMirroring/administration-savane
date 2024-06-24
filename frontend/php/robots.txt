@@ -83,3 +83,6 @@ Disallow: /*func=digest
 
 # Don't index spam.
 Disallow: /*func=viewspam
+
+# Unofficial but delay crawlers that respect it.
+Crawl-delay: 4
