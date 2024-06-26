@@ -45,7 +45,6 @@ use strict;
 use Savane::Version qw (PrintVersionOrHelp);
 use Savane::Util;
 use Getopt::Long;
-use File::Temp qw (tempfile);
 
 my $name_base = "sv_git";
 my $script = "${name_base}_gc_repos.pl";

@@ -146,9 +146,6 @@ $sys_home = $GLOBALS['sys_url_topdir'];
 if (!preg_match ('|/$|', $GLOBALS['sys_url_topdir']))
   $sys_home = $GLOBALS['sys_url_topdir'] . '/';
 
-if (empty ($sys_savane_url))
-  $sys_savane_url = '//savannah.nongnu.org/projects/administration';
-
 if (empty ($sys_savane_cgit))
   $sys_savane_cgit =
     "//git.savannah.nongnu.org/cgit/administration/savane.git";

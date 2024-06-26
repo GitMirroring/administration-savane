@@ -715,7 +715,7 @@ function output_sysvars ()
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
-    'mailman_wrapper', 'savane_url', 'savane_cgit'
+    'mailman_wrapper', 'savane_cgit'
   ];
   print "<dl>\n";
   foreach ($variables as $tag)
