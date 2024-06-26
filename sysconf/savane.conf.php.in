@@ -42,13 +42,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 $sys_default_domain = "@WWW_SERVER_HOST@";
 $sys_www_server_port = '@WWW_SERVER_PORT@';
-if ($sys_www_server_port != 80)
-  $sys_default_domain .= ":$sys_www_server_port";
 $sys_brother_domain = $sys_default_domain;
 $sys_file_domain = "@FILE_SERVER_HOST@";
 if ($sys_www_server_port != 80)
-  $sys_file_domain .= ":$sys_www_server_port";
+  foreach (['default', 'brother', 'file'] as $v)
+    ${"sys_{$v}_domain"} .= ":$sys_www_server_port";
 
+# Set to true to avoid automatic redirection to 'brother' host
+# when accessing a group hosted there.  The group will be just shown
+# in 'our' host.
 $sys_debug_nobasehost = true;
 # Set this variable to redirect all emails to one address:
 $sys_debug_email_override_address = "webmasters@localhost";
