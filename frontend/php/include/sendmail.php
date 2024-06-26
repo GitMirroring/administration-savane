@@ -384,10 +384,10 @@ function sendmail_reduce_names_to_uids ($to, $exclude)
      return [$to, $exclude];
    foreach (user_get_array ($names) as $row)
      foreach (['to', 'exclude'] as $a)
-       if (!empty ($$a[strtolower ($row['user_name'])]))
+       if (!empty (${$a}[strtolower ($row['user_name'])]))
          {
-           unset ($$a[strtolower ($row['user_name'])]);
-           $$a[$row['user_id']] = true;
+           unset (${$a}[strtolower ($row['user_name'])]);
+           ${$a}[$row['user_id']] = true;
          }
    return [$to, $exclude];
 }
