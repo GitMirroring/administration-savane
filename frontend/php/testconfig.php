@@ -714,9 +714,10 @@ function output_sysvars ()
 {
   $variables = [
     'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
-    'default_domain', 'etc_dir', 'gpg_home', 'file_domain', 'graphviz',
-    'https_host', 'incdir', 'upload_dir', 'url_topdir', 'www_topdir',
-    'linguas', 'localedir',
+    'default_domain', 'brother_domain', 'file_domain', 'https_host',
+    'gpg_name', 'gpg_home', 'graphviz',
+    'etc_dir', 'incdir', 'upload_dir', 'url_topdir',
+    'www_topdir', 'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
