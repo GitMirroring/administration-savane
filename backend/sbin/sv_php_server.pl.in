@@ -51,15 +51,17 @@ my $port = "@WWW_SERVER_PORT@";
 my $host = "@WWW_SERVER_HOST@";
 my $file_host = "@FILE_SERVER_HOST@";
 my $php_bin = "@PHP@";
+my @ini_directives;
 
 my $help =
 "Usage: $0 [OPTIONS]
 
 Run frontend in PHP built-in server.
 
-  -h, --help         show this help and exit
-  -v, --version      show Savane version and exit
-      --php-bin      PHP executable [$php_bin]
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+      --php-bin        PHP executable [$php_bin]
+  -d directive[=value] pass additional INI directive to PHP
 
 Configuration:
 
@@ -71,7 +73,8 @@ $help .= "\n\nNote: Port is less than 1024; this script needs root privileges."
 
 PrintVersionOrHelp ($help);
 
-GetOptions ("php-bin=s" => \$php_bin) or die ("Wrong command line.");
+GetOptions ("php-bin=s" => \$php_bin, 'd=s', \@ini_directives)
+  or die ("Wrong command line.");
 
 $php_bin = abs_path ($php_bin);
 
@@ -84,8 +87,13 @@ my $pid = 0;
 $pid = fork () if $file_host ne $host;
 die "Can't fork: $!" unless defined $pid;
 my $h = $pid? $file_host: $host;
+my @ini_options;
+foreach my $d (@ini_directives)
+  {
+    push @ini_options, '-d', $d;
+  }
 system (
-  $php_bin, '-c', '@confdir@/php.ini', '-S', "$h:$port",
+  $php_bin, '-c', '@confdir@/php.ini', @ini_options, '-S', "$h:$port",
   '-t', "@frontenddir@/php", "@frontenddir@/local.php"
 );
 kill ($pid) if $pid;
