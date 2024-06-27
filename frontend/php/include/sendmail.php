@@ -484,6 +484,8 @@ function sendmail_user_prefs ($uids, $context)
 # Check for reserved domains, RFC 2606.
 function sendmail_domain_is_reserved ($addr)
 {
+  if (preg_match ('/@savane[.]test$/', $addr)) # Allow for Savane tests.
+    return false;
   $regexp =
     '/@('
         . '(example[.]((com)|(net)|(org)))'

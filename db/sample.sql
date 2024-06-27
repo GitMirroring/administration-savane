@@ -62,70 +62,70 @@ INSERT INTO `user` SET
   -- before 2005, see Savannah sr #111079.
   user_name = 'Alice',
   user_id = 102, realname = 'Alice',
-  email = 'alice@test.net', user_pw = '00WKk4u6PmmLA', status = 'A',
+  email = 'alice@savane.test', user_pw = '00WKk4u6PmmLA', status = 'A',
   gpg_key =
     'Test RSA public key.  This file contains no copyrightable data.\n'
     '-----BEGIN PGP PUBLIC KEY BLOCK-----\n'
-    'Version: GnuPG v1\n'
     '\n'
-    'mQENBGZNgdIBCAChVAcg7Oq5JcHPjBIa2iesBJfLu5wxEJaTATn52NjELy4zP13R\n'
-    'NWfbCOhnEpDnQeAlrKUOig0C07RkW/0AL7Jnvu96JQ0mGh8VOt1WMa8Y6gXv2GU4\n'
-    'jX9itwCmZVQ/UK9Seiucy9oj5H1/2qbEX4K5iUtjYpvgqZHv1HIKuBSz1ztBcDRK\n'
-    'mPbHAQ02ogbaa5IdiHOV6RdQGbtBQ9pnjHy3ABHVou61HV/pM+gKY5cJ4Vc4Bf5l\n'
-    '8oaWQh56utlsDhzZP1o1G9vEqX2prBvWcPdLw5w/H+3Y7w8J5DcCVb8W152Mef/0\n'
-    'P4ng4yX7R2jqDpfhLmiySJwDWGePAuf1VTcpABEBAAG0I1NhdmFuZSAodGVzdCBr\n'
-    'ZXkpIDxzYXZhbmVAdGVzdC5vcmc+iQE4BBMBAgAiBQJmTYHSAhsDBgsJCAcDAgYV\n'
-    'CAIJCgsEFgIDAQIeAQIXgAAKCRAqzm7d7wC9jJNiB/9rcuLdxaYkb2QqX0+XXK0L\n'
-    'otVLtNI29a9PEnBkTp9LuvjlEiLt7VtpDIZtOKjF7wBP9LUVWj6qXrnuGxKL+0JB\n'
-    '/uhKN2PvuORhb46lLMZ2AMN2pC4z/6z0eLxAUSfnMykmFvQR4w9W3IMoz+1qWUmC\n'
-    'WUmTA8SJr6BTlXfkiQoU7hWP3EFulxX0U/MF1bACGb14Iu2RtAyLwRbJFAlji3nf\n'
-    'plX24OvRiRGSS7SWUGYkDo+z6uSf/fWUbfuB3C+sDvUSKdqNXNRhmn6fqTMg6Q2K\n'
-    'r0esj6UqvmzHa9URiohJQg3HnNhnpNetdm0s0omnwdYhbIkb2OUEIhr+GSgySl0c\n'
-    'uQENBGZNgdIBCADt6razMxgKtZHLsQrwxfFLJLEn14KAe31ckvHDPcbM2tdugHZ/\n'
-    'OYTaAfqsak4Uuh3vUL93uOu0kjeJfbIx2xIkTd51wC61ZXDqrmqGbtUNbRBdGUul\n'
-    'bDA+SYIs7jhh7hglWET3Nk36yRPAsrvpzUaPn6/HfTdp2LAavScwaEfXHr3IYLov\n'
-    '+tkYEU788K8LAiblatxWNb8O5WpWLxBAjzUTkqDDL8BNBHIwDsPd5a7Y5TqVUdNu\n'
-    'MC1YeU9mUqTshqGM74JdLTXRn+v24DxDuktz2hepF45rO5k5M1WFE7gmdGx3dAZL\n'
-    'jqG3AGXfqbDvnuJMzTfN0jVmT3UqdNgh0jafABEBAAGJAR8EGAECAAkFAmZNgdIC\n'
-    'GwwACgkQKs5u3e8AvYwpqAf/aqDKu8TanIfuld/atfkkngw/FPwYPjmcL3hKOWjz\n'
-    'Ue9ClxEs8rnX33XM6iaNlqyr5l81HrnP/VId8lddaIHpphZ6Oii9dqBa57UpHCw2\n'
-    'fiSo79rlgumIN+ilO6Z/8eFR/anpRb0YVC0DrL2lB0wNRhVHbV8WCBbP4NTNITPN\n'
-    'wVodE0Ly8F+vcdyx5tVIBBAZ/FS9/nzvtso9mbh5yzZou1OzAOiR9pgQH43bkEcJ\n'
-    'PkoL71BkqCt1qVk/wIiEUepAbFSNS2mNJVk4J7/Y/12SIt4a8qYUcMx/KNNSN5Tm\n'
-    'KOdnfhZJIhDKz+RQvG+Q27gtJ5+AGAdSHTC/6vmO8Ba+Gg==\n'
-    '=Qkbc\n'
+    'mQENBGZ9PYMBCACVuaUN9npHw5Lg5x5JFEmrBT0GzfgI7zIsASDP8mTln/SCP7+3\n'
+    'lIKcpwSsZ6sA4/elLyXqVBNlxjQOYoAsa1E4oSiJ/y+qH7QL/vKC7eGvxRY9jYnT\n'
+    'OAbQCpLtHQs1+FUuX+TrgGQpQRabE2sFPC/n4iranMDkAAR4lEhAjPUDVam9l3uU\n'
+    'jhinlPwUN1uFsAQDqz6YOYYm7ixRtFrdJgIGI3bral3OrMyW1hmHo8vxLV34GPWs\n'
+    'KYaB7WtIwuZr7MRFI4e1Eps6m4pZXobO/4mtI0w2sGiAHqLK0h4bn4zIu5EIoVzb\n'
+    'DujxuswPJRabxN3n4ut6IEiSGe8SyGiP5LaFABEBAAG0JEFsaWNlICh0ZXN0IGtl\n'
+    'eSkgPGFsaWNlQHNhdmFuZS50ZXN0PokBUAQTAQgAOhYhBGZBcU8l0Rhnl9eoPX39\n'
+    'IP0E2nbuBQJmfT2DAhsDBQsJCAcCAiICBhUKCQgLAgMWAgECHgcCF4AACgkQff0g\n'
+    '/QTadu6UdAf+OwrWA0xskYeLTufHOy/XuedfIqTz8Ftp/WZYne0GbkaSQDS7kOdd\n'
+    'Ge8pxfF3Kq0nYMum1GIAemVVhUEt5cSSC7WUSgbCyEQPx6atSxi9T8WPG9Mh2nIw\n'
+    'WlDWXOIRekztiTKaFpeU8pyW8924xs7mjxCJWL0YYMWYlvkkI6zezfShKHe45csI\n'
+    'm9O3jE7Ii1bwAW/XOhSlOCe4Q1kyoqRvUvfvcCuqlwv8YWzN7m7rv2AL6sVrWx7U\n'
+    'v7fuzJAmp11BzA7Ax2LZ1J3AnKTRjHu0nzsjNEkEfJOMjciSTJ3KsHJIVbVEk62p\n'
+    'tSGN03jfQi2x2Y1jNsdNJPWM0lLUXPCYtLkBDQRmfT2WAQgA7AKIyX5Ra8nFHsza\n'
+    'vcruRhL/EucHHsjV5E18ktRltvyJlQYfzw1kaBw5/Vj3ChD/G9ROhw/f9/YdeuX0\n'
+    'vo7u0Nhx+XQPdHhjpueMoYlgTru9yWqRZLIzWObxT0HZvffY5u7ny7QGj++ZTmJe\n'
+    'OWgNAA7j0DOHWdybVsLOJQ7ACqRmyuwr1JEQYz6TQKGgZZRfO1+lpTLajL9Ba6Ul\n'
+    'nx00Wrld9LZWv6ZwJ/3sEs+tQZnhZq+i81wexsJFYA8uq7PDKXO7hbuf/qK4K6Ks\n'
+    'VhEcIOaiKM2qygZEoqhKTpk9b7NyBpYl+0tmEzfxjb+c6cmqVyK+t6pZ2cdMAFv9\n'
+    'yZ+YvwARAQABiQE2BBgBCAAgFiEEZkFxTyXRGGeX16g9ff0g/QTadu4FAmZ9PZYC\n'
+    'GwwACgkQff0g/QTadu4hBgf+K8fQ7bKHMY0HwgL6kOfLQA2WwTqxuX+W6e5yUUk5\n'
+    'kziN6TIgMPblskzeOqp0G0s0yS2Ypv/ZT7U6WY0H90VQD3urcoYdpQVaLT9P9F80\n'
+    'RhicNsrcV9JYU/fKJ7KxEB5cJGMyrlBfOYnlMzuCxldVrF3hVjXntrDmrPBRYjKR\n'
+    'V6BeuIHl8a0Yz8Qq94dA4LVNayh8d0rdSyPOAN+7NCgggzpZN5w0IMKGvxDOwd70\n'
+    'EbLn041N4xUyOa52kSrnY9fSCQ5rPpb8v9jSsjK0Yoetbk6VtaySOQw8ZkTu0H8b\n'
+    'Y7QZgqGaXRyUQxphA6ABG4PVRUa7rQuWoFWq9dMVhClmiA==\n'
+    '=OcPV\n'
     '-----END PGP PUBLIC KEY BLOCK-----\n',
   add_date = UNIX_TIMESTAMP ();
 INSERT INTO `user` SET
   user_id = 103, user_name = 'bob', realname = 'ﺑﻮﺐ',
-  email = 'bob@test.net', user_pw = '00WKk4u6PmmLA', status = 'A',
+  email = 'bob@savane.test', user_pw = '00WKk4u6PmmLA', status = 'A',
   gpg_key =
     'Test ECC public key.  This file contains no copyrightable data.\n'
     '-----BEGIN PGP PUBLIC KEY BLOCK-----\n'
     '\n'
-    'mDMEZk4L7hYJKwYBBAHaRw8BAQdACklv6+JTOl/K8DnOmxTvIH8thncGGEzngWhV\n'
-    'xA5LFsy0I1NhdmFuZSAodGVzdCBrZXkpIDxzYXZhbmVAdGVzdC5vcmc+iJIEExYK\n'
-    'ADoWIQQiXbDJE6aJryo9l/4NAEoWSYKS7wUCZk4L7gIbAwULCQgHAgIiAgYVCgkI\n'
-    'CwIDFgIBAh4HAheAAAoJEA0AShZJgpLvx5MBAM+zdtHso8QblU1Tg5rhFIgfQ/I+\n'
-    'q+/fzN770cshv8J+AP0Q/TNrbbHxvI0i7TSHbUtHi5ixiklfjkWnTgamAMRABrg4\n'
-    'BGZOC+4SCisGAQQBl1UBBQEBB0DykUVgWV4tiSZM0ijP5IDLbN1NFLH1KNetZiLW\n'
-    'gNmyFAMBCAeIeAQYFgoAIBYhBCJdsMkTpomvKj2X/g0AShZJgpLvBQJmTgvuAhsM\n'
-    'AAoJEA0AShZJgpLv9OIA/3mX9SKU/KwGUH+0e7t3cnU2reUnaqAlvqJKTUCJ7/vD\n'
-    'AP9TDVGBKNlP1tK80XXhzcDJLXHuii7jF+K80vQz85jNCw==\n'
-    '=RZ16\n'
+    'mDMEZn097hYJKwYBBAHaRw8BAQdAwfyP0PMT7I8p0gYVoIcDtxltXi7OeC+C+vgu\n'
+    'XRP06Eu0Ju+6ke+7ru+6kCAodGVzdCBrZXkpIDxib2JAc2F2YW5lLnRlc3Q+iJIE\n'
+    'ExYKADoWIQQQXWtqoNRQAwZOtn1mPwJRYifeRgUCZn097gIbAwULCQgHAgIiAgYV\n'
+    'CgkICwIDFgIBAh4HAheAAAoJEGY/AlFiJ95GF2MBAKNL4ncz7HUkj1cCuUufKqcN\n'
+    'zezqziHEWhiEURYKS2ayAQC3Geie6TQnBdkZ5xWrOFJniwTH65mku2zgXilR5tzq\n'
+    'CLg4BGZ9PnQSCisGAQQBl1UBBQEBB0DwQkRa2FjlER5UNYBk/rRF69TX2Z1g4JF8\n'
+    '/q9mrI0rSwMBCAeIeAQYFgoAIBYhBBBda2qg1FADBk62fWY/AlFiJ95GBQJmfT50\n'
+    'AhsMAAoJEGY/AlFiJ95GbBIBAOrkpM/SOnNQJdOYjGCLm0NTe2OYIKlG+Tw8skMY\n'
+    'WfM8AQDAyliQCO2MVKYJCJO6pqGWMZxGamvqoSKI9K+Pk1x9DA==\n'
+    '=7KX6\n'
     '-----END PGP PUBLIC KEY BLOCK-----\n',
   add_date = UNIX_TIMESTAMP ();
 INSERT INTO `user` SET
   user_id = 104, user_name = 'carol', realname = 'करोळ्',
-  email = 'carol@test.net', user_pw = '00WKk4u6PmmLA', status = 'A',
+  email = 'carol@savane.test', user_pw = '00WKk4u6PmmLA', status = 'A',
   add_date = UNIX_TIMESTAMP ();
 INSERT INTO `user` SET
   user_id = 105, user_name = 'dave', realname = 'Дейв',
-  email = 'dave@test.net', user_pw = '00WKk4u6PmmLA', status = 'A',
+  email = 'dave@savane.test', user_pw = '00WKk4u6PmmLA', status = 'A',
   add_date = UNIX_TIMESTAMP ();
 INSERT INTO `user` SET
   user_id = 106, user_name = 'eve', realname = 'Εύα',
-  email = 'eve@test.net', user_pw = '00WKk4u6PmmLA', status = 'A',
+  email = 'eve@savane.test', user_pw = '00WKk4u6PmmLA', status = 'A',
   add_date = UNIX_TIMESTAMP ();
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;

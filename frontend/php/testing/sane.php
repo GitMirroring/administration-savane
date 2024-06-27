@@ -217,7 +217,7 @@ $reference = 'account/register.php';
     'form_pw2' => '^',
     'form_year' => '1983',
     'form_realname' => 'A. B. C.',
-    'form_email' => 'agn@test.org'
+    'form_email' => 'agn@example.org'
   ];
   $out = $in;
   $out['update'] = true;
@@ -1014,7 +1014,7 @@ $reference = 'include/trackers_run/admin/field_values.php';
     'to' => 2,
     'allowed' => 'F',
     'status' => 'P',
-    'mail_list' => 'agn_ter, dis-cuss0@test.mil, A+B@C@.org,.,'
+    'mail_list' => 'agn_ter, dis-cuss0@example.net, A+B@C@.org,.,'
   ];
   $out = $in;
   $out['post_changes'] = true;
@@ -1292,7 +1292,7 @@ $reference = 'include/trackers_run/index.php';
     'new_vote' => 10,
     'quote_no' => 3,
     'cc_comment' => 'a',
-    'originator_email' => 'agn@test.mil',
+    'originator_email' => 'agn@example.org',
     'add_cc' => 'agn,a@b.ca;d@e.fgh',
     'reassign_change_group' => '0-grep_up',
     'depends_search_only_artifact' => 'bugs',
@@ -1751,7 +1751,7 @@ $reference = 'news/admin/index.php';
   ];
   $in = $out = [
     'update' => true,
-    'form_news_address' => 'news@test.org',
+    'form_news_address' => 'news@example.org',
   ];
   test_sane_import ($in, $names, $out);
 }
@@ -1956,7 +1956,7 @@ $reference = 'project/admin/editgroupnotifications.php';
   ];
   $in = $out = [
     'update' => true,
-    'form_news_address' => 'agn@test.org',
+    'form_news_address' => 'agn@example.org',
     'form_frequency' => 2,
   ];
   test_sane_import ($in, $names, $out);
@@ -2255,7 +2255,7 @@ $reference = 'siteadmin/usergroup.php';
     ],
   ];
   $in = $out = [
-    'new_name' => 'new_agn', 'email' => 'test@test.org', 'admin_flags' => 'A'
+    'new_name' => 'new_agn', 'email' => 'tst@example.org', 'admin_flags' => 'A'
   ];
   test_sane_import ($in, $names, $out);
 }

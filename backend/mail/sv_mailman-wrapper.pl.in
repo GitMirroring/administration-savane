@@ -170,7 +170,7 @@ sub push_output_field
 sub post_query
 {
   my $list = $ctx{'list_name'};
-  my $domain = 'test.net';
+  my $domain = 'savane.test';
   return if $list =~ /fnord/;
   push_output_field ('qry::host_name', $domain);
   push_output_field ('qry::advertised', 1);
