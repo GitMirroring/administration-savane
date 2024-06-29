@@ -43,8 +43,8 @@
 
 use strict;
 use Savane;
+use Savane::Util;
 use Getopt::Long;
-use File::Temp qw/ tempfile /;
 
 our $dbd;
 my $verbose;
@@ -296,24 +296,6 @@ sub output_entries
         }
       output_gitweb_entry ($repo_out, $ent, $group);
     }
-}
-
-sub open_tmp
-{
-  my $pref = shift;
-  my ($fh, $fn) = tempfile ("$pref-XXXXXXXX", UNLINK => 1);
-  binmode $fh, ":utf8";
-  return ($fh, $fn);
-}
-
-sub close_and_move
-{
-  my ($out, $tmp_name, $final_name) = @_;
-  chmod 0644, $out;
-  close $out;
-  return if $final_name eq '/dev/null' || $final_name eq '';
-  rename $tmp_name, $final_name
-    or die "Can't rename $tmp_name to $final_name: $!";
 }
 
 my @db = GetDBLists (

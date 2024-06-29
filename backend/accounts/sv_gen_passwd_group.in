@@ -1,0 +1,152 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Generate passwd and group files for libnss-extrausers.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+use strict;
+use Savane;
+use Savane::Util;
+use Getopt::Long;
+
+my $output_dir = '@pkgstatedir@';
+my $common_gid = 1003;
+my $home_dir = "@confdir@/user-home-dir";
+my $user_shell = "@confdir@/user-shell";
+my $group_list_def_max_len = 83521;
+my $group_list_max_len = undef;
+
+my $help =
+"Usage: $0 [OPTIONS]
+
+Generate passwd and group file from Savane data.
+
+  -h, --help                show this help and exit
+  -v, --version             show Savane version and exit
+      --output-dir          directory to output passwd and group files
+                            [$output_dir]
+      --home-dir            user home directory to specify in passwd
+                            [$home_dir]
+      --user-shell          user shell to specify in passwd
+                            [$user_shell]
+      --group-list-max-len  maximum lengths of group member list
+                            [$group_list_def_max_len]
+      --common-gid group number for passwd file [$common_gid]";
+
+PrintVersionOrHelp ($help);
+
+GetOptions (
+  "output-dir=s" => \$output_dir, "common-gid=s" => \$common_gid,
+  'group-list-max-len=n' => \$group_list_max_len,
+  'home-dir=s' => \$home_dir, 'user-shell=s' => \$user_shell
+) or die "Wrong command line";
+
+$group_list_max_len = $group_list_def_max_len
+  unless defined $group_list_max_len;
+
+-d $output_dir or die "Directory $output_dir doesn't exist";
+
+my $user_tables = 'user u JOIN user_group ug ON u.user_id = ug.user_id';
+my $user_crit = "ug.admin_flags IN ('', 'A') AND uidNumber IS NOT NULL";
+my $group_crit = "g.status = 'A' AND g.gidNumber IS NOT NULL";
+
+sub fetch_users
+{
+  return GetDBLists (
+    "$user_tables JOIN groups g ON g.group_id = ug.group_id",
+    "$user_crit AND $group_crit GROUP BY uidNumber",
+    'uidNumber, user_name, realname'
+  );
+}
+
+sub fetch_groups
+{
+  my $subquery = "
+    SELECT ug.group_id, group_concat(user_name ORDER BY user_name) AS members
+    FROM $user_tables WHERE $user_crit GROUP BY ug.group_id";
+  return GetDBLists (
+    "groups g LEFT JOIN ($subquery) sq ON sq.group_id = g.group_id",
+    $group_crit, "gidNumber, unix_group_name, IFNULL(members, '')"
+  );
+}
+
+sub output_files
+{
+  my @users = fetch_users ();
+  my ($fh, $fn) = open_tmp ('passwd');
+  binmode $fh, ":raw";
+  foreach my $line (@users)
+    {
+      my ($uid, $uname, $rname) = @{$line};
+      $rname =~ s/:/ /g;
+      print { $fh } "$uname:x:$uid:$common_gid:$rname:$home_dir:$user_shell\n";
+    }
+  close_and_move ($fh, $fn, "$output_dir/passwd");
+  my @groups = fetch_groups ();
+  my ($fh, $fn) = open_tmp ('group');
+  foreach my $line (@groups)
+    {
+      my ($gid, $name, $users) = @{$line};
+      print { $fh } "${name}:x:${gid}:${users}\n";
+    }
+  close_and_move ($fh, $fn, "$output_dir/group");
+}
+
+sub fixup_session
+{
+  my $max_len = -1;
+  if ($group_list_max_len > 0)
+    {
+      foreach my $line (GetDBAsIs ('SELECT @@SESSION.group_concat_max_len'))
+        {
+          $max_len = $line;
+          last;
+        }
+    }
+  else
+    {
+      $group_list_max_len = -$group_list_max_len;
+    }
+  DBSet ('@@SESSION.group_concat_max_len', $group_list_max_len)
+    if ($max_len < $group_list_max_len);
+}
+
+fixup_session ();
+output_files ();

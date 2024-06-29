@@ -27,6 +27,11 @@ accounts/sv_assign_uid_gid
 Links Savane users and groups to Unix uid and gid numbers.
 Runs every 5 minutes on mgt1.
 
+accounts/sv_gen_passwd_group
+============================
+
+May be used to generate the passwd and group files for libnss-extrausers.
+
 accounts/sv_groups
 ==================
 

@@ -96,6 +96,8 @@
 
 [BACKEND]
 
+* New script, sv_gen_passwd_group.
+
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
   was added.
 

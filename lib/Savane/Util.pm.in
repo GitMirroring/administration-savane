@@ -44,12 +44,15 @@ use strict;
 require Exporter;
 require Savane::Conf;
 use POSIX qw (strftime);
+use File::Temp qw (tempfile);
+use File::Copy qw (move);
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
   SQLStringEscape
   MakeDir ExpandDirTemplate
   open_log print_log finalize_log
+  open_tmp close_and_move
 );
 # Escape arg0 to be sent in a SQL string.
 sub SQLStringEscape
@@ -108,6 +111,27 @@ sub finalize_log
   print_log ($_[0]) if (defined $_[0]);
   print_log ("------------------------------------------------------");
   close ($util_log_fd);
+}
+
+# Open a temporary file in the right mode; return its handle and name.
+sub open_tmp
+{
+  my $pref = shift;
+  my ($fh, $fn) = tempfile ("$pref-XXXXXXXX", UNLINK => 1);
+  binmode $fh, ":utf8";
+  return ($fh, $fn);
+}
+
+# Close temporary file handle ($_[0]) and move atomically the file ($_[1]) to its
+# final location ($_[2]).
+sub close_and_move
+{
+  my ($out, $tmp_name, $final_name) = @_;
+  chmod 0644, $out;
+  close $out;
+  return if $final_name eq '/dev/null' || $final_name eq '';
+  move ($tmp_name, $final_name)
+    or die "Can't move $tmp_name to $final_name: $!";
 }
 
 return "true";
