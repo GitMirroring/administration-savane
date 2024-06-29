@@ -607,7 +607,9 @@ $phpfunctions =
       . '(--enable-ctype) ! [REQUIRED]',
     'imagettfbbox' =>
       'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
-    'sem_get' => 'Used in mailman interface (--enable-sysvsem) ! [REQUIRED]'
+    'sem_get' =>
+      'Used when connecting mailman and updating the group file '
+      . '(--enable-sysvsem) ! [REQUIRED]'
  ];
 $page .= list_facilities ('function_exists', $phpfunctions);
 
@@ -721,7 +723,7 @@ function output_sysvars ()
     'mail_admin', 'mail_domain', 'mail_replyto', 'name', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
-    'mailman_wrapper', 'savane_cgit'
+    'mailman_wrapper', 'savane_cgit', 'group_file'
   ];
   $defs = [];
   foreach ($variables as $tag)

@@ -43,6 +43,15 @@
 
 require_once (dirname(__FILE__) . '/database.php');
 
+function member_history_label_on_add ($status)
+{
+  if ($status === 'P')
+    return 'User Requested Membership';
+  if ($status === 'SQD')
+    return 'Created Squad';
+  return 'Added User';
+}
+
 # Add or update a user to a group; $status is the 'admin_flags'.
 function member_add ($user_id, $group_id, $status = '')
 {
@@ -57,14 +66,70 @@ function member_add ($user_id, $group_id, $status = '')
   );
   if (!$result)
     return $result;
-  if ($status == 'P')
-    $comment = 'User Requested Membership';
-  elseif ($status == 'SQD')
-    $comment = 'Created Squad';
-  else
-    $comment = 'Added User';
+  if ($status === '')
+    member_update_group_file ($group_id);
+  $comment = member_history_label_on_add ($status);
   group_add_history ($comment, user_getname ($user_id), $group_id);
   return $result;
+}
+
+function member_fetch_group_data ($group_id)
+{
+  $admin_flags = ['', 'A'];
+  $result = db_execute ("
+    SELECT
+      unix_group_name AS name,
+      group_concat(user_name ORDER BY user_name) AS users
+    FROM groups g, user u, user_group ug
+    WHERE
+      g.group_id = ? AND g.group_id = ug.group_id AND gidNumber IS NOT NULL
+      AND uidNumber IS NOT NULL AND u.user_id = ug.user_id
+      AND ug.admin_flags " . utils_in_placeholders ($admin_flags) . "
+      GROUP BY unix_group_name", array_merge ([$group_id], $admin_flags)
+  );
+  if (!db_numrows ($result))
+    return null;
+  return db_fetch_array ($result);
+}
+
+function member_group_file_unavailable ()
+{
+  if (!array_key_exists ('sys_group_file', $GLOBALS))
+    return true;
+  if (!is_file ($GLOBALS['sys_group_file']))
+    return true;
+  return !is_readable ($GLOBALS['sys_group_file']);
+}
+
+function member_substitute_group ($arg)
+{
+  list ($tmp_file, $data) = $arg;
+  $out = fopen ($tmp_file, 'w');
+  $in = fopen ($GLOBALS['sys_group_file'], 'r');
+  while (false !== ($line = fgets ($in)))
+    {
+      if (preg_match ("/^{$data['name']}:/", $line))
+        $line = preg_replace ("/[^:]*\n$/", $data['users'] . "\n", $line);
+      fwrite ($out, $line);
+    }
+  fclose ($in);
+  fclose ($out);
+  chmod ($tmp_file, 0644);
+  rename ($tmp_file, $GLOBALS['sys_group_file']);
+}
+
+function member_update_group_file ($group_id)
+{
+  global $sys_group_file;
+  if (member_group_file_unavailable ())
+    return;
+  $data = member_fetch_group_data ($group_id);
+  if ($data === null)
+    return;
+  $tmp = utils_mktemp ('group');
+  if ($tmp === null)
+    return;
+  utils_run_lock ($sys_group_file, 'member_substitute_group', [$tmp, $data]);
 }
 
 # Approve a pending user for a group.
@@ -75,7 +140,10 @@ function member_approve ($user_id, $group_id)
     [$user_id, $group_id]
   );
   if ($result)
-    group_add_history ('Approved User', user_getname ($user_id), $group_id);
+    {
+      group_add_history ('Approved User', user_getname ($user_id), $group_id);
+      member_update_group_file ($group_id);
+    }
   return $result;
 }
 
@@ -114,8 +182,8 @@ function member_remove ($user_id, $group_id)
   if ($admin_flags === null)
     return false;
 
-  $result = db_execute ("
-    DELETE FROM user_group WHERE user_id = ? AND group_id = ?",
+  $result = db_execute (
+    "DELETE FROM user_group WHERE user_id = ? AND group_id = ?",
     [$user_id, $group_id]
   );
   if (!$result)
@@ -123,7 +191,10 @@ function member_remove ($user_id, $group_id)
   if ($admin_flags == 'SQD')
     group_add_history ('Deleted Squad', user_getname ($user_id), $group_id);
   else
-    group_add_history ('Removed User', user_getname ($user_id), $group_id);
+    {
+      group_add_history ('Removed User', user_getname ($user_id), $group_id);
+      member_update_group_file ($group_id);
+    }
   return member_purge_from_user_squad ($user_id, $group_id, $admin_flags);
 }
 
