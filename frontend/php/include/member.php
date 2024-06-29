@@ -79,43 +79,52 @@ function member_approve ($user_id, $group_id)
   return $result;
 }
 
-function member_remove ($user_id, $group_id)
+function member_get_admin_flags ($user_id, $group_id)
 {
-  # Find out if it is a squad.
   $result = db_execute ("
     SELECT admin_flags FROM user_group WHERE user_id = ? AND group_id = ?",
     [$user_id, $group_id]
   );
   if (!db_numrows ($result))
+    return null;
+
+  return db_result ($result, 0, 'admin_flags');
+}
+
+function member_purge_from_user_squad ($user_id, $group_id, $admin_flags)
+{
+  if ($admin_flags != 'SQD')
+    # If it is not a squad, make sure the user is no longer associated
+    # to squads of the group.
+    return db_execute (
+      "DELETE FROM user_squad WHERE user_id = ? AND group_id = ?",
+      [$user_id, $group_id]
+    );
+  db_execute ("DELETE FROM user WHERE user_id = ?", [$user_id]);
+  # A squad may only belong to a single group.
+  return db_execute (
+    "DELETE FROM user_squad WHERE squad_id = ? AND group_id = ?",
+    [$user_id, $group_id]
+  );
+}
+
+function member_remove ($user_id, $group_id)
+{
+  $admin_flags = member_get_admin_flags ($user_id, $group_id);
+  if ($admin_flags === null)
     return false;
 
-  $admin_flags = db_result ($result, 0, 'admin_flags');
-
-  $sql = '';
   $result = db_execute ("
     DELETE FROM user_group WHERE user_id = ? AND group_id = ?",
     [$user_id, $group_id]
   );
   if (!$result)
     return $result;
-  if ($admin_flags != 'SQD')
-    {
-      group_add_history ('Removed User', user_getname ($user_id), $group_id);
-      # If it is not a squad, make sure the user is no longer associated
-      # to squads of the group.
-      return db_execute (
-        "DELETE FROM user_squad WHERE user_id = ? AND group_id = ?",
-        [$user_id, $group_id]
-      );
-    }
-  # A squad may only belong to a single group.
-  group_add_history ('Deleted Squad', user_getname ($user_id), $group_id);
-  db_execute ("DELETE FROM user WHERE user_id = ?", [$user_id]);
-  db_execute (
-    "DELETE FROM user_squad WHERE squad_id = ? AND group_id = ?",
-    [$user_id, $group_id]
-  );
-  return $result;
+  if ($admin_flags == 'SQD')
+    group_add_history ('Deleted Squad', user_getname ($user_id), $group_id);
+  else
+    group_add_history ('Removed User', user_getname ($user_id), $group_id);
+  return member_purge_from_user_squad ($user_id, $group_id, $admin_flags);
 }
 
 # Add a given member to a squad.
