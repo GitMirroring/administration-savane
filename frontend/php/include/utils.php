@@ -1029,5 +1029,42 @@ function utils_find_item (
     $ret[$k] = $arr[$k];
   return $ret;
 }
+
+# Get and acquire a semaphore for $file; return the semaphore on success,
+# else return null.
+function utils_sem_acquire ($file)
+{
+  $tok = ftok ($file, 'a');
+  if ($tok === -1)
+    {
+      trigger_error ("ftok failed");
+      return null;
+    }
+  $sem = sem_get ($tok);
+  if ($sem === false)
+    {
+      trigger_error ("sem_get failed");
+      return null;
+    }
+  if (sem_acquire ($sem))
+    return $sem;
+  trigger_error ("can't acquire semaphore");
+  return null;
+}
+
+# Acquire a semaphore for $file, return it unless $callback isn't null,
+# in which case return $callback ($arg) and release the semaphore;
+# on any failures with acquiring semaphore, return null.
+function utils_run_lock ($file, $callback = null, $arg = null)
+{
+  $sem = utils_sem_acquire ($file);
+  if ($sem === null)
+    return null;
+  if ($callback === null)
+    return $sem;
+  $ret = $callback ($arg);
+  sem_release ($sem);
+  return $ret;
+}
 } # namespace {
 ?>

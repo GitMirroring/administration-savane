@@ -62,18 +62,6 @@ else
     }
   }
 
-function acquire_lock ()
-{
-  $tok = ftok (__FILE__, 'a');
-  if ($tok === -1)
-    return null;
-  $sem = sem_get ($tok);
-  if ($sem === false)
-    return null;
-  sem_acquire ($sem);
-  return $sem;
-}
-
 function send_request ($cmd, $args)
 {
   $in = "command=$cmd\n";
@@ -113,16 +101,20 @@ function parse_response ($lines)
   return $ret;
 }
 
+function send_request1 ($args)
+{
+  return send_request ($args[0], $args[1]);
+}
+
 function run ($cmd, $args)
 {
   $t0 = timestamp ();
-  $lock = acquire_lock ();
-  if ($lock === null)
+  $request = utils_run_lock (__FILE__, '\mm_ns\send_request1', [$cmd, $args]);
+  if ($request === null)
     return ['error' => "Error: can't acquire semaphore",
         'timestamp' => sprintf ("%.3f", timestamp () - $t0)
       ];
-  list ($lines, $error) = send_request ($cmd, $args);
-  sem_release ($lock);
+  list ($lines, $error) = $request;
   $t0 = timestamp () - $t0;
   $ret = parse_response ($lines);
   if (empty ($ret['error']))
