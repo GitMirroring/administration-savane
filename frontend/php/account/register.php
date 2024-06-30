@@ -154,7 +154,8 @@ if ($form_is_valid)
     $passwd = account_encryptpw ($form_pw);
     $confirm_hash = substr (random_hash (), 0, 16);
     $new_name = strtolower ($form_loginname);
-    $vals = ['user_name' => $new_name, 'user_pw' => $passwd, 'status' => 'P',
+    $vals = ['user_name' => $new_name, 'user_pw' => $passwd,
+      'status' => USER_STATUS_PENDING,
       'realname' => $form_realname, 'email' => $form_email,
       'add_date' => time (), 'confirm_hash' => $confirm_hash
     ];

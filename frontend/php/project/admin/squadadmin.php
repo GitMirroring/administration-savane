@@ -60,7 +60,7 @@ extract (sane_import ('post',
   ]
 ));
 
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 if (!$group_id)
   exit_no_group ();
@@ -121,14 +121,11 @@ if ($squad_id)
     # A squad passed? Allow to add and remove member, to
     # change the squad name or to delete it.
     $sql = "
-      SELECT user.user_name, user.realname, user.user_id
-      FROM user, user_group
-      WHERE
-        user.user_id = ? AND user_group.group_id = ?
-        AND user_group.user_id = user.user_id
-        AND user_group.admin_flags = 'SQD'
-      ORDER BY user.user_name";
-    $result = db_execute ($sql, [$squad_id, $group_id]);
+      SELECT user_name, realname, u.user_id
+      FROM user u JOIN user_group g ON u.user_id = g.user_id
+      WHERE u.user_id = ? AND g.group_id = ? AND g.admin_flags = ?
+      ORDER BY u.user_name";
+    $result = db_execute ($sql, [$squad_id, $group_id, MEMBER_FLAGS_SQUAD]);
     if (!db_numrows ($result))
       exit_error (_("Squad not found"));
 
@@ -220,12 +217,11 @@ if ($squad_id)
     print form_submit (_("Remove Members"), "remove_from_squad") . "</form>\n";
     print html_h (2, _("Adding members"));
     $result_addusers =  db_execute ("
-      SELECT user.user_id, user.user_name, user.realname
-      FROM user, user_group
-      WHERE
-        user.user_id=user_group.user_id AND user_group.group_id = ?
-        AND admin_flags <> 'P' AND admin_flags <> 'SQD'
-      ORDER BY user.user_name", [$group_id]
+      SELECT u.user_id, user_name, realname
+      FROM user u JOIN user_group g ON u.user_id = g.user_id
+      WHERE g.group_id = ? AND admin_flags NOT IN (?, ?)
+      ORDER BY user.user_name",
+      [$group_id, MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
     );
 
     print "<p>"
@@ -294,7 +290,7 @@ function create_squad (&$form_loginname, &$form_realname, $group)
       'user_name' => strtolower ($group . "-" . $form_loginname),
       'user_pw' => 'ignored', 'realname' => $form_realname,
       'email' => "{$sys_mail_replyto}@{$sys_mail_domain}",
-      'add_date' => time (), 'status' => 'SQD', 'email_hide' => 1,
+      'add_date' => time (), 'status' => USER_STATUS_SQUAD, 'email_hide' => 1,
     ],
     DB_AUTOQUERY_INSERT
   );
@@ -305,7 +301,7 @@ function create_squad (&$form_loginname, &$form_realname, $group)
     }
   fb (_("Squad created"));
   $created_squad_id = db_insertid ($result);
-  member_add ($created_squad_id, $group_id, 'SQD');
+  member_add ($created_squad_id, $group_id, MEMBER_FLAGS_SQUAD);
 
   # Clear variables so the form below will be empty.
   $form_loginname = $form_realname = null;
@@ -329,13 +325,10 @@ if ($update_delete_step2 && $deletionconfirmed == "yes")
   {
     $squad_id_to_delete = $squad_id_to_delete;
     $delete_result = db_execute ("
-      SELECT user.user_name, user.realname, user.user_id
-      FROM user, user_group
-      WHERE
-        user.user_id = ? AND user_group.group_id = ?
-        AND user_group.user_id = user.user_id
-        AND user_group.admin_flags = 'SQD'
-      ORDER BY user.user_name", [$squad_id_to_delete, $group_id]
+      SELECT user_name, realname, u.user_id
+      FROM user u JOIN user_group ON u.user_id = g.user_id
+      WHERE u.user_id = ? AND g.group_id = ?  AND g.admin_flags = ?
+      ORDER BY user_name", [$squad_id_to_delete, $group_id, MEMBER_FLAGS_SQUAD]
     );
 
     if (!db_numrows ($delete_result))
@@ -346,12 +339,10 @@ if ($update_delete_step2 && $deletionconfirmed == "yes")
   }
 
 $result = db_execute ("
-  SELECT user.user_name, user.realname, user.user_id
-  FROM user, user_group
-  WHERE
-    user.user_id = user_group.user_id AND user_group.group_id = ?
-    AND user_group.admin_flags = 'SQD'
-  ORDER BY user.user_name", [$group_id]
+  SELECT user_name, realname, u.user_id
+  FROM user u JOIN user_group g ON u.user_id = g.user_id
+  WHERE g.group_id = ?  AND g.admin_flags = ?
+  ORDER BY user_name", [$group_id, MEMBER_FLAGS_SQUAD]
 );
 $rows = db_numrows ($result);
 
@@ -386,8 +377,8 @@ print html_h (2, _("Create a New Squad"));
 
 $result = db_execute ("
   SELECT user_id FROM user_group
-  WHERE group_id = ? AND admin_flags <> 'P' AND admin_flags <> 'SQD'",
-  [$group_id]
+  WHERE group_id = ? AND admin_flags NOT IN (?, ?)",
+  [$group_id, MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
 );
 if ($rows < db_numrows ($result))
   {

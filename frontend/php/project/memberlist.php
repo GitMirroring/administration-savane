@@ -49,7 +49,7 @@ require_directory ("trackers");
 
 function is_squad ($m)
 {
-  return $m['admin_flags'] === 'SQD';
+  return $m['admin_flags'] === MEMBER_FLAGS_SQUAD;
 }
 
 # Return lists of members sorted by the onduty flag
@@ -63,10 +63,9 @@ function fetch_member_list ($group_id)
     SELECT
       u.user_name, u.user_id, u.realname, u.add_date, u.people_view_skills,
       u.email,$flag_select g.onduty AS onduty
-    FROM user u, user_group g
-    WHERE u.user_id = g.user_id AND g.group_id = ? AND g.admin_flags <> 'P'
-    ORDER BY u.user_name",
-    [$group_id]
+    FROM user u JOIN user_group g ON u.user_id = g.user_id
+    WHERE g.group_id = ? AND g.admin_flags <> ? ORDER BY u.user_name",
+    [$group_id, MEMBER_FLAGS_PENDING]
   );
 
   $members = [0 => [], 1 => []];
@@ -121,13 +120,13 @@ function print_in_td ($s)
 function role_icon ($flags, $group_id)
 {
   global $sys_group_id;
-  if ($flags == 'A')
+  if ($flags == MEMBER_FLAGS_ADMIN)
     {
       if ($group_id == $sys_group_id)
         return ["site-admin",  _("Site Administrator")];
       return ["project-admin", _("Group administrator")];
     }
-  if ($flags == 'SQD')
+  if ($flags == MEMBER_FLAGS_SQUAD)
     return ["people", _("Squad")];
   return ["project-member", _("Group member")];
 }
@@ -242,7 +241,7 @@ foreach ([1, 0] as $onduty)
       {
         $m = $mem[$i];
         $color = utils_altrow ($i);
-        $is_admin = $m['admin_flags'] == 'A';
+        $is_admin = $m['admin_flags'] == MEMBER_FLAGS_ADMIN;
         if ($is_admin)
           $color = "boxhighlight";
         print "\n\t<tr class=\"$color\">\n";

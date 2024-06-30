@@ -65,7 +65,7 @@ $account_status = $user_arr['status'];
 
 # For deleted account, we will print only very basic info:
 # accound id, login + description as deleted account.
-$is_suspended = $account_status == 'S' || $account_status == 'D';
+$is_suspended = user_status_is_removed ($account_status);
 
 if ($is_suspended && !user_is_super_user ())
   {
@@ -79,7 +79,7 @@ site_header (
 );
 
 $is_squad = false;
-if ($user_arr['status'] == 'SQD')
+if ($user_arr['status'] == USER_STATUS_SQUAD)
   $is_squad = true;
 
 # For squad account, we will print some specific info.
@@ -230,7 +230,7 @@ function output_group_info ($user_id)
   $j = 1;
   foreach ($group_list as $gid => $v)
   {
-    if ($v['admin_flags'] == 'A')
+    if ($v['admin_flags'] == MEMBER_FLAGS_ADMIN)
       $color = "boxhighlight";
     else
       $color = utils_altrow ($j++);

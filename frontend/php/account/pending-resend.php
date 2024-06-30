@@ -41,11 +41,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/database.php');
-require_once ('../include/spam.php');
-require_once ('../include/sane.php');
-require_once ('../include/sendmail.php');
+foreach (['init', 'database', 'spam', 'sane', 'sendmail'] as $i)
+  require_once ("../include/$i.php");
 
 extract (sane_import ('get', ['name' => 'form_user']));
 $res_user = db_execute ("SELECT * FROM user WHERE user_name = ?", [$form_user]);
@@ -54,7 +51,7 @@ if (db_numrows ($res_user) > 0)
   $row_user = db_fetch_array ($res_user);
 
 # Only mail if pending.
-if (empty ($row_user) || $row_user['status'] != 'P')
+if (empty ($row_user) || $row_user['status'] != USER_STATUS_PENDING)
   exit_error (_("Error"), _("This account is not pending verification."));
 
 $message =

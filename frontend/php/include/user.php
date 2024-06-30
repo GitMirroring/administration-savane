@@ -42,12 +42,22 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/member.php');
+define ('USER_STATUS_ACTIVE', 'A');
+define ('USER_STATUS_PENDING', 'P');
+define ('USER_STATUS_SQUAD', MEMBER_FLAGS_SQUAD);
+define ('USER_STATUS_SUSPENDED', 'S');
+define ('USER_STATUS_DELETED', 'D');
 
 # Unset these globals until register_globals if off everywhere.
 unset ($USER_IS_SUPER_USER);
 # User records in this array can be accessed by user_id as well as by user_name.
 # the user_name keys are in the lower case, user names are case-insensitive.
 $USER_ARR = [];
+
+function user_status_is_removed ($status)
+{
+  return $status == USER_STATUS_SUSPENDED || $status == USER_STATUS_DELETED;
+}
 
 function user_isloggedin ()
 {
@@ -159,7 +169,7 @@ function user_getid ($username = 0)
 
 function user_squad_exists ($user_id)
 {
-  return $user_id && user_get_field ($user_id, 'status') == 'SQD';
+  return $user_id && user_get_field ($user_id, 'status') == USER_STATUS_SQUAD;
 }
 
 function user_exists ($user_id)
@@ -170,7 +180,7 @@ function user_exists ($user_id)
 
 function user_is_active ($user_id)
 {
-  return user_get_field ($user_id, 'status') == 'A';
+  return user_get_field ($user_id, 'status') == USER_STATUS_ACTIVE;
 }
 
 function user_fetch_name ($user_id)
@@ -654,7 +664,9 @@ function user_list_merge_row (&$ret, &$row)
 # Auxiliary function used in user_list_groups.
 function user_enumerate_groups ($uid, $skip_pending)
 {
-  $skip = $skip_pending? "AND u.admin_flags != 'P'": "";
+  $skip = '';
+  if ($skip_pending)
+    $skip = "AND u.admin_flags != '" . MEMBER_FLAGS_PENDING . "'";
   $ret = [];
   $result = user_list_groups_with_history ($uid, $skip);
   while ($row = db_fetch_array ($result))
@@ -678,8 +690,8 @@ function user_list_groups_to_hide (&$ret)
   $gid_in = utils_in_placeholders ($private);
   $result = db_execute ("
     SELECT group_id FROM user_group
-    WHERE user_id = ? AND group_id $gid_in AND admin_flags != 'P'",
-    array_merge ([user_getid ()], $private)
+    WHERE user_id = ? AND admin_flags != ? AND group_id $gid_in",
+    array_merge ([user_getid (), MEMBER_FLAGS_PENDING], $private)
   );
   $allowed = [];
   while ($row = db_fetch_array ($result))

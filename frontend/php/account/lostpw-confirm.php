@@ -54,15 +54,11 @@ if (user_isloggedin ())
 
 $confirm_hash = md5 (random_bytes (8));
 # Account check.
-$res_user = db_execute ("
-  SELECT * FROM user WHERE user_name = ? AND status = 'A'", [$form_loginname]
-);
+$sql = "SELECT * FROM user WHERE user_name = ? AND status = ?";
+$res_user = db_execute ($sql, [$form_loginname, USER_STATUS_ACTIVE]);
 if (db_numrows ($res_user) < 1)
   {
-    $res_user = db_execute ("
-      SELECT status FROM user WHERE user_name = ? AND status = 'P'",
-      [$form_loginname]
-    );
+    $res_user = db_execute ($sql, [$form_loginname, USER_STATUS_PENDING]);
     $msg =
       _("This account hasn't been activated, please contact website "
         . "administration");

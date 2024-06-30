@@ -61,10 +61,9 @@ if (!user_isloggedin ())
 if (!$touser)
   exit_missing_param (['touser']);
 
-$result = db_execute ("
-  SELECT email, user_name FROM user
-  WHERE user_id = ? AND (status = 'A' OR status = 'SQD')",
-  [$touser]
+$result = db_execute (
+  "SELECT email, user_name FROM user WHERE user_id = ? AND status IN (?, ?)",
+  [$touser, USER_STATUS_ACTIVE, USER_STATUS_SQUAD]
 );
 
 if (db_numrows ($result) < 1)

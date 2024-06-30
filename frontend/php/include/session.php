@@ -108,11 +108,11 @@ function session_login_is_sane ($name, $password)
 function session_login_is_disallowed ($status, $allow_pending)
 {
   $GLOBALS['signal_pending_account'] = 0;
-  if ($status == 'A')
+  if ($status == USER_STATUS_ACTIVE)
      return false;
-  if ($status == 'SQD') # Squad account, silently exit.
+  if ($status == USER_STATUS_SQUAD) # Squad account, silently exit.
     return true;
-  if ($status == 'P')
+  if ($status == USER_STATUS_PENDING)
     {
       if ($allow_pending) # If allowpending (in verify.php), then allow.
         return false;
@@ -120,7 +120,7 @@ function session_login_is_disallowed ($status, $allow_pending)
       # We can't rely on $ffeedback because it's cleared after use.
       $GLOBALS['signal_pending_account'] = 1;
     }
-  elseif ($status == 'D' || $status == 'S')
+  elseif (user_status_is_removed ($status))
     fb (_('Account deleted'), 1);
   else
     fb (_('Account not active'), 1);

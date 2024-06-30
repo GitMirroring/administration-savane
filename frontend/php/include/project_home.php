@@ -67,14 +67,10 @@ site_project_header ([]);
 
 # Members of this group (little box on the right).
 $res_admin = db_execute ("
-  SELECT
-    user.user_id AS user_id, user.user_name AS user_name,
-    user.realname AS realname
-  FROM user, user_group
-  WHERE
-    user_group.user_id = user.user_id AND user_group.group_id = ?
-    AND user_group.admin_flags = 'A' AND user_group.onduty = 1",
-  [$group_id]
+  SELECT u.user_id, user_name, realname
+  FROM user u JOIN user_group g ON u.user_id = g.user_id
+  WHERE g.group_id = ? AND g.admin_flags = ? AND g.onduty = 1",
+  [$group_id, MEMBER_FLAGS_ADMIN]
 );
 print "\n<div class='indexright'>\n";
 print $HTML->box_top (_("Membership Info"), "", 1);
@@ -114,12 +110,9 @@ print_group_admins ($res_admin);
 
 # Count of members on this group.
 $membersnum = db_fetch_array (db_execute ("
-  SELECT COUNT(*) AS count
-  FROM user_group
-  WHERE
-    group_id = ? AND admin_flags <> 'P' AND admin_flags <> 'SQD'
-    AND user_group.onduty = 1",
-  [$group_id]
+  SELECT COUNT(*) AS count FROM user_group
+  WHERE group_id = ? AND admin_flags NOT IN (?, ?) AND onduty = 1",
+  [$group_id, MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
 ));
 
 $membersnum = $membersnum['count'];

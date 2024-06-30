@@ -170,7 +170,7 @@ function trackers_data_show_notification_settings ($group_id, $tracker)
   $grtrsettings = trackers_data_get_notification_settings (
     $group_id, $tracker
   );
-  if (!(user_ismember ($group_id, 'A')))
+  if (!(user_ismember ($group_id, MEMBER_FLAGS_ADMIN)))
     return;
   $cat_ck = $glob_ck = $both_ck = false;
   if ($grtrsettings['glnotif'] == 0)
@@ -505,16 +505,14 @@ function trackers_data_get_field_predefined_values (
 
   if ($active_only)
     {
+      $status_cond = "status IN (?, ?)";
+      $status_cond_params = [USER_STATUS_ACTIVE, USER_STATUS_PENDING];
       if ($checked && !is_array ($checked))
         {
-          $status_cond = "AND (status IN ('A', 'P') OR value_id = ?) ";
-          $status_cond_params = [$checked];
+          $status_cond = "($status_cond OR value_id = ?)";
+          $status_cond_params[] = $checked;
         }
-      else
-        {
-          $status_cond = "AND status IN ('A', 'P') ";
-          $status_cond_params = [];
-        }
+      $status_cond = "AND $status_cond ";
     }
 
   # The fields value_id and value must be first in the select statement,

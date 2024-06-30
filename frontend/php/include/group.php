@@ -375,8 +375,8 @@ class Group extends savane_error
       db_execute ("
         SELECT user.user_id
         FROM user JOIN user_group ON user.user_id = user_group.user_id
-        WHERE admin_flags <> 'P' AND status = 'A' AND group_id = ?",
-        [$this->group_id]
+        WHERE group_id = ? AND admin_flags <> ? AND status = ?",
+        [$this->group_id, MEMBER_FLAGS_PENDING, USER_STATUS_ACTIVE]
       );
     if (!db_numrows ($res))
       return '';

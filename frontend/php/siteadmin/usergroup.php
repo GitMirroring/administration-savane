@@ -51,7 +51,7 @@ $incs =
 foreach ($incs as $i)
   require_once ("../include/$i.php");
 
-session_require (['group' => '1','admin_flags' => 'A']);
+session_require (['group' => '1','admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 $actions = ['remove_user_from_group', 'update_user_group',
   'update_user', 'add_user_to_group', 'rename', 'delete', 'activate'
@@ -213,7 +213,7 @@ function report_db_result ($result, $msg_err, $msg_ok)
 function action_activate ()
 {
   global $user_id;
-  db_execute("UPDATE user SET status='A' WHERE user_id = ?", [$user_id]);
+  db_execute ("UPDATE user SET status='A' WHERE user_id = ?", [$user_id]);
 }
 
 function action_delete ()
@@ -328,13 +328,16 @@ function delete_account_link ($user_id)
 
 function show_status ($user_id, $status)
 {
-  $labels = ['A' => no_i18n ('Active'), 'P' => no_i18n ('Pending')];
+  $labels = [
+    USER_STATUS_ACTIVE => no_i18n ('Active'),
+    USER_STATUS_PENDING => no_i18n ('Pending')
+  ];
   $ret = "<p>Status: ";
   if (array_key_exists ($status, $labels))
     $ret .= $labels[$status];
   else
     $ret .= "[$status]";
-  if ($status == 'P')
+  if ($status == USER_STATUS_PENDING)
     $ret .= ' ' . form_tag ()
       . form_hidden (['action' => 'activate', 'user_id' => $user_id])
       . form_submit (no_i18n ('Activate')) . "\n</form>\n";
@@ -351,7 +354,7 @@ function account_title ($user_id)
 function account_form ($user_id, $row_user)
 {
   $ret = account_title ($user_id);
-   if ($row_user['status'] == 'SQD')
+   if ($row_user['status'] == USER_STATUS_SQUAD)
      return $ret . '<p>' . no_i18n ('This is a squad.') . "</p>\n";
   $ret .= rename_form ($user_id, $row_user['user_name']);
   $ret .= show_status ($user_id, $row_user['status']);
@@ -386,7 +389,7 @@ function group_entry ($user_id, $status, $row_cat)
 {
   $grp_id = $row_cat['group_id'];
   $grp_name = group_getname ($grp_id);
-  if ($status == 'SQD')
+  if ($status == USER_STATUS_SQUAD)
     return "<p>\n<a href=\"/project/admin/squadadmin.php?"
       . "squad_id=$user_id&amp;group_id=$grp_id\">$grp_name</a></p>\n";
   $ret = html_h (3, $grp_name);
@@ -435,7 +438,7 @@ $row_user = db_fetch_array ($res_user);
 print account_form ($user_id, $row_user);
 list_groups ($user_id, $row_user['status']);
 
-if ($row_user['status'] != 'SQD')
+if ($row_user['status'] != USER_STATUS_SQUAD)
   list_user_contributions (
     $user_id, $row_user['user_name'], $offset, $max_rows
   );

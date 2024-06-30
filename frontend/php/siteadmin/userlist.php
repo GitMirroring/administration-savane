@@ -181,11 +181,11 @@ for ($i = 0; $i < $rows; $i++)
 
     switch ($stat)
       {
-      case 'A': print no_i18n ("Active"); break;
-      case 'D': # Fall through.
-      case 'S': print no_i18n ("Deleted"); break;
-      case 'SQD': print no_i18n ("Active (Squad)"); break;
-      case 'P': print no_i18n ("Pending"); break;
+      case USER_STATUS_ACTIVE: print no_i18n ("Active"); break;
+      case USER_STATUS_DELETED: # Fall through.
+      case USER_STATUS_SUSPENDED: print no_i18n ("Deleted"); break;
+      case USER_STATUS_SQUAD: print no_i18n ("Active (Squad)"); break;
+      case USER_STATUS_PENDING: print no_i18n ("Pending"); break;
       default: print no_i18n ("Unknown status") . ": $stat"; break;
       }
     if ($usr['people_view_skills'] == 1)

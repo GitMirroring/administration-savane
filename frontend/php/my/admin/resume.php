@@ -77,11 +77,10 @@ if (db_numrows ($result))
 if (!$allow_resume)
   {
     $result = db_execute ("
-      SELECT groups.group_id FROM user_group, groups
-      WHERE
-        groups.group_id = user_group.group_id AND groups.status = 'A'
-        AND user_id=? AND admin_flags != 'P'
-      LIMIT 1", [user_getid ()]
+      SELECT g.group_id
+      FROM user_group u JOIN groups g ON g.group_id = u.group_id
+      WHERE status = 'A' AND user_id = ? AND admin_flags != ?
+      LIMIT 1", [user_getid (), MEMBER_FLAGS_PENDING]
     );
     $allow_resume = db_numrows ($result);
   }

@@ -338,8 +338,8 @@ function sendmail_get_squad_ids ($addresses)
     return [];
   $ph = utils_in_placeholders ($uids);
   $result = db_execute (
-    "SELECT user_id AS id FROM user WHERE status = 'SQD' AND user_id $ph",
-    array_keys ($uids)
+    "SELECT user_id AS id FROM user WHERE status = ? AND user_id $ph",
+    array_merge ([USER_STATUS_SQUAD], array_keys ($uids))
   );
   while ($row = db_fetch_array ($result))
     $squads[$row['id']] = true;

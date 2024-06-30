@@ -64,8 +64,8 @@ if (!empty ($update))
     # First check just confirmation hash.
     $res = db_execute ("
       SELECT confirm_hash, status FROM user
-      WHERE user_name = ? AND status <> 'SQD'",
-      [$form_loginname]
+      WHERE user_name = ? AND status <> ?",
+      [$form_loginname, USER_STATUS_SQUAD]
     );
     if (db_numrows ($res) < 1)
       exit_error (_("Invalid username."));

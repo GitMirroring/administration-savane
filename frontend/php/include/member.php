@@ -42,12 +42,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once (dirname(__FILE__) . '/database.php');
+define ('MEMBER_FLAGS_MEMBER', '');
+define ('MEMBER_FLAGS_ADMIN', 'A');
+define ('MEMBER_FLAGS_PENDING', 'P');
+define ('MEMBER_FLAGS_SQUAD', 'SQD');
 
 function member_history_label_on_add ($status)
 {
-  if ($status === 'P')
+  if ($status === MEMBER_FLAGS_PENDING)
     return 'User Requested Membership';
-  if ($status === 'SQD')
+  if ($status === MEMBER_FLAGS_SQUAD)
     return 'Created Squad';
   return 'Added User';
 }
@@ -66,7 +70,7 @@ function member_add ($user_id, $group_id, $status = '')
   );
   if (!$result)
     return $result;
-  if ($status === '')
+  if ($status === MEMBER_FLAGS_MEMBER)
     member_update_group_file ($group_id);
   $comment = member_history_label_on_add ($status);
   group_add_history ($comment, user_getname ($user_id), $group_id);
@@ -75,7 +79,7 @@ function member_add ($user_id, $group_id, $status = '')
 
 function member_fetch_group_data ($group_id)
 {
-  $admin_flags = ['', 'A'];
+  $admin_flags = [MEMBER_FLAGS_MEMBER, MEMBER_FLAGS_ADMIN];
   $result = db_execute ("
     SELECT
       unix_group_name AS name,
@@ -161,7 +165,7 @@ function member_get_admin_flags ($user_id, $group_id)
 
 function member_purge_from_user_squad ($user_id, $group_id, $admin_flags)
 {
-  if ($admin_flags != 'SQD')
+  if ($admin_flags != MEMBER_FLAGS_SQUAD)
     # If it is not a squad, make sure the user is no longer associated
     # to squads of the group.
     return db_execute (
@@ -188,7 +192,7 @@ function member_remove ($user_id, $group_id)
   );
   if (!$result)
     return $result;
-  if ($admin_flags == 'SQD')
+  if ($admin_flags == MEMBER_FLAGS_SQUAD)
     group_add_history ('Deleted Squad', user_getname ($user_id), $group_id);
   else
     {
@@ -397,8 +401,8 @@ function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
   $arg = utils_placeholders ($uids);
   $result = db_execute ("
     SELECT user_id FROM user_group
-    WHERE user_id IN ($arg) AND group_id = ? AND admin_flags <> 'P'",
-    array_merge ($uids, [$group_id])
+    WHERE user_id IN ($arg) AND group_id = ? AND admin_flags <> ?",
+    array_merge ($uids, [$group_id, MEMBER_FLAGS_PENDING])
   );
 
   if (!$result)
@@ -430,13 +434,13 @@ function member_check_admin_flags ($user_id, $group_id, $flags)
 # (partly member, so).
 function member_check_pending ($user_id, $group_id)
 {
-  return member_check_admin_flags ($user_id, $group_id, 'P');
+  return member_check_admin_flags ($user_id, $group_id, MEMBER_FLAGS_PENDING);
 }
 
 # Find out if the member is a squad or a normal uiser.
 function member_check_squad ($user_id, $group_id)
 {
-  return member_check_admin_flags ($user_id, $group_id, 'SQD');
+  return member_check_admin_flags ($user_id, $group_id, MEMBER_FLAGS_SQUAD);
 }
 
 # Function like member_check() only checking if one specific user is allowed
@@ -453,14 +457,14 @@ function member_check_private ($user_id, $group_id)
         return true; # Site admins: always return true.
       $user_id = user_getid ();
     }
-  if (member_check ($user_id, $group_id, 'A'))
+  if (member_check ($user_id, $group_id, MEMBER_FLAGS_ADMIN))
     return true; # Give access to admins of the group.
 
   # Determine whether the user is a member allowed to read private data.
   $res = db_execute ("
     SELECT user_id FROM user_group
-    WHERE user_id = ? AND group_id = ? AND admin_flags <> 'P'
-    AND privacy_flags = '1'", [$user_id, $group_id]
+    WHERE user_id = ? AND group_id = ? AND admin_flags <> ?
+    AND privacy_flags = '1'", [$user_id, $group_id, MEMBER_FLAGS_PENDING]
   );
   return db_numrows ($res) != 0;
 }
@@ -489,7 +493,7 @@ function member_create_tracker_flag ($code, $reverse = false)
 # Return value: The whole row of user_group.
 function member_check_is_pending ($user_id, $group_id)
 {
-  return member_check ($user_id, $group_id, 'P');
+  return member_check ($user_id, $group_id, MEMBER_FLAGS_PENDING);
 }
 
 function member_explain_roles ($role = 5)

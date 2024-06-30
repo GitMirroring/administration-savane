@@ -94,11 +94,9 @@ function send_pending_user_email ($group_id, $user_id, $user_message)
     return 0;
   $row_grp = db_fetch_array ($res_grp);
   $res_admins = db_execute ("
-    SELECT user.user_name FROM user, user_group
-    WHERE
-      user.user_id = user_group.user_id
-      AND user_group.group_id = ?
-      AND user_group.admin_flags = 'A'", [$group_id]
+    SELECT user_name FROM user u JOIN user_group g ON u.user_id = g.user_id
+    WHERE g.group_id = ? AND g.admin_flags = ?",
+    [$group_id, MEMBER_FLAGS_ADMIN]
   );
 
   if (db_numrows ($res_admins) < 1)
@@ -143,7 +141,7 @@ if ($update)
       {
         if (!isset ($form_groups[$val['group_id']]))
           continue;
-        # If not in group, add user with admin_flag "P"
+        # If not in group, add user with admin_flag MEMBER_FLAGS_PENDING
         # (not very sensible, but this way we avoid changing
         # the table layout).
         if (member_check_pending ($row_user['user_id'], $val['group_id']))
@@ -159,7 +157,9 @@ if ($update)
             );
             continue;
           }
-        if (!member_add ($row_user['user_id'], $val['group_id'], 'P'))
+        if (!member_add (
+          $row_user['user_id'], $val['group_id'], MEMBER_FLAGS_PENDING
+        ))
           continue;
         send_pending_user_email (
           $val['group_id'], $row_user['user_id'], $form_message
@@ -349,15 +349,15 @@ if (count ($group_list) < 1)
     exit;
   }
 $titles = [
-  'A' => [
+  MEMBER_FLAGS_ADMIN => [
     _("Groups I'm administrator of"),
     _("I am not administrator of any groups"),
     _("Quit this group")],
-  '' => [
+  MEMBER_FLAGS_MEMBER => [
     _("Groups I'm contributor of"),
     _("I am not contributor member of any groups"),
     _("Quit this group")],
-  'P' => [
+  MEMBER_FLAGS_PENDING => [
     _("Requests for inclusion waiting for approval"),
     _("None found"),
     _("Discard this request")]

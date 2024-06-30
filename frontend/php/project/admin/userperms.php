@@ -197,10 +197,11 @@ function import_member_permissions ($row)
   $checkbox_names = ["onduty_user_$uid"];
   $checkbox_names[] = "privacy_user_$uid";
 
+  $flags = [MEMBER_FLAGS_ADMIN, MEMBER_FLAGS_SQUAD, MEMBER_FLAGS_PENDING];
   $imported = sane_import ('post',
     [
       'preg' => [$names], 'true' => $checkbox_names,
-      'strings' =>  [["admin_user_$uid", ['A', 'SQD', 'P']]],
+      'strings' =>  [["admin_user_$uid", $flags]],
     ]
   );
   $len = strlen ("_user_$uid");
@@ -212,11 +213,13 @@ function import_member_permissions ($row)
 function fetch_user_list  ($group_id)
 {
   global $user_list, $squad_list;
-  $res = query_members ($group_id, "NOT g.admin_flags IN ('P', 'SQD')");
+  $flags = [MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD];
+  $cond = "NOT g.admin_flags " . utils_in_placeholders ($flags);
+  $res = query_members ($group_id, $cond, $flags);
   $user_list = [];
   while ($row = db_fetch_array ($res))
     $user_list[$row['user_id']] = $row;
-  $res = query_members ($group_id, "g.admin_flags = 'SQD'");
+  $res = query_members ($group_id, "g.admin_flags = ?", [MEMBER_FLAGS_SQUAD]);
   $squad_list = [];
   while ($row = db_fetch_array ($res))
     $squad_list[$row['user_id']] = $row;
@@ -237,16 +240,16 @@ function sanitize_permissions ($uid, $is_squad)
   # Admins are not allowed to turn off their own admin flag.
   # It is too dangerous---set it back to 'A'.
   if (user_getid () == $uid && !user_is_super_user ())
-    $permissions['admin'] = 'A';
+    $permissions['admin'] = MEMBER_FLAGS_ADMIN;
   # Squads flag cannot be changed, squads should not be turned into normal
   # users.
   if ($is_squad)
-    $permissions['admin'] = 'SQD';
+    $permissions['admin'] = MEMBER_FLAGS_SQUAD;
   if (empty ($permissions['admin']))
-    $permissions['admin'] = '';
+    $permissions['admin'] = MEMBER_FLAGS_MEMBER;
 
   # Admins have the access to the private items.
-  if ($permissions['admin'] == "A")
+  if ($permissions['admin'] == MEMBER_FLAGS_ADMIN)
     $permissions['privacy'] = '1';
 }
 
@@ -254,7 +257,7 @@ function change_member ($row_dev, &$permissions, &$squad_permissions)
 {
   global $group_id, $feedback_squad_override, $feedback_able, $squad_flags;
   $uid = $row_dev['user_id']; $name = $row_dev['user_name'];
-  $is_squad = $row_dev['admin_flags'] == 'SQD';
+  $is_squad = $row_dev['admin_flags'] == MEMBER_FLAGS_SQUAD;
   $permissions = import_member_permissions ($row_dev);
   sanitize_permissions ($uid, $is_squad);
 
@@ -436,7 +439,7 @@ function append_tracker_titles (&$titles, $project)
     $titles[] = $title;
 }
 
-function query_members ($group_id, $cond)
+function query_members ($group_id, $cond, $arg)
 {
   global $trackers;
   $tr = '';
@@ -447,7 +450,8 @@ function query_members ($group_id, $cond)
       u.user_name, u.realname, u.user_id, g.admin_flags, g.onduty,
       g.onduty as onduty_flags,$tr g.privacy_flags
     FROM user u JOIN user_group g ON u.user_id = g.user_id
-    WHERE g.group_id = ? AND $cond ORDER BY u.user_name", [$group_id]
+    WHERE g.group_id = ? AND $cond ORDER BY u.user_name",
+    array_merge ([$group_id], $arg)
   );
 }
 

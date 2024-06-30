@@ -246,23 +246,26 @@ site_project_header (
   ['title' => _("Manage Members"), 'group' => $group_id, 'context' => 'ahome']
 );
 
-function user_admin_query ($cond)
+function user_admin_query ($cond, $arg)
 {
   global $group_id;
   return db_execute ("
-    SELECT u.user_id, u.user_name, u.realname
-    FROM user u, user_group g
-    WHERE u.user_id = g.user_id AND g.group_id = ? AND $cond
-    ORDER BY u.user_name", [$group_id]
+    SELECT u.user_id, user_name, realname
+    FROM user u JOIN user_group g ON u.user_id = g.user_id
+    WHERE g.group_id = ? AND $cond ORDER BY u.user_name",
+    array_merge ([$group_id], $arg);
   );
 }
 
-$res_pending = user_admin_query ("admin_flags = 'P'");
+$res_pending = user_admin_query ("admin_flags = ?", [MEMBER_FLAGS_PENDING]);
 
 show_pending_users_list ($res_pending, $group_id);
 db_data_seek ($res_pending);
 print "<br />\n";
-$res_active = user_admin_query ("NOT admin_flags IN ('A', 'P', 'SQD')");
+$flags = [MEMBER_FLAGS_ADMIN, MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD];
+$res_active = user_admin_query (
+  "NOT admin_flags " . utils_in_placeholders ($flags), $flags
+);
 show_all_users_remove_list ($res_active, $res_pending, $group_id);
 print "<br />\n";
 show_all_users_add_searchbox ($group_id, $words);

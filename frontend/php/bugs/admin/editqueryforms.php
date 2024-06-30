@@ -86,7 +86,7 @@ form_check ($submits);
 if (!$group_id)
   exit_no_group ();
 
-if (!user_ismember ($group_id, 'A'))
+if (!user_ismember ($group_id, MEMBER_FLAGS_ADMIN))
   exit_permission_denied ();
 
 # Initialize global bug structures.
