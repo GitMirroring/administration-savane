@@ -53,7 +53,6 @@ $submits = [
 ];
 $names['true'] = $submits;
 $names['specialchars'] = ['rep_name', 'rep_desc'];
-$names['strings'] = [['rep_scope', 'P']];
 
 $prefices = ['TFSRCH', 'TFREP', 'TFCW', 'CBSRCH', 'CBREP'];
 $suffices = [
@@ -89,7 +88,7 @@ $is_admin_page='y';
 if (!$group_id)
   exit_no_group ();
 
-if (!user_ismember ($group_id,'A'))
+if (!user_ismember ($group_id, 'A'))
   exit_permission_denied ();
 
 # Initialize global bug structures.
@@ -110,9 +109,6 @@ if ($set_default)
 
 if ($post_changes)
   {
-    # scope is always project scope
-    $rep_scope = "P";
-
     if ($update_report)
       {
         # Update report name and description and delete old report entries.
@@ -123,8 +119,7 @@ if ($post_changes)
         $res = db_autoexecute (
           ARTIFACT . '_report',
           [
-            'name' => $rep_name, 'description' => $rep_desc,
-            'scope' => $rep_scope
+            'name' => $rep_name, 'description' => $rep_desc, 'scope' => 'P'
           ],
           DB_AUTOQUERY_UPDATE, "report_id = ?", [$report_id]
         );
@@ -136,8 +131,7 @@ if ($post_changes)
           ARTIFACT . '_report',
           [
             'group_id' => $group_id, 'user_id' => user_getid (),
-            'name' => $rep_name, 'description' => $rep_desc,
-            'scope' => $rep_scope,
+            'name' => $rep_name, 'description' => $rep_desc, 'scope' => 'P',
           ],
           DB_AUTOQUERY_INSERT
         );
@@ -241,7 +235,7 @@ if ($new_report)
       . "<input type='text' name='rep_name' id='rep_name' value='' size='20' "
       . "maxlength='20' />\n</p>\n<p><span class='preinput'>"
       . _("Scope:") . "</span><br />\n";
-    print _("Group") . form_hidden (["rep_scope" => "P"]);
+    print _("Group");
     print "</p>\n<p>\n<span class='preinput'><label for='rep_desc'>"
       . _("Description:") . "</label></span><br />\n"
       . "<input type='text' name='rep_desc' id='rep_desc' value='' size='50' "
@@ -346,10 +340,6 @@ if ($show_report)
         # TRANSLATORS: the argument is report id (a number).
         exit_error (sprintf (_("Unknown Report ID (%s)"), $report_id));
       }
-
-    # Make sure this user has the right to modify the bug report.
-    if (db_result ($res, 0, 'scope') == 'P' && !user_ismember ($group_id, 'A'))
-      exit_permission_denied ();
 
     $res_fld = db_execute (
       "SELECT * FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
@@ -494,33 +484,21 @@ if ($rows)
       {
         print '<tr class="' . utils_altrow ($i) . '"><td>';
 
-        if ($arr['scope'] == 'P' && !user_ismember ($group_id, 'A'))
-          {
-            print $arr['report_id'];
-            print "</td>\n<td>" . utils_specialchars ($arr['name']) . "</td>\n";
-          }
-        else
-          {
-            $url = $php_self
-              . "?group=$group&show_report=1&report_id={$arr['report_id']}";
-            print "<a href=\"$url\">{$arr['report_id']}</a></td>\n";
-            print "<td><a href=\"$url\">{$arr['name']}</a></td>\n";
-          }
-
+        $url = $php_self
+          . "?group=$group&show_report=1&report_id={$arr['report_id']}";
+        print "<a href=\"$url\">{$arr['report_id']}</a></td>\n";
+        print "<td><a href=\"$url\">{$arr['name']}</a></td>\n";
         print "\n<td>{$arr['description']}</td>\n"
           . "\n<td align=\"center\">"
           . (($arr['scope'] == 'P')? _("Group"): _("Personal")) . '</td>'
           . "\n<td align=\"center\">";
 
-        if (($arr['scope'] == 'P') && !user_ismember ($group_id, 'A'))
-          print '-';
-        else
-          print form_tag ()
-            . form_hidden([
-                'delete_report' => 1, 'report_id' => $arr['report_id'],
-                'group' => $group, 'rep_name' => utils_urlencode ($arr['name'])
-              ])
-            . form_image_trash ('del_rep') . "</form>\n";
+        print form_tag ()
+          . form_hidden([
+              'delete_report' => 1, 'report_id' => $arr['report_id'],
+              'group' => $group, 'rep_name' => utils_urlencode ($arr['name'])
+            ])
+          . form_image_trash ('del_rep') . "</form>\n";
         print "</td>\n</tr>\n";
         $i++;
       }

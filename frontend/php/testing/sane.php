@@ -852,7 +852,6 @@ $reference = 'include/trackers_run/admin/editqueryforms.php';
     'post_changes', 'set_default', 'create_report', 'update_report'
   ];
   $names['specialchars'] = ['rep_name', 'rep_desc'];
-  $names['strings'] = [['rep_scope', 'P']];
 
   $prefices = ['TFSRCH', 'TFREP', 'TFCW', 'CBSRCH', 'CBREP'];
   $suffices = [
@@ -882,7 +881,6 @@ $reference = 'include/trackers_run/admin/editqueryforms.php';
     'post_changes' => 0,
     'rep_name' => '"name<">',
     'rep_desc' => "'description'",
-    'rep_scope' => "W",
     'TFCW_date' => 40,
     'CBSRCH_custom_sb3' => 4,
     'CBREP_custom_tf8' => 3,
@@ -896,7 +894,6 @@ $reference = 'include/trackers_run/admin/editqueryforms.php';
   $out['set_default'] = null;
   $out['create_report'] = null;
   $out['update_report'] = null;
-  $out['rep_scope'] = null;
   $out['rep_name'] = htmlspec ($out['rep_name']);
   $out['rep_desc'] = htmlspec ($out['rep_desc']);
   unset ($out['CBREP_custom_df10']);
