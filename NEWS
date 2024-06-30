@@ -52,6 +52,9 @@
 ** In some cases, notifications of new item submissions included
    spurious empty addresses.
 
+** In bugs/admin/editqueryforms.php, default query form assignment didn't
+   work since 2022-02 (ee0fa9c1).
+
 ** Links for deleting attachments in trackers were broken since 3b884877e.
 
 ** Since 39180aea8, file removal records in tracker history didn't work.

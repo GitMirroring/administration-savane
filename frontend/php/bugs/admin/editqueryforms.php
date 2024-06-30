@@ -101,7 +101,7 @@ if ($def_query === false)
 
 if ($set_default)
   {
-    if (!is_int ($report_id))
+    if (empty ($report_id))
       $report_id = $def_query;
     if ($def_query != $report_id)
       group_set_preference ($group_id, ARTIFACT . "_default_query", $report_id);
