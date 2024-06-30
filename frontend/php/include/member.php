@@ -352,13 +352,7 @@ function member_check_admin_flags ($user_id, $group_id, $flags)
 {
   if (!$user_id)
     $user_id = user_getid ();
-
-  $result = db_execute ("
-    SELECT user_id FROM user_group
-    WHERE user_id = ? AND group_id = ? AND admin_flags = ?",
-    [$user_id, $group_id, $flags]
-  );
-  return db_numrows ($result) != 0;
+  return member_get_admin_flags ($user_id, $group_id) === $flags;
 }
 
 # Additional function to check whether a member is pending for a group
