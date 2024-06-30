@@ -93,18 +93,13 @@ function send_pending_user_email ($group_id, $user_id, $user_message)
   if (db_numrows ($res_grp) < 1)
     return 0;
   $row_grp = db_fetch_array ($res_grp);
-  $res_admins = db_execute ("
-    SELECT user_name FROM user u JOIN user_group g ON u.user_id = g.user_id
-    WHERE g.group_id = ? AND g.admin_flags = ?",
-    [$group_id, MEMBER_FLAGS_ADMIN]
-  );
-
-  if (db_numrows ($res_admins) < 1)
+  $res = member_admin_flags_query ($group_id, '= ?', MEMBER_FLAGS_ADMIN);
+  if (db_numrows ($res) < 1)
     return 0;
   # Send one email per admin, in one command line comma-separated.
-  $admin_list = '';
-  while ($row_admins = db_fetch_array ($res_admins))
-    $admin_list .= ($admin_list ? ',' : '') . $row_admins['user_name'];
+  $admin_list = [];
+  while ($row_admins = db_fetch_array ($res))
+    $admin_list[] = $row_admins['user_name'];
 
   $message = approval_user_gen_email (
     $row_grp['group_name'], $row_grp['unix_group_name'],
@@ -113,7 +108,7 @@ function send_pending_user_email ($group_id, $user_id, $user_message)
   );
 
   sendmail_mail (
-    ['from' => user_getname (), 'to' => $admin_list],
+    ['from' => user_getname (), 'to' => join (',', $admin_list)],
     # TRANSLATORS: the argument is group name.
     [ 'subject' =>
         sprintf (_("Membership request for group %s"), $row_grp['group_name']),

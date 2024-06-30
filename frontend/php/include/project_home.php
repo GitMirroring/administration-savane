@@ -47,9 +47,8 @@
 require_directory ("people");
 require_directory ("news");
 require_directory ("stats");
-require_once (dirname (__FILE__) . '/vars.php');
-require_once (dirname (__FILE__) . '/vcs.php');
-require_once (dirname (__FILE__) . '/utils.php');
+foreach (['vars', 'vcs', 'utils', 'member'] as $i)
+  require_once (dirname (__FILE__) . "/$i.php");
 
 # If we are at wrong url, redirect.
 $host = $project->getTypeBaseHost ();
@@ -66,11 +65,8 @@ $project = new Project ($group_id);
 site_project_header ([]);
 
 # Members of this group (little box on the right).
-$res_admin = db_execute ("
-  SELECT u.user_id, user_name, realname
-  FROM user u JOIN user_group g ON u.user_id = g.user_id
-  WHERE g.group_id = ? AND g.admin_flags = ? AND g.onduty = 1",
-  [$group_id, MEMBER_FLAGS_ADMIN]
+$res_admin = member_admin_flags_query (
+  $group_id, '= ? AND onduty = 1', MEMBER_FLAGS_ADMIN
 );
 print "\n<div class='indexright'>\n";
 print $HTML->box_top (_("Membership Info"), "", 1);

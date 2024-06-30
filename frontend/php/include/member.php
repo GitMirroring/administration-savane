@@ -77,6 +77,18 @@ function member_add ($user_id, $group_id, $status = '')
   return $result;
 }
 
+function member_admin_flags_query ($group_id, $cond, $arg)
+{
+  if (!is_array ($arg))
+    $arg = [$arg];
+  return db_execute ("
+    SELECT u.user_id, user_name, realname
+    FROM user u JOIN user_group g ON u.user_id = g.user_id
+    WHERE group_id = ? AND admin_flags $cond ORDER BY user_name",
+    array_merge ([$group_id], $arg)
+  );
+}
+
 function member_fetch_group_data ($group_id)
 {
   $admin_flags = [MEMBER_FLAGS_MEMBER, MEMBER_FLAGS_ADMIN];

@@ -120,12 +120,9 @@ if ($squad_id)
   {
     # A squad passed? Allow to add and remove member, to
     # change the squad name or to delete it.
-    $sql = "
-      SELECT user_name, realname, u.user_id
-      FROM user u JOIN user_group g ON u.user_id = g.user_id
-      WHERE u.user_id = ? AND g.group_id = ? AND g.admin_flags = ?
-      ORDER BY u.user_name";
-    $result = db_execute ($sql, [$squad_id, $group_id, MEMBER_FLAGS_SQUAD]);
+    $result = member_admin_flags_query ($group_id,
+      '= ? AND u.user_id = ?', [MEMBER_FLAGS_SQUAD, $squad_id]
+    );
     if (!db_numrows ($result))
       exit_error (_("Squad not found"));
 
@@ -181,11 +178,9 @@ if ($squad_id)
     print html_h (2, _("Removing members"));
 
     $result_delusers = db_execute ("
-      SELECT user.user_id, user.user_name, user.realname
-      FROM user, user_squad
-      WHERE user.user_id = user_squad.user_id AND user_squad.squad_id = ?
-      ORDER BY user.user_name",
-      [$squad_id]
+      SELECT u.user_id, user_name, realname
+      FROM user u JOIN user_squad s ON u.user_id = s.user_id
+      WHERE s.squad_id = ?  ORDER BY user_name", [$squad_id]
    );
 
     print "<p>"
@@ -216,14 +211,9 @@ if ($squad_id)
       print $users_none_found;
     print form_submit (_("Remove Members"), "remove_from_squad") . "</form>\n";
     print html_h (2, _("Adding members"));
-    $result_addusers =  db_execute ("
-      SELECT u.user_id, user_name, realname
-      FROM user u JOIN user_group g ON u.user_id = g.user_id
-      WHERE g.group_id = ? AND admin_flags NOT IN (?, ?)
-      ORDER BY user.user_name",
-      [$group_id, MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
+    $result_addusers =  member_admin_flags_query ($group_id,
+      'NOT IN (?, ?)', [MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
     );
-
     print "<p>"
       . _("To add members to the squad, select their name and push the button "
           . "below.")
@@ -324,13 +314,9 @@ if ($update)
 if ($update_delete_step2 && $deletionconfirmed == "yes")
   {
     $squad_id_to_delete = $squad_id_to_delete;
-    $delete_result = db_execute ("
-      SELECT user_name, realname, u.user_id
-      FROM user u JOIN user_group ON u.user_id = g.user_id
-      WHERE u.user_id = ? AND g.group_id = ?  AND g.admin_flags = ?
-      ORDER BY user_name", [$squad_id_to_delete, $group_id, MEMBER_FLAGS_SQUAD]
+    $delete_result = member_admin_flags_qyery ($group_id,
+       '= ? AND u.user_id = ?', [MEMBER_FLAGS_SQUAD, $squad_id_to_delete]
     );
-
     if (!db_numrows ($delete_result))
       exit_error (_("Squad not found"));
 
@@ -338,12 +324,7 @@ if ($update_delete_step2 && $deletionconfirmed == "yes")
     member_remove ($squad_id_to_delete, $group_id);
   }
 
-$result = db_execute ("
-  SELECT user_name, realname, u.user_id
-  FROM user u JOIN user_group g ON u.user_id = g.user_id
-  WHERE g.group_id = ?  AND g.admin_flags = ?
-  ORDER BY user_name", [$group_id, MEMBER_FLAGS_SQUAD]
-);
+$result = member_admin_flags_query ($group_id, '= ?', MEMBER_FLAGS_SQUAD);
 $rows = db_numrows ($result);
 
 site_project_header (
@@ -375,10 +356,8 @@ else
 # important).
 print html_h (2, _("Create a New Squad"));
 
-$result = db_execute ("
-  SELECT user_id FROM user_group
-  WHERE group_id = ? AND admin_flags NOT IN (?, ?)",
-  [$group_id, MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
+$result = member_admin_flags_query (
+  $group_id, 'NOT IN (?, ?)', [MEMBER_FLAGS_PENDING, MEMBER_FLAGS_SQUAD]
 );
 if ($rows < db_numrows ($result))
   {
