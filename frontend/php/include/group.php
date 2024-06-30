@@ -797,7 +797,7 @@ function group_get_preference ($group_id, $preference_names)
     {
       if (db_numrows ($result))
         return db_result ($result, 0, 'preference_value');
-     return false;
+      return false;
     }
 
   while ($row = db_fetch_array ())

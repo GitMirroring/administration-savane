@@ -100,13 +100,13 @@ if ($def_query === false)
   $def_query = 100;
 
 if ($set_default)
-{
-  if (!is_int ($report_id))
-    $report_id = $def_query;
-  if ($def_query != $report_id)
-    group_set_preference ($group_id, ARTIFACT . "_default_query", $report_id);
-  $def_query = $report_id;
-}
+  {
+    if (!is_int ($report_id))
+      $report_id = $def_query;
+    if ($def_query != $report_id)
+      group_set_preference ($group_id, ARTIFACT . "_default_query", $report_id);
+    $def_query = $report_id;
+  }
 
 if ($post_changes)
   {
