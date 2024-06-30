@@ -171,6 +171,8 @@ function sendmail_build_headers ($from, &$context, &$message)
 
 function sendmail_explode_addr_list ($to)
 {
+  if ($to === null)
+    return [];
   $to = trim ($to);
   if ($to == "")
     return [];
