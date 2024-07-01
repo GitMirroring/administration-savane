@@ -840,6 +840,8 @@ function markup_mark_item_publicity ($items, $res)
 
 function markup_fetch_item_publicity ($items, $artifact_set)
 {
+  if (empty ($items) || empty ($artifact_set))
+    return [];
   $sqls = $params = [];
   foreach ($artifact_set as $art)
     {
