@@ -97,7 +97,7 @@ site_user_header (
   ['title' => _("Change Authorized Keys"), 'context' => 'account']
 );
 print form_header ();
-print '<h2>' . _("Authorized keys") . "</h2>\n";
+print html_h (2, _("Authorized keys"));
 utils_get_content ("account/editsshkeys");
 print '<p>'
  . _("Fill the text fields below with the public keys for each key you want "
@@ -116,9 +116,9 @@ for ($i = 0; $i < $n; $i++)
     $k = '';
     if (isset ($keys[$i]))
       $k = $keys[$i];
-    print "<span class=\"preinput\"><label for=\"form_keys[$i]\">";
-    printf (_("Key #%s:"), $i + 1);
-    print "</label></span>\n<input type='text' size='60' id='form_keys[$i]' "
+    print "<span class=\"preinput\">"
+      . html_label ("form_keys[$i]", sprintf (_("Key #%s:"), $i + 1));
+    print "</span>\n<input type='text' size='60' id='form_keys[$i]' "
       . "name='form_keys[$i]'\n  value='$k' /><br />\n";
   }
 print "</p>\n";

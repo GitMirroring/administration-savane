@@ -48,10 +48,7 @@ require_once ('../include/form.php');
 
 extract (sane_import ('request', ['hash' => 'confirm_hash']));
 extract (sane_import ('post',
-  [
-    'true' => 'update',
-    'pass' => ['form_pw', 'form_pw2']
-  ]
+  ['true' => 'update', 'pass' => ['form_pw', 'form_pw2']]
 ));
 
 form_check ('update');
@@ -66,7 +63,7 @@ if (db_numrows ($res_lostuser) > 1)
   );
 if (db_numrows ($res_lostuser) < 1)
   exit_error (_("Error"), _("Invalid confirmation hash."));
-$row_lostuser = db_fetch_array($res_lostuser);
+$row_lostuser = db_fetch_array ($res_lostuser);
 
 if ($update && $form_pw)
   {
@@ -83,20 +80,18 @@ if ($update && $form_pw)
   }
 
 site_header (['title' => _("Lost Passphrase Login")]);
-
-print '<h2>' . _("Lost Passphrase Login") . "</h2>\n";
+print html_h (2, _("Lost Passphrase Login"));
 print '<p>';
 printf (_("Welcome, %s."), $row_lostuser['user_name']);
 print ' ' . _("You may now change your passphrase.") . "</p>\n";
 print form_header ();
 print '<div>' . account_password_help () . "</div>\n";
-print '<div class="inputfield"><strong><label for="form_pw">'
-  . _("New passphrase:")
-  . '</label></strong>';
+print '<div class="inputfield"><strong>'
+  . html_label ('form_pw', _("New passphrase:")) . '</strong>';
 print form_input ("password", "form_pw") . "</div>\n";
 
-print '<div class="inputfield"><strong><label for="form_pw2">'
-  . _("New passphrase (repeat):") . '</label></strong>';
+print '<div class="inputfield"><strong>'
+  . html_label ('form_pw2', _("New passphrase (repeat):")) . '</strong>';
 print form_input ("password", "form_pw2") . "</div>\n";
 
 print form_hidden (["confirm_hash" => $confirm_hash]);
