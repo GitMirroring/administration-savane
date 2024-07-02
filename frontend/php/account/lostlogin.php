@@ -75,7 +75,7 @@ if ($update && $form_pw)
           ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => ''],
           DB_AUTOQUERY_UPDATE, "confirm_hash = ?", [$confirm_hash]
         );
-        session_redirect ($sys_home);
+        session_redirect ("{$sys_home}account/login.php");
       }
   }
 

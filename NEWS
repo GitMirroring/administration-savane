@@ -28,6 +28,9 @@
 
 * The 'item not found' error specifies the item.
 
+* After resetting password, the user is directed to the login page,
+  Savannah sr #109487.
+
 * Bug fixes:
 
 ** In my/groups.php, the 'Search Groups' text input wasn't pre-filled
