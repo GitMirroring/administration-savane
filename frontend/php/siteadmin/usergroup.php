@@ -365,22 +365,22 @@ function account_form ($user_id, $row_user)
 
 function user_group_form ($user_id, $grp_id, $admin_flags)
 {
-  $ret = form_tag ()
+  return form_tag ()
     . form_hidden (
         [ 'action' => 'update_user_group', 'user_id' => $user_id,
           'group_id' => $grp_id
         ]
       )
-    . "<br />\n<label for='admin_flags'>" . no_i18n ('Admin Flags:')
-    . "</label>\n&nbsp;\n"
+    . "<br />\n" . html_label ('admin_flags', no_i18n ('Admin flags:'))
+    . "\n&nbsp;\n"
     . '<input type="text" name="admin_flags" id="admin_flags" '
     . "value=\"$admin_flags\">\n&nbsp;\n"
-    . '<input type="submit" name="update_group" value="'
-    . no_i18n('Update') . "\" />\n";
-  $ret .= "&nbsp;<a href=\"usergroup.php?user_id=$user_id"
-    . "&amp;action=remove_user_from_group&amp;group_id=$grp_id\">"
-    . "\n[" . no_i18n ('Remove user from group') . "]</a>\n";
-  return "$ret</form>\n";
+    . form_submit (no_i18n ('Update')) . "</form>\n"
+    . form_tag ()
+    . form_hidden (['user_id' => $user_id, 'group_id' => $grp_id,
+        'action' => 'remove_user_from_group'])
+    . "<br />\n" . form_submit (no_i18n ('Remove user from group'))
+    . "</form>\n";
 }
 
 function group_entry ($user_id, $status, $row_cat)

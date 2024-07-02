@@ -67,6 +67,9 @@
 
 ** Field value transition editing was broken since 2022-04 (8a7f2c11f).
 
+** The controls for removing members from groups and changing admin_flags
+   in siteadmin/usergroup.php were broken since d3962d3feb7.
+
 [BACKEND]
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
