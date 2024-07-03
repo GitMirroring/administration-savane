@@ -172,53 +172,29 @@ utils_update_decimal_separator ();
 # just all of the *.php files found in the module's subdirectory).
 function require_directory ($module)
 {
-  if ($module=="")
-    return;
   if (!empty ($GLOBALS["directory_{$module}_is_loaded"]))
     return;
-
   $dir = dirname (__FILE__) . "/$module";
-  if (is_dir ($dir))
-    {
-      $odir = opendir ($dir);
-      while ($file = readdir ($odir))
-        {
-          # Only include PHP scripts;
-          # avoid Emacs temporary files .#filename.php.
-          if (preg_match ("/^[^\.].*\.(php)$/i", $file))
-            {
-              require_once ("$dir/$file");
-            }
-        }
-      closedir ($odir);
-    }
   $GLOBALS["directory_{$module}_is_loaded"] = 1;
+  if (!is_dir ($dir))
+    return;
+  $odir = opendir ($dir);
+  while ($file = readdir ($odir))
+    # Only include PHP scripts; avoid Emacs temporary files .#filename.php.
+    if (preg_match ("/^[^.].*\.php$/i", $file))
+      require_once ("$dir/$file");
+  closedir ($odir);
 }
 
 $tracker_list = utils_get_tracker_list ();
 
-function get_module_include_dir (
-  $script_name, $true_artifact = 0, $true_dir = 0
-)
+function init_guess_artifact ($script_name)
 {
   global $tracker_list;
   $guess = basename (dirname ($script_name));
 
-  if (!$true_dir && $guess == "admin")
-    {
-      # Need to go deeper.
-      $guess = basename (dirname (dirname ($script_name)));
-    }
-
-  if ($true_artifact)
-    return $guess;
-  # We have some special cases:
-  #  - bugs, patch, task go in trackers
-  #  - news and forum go in news
-  if (in_array ($guess, $tracker_list))
-    $guess = 'trackers';
-  elseif ($guess == 'forum')
-    $guess = 'news';
+  if ($guess == "admin") # Need to go deeper.
+    $guess = basename (dirname (dirname ($script_name)));
   return $guess;
 }
 
@@ -287,9 +263,8 @@ extract (sane_import ('request',
     'digits' => ['group_id', 'item_id', 'forum_id']
   ]));
 
-# Define the artifact we are using.
 if (!defined ('ARTIFACT'))
-   define ('ARTIFACT', get_module_include_dir ($_SERVER['SCRIPT_NAME'], 1));
+  define ('ARTIFACT', init_guess_artifact ($_SERVER['SCRIPT_NAME']));
 
 function init_extract_item_id ($tracker_list)
 {
