@@ -590,6 +590,7 @@ $page .=
 $page .= html_h (2, "PHP functions");
 $phpfunctions =
   [
+    'crypt' => 'Used to handle passwords ! [REQUIRED]',
     'gettext' =>
       'You should install PHP with gettext support '
       . '(--with-gettext --enable-intl) ! [RECOMMENDED]',
