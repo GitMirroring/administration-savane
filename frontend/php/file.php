@@ -55,6 +55,11 @@ function file_exit ($func, $param)
   $func ($param);
 }
 
+function file_exit_error ($str)
+{
+  file_exit ('error', $str);
+}
+
 extract (sane_import ('request',
   [
     'preg' => [['file_id', '/^(\d+|test[.]png)$/']], 'digits' => 'file_uid'
@@ -118,7 +123,9 @@ function assert_file_access ($item_fields, $file_uid)
   form_check_id ();
 }
 
-$item_fields = utils_find_item ($artifact, $item_id, ['privacy'], 'file_exit');
+$item_fields = utils_find_item (
+  $artifact, $item_id, ['privacy'], 'file_exit_error'
+);
 assert_file_access ($item_fields, $file_uid);
 
 $result = db_execute ("
