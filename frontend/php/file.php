@@ -93,7 +93,7 @@ if (db_numrows ($result) > 0)
   }
 else
   # TRANSLATORS: the argument is file id (a number).
-  file_exit ('error', sprintf (_("File #%s not found"), $file_id));
+  file_exit_error (sprintf (_("File #%s not found"), $file_id));
 
 $in = [0 => $artifact];
 $out = [];
@@ -103,7 +103,7 @@ if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
     # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
     $str = sprintf (_('Invalid artifact %s'), "<em>$artifact</em>");
     unset ($artifact);
-    file_exit ("error", $str);
+    file_exit_error ($str);
   }
 
 function assert_file_access ($item_fields, $file_uid)
@@ -117,8 +117,8 @@ function assert_file_access ($item_fields, $file_uid)
     return;
   $group_id = $item_fields['group_id'];
   if (!member_check_private ($file_uid, $group_id))
-    file_exit (
-      "error", _("Non-authorized access to file attached to private item")
+    file_exit_error (
+      _("Non-authorized access to file attached to private item")
     );
   form_check_id ();
 }
@@ -134,14 +134,14 @@ $result = db_execute ("
 );
 
 if (!db_numrows ($result))
-  file_exit ("error",
+  file_exit_error (
     sprintf (_("Couldn't find attached file #%s."), $file_id)
   );
 
 $row = db_fetch_array ($result);
 
 if ($row['filesize'] < 0)
-  file_exit ("error",
+  file_exit_error (
     sprintf (_("Attached file #%s was lost."), $file_id) . " "
     . sprintf (
         _("File attributes: name '%s', size %s, type '%s', date %s."),
@@ -158,14 +158,14 @@ header ('Last-Modified: ' . date ('r', $mtime));
 # a file with a given name like "myimage.png" when actually downloading
 # something completely different like "mystupidvirus.scr".
 if ($row['filename'] != basename (rawurldecode ($_SERVER['PHP_SELF'])))
-  file_exit ("error",
+  file_exit_error (
     _("The filename in the URL does not match the filename "
       . "registered in the database")
   );
 
 $path = $sys_trackers_attachments_dir . '/' . $file_id;
 if (!is_readable ($path))
-  file_exit ("error", _("No access to the file."));
+  file_exit_error (_("No access to the file."));
 
 # Download the patch with the correct filetype.
 $headers = [
