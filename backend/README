@@ -25,7 +25,7 @@ accounts/sv_assign_uid_gid
 ==========================
 
 Links Savane users and groups to Unix uid and gid numbers.
-Runs every 5 minutes on mgt0.
+Runs every 5 minutes on mgt1.
 
 accounts/sv_groups
 ==================
@@ -85,7 +85,7 @@ misc/sv_cleaner
 ===============
 
 Removes parts of the database that belong to removed entities.
-Runs twice an hour on mgt0.
+Runs twice an hour on mgt1.
 
 misc/sv_collect-mirror-stats
 ============================
@@ -127,7 +127,7 @@ misc/sv_reminder
 ================
 
 Sends sheduled notifications for users.
-Runs twice a day on mgt0.
+Runs twice a day on mgt1.
 
 sbin/sv_frontendctl.pl
 ======================
