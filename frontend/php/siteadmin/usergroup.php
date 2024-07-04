@@ -46,11 +46,10 @@
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
 
-require_once ('../include/init.php');
-require_once ('../include/form.php');
-require_once ('../include/account.php');
-require_once ('../include/markup.php');
-require_once ('../include/trackers/data.php');
+$incs =
+  ['init', 'form', 'account', 'trackers/general', 'markup', 'trackers/data'];
+foreach ($incs as $i)
+  require_once ("../include/$i.php");
 
 session_require (['group' => '1','admin_flags' => 'A']);
 
