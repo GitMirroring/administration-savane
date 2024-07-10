@@ -27,11 +27,12 @@
 # Report package version.
 
 use strict;
-use Getopt::Long qw(GetOptionsFromArray);
+use Getopt::Long qw (GetOptionsFromArray);
+use File::Basename qw (basename);
 require Exporter;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(GetVersion PrintVersionOrHelp);
+our @ISA = qw (Exporter);
+our @EXPORT = qw (GetVersion PrintVersionOrHelp get_prog_name);
 
 # Return Savane version.
 sub GetVersion
@@ -97,6 +98,13 @@ sub parse_argv
   return ($help, $version);
 }
 
+sub get_prog_name
+{
+  chomp (my $name = `which "$0"`);
+  $name = readlink ($name) while -l $name;
+  return basename ($name);
+}
+
 # Parse command line, check if help or version options are present,
 # print the requested info and exit.
 
@@ -110,7 +118,7 @@ sub PrintVersionOrHelp
   my ($help, $version) = parse_argv ();
   return unless $help || $version;
   $version = 0 if $help;
-  ($prog_name = $0) =~ s,.*/,,;
+  $prog_name = get_prog_name ();
   ($prog_escaped = $0) =~ s,.,[$&],g;
   $prog_escaped =~ s/,/\\,/g;
   $help_string =~ s,(^|\W)$prog_escaped(\W|$),\1$prog_name\2,g;

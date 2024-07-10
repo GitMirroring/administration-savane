@@ -132,8 +132,7 @@ sub offer_source_code
 {
   die "Source code URL isn't defined in configuration file\n\n"
     . "\t$conf_file\n\nExiting" if $source_code_url eq '';
-  my $script = $0;
-  $script =~ s,.*/,,;
+  my $script = get_prog_name ();
   my $msg = <<"    EOF";
     AGPL notice: $script is part of Savane.
     In order to download the corresponding source code of Savane, run
