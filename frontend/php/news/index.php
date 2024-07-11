@@ -38,9 +38,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-require_once ('../include/init.php');
-require_once ('../include/form.php');
-require_once ('../include/news/general.php');
+foreach (['init', 'form', 'trackers/general', 'news/general'] as $i)
+  require_once ("../include/$i.php");
 
 extract (sane_import ('request',
   ['pass' => 'feedback', 'digits' => ['id', 'limit']])
