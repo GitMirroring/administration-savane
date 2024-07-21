@@ -176,17 +176,14 @@ function no_member_changes ($uid, &$fields, $is_squad)
   return true;
 }
 
-function compile_member_fields_values (&$permissions)
+function compile_member_fields_values ($permissions)
 {
   global $trackers;
-  $fields = [
-    'admin_flags' => $permissions['admin'],
-    'privacy_flags' => $permissions['privacy'],
-    'onduty' => $permissions['onduty'],
-  ];
-
-  foreach ($trackers as $art)
-    $fields[$art . '_flags'] = $permissions[$art];
+  $fields['admin_flags'] = $permissions['admin'];
+  $fields['onduty'] = $permissions['onduty'] !== null;
+  foreach (array_merge ($trackers, ['privacy']) as $k)
+    $fields[$k . '_flags'] =
+      $permissions[$k] === 'NULL'? null: $permissions[$k];
   return $fields;
 }
 
