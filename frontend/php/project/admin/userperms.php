@@ -407,8 +407,8 @@ function compile_posting_restrictions ()
   $fields = [];
   foreach ($trackers as $art)
     {
-      $var = $art . '_flags';
-      $fields[$art . '_rflags'] = $GLOBALS[$var];
+      $var = $GLOBALS[$art . '_flags'];
+      $fields[$art . '_rflags'] = $var === 'NULL'? 0: $var;
     }
   return $fields;
 }
