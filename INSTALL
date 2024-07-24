@@ -17,8 +17,8 @@ specifically noted otherwise.
 Basic installation
 ------------------
 
-Install dependencies.  If you are going to use localizations, make
-sure the languages are listed when running locale -a (in Trisquel,
+Install dependencies listed in README.  If you are going to use localizations,
+make sure the languages are listed when running locale -a (in Trisquel,
 look for language-pack-*).
 
 Download the latest tarball and its signature:
