@@ -167,10 +167,7 @@ class Layout extends savane_error
         # and personal area (/my)
         $ct = ["news", "support", "bugs", "task", "my", "myitems", "mygroups"];
         if (in_array ($context, $ct) || preg_match ("/^a/", $context))
-          {
-            header ("Expires: Thu, 22 Dec 1977 15:00:00 GMT");
-            dbg ("Expires is set.");
-          }
+          header ("Expires: Thu, 22 Dec 1977 15:00:00 GMT");
       }
     $title = context_title ($context,
       isset ($params['group'])? $params['group'] : ''

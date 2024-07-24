@@ -82,12 +82,8 @@ $sys_gpg_name = "gpg";
 
 # Debug variables
 # (add them in tests/minimal_configs/Makefile, possibly commented out).
-# Print debug information before exiting:
-$sys_debug_on = false;
 # Prevent redirections like sv.gnu.org -> sv.nongnu.org.
 $sys_debug_nobasehost = false;
-# Log which queries are used the most, using XCache variables.
-$sys_debug_sqlprofiler = false;
 
 # Password strength checking.
 # Do we have the pwqcheck(1) program from the passwdqc package?

@@ -666,65 +666,17 @@ function utils_is_valid_filename ($file)
   return true;
 }
 
-# Add debugging information.
-function util_debug ($msg)
-{
-  if (!$GLOBALS['sys_debug_on'])
-    return;
-  $backtrace = debug_backtrace ();
-  $location = '';
-  if (isset ($backtrace[1]))
-    $location = $backtrace[1]['function'];
-  else
-    {
-      $relative_path = str_replace (
-        $GLOBALS['sys_www_topdir'] . '/', '', $backtrace[0]['file']
-      );
-      $location = "$relative_path:{$backtrace[0]['line']}";
-    }
-  $GLOBALS['debug'] .= "($location) $msg<br />";
-}
-
-function dbg ($msg)
-{
-  util_debug ($msg);
-}
-
-# Temporary debug.
-# Use it instead of 'echo' so you can easily spot and remove them later after
-# debugging is done.
-function temp_dbg ($msg)
-{
-  print '<pre>';
-  debug_print_backtrace ();
-  var_dump ($msg);
-  print '</pre>';
-}
-
 # Die with debug information.
 function util_die ($msg)
 {
   trigger_error ($msg);
-  $msg = utils_specialchars ($msg);
-  if (empty ($GLOBALS['sys_debug_on']))
-    die ($msg);
-  print "<strong>Fatal error:</strong> $msg<br />";
-  print '<pre>';
-  debug_print_backtrace ();
-  print '</pre>';
-  die ();
+  die (utils_specialchars ($msg));
 }
 
 # Add feedback information.
 function fb ($msg, $error = 0)
 {
   $GLOBALS['feedback_count']++;
-
-  if ($GLOBALS['sys_debug_on'])
-    {
-      $msg .= ' [#' . $GLOBALS['feedback_count'] . ']';
-      dbg("Add feedback #" . $GLOBALS['feedback_count']);
-    }
   $msg .= "\n";
   if ($error)
     $GLOBALS['ffeedback'] .= $msg;

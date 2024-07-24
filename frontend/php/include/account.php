@@ -431,26 +431,20 @@ function account_groupnamevalid ($name)
   # Forbidden names: check the hardcoded list unless the variable
   # $only_specific_forbid_group_regexp is true.
   if (!$GLOBALS['only_specific_forbid_group_regexp'])
-    {
-      dbg ("apply standard regexp");
-      if (preg_match ($forbid_group_regexp, $name))
-        {
-          fb (_("This group name is not allowed."), 1);
-          return 0;
-        }
-    }
+    if (preg_match ($forbid_group_regexp, $name))
+      {
+        fb (_("This group name is not allowed."), 1);
+        return 0;
+      }
 
   # Forbidden names: check the site-specific list if a list is given
   # (by consequence, the variable return true).
   if ($GLOBALS['specific_forbid_group_regexp'])
-    {
-      dbg ("apply specific regexp");
-      if (preg_match ($GLOBALS['specific_forbid_group_regexp'], $name))
-        {
-          fb (_("This group name is not allowed."), 1);
-          return 0;
-        }
-    }
+    if (preg_match ($GLOBALS['specific_forbid_group_regexp'], $name))
+      {
+        fb (_("This group name is not allowed."), 1);
+        return 0;
+      }
 
   if (strpos ($name, "_") === FALSE)
     return 1;

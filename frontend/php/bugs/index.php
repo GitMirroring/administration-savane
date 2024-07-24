@@ -457,14 +457,9 @@ switch ($func)
       $reassign_change_group
       || ($reassign_change_artifact && ($reassign_change_artifact != ARTIFACT))
     )
-      {
-        dbg("reassign item: reassign_change_group:$reassign_change_group, "
-            . "reassign_change_artifact:$reassign_change_artifact, ARTIFACT:"
-            . ARTIFACT);
-        trackers_data_reassign_item (
-          $item_id, $reassign_change_group, $reassign_change_artifact
-        );
-      }
+      trackers_data_reassign_item (
+        $item_id, $reassign_change_group, $reassign_change_artifact
+      );
 
     # Show browse item page, unless the user want to get back
     # to the same report, to make something else.

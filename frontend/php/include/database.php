@@ -300,48 +300,6 @@ function db_query ($qstring, $print = 0, $multi_query = 0)
 {
   global $mysql_conn, $db_qhandle;
 
-  # Store query for recap display.
-  if ($GLOBALS['sys_debug_on'])
-    {
-      $GLOBALS['debug_query_count']++;
-      $backtrace = debug_backtrace();
-      $outside = null;
-      foreach ($backtrace as $step)
-        {
-          if ($step['file'] != __FILE__)
-            {
-              $outside = $step;
-              break;
-            }
-        }
-      # Strip installation prefix.
-      $relative_path = str_replace (
-        $GLOBALS['sys_www_topdir'] . '/', '', $outside['file']
-      );
-      $location = "$relative_path:{$outside['line']}";
-      array_push ($GLOBALS['debug_queries'], [$qstring, $location]);
-    }
-
-  if ($GLOBALS['sys_debug_sqlprofiler'] && extension_loaded('XCache'))
-    {
-      $backtrace = debug_backtrace ();
-      $outside = null;
-      foreach ($backtrace as $step)
-        {
-          if ($step['file'] != __FILE__)
-            {
-              $outside = $step;
-              break;
-            }
-        }
-      # Strip installation prefix.
-      $relative_path = str_replace (
-        $GLOBALS['sys_www_topdir'] . '/', '', $outside['file']
-      );
-      $location = "$relative_path:{$outside['line']}";
-      xcache_inc ($location);
-    }
-
   if ($print)
     {
       print "<pre>[";

@@ -559,7 +559,6 @@ function trackers_extract_field_list ($post_method = true)
         }
       $k = print_r ($key, true);
       $v = print_r ($val, true);
-      dbg ("Rejected key = $k val = $v");
     }
   return $vfl;
 }

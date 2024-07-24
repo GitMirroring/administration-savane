@@ -1864,7 +1864,6 @@ function trackers_data_reassign_item (
        $row_attachment['filename']
       );
       fb ($msg, 1);
-      dbg ("sql: $sql");
     }
 
   # Duplicate CC List.

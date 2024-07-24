@@ -43,7 +43,6 @@
 
 $testconfig_php = true;
 require_once ("include/ac_config.php");
-$sys_debug_sqlprofiler = false;
 $sys_file_domain = '';
 $sys_linguas = "en:es";
 foreach (['i18n', 'database', 'mailman', 'savane-git'] as $inc)
@@ -731,8 +730,6 @@ function test_sysvars ()
   if (empty ($inside_siteadmin))
     utils_set_csp_headers ();
   output_sysvars ();
-  if (!isset ($GLOBALS['sys_debug_on']))
-    $GLOBALS['sys_debug_on'] = false;
   if ($sys_file_domain === $sys_default_domain)
     print "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
       . "This setup is vulnerable to cross-site scripting.</strong></p>\n";

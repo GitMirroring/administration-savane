@@ -26,7 +26,6 @@ PATH:=$(PATH):/usr/local/sbin:/usr/sbin:/sbin
 	-mkdir /tmp/savane-mini/savane
 	echo '<?php $$sys_dbhost=":/tmp/savane-mini/mysql/sock";' > /tmp/savane-mini/savane/.savane.conf.php
 	echo '$$sys_incdir="'`pwd`'/../../etc/site-specific-content";' >> /tmp/savane-mini/savane/.savane.conf.php
-	echo '#$$sys_debug_on=true;' >> /tmp/savane-mini/savane/.savane.conf.php
 	echo '# No redirect to brother website' >> /tmp/savane-mini/savane/.savane.conf.php
 	echo '$$sys_debug_nobasehost=true;' >> /tmp/savane-mini/savane/.savane.conf.php
 	echo '#$$sys_debug_noformcheck=true;' >> /tmp/savane-mini/savane/.savane.conf.php
