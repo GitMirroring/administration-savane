@@ -83,8 +83,6 @@ form_check ($submits);
 # HELP: what we call now "query form" was previously called "report",
 # that name is still in the database.
 
-$is_admin_page='y';
-
 if (!$group_id)
   exit_no_group ();
 

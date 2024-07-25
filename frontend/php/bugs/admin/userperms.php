@@ -46,7 +46,6 @@
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 require_directory ("project");
-$is_admin_page = 'y';
 
 session_require (['group' => $group_id, 'admin_flags' => 'A']);
 

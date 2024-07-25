@@ -81,8 +81,6 @@ extract (sane_import ('post',
 form_check ('update');
 require_directory ("project");
 
-$is_admin_page = 'y';
-
 if (!$group_id)
   exit_no_group();
 

@@ -46,8 +46,6 @@
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 
-$is_admin_page = 'y';
-
 extract (sane_import ('request',
   [
     'strings' => [['func', ['deltransition', 'delcanned']]],

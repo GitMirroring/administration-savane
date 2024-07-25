@@ -44,7 +44,6 @@
 
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
-$is_admin_page = 'y';
 
 if (!$group_id)
   exit_no_group ();

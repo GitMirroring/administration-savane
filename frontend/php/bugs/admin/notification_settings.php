@@ -47,8 +47,6 @@ require_once ('../../include/trackers/general.php');
 require_once ('../../include/trackers/data.php');
 require_directory ('project');
 
-$is_admin_page = 'y';
-
 extract (sane_import ('post', ['true' => 'submit']));
 form_check ('submit');
 
