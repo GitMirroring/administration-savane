@@ -69,7 +69,7 @@ $sys_themedefault = "Savannah";
 $sys_graphviz = '@GRAPHVIZ_BIN@';
 
 # Directory for group registration uploads.
-$sys_upload_dir = "@localstatedir@/lib/@PACKAGE@/submissions_uploads/";
+$sys_upload_dir = "@pkgstatedir@/submissions_uploads/";
 $sys_trackers_attachments_dir = "{$sys_upload_dir}trackers_attachments";
 
 $sys_logo_name = "floating.png";

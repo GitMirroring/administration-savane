@@ -108,8 +108,8 @@ ServerName @WWW_SERVER_HOST@
   # NOTE: Ensure this directory matches the '$sys_upload_dir' value
   #       in the custom savanne configuration file
   #       ($SAVANE_CONF/savane.conf.php).
-  Alias /submissions_uploads @localstatedir@/lib/@PACKAGE@/submissions_uploads/
-  <Directory "@localstatedir@/lib/@PACKAGE@/submissions_uploads/">
+  Alias /submissions_uploads @pkgstatedir@/submissions_uploads/
+  <Directory "@pkgstatedir@/submissions_uploads/">
     Options Indexes
     AllowOverride None
     php_admin_flag engine off
