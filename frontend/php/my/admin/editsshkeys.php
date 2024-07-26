@@ -72,18 +72,18 @@ function add_new_key ($form_keys, $i, &$keys)
       $keys[] = $k;
     }
 }
-function update_ssh_keys ($keys, $form_keys, $user_id)
+function update_ssh_keys ($old_keys, $form_keys, $user_id)
 {
   global $key_limit, $min_keys;
-  $new_keys = [];
+  $keys = [];
   for ($i = 0; $i < $key_limit; $i++)
-    add_new_key ($form_keys, $i, $new_keys);
-  $new_keys = array_diff ($new_keys, $keys);
+    add_new_key ($form_keys, $i, $keys);
+  $new_keys = array_diff ($keys, $old_keys);
 
   if (count ($new_keys))
     account_new_keys_alert ($user_id);
-  account_register_keys ($new_keys, $user_id);
-  return $new_keys;
+  account_register_keys ($keys, $user_id);
+  return $keys;
 }
 
 if ($update)
