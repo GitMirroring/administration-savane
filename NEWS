@@ -108,6 +108,8 @@
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
   was added.
 
+* New option in sv_cleaner, --verbose.
+
 * Bug fixes:
 
 ** sv_miror-redirect sometimes opens log files, bug fails to write any entries.
