@@ -100,6 +100,9 @@
 
 [BACKEND]
 
+* In sv_cleaner, look for a longer period when deleting idle accounts
+  in the --big-cleanup mode.
+
 * New script, sv_gen_passwd_group.
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
