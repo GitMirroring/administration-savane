@@ -226,6 +226,111 @@ function error_normalize_conf ($conf)
   return $ret;
 }
 
+function error_cc_limit_path ($override = null)
+{
+  global $sys_trackers_attachments_dir, $sys_cc_error_file;
+  if ($override !== null)
+    return $override;
+  if (!empty ($sys_cc_error_file))
+    return $sys_cc_error_file;
+  return "$sys_trackers_attachments_dir/cc-error";
+}
+
+define ('ERROR_CC_LIMIT', 17);
+define ('ERROR_CC_PERIOD', 289);
+
+function error_count_cc ($cc_error_file = null, $period = ERROR_CC_PERIOD)
+{
+  $t = time ();
+  $ret = [$t];
+  $t -= $period;
+  $lines = file (error_cc_limit_path ($cc_error_file), FILE_IGNORE_NEW_LINES);
+  if ($lines === false)
+    return $ret;
+  foreach ($lines as $l)
+    if ($l > $t)
+      $ret[] = $l;
+  return $ret;
+}
+
+function error_check_cc_limit ($cc_error_file = null, $limit = ERROR_CC_LIMIT)
+{
+  $sem = null; $ret = true;
+  $state = utils_disable_warnings ();
+  if (function_exists ('sem_get'))
+    $sem = utils_sem_acquire (__FILE__);
+  $timestamps = error_count_cc ($cc_error_file);
+  if (count ($timestamps) <= $limit)
+    {
+      $ret = false;
+      $f = fopen (error_cc_limit_path ($cc_error_file), 'w');
+      if ($f !== false)
+        {
+          fwrite ($f, join ("\n", $timestamps));
+          fclose ($f);
+        }
+    }
+  if ($sem !== null)
+    sem_release ($sem);
+  utils_restore_warnings ($state);
+  return $ret;
+}
+
+function error_test_cc_limit_path ()
+{
+  $p = error_cc_limit_path ();
+  $ret = "$p:";
+  $tests = [
+    'file_exists' => no_i18n ("file doesn't exist"),
+    'is_file' => no_i18n ("not a file"),
+    'is_readable' => no_i18n ("file isn't readable"),
+    'is_writable' => no_i18n ("file isn't writable")
+  ];
+  foreach ($tests as $f => $label)
+    if (!$f ($p))
+      return "$ret <strong>$label</strong>";
+  return "$ret OK";
+}
+
+function error_test_cc_limit_update ()
+{
+  $cc_limit = 3;
+  $ret = $res = false;
+  $state = utils_disable_warnings ();
+  $cc_file = utils_mktemp ('cc-error');
+  utils_restore_warnings ($state);
+  if ($cc_file === null)
+    return "<strong>" . no_i18n ("can't create temporary file") . "</strong>";
+  for ($i = 0; $i < $cc_limit + 2 && !$res; $i++)
+    $res = error_check_cc_limit ($cc_file, $cc_limit);
+  if ($i < $cc_limit + 1)
+    $ret = sprintf (
+      no_i18n ("limit is too low (%d vs. %d)"), $i, $cc_limit + 1
+    );
+  if (!$res)
+    $ret = no_i18n ("no limit encountered");
+  utils_rm_fr ($cc_file);
+  if ($ret !== false)
+    return "<strong>$ret</strong>";
+  return no_i18n ('OK');
+}
+
+function error_test_cc_limit ()
+{
+  $defs = [no_i18n ('timestamp file') => error_test_cc_limit_path ()];
+  $state = utils_disable_warnings ();
+  $cnt = count (error_count_cc ()) - 1;
+  utils_restore_warnings ($state);
+  $defs[no_i18n ('timestamp count')] = $cnt;
+  $defs[no_i18n ('updating timestamps')] = error_test_cc_limit_update ();
+  $ret = html_dl ($defs);
+  if (!function_exists ('sem_get'))
+    $ret .= "<p>"
+      . "<strong>Note: the sem_get function doesn't exist.  "
+      . "A race condition is possible.</strong></p>\n";
+  return $ret;
+}
+
 function error_cc_log ($location, $title, $msg)
 {
   global $sys_cc_error;
@@ -235,11 +340,16 @@ function error_cc_log ($location, $title, $msg)
   if (!is_array ($cc_err))
     $cc_err = [$cc_err => []];
   $location = preg_replace (',^[^:]*/frontend/,', '', $location);
+  $email_counter = 0;
   foreach ($cc_err as $addr => $conf)
     {
       $conf = error_normalize_conf ($conf);
-      if (error_title_filter ($title, $conf['exclude']))
-        error_sendmail ($addr, "{$conf['subject']} $location", $msg);
+      if (!error_title_filter ($title, $conf['exclude']))
+        continue;
+      if (!$email_counter++)
+        if (error_check_cc_limit ())
+          return;
+      error_sendmail ($addr, "{$conf['subject']} $location", $msg);
     }
 }
 

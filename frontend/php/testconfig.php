@@ -763,6 +763,8 @@ function test_sysconfigs ()
     ['sys-upload-dir', test_sys_upload_dir ()];
   $defs['i18n'] = ['i18n', test_i18n ()];
   print html_dl ($defs);
+  print html_h (3, 'Limiting email error report rate', 'error-cc-limit');
+  print error_test_cc_limit ();
 }
 
 $page .= html_h (2, "Configured settings");

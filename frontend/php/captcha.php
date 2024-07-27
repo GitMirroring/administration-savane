@@ -43,10 +43,11 @@
 
 # We don't include init.php because we test this feature in testconfig.php,
 # so we should only rely on ac_config.php.
-include_once ('include/ac_config.php');
-include_once ('include/error.php');
+require_once ('include/ac_config.php');
+require_once ('include/utils.php');
+require_once ('include/error.php');
 if (!empty ($sys_conf_file) && is_readable ($sys_conf_file))
-  include_once $sys_conf_file;
+  require_once $sys_conf_file;
 
 if (empty ($sys_captchadir))
   $sys_captchadir = '/usr/share/php';
@@ -57,7 +58,7 @@ if (empty ($sys_captcha_font_file))
  $sys_captcha_font_file = 'DejaVuSans-Bold.ttf';
 
 set_include_path ("$sys_captchadir:" . get_include_path ());
-include_once "Text/CAPTCHA.php";
+require_once "Text/CAPTCHA.php";
 
 function output_image ($img)
 {

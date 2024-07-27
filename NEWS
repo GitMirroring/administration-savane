@@ -39,6 +39,8 @@
 * After resetting password, the user is directed to the login page,
   Savannah sr #109487.
 
+* Email error report rate is limited.
+
 * New savane.php.conf variable, $sys_group_file (see doc/savane.conf.php).
 
 * Bug fixes:

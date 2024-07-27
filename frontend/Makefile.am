@@ -555,6 +555,7 @@ ordinary_files = \
   php/sr/index.php \
   php/stats/index.php \
   php/testconfig.php \
+  php/testing/error.php \
   php/testing/format_date.php \
   php/testing/gpg/ecc25519-pub.asc \
   php/testing/gpg/ecc25519-priv.asc \
@@ -766,7 +767,7 @@ installcheck-local: $(installcheck_local_targets)
 
 installcheck-run-tests: ; \
   cd $(dest_dir)/php; \
-  for t in markup sane format_date; do \
+  for t in error markup sane format_date; do \
     res=`$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php \
       || echo Exit code of \
          \'$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php\' is $$?`; \
