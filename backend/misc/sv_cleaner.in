@@ -254,7 +254,10 @@ sub account_has_group_history
         {
           $active = 1;
         }
-      return 2;
+      else
+        {
+          return 2;
+        }
     }
   return $active;
 }
