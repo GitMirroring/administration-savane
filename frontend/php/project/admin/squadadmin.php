@@ -73,9 +73,8 @@ function finish_page ()
   exit (0);
 }
 
-if (account_realname_valid ($form_realname))
-  $form_realname = account_sanitize_realname ($form_realname);
-else
+$form_realname = account_sanitize_realname ($form_realname);
+if (!account_realname_valid ($form_realname))
   $form_realname = '';
 
 function update_squad_name ($new_name, $squad_id, $group_id, &$current_name)

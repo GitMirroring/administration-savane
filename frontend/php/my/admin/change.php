@@ -111,11 +111,11 @@ if ($update)
     if ($item == "realname")
       {
         extract (sane_import ('request', ['pass' => 'newvalue']));
+        $newvalue = account_sanitize_realname ($newvalue);
         if (!account_realname_valid ($newvalue))
           fb (_("You must supply a new real name."), 1);
         else
           {
-            $newvalue = account_sanitize_realname ($newvalue);
             $success = db_autoexecute (
               'user', ['realname' => $newvalue], DB_AUTOQUERY_UPDATE,
               "user_id = ?", [user_getid ()]
