@@ -218,12 +218,7 @@ function account_realname_valid ($name, $max_realname_length = 32)
 {
   if ($name === null)
     return 0;
-  if (account_name_length_invalid ($name, -1, $max_realname_length))
-    return 0;
-  utils_get_content ("forbidden_realnames");
-  if (empty ($GLOBALS['forbid_realname_regexp']))
-    return 1;
-  return !preg_match ($GLOBALS['forbid_realname_regexp'], $name);
+  return !account_name_length_invalid ($name, -1, $max_realname_length);
 }
 
 function account_sanitize_realname ($name)

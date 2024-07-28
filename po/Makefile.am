@@ -201,7 +201,6 @@ POTFILES = \
 	frontend/php/404.php \
 	frontend/site-specific/gnu/fingerprints.php \
 	frontend/site-specific/gnu/git/index.php \
-	frontend/site-specific/gnu/forbidden_realnames.php \
 	frontend/site-specific/gnu/svn/index.php \
 	frontend/site-specific/gnu/people/editjob.php \
 	frontend/site-specific/gnu/people/index.php \

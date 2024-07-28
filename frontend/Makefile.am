@@ -584,7 +584,6 @@ ordinary_files = \
   site-specific/gnu/fingerprints.php \
   site-specific/gnu/forbidden_group_names.php \
   site-specific/gnu/forbidden_mail_domains.php \
-  site-specific/gnu/forbidden_realnames.php \
   site-specific/gnu/forbidden_theme.php \
   site-specific/gnu/git/index.php \
   site-specific/gnu/gpg-sample.php \
@@ -615,7 +614,6 @@ ordinary_files = \
   site-specific/nongnu/fingerprints.php \
   site-specific/nongnu/forbidden_group_names.php \
   site-specific/nongnu/forbidden_mail_domains.php \
-  site-specific/nongnu/forbidden_realnames.php \
   site-specific/nongnu/forbidden_theme.php \
   site-specific/nongnu/gpg-sample.php \
   site-specific/nongnu/hashes.php \
