@@ -195,7 +195,7 @@ function account_sanitize_realname ($name)
 {
   if (!is_string ($name))
     return '';
-  return strtr ($name, "'\",<", "    ");
+  return trim (strtr ($name, "'\",<", "    "));
 }
 
 function account_namevalid ($name, $allow_dashes=0, $allow_underscores=1,
