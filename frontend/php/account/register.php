@@ -136,9 +136,7 @@ if (!empty ($update))
       $email_is_valid = true;
 
     $form_realname = account_sanitize_realname ($form_realname);
-    if (!account_realname_valid ($form_realname))
-      fb (_("You must supply a real name."), 1);
-    else
+    if (account_realname_valid ($form_realname))
       $realname_is_valid = true;
   } # if (!empty ($update))
 elseif ($sys_registration_captcha)

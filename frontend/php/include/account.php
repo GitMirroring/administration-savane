@@ -181,9 +181,44 @@ function account_pwvalid ($newpass, $oldpass = '', $user = '')
   return 0;
 }
 
-function account_realname_valid ($name)
+function account_name_too_short ($name, $min_length)
+{
+  if (strlen ($name) >= $min_length)
+    return 0;
+  fb (sprintf (_("The name %s is too short"), $name), 1);
+  $msg = ngettext (
+    "It must be at least %s character.", "It must be at least %s characters.",
+    $min_length
+  );
+  fb (sprintf ($msg, $min_length), 1);
+  return 1;
+}
+
+function account_name_too_long ($name, $max_length)
+{
+  if (strlen ($name) <= $max_length)
+    return 0;
+  fb (sprintf (_("The name %s is too long"), $name), 1);
+  $msg = ngettext (
+    "It must be at most %s character.", "It must be at most %s characters.",
+    $max_length
+  );
+  fb (sprintf ($msg, $max_length), 1);
+  return 1;
+}
+
+function account_name_length_invalid ($name, $min_length, $max_length)
+{
+  if (account_name_too_long ($name, $max_length))
+    return 1;
+  return account_name_too_short ($name, $min_length);
+}
+
+function account_realname_valid ($name, $max_realname_length = 32)
 {
   if ($name === null)
+    return 0;
+  if (account_name_length_invalid ($name, -1, $max_realname_length))
     return 0;
   utils_get_content ("forbidden_realnames");
   if (empty ($GLOBALS['forbid_realname_regexp']))
@@ -198,9 +233,10 @@ function account_sanitize_realname ($name)
   return trim (strtr ($name, "'\",<", "    "));
 }
 
-function account_namevalid ($name, $allow_dashes=0, $allow_underscores=1,
-                            $allow_dots=0, $MAX_ACCNAME_LENGTH=16,
-                            $MIN_ACCNAME_LENGTH=3)
+function account_namevalid (
+  $name, $allow_dashes = 0, $allow_underscores = 1, $allow_dots = 0,
+  $MAX_NAME_LENGTH = 16, $MIN_NAME_LENGTH = 3
+)
 {
   $underscore = '';
   $dashe = '';
@@ -229,39 +265,8 @@ function account_namevalid ($name, $allow_dashes=0, $allow_underscores=1,
       fb (_("There cannot be any spaces in the name"), 1);
       return 0;
     }
-
-  # Min and max length.
-  if (strlen ($name) < $MIN_ACCNAME_LENGTH)
-    {
-      fb (_("The name is too short"), 1);
-      $msg =
-        sprintf (
-          ngettext (
-            "It must be at least %s character.",
-            "It must be at least %s characters.",
-            $MIN_ACCNAME_LENGTH
-          ),
-          $MIN_ACCNAME_LENGTH
-        );
-      fb ($msg, 1);
-      return 0;
-    }
-
-  if (strlen ($name) > $MAX_ACCNAME_LENGTH)
-    {
-      fb (_("The name is too long"), 1);
-      $msg =
-        sprintf (
-          ngettext (
-            "It must be at most %s character.",
-            "It must be at most %s characters.",
-            $MAX_ACCNAME_LENGTH
-          ),
-          $MAX_ACCNAME_LENGTH
-        );
-      fb ($msg, 1);
-      return 0;
-    }
+  if (account_name_length_invalid ($name, $MIN_NAME_LENGTH, $MAX_NAME_LENGTH))
+    return 0;
 
   $alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   if (strspn ($name, $alphabet) == 0)
