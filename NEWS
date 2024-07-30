@@ -41,7 +41,8 @@
 
 * Email error report rate is limited.
 
-* New savane.php.conf variable, $sys_group_file (see doc/savane.conf.php).
+* New savane.php.conf variables, $sys_group_file and $sys_debug_footer
+  (see doc/savane.conf.php).
 
 * Bug fixes:
 

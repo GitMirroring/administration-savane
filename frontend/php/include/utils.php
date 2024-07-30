@@ -1066,5 +1066,73 @@ function utils_run_lock ($file, $callback = null, $arg = null)
   sem_release ($sem);
   return $ret;
 }
+
+function utils_no_i18n ($s)
+{
+  return $s;
+}
+
+function utils_debug_output_tv (&$ru, $var, $label)
+{
+  if (!array_key_exists ("ru_$var.tv_sec", $ru))
+    return '';
+  $sec = $ru["ru_$var.tv_sec"] + $ru["ru_$var.tv_usec"] / 1000000;
+  $ret = sprintf (utils_no_i18n ("%s: %.6f\n"), $label, $sec);
+  unset ($ru["ru_$var.tv_sec"]);
+  unset ($ru["ru_$var.tv_usec"]);
+  return $ret;
+}
+
+function utils_debug_output_val (&$ru, $var, $label)
+{
+  $var = "ru_$var";
+  if (!array_key_exists ($var, $ru))
+    return '';
+  $ret = "$label: {$ru[$var]}\n";
+  unset ($ru[$var]);
+  return $ret;
+}
+
+function utils_debug_output_rusage ($ru)
+{
+  $ret = '  ' . utils_no_i18n ("Resource usage:\n\n");
+  $ret .= utils_debug_output_tv ($ru, 'utime', utils_no_i18n ('user time'));
+  $ret .= utils_debug_output_tv ($ru, 'stime', utils_no_i18n ('system time'));
+  $vars = [
+    'oublock' => 'block outputs', 'inblock' => 'block inputs',
+    'msgsnd' => 'IPC messages sent', 'msgrcv' => 'IPC messages received',
+    'maxrss' => 'maximum resident set size',
+    'ixrss' => 'integral shared memory size',
+    'idrss' => 'integral unshared data size',
+    'minflt' => 'page reclaims (soft page faults)',
+    'majflt' => 'page faults (hard page faults)',
+    'nsignals' => 'signals received', 'nswap' => 'swaps',
+    'nvcsw' => 'voluntary context switches',
+    'nivcsw' => 'involuntary context switches'
+  ];
+  foreach ($vars as $v => $l)
+    $ret .= utils_debug_output_val ($ru, $v, $l);
+  if (!count ($ru))
+    return;
+  $ret .= utils_no_i18n ("Other values:");
+  foreach ($ru as $k => $v);
+    $ret .= preg_replace ('/^ru_/', '', $k) . ": $v\n";
+  return $ret;
+}
+
+function utils_output_debug_footer ()
+{
+  global $sys_debug_footer;
+  if (empty ($sys_debug_footer))
+    return;
+  $ru = getrusage ();
+  $msg = utils_no_i18n ("PHP run summary") . "\n  "
+    . utils_no_i18n ("Included files:") . "\n";
+  foreach (get_included_files () as $f)
+    $msg .= error_relative_source_path ($f) . "\n";
+  $msg .= "\n";
+  $msg .= utils_debug_output_rusage ($ru);
+  trigger_error ($msg);
+}
 } # namespace {
 ?>

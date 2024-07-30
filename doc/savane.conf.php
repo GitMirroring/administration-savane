@@ -133,4 +133,7 @@ $sys_linguas = "en:es:fr:he:pt:pt-br:ru";
 $sys_cc_error = [
   'sv-dev@example.org' => ['exclude' => ['[E_USER_NOTICE] permission denied']]
 ];
+
+# Add debugging summary to error log every time when page output completes.
+$sys_debug_footer = true;
 ?>

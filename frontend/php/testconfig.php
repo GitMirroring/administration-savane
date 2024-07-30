@@ -701,15 +701,31 @@ function test_mysql ()
   print html_dl ($defs);
 }
 
+function list_unset_val ($must_be_unset, $value)
+{
+  if ($must_be_unset)
+    {
+      if ($value === '<>')
+        return 'unset';
+      return "$value\n<br /><strong>This variable should not be set "
+        . "at production servers.</strong>";
+    }
+  if ($value === '<>')
+    return '<strong>unset</strong>';
+  return $value;
+}
+
 function list_sysvar ($tag, &$defs)
 {
+  $must_be_unset = substr ($tag, 0, 1) === '!';
+  $tag = preg_replace ('/^!/', '', $tag);
   $var = "sys_$tag";
-  $value = '<strong>unset</strong>';
+  $value = '<>';
   if (isset ($GLOBALS[$var]))
     $value = utils_specialchars (print_r ($GLOBALS[$var], true));
   if ($var == "sys_dbpasswd")
     $value = "**************";
-  $defs[$var] = $value;
+  $defs[$var] = list_unset_val ($must_be_unset, $value);
 }
 
 function output_sysvars ()
@@ -723,7 +739,7 @@ function output_sysvars ()
     'mail_admin', 'mail_domain', 'mail_replyto', 'name', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
-    'mailman_wrapper', 'savane_cgit', 'group_file'
+    'mailman_wrapper', 'savane_cgit', 'group_file', '!debug_footer'
   ];
   $defs = [];
   foreach ($variables as $tag)
@@ -774,6 +790,6 @@ if (is_readable ($sys_conf_file))
 else
   print "Since $sys_conf_file does not exist or is not readable, "
     . "this part cannot be checked.";
-
 print "</body>\n</html>\n";
+utils_output_debug_footer ();
 ?>

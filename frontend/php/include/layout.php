@@ -230,6 +230,7 @@ class Layout extends savane_error
     print "</p></div>\n</div> <!-- class='main' -->\n";
     print "</div> <!-- class='realbody' -->\n";
     print "\n</body>\n</html>\n";
+    utils_output_debug_footer ();
   }
 
   function header ($params)

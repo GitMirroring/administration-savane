@@ -344,7 +344,7 @@ function error_test_cc_limit ()
 
 function error_cc_log ($location, $title, $msg)
 {
-  global $sys_cc_error;
+  global $sys_cc_error, $sys_debug_footer;
   if (empty ($sys_cc_error))
     return;
   $cc_err = $sys_cc_error;
@@ -357,7 +357,10 @@ function error_cc_log ($location, $title, $msg)
       $conf = error_normalize_conf ($conf);
       if (!error_title_filter ($title, $conf['exclude']))
         continue;
-      if (!$email_counter++)
+      # $sys_debug_footer is only used in debugging envirnoments, and it
+      # adds an error report for every page served, so error rate isn't
+      # limited in that case.
+      if (!$sys_debug_footer && !$email_counter++)
         if (error_check_cc_limit ())
           return;
       error_sendmail ($addr, "{$conf['subject']} $location", $msg);
