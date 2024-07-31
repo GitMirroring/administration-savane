@@ -276,7 +276,7 @@ function search_send_header ()
 function print_search_heading ()
 {
   global $words, $type_of_search, $only_group_id;
-  print '<h2 id="results">' . _('Search results') . "</h2>\n";
+  print html_h (2, _('Search results'), 'results');
   if (!($words && $type_of_search))
     return;
   print "<p>";

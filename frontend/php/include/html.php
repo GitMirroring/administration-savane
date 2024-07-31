@@ -130,9 +130,9 @@ function html_hidsubpart_js ($deployed, $title, $uniqueid)
 function html_hidsubpart_header ($uniqueid, $title, $deployed = false)
 {
   $deployed = html_hidsubpart_set_deployed ($uniqueid, $deployed);
-  $ret = "\n<h2 id=\"$uniqueid\">\n"
-    . html_hidsubpart_js ($deployed, $title, $uniqueid)
-    . "</h2>\n\n";
+  $ret = html_h (
+    2, html_hidsubpart_js ($deployed, $title, $uniqueid), $uniqueid
+  );
   $ret .= "<div id=\"hidsubpartcontent$uniqueid\">\n";
   if ($deployed)
     return $ret;

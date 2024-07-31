@@ -232,8 +232,8 @@ $duty_titles = [
 ];
 foreach ([1, 0] as $onduty)
   {
-    print "<h2>{$duty_titles[$onduty]}</h2>\n";
-    echo html_build_list_table_top ($title_arr);
+    print html_h (2, $duty_titles[$onduty]);
+    print html_build_list_table_top ($title_arr);
 
     $mem = $members[$onduty];
     $cnt = count ($mem);

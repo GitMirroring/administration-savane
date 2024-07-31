@@ -260,11 +260,10 @@ site_admin_header (
 );
 
 
-print "<h1>{$row_grp['name']} (#{$row_grp['type_id']})</h1>\n";
+print html_h (1, "{$row_grp['name']} (#{$row_grp['type_id']})");
 print form_tag () . form_hidden (['type_id' => $type_id]);
 
-print '<h2>' . no_i18n ("General default settings for groups of this type")
-  . "</h2>\n\n";
+print html_h (2, no_i18n ("General default settings for groups of this type"));
 $textfield_size = '65';
 print '<p>'
   . no_i18n (
@@ -285,7 +284,7 @@ print '<p>'
       . 'from the whole installation settings.')
   . "</p>\n";
 
-print "<h2>" . no_i18n ("General Settings") . "</h2>\n\n";
+print html_h (2, no_i18n ("General Settings"));
 
 $idx = 'name';
 specific_input (
@@ -316,7 +315,7 @@ print "</p>\n";
 # For instance, there will be no viewcvs possibility for Arch managed
 # repository. But this is non-blocker so we let as it is.
 
-print "<h2>" . no_i18n ("Group WWW homepage") . "</h2>\n\n";
+print html_h (2, no_i18n ("Group WWW homepage"));
 print '<p>'
   . no_i18n (
       "This is useful if you provide directly web homepages (created by\n"
@@ -366,7 +365,7 @@ function source_code_manager ($HTML, $row_grp, $textfield_size,
   $vcs_name, $vcs_offix)
 {
   # TRANSLATORS: the argument is VCS name (like Subversion).
-  printf ("<h2>" . no_i18n ("Source Code Manager: %s") . "</h2>", $vcs_name);
+  print html_h (2, sprintf (no_i18n ("Source Code Manager: %s"), $vcs_name));
   print "\n\n<p>";
   printf (
     no_i18n ("This is useful if you provide directly %s repositories\n"
@@ -399,7 +398,7 @@ function source_code_manager ($HTML, $row_grp, $textfield_size,
 foreach ($vcs_list as $title => $name)
   source_code_manager ($HTML, $row_grp, $textfield_size, $title, $name);
 
-print "<h2>" . no_i18n ("Download Area") . "</h2>\n\n";
+print html_h (2, no_i18n ("Download Area"));
 print '<p>'
   . no_i18n (
       "This is useful if you provide directly download areas\n"
@@ -421,7 +420,7 @@ specific_input (
   no_i18n ("Repository URL:"), $row_grp[$idx], $idx, $textfield_size
 );
 
-print "<h2>" . no_i18n ("Licenses") . "</h2>\n\n";
+print html_h (2, no_i18n ("Licenses"));
 print '<p>'
   . no_i18n (
       "This is useful if you want group to select a license on\n"
@@ -430,7 +429,7 @@ print '<p>'
   . "</p>\n";
 show_checkbox (no_i18n ("Can use licenses"), 'can_use_license', $row_grp);
 
-print "<h2>" . no_i18n ("Development Status") . "</h2>\n\n";
+print html_h (2, no_i18n ("Development Status"));
 print '<p>'
   . no_i18n (
       "This is useful if you want group to be able to defines\n"
@@ -445,7 +444,7 @@ show_checkbox (
   no_i18n ("Can use development status"), "can_use_devel_status", $row_grp
 );
 
-print "<h2>" . no_i18n ("Mailing List") . "</h2>\n\n";
+print html_h (2, no_i18n ("Mailing List"));
 print '<p class="warn">'
   . no_i18n (
       "Important: Everytime a mailing list name should appear,\n"
@@ -564,7 +563,7 @@ function artifact_section ($title, $description, $label, $artifact)
 {
   global $row_grp, $HTML;
 
-  print "<h2>$title</h2>\n\n";
+  print html_h (2, $title);
   if ($description != '')
     print "<p>$description</p>\n";
   if ($artifact != 'cookbook')
@@ -633,7 +632,7 @@ $update_delete_buttons = "\n<p align='center'>\n"
   . "\n</p>\n";
 print $update_delete_buttons;
 
-print "<h2>" . no_i18n ("Group Menu Settings") . "</h2>\n\n";
+print html_h (2, no_i18n ("Group Menu Settings"));
 
 $i = 1;
 print '<p class="' . utils_altrow ($i) . '">'

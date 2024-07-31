@@ -142,37 +142,37 @@ function forum_header ($params)
       site_project_header ($params);
       return;
     }
+  $row = db_fetch_array ($result);
   $is_news = 1;
   # Backwards shim for all "generic news" that used to be submitted
   # as of may, "generic news" is not permitted - only project-specific
   # news.
 
-  $params['group'] = db_result ($result, 0, 'group_id');
-
-  $group_id = db_result ($result, 0, 'group_id');
+  $params['group'] = $group_id = $row['group_id'];
   $params['toptab'] = 'news';
   site_project_header ($params);
 
   print "\n<div class='indexright'>\n";
   print $HTML->box_top (_("Latest News"));
-  print news_show_latest (db_result ($result, 0, 'group_id'), 5, false);
+  print news_show_latest ($group_id, 5, false);
   print $HTML->box_bottom ();
   print "</div>\n<div class='indexcenter'>\n";
-  print "<h2><a href='forum.php?forum_id=$forum_id'>"
-    . db_result ($result, 0, 'summary') . "</a></h2>\n";
+  print html_h (
+    2, "<a href='forum.php?forum_id=$forum_id'>{$row['summary']}</a>"
+  );
   print '<p><em>';
-  $sub_by = db_result ($result, 0, 'submitted_by');
+  $sub_by = $row['submitted_by'];
   $posted_by = utils_user_link (
     user_getname ($sub_by), user_getrealname ($sub_by)
   );
   # TRANSLATORS: the first argument is user's name, the second
   # argument is date.
   printf (_('Item posted by %1$s on %2$s.'),
-      $posted_by, utils_format_date (db_result ($result, 0, 'date'))
+    $posted_by, utils_format_date ($row['date'])
   );
   print "</em></p>\n";
-  print markup_full (db_result ($result, 0, 'details'));
-  $forum_name = db_result ($result, 0, 'summary');
+  print markup_full ($row['details']);
+  $forum_name = $row['summary'];
   print "</div>\n";
 }
 
@@ -348,7 +348,7 @@ function get_next_thread_id ()
   $result = db_query ("INSERT INTO forum_thread_id VALUES ('')");
   if ($result)
     return db_insertid ($result);
-  print '<h1>' . _('Error') . "</h1>\n";
+  print html_h (1, _('Error'));
   print db_error ();
   exit;
 }

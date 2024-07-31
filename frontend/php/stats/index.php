@@ -101,21 +101,20 @@ $page .= html_show_displayoptions (
   ), $form_opening, $form_submit
 );
 
-$page .= "\n<h2>";
-$page .= html_anchor (
+$title = html_anchor (
   # TRANSLATORS: The arguments are two dates.
   # Example: "From 12. September 2005 till 14. September 2005"
   sprintf (_('From %1$s till %2$s'),
     utils_format_date ($since), utils_format_date ($until)), "between"
 );
-$page .= "</h2>\n";
+$page .= "\n" . html_h (2, $title);;
 
 if ($since > $until)
   $page .= '<p class="error">'
     . _("The begin of the period you asked for is later than its end.")
     . "</p>\n";
 
-$page .= "<h3>" . _("Accounts") . "</h3>\n<ul>\n";
+$page .= html_h (3, _("Accounts")) . "<ul>\n";
 
 $count_users = stats_getusers ();
 $count_groups = stats_getprojects ();
@@ -141,7 +140,7 @@ $page .=
   sprintf (ngettext ("%s new group", "%s new groups", $count), $count);
 $page .= "</li>\n</ul>\n";
 
-$page .= '<h3>' . _("New users and new groups / total") . "</h3>\n";
+$page .= html_h (3, _("New users and new groups / total"));
 $graph_id = 0;
 $widths = "";
 function construct_graph ($data, $total, $localize_keys = 0)
@@ -165,7 +164,7 @@ $total_task = stats_getitems ("task");
 $total_bugs = stats_getitems ("bugs");
 $total_support = stats_getitems ("support");
 
-$page .= "\n<h3>" . _("Trackers") . "</h3>\n";
+$page .= html_h (3, _("Trackers"));
 if ($total_patch + $total_task + $total_support + $total_bugs > 0)
   $page .= "<ul>\n";
 
@@ -248,14 +247,13 @@ else
       sprintf (ngettext ("including %s already closed<!-- item -->",
         "including %s already closed<!-- items -->", $total_open),
         $total_open) . "</li>\n";
-    $page .= "</ul>\n<h3>" . _("New items per tracker / tracker total")
-      . "</h3>\n";
+    $page .= "</ul>\n" . html_h (3, _("New items per tracker / tracker total"));
     $page .= construct_graph ($data, $data_total);
     unset ($data, $data_total);
   }
 $page .= "</p>\n<p>&nbsp;</p>\n";
-$page .= "<h2>" . html_anchor (_("Overall"), "overall") . "</h2>\n";
-$page .= "\n<h3>" . _("Accounts") . "</h3>\n<ul>\n";
+$page .= html_h (2, html_anchor (_("Overall"), "overall"));
+$page .= html_h (3, _("Accounts")) . "<ul>\n";
 $data = [];
 
 $page .= '<li>';
@@ -280,9 +278,9 @@ $result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
 while ($eachtype = db_fetch_array ($result))
   $data[$eachtype['name']] = stats_getprojects ($eachtype['type_id']);
 
-$page .= "<h3>" . _("Groups per group type") . "</h3>\n";
+$page .= html_h (3, _("Groups per group type"));
 $page .= construct_graph ($data, 0, 1);
-$page .= '<h3>' . _("Trackers") . "</h3>\n<ul>\n";
+$page .= html_h (3, _("Trackers")) . "<ul>\n";
 
 $data = [];
 
@@ -360,13 +358,13 @@ $page .= sprintf (ngettext ("including %s still open<!-- item -->",
 );
 $page .= "</li>\n</ul>\n\n";
 
-$page .= '<h3>' . _("Items per tracker") . "</h3>\n";
+$page .= html_h (3, _("Items per tracker"));
 $page .= construct_graph ($data, 0);
 $css = "";
 if ($widths != '')
   $css = '/css/graph-widths.php?widths=' . substr ($widths, 1);
 
-$page .= "\n<h3>" . _("Most popular themes") . "</h3>\n";
+$page .= html_h (3, _("Most popular themes"));
 
 # Get the more popular themes. 7 at most, all superior to 0%.
 $themes_list = theme_list ();

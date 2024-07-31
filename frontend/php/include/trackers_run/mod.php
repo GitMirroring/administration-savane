@@ -171,9 +171,8 @@ if (!empty ($private_intro))
 $class = utils_get_priority_color (
   $res_arr['priority'], $res_arr['status_id']
 );
-
-print "<h1 class=\"$class\"><i>$item_link</i>: ";
-print $res_arr['summary'] . "</h1>\n";
+$caption = "<i>$item_link</i>: {$res_arr['summary']}";
+print html_h (1, $caption, ['class' => $class]);
 
 print form_header (
   null, "post", 'enctype="multipart/form-data" name="item_form"'

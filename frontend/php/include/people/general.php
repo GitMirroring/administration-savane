@@ -140,12 +140,12 @@ function people_append_list (&$form_is_empty, $ret, $def)
 function people_show_table ()
 {
   $form_is_empty = true;
-  $return = '<h2>' . _("Category") . "</h2>\n";
+  $return = html_h (2, _("Category"));
   $return .= people_append_list (
     $form_is_empty, people_list_categories (), _("No categories found")
   );
 
-  $return .= '<h2>' . _("Group type") . "</h2>\n";
+  $return .= html_h (2, _("Group type"));
   $return .= people_append_list (
     $form_is_empty, people_list_project_type (), _("No types found")
   );

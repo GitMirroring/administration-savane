@@ -70,7 +70,7 @@ sendmail_mail (
 
 $HTML->header (['title' => _("Account Pending Verification")]);
 
-print '<h2>' . _("Pending Account") . "</h2>\n";
+print html_h (2, _("Pending Account"));
 print '<p>'
   . _("Your email confirmation has been resent. Visit the link in this\n"
       . "email to complete the registration process.")

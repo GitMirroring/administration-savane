@@ -60,7 +60,7 @@ extract (sane_import ('get',
   ]
 ));
 
-print '<h2>' . no_i18n ("Group List Filter") . "</h2>\n";
+print html_h (2, no_i18n ("Group List Filter"));
 
 $title_arr = [no_i18n ("Status"), no_i18n ("Number")];
 $inc = 0;
@@ -107,7 +107,7 @@ $status_proj_arr = [
   'D' => no_i18n ("Deleted Groups"), 'X' => no_i18n ("System internal Groups")
 ];
 
-print '<h2>' . no_i18n ("Group Search") . "</h2>\n<p>"
+print html_h (2, no_i18n ("Group Search")) . "<p>"
   . no_i18n ("Display Groups beginning with:") . ' ';
 
 for ($i = 0; $i < count ($abc_array); $i++)
@@ -123,7 +123,7 @@ print "\n"
   . form_hidden (['groupsearch' => '1'])
   . form_submit (no_i18n ("Search")) . "</form>\n</p>\n";
 
-print '<h2>' . no_i18n ("Group List") . "</h2>\n";
+print html_h (2, no_i18n ("Group List"));
 
 if (!$offset or !ctype_digit (strval ($offset)) or $offset < 0)
   $offset = 0;

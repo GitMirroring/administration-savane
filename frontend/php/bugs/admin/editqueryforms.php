@@ -472,7 +472,7 @@ $rows = db_numrows ($res);
 
 if ($rows)
   {
-    print "<h2>" . _("Existing Query Forms") . "</h2>\n";
+    print html_h (2, _("Existing Query Forms"));
     print
       html_build_list_table_top (
         [
