@@ -525,7 +525,7 @@ function trackers_data_get_field_predefined_values (
       order_id, status
     FROM " . ARTIFACT . "_field_value
     WHERE group_id = ? AND bug_field_id = ? $status_cond
-    ORDER BY order_id,value ASC";
+    ORDER BY order_id, value ASC";
   $res_value = db_execute (
     $sql, array_merge ([$group_id, $field_id], $status_cond_params)
   );
@@ -1119,7 +1119,7 @@ function trackers_data_get_technicians ($group_id)
   if (empty ($uids))
     $sql .= 'NULL'; # Return a valid (but empty) result set.
   else
-    $sql .= 'user_id IN (' . utils_placeholders ($uids) . ')';
+    $sql .= 'user_id ' . utils_in_placeholders ($uids);
   $sql .= " ORDER BY user_name";
   return db_execute ($sql, $uids);
 }
@@ -2194,7 +2194,7 @@ function trackers_data_get_reports ($group_id, $user_id = 100)
   $system_scope = 'S';
 
   $sql = "
-    SELECT report_id,name FROM " . ARTIFACT . "_report
+    SELECT report_id, name FROM " . ARTIFACT . "_report
     WHERE (group_id = ? AND scope = 'P') OR scope = ?
     ORDER BY scope DESC, report_id ASC";
 

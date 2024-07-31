@@ -237,163 +237,173 @@ function sitemenu_bookmark_entry ($page_title)
   );
 }
 
-# Page-specific toolbox.
-function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
+function sitemenu_print_related_recipe ($row)
 {
-  global $HTML, $sys_group_id, $group_id, $sys_home, $locale_names;
+  global $sys_home, $group_id;
+  print '<div class="relatedrecipesitem">';
+  # Show specific background color only for high priority item, no
+  # need to disturb the eye otherwise.
+  $priority = $row['priority'];
+  if ($priority > 4)
+    print '<div class="priore">';
 
-  $HTML->menuhtml_top (_("This Page"));
+  # The full summary will only be in a help balloon, the summary directly
+  # shown will be cut to 40 characters.
+  # Summaries should be kept short.
+  print utils_link (
+    "{$sys_home}cookbook/?func=detailitem&amp;comingfrom=$group_id"
+    . '&amp;item_id=' . $row['bug_id'],
+    utils_cutstring ($row['summary'], 40), "menulink", '1', $row['summary']
+  );
+  if ($priority > 4)
+    print "</div>\n";
+  print "</div>\n";
+}
 
-  if (count ($locale_names) > 1)
-    {
-      $extraurl = sitemenu_extraurl (true);
-      if ($extraurl)
-        $extraurl = "?$extraurl";
-      $HTML->menu_entry ("{$sys_home}i18n.php?lang_uri="
-        . utils_urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
-        _("Language"), 1, _("Choose website language")
-      );
-    }
+function sitemenu_print_recipes ($result)
+{
+  if (!db_numrows ($result))
+    return;
+  print "\n";
+  print '<li class="relatedrecipes">';
+  print '<div id="relatedrecipes">'
+    . html_image ('contexts/help.png', ['alt=' => "icon"])
+    . _("Related Recipes:") . "</div>\n";
+  while ($row = db_fetch_array ($result))
+    sitemenu_print_related_recipe ($row);
+  print "</li><!-- end relatedrecipes -->\n";
+}
+
+# Run a query to obtain recipe summaries.
+function sitemenu_fetch_recipe_summaries ($recipe_id_result)
+{
+  global $group_id;
+  $sql_privateitem = $sql_itemid = '';
+  # Check whether the user is authorized to read private items for the active
+  # project, if there is an active project.
+  if ($group_id)
+    if (!member_check_private (0, $group_id))
+      $sql_privateitem = " AND privacy <> '2'";
+
+  $params = [];
+  while ($row = db_fetch_array ($recipe_id_result))
+    $params[] = $row['recipe_id'];
+  if (empty ($params))
+    return null;
+  $sql_itemid = 'bug_id ' . utils_in_placeholders ($params);
+  # Put a limit on the number of shown recipe to 25.
+  $params[] = 25;
+  return db_execute ("
+    SELECT bug_id, priority, summary FROM cookbook
+    WHERE $sql_itemid AND resolution_id = '1'$sql_privateitem
+    ORDER BY priority DESC, summary ASC LIMIT ?", $params
+  );
+}
+
+function sitemenu_print_i18n_link ()
+{
+  global $HTML, $sys_home, $locale_names;
+  if (count ($locale_names) <= 1)
+    return;
+  $extraurl = sitemenu_extraurl (true);
+  if ($extraurl)
+    $extraurl = "?$extraurl";
+  $HTML->menu_entry ("{$sys_home}i18n.php?lang_uri="
+    . utils_urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
+    _("Language"), 1, _("Choose website language")
+  );
+}
+
+function sitemenu_print_clean_reload ()
+{
+  global $HTML;
   $extraurl = sitemenu_extraurl ();
 
-  $extra_name = '';
+  $script_extra = $_SERVER['SCRIPT_NAME'];
   if (isset ($GLOBALS['extra_script_name']))
-    $extra_name = $GLOBALS['extra_script_name'];
+    $script_extra .= $GLOBALS['extra_script_name'];
 
-  $script_extra = $_SERVER['SCRIPT_NAME'] . $extra_name;
   $HTML->menu_entry (
     "$script_extra?reload=1$extraurl", _("Clean Reload"), 1,
     _("Reload the page without risk of reposting data")
   );
+}
+
+function sitemenu_context_is_valid ($context, $subcontext)
+{
+  # If CONTEXT or SUBCONTEXT was set to non-existent context, the SQL
+  # should not fail - so error reporting works in other SQL queries.
+  $result = db_execute ("DESCRIBE cookbook_context2recipe");
+  $ctx = [];
+  while ($row = db_fetch_array ($result))
+    $ctx[] = $row['Field'];
+  return in_array ($context, $ctx) && in_array ($subcontext, $ctx);
+}
+
+function sitemenu_recipe_sql_role ()
+{
+  global $group_id;
+  $ret = '';
+  if (!(defined ('ARTIFACT') && AUDIENCE == 'members'))
+    return $ret;
+  # We are on a tracker and we have a project member:
+  #  - it may be a manager or a technician, or both
+  # We must select
+  #  - items for all members
+  #  + items for manager if we have a manager
+  #  + items for technicians if we have a technician
+  # Which leads to
+  #  allmembers=1 OR (manager=1 if manager) OR (technician=1 if technician).
+  $flag = member_create_tracker_flag (ARTIFACT) . '1';
+  if (member_check (0, $group_id, $flag))
+    $ret = " OR audience_technicians = '1'";
+  $flag = member_create_tracker_flag (ARTIFACT) . '3';
+  if (member_check (0, $group_id, $flag))
+    $ret .= " OR audience_managers = '1'";
+  return $ret;
+}
+
+function sitemenu_fetch_recipe_ids ()
+{
+  global $sys_group_id, $group_id;
+
+  $params = [$sys_group_id];
+  if ($group_id && $group_id != $sys_group_id) # We are on a group page.
+    $params[] = $group_id;
+  $context = 'context_' . CONTEXT;
+  $subcontext = 'subcontext_' . SUBCONTEXT;
+  $audience = 'audience_' . AUDIENCE;
+  if (!sitemenu_context_is_valid ($context, $subcontext))
+    return null;
+  $sql_groupid = 'group_id ' . utils_in_placeholders ($params);
+  $sql_role = sitemenu_recipe_sql_role ();
+  return db_execute ("
+    SELECT recipe_id FROM cookbook_context2recipe
+    WHERE
+      $sql_groupid AND $context = '1' AND $subcontext = '1'
+      AND ($audience = '1'$sql_role)", $params
+  );
+}
+
+# Page-specific toolbox.
+function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
+{
+  global $HTML;
+
+  $HTML->menuhtml_top (_("This Page"));
+  sitemenu_print_i18n_link ();
+  sitemenu_print_clean_reload ();
   $HTML->menuhtml_bottom ();
   sitemenu_bookmark_entry ($page_title);
 
   # Show related recipes. Maybe not the best way to put it, but in "this page"
   # it makes sense.
   # And it is hard to find a place elsewhere where it would not be really nasty.
-  $sql_role = $sql_groupid = '';
-  $params_groupid = [];
-  if ($group_id)
-    {
-      # We are on a group page.
-      $sql_groupid = "OR group_id = ?";
-      $params_groupid = [$group_id];
-    }
-  if (defined('ARTIFACT') && AUDIENCE == 'members')
-    {
-      # We are on a tracker and we have a project member:
-      #  - it may be a manager or a technician, or both
-      # We must select
-      #  - items for all members
-      #  + items for manager if we have a manager
-      #  + items for technicians if we have a technician
-      # Which leads to
-      #  allmembers=1 OR (manager=1 if manager) OR (technician=1 if technician).
-      $flag = member_create_tracker_flag (ARTIFACT) . '1';
-      if (member_check (0, $group_id, $flag))
-        {
-          # It is a technician.
-          $sql_role = "OR audience_technicians = '1'";
-        }
-      $flag = member_create_tracker_flag (ARTIFACT) . '3';
-      if (member_check (0, $group_id, $flag))
-        {
-          # It is a manager.
-          $sql_role .= " OR audience_managers = '1'";
-        }
-    }
-
-  # If CONTEXT or SUBCONTEXT was set to non-existent context, the SQL
-  # should not fail - so error reporting works in other SQL queries.
-  $result = db_execute ("DESCRIBE cookbook_context2recipe");
-  $valid_contexts = [];
-  while ($row = db_fetch_array ($result))
-    $valid_contexts[] = $row['Field'];
-
-  $context = 'context_' . CONTEXT;
-  $subcontext = 'subcontext_' . SUBCONTEXT;
-  $audience = 'audience_' . AUDIENCE;
-  if (in_array ($context, $valid_contexts)
-      && in_array ($subcontext, $valid_contexts))
-    {
-      $result = db_execute ("
-        SELECT recipe_id FROM cookbook_context2recipe
-        WHERE
-          (group_id = ? $sql_groupid) AND $context = '1' AND $subcontext = '1'
-          AND ($audience='1' $sql_role)",
-        array_merge ([$sys_group_id], $params_groupid)
-      );
-      $rows = db_numrows ($result);
-    }
-  else
-    # No recipe found? End here.
+  $result = sitemenu_fetch_recipe_ids ();
+  if ($result === null)
     return;
-
-  # Put a limit on the number of shown recipe to 25.
-  $limit = 25;
-
-  # Build a sql to obtain summaries.
-  $sql_privateitem = $sql_itemid = '';
-  $params_itemid = [];
-  # Check whether the user is authorized to read private items for the active
-  # project, if there is an active project.
-  if ($group_id)
-    if (!member_check_private (0, $group_id))
-      $sql_privateitem = "AND privacy <> '2'";
-
-  for ($i = 0; $i < $rows; $i++)
-    {
-      if ($sql_itemid)
-        $sql_itemid .= " OR ";
-      $sql_itemid .= "bug_id = ?";
-      $params_itemid[] = db_result ($result, $i, 'recipe_id');
-    }
-
-  $rows = 0;
-  if ($sql_itemid)
-    {
-      $result = db_execute ("
-        SELECT bug_id, priority, summary FROM cookbook
-        WHERE ($sql_itemid) AND resolution_id = '1'
-        $sql_privateitem ORDER BY priority DESC, summary ASC LIMIT ?",
-        array_merge ($params_itemid, [$limit]));
-      $rows = db_numrows ($result);
-    }
-
-  # No recipe found? End here.
-  # Such test has been made before, but before we did not knew if the item
-  # was actually approved.
-  if ($rows < 1)
-    return;
-
-  print "\n";
-  print '<li class="relatedrecipes">';
-  print '<div id="relatedrecipes">'
-    . html_image ('contexts/help.png', ['alt=' => "icon"])
-    . _("Related Recipes:") . "</div>\n";
-  for ($i = 0; $i < $rows; $i++)
-    {
-      print '<div class="relatedrecipesitem">';
-      # Show specific background color only for high priority item, no
-      # need to disturb the eye otherwise.
-      $priority = db_result ($result, $i, 'priority');
-      if ($priority > 4)
-        print '<div class="priore">';
-
-      # The full summary will only be in a help balloon, the summary directly
-      # shown will be cut to 40 characters.
-      # Summaries should be kept short.
-      print utils_link (
-        "{$sys_home}cookbook/?func=detailitem&amp;comingfrom=$group_id"
-        . '&amp;item_id=' . db_result ($result, $i, 'bug_id'),
-        utils_cutstring (db_result ($result, $i, 'summary'), 40),
-        "menulink", '1', db_result ($result, $i, 'summary')
-      );
-      if ($priority > 4)
-        print "</div>\n";
-      print "</div>\n";
-    }
-  print "</li><!-- end relatedrecipes -->\n";
+  $result = sitemenu_fetch_recipe_summaries ($result);
+  sitemenu_print_recipes ($result);
 }
 
 function menu_help ()

@@ -231,8 +231,8 @@ function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
       $fields = join (', ', $fields);
       $question_marks = utils_placeholders ($dict);
       return db_execute ("
-        INSERT INTO $tables_string ($fields) VALUES ($question_marks)",
-        array_values ($dict)
+        INSERT INTO $tables_string ($fields)
+        VALUES ($question_marks)", array_values ($dict)
       );
       break;
     case 'UPDATE':
@@ -245,9 +245,9 @@ function db_autoexecute ($table, $dict, $mode = DB_AUTOQUERY_INSERT,
         }
       $sql_fields = join (', ', $sql_fields);
       $values = array_merge ($values, $where_inputarr);
-      $where_sql = $where_condition? "WHERE $where_condition": '';
+      $where_sql = $where_condition? "\nWHERE $where_condition": '';
       return db_execute (
-        "UPDATE $tables_string SET $sql_fields $where_sql", $values
+        "UPDATE $tables_string SET $sql_fields$where_sql", $values
       );
       break;
     default:

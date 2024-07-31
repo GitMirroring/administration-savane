@@ -426,8 +426,8 @@ function pagemenu_group ()
 
   if (pagemenu_test_url ($project, "homepage"))
     {
-      print pagemenu_submenu_title ( _("Homepage"),
-        $project->getUrl("homepage"),
+      print pagemenu_submenu_title (_("Homepage"),
+        $project->getUrl ("homepage"),
         0, 1, _("Browse project homepage (outside of Savane)")
       );
       print pagemenu_submenu_end ();

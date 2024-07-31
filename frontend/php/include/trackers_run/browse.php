@@ -391,7 +391,7 @@ $select = [
   'a.group_id', 'a.priority', 'a.privacy', 'a.status_id', 'a.submitted_by'
 ];
 
-$where = "WHERE a.group_id = ?";
+$where = "WHERE\n    a.group_id = ?";
 $where_params = [$group_id];
 
 # Take into account the spamscore limit (always show
@@ -415,7 +415,7 @@ $wanted_chunksz = $chunksz;
 if ($chunksz > 150 && !$digest)
   $chunksz = 150;
 
-$limit = " LIMIT ?, ?";
+$limit = "LIMIT ?, ?";
 $limit_params = [$offset, $chunksz];
 
 # Prepare for summary and original submission as 'special' criteria.
@@ -443,7 +443,7 @@ foreach ($url_params as $field => $value_id)
         && !trackers_isvarany ($url_params[$field]))
       {
         # Only select box criteria to where clause if argument is not ANY.
-        $where .= " AND a.$field "
+        $where .= "\n    AND a.$field "
           . utils_in_placeholders ($url_params[$field]) . ' ';
         $where_params = array_merge ($where_params, $url_params[$field]);
       }
@@ -455,7 +455,7 @@ foreach ($url_params as $field => $value_id)
         $ok = $ok && preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $param, $match_arr);
         if ($ok)
           list (, $year, $month, $day) = $match_arr;
-        $field_defined = " AND a.$field <> 0 ";
+        $field_defined = "\n    AND a.$field <> 0 ";
 
         if ($advsrch)
           {
@@ -463,12 +463,12 @@ foreach ($url_params as $field => $value_id)
               utils_date_to_unixtime ($url_params["{$field}_end"]);
             if ($ok)
               {
-                $where .= " AND a.$field >= ?";
+                $where .= "\n    AND a.$field >= ?";
                 $where_params[] = $time;
               }
             if ($ok_end)
               {
-                $where .= " AND a.$field <= ?";
+                $where .= "\n    AND a.$field <= ?";
                 $where_params[] = $time_end;
               }
             if (!$ok && !$ok_end) # No limits, allow undefined dates.
@@ -483,14 +483,14 @@ foreach ($url_params as $field => $value_id)
               {
                 # '=' means that day between 00:00 and 23:59.
                 $time_end = mktime (23, 59, 59, $month, $day, $year);
-                $where .= " AND a.$field >= ? AND a.$field <= ?";
+                $where .= "\n    AND a.$field >= ? AND a.$field <= ?";
                 $where_params[] = $time;
                 $where_params[] = $time_end;
               }
             else
               {
                 $time = mktime (0, 0, 0, $month, $day + 1, $year);
-                $where .= " AND a.$field $operator= ?";
+                $where .= "\n    AND a.$field $operator= ?";
                 $where_params[] = $time;
               }
           }
@@ -516,7 +516,7 @@ foreach ($url_params as $field => $value_id)
             # differently.
             list ($expr, $params) =
               trackers_build_match_expression ($field, $url_params[$field][0]);
-            $where .= " AND $expr";
+            $where .= "\n    AND $expr";
             $where_params = array_merge ($where_params, $params);
           }
       }
@@ -529,7 +529,7 @@ if ($sumORdet == 1)
     # for both fields.
     if ($details_search == 1 && $summary_search == 1)
       {
-        $where .= ' AND ';
+        $where .= "\n   AND ";
         $where .= '( ( ';
         list ($expr, $params) = trackers_build_match_expression (
           'details', $url_params['details'][0]
@@ -554,7 +554,7 @@ if ($sumORdet == 1)
         # we will proceed with a usual AND.
         if ($details_search == 1 && $url_params['details'][0])
           {
-            $where .= ' AND ';
+            $where .= "\n    AND ";
             list ($expr, $params) = trackers_build_match_expression (
               'details', $url_params['details'][0]
             );
@@ -563,7 +563,7 @@ if ($sumORdet == 1)
           }
         if ($summary_search == 1 && $url_params['summary'][0])
           {
-            $where .= ' AND ';
+            $where .= "\n    AND ";
             list ($expr, $params) = trackers_build_match_expression (
               'summary', $url_params['summary'][0]);
             $where .= $expr;
@@ -677,7 +677,7 @@ if ($labels)
 # the first thing to be set will matters a lot).
 if ($morder == '' && !$msort)
   $morder = "bug_id<";
-$order_by = '';
+$order_by = null;
 if ($morder != '')
   {
     $matching_morder = '';
@@ -704,7 +704,7 @@ if ($morder != '')
       {
         $fields = trackers_criteria_list_to_query ($morder);
         if (!empty ($fields))
-          $order_by = " ORDER BY $fields";
+          $order_by = "ORDER BY $fields";
       }
   }
 
@@ -795,7 +795,7 @@ while ($field = trackers_list_all_fields ('cmp_place_result'))
     # Display the username instead of the user_id.
     $select[] = "user_$field.user_name AS $field";
     $froms[] = "user user_$field";
-    $where .= " AND user_$field.user_id = a.$field";
+    $where .= "\n    AND user_$field.user_id = a.$field";
   } # while ($field = trackers_list_all_fields ('cmp_place_result'))
 
 $art_h = "{$art}_history";
@@ -813,18 +813,19 @@ if ($history_search)
     if ($history_event == "modified")
       {
         $froms[] = "$art_h hist";
-        $where .= " AND hist.bug_id = a.bug_id AND hist.date >= ?";
+        $where .= "\n    AND hist.bug_id = a.bug_id AND hist.date >= ?";
         $where_params[] = $unix_history_date;
         if ($history_field != '0')
           {
-            $where .= " AND hist.field_name = ?";
+            $where .= "\n    AND hist.field_name = ?";
             $where_params[] = $history_field;
           }
       }
     else
       {
-        $more_from .= "
-          LEFT JOIN $art_h hist ON (hist.bug_id = a.bug_id AND hist.date >= ?";
+        $more_from .=
+          "\n    LEFT JOIN $art_h hist ON"
+          . "\n      (hist.bug_id = a.bug_id AND hist.date >= ?";
         $from_params[] = $unix_history_date;
         $where .= " AND hist.bug_id IS NULL";
         if ($history_field != '0')
@@ -837,9 +838,27 @@ if ($history_search)
   }
 
 $from = "FROM " . join (", ", $froms) . $more_from;
-$group_by = '';
+$group_order_limit = [];
 if ($have_last_updated)
-  $group_by .= " GROUP BY a.bug_id";
+  $group_order_limit[] = "GROUP BY a.bug_id";
+if ($order_by !== null)
+  $group_order_limit[] = $order_by;
+$group_order_limit[] = $limit;
+$group_order_limit = join (' ', $group_order_limit);
+
+$sel = [];
+while (!empty ($select))
+  {
+    for ($i = 0, $s = []; $i < 5; $i++)
+      {
+        $f = array_shift ($select);
+        if ($f === null)
+          break;
+        $s[] = $f;
+      }
+    $sel[] = join (', ', $s);
+  }
+$select = join (",\n    ", $sel);
 
 # Run 2 queries: one to count the total number of results, and the second
 # one with the LIMIT argument. It is faster than selecting all
@@ -847,13 +866,13 @@ if ($have_last_updated)
 # time to transfer all the results from the server to the client.
 # It is also faster than using the SQL_CALC_FOUND_ROWS/FOUND_ROWS()
 # capabilities of MySQL.
-$sql = "SELECT count(DISTINCT a.bug_id) AS count $from $where";
+$sql = "SELECT count(DISTINCT a.bug_id) AS count\n  $from\n  $where";
 $params = array_merge ($from_params, $where_params);
 $result = db_execute ($sql, $params);
 $totalrows = db_result ($result, 0, 'count');
 
-$select = "SELECT DISTINCT " . join (', ', $select);
-$sql = "$select $from $where $group_by $order_by $limit";
+$select = "SELECT DISTINCT\n    $select";
+$sql = "$select\n  $from\n  $where\n  $group_order_limit";
 $result = db_execute ($sql, array_merge ($params, $limit_params));
 
 # Build the array that will be given to the function that make the item

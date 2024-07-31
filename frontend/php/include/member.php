@@ -277,10 +277,9 @@ function member_array_getpermissions ($group_id, $flags, $user_ids)
   if (!count ($user_ids))
     return [];
   $flags .= '_flags';
-  $sql =
-    "SELECT user_id, $flags AS flags FROM user_group WHERE group_id = ?";
-  $arg = utils_placeholders ($user_ids);
-  $sql .= "AND user_id IN ($arg)";
+  $sql = "
+    SELECT user_id, $flags AS flags FROM user_group
+    WHERE group_id = ? AND user_id " . utils_in_placeholders ($user_ids);
   $res = db_execute ($sql, array_merge ([$group_id], $user_ids));
   while ($u = db_fetch_array ($res))
     $ret[$u['user_id']] = $u['flags'];
@@ -404,11 +403,11 @@ function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
   list ($uids, $ret) = member_check_propagate_uids ($user_id);
   if (empty ($uids))
     return $ret;
-  $arg = utils_placeholders ($uids);
   $result = db_execute ("
     SELECT user_id FROM user_group
-    WHERE user_id IN ($arg) AND group_id = ? AND admin_flags <> ?",
-    array_merge ($uids, [$group_id, MEMBER_FLAGS_PENDING])
+    WHERE group_id = ? AND admin_flags <> ? AND user_id "
+    . utils_in_placeholders ($uids),
+    array_merge ([$group_id, MEMBER_FLAGS_PENDING], $uids)
   );
 
   if (!$result)

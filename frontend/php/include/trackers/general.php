@@ -1473,7 +1473,7 @@ function trackers_criteria_list_to_query ($criteria_list)
   # Undo the uid->user_name trick to avoid "Column 'submitted_by' in
   # order clause is ambiguous" error. This is pretty ugly. Also check
   # trackers_data_is_username_field().
-  $criteria_list = str_replace(
+  $criteria_list = str_replace (
     'submitted_by ', 'user_submitted_by.user_name ', $criteria_list
   );
   $criteria_list = str_replace (

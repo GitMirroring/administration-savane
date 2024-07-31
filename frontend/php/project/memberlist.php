@@ -58,11 +58,11 @@ function fetch_member_list ($group_id)
 {
   $flag_select = '';
   foreach (['admin', 'bugs', 'task', 'patch', 'news', 'support'] as $f)
-    $flag_select .= " g.{$f}_flags AS {$f}_flags,";
+    $flag_select .= " g.{$f}_flags,";
   $res = db_execute ("
     SELECT
       u.user_name, u.user_id, u.realname, u.add_date, u.people_view_skills,
-      u.email,$flag_select g.onduty AS onduty
+      u.email,$flag_select g.onduty
     FROM user u JOIN user_group g ON u.user_id = g.user_id
     WHERE g.group_id = ? AND g.admin_flags <> ? ORDER BY u.user_name",
     [$group_id, MEMBER_FLAGS_PENDING]
