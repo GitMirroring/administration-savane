@@ -235,7 +235,7 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
       );
       $ret .= "\n<select name='type'>" . form_option ('', NULL, _("any"));
       $result =
-        db_query ("SELECT type_id, name FROM group_type ORDER BY type_id");
+        db_execute ("SELECT type_id, name FROM group_type ORDER BY type_id");
       while ($eachtype = db_fetch_array ($result))
         $ret .= form_option ($eachtype['type_id'], $type,
           gettext ($eachtype['name'])

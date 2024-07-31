@@ -50,7 +50,7 @@ site_admin_header (
   ['title' => no_i18n ("Check Last Logins"), 'context' => 'admhome']
 );
 
-$res_logins = db_query ("
+$res_logins = db_execute ("
   SELECT s.user_id, s.ip_addr, s.time, u.user_name
   FROM session s, user u
   WHERE s.user_id = u.user_id AND s.user_id > 0 AND s.time > 0

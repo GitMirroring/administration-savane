@@ -95,7 +95,7 @@ if ($people_cat)
     # Show categories and blank row.
     site_header (['title' => _('Change Categories')]);
     # List of possible categories for this group.
-    $result = db_query ("SELECT category_id, name FROM people_job_category");
+    $result = db_execute ("SELECT category_id, name FROM people_job_category");
     if (db_numrows ($result) > 0)
       utils_show_result_set (
         $result, _("Existing Categories"), 'people_cat', '2'
@@ -118,7 +118,7 @@ elseif ($people_skills)
     # Show people_groups and blank row.
     site_header (['title' => _('Change People Skills')]);
     # List of possible people_groups for this group.
-    $result = db_query ("SELECT skill_id, name FROM people_skill");
+    $result = db_execute ("SELECT skill_id, name FROM people_skill");
     print "<p>";
     if (db_numrows ($result) > 0)
       utils_show_result_set (

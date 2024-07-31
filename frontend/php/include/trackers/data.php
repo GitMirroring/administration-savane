@@ -772,7 +772,7 @@ function trackers_data_get_default_value ($field, $by_field_id = false)
   if ($by_field_id)
     $field = trackers_data_get_field_name ($field);
 
-  $result = db_query ('DESCRIBE ' . ARTIFACT . ' `' . $field . '`');
+  $result = db_execute ('DESCRIBE ' . ARTIFACT . ' `' . $field . '`');
   return (db_result ($result, 0, 'Default'));
 }
 
@@ -1806,7 +1806,7 @@ function trackers_data_reassign_item (
     . ARTIFACT . " #$item_id\n\n"
     . "Following are the information included in the original report:\n\n";
 
-  $res_show = db_query ("SHOW COLUMNS FROM " . ARTIFACT);
+  $res_show = db_execute ("SHOW COLUMNS FROM " . ARTIFACT);
   $list = array();
   while ($row_show = db_fetch_array ($res_show))
     {
@@ -2230,14 +2230,14 @@ function trackers_data_get_notification_with_labels ($user_id)
 
 function trackers_data_get_notification_roles ()
 {
-  return db_query (
+  return db_execute (
     'SELECT * FROM trackers_notification_role ORDER BY rank ASC'
   );
 }
 
 function trackers_data_get_notification_events ()
 {
-  return db_query (
+  return db_execute (
     'SELECT * FROM trackers_notification_event ORDER BY rank ASC'
   );
 }

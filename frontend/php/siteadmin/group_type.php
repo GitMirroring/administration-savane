@@ -222,7 +222,9 @@ if (empty ($type_id))
     ['title' => no_i18n ('Group Type Management'), 'context' => 'admgrptype']
   );
 
-  $result = db_query ("SELECT type_id, name FROM group_type ORDER BY type_id");
+  $result = db_execute (
+    "SELECT type_id, name FROM group_type ORDER BY type_id"
+  );
   print "<br />\n";
   while ($usr = db_fetch_array ($result))
     {

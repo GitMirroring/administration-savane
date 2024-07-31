@@ -128,7 +128,7 @@ form_check ($submits);
 
 if ($update)
   {
-    $result_upd = db_query ("
+    $result_upd = db_execute ("
       SELECT group_id FROM groups WHERE status = 'A' AND is_public = '1'
       ORDER BY group_id"
     );

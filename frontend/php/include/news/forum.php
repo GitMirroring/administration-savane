@@ -345,7 +345,7 @@ function show_submessages ($thread_id, $msg_id, $level,$et=0)
 # with an auto-increment.
 function get_next_thread_id ()
 {
-  $result = db_query ("INSERT INTO forum_thread_id VALUES ('')");
+  $result = db_execute ("INSERT INTO forum_thread_id VALUES ('')");
   if ($result)
     return db_insertid ($result);
   print html_h (1, _('Error'));

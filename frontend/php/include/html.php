@@ -881,7 +881,7 @@ function show_group_type_box (
   $name = 'group_type', $checked_val = 'xzxz', $show_select_one = false
 )
 {
-  $result = db_query("SELECT * FROM group_type");
+  $result = db_execute ("SELECT * FROM group_type");
   return html_build_select_box (
     $result, 'group_type', $checked_val, $show_select_one,
     "> " . _("Choose one below"), false, 'Any', false, _('Group type')

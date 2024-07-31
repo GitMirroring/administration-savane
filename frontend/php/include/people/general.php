@@ -66,7 +66,9 @@ function people_list_categories ()
 {
   global $php_self;
 
-  $result = db_query ("SELECT * FROM people_job_category ORDER BY category_id");
+  $result = db_execute (
+    "SELECT * FROM people_job_category ORDER BY category_id"
+  );
   $rows = db_numrows ($result);
   if ($rows < 1)
     return false;
@@ -99,7 +101,7 @@ function people_list_project_type ()
 {
   global $php_self;
 
-  $result = db_query ("
+  $result = db_execute ("
     SELECT
       group_type.type_id, group_type.name, COUNT(people_job.job_id) AS count
     FROM
@@ -162,7 +164,7 @@ function people_show_category_list ()
 {
   $finalize = function ($r) { return "<ul class=\"boxli\">$r</ul>\n"; };
   $sql = "SELECT * FROM people_job_category ORDER BY category_id";
-  $result = db_query ($sql);
+  $result = db_execute ($sql);
   $rows = db_numrows ($result);
   $return = '';
   if ($rows < 1)
@@ -200,7 +202,7 @@ function people_job_status_box ($name = 'status_id', $checked = 'xyxy')
     # TRANSLATORS: this string is a job status.
     _("Deleted")
   ];
-  $result = db_query ("SELECT * FROM people_job_status");
+  $result = db_execute ("SELECT * FROM people_job_status");
   return html_build_localized_select_box (
     $result, $name, $checked, true, 'None', false, 'Any', false,
     _('job status')
@@ -233,7 +235,7 @@ function people_job_category_box ($name = 'category_id', $checked = 'xyxy')
     _("Other")
   ];
 
-  $result = db_query ("SELECT * FROM people_job_category");
+  $result = db_execute ("SELECT * FROM people_job_category");
   return html_build_localized_select_box (
     $result, $name, $checked, true, 'None', false, 'Any', false,
     _('job category')
@@ -511,7 +513,7 @@ function people_skill_box ($name = 'skill_id', $checked = 'xyxy')
 {
   global $PEOPLE_SKILL;
   if (!$PEOPLE_SKILL)
-    $PEOPLE_SKILL = db_query ("SELECT * FROM people_skill ORDER BY name ASC");
+    $PEOPLE_SKILL = db_execute ("SELECT * FROM people_skill ORDER BY name");
   return html_build_select_box (
     $PEOPLE_SKILL, $name, $checked, true, 'None', false, 'Any', false, 'skills'
   );
@@ -534,7 +536,7 @@ function people_skill_level_box ($name = 'skill_level_id', $checked = 'xyxy')
     _('Expert')
   ];
   if (!$PEOPLE_SKILL_LEVEL)
-    $PEOPLE_SKILL_LEVEL = db_query ("SELECT * FROM people_skill_level");
+    $PEOPLE_SKILL_LEVEL = db_execute ("SELECT * FROM people_skill_level");
   return html_build_localized_select_box (
     $PEOPLE_SKILL_LEVEL, $name, $checked, true, 'None', false, 'Any', false,
     _('skill level')
@@ -565,7 +567,7 @@ function people_skill_year_box ($name = 'skill_year_id', $checked = 'xyxy')
     _('> 80 years')
   ];
   if (!$PEOPLE_SKILL_YEAR)
-    $PEOPLE_SKILL_YEAR = db_query ("SELECT * FROM people_skill_year");
+    $PEOPLE_SKILL_YEAR = db_execute ("SELECT * FROM people_skill_year");
   return html_build_localized_select_box (
     $PEOPLE_SKILL_YEAR, $name, $checked, true, 'None', false, 'Any', false,
     _('experience level')

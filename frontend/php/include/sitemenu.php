@@ -304,8 +304,8 @@ function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
     }
 
   # If CONTEXT or SUBCONTEXT was set to non-existent context, the SQL
-  # should not fail - so error reporting works in other usages of db_query.
-  $result = db_query ("DESCRIBE cookbook_context2recipe");
+  # should not fail - so error reporting works in other SQL queries.
+  $result = db_execute ("DESCRIBE cookbook_context2recipe");
   $valid_contexts = [];
   while ($row = db_fetch_array ($result))
     $valid_contexts[] = $row['Field'];

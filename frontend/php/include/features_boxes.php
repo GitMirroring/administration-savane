@@ -85,7 +85,7 @@ function show_features_boxes ()
     }
 
   # Group type stats.
-  $result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
+  $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY name");
   $limit = 5;
 
   while ($eachtype = db_fetch_array ($result))
@@ -131,7 +131,7 @@ function show_sitestats ()
     "<strong>$groups</strong>"
   );
   $return .= "</span></div>\n";
-  $result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
+  $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY name");
   while ($eachtype = db_fetch_array ($result))
     {
       $n = stats_getprojects_bytype_active ($eachtype['type_id']);

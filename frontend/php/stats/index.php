@@ -274,7 +274,7 @@ $page .=
   );
 $page .=  "</li>\n</ul>\n";
 
-$result = db_query ("SELECT type_id, name FROM group_type ORDER BY name");
+$result = db_execute ("SELECT type_id, name FROM group_type ORDER BY name");
 while ($eachtype = db_fetch_array ($result))
   $data[$eachtype['name']] = stats_getprojects ($eachtype['type_id']);
 

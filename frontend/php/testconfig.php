@@ -685,7 +685,7 @@ function test_mysql ()
   $defs = [];
   foreach ($mysql_params as $param => $comment)
     {
-      $result = db_query ("SELECT $param");
+      $result = db_execute ("SELECT $param");
       $value = db_result ($result, 0, $param);
       if (isset ($mysql_highlight[$param]))
         {
