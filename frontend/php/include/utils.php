@@ -1113,11 +1113,28 @@ function utils_debug_output_rusage ($ru)
   foreach ($vars as $v => $l)
     $ret .= utils_debug_output_val ($ru, $v, $l);
   if (!count ($ru))
-    return;
+    return $ret;
   $ret .= utils_no_i18n ("Other values:");
   foreach ($ru as $k => $v);
     $ret .= preg_replace ('/^ru_/', '', $k) . ": $v\n";
   return $ret;
+}
+
+function utils_debug_output_db_queries ()
+{
+  global $db_queries_filed;
+  if (empty ($db_queries_filed))
+    return '';
+  $head[1] = '-multi-';
+  $head[0] = preg_replace ('/./', '-', $head[1]);
+  $ret = '  ' . utils_no_i18n ('DB queries:') . "\n";
+  foreach ($db_queries_filed as $entry)
+    {
+      $h = $head[$entry[1]? 1: 0];
+      $sql = preg_replace ("/^\n*/", '', $entry[0]);
+      $ret .= "$h\n{$entry[2]}\n$sql\n";
+    }
+  return "$ret$head[0]\n\n";
 }
 
 function utils_output_debug_footer ()
@@ -1131,6 +1148,7 @@ function utils_output_debug_footer ()
   foreach (get_included_files () as $f)
     $msg .= error_relative_source_path ($f) . "\n";
   $msg .= "\n";
+  $msg .= utils_debug_output_db_queries ();
   $msg .= utils_debug_output_rusage ($ru);
   trigger_error ($msg);
 }

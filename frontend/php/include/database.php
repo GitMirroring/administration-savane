@@ -67,9 +67,9 @@ function db_check_mysqli ()
 function db_connect ()
 {
   global $sys_dbhost, $sys_dbport, $sys_dbuser, $sys_dbpasswd, $sys_dbname;
-  global $sys_dbsocket, $mysql_conn;
+  global $sys_dbsocket, $mysql_conn, $db_queries_filed;
 
-  $mysql_conn = null;
+  $mysql_conn = null; $db_queries_filed = [];
   db_check_mysqli ();
 
   mysqli_report (MYSQLI_REPORT_ERROR);
@@ -317,9 +317,16 @@ function db_multi_query ($qstring)
   return $db_qhandle;
 }
 
+function db_format_backtrace ()
+{
+  return error_format_backtrace (false);
+}
+
 function db_query ($qstring, $multi_query = 0)
 {
-  global $mysql_conn, $db_qhandle;
+  global $mysql_conn, $db_qhandle, $db_queries_filed, $sys_debug_footer;
+  if (!empty ($sys_debug_footer))
+    $db_queries_filed[] = [$qstring, $multi_query, db_format_backtrace ()];
 
   if ($multi_query)
     return db_multi_query ($qstring);

@@ -137,7 +137,7 @@ function error_relative_source_path ($path)
   return preg_replace (",$prefix,", '$topdir', $path);
 }
 
-function error_format_backtrace_entry ($entry)
+function error_format_backtrace_entry ($entry, $include_args)
 {
   $ret = '';
   $k = 'file';
@@ -150,18 +150,19 @@ function error_format_backtrace_entry ($entry)
   if (array_key_exists ($k, $entry))
     {
       $ret .= $entry[$k];
-      $ret .= error_format_bt_args ($entry);
+      if ($include_args)
+        $ret .= error_format_bt_args ($entry);
     }
   return $ret;
 }
 
-function error_format_backtrace ()
+function error_format_backtrace ($include_args = true)
 {
   $bt = debug_backtrace ();
   array_shift ($bt); array_shift ($bt); array_shift ($bt);
   $ret = [];
   while (count ($bt))
-    $ret[] = error_format_backtrace_entry (array_pop ($bt));
+    $ret[] = error_format_backtrace_entry (array_pop ($bt), $include_args);
   return join ("\n-> ", $ret);
 }
 
