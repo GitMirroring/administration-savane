@@ -476,14 +476,6 @@ function account_encryptpw ($plainpw)
   return crypt ($plainpw, "$pfx$salt");
 }
 
-# Return next userid.
-function account_nextuid ()
-{
-  db_query ("SELECT max(unix_uid) AS maxid FROM user");
-  $row = db_fetch_array ();
-  return ($row[maxid] + 1);
-}
-
 function account_validpw ($stored_pw, $plain_pw)
 {
   if (empty ($stored_pw) || empty ($plain_pw))
