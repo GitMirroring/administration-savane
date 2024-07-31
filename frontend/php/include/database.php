@@ -296,34 +296,34 @@ function db_query_die ($qstring, $errors = null)
   return false;
 }
 
+function db_multi_query ($qstring)
+{
+  global $mysql_conn, $db_qhandle;
+  mysqli_multi_query ($mysql_conn, $qstring);
+  $db_qhandle = $errors = [];
+  $i = 0;
+  while (true)
+    {
+      $res = mysqli_store_result ($mysql_conn);
+      if (!$res && mysqli_errno ($mysql_conn))
+        $errors[$i] = db_error ();
+      $db_qhandle[$i++] = $res;
+      if (!mysqli_more_results ($mysql_conn))
+        break;
+      mysqli_next_result ($mysql_conn);
+    }
+  if (count ($errors))
+    return db_query_die ($qstring, $errors);
+  return $db_qhandle;
+}
+
 function db_query ($qstring, $multi_query = 0)
 {
   global $mysql_conn, $db_qhandle;
 
   if ($multi_query)
-    {
-      mysqli_multi_query ($mysql_conn, $qstring);
-      $db_qhandle = [];
-      $i = 0;
-      $fail = false;
-      while (true)
-        {
-          $res = mysqli_store_result ($mysql_conn);
-          if (!$res && mysqli_errno ($mysql_conn))
-            {
-              $fail = true;
-              $errors[$i] = db_error ();
-            }
-          $db_qhandle[$i++] = $res;
-          if (!mysqli_more_results ($mysql_conn))
-            break;
-          mysqli_next_result ($mysql_conn);
-        }
-      if ($fail)
-        return db_query_die ($qstring, $errors);
-    }
-  else
-    $db_qhandle = mysqli_query ($mysql_conn, $qstring);
+    return db_multi_query ($qstring);
+  $db_qhandle = mysqli_query ($mysql_conn, $qstring);
   if ($db_qhandle)
     return $db_qhandle;
   return db_query_die ($qstring);
