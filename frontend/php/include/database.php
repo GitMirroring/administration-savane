@@ -271,7 +271,7 @@ function db_execute ($sql, $inputarr = null, $multi_query = 0)
   if (empty ($GLOBALS['mysql_conn']))
     return null;
   $expanded_sql = db_variable_binding ($sql, $inputarr);
-  return db_query ($expanded_sql, 0, $multi_query);
+  return db_query ($expanded_sql, $multi_query);
 }
 
 function db_query_prevent_die ($disable = null)
@@ -296,16 +296,9 @@ function db_query_die ($qstring, $errors = null)
   return false;
 }
 
-function db_query ($qstring, $print = 0, $multi_query = 0)
+function db_query ($qstring, $multi_query = 0)
 {
   global $mysql_conn, $db_qhandle;
-
-  if ($print)
-    {
-      print "<pre>[";
-      print_r ($qstring);
-      print "]</pre>";
-    }
 
   if ($multi_query)
     {
