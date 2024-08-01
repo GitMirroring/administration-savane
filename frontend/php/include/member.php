@@ -287,14 +287,6 @@ function member_array_getpermissions ($group_id, $flags, $user_ids)
   return $ret;
 }
 
-function member_getpermissions ($group_id, $flags, $user_id = 0)
-{
-  if (!$user_id)
-    $user_id = user_getid ();
-  $ret = member_array_getpermissions ($group_id, $flags, [$user_id]);
-  return $ret[$user_id];
-}
-
 function member_check_propagate_uids ($user_id)
 {
   $ret = $uids = [];
