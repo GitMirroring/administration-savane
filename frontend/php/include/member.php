@@ -345,10 +345,13 @@ function member_check_split_flags ($flag)
 function member_check_array_perms ($group_id, $flag, $uids, $strict)
 {
   list ($flag_tracker, $flag_level) = member_check_split_flags ($flag);
+  $values = member_array_getpermissions ($group_id, $flag_tracker, $uids);
   $ret = [];
   foreach ($uids as $u)
     {
-      $value = member_getpermissions ($group_id, $flag_tracker, $u);
+      $value = null;
+      if (isset ($values[$u]))
+        $value = $values[$u];
       if (!$value)
         {
           if (!isset ($group_perms))
