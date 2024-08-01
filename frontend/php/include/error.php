@@ -126,12 +126,23 @@ function error_format_bt_args (&$entry)
   return '(' . join (', ', $a) .  ')';
 }
 
+function error_relative_source_path ($path)
+{
+  global $sys_www_topdir;
+  static $prefix = null;
+  if ($prefix === null && isset ($sys_www_topdir))
+    $prefix = dirname ($sys_www_topdir);
+  if ($prefix === null)
+    return $path;
+  return preg_replace (",$prefix,", '$topdir', $path);
+}
+
 function error_format_backtrace_entry ($entry)
 {
   $ret = '';
   $k = 'file';
   if (array_key_exists ($k, $entry))
-    $ret .= $entry[$k] . ':';
+    $ret .= error_relative_source_path ($entry[$k]) . ':';
   $k = 'line';
   if (array_key_exists ($k, $entry))
     $ret .= $entry[$k] . ':';
