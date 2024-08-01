@@ -137,7 +137,7 @@ function user_getrealname ($user_id = 0, $rfc822_compliant = 0)
       else
         $ret[$u] = '<b>' . _("Invalid User ID") . '</b>';
     }
-  return user_return_val ($user_id, $ret);
+  return utils_return_val ($user_id, $ret);
 }
 
 function user_getname ($user_id = 0)
@@ -148,7 +148,7 @@ function user_getname ($user_id = 0)
     if (!array_key_exists ($u, $ret))
       # TRANSLATORS: "Not applicable".
       $ret[$u] = empty ($u)? _("NA"): "<b>#$u</b>";
-  return user_return_val ($user_id, $ret);
+  return utils_return_val ($user_id, $ret);
 }
 
 function user_getid ($username = 0)
@@ -194,25 +194,9 @@ function user_getemail ($user_id = 0)
   return user_get_field ($user_id, 'email');
 }
 
-# Unify the argument that may be scalar or array (return an array);
-# replace all empty entries with user_getid ().
 function user_get_uids_array ($u)
 {
-  if (!is_array ($u))
-    $u = [$u];
-  $uids = [];
-  foreach ($u as $id)
-    $uids[] = empty ($id)? user_getid (): $id;
-  return $uids;
-}
-
-# Convert $ret to the original type passed to user_get_uids_array ().
-function user_return_val ($user_id, $ret)
-{
-  if (!is_array ($user_id))
-    foreach ($ret as $val)
-      return $val;
-  return $ret;
+  return utils_make_arg_array ($u, user_getid ());
 }
 
 function user_get_field ($user_id, $field)
@@ -222,7 +206,7 @@ function user_get_field ($user_id, $field)
   $ret = [];
   foreach ($u as $k => $v)
     $ret[$k] = $v[$field];
-  return user_return_val ($user_id, $ret);
+  return utils_return_val ($user_id, $ret);
 }
 
 function user_get_gpg_key ($user_id = 0, $minified = false)
@@ -240,7 +224,7 @@ function user_get_gpg_key ($user_id = 0, $minified = false)
       else
         $ret[$u] = $pref_key[$u];
     }
-  return user_return_val ($user_id, $ret);
+  return utils_return_val ($user_id, $ret);
 }
 
 function user_set_gpg_key ($key)
@@ -315,7 +299,7 @@ function user_get_array ($user)
       if (!empty ($USER_ARR[$idx]))
         $ret[$name] = $USER_ARR[$idx];
     }
-  return user_return_val ($user, $ret);
+  return utils_return_val ($user, $ret);
 }
 
 function user_get_timezone ()
@@ -381,7 +365,7 @@ function user_get_preference_by_id ($preference_name, $user_id)
     $ret[$u] = null;
   while ($row = db_fetch_array ($res))
     $ret[$u] = $row['preference_value'];
-  return user_return_val ($user_id, $ret);
+  return utils_return_val ($user_id, $ret);
 }
 
 function user_get_preference ($preference_name, $user_id = false)

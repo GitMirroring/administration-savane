@@ -592,9 +592,7 @@ function group_get_perm_flags ($group_id, $artifact, $prefix = '')
 {
   if (empty ($artifact))
     return group_null_perm ($artifact);
-  $art = $artifact;
-  if (is_scalar ($artifact))
-    $art = [$art];
+  $art = utils_make_arg_array ($artifact);
   $suff = "_{$prefix}flags";
   foreach ($art as $a)
     if (!preg_match ('/^[a-z]+$/', $a))
@@ -637,14 +635,11 @@ function group_getrestrictions (
   if ($flag === null)
     return group_null_perm ($artifact);
   $f = $flag;
-  if (is_scalar ($f))
-    $f = [$f];
+  $f = utils_make_arg_array ($flag);
   $ret = [];
   foreach ($f as $k => $v)
     $ret[$k] = group_flag_value ($v, $event);
-  if (is_scalar ($flag))
-    return $ret[0];
-  return $ret;
+  return utils_return_val ($flag, $ret);
 }
 
 function group_restriction_flag ($group_id, $artifact, $event)
@@ -767,24 +762,27 @@ function group_normalize_pref_name (&$name)
   array_walk ($name, $norm_name);
 }
 
-# Make sure that the value is an array; used in further functions.
-function group_make_array ($x)
+function group_query_preference ($group_id, $pref_arr)
 {
-  if (is_array ($x))
-    return $x;
-  return [$x];
+  $arg_list = utils_in_placeholders ($pref_arr);
+  return db_execute ("
+    SELECT preference_name,preference_value FROM group_preferences
+    WHERE group_id = ? AND preference_name $arg_list",
+    array_merge ([$group_id], $pref_arr)
+  );
 }
 
-# Return group preferences. If $preference_names is a string,
+# Return group preferences.  If $preference_names is a string,
 # return a single string or false if the preference isn't set;
 # if $preference_names is an array, return an array of $name => $value,
 # where $value is null when the prefererence isn't set.
 function group_get_preference ($group_id, $preference_names)
 {
-  $pref_names = group_make_array ($preference_names);
+  $pref_names = utils_make_arg_array ($preference_names);
+  if (empty ($pref_names))
+    return [];
   group_normalize_pref_name ($pref_names);
-  $pref_arr = [];
-  $val_arr = [];
+  $pref_arr = $val_arr = [];
   foreach ($pref_names as $name)
     {
       if (array_key_exists ($name, $val_arr))
@@ -792,24 +790,10 @@ function group_get_preference ($group_id, $preference_names)
       $pref_arr[] = $name;
       $val_arr[$name] = null;
     }
-
-  $arg_list = utils_placeholders ($pref_arr);
-  $result =
-    db_execute ("
-      SELECT preference_name,preference_value FROM group_preferences
-      WHERE group_id = ? AND preference_name IN ($arg_list)",
-      array_merge ([$group_id], $pref_arr)
-    );
-  if (!is_array ($preference_names))
-    {
-      if (db_numrows ($result))
-        return db_result ($result, 0, 'preference_value');
-      return false;
-    }
-
-  while ($row = db_fetch_array ())
+  $result = group_query_preference ($group_id, $pref_arr);
+  while ($row = db_fetch_array ($result))
     $val_arr[$row['preference_name']] = $row['preference_value'];
-  return $val_arr;
+  return utils_return_val ($preference_names, $val_arr);
 }
 
 function group_set_pref_insert_sql ($group_id, $to_insert)
@@ -859,8 +843,8 @@ function group_set_preference ($group_id, $preference_name, $value)
   if (!user_ismember ($group_id, 'A'))
     return false;
 
-  $pref_names = group_make_array ($preference_name);
-  $pref_vals = group_make_array ($value);
+  $pref_names = utils_make_arg_array ($preference_name);
+  $pref_vals = utils_make_arg_array ($value);
   if (count ($pref_names) != count ($pref_vals))
     return false;
   $prefs = array_combine ($pref_names, $pref_vals);

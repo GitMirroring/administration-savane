@@ -1165,5 +1165,28 @@ function utils_output_debug_footer ()
   $msg .= utils_debug_output_rusage ($ru);
   trigger_error ($msg);
 }
+
+# Unify the argument that may be scalar or array (return an array);
+# when $def_val isn't null, replace all empty entries with it.
+function utils_make_arg_array ($arg, $def_val = null)
+{
+  if (!is_array ($arg))
+    $arg = [$arg];
+  if ($def_val === null)
+    return $arg;
+  $ret = [];
+  foreach ($arg as $a)
+    $ret[] = empty ($a)? $def_val: $a;
+  return $ret;
+}
+
+# Convert $ret to the original type passed to utils_make_arg_array ().
+function utils_return_val ($arg, $ret)
+{
+  if (is_array ($arg))
+    return $ret;
+  foreach ($ret as $val)
+    return $val;
+}
 } # namespace {
 ?>

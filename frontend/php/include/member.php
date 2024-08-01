@@ -79,8 +79,7 @@ function member_add ($user_id, $group_id, $status = '')
 
 function member_admin_flags_query ($group_id, $cond, $arg)
 {
-  if (!is_array ($arg))
-    $arg = [$arg];
+  $arg = utils_make_arg_array ($arg);
   return db_execute ("
     SELECT u.user_id, user_name, realname
     FROM user u JOIN user_group g ON u.user_id = g.user_id
