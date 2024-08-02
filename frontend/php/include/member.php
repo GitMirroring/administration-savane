@@ -274,15 +274,11 @@ function member_array_getpermissions ($group_id, $flags, $user_ids)
     }
   if (!preg_match ('/^[a-z]+$/', $flags))
     util_die ('group_getpermissions: unvalid argument flags');
-  if (!count ($user_ids))
-    return [];
   $flags .= '_flags';
-  $sql = "
-    SELECT user_id, $flags AS flags FROM user_group
-    WHERE group_id = ? AND user_id " . utils_in_placeholders ($user_ids);
-  $res = db_execute ($sql, array_merge ([$group_id], $user_ids));
-  while ($u = db_fetch_array ($res))
-    $ret[$u['user_id']] = $u['flags'];
+  $members = member_get_group_members ($group_id);
+  foreach ($user_ids as $u)
+    if (array_key_exists ($u, $members))
+      $ret[$u] = $members[$u][$flags];
   return $ret;
 }
 
@@ -383,6 +379,36 @@ function member_check_array_perms ($group_id, $flag, $uids, $strict)
   return $ret;
 }
 
+function member_get_group_members ($group_id)
+{
+  static $cache = [];
+  $members = [];
+  if (!array_key_exists ($group_id, $cache))
+    {
+      $result = db_execute (
+        "SELECT * FROM user_group WHERE group_id = ?", [$group_id]
+      );
+      while ($row = db_fetch_array ($result))
+        $members[$row['user_id']] = $row;
+      $cache[$group_id] = $members;
+    }
+  return $cache[$group_id];
+}
+
+function member_users_are_in_group ($group_id, $uids)
+{
+  $members = member_get_group_members ($group_id);
+  $ret = [];
+  foreach ($uids as $u)
+    {
+      if (empty ($members[$u]))
+        continue;
+      if ($members[$u]['admin_flags'] != MEMBER_FLAGS_PENDING)
+        $ret[] = $u;
+    }
+  return $ret;
+}
+
 # Check membership: by default, check only if someone is member of a project.
 #
 # With the flag option, you can check for specific right:
@@ -403,20 +429,10 @@ function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
   list ($uids, $ret) = member_check_propagate_uids ($user_id);
   if (empty ($uids))
     return $ret;
-  $result = db_execute ("
-    SELECT user_id FROM user_group
-    WHERE group_id = ? AND admin_flags <> ? AND user_id "
-    . utils_in_placeholders ($uids),
-    array_merge ([$group_id, MEMBER_FLAGS_PENDING], $uids)
-  );
-
-  if (!$result)
+  $uids = member_users_are_in_group ($group_id, $uids);
+  if (empty ($uids))
     return $ret;
-  $uids = [];
-  while ($member = db_fetch_array ($result))
-    $uids[] = $member[0];
-  if (!$flag)
-    # Member of a project, not looking for specific permission.
+  if (!$flag) # Member of the group, not looking for specific permission.
     return array_merge ($ret, $uids);
 
   $vals = member_check_array_perms ($group_id, $flag, $uids, $strict);

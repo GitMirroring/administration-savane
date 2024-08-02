@@ -1104,18 +1104,11 @@ function trackers_data_update_usage (
 function trackers_data_get_technicians ($group_id)
 {
   # Get list of members.
-  $members_res = db_execute ("
-    SELECT user.user_id FROM user, user_group
-    WHERE user.user_id = user_group.user_id AND user_group.group_id = ?",
-    [$group_id]
-  );
-  $sql = "SELECT user_id, user_name FROM user WHERE ";
-  $uids = [];
-  while ($member = db_fetch_array ($members_res))
-    $uids[] = $member['user_id'];
+  $uids = array_keys (member_get_group_members ($group_id));
   $uids = member_check_array (
     $uids, $group_id, member_create_tracker_flag (ARTIFACT) . '1'
   );
+  $sql = "SELECT user_id, user_name FROM user WHERE ";
   if (empty ($uids))
     $sql .= 'NULL'; # Return a valid (but empty) result set.
   else
