@@ -565,11 +565,10 @@ function group_getid ($group_name)
   return null;
 }
 
-function group_trimmed_array ($res, $suff)
+function group_trimmed_array ($perm, $suff)
 {
-  $a = db_fetch_array ($res);
   $ret = []; $len = strlen ($suff);
-  foreach ($a as $k => $v)
+  foreach ($perm as $k => $v)
     {
       if (is_int ($k))
         continue;
@@ -588,6 +587,21 @@ function group_null_perm ($art)
   return $ret;
 }
 
+function group_get_default_permissions ($group_id)
+{
+  static $cached = [];
+  if (array_key_exists ($group_id, $cached))
+    return $cached[$group_id];
+  $res = db_execute (
+    "SELECT * FROM groups_default_permissions WHERE group_id = ?", [$group_id]
+  );
+  $row = null;
+  if (db_numrows ($res))
+    $row = db_fetch_array ($res);
+  $cached[$group_id] = $row;
+  return $row;
+}
+
 function group_get_perm_flags ($group_id, $artifact, $prefix = '')
 {
   if (empty ($artifact))
@@ -597,16 +611,12 @@ function group_get_perm_flags ($group_id, $artifact, $prefix = '')
   foreach ($art as $a)
     if (!preg_match ('/^[a-z]+$/', $a))
       util_die ('group_getpermissions: unvalid argument artifact');
-  $fields = join ("$suff, ", $art) . $suff;
-  $res = db_execute (
-    "SELECT $fields FROM groups_default_permissions WHERE group_id = ?",
-    [$group_id]
-  );
-  if (!db_numrows ($res))
+  $perm = group_get_default_permissions ($group_id);
+  if ($perm === null)
     return group_null_perm ($artifact);
   if (is_scalar ($artifact))
-    return db_result ($res, 0, "$artifact$suff");
-  return group_trimmed_array ($res, $suff);
+    return $perm["$artifact$suff"];
+  return group_trimmed_array ($perm, $suff);
 }
 
 function group_getpermissions ($group_id, $artifact)

@@ -49,6 +49,8 @@
 * New savane.php.conf variables, $sys_group_file and $sys_debug_footer
   (see doc/savane.conf.php).
 
+* The number of SQL queries is reduced in several cases.
+
 * Bug fixes:
 
 ** microtime-based timestamps were wrong.
