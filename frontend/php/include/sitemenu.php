@@ -251,8 +251,7 @@ function sitemenu_print_related_recipe ($row)
   # shown will be cut to 40 characters.
   # Summaries should be kept short.
   print utils_link (
-    "{$sys_home}cookbook/?func=detailitem&amp;comingfrom=$group_id"
-    . '&amp;item_id=' . $row['bug_id'],
+    "{$sys_home}cookbook/?{$row['bug_id']}",
     utils_cutstring ($row['summary'], 40), "menulink", '1', $row['summary']
   );
   if ($priority > 4)
