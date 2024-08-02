@@ -175,15 +175,15 @@ $class = utils_get_priority_color (
 print "<h1 class=\"$class\"><i>$item_link</i>: ";
 print $res_arr['summary'] . "</h1>\n";
 
-if ($enable_comments)
-  {
-    print form_header (
-      null, "post", 'enctype="multipart/form-data" name="item_form"'
-    );
-    print form_hidden (
-      ["func" => "postmoditem", "group_id" => $group_id, "item_id" => $item_id]
-    );
-  }
+print form_header (
+  null, "post", 'enctype="multipart/form-data" name="item_form"'
+);
+$hidden = [
+  "group_id" => $group_id, "item_id" => $item_id,
+  'func' => $enable_comments? 'postmoditem': 'detailitem'
+];
+print form_hidden ($hidden);
+
 # Colspan explanation:
 #
 #  We want the following, twice much space for the value than for the label:
@@ -931,8 +931,9 @@ if ($enable_comments)
       . form_submit (_("Submit changes and browse items"), "submit", 'class="bold"')
       . ' '
       . form_submit (_("Submit changes and return to this item"), "submitreturn")
-      . "</div>\n</form>\n";
+      . "</div>\n";
   }
+print "</form>\n";
 print html_hidsubpart_header ("history", _("History"));
 show_item_history ($item_id, $group_id);
 print html_hidsubpart_footer ();

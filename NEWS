@@ -35,6 +35,9 @@
 
 * Bug fixes:
 
+** In trackers, the 'Reverse comment order' button didn't work unless
+   the user had write access to the item.
+
 ** In my/groups.php, the 'Search Groups' text input wasn't pre-filled
    with the previous search.
 
