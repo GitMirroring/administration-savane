@@ -311,7 +311,7 @@ function sitemenu_thispage ($page_title, $page_toptab = 0, $page_group = 0)
     $valid_contexts[] = $row['Field'];
 
   $context = 'context_' . CONTEXT;
-  $subcontext = 'subcontext_ ' . SUBCONTEXT;
+  $subcontext = 'subcontext_' . SUBCONTEXT;
   $audience = 'audience_' . AUDIENCE;
   if (in_array ($context, $valid_contexts)
       && in_array ($subcontext, $valid_contexts))

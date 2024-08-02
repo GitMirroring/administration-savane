@@ -75,6 +75,8 @@
 ** The controls for removing members from groups and changing admin_flags
    in siteadmin/usergroup.php were broken since d3962d3feb7.
 
+** Cookbook list in sitemenu was broken since 2023-01 (676b695c7).
+
 [BACKEND]
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
