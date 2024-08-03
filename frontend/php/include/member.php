@@ -482,12 +482,11 @@ function member_check_private ($user_id, $group_id)
     return true; # Give access to admins of the group.
 
   # Determine whether the user is a member allowed to read private data.
-  $res = db_execute ("
-    SELECT user_id FROM user_group
-    WHERE user_id = ? AND group_id = ? AND admin_flags <> ?
-    AND privacy_flags = '1'", [$user_id, $group_id, MEMBER_FLAGS_PENDING]
-  );
-  return db_numrows ($res) != 0;
+  $members = member_get_group_members ($group_id);
+  if (!array_key_exists ($user_id, $members))
+    return false;
+  return $members[$user_id]['privacy_flags'] == 1
+    && $members[$user_id]['admin_flags'] != MEMBER_FLAGS_PENDING;
 }
 
 # Permit to keep the "simple" syntax of member_check but also
