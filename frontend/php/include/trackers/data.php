@@ -2262,20 +2262,24 @@ function trackers_data_insert_notification (
   return db_execute ($sql, $sql_params);
 }
 
+function trackers_data_get_watch ($user_id, $idx)
+{
+  $w = trackers_data_get_watched ($user_id)[$idx];
+  $ret = [];
+  foreach ($w as $gid => $per_group)
+    foreach (array_keys ($per_group) as $m)
+      $ret[$m] = $gid;
+  return $ret;
+}
+
 function trackers_data_get_watchers ($user_id)
 {
-  return db_execute ("
-    SELECT user_id, group_id FROM trackers_watcher WHERE watchee_id = ?",
-    [$user_id]
-  );
+  return trackers_data_get_watch ($user_id, 1);
 }
 
 function trackers_data_get_watchees ($user_id)
 {
-  return db_execute ("
-    SELECT watchee_id, group_id FROM trackers_watcher WHERE user_id = ?",
-    [$user_id]
-  );
+  return trackers_data_get_watch ($user_id, 0);
 }
 
 function trackers_data_add_watchees ($user_id, $watchee_id, $group_id)
@@ -2307,15 +2311,46 @@ function trackers_data_delete_watchees ($user_id, $watchee_id, $group_id)
   );
 }
 
+function trackers_data_fetch_watched ($user_id)
+{
+  $watchees = $watchers = [];
+  $result = db_execute ("
+     SELECT user_id, watchee_id, group_id FROM trackers_watcher
+     WHERE user_id = ? OR watchee_id = ?", [$user_id, $user_id]
+  );
+  while ($row = db_fetch_array ($result))
+    {
+      $gid = $row['group_id']; $wid = $row['watchee_id']; $ret = &$watchees;
+      if ($wid === $user_id)
+        {
+          $ret = &$watchers;
+          $wid = $row['user_id'];
+        }
+      elseif ($row['user_id'] !== $user_id)
+        continue;
+      if (array_key_exists ($gid, $ret))
+        $ret[$gid][$wid] = 1;
+      else
+        $ret[$gid] = [$wid => 1];
+    }
+  return [$watchees, $watchers];
+}
+
+function trackers_data_get_watched ($user_id)
+{
+  static $cache = [];
+  if (!array_key_exists ($user_id, $cache))
+    $cache[$user_id] = trackers_data_fetch_watched ($user_id);
+  return $cache[$user_id];
+}
+
 function trackers_data_is_watched ($user_id, $watchee_id, $group_id)
 {
-  $result = db_execute ("
-     SELECT watchee_id FROM trackers_watcher
-     WHERE user_id = ? AND watchee_id = ? AND group_id = ?",
-    [$user_id, $watchee_id, $group_id]
-  );
-  if (db_numrows ($result))
-    return db_result ($result, 0, 'watchee_id');
+  $row = trackers_data_get_watched ($user_id)[0];
+  if (!empty ($row[$group_id]))
+    $row = $row[$group_id];
+  if (!empty ($row[$watchee_id]))
+    return $watchee_id;
   return null;
 }
 

@@ -177,10 +177,10 @@ utils_get_content ("my/groups");
 # Right part.
 print html_splitpage (1);  # Watching other users.
 print $HTML->box_top (_("Watched Partners"));
-$result_w = trackers_data_get_watchees (user_getid ());
-$rows_w = db_numrows ($result_w);
+$w_arr = trackers_data_get_watchees (user_getid ());
+$w_num = count ($w_arr);
 
-if (!$result_w || $rows_w < 1)
+if (!$w_num)
   {
     print '<p>' . _("You are not watching any partners.") . "</p>\n<p>";
     print _("To watch someone, follow the &ldquo;Watch partner&rdquo; link\n"
@@ -192,18 +192,18 @@ if (!$result_w || $rows_w < 1)
 else
   {
     print '<table>';
-    for ($i = 0; $i < $rows_w; $i++)
+    $i = 0;
+    user_getname (array_keys ($w_arr)); # Pre-fetch all user names.
+    foreach ($w_arr as $uid => $gid)
       {
-        $wa_res = db_result ($result_w, $i, 'watchee_id');
-        $gr_res = db_result ($result_w, $i, 'group_id');
-        print '<tr class="' . utils_altrow ($i) . '"><td width="99%"><strong>'
-          . utils_user_link (user_getname ($wa_res), user_getrealname($wa_res))
-          . '</strong> <span class="smaller">[' . group_getname ($gr_res) . ']'
+        print '<tr class="' . utils_altrow ($i++) . '"><td width="99%"><strong>'
+          . utils_user_link (user_getname ($uid), user_getrealname ($uid))
+          . '</strong> <span class="smaller">[' . group_getname ($gid) . ']'
           . "</span>\n";
 
         print "</td>\n"
           . "<td><a href=\"$php_self?func=delwatchee&amp;group_id="
-          . "$gr_res&amp;watchee_id=$wa_res" . '" onClick="return confirm(\''
+          . "$gid&amp;watchee_id=$uid" . '" onClick="return confirm(\''
           . _("Stop watching this user") . '\')">'
           . html_image_trash (['alt' => _("Stop watching this user")])
           . "</a></td></tr>\n";
@@ -211,38 +211,28 @@ else
     print "</table>\n";
   }
 
-$result_w = trackers_data_get_watchers (user_getid ());
-$watchers = '';
-$watchers_num = 0;
-while ($row_watcher = db_fetch_array ($result_w))
-  {
-    $watchers_num += 1;
-    $watchers .= "\n"
-      . utils_user_link (
-          user_getname ($row_watcher['user_id']),
-          user_getrealname ($row_watcher['user_id'])
-        )
-      . ' <span class="smaller">[' . group_getname ($row_watcher['group_id'])
-      . ']</span>, ';
-  }
+$w_arr = trackers_data_get_watchers (user_getid ());
+$w_num = count ($w_arr);
+$watchers = [];
+user_getname (array_keys ($w_arr)); # Pre-fetch all user names.
+foreach ($w_arr as $uid => $gid)
+  $watchers[] = utils_user_link (user_getname ($uid), user_getrealname ($uid))
+    . ' <span class="smaller">[' . group_getname ($gid) . ']</span>';
 
-if ($watchers)
+if ($w_num)
   {
-    $watchers = substr ($watchers, 0, -2); # Remove extra comma at the end.
-    $watchers .= ".";
+    $watchers = join (",\n", $watchers);
 
     print '<p>';
     # TRANSLATORS: the message is selected according to number of watchers
     # listed in the first argument; the second argument is comma-separated
     # list of watchers.
-    printf (
-      ngettext (
-        'I am currently watched by %1$s user: %2$s.',
-        'I am currently watched by %1$s users: %2$s.',
-        $watchers_num
-      ),
-      $watchers_num, $watchers
+    $msg = ngettext (
+      'I am currently watched by %1$s user: %2$s.',
+      'I am currently watched by %1$s users: %2$s.',
+      $w_num
     );
+    printf ($msg, $w_num, $watchers);
     print "</p>\n";
   }
 else
