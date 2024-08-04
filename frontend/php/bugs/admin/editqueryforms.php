@@ -385,15 +385,18 @@ if ($show_report)
         $tf_report = "TFREP_$field";
         $tf_colwidth = "TFCW_$field";
 
-        $cb_search_chk = !empty ($fld[$field]['show_on_query']);
-        $cb_report_chk = !empty ($fld[$field]['show_on_result']);
+        $ff = [];
+        if (array_key_exists ($field, $fld))
+          $ff = $fld[$field];
+        $cb_search_chk = !empty ($ff['show_on_query']);
+        $cb_report_chk = !empty ($ff['show_on_result']);
         foreach (
           [
-            'search' => 'place_query', 'report' => 'result',
+            'search' => 'place_query', 'report' => 'place_result',
             'colwidth' => 'col_width',
           ] as $k => $v
         )
-        ${"tf_{$k}_val"} = (empty ($fld[$field][$v])? '': $fld[$field][$v]);
+          ${"tf_{$k}_val"} = (empty ($ff[$v])? '': $ff[$v]);
 
         print '<tr class="' . utils_altrow ($i) . '">';
         $cb_attr = ['title' => _("Use as a Search Criterion")];
