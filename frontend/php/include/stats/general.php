@@ -108,7 +108,7 @@ function stats_getusers ($period = "")
 
 function stats_getitems ($tracker, $only_open = "", $period = "")
 {
-  $params = [];
+  $params = [GROUP_NONE];
   $sql = '';
   if ($only_open)
     {
@@ -121,7 +121,7 @@ function stats_getitems ($tracker, $only_open = "", $period = "")
 
   return stats_get_generic ("
       SELECT count(*) AS count FROM $tracker
-      WHERE group_id <> '100' AND spamscore < 5 $sql",
+      WHERE group_id <> ? AND spamscore < 5 $sql",
       $params
   );
 }

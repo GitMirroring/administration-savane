@@ -43,9 +43,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/graphs.php');
-require_once ('../include/trackers/general.php');
+foreach (['init', 'graphs', 'trackers/general', 'group'] as $i)
+  require_once ("../include/$i.php");
 
 if (!$group_id)
   exit_no_group ();
@@ -247,12 +246,10 @@ if ($field != 'status_id')
             AND {$artifact}_field_value.group_id = ?",
           [trackers_data_get_field_id ($field), $group_id]
         );
-        if (db_numrows ($result) > 0)
-          $group_to_be_used = $group_id;
-        else
-          # The project does not have its own instance,
-          # use the default one (group_id  = '100').
-          $group_to_be_used = 100;
+        # When the group does not have its own instance, use the default one.
+        $gid = GROUP_NONE;
+        if (db_numrows ($result))
+          $gid = $group_id;
 
         $sql = "
           SELECT fv.value, count(*) AS Count
@@ -262,8 +259,7 @@ if ($field != 'status_id')
             AND fv.bug_field_id = ? AND fv.group_id = ?
             AND ar.group_id = ? AND ar.status_id = '1' AND spamscore < 5
           GROUP BY value_id ORDER BY order_id";
-        $params =
-          [trackers_data_get_field_id ($field), $group_to_be_used, $group_id];
+        $params = [trackers_data_get_field_id ($field), $gid, $group_id];
       }
 
     $result = db_execute ($sql, $params);
@@ -294,10 +290,9 @@ else
       WHERE fv.bug_field_id = ? AND fv.group_id = ?",
       [trackers_data_get_field_id ($field), $group_id]
     );
-    if (db_numrows ($result) > 0)
-      $group_to_be_used = $group_id;
-    else
-      $group_to_be_used = 100;
+    $gid = GROUP_NONE;
+    if (db_numrows ($result))
+      $gid = $group_id;
 
     $sql = "
       SELECT fv.value, count(*) AS Count
@@ -306,8 +301,7 @@ else
         fv.value_id = ar.$field AND spamscore < 5
         AND fv.bug_field_id = ?  AND fv.group_id = ? AND ar.group_id = ?
       GROUP BY value_id ORDER BY order_id";
-    $params =
-      [trackers_data_get_field_id ($field), $group_to_be_used, $group_id];
+    $params = [trackers_data_get_field_id ($field), $gid, $group_id];
   }
 $result = db_execute ($sql, $params);
 if (db_numrows ($result) > 0)

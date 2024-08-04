@@ -54,6 +54,8 @@ define ('TRACKER_PERM_USER', 3);
 define ('TRACKER_PERM_MEMBER', 5);
 define ('TRACKER_PERM_NOBODY', 6);
 
+define ('GROUP_NONE', 100);
+
 $PROJECT_OBJ = [];
 
 function group_get_object ($group_id)

@@ -42,12 +42,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/sane.php');
-require_once ('../include/stats/general.php');
-require_once ('../include/calendar.php');
-require_once ('../include/graphs.php');
-require_once ('../include/form.php');
+foreach (
+  ['init', 'sane', 'stats/general', 'calendar', 'graphs', 'form', 'group']
+  as $i
+)
+  require_once ("../include/$i.php");
 
 $digit_names = [];
 foreach (['day', 'month', 'year'] as $term)

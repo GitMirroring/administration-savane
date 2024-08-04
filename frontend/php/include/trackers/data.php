@@ -48,9 +48,8 @@
 namespace {
 
 $dir_name = dirname (__FILE__);
-require_once ("$dir_name/../trackers/transition.php");
-require_once ("$dir_name/../trackers/cookbook.php");
-require_once ("$dir_name/../utils.php");
+foreach (['trackers/transition', 'trackers/cookbook', 'utils', 'group'] as $i)
+  require_once ("$dir_name/../$i.php");
 
 function trackers_data_fetch_all_fields ($group_ids, $group_cond)
 {
@@ -84,7 +83,8 @@ function trackers_data_assign_fields ($all_fields, $group_ids)
   global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME;
   # Put all used fields in a global array for faster access.
   # Index both by field_name and bug_field_id.
-  # The defaults (group_id = 100) are overridden with group-specific settings.
+  # The defaults (group_id = GROUP_NONE) are overridden
+  # with group-specific settings.
   foreach ($group_ids as $p)
     foreach ($all_fields as $field_array)
       if ($field_array['group_id'] == $p)
@@ -107,7 +107,7 @@ function trackers_data_get_all_fields ($group_id, $reload = false)
     return;
 
   $BF_USAGE_BY_ID = $BF_USAGE_BY_NAME = [];
-  $group_ids = [100, $group_id];
+  $group_ids = [GROUP_NONE, $group_id];
   $cond = 'group_id ' . utils_in_placeholders ($group_ids);
   $all_fields = trackers_data_fetch_all_fields ($group_ids, $cond);
   trackers_data_assign_fields ($all_fields, $group_ids);
@@ -821,7 +821,7 @@ function trackers_data_is_value_set_empty (
 }
 
 # Initialize the set of values for a given field for a given group by using
-# the system default (default values belong to group_id 'None'  = 100).
+# the system default (default values belong to group_id  = GROUP_NONE).
 function trackers_data_copy_default_values (
   $field, $group_id, $by_field_id = false
 )
@@ -829,9 +829,9 @@ function trackers_data_copy_default_values (
   if (!$by_field_id)
     $field_id = trackers_data_get_field_id ($field);
 
-  # If group_id is 100 (None), it is a null operation,
-  # because default values belong to group_id 100 by definition.
-  if ($group_id == 100)
+  # If group_id is 100 (GROUP_NONE), it is a null operation,
+  # because default values belong to GROUP_NONE by definition.
+  if ($group_id == GROUP_NONE)
     return;
   # First delete the exisiting value if any.
   $res = db_execute ("
@@ -846,9 +846,8 @@ function trackers_data_copy_default_values (
   # in ANSI SQL to SELECT. So do it by hand !
   $res = db_execute ("
     SELECT value_id, value, description, order_id, status
-    FROM " . ARTIFACT . "_field_value
-    WHERE bug_field_id = ? AND group_id = 100",
-    [$field_id]
+    FROM " . ARTIFACT . "_field_value WHERE bug_field_id = ? AND group_id = ?",
+    [$field_id, GROUP_NONE]
   );
   $rows = db_numrows ($res);
 
@@ -904,14 +903,13 @@ function trackers_data_get_field_value ($item_fv_id)
   );
 }
 
-# See if this field value belongs to group None (100). In this case
+# See if this field value belongs to GROUP_NONE. In this case
 # it is a so called default value.
 function trackers_data_is_default_value ($item_fv_id)
 {
   $res = db_execute ("
     SELECT bug_field_id,value_id FROM " . ARTIFACT . "_field_value
-    WHERE bug_fv_id = ? AND group_id = 100",
-    [$item_fv_id]
+    WHERE bug_fv_id = ? AND group_id = ?", [$item_fv_id, GROUP_NONE]
   );
   return ((db_numrows ($res) >= 1) ? $res : false);
 }
@@ -931,9 +929,9 @@ function trackers_data_create_value (
   if (!$by_field_id)
     $field_id = trackers_data_get_field_id ($field);
 
-  # If group_id = 100 (None), then do nothing,
-  # because no real group should have the group number '100'.
-  if ($group_id == 100)
+  # If group_id = GROUP_NONE, then do nothing,
+  # because no real group should have that number.
+  if ($group_id == GROUP_NONE)
     return;
 
   # If the current value set for this group is empty
@@ -979,7 +977,7 @@ function trackers_data_update_value (
       return;
     }
 
-  # Updating a bug field value that belong to group 100 (None) is
+  # Updating a bug field value that belong to GROUP_NONE is
   # forbidden. These are default values that cannot be changed, so
   # make sure to copy the default values first in the group context first.
 
@@ -995,8 +993,8 @@ function trackers_data_update_value (
     }
   else
     {
-      $where_cond = "bug_fv_id = ? AND group_id <> 100";
-      $where_cond_params = [$item_fv_id];
+      $where_cond = "bug_fv_id = ? AND group_id <> ?";
+      $where_cond_params = [$item_fv_id, GROUP_NONE];
     }
 
   $result = db_autoexecute (
@@ -1017,11 +1015,11 @@ function trackers_data_update_value (
 }
 
 # Reset a field settings to its defaults usage (values are untouched). The defaults
-# always belong to group_id 100 (None) so make sure we don't delete entries for
-# group 100.
+# always belong to group_id GROUP_NONE so make sure we don't delete entries for
+# GROUP_NONE.
 function trackers_data_reset_usage ($field_name, $group_id)
 {
-  if ($group_id == 100)
+  if ($group_id == GROUP_NONE)
     return;
 
   $field_id = trackers_data_get_field_id ($field_name);
@@ -2162,8 +2160,8 @@ function trackers_data_get_value (
   if (db_numrows ($result) > 0)
     return db_result ($result, 0, 'value');
 
-  # ... if it fails, look for system wide default values (group_id=100)...
-  $args[0] = 100;
+  # If it fails, look for system-wide default values (group_id = GROUP_NONE).
+  $args[0] = GROUP_NONE;
   $result = db_execute ($sql, $args);
   if (db_numrows ($result) > 0)
     return db_result ($result, 0, 'value');
