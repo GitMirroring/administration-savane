@@ -42,6 +42,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once ('../include/init.php');
+require_once ('../include/group.php');
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
@@ -86,13 +87,23 @@ if (!$func || $func == "configure")
       . "</p>\n";
 
     print $HTML->box_nextitem ($odd);
+    print '<p>' . no_i18n ("Configure query forms: ");
+    $path = '/admin/editqueryforms.php?group_id=' . GROUP_NONE;
+    $links = [];
+    foreach (utils_get_tracker_list () as $tracker)
+      $links[] = "<a href='$sys_home$tracker$path'>$tracker</a>";
+    print join ("\n", $links) . ".</p>\n";
+    print '<p class="smaller">'
+      . no_i18n ("Add, edit and remove query forms common for all groups.")
+      . "</p>\n";
+    print $HTML->box_nextitem ($even);
     print '<p><a href="../people/admin/">' . no_i18n ("Configure people area")
       . "</a></p>\n";
     print '<p class="smaller">'
       . no_i18n ("Here you can define skills for users to select in their "
           . "resume and type of jobs for contribution requests.")
       . "</p>\n";
-    print $HTML->box_nextitem ($even);
+    print $HTML->box_nextitem ($odd);
     print '<a href="mailman.php">' . no_i18n ("Assign mailing lists") . '</a>';
     print '<p class="smaller">'
       . no_i18n ("Move mailing lists from one group to another.");

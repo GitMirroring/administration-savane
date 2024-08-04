@@ -259,11 +259,13 @@ function pagemenu_my ()
 
 function pagemenu_tracker_submenu ($project, $tracker, $title, $help)
 {
-  if (!$project->Uses ($tracker))
+  global $group_id;
+
+  if (!$project->Uses ($tracker) && $group_id != GROUP_NONE)
     return;
 
   print pagemenu_submenu_title ($title, $project->getArtifactUrl ($tracker),
-    CONTEXT == $tracker, 1, $help);
+    CONTEXT == $tracker, $group_id != GROUP_NONE, $help);
 
   # Only add submenu list when the URL wasn't customized.
   if ($project->url_is_default ($tracker))
@@ -397,23 +399,13 @@ function pagemenu_vcs_entry ($group, &$count, $vcs, $name)
   return $ret;
 }
 
-# Menu specific to Group pages.
-function pagemenu_group ()
+function pagemenu_main ($gr_n, $uname, $url, $is_admin)
 {
-  global $group_id, $sys_group_id, $project, $sys_home, $sys_name;
-  $url = $sys_home . 'project';
-  $is_admin = member_check (0, $group_id, 'A');
-
-  $project = project_get_object ($group_id);
-  if ($project->isError ())
-    return;
-  $unix_name = $project->getUnixName ();
-  $uname = "{$url}s/$unix_name/";
-  $gr_n = "?group=$unix_name";
+  global $sys_group_id, $sys_home, $sys_name, $project;
   print pagemenu_submenu_title (_("Main"), $uname,
     CONTEXT == 'project', 1,
     # TRANSLATORS: the argument is site name like Savannah.
-    sprintf (_("Project Main Page at %s"), $sys_name)
+    sprintf (_("Group main page at %s"), $sys_name)
   );
   $ret = pagemenu_submenu_entry (_("Main"), $uname)
     . pagemenu_submenu_entry (_("View members"), "$url/memberlist.php$gr_n")
@@ -423,128 +415,158 @@ function pagemenu_group ()
     $ret .= pagemenu_group_admin ($url, $gr_n);
   print pagemenu_submenu_body ($ret);
   print pagemenu_submenu_end ();
+}
 
-  if (pagemenu_test_url ($project, "homepage"))
-    {
-      print pagemenu_submenu_title (_("Homepage"),
-        $project->getUrl ("homepage"),
-        0, 1, _("Browse project homepage (outside of Savane)")
-      );
-      print pagemenu_submenu_end ();
-    }
+function pagemenu_homepage ($project)
+{
+  if (!pagemenu_test_url ($project, "homepage"))
+    return;
+  print pagemenu_submenu_title (_("Homepage"),
+    $project->getUrl ("homepage"),
+    0, 1, _("Browse group home page (outside of Savane)")
+  );
+  print pagemenu_submenu_end ();
+}
 
-  if ($project->Uses ("download"))
-    {
-      print pagemenu_submenu_title (_("Download"),
-        $project->getArtifactUrl ("files"), CONTEXT == 'download', 1,
-        _("Visit download area: files released")
-      );
-      print pagemenu_submenu_end ();
-    }
+function pagemenu_download ($project)
+{
+  if (!$project->Uses ("download"))
+    return;
+  print pagemenu_submenu_title (_("Download"),
+    $project->getArtifactUrl ("files"), CONTEXT == 'download', 1,
+    _("Visit download area: files released")
+  );
+  print pagemenu_submenu_end ();
+}
 
+function pagemenu_cookbook_extradoc ($project)
+{
+  global $group_id;
+  if ($group_id != GROUP_NONE && !$project->Uses ('extralink_documentation'))
+    return;
   # The cookbook is the default and cannot be deactivated as it contains
-  # site docs useful for the project depending on the used features.
+  # site docs useful for the group depending on the used features.
   #
   # However, if external doc is set, the link will have no effect
-  # (See pagemenu_group_trackers() for more details about the document menu
-  # behavior).
+  # (See pagemenu_group_trackers_links() for more details
+  # about the document menu behavior.)
   $u = $project->getArtifactUrl ("cookbook");
+  $title = _('Cookbook');
   if ($project->Uses ("extralink_documentation"))
-    $u = '#';
-
-  if ($project->getUrl ("extralink_documentation"))
     {
-      print pagemenu_submenu_title (_("Docs"), $u, CONTEXT == 'cookbook', 1,
-        _("Docs: Cookbook, etc")
-      );
-      print pagemenu_submenu_body (pagemenu_group_trackers ("cookbook"));
-      print pagemenu_submenu_end ();
+      $u = '#';
+      $title = _('Docs');
     }
+  print pagemenu_submenu_title ($title, $u, CONTEXT == 'cookbook',
+    $group_id != GROUP_NONE, _("Docs: Cookbook, etc")
+  );
+  if ($group_id == GROUP_NONE)
+    print pagemenu_submenu_body (pagemenu_group_trackers ("cookbook"));
+  print pagemenu_submenu_end ();
+}
 
-
-  pagemenu_tracker_submenu ($project, "support", _("Support"),
-    _("Tech Support Tracker: post, search and manage support requests"));
-
-  # Fora are normally deprecated on savane.
-  pagemenu_tracker_submenu ($project, "forum", _("Forum"), "");
-
-  if ($project->Uses ('mail'))
-    {
-      print pagemenu_submenu_title ( _("Mailing lists"),
-        $project->getArtifactUrl ("mail"), CONTEXT == 'mail', 1,
-        _("List existing mailing lists")
+function pagemenu_mail_admin ($gr_n)
+{
+  global $sys_home;
+  $u = $sys_home . "mail";
+  $ret =
+    pagemenu_submenu_entry (
+      _("Browse"), "$u/$gr_n", _("List existing mailing lists")
+    )
+    . pagemenu_submenu_entry_separator ()
+    . pagemenu_submenu_entry (
+        '<strong>' . _("Configure:") . '</strong>', "$u/admin/$gr_n"
       );
-      if ($is_admin)
-        {
-          $u = $sys_home . "mail";
-          $ret =
-            pagemenu_submenu_entry (
-              _("Browse"), "$u/$gr_n", _("List existing mailing lists")
-            )
-            . pagemenu_submenu_entry_separator ()
-            . pagemenu_submenu_entry (
-                '<strong>' . _("Configure:") . '</strong>',
-                "$u/admin/$gr_n"
-              );
-          print pagemenu_submenu_body ($ret);
-        }
-      print pagemenu_submenu_end ();
-    }
+  print pagemenu_submenu_body ($ret);
+}
 
-  $count = 0;
+function pagemenu_mail ($project, $is_admin, $gr_n)
+{
+  if (!$project->Uses ('mail'))
+    return;
+  print pagemenu_submenu_title ( _("Mailing lists"),
+    $project->getArtifactUrl ("mail"), CONTEXT == 'mail', 1,
+    _("List existing mailing lists")
+  );
+  if ($is_admin)
+    pagemenu_mail_admin ($gr_n);
+  print pagemenu_submenu_end ();
+}
+
+function pagemenu_vcs_list ()
+{
   # TRANSLATORS: this string is used as argument in messages 'Use %s'
   # and '%s Repository'.
-  $vcses = ['cvs' => _('CVS'), 'svn' => _('Subversion'),
-   'arch' => _('GNU Arch'), 'git' => _('Git'), 'hg' => _('Mercurial'),
-   'bzr' => _('Bazaar')];
+  return ['cvs' => _('CVS'), 'svn' => _('Subversion'),
+  'arch' => _('GNU Arch'), 'git' => _('Git'), 'hg' => _('Mercurial'),
+  'bzr' => _('Bazaar')];
+}
+
+function pagemenu_count_vcses ($project)
+{
+  $count = 0;
   $last_vcs = '';
-  foreach ($vcses as $vcs => $t)
+  $have_vcs = [];
+  foreach (pagemenu_vcs_list () as $vcs => $t)
     {
       $have_vcs[$vcs] = false;
-      if ($project->Uses ($vcs) || $project->UsesForHomepage ($vcs))
-        {
-          $have_vcs[$vcs] = true;
-          $count++;
-          $last_vcs = $vcs;
-        }
+      if (!($project->Uses ($vcs) || $project->UsesForHomepage ($vcs)))
+        continue;
+      $have_vcs[$vcs] = true;
+      $count++;
+      $last_vcs = $vcs;
     }
-  if ($count)
-    {
-      if ($count == 1)
-        # Only one SCM - direct link.
-        print pagemenu_submenu_title (_("Source code"),
-          $project->getArtifactUrl ($last_vcs), CONTEXT == $last_vcs, 1,
-          _("Source code management")
-        );
-      else
-        print pagemenu_submenu_title (_("Source code"), "$uname#devtools",
-          isset ($vcses[CONTEXT]), 1, _("Source code management")
-        );
+  return [$count, $last_vcs, $have_vcs];
+}
 
-      $ret = [];
-      $count = 0;
+function pagemenu_vcs_title ($project, $count, $last_vcs, $uname)
+{
+  if ($count == 1) # Only one VCS - direct link.
+    return pagemenu_submenu_title (_("Source code"),
+      $project->getArtifactUrl ($last_vcs), CONTEXT == $last_vcs, 1,
+      _("Source code management")
+    );
+  return pagemenu_submenu_title (_("Source code"), "$uname#devtools",
+    isset (pagemenu_vcs_list ()[CONTEXT]), 1, _("Source code management")
+  );
+}
 
-      foreach ($vcses as $v => $t)
-        if ($have_vcs[$v])
-          $ret[] = pagemenu_vcs_entry ($project, $count, $v, $t);
+function pagemenu_vcs ($project, $uname)
+{
+  list ($count, $last_vcs, $have_vcs) = pagemenu_count_vcses ($project);
+  if (!$count)
+    return;
+  print pagemenu_vcs_title ($project, $count, $last_vcs, $uname);
 
-      # Add a submenu only if there is more than one item.
-      if ($ret && $count > 1)
-        print pagemenu_submenu_body (
-          join (pagemenu_submenu_entry_separator (), $ret)
-        );
-      print pagemenu_submenu_end ();
-    } # if ($count)
+  $ret = [];
+  $count = 0;
 
-  pagemenu_tracker_submenu ($project, "bugs", _("Bugs"),
-    _("Bug Tracker: report, search and track bugs"));
+  foreach (pagemenu_vcs_list () as $v => $t)
+    if ($have_vcs[$v])
+      $ret[] = pagemenu_vcs_entry ($project, $count, $v, $t);
 
-  pagemenu_tracker_submenu ($project, "task", _("Tasks"),
-    _("Task Manager: post, search and manage tasks"));
+  # Add a submenu only if there is more than one item.
+  if ($ret && $count > 1)
+    print pagemenu_submenu_body (
+      join (pagemenu_submenu_entry_separator (), $ret)
+    );
+  print pagemenu_submenu_end ();
+}
 
-  pagemenu_tracker_submenu ($project, "patch", _("Patches"),
-    _("Patch Manager: post, search and manage patches"));
+function pagemenu_news_admin ($gr_n, $is_admin, $news)
+{
+  if (!$is_admin)
+    return '';
+  return pagemenu_submenu_entry_separator ()
+    . pagemenu_submenu_entry (
+        '<strong>' . _("Configure") . '</strong>', "$news/admin/$gr_n",
+        1, _("News Manager: edit notifications")
+      );
+}
 
+function pagemenu_news ($project, $gr_n, $is_admin)
+{
+  global $group_id, $sys_home;
   if (!$project->Uses ("news"))
     return;
   $news = $sys_home . 'news';
@@ -559,16 +581,166 @@ function pagemenu_group ()
   $ret .= pagemenu_submenu_entry (_("Manage"), "$news/approve.php$gr_n",
     member_check (0, $group_id, "N3")
   );
-  if ($is_admin)
-    {
-      $ret .= pagemenu_submenu_entry_separator ()
-        . pagemenu_submenu_entry (
-            '<strong>' . _("Configure") . '</strong>', "$news/admin/$gr_n",
-            1, _("News Manager: edit notifications")
-          );
-    }
+  $ret .= pagemenu_news_admin ($gr_n, $is_admin, $news);
   print pagemenu_submenu_body ($ret);
   print pagemenu_submenu_end ();
+}
+
+function pagemenu_main_home_dl ($gr_n, $url, $uname, $is_admin)
+{
+  global $group_id, $project;
+  if ($group_id == GROUP_NONE)
+    return;
+  pagemenu_main ($gr_n, $uname, $url, $is_admin);
+  pagemenu_homepage ($project);
+  pagemenu_download ($project);
+}
+
+function pagemenu_fora_mail_vcs ($project, $is_admin, $gr_n, $uname)
+{
+  global $group_id;
+  if ($group_id == GROUP_NONE)
+    return;
+  # Fora are deprecated.
+  pagemenu_tracker_submenu ($project, "forum", _("Forum"), "");
+  pagemenu_mail ($project, $is_admin, $gr_n);
+  pagemenu_vcs ($project, $uname);
+}
+
+# Menu specific to Group pages.
+function pagemenu_group ()
+{
+  global $group_id, $sys_group_id, $project, $sys_home;
+  $url = $sys_home . 'project';
+  $project = project_get_object ($group_id);
+  if ($project->isError ())
+    return;
+  $is_admin = member_check (0, $group_id, 'A');
+  $unix_name = $project->getUnixName ();
+  $uname = "{$url}s/$unix_name/";
+  $gr_n = "?group=$unix_name";
+  pagemenu_main_home_dl ($gr_n, $url, $uname, $is_admin);
+  pagemenu_cookbook_extradoc ($project);
+  pagemenu_tracker_submenu ($project, "support", _("Support"),
+    _("Tech Support Tracker: post, search and manage support requests"));
+  pagemenu_fora_mail_vcs ($project, $is_admin, $gr_n, $uname);
+  pagemenu_tracker_submenu ($project, "bugs", _("Bugs"),
+    _("Bug Tracker: report, search and track bugs"));
+  pagemenu_tracker_submenu ($project, "task", _("Tasks"),
+    _("Task Manager: post, search and manage tasks"));
+  pagemenu_tracker_submenu ($project, "patch", _("Patches"),
+    _("Patch Manager: post, search and manage patches"));
+  if ($group_id != GROUP_NONE)
+    pagemenu_news ($project, $gr_n, $is_admin);
+}
+
+function pagemenu_group_trackers_entry_list ($cookbook, $write_access, $export)
+{
+  $browse = [_("Browse"), '', '', 1];
+  $entries = [];
+  if ($cookbook)
+    $entries[] = $browse;
+  $entries[] = [_("Submit new"), 'additem', '', $write_access];
+  if (!$cookbook)
+    {
+      $entries[] = $browse;
+      $entries[] = [_("Reset to open"), 'browse&amp;set=open', '', 1];
+    }
+  if ($cookbook)
+    $entries[] = [_("Edit"), 'browse', 'edit.php', $write_access];
+  $entries[] = [_("Digest"), 'digest', '', 1];
+  if (!$cookbook)
+    $entries[] = [_("Dependencies"), '', 'dependencies.php', 1];
+  $entries[] = [_("Export"), '', 'export.php', $export];
+  if (!$cookbook)
+    $entries[] = [_("Get statistics"), '', 'reporting.php', 1];
+  $entries[] = [_("Search"), 'search', '', 1];
+  return $entries;
+}
+
+function pagemenu_group_trackers_entries ($tracker, $write_access, $export)
+{
+  global $project;
+  $ret = '';
+  $entries = pagemenu_group_trackers_entry_list (
+    $tracker == 'cookbook', $write_access, $export
+  );
+  foreach ($entries as $e)
+    $ret .= pagemenu_submenu_entry (
+      $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
+    );
+  return $ret;
+}
+
+function pagemenu_group_trackers_links ($tracker, $write_access, $export)
+{
+  global $project, $group_id;
+  $ret = '';
+  if ($group_id == GROUP_NONE)
+    return $ret;
+  if ($tracker == "cookbook")
+    {
+      # If there are external docs (extra link), consider them prior
+      # to the cookbook: we can assume that the users made the choice to
+      # use another one for good reasons.
+      if ($project->Uses ("extralink_documentation"))
+        $ret .=
+          pagemenu_submenu_entry (_("Browse (External to Savane)"),
+            $project->getUrl ("extralink_documentation"), 1,
+            _("Browse Documentation that is located outside of Savane")
+          )
+          . pagemenu_submenu_entry_separator ();
+    }
+  if (in_array ($tracker, ["bugs", "support", "patch", "task", 'cookbook']))
+    $ret .= pagemenu_group_trackers_entries ($tracker, $write_access, $export);
+  return $ret;
+}
+
+function pagemenu_group_trackers_admin_entries ()
+{
+  $ret = [];
+  $ret[] = ['<strong>' . _("Configure:") . '</strong>', '', 1, '', 0];
+  $ret[] = [
+    _("Select fields"), "field_usage.php", 1,
+    _("Define what fields you want to use in this tracker"), 0
+  ];
+  $ret[] = [
+    _("Edit field values"), "field_values.php", 1,
+    _("Define the set of possible values for the fields you have "
+      . "decided to use in\nthis tracker"), 0
+  ];
+  $ret[] = [
+    _("Edit query forms"), "editqueryforms.php", 1,
+    _("Define query forms: what search criteria to use "
+      . "and what item\nfields to show in the query form table"), 1
+  ];
+  $ret[] = [
+    _("Set&nbsp;permissions"), "userperms.php", 1,
+    _("Define posting restrictions"), 0
+  ];
+  $ret[] = [
+    _("Set&nbsp;notifications"), "notification_settings.php", 1, '', 0
+  ];
+  $ret[] = [
+    _("Copy&nbsp;configuration"), "conf-copy.php", 1,
+        _("Copy the configuration of another tracker"), 0
+  ];
+  $ret[] = [
+    _("Other settings"), "other_settings.php", 1,
+    _("Modify the preamble shown on the item submission form"), 0
+  ];
+  return $ret;
+}
+
+function pagemenu_group_trackers_admin_links ($root, $gr)
+{
+  global $group_id;
+  $ret = pagemenu_submenu_entry_separator ();
+  $root .= '/admin/';
+  foreach (pagemenu_group_trackers_admin_entries () as $e)
+    if ($group_id != GROUP_NONE || $e[4])
+      $ret .= pagemenu_submenu_entry ($e[0], "$root{$e[1]}$gr", $e[2], $e[3]);
+  return $ret;
 }
 
 # Menu specific to tracker pages.
@@ -577,104 +749,15 @@ function pagemenu_group_trackers ($tracker)
   global $project, $group_id, $sys_group_id, $sys_home;
 
   $is_admin = member_check (0, $group_id, 'A');
-  $ret = '';
   $root = "$sys_home$tracker";
   $gr_n = "?group=" . $project->getUnixName ();
   $write_access = group_restrictions_check ($group_id, $tracker);
   $export_check = member_check (0, $group_id);
-  if (in_array ($tracker, ["bugs", "support", "patch", "task"]))
-    {
-      $entries = [
-        [_("Submit new"), 'additem', '', $write_access],
-        [_("Browse"), '', '', 1],
-        [_("Reset to open"), 'browse&amp;set=open', '', 1],
-        [_("Digest"), 'digest', '', 1],
-        [_("Dependencies"), '', 'dependencies.php', 1],
-        [_("Export"), '', 'export.php', $export_check],
-        [_("Get statistics"), '', 'reporting.php', 1],
-        # At the end of the submenu, for cohesion with the "search"
-        # in the menu that is also at the end.
-        [_("Search"), 'search', '', 1]
-      ];
-      foreach ($entries as $e)
-        $ret .= pagemenu_submenu_entry (
-          $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
-        );
-    }
-  elseif ($tracker == "cookbook")
-    {
-      # Quite similar to other trackers, the cookbook have some specific
-      # links.
-
-      # If there are external docs (extra link), consider them prior
-      # to the cookbook: if the users use two doc tool, there is no
-      # reason to consider the external less important than the Savane,
-      # at the contrary, we can assume that they made the choice to
-      # use another one for good reasons and we do not have to enforce
-      # anything at this point.
-      if ($project->Uses ("extralink_documentation"))
-        $ret .=
-          pagemenu_submenu_entry (_("Browse (External to Savane)"),
-            $project->getUrl ("extralink_documentation"), 1,
-            _("Browse Documentation that is located outside of Savane")
-          )
-          . pagemenu_submenu_entry_separator ();
-      $entries = [
-        [_("Browse"), '', '', 1],
-        [_("Submit"), 'additem', 'edit.php', $write_access],
-        [_("Edit"), 'browse', 'edit.php', $write_access],
-        [_("Digest"), 'digest', 'edit.php', 1],
-        [_("Export"), '', 'export.php', $export_check],
-        [_("Search"), 'search', '', 1]
-      ];
-      foreach ($entries as $e)
-        $ret .= pagemenu_submenu_entry (
-          $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
-        );
-      # If it is the site admin project, link to savane-doc.
-      if ($group_id == $sys_group_id)
-        $ret .= pagemenu_submenu_entry_separator ()
-          . pagemenu_submenu_entry (
-              _("Savane In Depth Guide"), "{$sys_home}maintenance/back-page/"
-            );
-    } # ($tracker == "cookbook")
-
+  $ret = pagemenu_group_trackers_links ($tracker, $write_access, $export_check);
   if (!$is_admin)
     return $ret;
 
-  $ret .= pagemenu_submenu_entry_separator ()
-    . pagemenu_submenu_entry ('<strong>' . _("Configure:") . '</strong>',
-        "$root/admin/$gr_n"
-      )
-    . pagemenu_submenu_entry (_("Select fields"),
-       "$root/admin/field_usage.php$gr_n", 1,
-       _("Define what fields you want to use in this tracker")
-      )
-    . pagemenu_submenu_entry (_("Edit field values"),
-        "$root/admin/field_values.php$gr_n", 1,
-        _("Define the set of possible values for the fields you have "
-          . "decided to use in\nthis tracker")
-      )
-    . pagemenu_submenu_entry (_("Edit query forms"),
-        "$root/admin/editqueryforms.php$gr_n", 1,
-        _("Define project-wide query form: what search criteria to use "
-          . "and what item\nfields to show in the query form table")
-      )
-    . pagemenu_submenu_entry (_("Set&nbsp;permissions"),
-       "$root/admin/userperms.php$gr_n", 1,
-       _("Define posting restrictions")
-      )
-    . pagemenu_submenu_entry (_("Set&nbsp;notifications"),
-        "$root/admin/notification_settings.php$gr_n"
-      )
-    . pagemenu_submenu_entry (_("Copy&nbsp;configuration"),
-       "$root/admin/conf-copy.php$gr_n", 1,
-        _("Copy the configuration of another tracker")
-      )
-    . pagemenu_submenu_entry (_("Other settings"),
-        "$root/admin/other_settings.php$gr_n", 1,
-        _("Modify the preamble shown on the item submission form")
-      );
+  $ret .= pagemenu_group_trackers_admin_links ($root, $gr_n);
   return $ret;
 }
 
@@ -707,7 +790,7 @@ function pagemenu_siteadmin ()
       $root = $sys_home . "project/admin";
       $gr_n = "?group=$group_name";
       $titles = [
-        ["#" => "<strong>Currently Shown Project:</strong>"],
+        ["#" => "<strong>Currently shown group:</strong>"],
         ["$root/$gr_n" => "Administer"],
         ["$root/editgroupinfo.php$gr_n" => "Edit Public Info"],
         ["$root/editgroupfeatures.php$gr_n" => "Select Features"],

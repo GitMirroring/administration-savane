@@ -51,6 +51,8 @@
 
 * The number of SQL queries is reduced in several cases.
 
+* A means to edit system-wide query forms is added.
+
 * Bug fixes:
 
 ** microtime-based timestamps were wrong.

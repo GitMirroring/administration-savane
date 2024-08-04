@@ -44,11 +44,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $dir_name = dirname (__FILE__);
-require_once ("$dir_name/../calendar.php");
-require_once ("$dir_name/../sendmail.php");
-require_once ("$dir_name/data.php");
-require_once ("$dir_name/format.php");
-require_once ("$dir_name/../utils.php");
+foreach (
+  ['../calendar', '../sendmail', 'data', 'format', '../utils', '../group'] as $i
+)
+  require_once ("$dir_name/$i.php");
 
 # Generate URL arguments from a variable wether scalar or array.
 function trackers_convert_to_url_arg ($varname, $var)
@@ -65,11 +64,13 @@ function trackers_convert_to_url_arg ($varname, $var)
 
 function trackers_check_artifact ($group_id)
 {
+  if ($group_id == GROUP_NONE && user_is_super_user ())
+    return;
   $project = project_get_object ($group_id);
 
   foreach (['bugs', 'support', 'task', 'patch'] as $art)
     if (ARTIFACT == $art && !$project->Uses ($art))
-      exit_error (_("This project has turned off this tracker."));
+      exit_error (_("This group has turned off this tracker."));
 }
 
 function trackers_header ($params, $prefix = '')
@@ -397,7 +398,7 @@ function trackers_field_textarea (
     . "\" rows=\"$rows\" cols=\"$cols\" wrap='soft'>$value</textarea>";
 }
 
-# Return a select box populated with field values for this project.
+# Return a select box populated with field values for this group.
 # If box_name is given, then impose this name in the select box
 # of the  HTML form otherwise use the field_name.
 function trackers_field_box (
@@ -491,7 +492,7 @@ function trackers_field_box (
   );
 }
 
-# Return a multiple select box populated with field values for this project.
+# Return a multiple select box populated with field values for this group.
 # If box_name is given then impose this name in the select box
 # of the  HTML form otherwise use the field_name.
 function trackers_multiple_field_box (
@@ -513,8 +514,8 @@ function trackers_multiple_field_box (
   );
 }
 
-# Returns the list of field names in the HTML Form corresponding to a
-# field used by this project
+# Return the list of field names in the HTML Form corresponding
+# to a field used by this group.
 function trackers_extract_field_list ($post_method = true)
 {
   global $BF_USAGE_BY_NAME;

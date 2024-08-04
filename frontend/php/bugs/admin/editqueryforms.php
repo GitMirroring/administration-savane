@@ -92,6 +92,10 @@ if (!user_ismember ($group_id, MEMBER_FLAGS_ADMIN))
 # Initialize global bug structures.
 trackers_init ($group_id);
 
+$group_scope = 'P';
+if ($group_id == GROUP_NONE)
+  $group_scope = 'S';
+
 function rep_label ($suff, $label)
 {
   return "<span class='preinput'>" . html_label ("rep_$suff", $label)
@@ -100,14 +104,25 @@ function rep_label ($suff, $label)
 
 function rep_name_input ($val)
 {
-  return rep_label ('name', _("Name:"))
-    . form_input ('text', 'rep_name', $val, "size='20' maxlength='20'");
+  return '<p>' . rep_label ('name', _("Name:"))
+    . form_input ('text', 'rep_name', $val, "size='20' maxlength='20'")
+    . "</p>\n";
 }
 
 function rep_desc_input ($val)
 {
-  return rep_label ('desc', _("Description:"))
-    . form_input ('text', 'rep_desc', $val, "size='50' maxlength='120'");
+  return '<p>' . rep_label ('desc', _("Description:"))
+    . form_input ('text', 'rep_desc', $val, "size='50' maxlength='120'")
+    . "</p>\n";
+}
+
+function print_rep_header ($name, $desc)
+{
+  global $group_scope;
+  print rep_name_input ($name);
+  print "<p><span class='preinput'>" . _("Scope:") . "</span><br />\n"
+    . scope_label ($group_scope) . "</p>\n";
+  print rep_desc_input ($name);
 }
 
 function print_field_use_as_output ($field, $td)
@@ -158,6 +173,16 @@ function print_field ($i, $field)
     . "</td>\n</tr>\n";
 }
 
+function scope_label ($s)
+{
+  $scopes = [
+    'P' => _('Group'), 'S' => _('System'), 'I' => 'Personal', 'i' => 'Personal'
+  ];
+  if (array_key_exists ($s, $scopes))
+    return $scopes[$s];
+  return "[$s]";
+}
+
 $def_query = group_get_preference ($group_id, ARTIFACT . "_default_query");
 if ($def_query === false)
   $def_query = 100;
@@ -183,7 +208,8 @@ if ($post_changes)
         $res = db_autoexecute (
           ARTIFACT . '_report',
           [
-            'name' => $rep_name, 'description' => $rep_desc, 'scope' => 'P'
+            'name' => $rep_name, 'description' => $rep_desc,
+            'scope' => $group_scope
           ],
           DB_AUTOQUERY_UPDATE, "report_id = ?", [$report_id]
         );
@@ -195,7 +221,8 @@ if ($post_changes)
           ARTIFACT . '_report',
           [
             'group_id' => $group_id, 'user_id' => user_getid (),
-            'name' => $rep_name, 'description' => $rep_desc, 'scope' => 'P',
+            'name' => $rep_name, 'description' => $rep_desc,
+            'scope' => $group_scope
           ],
           DB_AUTOQUERY_INSERT
         );
@@ -294,10 +321,7 @@ if ($new_report)
     print form_hidden (
       ["create_report" => "y", "group_id" => $group_id, "post_changes" => "y"]
     );
-    print '<p>' . rep_name_input ('') . "\n</p>\n";
-    print "<p><span class='preinput'>" . _("Scope:") . "</span><br />\n"
-      . _("Group");
-    print "</p>\n<p>" . rep_desc_input ('') . "\n</p>\n";
+    print_rep_header ('', '');
     print html_build_list_table_top ($title_arr);
     $i = 0;
     while ($field = trackers_list_all_fields ())
@@ -381,9 +405,8 @@ if ($show_report)
           "update_report" => "y", "group_id" => $group_id,
           "report_id" => $report_id, "post_changes" => "y"
         ]);
-    print '<p>' . rep_name_input (db_result ($res, 0, 'name')) . "\n</p>\n";
-    print "<p>" . rep_desc_input (db_result ($res, 0, 'description'))
-      . "\n</p>\n";
+    $row = db_fetch_array ($res);
+    print_rep_header ($row['name'], $row['description']);
 
     print html_build_list_table_top ($title_arr);
     $i = 0;
@@ -448,17 +471,20 @@ $form_query_type = html_build_select_box (
   _('query form')
 );
 
-printf (
-  _("Browse with the %s query form by default.") . "\n",
-  $form_query_type
-);
-print '<input class="bold" value="' . _("Apply")
-  . "\" name='go_report' type='submit' />\n</form>\n";
+if ($group_id != GROUP_NONE)
+  {
+    printf (
+      _("Browse with the %s query form by default.") . "\n",
+      $form_query_type
+    );
+    print '<input class="bold" value="' . _("Apply")
+      . "\" name='go_report' type='submit' />\n</form>\n";
+  }
 
 $res = db_execute ("
   SELECT * FROM " . ARTIFACT . "_report
-  WHERE group_id = ? AND (user_id = ? OR scope = 'P')",
-  [$group_id, user_getid ()]
+  WHERE group_id = ? AND (user_id = ? OR scope = ?)",
+  [$group_id, user_getid (), $group_scope]
 );
 
 if (db_numrows ($res))
@@ -481,9 +507,8 @@ if (db_numrows ($res))
         print "<a href=\"$url\">{$arr['report_id']}</a></td>\n";
         print "<td><a href=\"$url\">{$arr['name']}</a></td>\n";
         print "\n<td>{$arr['description']}</td>\n"
-          . "\n<td align=\"center\">"
-          . (($arr['scope'] == 'P')? _("Group"): _("Personal")) . '</td>'
-          . "\n<td align=\"center\">";
+          . "\n<td align=\"center\">" . scope_label ($arr['scope'])
+          . '</td>' . "\n<td align=\"center\">";
 
         print form_tag ()
           . form_hidden([
