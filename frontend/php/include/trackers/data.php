@@ -52,13 +52,52 @@ require_once ("$dir_name/../trackers/transition.php");
 require_once ("$dir_name/../trackers/cookbook.php");
 require_once ("$dir_name/../utils.php");
 
-# Get all the possible bug fields for this group both used and unused. If
-# used then show the group specific information about field usage
-# otherwise show the default usage parameter.
-# Make sure array element are sorted by ascending place.
-function trackers_data_get_all_fields ($group_id = false, $reload = false)
+function trackers_data_fetch_all_fields ($group_ids, $group_cond)
+{
+  $art_field = ARTIFACT . '_field';
+  $result = db_execute ("
+    SELECT
+      af.bug_field_id, field_name, display_type, display_size, label,
+      description, scope, required, empty_ok, keep_history, special, custom,
+      group_id, use_it, show_on_add, show_on_add_members, place, custom_label,
+      custom_description, custom_display_size, custom_empty_ok,
+      custom_keep_history, group_id
+    FROM $art_field af JOIN {$art_field}_usage afu
+    WHERE $group_cond AND af.bug_field_id = afu.bug_field_id", $group_ids
+  );
+  $ret = [];
+  while ($field_array = db_fetch_array ($result))
+    $ret[] = $field_array;
+  return $ret;
+}
+
+function trackers_data_rewind_bf_usage ()
 {
   global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME, $AT_START;
+  reset ($BF_USAGE_BY_ID);
+  reset ($BF_USAGE_BY_NAME);
+  $AT_START = true;
+}
+
+function trackers_data_assign_fields ($all_fields, $group_ids)
+{
+  global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME;
+  # Put all used fields in a global array for faster access.
+  # Index both by field_name and bug_field_id.
+  # The defaults (group_id = 100) are overridden with group-specific settings.
+  foreach ($group_ids as $p)
+    foreach ($all_fields as $field_array)
+      if ($field_array['group_id'] == $p)
+        $BF_USAGE_BY_ID[$field_array['bug_field_id']] =
+          $BF_USAGE_BY_NAME[$field_array['field_name']] = $field_array;
+}
+
+# Get all the possible bug fields for this group, both used and unused.
+# If used, then show the group specific information about field usage,
+# otherwise show the default usage parameter.
+function trackers_data_get_all_fields ($group_id, $reload = false)
+{
+  global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME;
 
   if (!ctype_alnum (strval (ARTIFACT)))
     util_die ("Invalid ARTIFACT name: " . ARTIFACT);
@@ -68,43 +107,11 @@ function trackers_data_get_all_fields ($group_id = false, $reload = false)
     return;
 
   $BF_USAGE_BY_ID = $BF_USAGE_BY_NAME = [];
-
-  # First get the all the defaults.
-  $art_field = ARTIFACT . '_field';
-  $sql = "
-    SELECT
-      af.bug_field_id, field_name, display_type, display_size, label,
-      description, scope, required, empty_ok, keep_history, special, custom,
-      group_id, use_it, show_on_add, show_on_add_members, place, custom_label,
-      custom_description, custom_display_size, custom_empty_ok,
-      custom_keep_history
-    FROM $art_field af, {$art_field}_usage afu
-    WHERE group_id = ? AND af.bug_field_id = afu.bug_field_id";
-
-  $res_defaults = db_execute ($sql, [100]);
-
-  # Put all used fields in a global array for faster access.
-  # Index both by field_name and bug_field_id.
-  while ($field_array = db_fetch_array ($res_defaults))
-    {
-      $BF_USAGE_BY_ID[$field_array['bug_field_id'] ] = $field_array;
-      $BF_USAGE_BY_NAME[$field_array['field_name'] ] = $field_array;
-    }
-
-  # Select all group-specific entries.
-  $res_group = db_execute ($sql, [$group_id]);
-
-  # Override entries in the default array.
-  while ($field_array = db_fetch_array ($res_group))
-    {
-      $BF_USAGE_BY_ID[$field_array['bug_field_id'] ] = $field_array;
-      $BF_USAGE_BY_NAME[$field_array['field_name'] ] = $field_array;
-    }
-
-  # Rewind internal pointer of global arrays.
-  reset ($BF_USAGE_BY_ID);
-  reset ($BF_USAGE_BY_NAME);
-  $AT_START = true;
+  $group_ids = [100, $group_id];
+  $cond = 'group_id ' . utils_in_placeholders ($group_ids);
+  $all_fields = trackers_data_fetch_all_fields ($group_ids, $cond);
+  trackers_data_assign_fields ($all_fields, $group_ids);
+  trackers_data_rewind_bf_usage ();
 }
 
 function trackers_data_get_item_group ($item_id)

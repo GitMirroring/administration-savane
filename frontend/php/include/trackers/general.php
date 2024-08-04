@@ -127,17 +127,14 @@ function trackers_list_all_fields ($sort_func = false, $by_field_id = false)
   # list of field names.
   $idx = $by_field_id? 'bug_field_id': 'field_name';
 
-  if (current ($BF_USAGE_BY_ID) !== false)
+  if (current ($BF_USAGE_BY_ID) === false)
     {
-      $field_array = current ($BF_USAGE_BY_ID);
-      next ($BF_USAGE_BY_ID);
-      return $field_array[$idx];
+      trackers_data_rewind_bf_usage ();
+      return false;
     }
-  # Rewind internal pointer for the next time.
-  reset ($BF_USAGE_BY_ID);
-  reset ($BF_USAGE_BY_NAME);
-  $AT_START = true;
-  return false;
+  $field_array = current ($BF_USAGE_BY_ID);
+  next ($BF_USAGE_BY_ID);
+  return $field_array[$idx];
 }
 
 function trackers_field_label_display (
