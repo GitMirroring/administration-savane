@@ -326,8 +326,7 @@ print ' ' . _("Theme") . "</p>";
 
 if ("rotate" === $row_user['theme'] || 'random' === $row_user['theme'])
   print "<p>\n" . form_checkbox ('theme_rotate_jump')
-    . '<label for="theme_rotate_jump">' . _("Jump to the next theme")
-    . "</label></p>\n";
+    . html_label ("theme_rotate_jump", _("Jump to the next theme")) . "</p>\n";
 print '<p class="smaller">'
   . _("Not satisfied with the default color theme of the interface?")
   . "</p>\n";

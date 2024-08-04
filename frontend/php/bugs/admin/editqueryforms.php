@@ -92,6 +92,72 @@ if (!user_ismember ($group_id, MEMBER_FLAGS_ADMIN))
 # Initialize global bug structures.
 trackers_init ($group_id);
 
+function rep_label ($suff, $label)
+{
+  return "<span class='preinput'>" . html_label ("rep_$suff", $label)
+    . "</span><br />\n";
+}
+
+function rep_name_input ($val)
+{
+  return rep_label ('name', _("Name:"))
+    . form_input ('text', 'rep_name', $val, "size='20' maxlength='20'");
+}
+
+function rep_desc_input ($val)
+{
+  return rep_label ('desc', _("Description:"))
+    . form_input ('text', 'rep_desc', $val, "size='50' maxlength='120'");
+}
+
+function print_field_use_as_output ($field, $td)
+{
+  global $cb_report, $cb_report_chk, $tf_report, $tf_report_val;
+
+  # If the current field is item id, we force it's presence on
+  # the report with rank 0. This field is mandatory: otherwise
+  # some links would be broken or there would be even no links.
+  if ($field == 'bug_id')
+    {
+      print "\n$td" . form_hidden ([$cb_report => 1, $tf_report => 0])
+        . "X</td>\n{$td}0</td>\n";
+      return;
+    }
+  print "\n$td"
+    . form_checkbox (
+        $cb_report, $cb_report_chk, ['title' => _("Use as an Output Column")]
+      )
+    . "</td>\n$td"
+    . form_input ('text', $tf_report, $tf_report_val,
+        'title="' . _("Rank on Output") . "\" size='5' maxlen='5'"
+      )
+    . "</td>\n";
+}
+
+function print_field ($i, $field)
+{
+  global $cb_search, $cb_search_chk, $cb_attr, $rank_extra;
+  global $tf_colwidth, $tf_colwidth_val, $tf_search, $tf_search_val;
+
+  $td = '<td align="center">';
+  print '<tr class="' . utils_altrow ($i) . '">';
+  print "\n<td>" . trackers_data_get_label ($field)
+    . "</td>\n<td>" . trackers_data_get_description ($field)
+    . "</td>\n$td" . form_checkbox ($cb_search, $cb_search_chk, $cb_attr)
+    . "</td>\n$td"
+    . form_input ('text', $tf_search, $tf_search_val,
+        'title="' . _("Rank on Search") . "\" size='5' maxlen='5' $rank_extra"
+      )
+    . "</td>\n";
+
+  print_field_use_as_output ($field, $td);
+  print "\n$td"
+    . form_input ("text", $tf_colwidth, $tf_colwidth_val,
+        'title="' . _("Column width (optional)") . "\" size='5' maxlen='5'"
+      )
+    . "</td>\n</tr>\n";
+}
+
 $def_query = group_get_preference ($group_id, ARTIFACT . "_default_query");
 if ($def_query === false)
   $def_query = 100;
@@ -228,16 +294,10 @@ if ($new_report)
     print form_hidden (
       ["create_report" => "y", "group_id" => $group_id, "post_changes" => "y"]
     );
-    print "<p>\n<span class='preinput'><label for='rep_name'"
-      . _("Name of the Query Form:") . "</label></span><br />\n"
-      . "<input type='text' name='rep_name' id='rep_name' value='' size='20' "
-      . "maxlength='20' />\n</p>\n<p><span class='preinput'>"
-      . _("Scope:") . "</span><br />\n";
-    print _("Group");
-    print "</p>\n<p>\n<span class='preinput'><label for='rep_desc'>"
-      . _("Description:") . "</label></span><br />\n"
-      . "<input type='text' name='rep_desc' id='rep_desc' value='' size='50' "
-      . "maxlength='120' />\n</p>\n";
+    print '<p>' . rep_name_input ('') . "\n</p>\n";
+    print "<p><span class='preinput'>" . _("Scope:") . "</span><br />\n"
+      . _("Group");
+    print "</p>\n<p>" . rep_desc_input ('') . "\n</p>\n";
     print html_build_list_table_top ($title_arr);
     $i = 0;
     while ($field = trackers_list_all_fields ())
@@ -276,7 +336,6 @@ if ($new_report)
         if ($field == 'submitted_by' || $field == 'assigned_to')
           $tf_report_val = 50;
 
-        print '<tr class="' . utils_altrow ($i) . '">';
         $cb_attr = ['title' => _("Use as a Search Criterion")];
         $rank_extra = '';
         if ($field == 'updated')
@@ -284,38 +343,8 @@ if ($new_report)
             $cb_attr['disabled'] = 'disabled';
             $rank_extra = " disabled='disabled'";
           }
-
-        print "\n<td>" . trackers_data_get_label ($field) . "</td>\n"
-          . "<td>" . trackers_data_get_description ($field) . "</td>\n"
-          . "<td align=\"center\">" . form_checkbox ($cb_search, 0, $cb_attr)
-          . "</td>\n<td align=\"center\"><input type=\"text\" title=\""
-          . _("Rank on Search") . "\" name=\"$tf_search\" value='' size='5' "
-          . "maxlen='5' $rank_extra/></td>\n";
-
-        # If the current field is item id, we force its presence on the
-        # report with rank 0. This field is mandatory: otherwise some
-        # links would be broken or there would be even no links.
-        $td = "\n<td align=\"center\">";
-        if ($field == 'bug_id')
-          {
-            print $td . form_hidden ([$cb_report => '1']) . "X</td>\n"
-              . $td . form_hidden ([$tf_report => "0"]) . "0</td>\n";
-          }
-        else
-          {
-            print $td . form_checkbox (
-                  $cb_report, 0, ['title' => _("Use as an Output Column")]
-                )
-              . "</td>$td<input type='text' title=\""
-              . _("Rank on Output") . "\" name=\"$tf_report\" "
-              . "value=\"$tf_report_val\" size='5' maxlen='5' /></td>\n";
-          }
-
-        print $td . "<input type='text' name=\"$tf_colwidth\" title=\""
-          . _("Column width (optional)")
-          . "\" value='' size='5' maxlen='5' /></td>\n"
-          ."</tr>\n";
-        $i++;
+        $cb_report_chk = 0; $tf_colwidth_val = '';
+        print_field ($i++, $field);
       }
     print "</table>\n<p><center><input type='submit' name='submit' value=\""
       . _('Submit') . "\" /></center></p>\n</form>\n";
@@ -332,8 +361,7 @@ if ($show_report)
       "SELECT * FROM " . ARTIFACT . "_report WHERE report_id = ?",
       [$report_id]
     );
-    $rows = db_numrows ($res);
-    if (!$rows)
+    if (!db_numrows ($res))
       {
         # TRANSLATORS: the argument is report id (a number).
         exit_error (sprintf (_("Unknown Report ID (%s)"), $report_id));
@@ -353,15 +381,8 @@ if ($show_report)
           "update_report" => "y", "group_id" => $group_id,
           "report_id" => $report_id, "post_changes" => "y"
         ]);
-    print '<p><span class="preinput"><label for="rep_name">'
-      . _("Name:") . "</label></span><br />\n&nbsp;&nbsp;&nbsp;"
-      . form_input ('text', 'rep_name', db_result ($res, 0, 'name'),
-          "size='20' maxlength='20'")
-      . "\n</p>\n";
-    print "<p>\n<span class='preinput'><label for='rep_desc'>"
-      . _("Description:") . "</label></span><br />&nbsp;&nbsp;&nbsp;\n"
-      . form_input ('text', 'rep_desc', db_result ($res, 0, 'description'),
-          "size='50' maxlength='120'")
+    print '<p>' . rep_name_input (db_result ($res, 0, 'name')) . "\n</p>\n";
+    print "<p>" . rep_desc_input (db_result ($res, 0, 'description'))
       . "\n</p>\n";
 
     print html_build_list_table_top ($title_arr);
@@ -398,7 +419,6 @@ if ($show_report)
         )
           ${"tf_{$k}_val"} = (empty ($ff[$v])? '': $ff[$v]);
 
-        print '<tr class="' . utils_altrow ($i) . '">';
         $cb_attr = ['title' => _("Use as a Search Criterion")];
         $rank_extra = '';
         if ($field == 'updated')
@@ -408,35 +428,7 @@ if ($show_report)
             $rank_extra = " disabled='disabled'";
             $tf_search_val = '';
           }
-
-        print "\n<td>" . trackers_data_get_label ($field)
-          . "</td>\n<td>" . trackers_data_get_description ($field)
-          . "</td>\n<td align=\"center\">"
-          . form_checkbox ($cb_search, $cb_search_chk, $cb_attr)
-          . "</td>\n<td align='center'><input type='text' name=\"$tf_search\" "
-          . 'title="' . _("Rank on Search") . "\" value=\"$tf_search_val\" "
-          . "size='5' maxlen='5' $rank_extra/></td>\n";
-        # If the current field is item id, we force it's presence on
-        # the report with rank 0. This field is mandatory: otherwise
-        # some links would be broken or there would be even no links.
-        if ($field == 'bug_id')
-          print "\n<td align=\"center\">"
-            . form_hidden ([$cb_report => 1, $tf_report => 0])
-            . "X</td>\n<td align=\"center\">0</td>\n";
-        else
-          print "\n<td align=\"center\">"
-            . form_checkbox (
-                $cb_report, $cb_report_chk,
-                ['title' => _("Use as an Output Column")]
-              )
-            . "</td>\n<td align=\"center\">"
-            . "<input type='text' name=\"$tf_report\" title=\""
-            . _("Rank on Output")
-            . "\" value=\"$tf_report_val\" size='5' maxlen='5' /></td>\n";
-        print "\n<td align=\"center\">" . '<input type="text" name="'
-          . $tf_colwidth . '" title="' . _("Column width (optional)")
-          . "\" value='$tf_colwidth_val' size='5' maxlen='5' /></td>\n</tr>\n";
-        $i++;
+        print_field ($i++, $field);
       }
     print "</table>\n"
       . '<p><center><input type="submit" name="submit" value="'
@@ -468,9 +460,8 @@ $res = db_execute ("
   WHERE group_id = ? AND (user_id = ? OR scope = 'P')",
   [$group_id, user_getid ()]
 );
-$rows = db_numrows ($res);
 
-if ($rows)
+if (db_numrows ($res))
   {
     print html_h (2, _("Existing Query Forms"));
     print
@@ -483,7 +474,7 @@ if ($rows)
     $i = 0;
     while ($arr = db_fetch_array ($res))
       {
-        print '<tr class="' . utils_altrow ($i) . '"><td>';
+        print '<tr class="' . utils_altrow ($i++) . '"><td>';
 
         $url = $php_self
           . "?group=$group&show_report=1&report_id={$arr['report_id']}";
@@ -501,7 +492,6 @@ if ($rows)
             ])
           . form_image_trash ('del_rep') . "</form>\n";
         print "</td>\n</tr>\n";
-        $i++;
       }
     print "</table>\n";
   }
