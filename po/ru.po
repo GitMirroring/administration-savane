@@ -45,10 +45,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.12\n"
+"Project-Id-Version: savane 3.13\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2024-07-28 12:14+0000\n"
-"PO-Revision-Date: 2024-07-28 15:44+0000\n"
+"POT-Creation-Date: 2024-09-02 10:24+0000\n"
+"PO-Revision-Date: 2024-09-02 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -835,6 +835,45 @@ msgstr "Преамбула размещения заявок"
 msgid "Introductory message showing at the top of the item submission form"
 msgstr "Вводное сообщение, появляющееся сверху формы заявки"
 
+msgid "Scope:"
+msgstr "Контекст:"
+
+msgid "Copy from query form:"
+msgstr "Скопировать из формы запроса:"
+
+msgid "Copy"
+msgstr "Копировать"
+
+msgid "Name:"
+msgstr "Имя:"
+
+msgid "Use as an Output Column"
+msgstr "Использовать как столбец результатов"
+
+msgid "Rank on Output"
+msgstr "Ранг в результатах"
+
+msgid "Rank on Search"
+msgstr "Ранг в поиске"
+
+msgid "Column width (optional)"
+msgstr "Ширина столбца (необязательно)"
+
+msgid "Personal"
+msgstr "Личное"
+
+#. TRANSLATORS: this string is as argument in
+#. "Browse with the %s query form".
+msgid "Basic"
+msgstr "простой"
+
+#, php-format
+msgid "Browse with the %s query form by default."
+msgstr "По умолчанию просматривать с формой запроса: %s."
+
+msgid "Apply"
+msgstr "Применить"
+
 #, php-format
 msgid "Query form '%s' created successfully"
 msgstr "Форма запроса \"%s\" успешно создана"
@@ -851,67 +890,28 @@ msgstr "Не удалось создать форму запроса \"%s\""
 msgid "Failed to update query form '%s'"
 msgstr "Не удалось обновить форму запроса \"%s\""
 
-msgid "Use as a Search Criterion"
-msgstr "Использовать в качестве критерия поиска"
-
-msgid "Rank on Search"
-msgstr "Ранг в поиске"
-
-msgid "Use as an Output Column"
-msgstr "Использовать как столбец результатов"
-
-msgid "Rank on Output"
-msgstr "Ранг в результатах"
-
-msgid "Column width (optional)"
-msgstr "Ширина столбца (необязательно)"
-
-msgid "Create a New Query Form"
-msgstr "Создать новую форму запроса"
-
-msgid "Name of the Query Form:"
-msgstr "Название формы запроса:"
-
-msgid "Scope:"
-msgstr "Контекст:"
-
-msgid "Modify a Query Form"
-msgstr "Изменить форму запроса"
-
 #. TRANSLATORS: the argument is report id (a number).
 #, php-format
 msgid "Unknown Report ID (%s)"
 msgstr "Неизвестный идентификатор отчета (%s)"
 
-msgid "Name:"
-msgstr "Имя:"
+msgid "Use as a Search Criterion"
+msgstr "Использовать в качестве критерия поиска"
 
-#. TRANSLATORS: this string is as argument in
-#. "Browse with the %s query form".
-msgid "Basic"
-msgstr "простой"
+msgid "Modify a Query Form"
+msgstr "Изменить форму запроса"
 
-msgid "query form"
-msgstr "форма запроса"
+msgid "Create a New Query Form"
+msgstr "Создать новую форму запроса"
 
-#, php-format
-msgid "Browse with the %s query form by default."
-msgstr "По умолчанию просматривать с формой запроса: %s."
-
-msgid "Apply"
-msgstr "Применить"
+msgid "No query form defined yet."
+msgstr "Ни одна форма запроса еще не определена."
 
 msgid "Existing Query Forms"
 msgstr "Существующие формы запроса"
 
 msgid "Query form name"
 msgstr "Название формы запроса"
-
-msgid "Personal"
-msgstr "Личное"
-
-msgid "No query form defined yet."
-msgstr "Ни одна форма запроса еще не определена."
 
 #, php-format
 msgid "You can <a href=\"%s\"> create a new query form</a>."
@@ -1196,6 +1196,12 @@ msgstr[0] "%s заявка,"
 msgstr[1] "%s заявки,"
 msgstr[2] "%s заявок,"
 
+msgid "(%s item)"
+msgid_plural "(%s items)"
+msgstr[0] "(%s заявка)"
+msgstr[1] "(%s заявки)"
+msgstr[2] "(%s заявок)"
+
 #, php-format
 msgid "including %s still open<!-- item -->"
 msgid_plural "including %s still open<!-- items -->"
@@ -1395,20 +1401,13 @@ msgstr "Добавить категории работы"
 msgid "Add Job Skills"
 msgstr "Добавить навыки"
 
-msgid "Error"
-msgstr "Ошибка"
-
-msgid "Posting ID not found"
-msgstr "Идентификатор публикации не найден"
+#, php-format
+msgid "Job #%s not found"
+msgstr "Вакансия №%s не найдена"
 
 msgid "View a Job"
 msgstr "Просмотр вакансии"
 
-msgid "No Such Posting For This Project"
-msgstr "Такого сообщения для данного проекта нет"
-
-#. TRANSLATORS: the first argument is job title (like Tester or Developer),
-#. the second argument is group name (like GNU Coreutils).
 #, php-format
 msgid "%1$s for %2$s"
 msgstr "%1$s для %2$s"
@@ -1442,8 +1441,13 @@ msgstr "Этот пользователь не зарегистрировал к
 msgid "GPG Key of the user %s"
 msgstr "Ключ GPG пользователя %s"
 
-msgid "That group does not exist."
-msgstr "Такой группы нет."
+#, php-format
+msgid "Wrong group name '%s'."
+msgstr "Неверное имя группы '%s'."
+
+#, php-format
+msgid "Group '%s' does not exist."
+msgstr "Группа '%s' не существует."
 
 #. TRANSLATORS: the first argument is a domain (like "savannah.gnu.org"
 #. vs. "savannah.nongnu.org"); the second argument
@@ -1518,6 +1522,9 @@ msgstr "Войти"
 msgid "Name"
 msgstr "Имя"
 
+msgid "Error"
+msgstr "Ошибка"
+
 msgid "Invalid Search!!"
 msgstr "Неправильный поиск!"
 
@@ -1537,9 +1544,6 @@ msgid ""
 "This account hasn't been activated, please contact website administration"
 msgstr ""
 "Эта учетная запись не была активирована, обратитесь к администрации сайта"
-
-msgid "This account does not exist"
-msgstr "Такой учетной записи нет"
 
 msgid "Invalid User"
 msgstr "Неправильное имя пользователя."
@@ -1573,12 +1577,6 @@ msgstr ""
 "Во всяком случае, не раскрывайте никому этого адреса, например,\n"
 "не посылайте его в открытый список расылки!\n"
 "\n"
-
-#. TRANSLATORS: the argument is the name of the system (like "Savannah").
-#. TRANSLATORS: the argument is site name (like Savannah).
-#, php-format
-msgid "-- the %s team."
-msgstr "-- команда сайта %s."
 
 msgid "Confirmation mailed"
 msgstr "Подтверждение отправлено по почте"
@@ -1645,7 +1643,7 @@ msgstr "Все еще есть проблемы?"
 msgid "Fill a support request."
 msgstr "Заполните запрос поддержки."
 
-msgid "Login Name:"
+msgid "Login name:"
 msgstr "Имя учетной записи:"
 
 msgid "No account yet?"
@@ -1706,13 +1704,6 @@ msgstr ""
 msgid "Send lost password hash"
 msgstr "Отправить код для восстановления пароля"
 
-#. TRANSLATORS: confirmation hash is a secret code mailed to the user.
-msgid "This confirmation hash exists more than once."
-msgstr "Этот код подтверждения продублирован."
-
-msgid "Invalid confirmation hash."
-msgstr "Неправильный код подтверждения."
-
 msgid "Passphrases do not match."
 msgstr "Фразы-пароли не совпадают."
 
@@ -1757,10 +1748,6 @@ msgstr "Приятного пользования!"
 msgid "Invalid username."
 msgstr "Неправильное имя пользователя."
 
-#. TRANSLATORS: confirmation hash is a secret code sent to the user.
-msgid "Invalid confirmation hash"
-msgstr "Неправильный код подтверждения"
-
 #. TRANSLATORS: the argument is the name of the system (like "Savannah").
 #, php-format
 msgid "%s Account Verification"
@@ -1772,12 +1759,6 @@ msgid ""
 msgstr ""
 "Для завершения регистрации войдите в систему. После этого ваша учетная "
 "запись будет активирована для обычного входа."
-
-msgid "Login Name"
-msgstr "Имя учетной записи"
-
-msgid "Password"
-msgstr "Пароль"
 
 msgid "This account is not pending verification."
 msgstr "Эта учетная запись не ожидает подтверждения."
@@ -1883,16 +1864,16 @@ msgstr ""
 msgid "User account registration"
 msgstr "Регистрация новой учетной записи"
 
-msgid "Password / passphrase:"
-msgstr "Фраза-пароль:"
+msgid "Passphrase:"
+msgstr "Новая фраза-пароль:"
 
-msgid "Re-type Password:"
-msgstr "Пароль (повтор):"
+msgid "Re-type passphrase:"
+msgstr "Повторите фразу-пароль:"
 
-msgid "Real Name:"
+msgid "Display name:"
 msgstr "Полное имя:"
 
-msgid "Email Address:"
+msgid "Email address:"
 msgstr "Адрес электронной почты"
 
 msgid "This email address will be verified before account activation."
@@ -2412,10 +2393,10 @@ msgstr ""
 msgid "News Waiting for Approval"
 msgstr "Новости, ожидающие подтверждения"
 
-#. TRANSLATORS: the first argument is project name, the second is date.
+#. TRANSLATORS: the first argument is group name, the second is date.
 #, php-format
-msgid "Project %1$s, %2$s"
-msgstr "Проект %1$s, %2$s"
+msgid "Group %1$s, %2$s"
+msgstr "Группа %1$s, %2$s"
 
 msgid "News"
 msgstr "Новости"
@@ -2482,39 +2463,33 @@ msgstr ""
 "будете удалены изо всех списков уведомления всех заявок в выбранных группах."
 
 msgid "You are not registered on any Carbon-Copy list."
-msgstr "Вы не записаны ни в какой список уведомления."
+msgstr "Вы не записаны ни в какой список оповещений."
 
-msgid "Groups to which belong items you are in Carbon Copy for"
-msgstr "Группы заявки которых содержат вас в списке уведомлений"
+msgid "Groups with items you are in Carbon Copy for"
+msgstr "Группы с заявками, по которым вас оповещают"
 
 msgid "Cancel CC for this group"
-msgstr "Сбросить уведомления из этой группы"
+msgstr "Сбросить оповещения из этой группы"
 
 msgid "Cancel All CC"
-msgstr "Сбросить все уведомления"
+msgstr "Сбросить все оповещения"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
 #, php-format
 msgid "All Carbon-Copies over %s"
-msgstr "Все уведомления по сайту %s"
+msgstr "Все оповещения по сайту %s"
 
-msgid ""
-"You must quit all groups before requesting account deletion. If you "
-"registered a group that is still pending,\n"
-"please ask site admins to cancel that registration."
-msgstr ""
-"Перед удалением учетной записи вы должны выйти изо всех групп. Если вы "
-"зарегистрировали группу, котороая находится на рассмотрении, попросите "
-"администраторов сайта отменить эту регистрацию."
+msgid "That user does not exist."
+msgstr "Такого пользователя нет."
 
-msgid "You must supply a new real name."
-msgstr "Нужно указать новое полное имя."
-
-msgid "Real Name updated."
-msgstr "Полное имя обновлено."
+msgid "Please supply a new name."
+msgstr "Нужно указать новое имя."
 
 msgid "Failed to update the database."
 msgstr "Не удалось обновить базу данных."
+
+msgid "Display name updated."
+msgstr "Полное обновлено."
 
 msgid "Timezone updated."
 msgstr "Временной пояс обновлен."
@@ -2522,7 +2497,7 @@ msgstr "Временной пояс обновлен."
 msgid "Old password is incorrect."
 msgstr "Неправильный старый пароль."
 
-msgid "New Passwords do not match."
+msgid "New passwords do not match."
 msgstr "Не совпадают."
 
 msgid "Password updated."
@@ -2530,12 +2505,6 @@ msgstr "Пароль обновлен."
 
 msgid "GPG Key updated."
 msgstr "Ключ GPG обновлен."
-
-msgid "That user does not exist."
-msgstr "Такого пользователя нет."
-
-msgid "Database updated."
-msgstr "База данных обновлена."
 
 #. TRANSLATORS: the argument is site name (like Savannah).
 #, php-format
@@ -2571,6 +2540,7 @@ msgstr ""
 msgid "Verification"
 msgstr "Проверка"
 
+#. TRANSLATORS: the argument is email address.
 #, php-format
 msgid "Confirmation mailed to %s."
 msgstr "Подтверждение отправлено по адресу %s."
@@ -2588,9 +2558,6 @@ msgstr ""
 "Система сообщила об ошибке при попытке отправить\n"
 "письмо с подтверждением. Повторите и сообщите о проблеме администраторам."
 
-msgid "This confirmation hash is included in DB more than once."
-msgstr "Этот код подтверждения содержится в базе данных более одного раза."
-
 msgid "Email address updated."
 msgstr "Адрес электронной почты обновлен."
 
@@ -2603,8 +2570,14 @@ msgid ""
 msgstr ""
 "Не удалось отменить процесс смены адреса, обратитесь к администраторам."
 
-msgid "Unable to understand what to do, parameters are probably missing"
-msgstr "Неясно, что делать, возможно, не хватает параметров"
+msgid ""
+"You must quit all groups before requesting account deletion. If you "
+"registered a group that is still pending,\n"
+"please ask site admins to cancel that registration."
+msgstr ""
+"Перед удалением учетной записи вы должны выйти изо всех групп. Если вы "
+"зарегистрировали группу, котороая находится на рассмотрении, попросите "
+"администраторов сайта отменить эту регистрацию."
 
 #, php-format
 msgid ""
@@ -2637,21 +2610,12 @@ msgstr ""
 "Для завершения удаления учетной записи следуйте инструкциям в электронном "
 "письме."
 
-msgid "Account deletion process discarded."
-msgstr "Процесс удаления учетной записи прерван."
-
 msgid ""
 "Failed to discard account deletion process, please contact administrators."
 msgstr "Сбой отмены удаления учетной записи. Свяжитесь с администраторами."
 
-msgid "Change Real Name"
-msgstr "Изменить полное имя"
-
-msgid "New Real Name:"
+msgid "New display name:"
 msgstr "Новое полное имя:"
-
-msgid "Change Timezone"
-msgstr "Изменить временной пояс"
 
 msgid ""
 "No matter where you live, you can see all dates and times as if it were in\n"
@@ -2663,20 +2627,11 @@ msgstr ""
 msgid "Timezone"
 msgstr "Временной пояс"
 
-msgid "Change Password"
-msgstr "Изменить пароль"
-
-msgid "Current password:"
+msgid "Current passphrase:"
 msgstr "Текущая фраза-пароль:"
 
-msgid "New password / passphrase:"
-msgstr "Новая фраза-пароль:"
-
-msgid "Re-type new password:"
-msgstr "Повторите новую фразу-пароль:"
-
-msgid "Change GPG Keys"
-msgstr "Изменить ключи GPG"
+msgid "Re-type new passphrase:"
+msgstr "Повторите фразу-пароль:"
 
 msgid "New GPG key"
 msgstr "Новый ключ GPG"
@@ -2687,11 +2642,53 @@ msgstr "Проверить ключи GPG"
 msgid "(Testing is recommended before updating.)"
 msgstr "(Рекомендуется протестировать перед обновлением.)"
 
+msgid "New email address:"
+msgstr "Новый адрес электронной почты:"
+
+msgid "Confirmation hash:"
+msgstr "Код подтверждения:"
+
+msgid "Discard hash:"
+msgstr "Код отмены:"
+
+msgid "Do you really want to delete your user account?"
+msgstr "Вы действительно хотите удалить учетную запись?"
+
+msgid "Delete account"
+msgstr "Удалить учетную запись"
+
+msgid "Yes, I really do"
+msgstr "Да, хочу"
+
+msgid "Change Display Name"
+msgstr "Изменить полное имя"
+
+msgid "Change Timezone"
+msgstr "Изменить временной пояс"
+
+msgid "Change Password"
+msgstr "Изменить пароль"
+
+msgid "Change GPG Keys"
+msgstr "Изменить ключи GPG"
+
 msgid "Change Email Address"
 msgstr "Изменить адрес электронной почты"
 
-msgid "New email address:"
-msgstr "Новый адрес электронной почты:"
+msgid "Confirm Email Change"
+msgstr "Подтвердить смену адреса"
+
+msgid "Discard Email Change"
+msgstr "Отменить смену адреса"
+
+msgid "Delete Account"
+msgstr "Удалить учетную запись"
+
+msgid "Confirm account deletion"
+msgstr "Подтвердить удаление учетной записи"
+
+msgid "Discard account deletion"
+msgstr "Отменить удаление учетной записи"
 
 msgid ""
 "Changing your email address will require confirmation from\n"
@@ -2722,46 +2719,15 @@ msgstr ""
 "подтверждения; переход по этой ссылке завершает смену адреса. По старому "
 "адресу также посылается сообщение&nbsp;&mdash; для отмены запроса."
 
-msgid "Confirm Email Change"
-msgstr "Подтвердить смену адреса"
-
 msgid "Push &ldquo;Update&rdquo; to confirm your email change"
 msgstr "Нажмите &ldquo;Обновить&rdquo; для подтверждения смены адреса"
-
-msgid "Confirmation hash:"
-msgstr "Код подтверждения:"
-
-msgid "Discard Email Change"
-msgstr "Отменить смену адреса"
-
-msgid "Delete Account"
-msgstr "Удалить учетную запись"
-
-msgid "Do you really want to delete your user account?"
-msgstr "Вы действительно хотите удалить учетную запись?"
-
-msgid "Yes, I really do"
-msgstr "Да, хочу"
 
 msgid "This process will require email confirmation."
 msgstr "Эта процедура потребует подтверждения по электронной почте."
 
-msgid "Confirm account deletion"
-msgstr "Подтвердить удаление учетной записи"
-
 msgid "Push &ldquo;Update&rdquo; to confirm your account deletion"
 msgstr ""
 "Нажмите &ldquo;Обновить&rdquo;, чтобы подтвердить удаление учетной записи"
-
-msgid "Discard account deletion"
-msgstr "Отменить удаление учетной записи"
-
-msgid "Discard hash:"
-msgstr "Код отмены:"
-
-#, php-format
-msgid "Unknown user settings item (%s)"
-msgstr "Неизвестный элемент настроек пользователя (%s)"
 
 #, php-format
 msgid "Key #%s seen"
@@ -2823,8 +2789,8 @@ msgid ""
 "always remove yourself from an item Carbon-Copy list."
 msgstr ""
 "Когда вы оставляете или обновляете заявку, вас автоматически добавляют в "
-"список уведомлений на будущие изменения. Вы всегда можете вычеркнуть себя из "
-"списка уведомлений."
+"список оповещений на будущие изменения. Вы всегда можете вычеркнуть себя из "
+"списка оповещений."
 
 msgid ""
 "If an item is assigned to you, you will receive notifications as long as\n"
@@ -2835,7 +2801,7 @@ msgid ""
 "notifications."
 msgstr ""
 "Если заявка поручена вам, вы будете получать оповещения, пока она остается "
-"вашей; однако вас не будут добавлять в список уведомлений. Если вы не "
+"вашей; однако вас не будут добавлять в список оповещений. Если вы не "
 "оставляете комментариев и не обновляете порученную вам заявку, а она "
 "поручается другому, вы не будете получать дальнейшие оповещения."
 
@@ -2855,7 +2821,7 @@ msgid "the item status changed"
 msgstr "состояние заявки изменено"
 
 msgid "Do not add me to Carbon-Copy when:"
-msgstr "Не добавлять меня в список уведомлений, когда:"
+msgstr "Не добавлять меня в список оповещений, когда:"
 
 msgid "I post a comment"
 msgstr "Я оставляю комментарий"
@@ -2864,7 +2830,7 @@ msgid "I update a field, add dependencies, attach file, etc"
 msgstr "Я обновляю поле, добавляю зависимости, прилагаю файл и т.д."
 
 msgid "Remove me from Carbon-Copy when:"
-msgstr "Удалять меня из списка уведомлений, когда:"
+msgstr "Удалять меня из списка оповещений, когда:"
 
 msgid "I am no longer assigned to the item"
 msgstr "Заявка мне больше не поручена"
@@ -2943,7 +2909,7 @@ msgid "Parameters missing, update canceled"
 msgstr "Не хватает параметров, обновление отменено"
 
 msgid "Manage sessions"
-msgstr "Управление уведомлениями"
+msgstr "Управление сеансами"
 
 msgid "No session found."
 msgstr "Ничего не найдено."
@@ -2974,12 +2940,6 @@ msgstr ""
 "Активировано меню каменного века, вступит в действие при следующей загрузке "
 "страницы"
 
-msgid "Database successfully updated"
-msgstr "База данных успешно обновлена"
-
-msgid "Failed to update the database"
-msgstr "Не удалось обновить базу данных"
-
 msgid "You can change all of your account features from here."
 msgstr "Здесь можно редактировать настройки своей учетной записи."
 
@@ -2989,20 +2949,23 @@ msgstr "Важные настройки"
 msgid "Authentication Setup"
 msgstr "Настройка доступа"
 
+msgid "Change password"
+msgstr "Изменить пароль"
+
 msgid "This password gives access to the web interface."
 msgstr "Этот пароль дает доступ через браузер."
 
 #, php-format
-msgid "Edit the %d SSH Public Key registered"
-msgid_plural "Edit the %d SSH Public Keys registered"
-msgstr[0] "Редактировать %d зарегистрированный открытый SSH ключ"
-msgstr[1] "Редактировать %d зарегистрированных открытых SSH ключа"
-msgstr[2] "Редактировать %d зарегистрированных открытых SSH ключей"
+msgid "Edit the %d SSH public key registered"
+msgid_plural "Edit the %d SSH public keys registered"
+msgstr[0] "Редактировать %d зарегистрированный открытый ключ SSH"
+msgstr[1] "Редактировать %d зарегистрированных открытых ключа SSH"
+msgstr[2] "Редактировать %d зарегистрированных открытых ключей SSH"
 
-msgid "Register an SSH Public Key"
+msgid "Register SSH public keys"
 msgstr "Зарегистрировать открытый ключ SSH"
 
-msgid "Edit GPG Key"
+msgid "Edit GPG key"
 msgstr "Редактировать ключ GPG"
 
 #, php-format
@@ -3036,15 +2999,18 @@ msgstr "Учетная запись №%s"
 msgid "You registered your account on %s."
 msgstr "Дата регистрации: %s."
 
+msgid "Change display name"
+msgstr "Изменить полное имя"
+
 #. TRANSLATORS: the argument is full name.
 #, php-format
 msgid "You are %s."
-msgstr "Ваше имя: %s."
+msgstr "Ваше имя&nbsp;&mdash; %s."
 
-msgid "Edit Resume and Skills"
+msgid "Edit resume and skills"
 msgstr "Редактировать страницу навыков"
 
-msgid "View your Public Profile"
+msgid "View your public profile"
 msgstr "Профиль пользователя"
 
 msgid "Your profile can be viewed by everybody."
@@ -3052,6 +3018,9 @@ msgstr "Ваш профиль может просматривать каждый
 
 msgid "Mail Setup"
 msgstr "Настройки почты"
+
+msgid "Change email address"
+msgstr "Изменить адрес электронной почты"
 
 #, php-format
 msgid ""
@@ -3061,7 +3030,7 @@ msgstr ""
 "Ваш текущий адрес&nbsp;&mdash; %s. Нам важно, чтобы этот адрес оставался "
 "действительным. Обновляйте его по мере необходимости."
 
-msgid "Edit Personal Notification Settings"
+msgid "Edit personal notification settings"
 msgstr "Редактировать личные настройки оповещений"
 
 msgid ""
@@ -3070,6 +3039,9 @@ msgid ""
 msgstr ""
 "Здесь определяется, когда журналы высылают оповещения по электронной почте. "
 "Здесь можно также настроить приставку темы отправляемых собщений."
+
+msgid "Cancel mail notifications"
+msgstr "Отменить оповещения"
 
 msgid "Here, you can cancel all mail notifications."
 msgstr "Здесь можно отменить все почтовые оповещения."
@@ -3674,6 +3646,12 @@ msgstr ""
 "Кто-то, предположительно вы, изменил ваши ключи SSH на сайте %s.\n"
 "Если это не вы, возможно, кто-то пытается взломать вашу учетную запись..."
 
+msgid "Invalid confirmation hash."
+msgstr "Неправильный код подтверждения."
+
+msgid "Database updated."
+msgstr "База данных обновлена."
+
 #, php-format
 msgid "You requested password reset of the list %1$s at %2$s."
 msgstr "Вы запросили сброс пароля для рассылки %1$s на %2$s."
@@ -3894,8 +3872,8 @@ msgstr "только журнала задач"
 msgid "the patch manager only"
 msgstr "только журнала заплаток"
 
-msgid "Wether to search in any group"
-msgstr "искать ли во всех группах"
+msgid "Whether to search in any group"
+msgstr "Искать ли во всех группах"
 
 #. TRANSLATORS: this string is used in the context like
 #. "search an item of [the bug tracker only] of [any group]".
@@ -3934,7 +3912,7 @@ msgstr ""
 "более трех символов."
 
 msgid "Mail Notification Carbon-Copy List"
-msgstr "Список уведомлений"
+msgstr "Список оповещений"
 
 #, php-format
 msgid ""
@@ -4090,6 +4068,9 @@ msgstr "Неверный параметр"
 
 msgid "Digest"
 msgstr "Обзор"
+
+msgid "query form"
+msgstr "форма запроса"
 
 msgid "Simple Search"
 msgstr "Простой поиск"
@@ -4586,7 +4567,7 @@ msgid "<!-- file -->%1$s added by %2$s"
 msgstr "%1$s добавлен пользователем %2$s"
 
 msgid "CC list is empty"
-msgstr "Список уведомлений пуст"
+msgstr "Список оповещений пуст"
 
 msgid "Voted in favor of this item"
 msgstr "Голосует за эту заявку"
@@ -4715,8 +4696,8 @@ msgstr "Действие:"
 msgid "Audience/Feature/Action updated"
 msgstr "Аудитория/Функция/Действие обновлены"
 
-msgid "This project has turned off this tracker."
-msgstr "В этом проекте этот журнал отключен."
+msgid "This group has turned off this tracker."
+msgstr "В этой группе этот журнал отключен."
 
 msgid "Start:"
 msgstr "Начало:"
@@ -4839,19 +4820,19 @@ msgid "file #%s attached"
 msgstr "файл №%s приложен"
 
 msgid "CC added."
-msgstr "Адрес уведомления добавлен."
+msgstr "Адрес оповещения добавлен."
 
 msgid "CC addition failed."
-msgstr "Не удается добавить адрес уведомления."
+msgstr "Не удается добавить адрес оповещения."
 
 msgid "Removing CC is not allowed"
-msgstr "Удалять адрес уведомления не разрешено"
+msgstr "Удалять адрес оповещения не разрешено"
 
 msgid "Failed to remove CC"
-msgstr "Не удалось удалить адрес уведомления."
+msgstr "Не удалось удалить адрес оповещения."
 
 msgid "CC Removed"
-msgstr "Адрес уведомления удален"
+msgstr "Адрес оповещения удален"
 
 msgid "Failed to delete dependency."
 msgstr "Не удалось удалить зависимость."
@@ -4996,7 +4977,7 @@ msgid ""
 "notification for private items."
 msgstr ""
 "Адреса, записанные в этот список, будут исключаться из исходного списка "
-"уведомлений в случае скрытых заявок."
+"оповещений в случае скрытых заявок."
 
 msgid "Exclude List:"
 msgstr "Список исключений:"
@@ -5088,7 +5069,7 @@ msgid ""
 "Unable to duplicate a CC address (%s) from the\n"
 "original item report information."
 msgstr ""
-"Не удается скопировать адрес уведомления (%s) из первоначальной заявки."
+"Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
 
 msgid "Original item is now closed."
 msgstr "Первоначальная заявка закрыта."
@@ -5707,6 +5688,14 @@ msgstr "Без заголовка"
 msgid "Error updating database"
 msgstr "Ошибка при обновлении базы данных"
 
+msgid "Database successfully updated"
+msgstr "База данных успешно обновлена"
+
+#. TRANSLATORS: the argument is site name (like Savannah).
+#, php-format
+msgid "-- the %s team."
+msgstr "-- команда сайта %s."
+
 msgid "Bad passphrase (check failed)"
 msgstr "Плохая фраза-пароль (не прошла проверку)"
 
@@ -5893,6 +5882,9 @@ msgstr "Менять оформление каждый день наугад"
 msgid "Invalid Group %s"
 msgstr "Неверная группа %s"
 
+msgid "That group does not exist."
+msgstr "Такой группы нет."
+
 msgid "Choose one below"
 msgstr "Выберите"
 
@@ -5929,9 +5921,6 @@ msgstr ""
 #, php-format
 msgid "Message sent via %s"
 msgstr "Сообщение отправлено по %s"
-
-msgid "Include the next line when replying by email."
-msgstr "При ответе по электронной почте включите следующую строку в сообщение."
 
 #. TRANSLATORS: the argument is a comma-separated list of recipients.
 #, php-format
@@ -6141,8 +6130,8 @@ msgstr "Главная"
 
 #. TRANSLATORS: the argument is site name like Savannah.
 #, php-format
-msgid "Project Main Page at %s"
-msgstr "Главная страница проекта на сайте %s"
+msgid "Group main page at %s"
+msgstr "Главная страница группы в %s"
 
 msgid "View members"
 msgstr "Просмотр участников"
@@ -6150,8 +6139,8 @@ msgstr "Просмотр участников"
 msgid "Homepage"
 msgstr "Домашняя страница"
 
-msgid "Browse project homepage (outside of Savane)"
-msgstr "Домашняя страница проекта (вне Саванны)"
+msgid "Browse group home page (outside of Savane)"
+msgstr "Домашняя страница группы (вне Саванны)"
 
 msgid "Download"
 msgstr "Выпуски"
@@ -6165,25 +6154,17 @@ msgstr "Документация"
 msgid "Docs: Cookbook, etc"
 msgstr "Документация: рецепты и пр."
 
-msgid "Tech Support Tracker: post, search and manage support requests"
-msgstr ""
-"Журнал технической поддержки: размещение, поиск и управление запросами на "
-"поддержку"
-
-msgid "Forum"
-msgstr "Форум"
-
-msgid "Mailing lists"
-msgstr "Рассылки"
+msgid "Browse"
+msgstr "Просмотр"
 
 msgid "List existing mailing lists"
 msgstr "Существующие списки рассылки"
 
-msgid "Browse"
-msgstr "Просмотр"
-
 msgid "Configure:"
 msgstr "Настроить:"
+
+msgid "Mailing lists"
+msgstr "Рассылки"
 
 msgid "GNU Arch"
 msgstr "GNU Arch"
@@ -6194,14 +6175,11 @@ msgstr "Исходный текст"
 msgid "Source code management"
 msgstr "Работа с исходным текстом"
 
-msgid "Bug Tracker: report, search and track bugs"
-msgstr "Журнал ошибок: отчеты, поиск и отслеживание ошибок"
+msgid "Configure"
+msgstr "Настроить"
 
-msgid "Task Manager: post, search and manage tasks"
-msgstr "Журнал задач: формулировка, поиск и выполнение"
-
-msgid "Patch Manager: post, search and manage patches"
-msgstr "Журнал заплаток: публикация, поиск и рассмотрение"
+msgid "News Manager: edit notifications"
+msgstr "Настройка оповещений о новостях"
 
 msgid "Read latest News, post News"
 msgstr "Последние новости"
@@ -6212,17 +6190,31 @@ msgstr "Лента Atom"
 msgid "Manage"
 msgstr "Управление"
 
-msgid "Configure"
-msgstr "Настроить"
+msgid "Forum"
+msgstr "Форум"
 
-msgid "News Manager: edit notifications"
-msgstr "Настройка оповещений о новостях"
+msgid "Tech Support Tracker: post, search and manage support requests"
+msgstr ""
+"Журнал технической поддержки: размещение, поиск и управление запросами на "
+"поддержку"
+
+msgid "Bug Tracker: report, search and track bugs"
+msgstr "Журнал ошибок: отчеты, поиск и отслеживание ошибок"
+
+msgid "Task Manager: post, search and manage tasks"
+msgstr "Журнал задач: формулировка, поиск и выполнение"
+
+msgid "Patch Manager: post, search and manage patches"
+msgstr "Журнал заплаток: публикация, поиск и рассмотрение"
 
 msgid "Submit new"
 msgstr "Составить"
 
 msgid "Reset to open"
 msgstr "Просмотреть открытые"
+
+msgid "Edit"
+msgstr "Править"
 
 msgid "Export"
 msgstr "Экспорт"
@@ -6236,11 +6228,15 @@ msgstr "Просмотр (вне Саванны)"
 msgid "Browse Documentation that is located outside of Savane"
 msgstr "Просмотр документации, размещенной вне Саванны"
 
-msgid "Edit"
-msgstr "Править"
+msgid "Edit query forms"
+msgstr "Править формы запроса"
 
-msgid "Savane In Depth Guide"
-msgstr "Руководство по Саванне"
+msgid ""
+"Define query forms: what search criteria to use and what item\n"
+"fields to show in the query form table"
+msgstr ""
+"Определить форму запроса: по каким критериям проводить поиск и какие поля "
+"заявок показывать в таблице запроса"
 
 msgid "Select fields"
 msgstr "Выбрать поля"
@@ -6257,16 +6253,6 @@ msgid ""
 msgstr ""
 "Определить набор значений для полей, которые вы решили применять в этом "
 "журнале"
-
-msgid "Edit query forms"
-msgstr "Править формы запроса"
-
-msgid ""
-"Define project-wide query form: what search criteria to use and what item\n"
-"fields to show in the query form table"
-msgstr ""
-"Определить форму запроса для всего проекта: по каким критериям проводить "
-"поиск и какие поля заявок показывать в таблице запроса"
 
 msgid "Define posting restrictions"
 msgstr "Определить ограничения на запись в журнал"
@@ -6419,8 +6405,8 @@ msgstr "Сделать закладку"
 msgid "Add this page to my bookmarks"
 msgstr "Добавить эту страницу в мои закладки"
 
-msgid "This Page"
-msgstr "Эта страница"
+msgid "Related Recipes:"
+msgstr "Рецепты по теме:"
 
 msgid "Language"
 msgstr "Язык"
@@ -6434,8 +6420,8 @@ msgstr "Обновить"
 msgid "Reload the page without risk of reposting data"
 msgstr "Перезагрузить страницу (без риска повторной отправки формы)"
 
-msgid "Related Recipes:"
-msgstr "Рецепты по теме:"
+msgid "This Page"
+msgstr "Эта страница"
 
 msgid "Site Help"
 msgstr "Нужна помощь?"
@@ -7054,7 +7040,7 @@ msgstr "Пользователь %s удален из звена."
 msgid "User %s is not part of the squad."
 msgstr "Пользователь %s не в звене."
 
-msgid "Delete Squad"
+msgid "Delete squad"
 msgstr "Удалить звено"
 
 msgid "Removing members"
@@ -7109,10 +7095,10 @@ msgstr "Список звеньев"
 msgid "Create a New Squad"
 msgstr "Создать звено"
 
-msgid "Squad Login Name:"
+msgid "Squad login name:"
 msgstr "Название звена:"
 
-msgid "Squad Full Name:"
+msgid "Squad full name:"
 msgstr "Полное название звена:"
 
 msgid "You cannot have more squads than members"
@@ -7485,10 +7471,16 @@ msgstr "Начать новую тему:"
 msgid "Error - choose a forum first"
 msgstr "Ошибка&nbsp;&mdash; сначала выберите форум"
 
+msgid "Choose a message first"
+msgstr "Выберите сообщение"
+
+msgid "You must choose a message first"
+msgstr "Сначала нужно выбрать сообщение"
+
 msgid "Message not found."
 msgstr "Сообщение не найдено."
 
-#. TRANSLATORS: the argment is message id.
+#. TRANSLATORS: the argument is message id.
 #, php-format
 msgid "Message %s"
 msgstr "Сообщение %s"
@@ -7501,12 +7493,6 @@ msgstr "%1$s (автор: %2$s, дата: %3$s)"
 
 msgid "Post a followup to this message"
 msgstr "Отправить ответ на это сообщение"
-
-msgid "Choose a message first"
-msgstr "Выберите сообщение"
-
-msgid "You must choose a message first"
-msgstr "Сначала нужно выбрать сообщение"
 
 msgid "Requested XML not Found (Error 404)"
 msgstr "Запрошенный XML не найден (ошибка 404)"
@@ -7600,12 +7586,8 @@ msgstr "-удаленная учетная запись-"
 
 #. TRANSLATORS: the argument is user's name (like J. Random Hacker).
 #, php-format
-msgid "%s Profile"
+msgid "%s profile"
 msgstr "Данные пользователя %s"
-
-#, php-format
-msgid "Follows the Profile of %s."
-msgstr "Далее представлены данные пользователя %s."
 
 msgid ""
 "It is not a normal user account but a squad: it unites several\n"
@@ -7615,14 +7597,14 @@ msgstr ""
 "пользователей, как если бы они были одним (уведомления, доступ и т.д.)."
 
 #, php-format
-msgid "Open Items submitted by %s"
+msgid "Open items submitted by %s"
 msgstr "Открытые заявки, присланные пользователем %s"
 
 #, php-format
-msgid "Open Items assigned to %s"
+msgid "Open items assigned to %s"
 msgstr "Открытые заявки, порученные пользователю %s"
 
-msgid "General Information"
+msgid "General information"
 msgstr "Общая информация"
 
 msgid "Note:"
@@ -7634,7 +7616,7 @@ msgstr "Учетная запись удалена"
 msgid "Send this user a mail"
 msgstr "Отправить сообщение этому пользователю"
 
-msgid "Site Member Since:"
+msgid "Site member since:"
 msgstr "Дата регистрации:"
 
 msgid "This user did not enable Resume & Skills."
@@ -7646,8 +7628,8 @@ msgstr "Редактировать страницу навыков"
 msgid "Download GPG Key"
 msgstr "Ключ GPG"
 
-msgid "Group Information"
-msgstr "Сведения о группах"
+msgid "Group membership"
+msgstr "Принадлежность к группам"
 
 msgid "No member found"
 msgstr "Участников не найдено"
@@ -7906,7 +7888,7 @@ msgid ""
 "The license of Perl (disjunction of the Artistic License and the GNU GPL)"
 msgstr "Лицензия Perl (дизъюнкция Артистической лицензии и GNU GPL)"
 
-msgid "Expat License (sometime refered to as MIT License)"
+msgid "Expat License (sometime referred to as MIT License)"
 msgstr "Лицензия expat (иногда называемая лицензией MIT)"
 
 msgid "Affero General Public License v1 or later"
@@ -8992,6 +8974,127 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid "Invalid confirmation hash"
+#~ msgstr "Неправильный код подтверждения"
+
+#~ msgid "Password"
+#~ msgstr "Пароль"
+
+#~ msgid "Comments via email"
+#~ msgstr "Комментарии по электронной почте"
+
+#~ msgid "Include data for commenting via email"
+#~ msgstr "Добавлять данные для комментариев по электронной почте"
+
+#~ msgid ""
+#~ "Savane supports commenting on trackers through email.  In order to\n"
+#~ "facilitate that, it adds specific information in the footer\n"
+#~ "of the message and in email headers.  Clear this checkbox if you\n"
+#~ "want emails without that data."
+#~ msgstr ""
+#~ "Savane поддерживает комментирование по электрнной почте. Для этого\n"
+#~ "программа вписывает специальные данные в нижнюю часть сообщения\n"
+#~ "и в заголовки электронной почты. Сбростье этот флажок, чтобы\n"
+#~ "получать уведомления без этих данных."
+
+#~ msgid "tracker"
+#~ msgstr "журнал"
+
+#~ msgid "item_id"
+#~ msgstr "номер_заявки"
+
+#, php-format
+#~ msgid "Note that %s admins have not configured this feature."
+#~ msgstr "Замечание. Администраторы сайта %s не сконфигурировали эту функцию."
+
+#, php-format
+#~ msgid ""
+#~ "Note that your email will be posted on the tracker *only if*\n"
+#~ "* it is sent to %s, *and*\n"
+#~ "* it is signed with [//%s your GPG key] registered in your %s account, "
+#~ "*and*\n"
+#~ "* the specific information isn't removed from the footer."
+#~ msgstr ""
+#~ "Замечание. Ваше сообщение будет добавлено в журнал, *только если*\n"
+#~ "выполнены все следующие условия:\n"
+#~ "* оно отправлено по адресу %s;\n"
+#~ "* оно подписано [//%s вашим ключом GPG], зарегистрированным в вашей "
+#~ "учетной записи %s;\n"
+#~ "* специальные данные не удалены из нижней части сообщения."
+
+#~ msgid "This confirmation hash is included in DB more than once."
+#~ msgstr "Этот код подтверждения содержится в базе данных более одного раза."
+
+#~ msgid "Account deletion process discarded."
+#~ msgstr "Процесс удаления учетной записи прерван."
+
+#~ msgid "New password / passphrase:"
+#~ msgstr "Новая фраза-пароль:"
+
+#~ msgid "Re-type new password:"
+#~ msgstr "Повторите новую фразу-пароль:"
+
+#, php-format
+#~ msgid "Unknown user settings item (%s)"
+#~ msgstr "Неизвестный элемент настроек пользователя (%s)"
+
+#~ msgid "Login Name"
+#~ msgstr "Имя учетной записи"
+
+#~ msgid "Password / passphrase:"
+#~ msgstr "Фраза-пароль:"
+
+#~ msgid "Re-type Password:"
+#~ msgstr "Пароль (повтор):"
+
+#~ msgid "Real Name:"
+#~ msgstr "Полное имя:"
+
+#~ msgid "Real Name updated."
+#~ msgstr "Полное имя обновлено."
+
+#~ msgid "Unable to understand what to do, parameters are probably missing"
+#~ msgstr "Неясно, что делать, возможно, не хватает параметров"
+
+#~ msgid "New Real Name:"
+#~ msgstr "Новое полное имя:"
+
+#, php-format
+#~ msgid "Follows the Profile of %s."
+#~ msgstr "Далее представлены данные пользователя %s."
+
+#~ msgid "Group Information"
+#~ msgstr "Сведения о группах"
+
+#~ msgid "Posting ID not found"
+#~ msgstr "Идентификатор публикации не найден"
+
+#~ msgid "No Such Posting For This Project"
+#~ msgstr "Такого сообщения для данного проекта нет"
+
+#~ msgid "This account does not exist"
+#~ msgstr "Такой учетной записи нет"
+
+#~ msgid "This confirmation hash exists more than once."
+#~ msgstr "Этот код подтверждения продублирован."
+
+#~ msgid "Failed to update the database"
+#~ msgstr "Не удалось обновить базу данных"
+
+#~ msgid "Include the next line when replying by email."
+#~ msgstr ""
+#~ "При ответе по электронной почте включите следующую строку в сообщение."
+
+#~ msgid "Name of the Query Form:"
+#~ msgstr "Название формы запроса:"
+
+#, php-format
+#~ msgid "Project Main Page at %s"
+#~ msgstr "Главная страница проекта на сайте %s"
+
+#~ msgid "Savane In Depth Guide"
+#~ msgstr "Руководство по Саванне"
 
 #~ msgid "You must supply a real name."
 #~ msgstr "Нужно ввести полное имя."
