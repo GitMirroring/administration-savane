@@ -46,13 +46,23 @@ require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 extract (sane_import ('request', ['digits' => 'report_id']));
 extract (sane_import ('get', ['true' => ['show_report', 'new_report']]));
+if (!$group_id)
+  exit_no_group ();
+
+if (!user_isloggedin ())
+  exit_permission_denied ();
+
+$is_admin = user_ismember ($group_id, MEMBER_FLAGS_ADMIN);
+$editable_reports = trackers_data_get_editable_reports ($group_id, $is_admin);
+$reports_updated = false;
+
 $names = [];
-$submits = [
-  'post_changes', 'set_default', 'create_report', 'update_report',
-  'delete_report'
-];
+$submits = ['post_changes', 'create_report', 'update_report','delete_report'];
+if ($is_admin)
+  $submits[] = 'set_default';
 $names['true'] = $submits;
 $names['specialchars'] = ['rep_name', 'rep_desc'];
+$names['strings'] = [['rep_scope', scopes_sanitized ($is_admin, $group_id)]];
 
 $prefices = ['TFSRCH', 'TFREP', 'TFCW', 'CBSRCH', 'CBREP'];
 $suffices = [
@@ -80,49 +90,50 @@ foreach ($prefices as $pref)
 
 extract (sane_import ('post', $names));
 form_check ($submits);
-# HELP: what we call now "query form" was previously called "report",
+# Historical note: what we call "query form" was previously called "report",
 # that name is still in the database.
-
-if (!$group_id)
-  exit_no_group ();
-
-if (!user_ismember ($group_id, MEMBER_FLAGS_ADMIN))
-  exit_permission_denied ();
 
 # Initialize global bug structures.
 trackers_init ($group_id);
 
-$group_scope = 'P';
-if ($group_id == GROUP_NONE)
-  $group_scope = 'S';
-
 function rep_label ($suff, $label)
 {
   return "<span class='preinput'>" . html_label ("rep_$suff", $label)
-    . "</span><br />\n";
+    . "</span>&nbsp;";
 }
 
-function rep_name_input ($val)
+function rep_scope_input ($scope = null)
 {
-  return '<p>' . rep_label ('name', _("Name:"))
-    . form_input ('text', 'rep_name', $val, "size='20' maxlength='20'")
+  global $is_admin, $group_id;
+  if ($scope === null)
+    $scope = scopes_sanitized ($is_admin, $group_id) ['default'];
+  $vals = scopes_available ($is_admin, $group_id);
+  $label = rep_label ('scope', _("Scope:"));
+  if (count ($vals) > 1)
+    {
+      $texts = [];
+      foreach ($vals as $v)
+        $texts[] = scope_label ($v);
+      $ret = html_build_select_box_from_arrays (
+        $vals, $texts, 'rep_scope', $scope, false
+      );
+    }
+  else
+    $ret = scope_label ($scope) . form_hidden (['rep_scope' => $scope]);
+  return "<p>$label&nbsp;$ret</p>\n";
+}
+
+function print_rep_header ($name, $desc, $scope = null)
+{
+  $name = utils_specialchars_decode ($name, ENT_QUOTES);
+  $desc = utils_specialchars_decode ($desc, ENT_QUOTES);
+  print '<p>' . rep_label ('name', _("Name:"))
+    . form_input ('text', 'rep_name', $name, "size='20' maxlength='20'")
     . "</p>\n";
-}
-
-function rep_desc_input ($val)
-{
-  return '<p>' . rep_label ('desc', _("Description:"))
-    . form_input ('text', 'rep_desc', $val, "size='50' maxlength='120'")
+  print rep_scope_input ($scope);
+  print '<p>' . rep_label ('desc', _("Description:"))
+    . form_input ('text', 'rep_desc', $desc, "size='50' maxlength='120'")
     . "</p>\n";
-}
-
-function print_rep_header ($name, $desc)
-{
-  global $group_scope;
-  print rep_name_input ($name);
-  print "<p><span class='preinput'>" . _("Scope:") . "</span><br />\n"
-    . scope_label ($group_scope) . "</p>\n";
-  print rep_desc_input ($name);
 }
 
 function print_field_use_as_output ($field, $td)
@@ -173,14 +184,199 @@ function print_field ($i, $field)
     . "</td>\n</tr>\n";
 }
 
+function scope_list ()
+{
+  return ['P' => _('Group'), 'S' => _('System'), 'I' => _('Personal')];
+}
+
+function scopes_available ($is_admin, $group_id)
+{
+  if ($group_id == GROUP_NONE)
+    return ['S'];
+  $ret = ['I'];
+  if ($is_admin)
+    $ret[] = 'P';
+  return $ret;
+}
+
+function scopes_sanitized ($is_admin, $group_id)
+{
+  $ret = scopes_available ($is_admin, $group_id);
+  $d = array_pop ($ret);
+  $ret['default'] = $d;
+  return $ret;
+}
+
 function scope_label ($s)
 {
-  $scopes = [
-    'P' => _('Group'), 'S' => _('System'), 'I' => 'Personal', 'i' => 'Personal'
-  ];
+  $s = strtoupper ($s);
+  $scopes = scope_list ();
   if (array_key_exists ($s, $scopes))
     return $scopes[$s];
   return "[$s]";
+}
+
+function print_default_query_input ()
+{
+  global $group_id, $def_query, $is_admin;
+  if ($group_id == GROUP_NONE || !$is_admin)
+    return;
+  print form_tag (["name" => 'default_query'])
+    . form_hidden (["group_id" => $group_id, "set_default" => "y"]);
+
+  # The default query form is selected from the form queries available
+  # for anonumous users.
+  $res_report = trackers_data_get_reports ($group_id, 0);
+  $form_query_type = html_build_select_box (
+    $res_report, 'report_id', $def_query, true, _('Basic'), false, 'Any',
+    false, _('query form')
+  );
+
+  printf (
+    _("Browse with the %s query form by default.") . "\n",
+    $form_query_type
+  );
+  print '<input class="bold" value="' . _("Apply")
+    . "\" name='go_report' type='submit' />\n</form>\n";
+}
+
+function delete_report ($report_id)
+{
+  global $editable_reports, $rep_name, $group_id, $reports_updated;
+  if (empty ($editable_reports[$report_id]))
+    return;
+  $reports_updated = true;
+  $a = ARTIFACT;
+
+  group_add_history (
+   'Deleted query form', "$a, form #$report_id \"$rep_name\"", $group_id
+  );
+  db_execute  ("DELETE FROM {$a}_report WHERE report_id = ?", [$report_id]);
+  db_execute (
+    "DELETE FROM {$a}_report_field WHERE report_id = ?", [$report_id]
+  );
+}
+
+function create_report ()
+{
+  global $group_id, $rep_name, $rep_desc, $rep_scope, $is_admin;
+  global $reports_updated;
+  if (!in_array ($rep_scope, scopes_available ($is_admin, $group_id)))
+    return null;
+  $reports_updated = true;
+  $res = db_autoexecute (
+    ARTIFACT . '_report',
+    [
+      'group_id' => $group_id, 'user_id' => user_getid (),
+      'name' => $rep_name, 'description' => $rep_desc,
+      'scope' => $rep_scope
+    ],
+    DB_AUTOQUERY_INSERT
+  );
+  return db_insertid ($res);
+}
+
+function pre_update_report ()
+{
+  global $editable_reports, $rep_name, $rep_scope, $rep_desc, $report_id;
+  global $reports_updated;
+  if (empty ($editable_reports[$report_id]))
+    return null;
+  $reports_updated = true;
+  $res = db_execute ("
+    DELETE FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
+    [$report_id]
+  );
+  $res = db_autoexecute (
+    ARTIFACT . '_report',
+    [
+      'name' => $rep_name, 'description' => $rep_desc,
+      'scope' => $rep_scope
+    ],
+    DB_AUTOQUERY_UPDATE, "report_id = ?", [$report_id]
+  );
+  return $report_id;
+}
+
+function update_res_msg ($res)
+{
+  global $create_report;
+  if ($res)
+    {
+      if ($create_report)
+        return [_("Query form '%s' created successfully"), 0];
+      return [_("Query form '%s' updated successfully"), 0];
+    }
+  if ($create_report)
+    return [_("Failed to create query form '%s'"), 1];
+  return [_("Failed to update query form '%s'"), 1];
+}
+
+function report_update_result ($res, $rep_name)
+{
+  $fb_name = utils_specialchars_decode ($rep_name, ENT_QUOTES);
+  list ($msg, $err) = update_res_msg ($res);
+  fb (sprintf ($msg, $fb_name), $err);
+}
+
+function report_update_field_params ($report_id, $field)
+{
+  if ($field == 'group_id' || $field == 'comment_type_id')
+    return null;
+
+  $cb_search = "CBSRCH_$field";
+  $cb_report = "CBREP_$field";
+  $tf_search = "TFSRCH_$field";
+  $tf_report = "TFREP_$field";
+  $tf_colwidth = "TFCW_$field";
+
+  if (!
+    ($GLOBALS[$cb_search] || $GLOBALS[$cb_report]
+      || $GLOBALS[$tf_search] || $GLOBALS[$tf_report])
+  )
+    return null;
+  $cb_search_val = ($GLOBALS[$cb_search]? 1: 0);
+  $cb_report_val = ($GLOBALS[$cb_report]? 1: 0);
+  $tf_search_val = ($GLOBALS[$tf_search]? $GLOBALS[$tf_search]: null);
+  $tf_report_val = ($GLOBALS[$tf_report]? $GLOBALS[$tf_report]: null);
+
+  $tf_colwidth_val = null;
+  if (!empty ($GLOBALS[$tf_colwidth]))
+    $tf_colwidth_val = $GLOBALS[$tf_colwidth];
+  return [$report_id, $field, $cb_search_val, $cb_report_val,
+      $tf_search_val, $tf_report_val, $tf_colwidth_val
+  ];
+}
+
+function report_update_params ($report_id)
+{
+  $cnt = 0;
+  $params = [];
+  while ($field = trackers_list_all_fields ())
+    {
+      $fp = report_update_field_params ($report_id, $field);
+      if ($fp === null)
+        continue;
+      $cnt++;
+      $params = array_merge ($params, $fp);
+    }
+  return [utils_str_join (",\n", '(?, ?, ?, ?, ?, ?, ?)', $cnt), $params];
+}
+
+function update_fields ($report_id, $rep_name)
+{
+  if ($report_id === null)
+    return;
+  $sql = '
+    INSERT INTO ' . ARTIFACT . '_report_field
+      (
+        report_id, field_name, show_on_query, show_on_result, place_query,
+        place_result, col_width
+      )
+     VALUES ';
+  list ($sql_tail, $params) = report_update_params ($report_id);
+  $res = db_execute ("$sql$sql_tail", $params);
+  report_update_result ($res, $rep_name);
 }
 
 $def_query = group_get_preference ($group_id, ARTIFACT . "_default_query");
@@ -199,113 +395,13 @@ if ($set_default)
 if ($post_changes)
   {
     if ($update_report)
-      {
-        # Update report name and description and delete old report entries.
-        $res = db_execute ("
-          DELETE FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
-          [$report_id]
-        );
-        $res = db_autoexecute (
-          ARTIFACT . '_report',
-          [
-            'name' => $rep_name, 'description' => $rep_desc,
-            'scope' => $group_scope
-          ],
-          DB_AUTOQUERY_UPDATE, "report_id = ?", [$report_id]
-        );
-      }
+      $report_id = pre_update_report ();
     elseif ($create_report)
-      {
-        # Create a new report entry.
-        $res = db_autoexecute (
-          ARTIFACT . '_report',
-          [
-            'group_id' => $group_id, 'user_id' => user_getid (),
-            'name' => $rep_name, 'description' => $rep_desc,
-            'scope' => $group_scope
-          ],
-          DB_AUTOQUERY_INSERT
-        );
-        $report_id = db_insertid ($res);
-      }
-
-    # And now insert all the field entries in the trackers_report_field table.
-    $sql = '
-      INSERT INTO ' . ARTIFACT . '_report_field
-        (
-          report_id, field_name, show_on_query, show_on_result, place_query,
-          place_result, col_width
-        )
-       VALUES ';
-    $params = [];
-    while ($field = trackers_list_all_fields ())
-      {
-        if ($field == 'group_id' || $field == 'comment_type_id')
-          continue;
-
-        $cb_search = "CBSRCH_$field";
-        $cb_report = "CBREP_$field";
-        $tf_search = "TFSRCH_$field";
-        $tf_report = "TFREP_$field";
-        $tf_colwidth = "TFCW_$field";
-
-        if ($$cb_search || $$cb_report || $$tf_search || $$tf_report)
-          {
-            $cb_search_val = ($$cb_search? 1: 0);
-            $cb_report_val = ($$cb_report? 1: 0);
-            $tf_search_val = ($$tf_search? $$tf_search: null);
-            $tf_report_val = ($$tf_report? $$tf_report: null);
-
-            $tf_colwidth_val = null;
-            if (
-              array_key_exists ($tf_colwidth, get_defined_vars ())
-              && $$tf_colwidth
-            )
-              $tf_colwidth_val = $$tf_colwidth;
-            $sql .= "(?, ?, ?, ?, ?, ?, ?),";
-            $params = array_merge (
-              $params,
-              [
-                $report_id, $field, $cb_search_val, $cb_report_val,
-                $tf_search_val, $tf_report_val, $tf_colwidth_val
-              ]
-            );
-          }
-      }
-    $sql = substr ($sql, 0, -1);
-
-    $res = db_execute ($sql, $params);
-    $fb_name = utils_specialchars_decode ($rep_name, ENT_QUOTES);
-    if ($res)
-      {
-        if ($create_report)
-          fb (sprintf (_("Query form '%s' created successfully"), $fb_name));
-        else
-          fb (sprintf (_("Query form '%s' updated successfully"), $fb_name));
-      }
-    else
-      {
-        if ($create_report)
-          fb (sprintf (_("Failed to create query form '%s'"), $fb_name), 1);
-        else
-          fb (sprintf (_("Failed to update query form '%s'"), $fb_name), 1);
-      }
+      $report_id = create_report ();
+    update_fields ($report_id, $rep_name);
   } # if ($post_changes)
 elseif ($delete_report)
-  {
-    group_add_history (
-     'Deleted query form', ARTIFACT . ", form \"$rep_name\"", $group_id
-    );
-
-    db_execute  (
-      "DELETE FROM " . ARTIFACT . "_report WHERE report_id = ?",
-      [$report_id]
-    );
-    db_execute (
-      "DELETE FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
-      [$report_id]
-    );
-  }
+  delete_report ($report_id);
 
 $title_arr = [
   _("Field Label"), _("Description"), _("Use as a Search Criterion"),
@@ -406,7 +502,7 @@ if ($show_report)
           "report_id" => $report_id, "post_changes" => "y"
         ]);
     $row = db_fetch_array ($res);
-    print_rep_header ($row['name'], $row['description']);
+    print_rep_header ($row['name'], $row['description'], $row['scope']);
 
     print html_build_list_table_top ($title_arr);
     $i = 0;
@@ -461,33 +557,11 @@ if ($show_report)
   } # if ($show_report)
 
 trackers_header_admin (['title' => _("Edit Query Forms")]);
+print_default_query_input ();
+if ($reports_updated)
+  $editable_reports = trackers_data_get_editable_reports ($group_id, $is_admin);
 
-print form_tag (["name" => 'default_query'])
-  . form_hidden (["group_id" => $group_id, "set_default" => "y"]);
-
-$res_report = trackers_data_get_reports ($group_id, user_getid ());
-$form_query_type = html_build_select_box (
-  $res_report, 'report_id', $def_query, true, _('Basic'), false, 'Any', false,
-  _('query form')
-);
-
-if ($group_id != GROUP_NONE)
-  {
-    printf (
-      _("Browse with the %s query form by default.") . "\n",
-      $form_query_type
-    );
-    print '<input class="bold" value="' . _("Apply")
-      . "\" name='go_report' type='submit' />\n</form>\n";
-  }
-
-$res = db_execute ("
-  SELECT * FROM " . ARTIFACT . "_report
-  WHERE group_id = ? AND (user_id = ? OR scope = ?)",
-  [$group_id, user_getid (), $group_scope]
-);
-
-if (db_numrows ($res))
+if (count ($editable_reports))
   {
     print html_h (2, _("Existing Query Forms"));
     print
@@ -498,7 +572,7 @@ if (db_numrows ($res))
         ]
       );
     $i = 0;
-    while ($arr = db_fetch_array ($res))
+    foreach ($editable_reports as $arr)
       {
         print '<tr class="' . utils_altrow ($i++) . '"><td>';
 

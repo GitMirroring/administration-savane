@@ -695,6 +695,14 @@ function pagemenu_group_trackers_links ($tracker, $write_access, $export)
     $ret .= pagemenu_group_trackers_entries ($tracker, $write_access, $export);
   return $ret;
 }
+function pagemenu_group_trackers_editquery ()
+{
+  return [
+    _("Edit query forms"), "editqueryforms.php", 1,
+    _("Define query forms: what search criteria to use "
+      . "and what item\nfields to show in the query form table"), 1
+  ];
+}
 
 function pagemenu_group_trackers_admin_entries ()
 {
@@ -709,11 +717,7 @@ function pagemenu_group_trackers_admin_entries ()
     _("Define the set of possible values for the fields you have "
       . "decided to use in\nthis tracker"), 0
   ];
-  $ret[] = [
-    _("Edit query forms"), "editqueryforms.php", 1,
-    _("Define query forms: what search criteria to use "
-      . "and what item\nfields to show in the query form table"), 1
-  ];
+  $ret[] = pagemenu_group_trackers_editquery ();
   $ret[] = [
     _("Set&nbsp;permissions"), "userperms.php", 1,
     _("Define posting restrictions"), 0
@@ -755,8 +759,14 @@ function pagemenu_group_trackers ($tracker)
   $export_check = member_check (0, $group_id);
   $ret = pagemenu_group_trackers_links ($tracker, $write_access, $export_check);
   if (!$is_admin)
-    return $ret;
-
+    {
+      $e = pagemenu_group_trackers_editquery ();
+      if (user_isloggedin ())
+        $ret .= pagemenu_submenu_entry (
+          $e[0], "$root/admin/{$e[1]}$gr_n", $e[2], $e[3]
+        );
+      return $ret;
+    }
   $ret .= pagemenu_group_trackers_admin_links ($root, $gr_n);
   return $ret;
 }

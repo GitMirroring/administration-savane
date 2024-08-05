@@ -53,6 +53,8 @@
 
 * A means to edit system-wide query forms is added.
 
+* Personal query forms are enabled.
+
 * Bug fixes:
 
 ** microtime-based timestamps were wrong.

@@ -2180,23 +2180,49 @@ function trackers_data_get_canned_responses ($group_id)
   );
 }
 
-function trackers_data_get_reports ($group_id, $user_id = 100)
+function trackers_data_get_reports ($group_id, $user_id)
 {
-  # Currently, reports are group based.
-  # Print first system reports.
-
-  # OUTDATED: currently personal query forms are deactivated in the code
-  # If user is unknown then get only group-wide and system wide reports
-  # else get personal reports in addition  group-wide and system wide.
-
-  $system_scope = 'S';
-
+  $system_scope = 'S'; $group_scope = 'P'; $personal_scope = 'I';
   $sql = "
     SELECT report_id, name FROM " . ARTIFACT . "_report
-    WHERE (group_id = ? AND scope = 'P') OR scope = ?
-    ORDER BY scope DESC, report_id ASC";
+    WHERE
+      (group_id = ? AND scope = ?) OR scope = ?";
+  $params = [$group_id, $group_scope, $system_scope];
+  if ($user_id)
+    {
+      $sql .= "\n      OR (user_id = ? AND group_id = ? AND scope = ?)";
+      array_push ($params, $user_id, $group_id, $personal_scope);
+    }
 
-  return db_execute ($sql, [$group_id, $system_scope]);
+  # List system-wide queries first, then group-defined queries,
+  # and at last personal ones.
+  $sql .= "\n    ORDER BY scope DESC, report_id ASC";
+
+  return db_execute ($sql, $params);
+}
+
+function trackers_data_report_is_editable ($row, $uid, $is_admin)
+{
+  $scope = strtoupper ($row['scope']);
+  if ($scope == 'S' && user_is_super_user ())
+    return true;
+  if ($scope == 'I' && $uid == $row['user_id'])
+    return true;
+  return $scope == 'P' && $is_admin;
+}
+
+function trackers_data_get_editable_reports ($group_id, $is_admin)
+{
+  $user_id = user_getid ();
+  $res = db_execute ("
+    SELECT * FROM " . ARTIFACT . "_report WHERE group_id = ? OR user_id = ?
+    ORDER BY report_id", [$group_id, $user_id]
+  );
+  $ret = [];
+  while ($row = db_fetch_array ($res))
+     if (trackers_data_report_is_editable ($row, $user_id, $is_admin))
+       $ret[$row['report_id']] = $row;
+  return $ret;
 }
 
 function trackers_data_get_notification ($user_id)
