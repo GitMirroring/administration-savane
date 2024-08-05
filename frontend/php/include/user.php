@@ -500,12 +500,36 @@ function user_has_history ($user_id)
   return db_numrows ($result) > 0;
 }
 
+# Delete personal query forms.
+function user_delete_query_forms ($user_id, $art)
+{
+  $res = db_execute (
+    "SELECT report_id FROM {$art}_report WHERE scope = ? AND user_id = ?",
+    ['I', $user_id]
+  );
+  $report_ids = [];
+  while ($row = db_fetch_array ($res))
+    $report_ids[] = $row['report_id'];
+  if (empty ($report_ids))
+    return;
+  db_execute ("
+    DELETE FROM {$art}_report
+    WHERE report_id " . utils_in_placeholders ($report_ids), $report_ids
+  );
+  db_execute ("
+    DELETE FROM {$art}_report_field
+    WHERE report_id " . utils_in_placeholders ($report_ids), $report_ids
+  );
+}
+
 # Delete user's data that are not stored in the 'user' table.
 function user_delete_aux_data ($user_id)
 {
   foreach (['user_group', 'user_squad', 'user_bookmarks', 'user_preferences',
     'user_votes', 'session'] as $table)
     db_execute ("DELETE FROM $table WHERE user_id = ?", [$user_id]);
+  foreach (utils_get_tracker_list () as $a)
+    user_delete_query_forms ($user_id, $a);
 }
 
 # Completely remove account from the database; should only be done

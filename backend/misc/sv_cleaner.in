@@ -166,6 +166,24 @@ my @user_tables = (
   "user_bookmarks", "user_preferences", "user_votes", "session"
 );
 
+sub purge_query_forms
+{
+  my ($id, $tracker) = @_;
+  my $params;
+  my @report_ids;
+  foreach my $line (
+    GetDB ($tracker . "_report", "scope = 'I' AND user_id = $id", 'report_id')
+  )
+    {
+      chomp ($line);
+      push (@report_ids, $line);
+    }
+  return if ($#report_ids < 0);
+  $params = join (", ", @report_ids);
+  delete_and_log ($tracker . "_report", "report_id IN ($params)");
+  delete_and_log ($tracker . "_report_field", "report_id IN ($params)");
+}
+
 sub purge_account_aux_data
 {
   my ($id) = @_;
@@ -173,6 +191,7 @@ sub purge_account_aux_data
     {
       delete_and_log ($t, "user_id = $id", "#$id $t");
     }
+  purge_query_forms ($id, $_) foreach (@trackers);
 }
 
 sub purge_account
@@ -379,7 +398,7 @@ foreach my $tracker (@trackers)
     my @items_to_delete;
 
     # Find items to delete in tracker-specific tables.
-    foreach my $line (GetDB ($tracker, "1", "bug_id,group_id"))
+    foreach my $line (GetDB ($tracker, "1", "bug_id, group_id"))
       {
         chomp ($line);
         my ($item_id, $group_id) = split (",", $line);
