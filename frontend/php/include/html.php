@@ -410,11 +410,10 @@ function html_title_attr ($title)
   return "title=\"$title\" ";
 }
 
-# Build a select box from arrays, with the first array being the "id"
-# or value and the array being the text you want displayed.
-#
+# Build a select box from list, the value is the text displayed,
+# the index in the list is 'id' unless the fourth parameter is non-zero,
+# in which case the value is also used as 'id'.
 # The second parameter is the name you want assigned to this form element.
-#
 # The third parameter is the value of the item that should be checked.
 function html_build_select_box_from_array (
   $vals, $select_name, $checked_val = 'xzxz', $samevals = 0, $title = ""
