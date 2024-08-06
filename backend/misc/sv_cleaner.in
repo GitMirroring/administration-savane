@@ -350,6 +350,24 @@ sub clean_idle_accounts
       clean_account ($user, $t0, $t1);
     }
 }
+
+sub clean_tracker_item
+{
+  my ($tracker, $item) = @_;
+  my $cond = "bug_id = '$item'";
+  delete_and_log ($_, $cond, "$_ entries of $tracker #$item")
+    foreach ($tracker, $tracker . '_cc', $tracker . '_history');
+  my $tbl = $tracker . "_dependencies";
+  delete_and_log ($tbl,
+    "item_id = '$item' OR (is_dependent_on_item_id = '$item' "
+    . "AND is_dependent_on_item_id_artifact = '$tracker')",
+    "$tbl entries of $tracker #$item"
+  );
+  delete_and_log ('trackers_file',
+    "artifact = '$tracker' AND item_id = '$item'", "files of $tracker #$item"
+  );
+}
+
 clean_idle_accounts;
 
 sub finish_work
@@ -409,23 +427,7 @@ foreach my $tracker (@trackers)
           "- deleted $tracker #$item_id from dead group #$group_id"
         );
       }
-
-    next if $dry_run;
-    # Now do the cleanup on trackers.
-    foreach my $item (@items_to_delete)
-      {
-        # Clean tables that are tracker-specific.
-        DeleteDB ($tracker, "bug_id = '$item'");
-        DeleteDB ($tracker . "_cc", "bug_id = '$item'");
-        DeleteDB ($tracker . "_history", "bug_id = '$item'");
-        DeleteDB ($tracker . "_dependencies",
-          "item_id = '$item' OR (is_dependent_on_item_id = '$item' "
-          . "AND is_dependent_on_item_id_artifact = '$tracker')");
-
-        # Clean tables that are common to all trackers.
-        DeleteDB ("trackers_file",
-          "artifact = '$tracker' AND item_id = '$item'");
-      }
+    clean_tracker_item ($tracker, $_) foreach (@items_to_delete);
   } # foreach my $tracker (@trackers)
 
 # Now look in others tables to find if there was entries of deleted
@@ -488,10 +490,10 @@ foreach my $group_id (@dead_group_id)
     print_log (
       "- delete anything else that belong in dead group #$group_id"
     );
-    next if $dry_run;
     foreach my $table (@table_list)
       {
-        DeleteDB ($table, "group_id = '$group_id'");
+        delete_and_log ($table, "group_id = '$group_id'",
+          "$table entries of group #$group_id");
       }
   } # foreach my $group_id (@dead_group_id)
 

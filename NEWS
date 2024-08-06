@@ -122,6 +122,8 @@
 
 * In sv_cleaner, personal query forms of removed users are cleaned.
 
+* In sv_cleaner, logs are made more detailed.
+
 * New script, sv_gen_passwd_group.
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
