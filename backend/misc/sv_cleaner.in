@@ -368,15 +368,11 @@ sub clean_tracker_item
   );
 }
 
-clean_idle_accounts;
-
 sub finish_work
 {
   finalize_log ();
   exit 0;
 }
-
-finish_work () unless ($big_cleanup);
 
 sub delete_news
 {
@@ -392,7 +388,10 @@ sub cleanup_news
   delete_news ("news unapproved for a year", 374, 5);
   delete_news ("news removed more than a month ago", 34, 4);
 }
-cleanup_news;
+
+clean_idle_accounts ();
+finish_work () unless ($big_cleanup);
+cleanup_news ();
 
 # Remove items from groups that no longer exists in the database.
 # When a group is deleted, its items no longer make sense.
@@ -400,28 +399,31 @@ cleanup_news;
 # It will also make sure that no configuration remains, or user associated
 # with the group.
 
-# First build an hash of valid group_id. We take as valid any group_id
-# actually in the database. We want to remove items only if the group
-# no longer exists in the database.
-my @group_ids = GetGroupList ("1", "group_id");
-my %group_exists;
-for (@group_ids)
-  {
-    $group_exists{$_} = 1;
-  }
+sub dead_group_table
+{
+  my $table = shift;
+  return "$table a LEFT JOIN groups g ON g.group_id = a.group_id";
+}
+
+sub dead_group_criterion
+{
+  # "OR g.status = 'D'" is added for more realistic dry runs.
+  return "g.group_id IS NULL OR g.status = 'D'";
+}
 
 # Browse each tracker item to found out if there are items to trash.
 foreach my $tracker (@trackers)
   {
     my @items_to_delete;
+    my $table = dead_group_table ($tracker);
+    my $crit = dead_group_criterion ();
 
     # Find items to delete in tracker-specific tables.
-    foreach my $line (GetDB ($tracker, "1", "bug_id, group_id"))
+    foreach my $line (GetDB ($table, $crit, "bug_id, a.group_id"))
       {
         chomp ($line);
         my ($item_id, $group_id) = split (",", $line);
 
-        next if $group_exists{$group_id};
         push (@items_to_delete, $item_id);
         print_log (
           "- deleted $tracker #$item_id from dead group #$group_id"
@@ -444,24 +446,20 @@ my @tables = ("user_group", "groups_default_permissions", "group_preferences",
 # Find group ids of orphan items in table $_[0].
 sub mark_dead_groups
 {
-  my $table = shift;
-  foreach my $line (GetDB ($table, "1", "group_id"))
+  my $tbl = shift;
+  my $table = dead_group_table ($tbl);
+  my $crit = dead_group_criterion ();
+  foreach my $group_id (GetDB ($table, $crit, "DISTINCT a.group_id"))
     {
-      chomp ($line);
-      my ($group_id) = split (",", $line);
-
-      next if $group_exists{$group_id};
+      chomp ($group_id);
       next if $dead_group_id_already_found{$group_id};
-
+      print_log ("- found dead group #$group_id in $tbl") if ($verbose > 1);
       push (@dead_group_id, $group_id);
       $dead_group_id_already_found{$group_id} = 1;
     }
 }
 
-foreach my $table (@tables)
-  {
-    mark_dead_groups ($table);
-  }
+mark_dead_groups ($_) foreach (@tables);
 
 my @suffices = ("_report", "_field_usage", "_field_value");
 # Find entries to delete in trackers query forms (don't bother removing
@@ -470,18 +468,12 @@ my @suffices = ("_report", "_field_usage", "_field_value");
 # Do exactly the same for group field values.
 foreach my $tracker (@trackers)
   {
-    foreach my $suf (@suffices)
-      {
-        mark_dead_groups ("$tracker$suf");
-      }
+    mark_dead_groups ("$tracker$_") foreach (@suffices);
   }
 my @table_list = @tables;
 foreach my $tracker (@trackers)
   {
-    foreach my $suf (@suffices)
-      {
-        push (@table_list, "$tracker$suf");
-      }
+    push (@table_list, "$tracker$_") foreach (@suffices);
   }
 
 foreach my $group_id (@dead_group_id)
@@ -502,10 +494,9 @@ foreach my $table (@user_tables)
     my @res = GetDB ("$table p LEFT JOIN user u ON p.user_id = u.user_id",
       "u.user_id IS NULL OR u.status = 'S' GROUP BY p.user_id", "p.user_id"
     );
-    foreach my $line (@res)
+    foreach my $uid (@res)
       {
-        chomp ($line);
-        my ($uid) = split (",", $line);
+        chomp ($uid);
         delete_and_log ($table, "user_id = $uid", "#$uid orphan $table");
       }
   }

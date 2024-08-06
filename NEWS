@@ -124,6 +124,9 @@
 
 * In sv_cleaner, logs are made more detailed.
 
+* In sv_cleaner, data amount in a few queries is reduced using
+  more restrictive conditions.
+
 * New script, sv_gen_passwd_group.
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
