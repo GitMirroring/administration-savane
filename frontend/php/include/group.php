@@ -85,25 +85,38 @@ class Group extends savane_error
   function __construct ($id)
   {
     parent::__construct ();
+    if ($this->init_group_data ($id))
+      return;
+    $this->init_type_data ();
+  }
+
+  function init_type_data ()
+  {
+    $type = $this->data_array['type'];
+    $this->type_id = $type;
+    $this->db_type_result =
+      db_execute ("SELECT * FROM group_type WHERE type_id = ?", [$type]);
+    if (db_numrows ($this->db_type_result) >= 1)
+      $this->type_data_array = db_fetch_array ($this->db_type_result);
+  }
+
+  function init_group_data ($id)
+  {
     $this->group_id = $id;
     $this->db_result =
       db_execute ("SELECT * FROM groups WHERE group_id = ?", [$id]);
     $this->type_data_array = $this->data_array = [];
     if (db_numrows ($this->db_result) < 1)
       {
-        # Function in class we extended.
         $this->setError ('Group Not Found');
-        return;
+        return true;
       }
-   # Set up an associative array for use by other functions.
-   $this->data_array = db_fetch_array ($this->db_result);
-   # Find group_type information.
-   $type = $this->data_array['type'];
-   $this->type_id = $type;
-   $this->db_type_result =
-     db_execute ("SELECT * FROM group_type WHERE type_id = ?", [$type]);
-   if (db_numrows ($this->db_type_result) >= 1)
-     $this->type_data_array = db_fetch_array ($this->db_type_result);
+    $data = db_fetch_array ($this->db_result);
+    $prefs = group_get_preference ($this->group_id, ['use_cookbook']);
+    foreach (array_merge ($prefs, $data) as $k => $v)
+      if (!is_int ($k))
+        $this->data_array[$k] = $v === NULL? '0': $v;
+    return false;
   }
 
   # Return database result handle for direct access.
@@ -169,6 +182,8 @@ class Group extends savane_error
 
   function CanUse ($artifact)
   {
+    if ($artifact == 'cookbook')
+      return true;
     # Tolerate "bugs" to say "bug" and "mail" to "mailing_list".
     if ($artifact == "bugs")
       $artifact = "bug";
@@ -840,18 +855,41 @@ function group_set_pref_array ($group_id, $prefs, $names)
   return $ret;
 }
 
-function group_set_preference ($group_id, $preference_name, $value)
+function group_set_preference_args ($name, $val)
+{
+  if ($val === null && is_array ($name))
+    {
+      $pref_names = $pref_vals = [];
+      foreach ($name as $k => $v)
+        {
+          $pref_names[] = $k;
+          $pref_vals[] = $v;
+        }
+    }
+  else
+    {
+      $pref_names = utils_make_arg_array ($name);
+      $pref_vals = utils_make_arg_array ($val);
+      if (count ($pref_names) != count ($pref_vals))
+        return null;
+    }
+  group_normalize_pref_name ($pref_names);
+  return array_combine ($pref_names, $pref_vals);
+}
+
+# $preference_name and $value can have three formats:
+# * both are scalars;
+# * both are lists;
+# * $preference_name is a key-to-value array and $value is null.
+function group_set_preference ($group_id, $preference_name, $value = null)
 {
   if (!user_ismember ($group_id, 'A'))
     return false;
 
-  $pref_names = utils_make_arg_array ($preference_name);
-  $pref_vals = utils_make_arg_array ($value);
-  if (count ($pref_names) != count ($pref_vals))
+  $prefs = group_set_preference_args ($preference_name, $value);
+  if ($prefs === null)
     return false;
-  $prefs = array_combine ($pref_names, $pref_vals);
-
-  group_normalize_pref_name ($pref_names);
+  $pref_names = array_keys ($prefs);
   $current = group_get_preference ($group_id, $pref_names);
   $to_update = $to_insert = [];
   foreach ($pref_names as $n)
