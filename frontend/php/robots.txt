@@ -86,3 +86,69 @@ Disallow: /*func=viewspam
 
 # Unofficial but delay crawlers that respect it.
 Crawl-delay: 4
+
+# Majestic - SEO
+User-agent: MJ12bot
+Disallow: /
+
+# DataForSeo - SEO
+User-agent: DataForSeoBot
+Disallow: /
+
+# webmeup - SEO
+User-agent: BLEXBot
+Disallow: /
+
+# Ahrefs - SEO
+User-agent: AhrefsBot
+Disallow: /
+
+# babbar - SEO
+User-agent: barkrowler
+Disallow: /
+
+# Screamingfrog - SEO
+User-agent: Screaming Frog SEO Spider
+Disallow: /
+
+# Seozoom - SEO
+User-Agent: ZoomBot
+Disallow: /
+
+# Brandwatch - SEO
+User-agent: magpie-crawler
+Disallow: /
+
+# Begin Moz - SEO
+# Not to be confused with Mozilla.
+User-agent: DotBot
+Disallow: /
+
+User-agent: rogerbot
+Disallow: /
+# End Moz - SEO
+
+# Begin Semrush - SEO
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: SiteAuditBot
+Disallow: /
+
+User-agent: SemrushBot-BA
+Disallow: /
+
+User-agent: SemrushBot-SI
+Disallow: /
+
+User-agent: SemrushBot-SWA
+Disallow: /
+
+User-agent: SplitSignalBot
+Disallow: /
+
+User-agent: SemrushBot-OCOB
+Disallow: /
+
+# End Semrush - SEO
