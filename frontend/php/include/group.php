@@ -56,18 +56,14 @@ define ('TRACKER_PERM_NOBODY', 6);
 
 define ('GROUP_NONE', 100);
 
-$PROJECT_OBJ = [];
-
 function group_get_object ($group_id)
 {
   # Create a common set of group objects,
   # save a little wear on the database.
-
-  global $PROJECT_OBJ;
-  $idx = "_{$group_id}_";
-  if (empty ($PROJECT_OBJ[$idx]))
-    $PROJECT_OBJ[$idx] = new Group ($group_id);
-  return $PROJECT_OBJ[$idx];
+  static $groups = [];
+  if (empty ($groups[$group_id]))
+    $groups[$group_id] = new Group ($group_id);
+  return $groups[$group_id];
 }
 
 function project_get_object ($group_id)
