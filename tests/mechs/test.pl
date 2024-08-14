@@ -74,7 +74,7 @@ do {
     $group1_status = GetGroupSettings($group1_system_name, 'status');
 } while (defined($group1_status));
 my $group1_full_name = "Test Group $group1_number";
-# Generate easily recognizeable name for Mechanize:
+# Generate easily recognizable name for Mechanize:
 $group1_full_name .= ' [' . md5_hex($group1_system_name) . ']';
 
 $agent->follow_link(text => 'Register New Project', n => '1');

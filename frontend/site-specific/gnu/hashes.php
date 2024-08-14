@@ -43,11 +43,6 @@
 # With this file, you can adapt the hashes used by your savannah.
 # For instance, you can modify here the set of license available.
 # Remove the license you do not want to be available for your user.
-#
-# In the future, this file will disappear: you'll just type the short names
-# of licenses availables for a type of project via the web interface.
-# Every informations about it will be directly part of Savannah code.
-
 
 # CAUTION: IT'S VERY IMPORTANT THAT NO HTML BLANK LINE APPEARS ON THIS
 # FILE.
@@ -88,8 +83,8 @@ $LICENSE_EN['perl'] =
   ('The license of Perl (disjunction of the Artistic License and the GNU GPL)');
 $LICENSE['perl'] =
   _('The license of Perl (disjunction of the Artistic License and the GNU GPL)');
-$LICENSE_EN['expat'] = ('Expat License (sometime refered to as MIT License)');
-$LICENSE['expat'] = _('Expat License (sometime refered to as MIT License)');
+$LICENSE_EN['expat'] = ('Expat License (sometime referred to as MIT License)');
+$LICENSE['expat'] = _('Expat License (sometime referred to as MIT License)');
 $LICENSE_EN['affero'] = ('Affero General Public License v1 or later');
 $LICENSE['affero'] = _('Affero General Public License v1 or later');
 $LICENSE_EN['classpath'] =

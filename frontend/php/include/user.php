@@ -561,7 +561,7 @@ function user_rename ($user_id, $new_name)
         "UPDATE user SET user_name = ? WHERE user_id = ?",
         [$old_name, $user_id]
       );
-      return sprintf ('User <%s> alredy exists', $new_name);
+      return sprintf ('User <%s> already exists', $new_name);
     }
   db_execute ("
     UPDATE group_history set old_value = ?

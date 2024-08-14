@@ -55,8 +55,8 @@ require_once (dirname (__FILE__) . '/utils.php');
 # Unset variables that users are not allowed to set in any cases.
 unset ($feedback_html);
 
-# Fuctions to sanitize user-supplied values.
-# Return 0 when the variable was set, 1 otherwize (the caller will set
+# Functions to sanitize user-supplied values.
+# Return 0 when the variable was set, 1 otherwise (the caller will set
 # the respective item to null).
 # Arguments:
 #   $in: input array
@@ -82,7 +82,7 @@ $sane_sanitizers['specialchars'] = function ($in, &$out, $i, $arg)
 
 # The <input "image" name="submit" /> elements return
 # submit.x and submit.y which don't work when extracting
-# them; this fucntion maps them to submit_x and submit_y.
+# them; this function maps them to submit_x and submit_y.
 function sane_var_names ($values)
 {
   $out = [];
@@ -143,7 +143,7 @@ $sane_sanitizers['xdigits'] = function ($in, &$out, $i, $arg)
 
 # Account name is expected.
 # when $arg is a scalar, it's maximum name length (34 by default),
-# when it's an array, $arg['max_len'] is maxumum name length,
+# when it's an array, $arg['max_len'] is maximum name length,
 # $arg['allow_dots'] is whether the dots are allowed.
 $sane_sanitizers['name'] = function ($in, &$out, $i, $arg)
 {

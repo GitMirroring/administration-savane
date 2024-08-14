@@ -45,7 +45,7 @@
 #
 #   php testing/markup.php
 #
-# In case of fail, diagnositc text is output to stdout.
+# In case of fail, diagnostic text is output to stdout.
 require_once ('include/utils.php');
 function markup_fetch_file_list_override ($file_ids)
 {

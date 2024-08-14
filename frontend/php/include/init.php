@@ -92,7 +92,7 @@ $use_pwqcheck = TRUE;
 # max = 40 is overridden because some users want longer passwords.
 # min = default,24,11,8,7 is overridden for N0 passwords
 # (the passwords consisting of characters from single class)
-# because NIST Electronic Authentification Gudeline
+# because NIST Electronic Authentication Gudeline
 # (Special Publication 800-63-1, Table A.1 on page 107
 #  http://csrc.nist.gov/publications/nistpubs/800-63-1/SP-800-63-1.pdf)
 # suggests that user-chosen 7 characters long password passing extensive
@@ -122,8 +122,8 @@ if (empty ($sys_dbport))
 if (empty ($sys_dbsocket))
   $sys_dbsocket = null;
 
-# Detect where we are, unless it's explicitely specified in the
-# configuration file:
+# Detect where we are, unless it's explicitly specified
+# in the configuration file:
 if (empty ($sys_www_topdir))
   {
     $sys_www_topdir = getcwd ();

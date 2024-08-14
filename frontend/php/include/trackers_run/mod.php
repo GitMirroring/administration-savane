@@ -628,7 +628,7 @@ if ($is_trackeradmin)
         form_option ($option_value, $depends_search_only_artifact, $text);
     $tracker_select .= "</select>\n";
 
-    $group_select = '<select title="' . _("Wether to search in any group")
+    $group_select = '<select title="' . _("Whether to search in any group")
       . '" name="depends_search_only_group">';
 
     # By default, search restricted to the group (lighter for the CPU,

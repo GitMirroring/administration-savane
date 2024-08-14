@@ -50,7 +50,7 @@ extract (sane_import ('post',
 ));
 $text = $comment;
 # The request doesn't commit any changes in the database, so we could
-# use GET rather than POST, without checking form_id; howerver,
+# use GET rather than POST, without checking form_id; however,
 # the user may submit a longer text than GET can pass.
 form_check ($submit_buttons);
 

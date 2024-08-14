@@ -36,7 +36,7 @@ Very basic (mostly text) items:
 	* "help" defines the word that got a help balloon on mouseover.
 	* "quote" defines a quoted paragraph, for example in comments
 	* "smaller", "bold", "italic", "small", "xsmall" defines a
-	  text weigth/size.
+	  text weight/size.
 	* "highlight" helps to highlight rows, it should be used when
 	  boxhighlight does not work (because of padding, borders...).
 
@@ -48,7 +48,7 @@ Alignment, main tables:
 ------------------------
 
 	* "center", 'left", "right", are basic items that do a
-	  specific alignement.
+	  specific alignment.
 	* "indexcenter" and "indexright" are used to split several
 	  index pages, with a big text in the center and some feature
 	  boxes to the right.
@@ -72,7 +72,7 @@ page is showned.
 	* "menu" defines the whole left menu table design.
 	* "menutitle" defines the left menu subtitles.
 	* "menuitem" defines each left menu item style.
-	* "toptitle" defines the title (ontop) of the top menu table
+	* "toptitle" defines the title (on top) of the top menu table
 	   design.
 	* "topmenu" defines the whole top menu table design.
 	* THIS IS OUTDATED please, take a look at Emeraud.css about all
@@ -160,7 +160,7 @@ Memento, what changed:
 +-----------------------------------+-----------------------------------+
 | -removed- (1.3)                   | menusearch                        |
 +-----------------------------------+-----------------------------------+
-| feeback (1.4)                     | -new-	                        |
+| feedback (1.4)                     | -new-	                        |
 | feebackerror (1.4)                | -new-	                        |
 +-----------------------------------+-----------------------------------+
 | help (1.5)                	    | -new-	                        |

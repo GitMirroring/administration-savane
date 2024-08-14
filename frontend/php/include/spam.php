@@ -83,7 +83,7 @@ function spam_flag (
   if (!$reporter_user_id)
     $reporter_user_id = user_getid ();
 
-  # Check if the reported havent flagged the incriminated comment already.
+  # Check if the reported haven't flagged the incriminated comment already.
   $result = db_execute ("
     SELECT id FROM trackers_spamscore
     WHERE
@@ -251,7 +251,7 @@ function spam_get_user_score ($user_id = 0, $set_by_user_id = 0)
   if (!$user_id)
     $user_id = user_getid ();
 
-  # Anonymous get always a score of 3 (requires two users to succesfully
+  # Anonymous get always a score of 3 (requires two users to successfully
   # mark as spam something, only one group member).
   if ($user_id == 100)
     return 3;
@@ -352,7 +352,7 @@ function spam_add_to_spamcheck_queue (
   # If anonymous, increment priority (yes, it will be meaningless on sites
   # where only anonymous posts are checked):
   # While we may consider giving the priority to logged in users for their
-  # confort, we have to take into account that we need to start with post
+  # comfort, we have to take into account that we need to start with post
   # that are the most likely to contain spams.
   if (!user_isloggedin ())
     $priority++;

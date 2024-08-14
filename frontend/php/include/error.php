@@ -388,7 +388,7 @@ function error_cc_log ($location, $title, $msg)
       $conf = error_normalize_conf ($conf);
       if (!error_title_filter ($title, $conf['exclude']))
         continue;
-      # $sys_debug_footer is only used in debugging envirnoments, and it
+      # $sys_debug_footer is only used in debugging environments, and it
       # adds an error report for every page served, so error rate isn't
       # limited in that case.
       if (!$sys_debug_footer && !$email_counter++)

@@ -273,7 +273,7 @@ function member_array_getpermissions ($group_id, $flags, $user_ids)
       return $ret;
     }
   if (!preg_match ('/^[a-z]+$/', $flags))
-    util_die ('group_getpermissions: unvalid argument flags');
+    util_die ('group_getpermissions: invalid argument flags');
   $flags .= '_flags';
   $members = member_get_group_members ($group_id);
   foreach ($user_ids as $u)

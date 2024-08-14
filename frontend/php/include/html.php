@@ -102,7 +102,7 @@ function html_hidsubpart_set_deployed ($uniqueid, $deployed)
 
   # Try to find a deployed value that match the unique id.
   # If found, override the deployed setting (the deployed setting should be
-  # used to set a default behavior, but if in the case we explicitely
+  # used to set a default behavior, but if in the case we explicitly
   # use an array to determine what is deployed, this matters more).
   if (is_array ($is_deployed)
       && array_key_exists ($uniqueid, $is_deployed))
@@ -499,7 +499,7 @@ function html_build_select_box_from_arrays (
   $return = "\n<select " . html_title_attr ($title)
     . "name=\"$select_name\"$id_attr >\n";
 
-  # We want the "Default" on item initial post, only at this momement.
+  # We want the "Default" on item initial post, only at this moment.
   if ($show_unknown)
     $return .= form_option ("!unknown!", NULL, _("Unknown"));
 
@@ -570,7 +570,7 @@ function html_build_localized_select_box (
 # The second parameter is the name you want assigned to this form element.
 # The third parameter is an array of checked values.
 # The fourth parameter is the size of this box.
-# Fifth to eigth params determine whether to show None and Any.
+# Fifth to eighth params determine whether to show None and Any.
 #
 # Ninth param determine whether to show numeric values next to
 # the menu label (default true for backward compatibility.

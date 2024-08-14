@@ -101,7 +101,7 @@ Runs from dl:/etc/cron.d/sv-ftpmirror-stats.
 misc/sv_gnu-mirmon
 ==================
 
-Extracts miror lists from www.gnu.org/prep/FTP.
+Extracts mirror lists from www.gnu.org/prep/FTP.
 Runs from dl:/etc/cron.d/sv-mirmon.
 
 misc/sv_mirmon-to-geoip
@@ -131,7 +131,7 @@ of latest requests.  Used in misc/sv_collect-mirror-stats.
 misc/sv_reminder
 ================
 
-Sends sheduled notifications for users.
+Sends scheduled notifications for users.
 Runs twice a day on mgt1.
 
 sbin/sv_frontendctl.pl

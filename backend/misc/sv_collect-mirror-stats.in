@@ -123,7 +123,7 @@ sub process_minute_dir
       close ($fh);
       next unless $rec =~ /\n$/; # No closing end-of-line: probably
                                  # mirror-redirect is still writing this file.
-      unlink $file; # Having read the record sucessfully, remove the file.
+      unlink $file; # Having read the record successfully, remove the file.
       chomp $rec;
       process_log_record ($rec, $date, $fh_latest);
     }

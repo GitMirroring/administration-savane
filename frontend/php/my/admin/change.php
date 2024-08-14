@@ -73,7 +73,7 @@ if (!$item)
 
 $success = FALSE;
 
-# To delete the account, the user must have first quitted all groups.
+# To delete the account, the user must have first quit all groups.
 # Yes, this form could do automatically this, but when a user quit his group
 # it send mails to people that should be informed, so it is best to push
 # the user to use the relevant form than to reimplement everything here
@@ -515,7 +515,7 @@ if ($update)
       );
   } # if ($update).
 
-# If we reach this point, it means that not sucessful update has been
+# If we reach this point, it means that not successful update has been
 # already made.
 
 # Texts to be displayed.

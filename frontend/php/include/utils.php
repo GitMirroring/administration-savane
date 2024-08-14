@@ -110,7 +110,7 @@ function utils_link (
   return "$return>$title$closing_tag";;
 }
 
-# Make an clean email link depending on the authentification level of the user.
+# Make an clean email link depending on the authentication level of the user.
 # Don't use this on normal text, just on field where only an email address is
 # expected.  This may corrupt the text and does extensive search.
 function utils_email ($address, $nohtml = 0)

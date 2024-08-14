@@ -20,7 +20,7 @@ Apache2/PHP5/MySQL5 environment. You need to have these server
 binaries already installed in your PATH, but everything else
 (configuration, database storage, PIDs, etc.) will run in /etc/savane/
 under the current user. No root privileges are needed. The mechs can
-then hit http://localhost:50080/ and stress-test this independant
+then hit http://localhost:50080/ and stress-test this independent
 Savane install.
 
 Check the Makefile for target names. Mainly:

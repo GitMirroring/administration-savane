@@ -158,7 +158,7 @@ function format_details (
         $assignees_id[$row_assignee_squad['user_id']] = true;
     }
 
-  # Loop throuh the follow-up comments and format them.
+  # Loop through the follow-up comments and format them.
   reset ($data);
   $i = 0; # Comment counter.
   $j = 0; # Counter for background color.
@@ -538,7 +538,7 @@ function format_change_fields ($changes)
         continue;
 
       # Since details is used for followups (creepy!), we are forced to play
-      # with "realdetails" non existant field.
+      # with "realdetails", a field that doesn't exist.
       if ($field == "realdetails")
         $field = "details";
 

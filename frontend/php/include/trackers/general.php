@@ -49,7 +49,7 @@ foreach (
 )
   require_once ("$dir_name/$i.php");
 
-# Generate URL arguments from a variable wether scalar or array.
+# Generate URL arguments from a variable whether scalar or array.
 function trackers_convert_to_url_arg ($varname, $var)
 {
   if (is_array ($var))
@@ -167,7 +167,7 @@ function trackers_field_label_display (
 # - field_name: name of the column.
 # - group_id: the group id.
 # - value: the current value stored in this field (for select boxes type of field
-#     it is the value_id actually. It can also be an array with mutliple values.
+#     it is the value_id actually. It can also be an array with multiple values.
 # - break: true if a break line is to be inserted between the field label
 #     and the field value.
 # - label: if true display the field label.
@@ -863,7 +863,7 @@ function trackers_build_notification_list ($item, $changes, $artifact)
       $added_by = $row['added_by'];
       $email = trackers_trim_email ($row['email']);
       $skip_it = trackers_filter_notif_address (
-        $added_by,  $email, $changes, $addreses, $addresses_to_skip
+        $added_by,  $email, $changes, $addresses, $addresses_to_skip
       );
       if (!$skip_it)
         $addresses[$email] = true;
@@ -1405,9 +1405,8 @@ function trackers_isvarany ($var)
   return false;
 }
 
-# Check is a sort criteria is already in the list of comma
-# separated criterias. If so invert the sort order, if not then
-# simply add it.
+# Check is a sort criteria is already in the list of comma-separated
+# criteria. If so, invert the sort order, else simply add it.
 function trackers_add_sort_criteria ($criteria_list, $order, $msort)
 {
   $found = false;

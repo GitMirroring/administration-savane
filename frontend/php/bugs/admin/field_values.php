@@ -337,7 +337,7 @@ if ($list_value)
                 if (!$is_group_scope)
                   $html .= "<td>$value_id</td>\n";
 
-                # The permanent values cant be modified (No link).
+                # The permanent values can't be modified (No link).
                 $txt_val = $value;
                 if ($status != 'P')
                   $txt_val = "<a href=\"$php_self?update_value=1"

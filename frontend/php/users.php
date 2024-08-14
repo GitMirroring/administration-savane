@@ -64,7 +64,7 @@ $realname = $user_arr['realname'];
 $account_status = $user_arr['status'];
 
 # For deleted account, we will print only very basic info:
-# accound id, login + description as deleted account.
+# account id, login + description as deleted account.
 $is_suspended = user_status_is_removed ($account_status);
 
 if ($is_suspended && !user_is_super_user ())
@@ -246,7 +246,7 @@ function output_group_info ($user_id)
 
 output_group_info ($user_id);
 
-# List of squad members, if appliable.
+# List of squad members, if applicable.
 if ($is_squad)
   {
     print "<br />\n";

@@ -53,7 +53,7 @@ extract (sane_import ('post',
 ));
 
 $key_limit = 25; # Maximum key number to register.
-$min_keys = 5; # Minumum key fields to show.
+$min_keys = 5; # Minimum key field number to show.
 
 $user_id = user_getid ();
 form_check ('update');

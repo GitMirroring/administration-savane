@@ -1,5 +1,5 @@
 <?php
-# Vew jobs.
+# View jobs.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy

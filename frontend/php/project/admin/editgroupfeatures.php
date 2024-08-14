@@ -122,7 +122,7 @@ if ($update)
     # it should be select boxes "default/activated/deactivated".
     group_add_history ('Changed Activated Features', '', $group_id);
     # In the database, these all default to '1',
-    # so we have to explicity set 0 (this is ugly).
+    # so we have to explicitly set 0 (this is ugly).
     foreach (
       [
         'bugs', 'mail', 'homepage', 'download', 'patch', 'forum', 'task',

@@ -45,7 +45,7 @@
 #
 #   php testing/sane.php
 #
-# In case of fail, diagnositc text is output to stdout.
+# In case of fail, diagnostic text is output to stdout.
 
 require_once('include/sane.php');
 
@@ -853,8 +853,8 @@ $reference = 'include/trackers_run/admin/editqueryforms.php';
   ];
   $names['specialchars'] = ['rep_name', 'rep_desc'];
 
-  $prefices = ['TFSRCH', 'TFREP', 'TFCW', 'CBSRCH', 'CBREP'];
-  $suffices = [
+  $prefixes = ['TFSRCH', 'TFREP', 'TFCW', 'CBSRCH', 'CBREP'];
+  $suffixes = [
     'bug_id', 'submitted_by', 'date', 'close_date', 'planned_starting_date',
     'planned_close_date', 'category_id', 'priority', 'resolution_id',
     'privacy', 'vote', 'percent_complete', 'assigned_to', 'status_id',
@@ -870,11 +870,11 @@ $reference = 'include/trackers_run/admin/editqueryforms.php';
 
   foreach ($custom_suff as $suf => $num)
     for ($i = 1; $i <= $num; $i++)
-      $suffices[] = 'custom_' . $suf . $i;
+      $suffixes[] = 'custom_' . $suf . $i;
 
   $names['digits'] = [];
-  foreach ($prefices as $pref)
-    foreach ($suffices as $suf)
+  foreach ($prefixes as $pref)
+    foreach ($suffixes as $suf)
       $names['digits'][] = $pref . '_' . $suf;
 
   $in = [
@@ -2153,7 +2153,7 @@ $reference = 'siteadmin/group_type.php';
   $names = [
     'specialchars' => [
       'name', 'description',  'base_host', 'homepage_scm',
-      'admin_email_adress', # Sic! adress not address
+      'admin_email_ad' . 'ress', # Sic! not address
     ],
     'true' => []
   ];

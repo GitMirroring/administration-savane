@@ -193,7 +193,7 @@ function my_item_list_buildsql (
   $sql_limit = 50;
 
   # threshold: based on priority
-  # by defaut, consider we are printing items of the current user
+  # by default, consider we are printing items of the current user
   # if not, we want to ignore private items.
   $showprivate = '';
   if (!$uid)
@@ -278,7 +278,7 @@ function my_item_list_buildsql (
 
               # When we look for items the user submitted, we do not restrict
               # groups, if this one is supposed to be hidden, we have to
-              # explicitely ignores it.
+              # explicitly ignores it.
               if ($role == "submitter")
                 {
                   if ($restrict_to_groups)

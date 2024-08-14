@@ -558,7 +558,7 @@ switch ($func)
     break;
 
   case 'unflagspam':
-    # Unflag an alledged spam: for group admins only.
+    # Unflag an alleged spam: for group admins only.
     if (!member_check (0, $group_id, 'A'))
       {
         # Do not use exit_not_logged_in(), because the user has no

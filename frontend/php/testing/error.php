@@ -45,7 +45,7 @@
 #
 #   php testing/error.php
 #
-# In case of fail, diagnositc text is output to stdout.
+# In case of fail, diagnostic text is output to stdout.
 
 require_once ('include/error.php');
 require_once ('include/utils.php');

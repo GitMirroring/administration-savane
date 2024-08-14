@@ -57,7 +57,7 @@ require_once ('../include/sendmail.php');
 # GPLQuickForm validation callback.
 # Make sure the name is not already taken, ignoring incomplete
 # registrations: risks of a name clash seems near 0, while not doing that
-# require maintainance, since some people interrupt registration and
+# require maintenance, since some people interrupt registration and
 # try to redoit later with another name.
 # And even if a name clash happens, admins will notice it during approval.
 function group_does_not_already_exist ($unix_name)

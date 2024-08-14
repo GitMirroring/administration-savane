@@ -400,7 +400,7 @@ function search_run (
   # Accept only to do a search for more than 2 characters.
   # Exit only if we were not told to avoid returning error messages.
   # Note: we tell user we want more than 3 characters, to incitate to
-  # do clever searchs. But it will be ok for only 2 characters (limit
+  # do clever searches.  But it will be ok for only 2 characters (limit
   # that conveniently allow us to search by items numbers).
   if ($keywords && (strlen ($keywords) < 3) && $return_error_messages)
     {

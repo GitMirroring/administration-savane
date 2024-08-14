@@ -80,7 +80,7 @@ function effective_permissions ($squad_perm, $user_perm)
   if ($user_perm == "9")
     return [true, $squad_perm];
 
-  # If user's perm and squad perm are 1 (techician) and  3 (manager), assume
+  # If user's perm and squad perm are 1 (technician) and  3 (manager), assume
   # that the user should be both technician and manager.
   if (($user_perm == "1" && $squad_perm == "3")
       || ($squad_perm == "1" && $user_perm == "3"))

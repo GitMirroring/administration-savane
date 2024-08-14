@@ -117,7 +117,7 @@ my $scheme = $ENV{'REQUEST_SCHEME'};
 die "REQUEST_SCHEME environment variable is empty.\n" unless $scheme;
 
 my $mirror_file = $ENV{'MIRROR_FILE'};
-die "MIRROR_FILE envrionment variable is empty.\n" unless $mirror_file;
+die "MIRROR_FILE environment variable is empty.\n" unless $mirror_file;
 die "MIRROR_FILE ($mirror_file) not found " unless -e $mirror_file;
 
 my $path_info = $ENV{'PATH_INFO'};

@@ -359,7 +359,7 @@ else
     user_unset_preference ($cust_pref);
   }
 
-# At this point make sure that all paramaters are defined
+# At this point make sure that all parameters are defined
 # as well as all the arguments that serves as selection criteria
 # If not defined then defaults to ANY (0).
 if ($advsrch === null)
@@ -548,7 +548,7 @@ if ($sumORdet == 1)
       {
         # Now we take care of the unusual, possible though, case where and
         # AND was asked but not both fields set.
-        # Since the AND was asked, the fields havent been taken care of before
+        # Since the AND was asked, the fields haven't been taken care of before
         # and we need to do it now.
         # We do that in two IF, in case something went very wrong. In such case
         # we will proceed with a usual AND.

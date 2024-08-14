@@ -43,10 +43,10 @@
 
 
 # Valid timezones for PHP from php.net, except the ones of the category
-# others that seems to be duplicates for theses ones. We can expect people
-# to know in which country/city they are. Knowning if they are at GMT+3 or
-# GMT+4 may be more picky, so since there are differents ways to tell the
-# timezone, we will take the easy one.
+# others that seems to be duplicates for these.  We can expect people
+# to know in which country and city they are.  Knowning if they are at GMT+3
+# or GMT+4 may be more picky, so since there are different ways to tell
+# the timezone, we will take the easy one.
 
 $TZs[]='Africa/Abidjan';
 $TZs[]='Africa/Accra';

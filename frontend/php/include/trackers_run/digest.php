@@ -231,7 +231,7 @@ foreach ($items_for_digest as $item)
     # Skip it is it is private but the user got no privilege.
     # Normally, the user should not even been able to select this item.
     # But someone nasty could forge the arguments of the script... So its
-    # better to check everytime.
+    # better to check every time.
     if (trackers_item_access_denied ($res_arr))
       continue;
 

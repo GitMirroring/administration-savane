@@ -602,7 +602,7 @@ function group_get_perm_flags ($group_id, $artifact, $prefix = '')
   $suff = "_{$prefix}flags";
   foreach ($art as $a)
     if (!preg_match ('/^[a-z]+$/', $a))
-      util_die ('group_getpermissions: unvalid argument artifact');
+      util_die ('group_getpermissions: invalid argument artifact');
   $perm = group_get_default_permissions ($group_id);
   if ($perm === null)
     return group_null_perm ($artifact);
@@ -754,7 +754,7 @@ function group_get_artifact_url ($artifact, $hostname = 1)
 }
 
 # Normalize preference names before feeding it to SQL.
-# $name is either a strig or an array listing names.
+# $name is either a string or an array listing names.
 function group_normalize_pref_name (&$name)
 {
   $norm_name = function (&$n, $idx = null, $arg = null)

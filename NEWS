@@ -541,7 +541,7 @@
 
 * A link to CVS notification setup was added to group menu.
 
-* IP-based bloking code is removed; it hasn't been used for ages and
+* IP-based blocking code is removed; it hasn't been used for ages and
   can't be effective these days, anyway.
 
 * The "printer mode" was removed.
@@ -802,7 +802,7 @@
 
 * init.php takes into account autoconfigured value of $sysconfdir.
 
-* Drop support for mysql extention; always use mysqli.
+* Drop support for mysql extension; always use mysqli.
 
 * Rewrite user-supplied parameter sanitizing framework.
 

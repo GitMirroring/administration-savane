@@ -47,7 +47,7 @@
 #    It means that it will not possible to register a project with a name
 #    that match that list.
 #
-#    This would constitue an additional list of group name to forbid.
+#    This would constitute an additional list of group name to forbid.
 #    If you want the system to only take account of that list, not to
 #    take account of the Savannah hardcoded list, set the variable
 #    	 $only_specific_forbid_group_regexp = 1;

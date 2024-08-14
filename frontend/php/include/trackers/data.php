@@ -139,10 +139,10 @@ function trackers_data_get_notification_settings ($group_id, $tracker)
     $result, 0, "{$tracker}_private_exclude_address"
   );
   $cat_field_name = "category_id";
-  # Warning: The hardcoded fiels names: bug_fv_id and bug_field_id will need
+  # Warning: The hardcoded field names bug_fv_id and bug_field_id will need
   # to be changed one day to generic names since they apply to bugs but also
-  # to suuports,tasks and patch-related tables. For now these fileds are
-  # called bug_xxx whatever the service related tables. Too much work to make
+  # to support,tasks and patch-related tables.  For now these fields are
+  # called bug_xxx whatever the service related tables.  Too much work to make
   # all the changes in the code.
   $result = db_execute ("
     SELECT fv.bug_fv_id, fv.value, fv.email_ad, fv.send_all_flag
@@ -833,7 +833,7 @@ function trackers_data_copy_default_values (
   # because default values belong to GROUP_NONE by definition.
   if ($group_id == GROUP_NONE)
     return;
-  # First delete the exisiting value if any.
+  # First delete the existing value if any.
   $res = db_execute ("
     DELETE FROM " . ARTIFACT . "_field_value
     WHERE bug_field_id = ? AND group_id = ?",

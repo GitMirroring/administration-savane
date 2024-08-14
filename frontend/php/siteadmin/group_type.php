@@ -127,7 +127,7 @@ $name_matching = function ($trackers, $vcs_list)
   $names = [
     'specialchars' => [
       'name', 'description',  'base_host', 'homepage_scm',
-      'admin_email_adress', # Sic! adress not address, single 'd'.
+      'admin_email_ad' . 'ress', # Sic! not address, single 'd'.
     ],
     'true' => []
   ];
@@ -449,12 +449,12 @@ show_checkbox (
 print html_h (2, no_i18n ("Mailing List"));
 print '<p class="warn">'
   . no_i18n (
-      "Important: Everytime a mailing list name should appear,\n"
+      "Important: Every time a mailing list name should appear,\n"
       . "use the special string %LIST."
     )
   . "</p>\n<p>"
   . no_i18n (
-      "Do not configure Mailing list Host, this is a deprecated\n"
+      "Do not configure Mailing list host, this is a deprecated\n"
       . "feature left for backward compatibility."
     )
   . "</p>\n<p>"
@@ -470,7 +470,7 @@ show_checkbox (
 );
 
 $idx = 'mailing_list_host';
-specific_input (no_i18n ("Mailing list Host (DEPRECATED):"),
+specific_input (no_i18n ("Mailing list host (DEPRECATED):"),
   $row_grp[$idx], $idx, $textfield_size
 );
 $idx = 'mailing_list_address';
@@ -593,7 +593,7 @@ artifact_section (no_i18n ("Bug Tracker"),
   no_i18n (
     "This is one of the main issue tracker of Savane. Unlike the\n"
     . "support tracker, it is supposed to be used mainly to organize\n"
-    . "the workflow amongs group members related to bugs.  Groups\n"
+    . "the workflow among group members related to bugs.  Groups\n"
     . "with large audience should probably not accept item posting\n"
     . "by people that are not member of the group on this tracker,\n"
     . "and instead redirect end user to the support tracker (and only\n"
@@ -607,7 +607,7 @@ artifact_section (no_i18n ("Task Manager"),
   no_i18n (
     "This is one of the main issue tracker of Savane.  Unlike the\n"
     . "support tracker, it is supposed to be used mainly to organize\n"
-    . "the workflow amongs group members related to planned tasks.  It's\n"
+    . "the workflow among group members related to planned tasks.  It's\n"
     . "the counterpart of the bug tracker for regular and planned activities."
   ),
   no_i18n ("Can use task manager"), 'task'

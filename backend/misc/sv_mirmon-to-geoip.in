@@ -256,7 +256,7 @@ sub load_mirror_list
     }
 }
 
-# The metric isn't exactly Euclidian on the geoid, but it must do for us.
+# The metric isn't exactly Euclidean on the geoid, but it must do for us.
 sub country_distance
 {
   my ($c0, $c1) = @_;
