@@ -85,12 +85,13 @@ class Group extends savane_error
   function __construct ($id)
   {
     parent::__construct ();
-    if ($this->init_group_data ($id))
+    $this->type_data_array = $this->data_array = [];
+    if ($this->fill_group_data ($id))
       return;
-    $this->init_type_data ();
+    $this->fill_type_data ();
   }
 
-  function init_type_data ()
+  function fill_type_data ()
   {
     $type = $this->data_array['type'];
     $this->type_id = $type;
@@ -100,22 +101,24 @@ class Group extends savane_error
       $this->type_data_array = db_fetch_array ($this->db_type_result);
   }
 
-  function init_group_data ($id)
+  function fill_group_data ($id)
   {
     $this->group_id = $id;
     $this->db_result =
       db_execute ("SELECT * FROM groups WHERE group_id = ?", [$id]);
-    $this->type_data_array = $this->data_array = [];
     if (db_numrows ($this->db_result) < 1)
       {
         $this->setError ('Group Not Found');
         return true;
       }
     $data = db_fetch_array ($this->db_result);
-    $prefs = group_get_preference ($this->group_id, ['use_cookbook']);
-    foreach (array_merge ($prefs, $data) as $k => $v)
+    foreach (group_get_preference ($this->group_id, ['use_cookbook'])
+      as $k => $v
+    )
+      $data[$k] = $v === null? '0': $v;
+    foreach ($data as $k => $v)
       if (!is_int ($k))
-        $this->data_array[$k] = $v === NULL? '0': $v;
+        $this->data_array[$k] = $v;
     return false;
   }
 

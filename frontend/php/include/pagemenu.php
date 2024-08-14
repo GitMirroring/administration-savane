@@ -442,7 +442,9 @@ function pagemenu_download ($project)
 function pagemenu_cookbook_extradoc ($project)
 {
   global $group_id;
-  if ($group_id != GROUP_NONE && !$project->Uses ('extralink_documentation'))
+  if ($group_id != GROUP_NONE && !$project->Uses ('extralink_documentation')
+    && !$project->Uses ('cookbook')
+  )
     return;
   # The cookbook is the default and cannot be deactivated as it contains
   # site docs useful for the group depending on the used features.
@@ -460,7 +462,7 @@ function pagemenu_cookbook_extradoc ($project)
   print pagemenu_submenu_title ($title, $u, CONTEXT == 'cookbook',
     $group_id != GROUP_NONE, _("Docs: Cookbook, etc")
   );
-  if ($group_id == GROUP_NONE)
+  if ($group_id == GROUP_NONE || $project->Uses ('cookbook'))
     print pagemenu_submenu_body (pagemenu_group_trackers ("cookbook"));
   print pagemenu_submenu_end ();
 }

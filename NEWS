@@ -55,6 +55,8 @@
 
 * Personal query forms are enabled.
 
+* A control to enable cookbook is added in project/admin/editgroupfeatures.php.
+
 * Bug fixes:
 
 ** microtime-based timestamps were wrong.
