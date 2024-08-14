@@ -46,18 +46,26 @@
 define ('CONTEXT', 'project');
 require_once ('include/init.php');
 
-# Extract the group name.
-$pathinfo = basename (preg_replace ("/\?.*/", "", $_SERVER['REQUEST_URI']));
+$group_name = [
+  'group' => basename (preg_replace ("/\?.*/", "", $_SERVER['REQUEST_URI']))
+];
+$name_sanitized = sane_import ($group_name, ['name' => 'group']);
+if (!isset ($name_sanitized['group']))
+  {
+    $msg = sprintf (_("Wrong group name '%s'."),
+      utils_specialchars (rawurldecode ($group_name['group']))
+    );
+    exit_error ($msg);
+  }
+$pathinfo = $name_sanitized['group'];
 
 $res_grp = db_execute (
   "SELECT * FROM groups WHERE unix_group_name = ?", [$pathinfo]
 );
 
-if (db_numrows ($res_grp) < 1)
-  {
-    print db_error ();
-    exit_error (_("Invalid Group"), _("That group does not exist."));
-  }
+$msg = sprintf (_("Group '%s' does not exist."), $pathinfo);
+if (!db_numrows ($res_grp))
+  exit_error ($msg);
 
 $group = $pathinfo;
 $extra_script_name = "/$pathinfo";
