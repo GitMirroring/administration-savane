@@ -517,12 +517,6 @@ class Group extends savane_error
   }
 } # class Group extends savane_error
 
-# Backward compatibiliy.
-class Project extends Group
-{
-
-}
-
 # Aliases:
 # The object stuff do not allow to easily call a function depending on
 # a variable. These aliases will just do that.

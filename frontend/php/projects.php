@@ -71,7 +71,7 @@ $group = $pathinfo;
 $extra_script_name = "/$pathinfo";
 $group_id = db_result ($res_grp, 0, 'group_id');
 
-$project = new Project ($group_id);
+$project = group_get_object ($group_id);
 
 require ('include/project_home.php');
 ?>

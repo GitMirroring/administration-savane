@@ -61,7 +61,7 @@ if (
     header ("Location: $prot$host{$_SERVER['PHP_SELF']}");
     exit;
   }
-$project = new Project ($group_id);
+$project = group_get_object ($group_id);
 site_project_header ([]);
 
 # Members of this group (little box on the right).
