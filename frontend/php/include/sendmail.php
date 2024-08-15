@@ -506,14 +506,18 @@ function sendmail_have_reply_to ($context, $uid = 289)
 function sendmail_user_prefs ($uids, $context)
 {
   $ret = [];
-  if (empty ($uids))
+  if (empty ($uids) || empty ($context['user_pref']))
     return $ret;
   $have_reply_to = sendmail_have_reply_to ($context);
-  foreach (user_get_preference ('subject_line', $uids) as $id => $pref)
-    if ($pref !== null)
-      $ret[$id] = sendmail_format_subject_line ($pref, $context);
-    elseif ($have_reply_to)
-      $ret[$id] = '';
+  foreach ($context['user_pref'] as $id => $arr)
+    if (array_key_exists ('subject_line', $arr))
+      {
+        $pref = $arr['subject_line'];
+        if ($pref !== null)
+          $ret[$id] = sendmail_format_subject_line ($pref, $context);
+        elseif ($have_reply_to)
+          $ret[$id] = '';
+      }
   return $ret;
 }
 
@@ -561,12 +565,21 @@ function sendmail_list_uids ($vals)
   return $ret;
 }
 
-function sendmail_compile_custom_subject_lines ($to, $context)
+function sendmail_uids_emails_prefs ($to, &$context)
 {
-  $recipients = [];
   $uids = sendmail_list_uids ($to);
   $emails = sendmail_email_lines ($uids);
+  if (!empty ($uids))
+    $context['user_pref'] = user_get_preference (['subject_line'], $uids);
   $subj_pfx = sendmail_user_prefs (array_keys ($emails), $context);
+  return [$uids, $emails, $subj_pfx];
+}
+
+function sendmail_compile_custom_subject_lines ($to, &$context)
+{
+  list ($uids, $emails, $subj_pfx) =
+    sendmail_uids_emails_prefs ($to, $context);
+  $recipients = [];
   foreach ($to as $v => $ignore)
     {
       if (empty ($emails[$v]))
@@ -590,7 +603,7 @@ function sendmail_add_context_to_subject ($message, $context)
     . " #{$context['item']}] $subject";
 }
 
-function sendmail_make_subjects ($to, $message, $context)
+function sendmail_make_subjects ($to, $message, &$context)
 {
   list ($recipients, $subj_pfx, $emails)
     = sendmail_compile_custom_subject_lines ($to, $context);
