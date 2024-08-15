@@ -399,12 +399,6 @@ function format_item_details (
   return $out;
 }
 
-function format_message_trailer ($bug_ref)
-{
-  return "\n    _______________________________________________________\n\n"
-  . "Reply to this item at:\n\n  <$bug_ref>";
-}
-
 function format_item_regular_fields ($res, $group_id)
 {
   $body = '';

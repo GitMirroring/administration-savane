@@ -905,16 +905,17 @@ function trackers_build_mail ($artifact, $res, $item_id, $changes)
   global $int_delayspamcheck_comment_id;
   # Text of the mail must not be localized.
   $bug_ref = trackers_mail_bug_ref ($artifact, $item_id);
+  $msg = [];
   if ($changes)
-    $body = format_item_changes ($changes, $item_id, $res) . "\n";
+    $msg['body'] = format_item_changes ($changes, $item_id, $res) . "\n";
   else
-    $body = format_item_summary ($res, $bug_ref, $artifact);
-  $body .= format_message_trailer ($bug_ref);
-  $subject = utils_specialchars_decode ($res['summary'], ENT_QUOTES);
+    $msg['body'] = format_item_summary ($res, $bug_ref, $artifact);
+  $msg['bug_ref'] = $bug_ref;
+  $msg['subject'] = utils_specialchars_decode ($res['summary'], ENT_QUOTES);
   # Necessary to mention the comment id (for delayed mails).
   if ($int_delayspamcheck_comment_id)
     $item_id .= ":$int_delayspamcheck_comment_id";
-  return [$body, $subject, $item_id];
+  return [$msg, $item_id];
 }
 
 function trackers_exclude_list ($artifact, $group_id, $force_exclude, $privacy)
@@ -1010,15 +1011,14 @@ function trackers_mail_followup (
   if ($res === false)
     return;
 
-  list ($body, $subject, $item) =
+  list ($msg, $item) =
     trackers_build_mail ($tracker, $res, $item_id, $changes);
   list ($from, $to, $exclude) =
     trackers_followup_mail_addresses (
       $res, $addresses, $exclude_list, $tracker, $changes
     );
   trackers_send_followup (
-    ['from' => $from, 'to' => $to, 'exclude' => $exclude],
-    ['subject' => $subject, 'body' => $body],
+    ['from' => $from, 'to' => $to, 'exclude' => $exclude], $msg,
     ['group_id' => $res['group_id'], 'tracker' => $tracker, 'item' => $item]
   );
 }

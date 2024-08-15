@@ -140,7 +140,7 @@ $message .=
     . "somebody else, e.g. do not mail this to a public mailinglist!\n\n"
 );
 $message .= sprintf (_("-- the %s team."), $GLOBALS['sys_name'])
-  . "\n" . sendmail_signature ();
+  . "\n" . join (sendmail_signature ());
 
 # We should not add i18n to admin messages.
 $message_for_admin =
@@ -157,7 +157,8 @@ list ($fail, $gpg_error) =
 
 sendmail_mail (
   ['to' => $row_user['email']],
-  ['subject' => "$sys_default_domain Verification", 'body' => $message]
+  ['subject' => "$sys_default_domain Verification", 'body' => $message],
+  ['skip_format_body' => true]
 );
 
 sendmail_mail (

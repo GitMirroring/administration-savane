@@ -43,21 +43,22 @@
 foreach (['utils', 'gpg', 'parsemail'] as $h)
   require_once (dirname (__FILE__) . "/$h.php");
 
+# Return the common signature for all messages, in a list.
 function sendmail_signature ()
 {
   global $int_delayspamcheck, $sys_default_domain, $sys_home, $sys_name;
 
   if (!empty ($int_delayspamcheck))
-    return '';
-  return "\n\n_______________________________________________\n"
+    return [];
+  return ["\n\n_______________________________________________\n"
     # TRANSLATORS: the argument is site name (like Savannah).
     . sprintf (_("Message sent via %s"), $sys_name)
-    . "\nhttps://$sys_default_domain$sys_home\n";
+    . "\nhttps://$sys_default_domain$sys_home\n"];
 }
 
 function sendmail_format_body (&$message, $context)
 {
-  $message['sig'] = '';
+  $message['sig'] = [];
   if (!empty ($context['skip_format_body']))
     return;
   $body = $message['body'];
@@ -66,10 +67,16 @@ function sendmail_format_body (&$message, $context)
   $message['sig'] = sendmail_signature ();
 }
 
-function sendmail_post_format ($body, $context)
+function sendmail_finalize_body ($uid, $message, $context)
 {
+  if (!empty ($message['bug_ref']))
+    array_unshift (
+      $message['sig'],
+      sendmail_tracker_lines ($uid, $context, $message['bug_ref'])
+    );
+  $body = $message['body'] . join ($message['sig']);
   if (!empty ($context['skip_format_body']))
-     return $body;
+    return $body;
   # Beuc - 20050316
   # That is what I intended to do:
 
@@ -283,16 +290,39 @@ function sendmail_spamcheck_queue ($context, $u_name, $u_subj, $message)
   );
 }
 
-# Return the parameter line for bugs/comment.php unless $sys_reply_to
-# is unconfigured or $uid is an email address rather than a number.
-function sendmail_tracker_line ($uid, $context)
+function tracker_instructions_on_replying ($bug_ref, $have_reply_to)
 {
-  if (!sendmail_have_reply_to ($context, $uid))
-    return '';
-  $note = _("Include the next line when replying by email.");
-  return "\n\n{savane: $note}\n"
-    . "{savane: user = $uid; tracker = {$context['tracker']}; "
-    . "item = {$context['item']}}";
+  $head = "\n    _______________________________________________________\n\n";
+  # Sender's language preferences may differ from recipient's,
+  # so we would have to translate to a language different from
+  # currently selected; meanwhile, we leave the message untranslated.
+  if ($have_reply_to)
+    $note = sprintf (
+      no_i18n (
+       "To reply to this notification, you have two options:
+        * In the Web UI at <%s>.
+        * By email, ONLY IF you sign your email with a GPG key registered
+          in your %s account AND you include the following line
+          in the reply:"),
+      $bug_ref, $GLOBALS['sys_name']
+    );
+  else
+    # Old footer, without the parameter line and long explanation.
+    $note = sprintf (no_i18n ("Reply to this item at:\n\n  <%s>"), $bug_ref);
+  return $head . preg_replace ('/^ {8}/m', '', $note);
+}
+
+# Return the parameter line for bugs/comment.php with comments for the users
+# unless $sys_reply_to is unconfigured or $uid is an email address rather
+# than a number.
+function sendmail_tracker_lines ($uid, $context, $bug_ref)
+{
+  $have_reply_to = sendmail_have_reply_to ($context, $uid);
+  $note = tracker_instructions_on_replying ($bug_ref, $have_reply_to);
+  if ($have_reply_to)
+    $note .= "\n\n  {savane: user = $uid; tracker = {$context['tracker']}; "
+      . "item = {$context['item']}}";
+  return $note;
 }
 
 function sendmail_mail_signed ($to, $subj, $body, $headers)
@@ -310,9 +340,7 @@ function sendmail_send_to_list ($user_name, $user_subj, $message, $context)
   foreach ($user_subj as $v => $u_subj)
     {
       $u_name = sendmail_encode_recipients ($user_name[$v]);
-      $body = $message['body']
-        . sendmail_tracker_line ($v, $context) . $message['sig'];
-      $body = sendmail_post_format ($body, $context);
+      $body = sendmail_finalize_body ($v, $message, $context);
       $headers = $message['headers'];
       $headers .= sendmail_reply_to_headers ($v, $user_name[$v], $context);
       if (empty ($int_delayspamcheck))

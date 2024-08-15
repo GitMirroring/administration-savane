@@ -149,7 +149,7 @@ function format_msg ($group_id, $list_name, $res)
     _("You are advised to change the password, and to avoid using a password\n"
       . "you use for important accounts, as mailman does not really provide\n"
       . "security for these list passwords.");
-  return $msg . sendmail_signature ();
+  return $msg . join (sendmail_signature ());
 }
 
 function report_results ($res, $group_id, $list_name)
