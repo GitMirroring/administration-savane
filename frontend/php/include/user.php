@@ -309,12 +309,23 @@ function user_get_timezone ()
   return user_get_field (user_getid (), 'timezone');
 }
 
+function user_normalize_pref_name ($name)
+{
+  return strtolower (trim ($name));
+}
+
+function user_normalize_preference_names ($names)
+{
+  $ret = array_map ('user_normalize_pref_name', utils_make_arg_array ($names));
+  return utils_return_val ($names, $ret);
+}
+
 function user_set_preference ($preference_name, $value)
 {
   global $user_pref;
   if (!user_isloggedin ())
     return false;
-  $preference_name = strtolower (trim ($preference_name));
+  $preference_name = user_normalize_pref_name ($preference_name);
   $res = db_execute ("
     SELECT NULL FROM user_preferences
     WHERE user_id = ? AND preference_name = ?",
@@ -341,7 +352,7 @@ function user_unset_preference ($preference_name)
   global $user_pref;
   if (!user_isloggedin ())
     return false;
-  $preference_name = strtolower (trim ($preference_name));
+  $preference_name = user_normalize_pref_name ($preference_name);
   $result = db_execute ("
     DELETE FROM user_preferences
     WHERE user_id = ? AND preference_name = ? LIMIT 1",
@@ -352,51 +363,66 @@ function user_unset_preference ($preference_name)
   return true;
 }
 
-function user_get_preference_by_id ($preference_name, $user_id)
+function user_fetch_preferences ($uids, $pref_names = [])
 {
-  $uids = user_get_uids_array ($user_id);
+  $pref_cond = '';
+  if (!empty ($pref_names))
+    $pref_cond = "\n      preference_name "
+      . utils_in_placeholders ($pref_names) . "\n      AND ";
   $res = db_execute ("
-    SELECT preference_value FROM user_preferences
-    WHERE preference_name = ? AND user_id " . utils_in_placeholders ($uids),
-    array_merge ([$preference_name], $uids)
+    SELECT preference_name, preference_value, user_id FROM user_preferences
+    WHERE {$pref_cond}user_id " . utils_in_placeholders ($uids),
+    array_merge ($pref_names, $uids)
   );
   $ret = [];
   foreach ($uids as $u)
-    $ret[$u] = null;
+    $ret[$u] = [];
+  if (!empty ($pref_names))
+    foreach ($uids as $u)
+      foreach ($pref_names as $p)
+        $ret[$u][$p] = null;
   while ($row = db_fetch_array ($res))
-    $ret[$u] = $row['preference_value'];
-  return utils_return_val ($user_id, $ret);
+    $ret[$row['user_id']][$row['preference_name']] = $row['preference_value'];
+  return $ret;
+}
+
+# Both $preference_names and $user_ids may be either scalars or lists;
+# the return value is structured respectively; when the result is
+# two-dimensional, the user ID is the first index: $ret[$uid][$pref_name].
+function user_get_preference_by_id ($preference_names, $user_ids)
+{
+  $uids = user_get_uids_array ($user_ids);
+  $pref_names = utils_make_arg_array ($preference_names);
+  $prefs = user_fetch_preferences ($uids, $pref_names);
+  if (is_array ($preference_names))
+    return utils_return_val ($user_ids, $prefs);
+  # Scalar $preference_names: exclude the redundant preference name
+  # from the result, just like utils_return_val does.
+  $ret = [];
+  foreach ($prefs as $uid => $arr)
+    foreach ($arr as $name => $val)
+      $ret[$uid] = $val;
+  return utils_return_val ($user_ids, $ret);
 }
 
 function user_get_preference ($preference_name, $user_id = false)
 {
   global $user_pref;
-
   if ($user_id !== false)
     return user_get_preference_by_id ($preference_name, $user_id);
 
   if (!user_isloggedin ())
     return false;
-  $preference_name = strtolower (trim ($preference_name));
-  # First check to see if we have already fetched the preferences.
-  if ($user_pref)
-    {
-      if (!empty ($user_pref[$preference_name]))
-        return $user_pref[$preference_name];
-      return false;
-    }
-  # We haven't returned prefs - go to the DB.
-  $result = db_execute ("
-    SELECT preference_name, preference_value
-    FROM user_preferences WHERE user_id = ?", [user_getid ()]
-  );
-  if (db_numrows ($result) < 1)
-    return false;
-  while ($row = db_fetch_array ($result))
-    $user_pref[$row['preference_name']] = $row['preference_value'];
-  if (isset ($user_pref[$preference_name]))
-    return $user_pref[$preference_name];
-  return false;
+  $uid = user_getid ();
+  if (empty ($user_pref))
+    foreach (user_fetch_preferences ([$uid])[$uid] as $name => $value)
+      $user_pref[$name] = $value;
+  $pref = utils_make_arg_array ($preference_name);
+  $pref = user_normalize_preference_names ($pref);
+  $ret = [];
+  foreach ($pref as $p)
+    $ret[$p] = isset ($user_pref[$p])? $user_pref[$p]: false;
+  return utils_return_val ($preference_name, $ret);
 }
 
 # Find out if the user use the vote, very similar to
