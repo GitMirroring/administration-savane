@@ -62,10 +62,9 @@ if (!isset ($_COOKIE["cookie_probe"]))
         # Attempt to set a cookie to go to a new page to see
         # if the client will indeed send that cookie.
         session_cookie ('cookie_probe', 1);
-        header ('Location: i18n.php?lang_uri='
+        session_redirect ('i18n.php?lang_uri='
           . utils_urlencode ($lang_uri) . '&cookie_test=1'
         );
-        exit;
       }
     # TRANSLATORS: the first argument is a domain (like "savannah.gnu.org"
     # vs. "savannah.nongnu.org"); the second argument

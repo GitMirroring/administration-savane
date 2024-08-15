@@ -39,9 +39,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-require_once('../include/init.php');
-header('Location: '
-       . preg_replace(":^$sys_url_topdir/recipe:", "$sys_url_topdir/cookbook",
-                      $_SERVER['REQUEST_URI']));
+require_once ('../include/init.php');
+$url = preg_replace (
+  ":^$sys_url_topdir/recipe:", "$sys_url_topdir/cookbook",
+  $_SERVER['REQUEST_URI']
+);
+session_redirect ($url);
 ?>

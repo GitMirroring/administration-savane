@@ -58,8 +58,7 @@ if (
 )
   {
     $prot = session_protocol () . '://';
-    header ("Location: $prot$host{$_SERVER['PHP_SELF']}");
-    exit;
+    session_redirect ("$prot$host{$_SERVER['PHP_SELF']}");
   }
 $project = group_get_object ($group_id);
 site_project_header ([]);

@@ -87,8 +87,7 @@ function exit_not_logged_in ()
   if (!empty ($sys_https_host))
     $domain = "https://$sys_https_host";
 
-  header ("Location: $domain{$sys_home}account/login.php?uri=$uri");
-  exit;
+  session_redirect ("$domain{$sys_home}account/login.php?uri=$uri");
 }
 
 function exit_no_group ()

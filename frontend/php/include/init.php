@@ -385,8 +385,7 @@ function init_run_redirections ($group_id)
   if (!(strcasecmp ($_SERVER['HTTP_HOST'], $type_host) && $type_host))
     return;
   $prot = session_protocol () . '://';
-  header ("Location: $prot$type_host{$_SERVER["REQUEST_URI"]}");
-  exit (0);
+  session_redirect ("$prot$type_host{$_SERVER["REQUEST_URI"]}");
 }
 
 function init_check_group ()

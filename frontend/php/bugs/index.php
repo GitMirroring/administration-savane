@@ -473,8 +473,7 @@ switch ($func)
         if (isset ($item_id))
           {
             # Include tracker item number in URL, if present.
-            header ("Location: {$_SERVER['PHP_SELF']}?$item_id");
-            exit (0);
+            session_redirect ("{$_SERVER['PHP_SELF']}?$item_id");
           }
         $_POST = $_FILES = [];
         $depends_search = $reassign_change_group_search =

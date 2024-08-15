@@ -60,5 +60,5 @@ $result = db_execute (
   [$new_uid, $session_hash]
 );
 session_cookie ('session_uid', $new_uid);
-header ("Location: $uri");
+session_redirect ($uri);
 ?>
