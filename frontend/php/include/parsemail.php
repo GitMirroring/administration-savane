@@ -89,7 +89,7 @@ function parsemail_parse_mime ($mime, $msg, $error_handler)
   if (count ($struct) != 3)
     {
       parsemail_close ($mime);
-      return parsemail_error_handler ('Wrong message part number');
+      return $error_handler ('Wrong message part number');
     }
   $ret = [];
   foreach ([2, 1] as $i)
