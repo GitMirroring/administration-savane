@@ -327,7 +327,7 @@ print "<p>";
 html_select_theme_box ("user_theme", $row_user['theme']);
 print ' ' . _("Theme") . "</p>";
 
-if ("rotate" === $row_user['theme'] || 'random' === $row_user['theme'])
+if (in_array ($row_user['theme'], ['rotate', 'random']))
   print "<p>\n" . form_checkbox ('theme_rotate_jump')
     . html_label ("theme_rotate_jump", _("Jump to the next theme")) . "</p>\n";
 print '<p class="smaller">'

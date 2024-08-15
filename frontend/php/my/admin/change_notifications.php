@@ -45,7 +45,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once ('../../include/init.php');
-require_once ('../../include/account.php');
+foreach (['init', 'account', 'my/admin/general'] as $i)
+  require_once ("../../include/$i.php");
 require_directory ("trackers");
 
 $notif_arr = [
@@ -133,12 +134,7 @@ print "\n" . form_header ();
 print '&nbsp;&nbsp;<span class="preinput">'
   . _("Send notification to me only when:") . "</span><br />\n&nbsp;&nbsp;";
 
-function pref_cbox ($name, $title)
-{
-  print form_checkbox ("form_$name", user_get_preference ($name)) . " ";
-  print html_label ("form_$name", $title) . "<br />\n&nbsp;&nbsp;";
-}
-
+$my_pref_cbox_compact = true;
 $pref_arr = [
   "notify_unless_im_author" => _("I am not the author of the item update"),
   "notify_item_closed" => _("the item was closed"),
@@ -146,7 +142,7 @@ $pref_arr = [
 ];
 
 foreach ($pref_arr as $n => $t)
-  pref_cbox ($n, $t);
+  my_pref_cbox ($n, $t);
 
 print '<span class="preinput">' . _("Do not add me to Carbon-Copy when:")
   . "</span><br />\n&nbsp;&nbsp;";
@@ -159,12 +155,12 @@ $pref_arr = [
 ];
 
 foreach ($pref_arr as $n => $t)
-  pref_cbox ($n, $t);
+  my_pref_cbox ($n, $t);
 
 print '<span class="preinput">' . _("Remove me from Carbon-Copy when:")
   . "</span><br />\n&nbsp;&nbsp;";
 
-pref_cbox ("removecc_notassignee", _("I am no longer assigned to the item"));
+my_pref_cbox ("removecc_notassignee", _("I am no longer assigned to the item"));
 
 print html_h (2, _("Subject Line"));
 print '<p>';

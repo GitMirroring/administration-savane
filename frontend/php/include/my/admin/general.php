@@ -43,11 +43,19 @@
 
 function my_pref_cbox ($name, $label, $checked = null)
 {
+  $comp = !empty ($GLOBALS['my_pref_cbox_compact']);
   if ($checked === null)
     $checked = user_get_preference ($name);
-  print "<p>" . form_checkbox ("form_$name", $checked) . "\n";
-  print "<label for=\"form_$name\">$label</label></p>\n";
+  if (!$comp)
+    print '<p>';
+  print form_checkbox ("form_$name", $checked) . "\n";
+  print html_label ("form_$name", $label);
+  if ($comp)
+    print "<br />&nbsp;&nbsp;";
+  else
+    print "</p>\n";
 }
+
 function my_quiet_ssh_control ()
 {
   my_pref_cbox ('quiet_ssh', _("Quiet SSH member shell"));
