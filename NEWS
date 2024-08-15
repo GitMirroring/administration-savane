@@ -51,6 +51,9 @@
 ** When registering a user with too long realname, an SQL error was thrown;
    now the error results in a conventional feedback.
 
+** Email lines weren't composed correctly when user's name contained
+   ':', '<', '>', '[', ']', '"'; '\' and '"' are escaped with '\'.
+
 ** In trackers, the 'Reverse comment order' button didn't work unless
    the user had write access to the item.
 

@@ -41,6 +41,7 @@ POTFILES = \
 	frontend/php/testing/format_date.php \
 	frontend/php/testing/index.php \
 	frontend/php/testing/test.php \
+	frontend/php/testing/utils.php \
 	frontend/php/file.php \
 	frontend/php/stats/index.php \
 	frontend/php/people/resume.php \

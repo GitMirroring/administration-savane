@@ -565,6 +565,7 @@ ordinary_files = \
   php/testing/markup.php \
   php/testing/sane.php \
   php/testing/test.php \
+  php/testing/utils.php \
   php/.topdir \
   php/u \
   php/us \
@@ -767,7 +768,7 @@ installcheck-local: $(installcheck_local_targets)
 
 installcheck-run-tests: ; \
   cd $(dest_dir)/php; \
-  for t in error markup sane format_date; do \
+  for t in error format_date markup sane utils; do \
     res=`$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php \
       || echo Exit code of \
          \'$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php\' is $$?`; \

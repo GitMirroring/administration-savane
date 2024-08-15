@@ -960,13 +960,13 @@ function utils_update_decimal_separator ()
   return $decimal_separator;
 }
 
-# RFC822 requires some characters to be escaped. We usually care about this
-# compliance only in email headers.
+# RFC822 Section 3.3. requires some characters to only be in quoted strings.
+# We usually care about this compliance only in email headers.
 function utils_comply_with_rfc822 ($string)
 {
-  if (preg_match ("#\.|\,|\@|\/|\\|\||\;|\!#", $string))
-    return "\"$string\"";
-  return $string;
+  if (!preg_match ('#[()<>@,;:\\\".[\]]#', $string))
+    return $string;
+  return '"' . str_replace (['\\', '"'], ['\\\\', '\"'], $string) . '"';
 }
 
 # Work-around PHP 8.1 deprecation of null parameter #1 and change of defaults
