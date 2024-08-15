@@ -200,6 +200,7 @@ function session_delete_cookie ($n)
 function session_redirect ($loc)
 {
   header ("Location: $loc");
+  utils_output_debug_footer ();
   exit;
 }
 
