@@ -307,7 +307,7 @@ function theme_select ()
     {
       # Anonymous user: guess the theme from cookies.
       theme_guess ();
-       return;
+      return;
     }
 
   # When the user is logged in, the theme comes from user's settings.

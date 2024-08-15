@@ -392,13 +392,10 @@ function user_get_preference ($preference_name, $user_id = false)
   );
   if (db_numrows ($result) < 1)
     return false;
-  for ($i = 0; $i < db_numrows ($result); $i++)
-    {
-      $user_pref[db_result ($result, $i, 'preference_name')] =
-        db_result ($result, $i, 'preference_value');
-    }
-  if (isset ($user_pref["$preference_name"]))
-    return $user_pref["$preference_name"];
+  while ($row = db_fetch_array ($result))
+    $user_pref[$row['preference_name']] = $row['preference_value'];
+  if (isset ($user_pref[$preference_name]))
+    return $user_pref[$preference_name];
   return false;
 }
 

@@ -1,6 +1,6 @@
 <?php
-# Show hidden or visible a list of items depending on user prefs.
-# Set prefs if a changed was asked.
+# Show hidden or visible list of items depending on user prefs.
+# Set prefs if a change was asked.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2001, 2002 Laurent Julliard, CodeX Team, Xerox
@@ -44,7 +44,21 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 require_once (dirname (__FILE__) . '/../utils.php');
 
-#  Function that generates hide/show urls to expand/collapse
+function my_hide_link ($role, $group_id, $text, $hide)
+{
+  global $php_self;
+  # Determine the relevant content (title with a + or a -).
+  $mp = '-'; $role_val = '0';
+  if ($hide)
+    {
+      $mp = '+'; $role_val = '1';
+    }
+  return "<a name=\"$role$group_id\" href=\"$php_self"
+    . "?hide_$role=$role_val&amp;hide_group_id=$group_id#"
+    . "$role$group_id\"><span class='minusorplus'>($mp)</span>$text</a>";
+}
+
+#  Function that generates hide and show URLs to expand and collapse
 #  sections of the personal page.
 #
 # Input:
@@ -58,8 +72,6 @@ require_once (dirname (__FILE__) . '/../utils.php');
 #  $hide_flag: true if the section must be hidden, false otherwise.
 function my_hide_url ($role, $group_id, $count, $link = "")
 {
-  global $php_self;
-
   # Determine if we should hide or not.
   $hide = my_is_hidden ($role, $group_id);
 
@@ -67,24 +79,15 @@ function my_hide_url ($role, $group_id, $count, $link = "")
   $pref_name = "my_hide_$role$group_id";
   $old_pref_value = user_get_preference ($pref_name);
   $old_count = 0;
-  $arr = explode('|', $old_pref_value);
+  $arr = explode ('|', $old_pref_value);
   if (!empty ($arr[1]))
     $old_count = $arr[1];
   $pref_value = "$hide|$count";
   if ($old_pref_value != $pref_value)
     user_set_preference ($pref_name, $pref_value);
 
-  # Determine the relevant content (title with a + or a -).
-  if ($hide)
-    $hide_url = "<a name=\"$role$group_id\" href=\"$php_self"
-      . "?hide_$role=0&amp;hide_group_id=$group_id#"
-      . "$role$group_id\"><span class='minusorplus'>(+)</span>$link</a>";
-  else
-    $hide_url = "<a id=\"$role$group_id\" href=\"$php_self?hide_"
-      . "$role=1&amp;hide_group_id=$group_id#$role$group_id"
-      . "\"><span class='minusorplus'>(-)</span>$link</a>";
-
-  return [$hide, $count-$old_count, $hide_url];
+  $hide_url = my_hide_link ($role, $group_id, $link, $hide);
+  return [$hide, $count - $old_count, $hide_url];
 }
 
 # Determine whether a given group items of a given role should be hidden or not.
@@ -115,25 +118,10 @@ function my_is_hidden ($role, $group_id)
   return $old_hide;
 }
 
-function my_format_as_flag($assigned_to, $submitted_by)
+function my_item_count ($total, $new)
 {
-  $AS_flag = '';
-  if ($assigned_to == user_getid())
-    {
-      $AS_flag = 'A';
-    }
-  if ($submitted_by == user_getid())
-    {
-      $AS_flag .= 'S';
-    }
-  if ($AS_flag) { $AS_flag = '[<strong>'.$AS_flag.'</strong>]'; }
-
-  return $AS_flag;
-}
-
-function my_item_count($total, $new)
-{
-  return sprintf (' '._('(new items: %1$s, total: %2$s)')."\n", $total, $new);
+  return ' '
+    . sprintf (_('(new items: %1$s, total: %2$s)'), $total, $new) . "\n";
 }
 
 # Function that expect item_data and $group_data to exist as globals,
@@ -148,7 +136,7 @@ function my_item_list (
   $items_per_groups = [];
   $maybe_missed_rows = 0;
 
-  foreach (["support", "bugs", "task", "cookbook", "patch"] as $tracker)
+  foreach (array_diff (utils_get_tracker_list (), ['cookbook']) as $tracker)
     {
       # Create the SQL request.
       $sql_result = my_item_list_buildsql (
@@ -300,7 +288,7 @@ function my_item_list_buildsql (
           $restrict_to_groups_params[] = $current_group_id;
         }
 
-      # No SQL if not at least one project is not in hidden mode.
+      # No SQL if not at least one group is not in hidden mode.
       if (!$restrict_to_groups && $role == "assignee")
         return false;
 
@@ -381,7 +369,7 @@ function my_item_list_buildsql (
           $restrict_to_groups .= " t.group_id = ? ";
           $restrict_to_groups_params[] = $current_group_id;
         }
-      # No SQL if not at least one project is not in hidden mode.
+      # No SQL if not at least one group is not in hidden mode.
       if (!$restrict_to_groups)
         return false;
     } # ! ($role == "assignee" || $role == "submitter")
@@ -398,55 +386,43 @@ function my_item_list_buildsql (
   return db_execute ($sql, $sql_params);
 }
 
+function my_assign_item ($row, $tracker)
+{
+  global $item_data, $items_per_groups;
+  # Create unique item name beginning with the date to ease sorting.
+  $item = $row['date'] . ".$tracker#" . $row['bug_id'];
+  $group = $row['group_id'];
+
+  # Associate to the group (ignore if it was already done).
+  if (array_key_exists ($group, $items_per_groups)
+      && is_array ($items_per_groups[$group])
+      && array_key_exists ($item, $items_per_groups[$group]))
+    return;
+  $items_per_groups[$group][$item] = true;
+
+  # Store data (ignore if already found).
+  if (isset ($item_data['item_id']) && is_array ($item_data['item_id'])
+      && array_key_exists ($item, $item_data['item_id']))
+    return;
+  $row['tracker'] = $tracker; $row['item_id'] = $row['bug_id'];
+  $row['status'] = $row['resolution_id'];
+  foreach (['item_id', 'tracker', 'date', 'priority', 'status', 'summary']
+    as $key)
+    $item_data[$key][$item] = $row[$key];
+}
+
 # Extract items data from database, put in hashes.
 function my_item_list_extractdata ($sql_result, $tracker)
 {
-  global $item_data, $group_data, $items_per_groups, $sql_limit;
-  global $maybe_missed_rows;
+  global $sql_limit, $maybe_missed_rows;
 
-  # Run the query.
   $rows = db_numrows ($sql_result);
-
   # Record for later if we maybe missed items.
   if ($sql_limit <= $rows)
     $maybe_missed_rows = 1;
 
-  # If there are results, grab data.
-  if ($sql_result && $rows > 0)
-    {
-      $items_exist = 1;
-      for ($j = 0; $j < $rows; $j++)
-        {
-          # Create item unique name beginning by the date to ease
-          # sorting.
-          $thisitem = db_result ($sql_result, $j, 'date') . ".$tracker#"
-            . db_result ($sql_result, $j, 'bug_id');
-          $thisgroup = db_result($sql_result,$j,'group_id');
-
-          # Associate to the group (ignore if it was already done).
-          if (array_key_exists ($thisgroup, $items_per_groups)
-              && is_array ($items_per_groups[$thisgroup])
-              && array_key_exists($thisitem, $items_per_groups[$thisgroup]))
-            continue;
-          $items_per_groups[$thisgroup][$thisitem] = true;
-
-          # Store data (ignore if already found).
-          if (isset ($item_data['item_id'])
-              && is_array ($item_data['item_id'])
-              && array_key_exists ($thisitem, $item_data['item_id']))
-            continue;
-
-          $item_data['item_id'][$thisitem] = db_result ($sql_result, $j, 'bug_id');
-          $item_data['tracker'][$thisitem] = $tracker;
-          $item_data['date'][$thisitem] = db_result ($sql_result, $j, 'date');
-          $item_data['priority'][$thisitem] =
-            db_result ($sql_result, $j, 'priority');
-          $item_data['status'][$thisitem] =
-            db_result ($sql_result, $j, 'resolution_id');
-          $item_data['summary'][$thisitem] =
-            db_result ($sql_result, $j, 'summary');
-        }
-    }
+  while ($row = db_fetch_array ($sql_result))
+    my_assign_item ($row, $tracker);
   return $rows;
 }
 
@@ -462,7 +438,7 @@ function my_item_list_print (
     $openclosed = 3;
 
   # Break here if we have no results.
-  if (count($items_per_groups) < 1)
+  if (count ($items_per_groups) < 1)
     {
       print _("None found");
       return false;
@@ -482,7 +458,7 @@ function my_item_list_print (
     }
 
   # Go through the group list.
-  ksort($items_per_groups);
+  ksort ($items_per_groups);
   $hide_now = false;
 
   reset ($items_per_groups);
@@ -503,7 +479,7 @@ function my_item_list_print (
           $count = count ($current_group_items);
           list ($hide_now, $count_diff, $hide_url) =
             my_hide_url ($role, $current_group_id, $count,
-              '<strong>' . $group_data[$idx] . '</strong>'
+              '<b>' . $group_data[$idx] . '</b>'
             );
           print $hide_url . ' <span class="smaller">'
             . my_item_count ($count, max (0, $count_diff)) . "</span>";
@@ -526,7 +502,7 @@ function my_item_list_print (
               $icon = utils_get_tracker_icon ($tracker);
 
               # Found out the status full text name:
-              # this is project specific. If there is no project setup for this
+              # this is group-specific. If there is no group setup for this
               # then go to the default for the site
               $item_status = $item_data['status'][$thisitem];
               $idx = "$current_group_id$tracker$item_status";
