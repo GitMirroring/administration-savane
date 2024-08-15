@@ -295,6 +295,15 @@ function theme_guess ()
   define('SV_THEME', theme_validate($_COOKIE['SV_THEME']));
 }
 
+function theme_actualise_theme ($user_theme)
+{
+  if ($user_theme == "Default")
+    return "";
+  if ($user_theme !== 'rotate' && $user_theme !== 'random')
+    return theme_validate ($user_theme);
+  return $user_theme;
+}
+
 # Select theme.
 function theme_select ()
 {

@@ -76,26 +76,10 @@ function my_sync_preference ($pref, $fb = null)
 # Actions to do before selecting theme.
 function my_update_theme ()
 {
-  global $user_theme, $theme_rotate_jump, $form_timezone, $form_email_hide;
-  if ($user_theme == "Default")
-    $user_theme = "";
-  elseif ($user_theme !== 'rotate' && $user_theme !== 'random')
-    $user_theme = theme_validate ($user_theme);
+  global $user_theme, $theme_rotate_jump;
+  $user_theme = theme_actualise_theme ($user_theme);
 
   if ($theme_rotate_jump == "1")
     theme_rotate_jump ($user_theme);
-
-  if ($form_timezone == 100)
-    $form_timezone = "GMT";
-
-  $success = db_autoexecute (
-    'user',
-     [
-       'email_hide' => ($form_email_hide? "1": "0"),
-       'theme' => $user_theme, 'timezone' => $form_timezone,
-     ],
-     DB_AUTOQUERY_UPDATE, "user_id = ?", [user_getid ()]
-  );
-  fb_dbresult ($success);
 }
 ?>

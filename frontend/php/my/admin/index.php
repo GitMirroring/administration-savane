@@ -58,16 +58,46 @@ extract (sane_import ('post',
     'no_quotes' => ['form_timezone', 'user_theme']
   ]
 ));
+# Define actions to do before selecting theme.
+function update_theme ()
+{
+  global $update;
+  form_check ('update');
+  if (!$update)
+    return;
+  my_update_theme ();
+  update_user ();
+}
 
-if ($update) # Define actions to do before selecting theme.
-  function update_theme () { my_update_theme () }
+function update_user ()
+{
+  global $user_theme, $theme_rotate_jump, $form_timezone, $form_email_hide;
+
+  if ($form_timezone == 100)
+    $form_timezone = "GMT";
+  if (empty ($form_email_hide))
+    $email_hide = '0';
+  else
+    $email_hide = '1';
+
+  $success = db_autoexecute (
+    'user',
+     [
+       'email_hide' => $email_hide,
+       'theme' => $user_theme, 'timezone' => $form_timezone,
+     ],
+     DB_AUTOQUERY_UPDATE, "user_id = ?", [user_getid ()]
+  );
+  fb_dbresult ($success);
+  user_refetch_data ();
+}
 
 # FIXME init.php has to be included after parsing POST variables and defining
 # update_theme that may be used in theme.php that is included in init.php.
 # This isn't the most clear possible way to do these things.
 require_once ('../../include/init.php');
 require_once ('../../include/timezones.php');
-form_check ('update');
+
 extract (sane_import ('request', ['pass' => 'feedback']));
 session_require (['isloggedin' => 1]);
 

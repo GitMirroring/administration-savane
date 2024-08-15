@@ -299,6 +299,17 @@ function user_fetch_data ($users)
   db_free_result ($res);
 }
 
+function user_refetch_data ($users = null)
+{
+  global $USER_ARR;
+  if ($users === null)
+    $users = [user_getid ()];
+  foreach ($users as $u)
+    if (array_key_exists ($u, $USER_ARR))
+      unset ($USER_ARR[$u]);
+  user_fetch_data ($users);
+}
+
 # Return user data array; when $user is an array, return an array of
 # records with the indices from the input array.
 function user_get_array ($user)
