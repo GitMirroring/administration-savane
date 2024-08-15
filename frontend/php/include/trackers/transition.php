@@ -149,13 +149,9 @@ function trackers_transition_update_other_field (
         'update_value_id' => $value_id],
       DB_AUTOQUERY_INSERT
     );
-  if (db_affected_rows ($sql_res))
-    {
-      fb_dbsuccess ();
-      return true;
-    }
-  fb_dberror ();
-  return false;
+  $success = db_affected_rows ($sql_res)? true: false;
+  fb_dbresult ($success);
+  return $success;
 }
 
 # For a given array of transitions and one item id, update other fields.

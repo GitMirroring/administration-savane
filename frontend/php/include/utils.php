@@ -696,6 +696,14 @@ function fb_dbsuccess ()
   fb (_("Database successfully updated"));
 }
 
+function fb_dbresult ($success)
+{
+  if ($success)
+    fb_dbsuccess ();
+  else
+    fb_dberror ();
+}
+
 function utils_help ($text, $explanation_array)
 {
   return help ($text, $explanation_array);

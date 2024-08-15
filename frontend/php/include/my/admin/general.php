@@ -77,8 +77,6 @@ function my_sync_preference ($pref, $fb = null)
 function my_update_theme ()
 {
   global $user_theme, $theme_rotate_jump, $form_timezone, $form_email_hide;
-
-  # Update theme.
   if ($user_theme == "Default")
     $user_theme = "";
   elseif ($user_theme !== 'rotate' && $user_theme !== 'random')
@@ -98,9 +96,6 @@ function my_update_theme ()
      ],
      DB_AUTOQUERY_UPDATE, "user_id = ?", [user_getid ()]
   );
-  if ($success)
-    fb (_("Database successfully updated"));
-  else
-    fb (_("Failed to update the database"), 1);
+  fb_dbresult ($success);
 }
 ?>
