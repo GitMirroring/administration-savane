@@ -42,7 +42,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-foreach (['init', 'sane', 'sendmail', 'random-bytes'] as $inc)
+foreach (['init', 'sane', 'sendmail', 'random-bytes', 'account'] as $inc)
   require_once ("../include/$inc.php");
 
 extract (sane_import ('post', ['name' => 'form_loginname']));
@@ -53,6 +53,10 @@ if (user_isloggedin ())
   session_redirect ("{$sys_home}my/");
 
 $confirm_hash = md5 (random_bytes (8));
+# The hash is stored in the database hashed: if it weren't, an attacker
+# with a read access to the database would be able to set passwords
+# for any accounts.
+$hash_encrypted = account_encryptpw ($confirm_hash);
 # Account check.
 $sql = "SELECT * FROM user WHERE user_name = ? AND status = ?";
 $res_user = db_execute ($sql, [$form_loginname, USER_STATUS_ACTIVE]);
@@ -63,10 +67,11 @@ if (db_numrows ($res_user) < 1)
       _("This account hasn't been activated, please contact website "
         . "administration");
     if (!db_numrows  ($res_user))
-      $msg = _("This account does not exist");
+      $msg = markup_rich (sprintf (_("User *%s* not found."), $form_loginname));
     exit_error (_("Invalid User"), $msg);
   }
 $row_user = db_fetch_array ($res_user);
+$uid = $row_user['user_id'];
 
 # Notification count check:
 # This code would allow to define the number of request that can be made
@@ -79,23 +84,21 @@ $res_emails = db_execute ("
   SELECT count FROM user_lostpw
   WHERE
     user_id = ? AND DAYOFYEAR(date) = DAYOFYEAR(CURRENT_DATE)
-    AND HOUR(date) = HOUR(NOW())", [$row_user['user_id']]
+    AND HOUR(date) = HOUR(NOW())", [$uid]
 );
-if (db_numrows ($res_emails) < 1)
-  $email_notifications = 0;
-else
+$email_notifications = 0;
+if (db_numrows ($res_emails))
   {
     $row_emails = db_fetch_array ($res_emails);
     $email_notifications = strval ($row_emails[0]);
   }
 
-if ($email_notifications == 0)
+if (!$email_notifications)
   # This would be made empty by itself. We could have the login form
   # to remove old request.
   # But sv_cleaner will take care of it.
-  db_execute ("
-    INSERT INTO user_lostpw VALUES (?, CURRENT_TIMESTAMP, 1)",
-    [$row_user['user_id']]
+  db_execute (
+    "INSERT INTO user_lostpw VALUES (?, CURRENT_TIMESTAMP, 1)", [$uid]
   );
 else
   {
@@ -109,13 +112,12 @@ else
       WHERE
         user_id = ? AND DAYOFYEAR(date) = DAYOFYEAR(CURRENT_DATE)
         AND HOUR(date) = HOUR(NOW())",
-      [$row_user['user_id']]
+      [$uid]
     );
   }
 
-db_execute ("
-  UPDATE user SET confirm_hash = ? WHERE user_id = ?",
-  [$confirm_hash, $row_user['user_id']]
+db_execute (
+  "UPDATE user SET confirm_hash = ? WHERE user_id = ?", [$hash_encrypted, $uid]
 );
 
 # TRANSLATORS: the argument is a domain (like "savannah.gnu.org"
@@ -133,7 +135,7 @@ $message .= "\n\n"
       . "password:")
   . "\n\n";
 $message .= "$sys_https_url$sys_home"
-  . "account/lostlogin.php?confirm_hash=$confirm_hash\n\n";
+  . "account/lostlogin.php?user_id=$uid&confirm_hash=$confirm_hash\n\n";
 # FIXME: There should be a discard procedure.
 $message .=
   _("In any case make sure that you do not disclose this URL to\n"
@@ -153,7 +155,7 @@ $message_for_admin =
   );
 
 list ($fail, $gpg_error) =
-  sendmail_encrypt_message ($row_user['user_id'], $message);
+  sendmail_encrypt_message ($uid, $message);
 
 sendmail_mail (
   ['to' => $row_user['email']],
@@ -180,7 +182,7 @@ print '<p>'
 
 if ($fail)
   {
-    if (user_get_preference ("email_encrypted", $row_user['user_id']))
+    if (user_get_preference ("email_encrypted", $uid))
       print "<p><strong>$gpg_error<strong></p>";
     print '<blockquote><p>'
       . _("Note that the message was sent unencrypted.\nIn order to use "

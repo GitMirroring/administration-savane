@@ -46,24 +46,24 @@ require_once ('../include/database.php');
 require_once ('../include/account.php');
 require_once ('../include/form.php');
 
-extract (sane_import ('request', ['hash' => 'confirm_hash']));
+extract (sane_import ('request',
+  ['hash' => 'confirm_hash', 'digits' => 'user_id']
+));
 extract (sane_import ('post',
   ['true' => 'update', 'pass' => ['form_pw', 'form_pw2']]
 ));
 
 form_check ('update');
+exit_if_missing (['confirm_hash', 'user_id']);
 
-$res_lostuser = db_execute (
-  "SELECT * FROM user WHERE confirm_hash = ?", [$confirm_hash]
+$result = db_execute (
+  "SELECT user_name, confirm_hash FROM user WHERE user_id = ?", [$user_id]
 );
-if (db_numrows ($res_lostuser) > 1)
-  exit_error (_("Error"),
-    # TRANSLATORS: confirmation hash is a secret code mailed to the user.
-    _("This confirmation hash exists more than once.")
-  );
-if (db_numrows ($res_lostuser) < 1)
-  exit_error (_("Error"), _("Invalid confirmation hash."));
-$row_lostuser = db_fetch_array ($res_lostuser);
+if (!db_numrows ($result))
+  exit_error (sprintf (_("User #%s not found."), $user_id));
+$row = db_fetch_array ($result);
+if (!account_validpw ($row['confirm_hash'], $confirm_hash))
+  exit_error (_("Invalid confirmation hash."));
 
 if ($update && $form_pw)
   {
@@ -73,7 +73,7 @@ if ($update && $form_pw)
       {
         db_autoexecute ('user',
           ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => ''],
-          DB_AUTOQUERY_UPDATE, "confirm_hash = ?", [$confirm_hash]
+          DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
         );
         session_redirect ("{$sys_home}account/login.php");
       }
@@ -82,7 +82,7 @@ if ($update && $form_pw)
 site_header (['title' => _("Lost Passphrase Login")]);
 print html_h (2, _("Lost Passphrase Login"));
 print '<p>';
-printf (_("Welcome, %s."), $row_lostuser['user_name']);
+printf (_("Welcome, %s."), $row['user_name']);
 print ' ' . _("You may now change your passphrase.") . "</p>\n";
 print form_header ();
 print '<div>' . account_password_help () . "</div>\n";
@@ -94,7 +94,7 @@ print '<div class="inputfield"><strong>'
   . html_label ('form_pw2', _("New passphrase (repeat):")) . '</strong>';
 print form_input ("password", "form_pw2") . "</div>\n";
 
-print form_hidden (["confirm_hash" => $confirm_hash]);
+print form_hidden (['confirm_hash' => $confirm_hash, 'user_id' => $user_id]);
 print form_footer ();
 
 $HTML->footer ([]);

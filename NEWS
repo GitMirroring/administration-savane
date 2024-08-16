@@ -27,6 +27,9 @@
 
 * In testconfig.php, basic 'gpg --verify' and 'gpg --decrypt' tests are added.
 
+* user.confirm_hash is stored in the database after applying crypt()
+  like user.user_pw; it increases from varchar(32) to varchar(128).
+
 * The auxiliary file domain is configured and listened to
   separately from and in parallel to the main ('control') domain.
 
