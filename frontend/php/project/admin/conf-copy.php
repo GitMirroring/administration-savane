@@ -56,8 +56,7 @@ if (!user_ismember ($group_id, 'A'))
 
 if ($update && !in_array ($from_group_id, [0, 100]))
   {
-    if (empty ($artifact))
-      exit_missing_param (['artifact']);
+    exit_if_missing ('artifact');
     trackers_conf_copy ($group_id, $artifact, $from_group_id);
   }
 

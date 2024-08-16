@@ -44,9 +44,7 @@
 require_once ('../include/init.php');
 extract (sane_import ('get', ['digits' => 'user_id']));
 
-if (empty ($user_id))
-  exit_missing_param (['user_id']);
-
+exit_if_missing ('user_id');
 if (!user_exists ($user_id))
   exit_error (sprintf (_("User #%s not found."), $user_id));
 $user_name = user_getname ($user_id);

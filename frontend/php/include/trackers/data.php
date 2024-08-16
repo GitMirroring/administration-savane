@@ -1393,14 +1393,9 @@ namespace trackers_data\handle_update {
 
 function fetch_data ($group_id, $item_id, $vfl)
 {
-  $missing = [];
   # Make sure required fields are not empty.
-  if (!$group_id)
-    $missing[] = 'group_id';
-  if (!$item_id)
-    $missing[] = 'item_id';
-  if (count ($missing))
-    exit_missing_param ($missing);
+  $missing = ['group_id' => $group_id, 'item_id' => $item_id];
+  exit_if_missing (array_keys ($missing), $missing);
 
   if (!trackers_check_empty_fields ($vfl, false))
     return [false, false];

@@ -46,9 +46,7 @@ require_once('../include/people/general.php');
 
 extract (sane_import ('get', ['digits' => 'user_id']));
 
-if (empty ($user_id))
-  exit_missing_param (['user_id']);
-
+exit_if_missing ('user_id');
 $user_arr = user_get_array ($user_id);
 
 if (empty ($user_arr))

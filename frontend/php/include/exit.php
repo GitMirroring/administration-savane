@@ -101,6 +101,23 @@ function exit_missing_param ($param_list = [])
   exit_error (_("Missing Parameters"), join (', ', $param_list));
 }
 
+function exit_if_missing ($param_list, $var_array = null)
+{
+  if (!is_array ($param_list))
+    $param_list = [$param_list];
+  $missing = [];
+  foreach ($param_list as $p)
+    {
+      if ($var_array === null && !empty ($GLOBALS[$p]))
+        continue;
+      if ($var_array !== null && !empty ($var_array[$p]))
+        continue;
+      $missing[] = $p;
+    }
+  if (!empty ($missing))
+    exit_missing_param ($missing);
+}
+
 # Standardize the way we log important exit on error.
 function exit_log ($message)
 {

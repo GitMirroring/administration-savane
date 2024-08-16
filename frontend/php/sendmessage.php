@@ -58,8 +58,7 @@ form_check ('send_mail');
 if (!user_isloggedin ())
   exit_not_logged_in ();
 
-if (!$touser)
-  exit_missing_param (['touser']);
+exit_if_missing ('touser');
 
 $result = db_execute (
   "SELECT email, user_name FROM user WHERE user_id = ? AND status IN (?, ?)",
@@ -78,13 +77,7 @@ if (!$send_mail)
     exit;
   }
 
-$missing_params = [];
-foreach (['subject', 'body', 'fromuser'] as $p)
-  if (empty ($$p))
-    $missing_params[] = $p;
-if (!empty ($missing_params))
-  exit_missing_param ($missing_params);
-
+exit_if_missing (['subject', 'body', 'fromuser']);
 if ($cc_me)
   $touser .= ", $fromuser";
 

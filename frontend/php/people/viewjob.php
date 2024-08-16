@@ -48,8 +48,7 @@ extract (sane_import ('get', ['digits' => ['group_id', 'job_id']]));
 
 if (!$group_id)
   exit_no_group ();
-if (!$job_id)
-  exit_missing_param ('job_id');
+exit_if_missing ('job_id');
 
 # For security, include group_id.
 $result = db_execute ("

@@ -57,8 +57,7 @@ function form_check_nobot ()
 function form_preliminary_check ($form_id)
 {
   form_check_nobot ();
-  if (empty ($form_id))
-    exit_missing_param (['form_id']);
+  exit_if_missing ('form_id', ['form_id' => $form_id]);
 }
 
 function form_check_query ($prefix, $args)
@@ -74,12 +73,7 @@ function form_check_query ($prefix, $args)
 function form_check_id ($assert_uid = false)
 {
   $v = sane_import ('request', ['digits' => 'file_uid', 'hash' => 'form_id']);
-  $missing = [];
-  foreach (['form_id', 'file_uid'] as $k)
-    if (empty ($v[$k]))
-      $missing[] = $k;
-  if (!empty ($missing))
-    exit_missing_param ($missing);
+  exit_if_missing (['form_id', 'file_uid'], $v);
   if ($assert_uid && user_getid () != $v['file_uid'])
     exit_permission_denied ();
   $result = form_check_query ("SELECT *", [$v['file_uid'], $v['form_id']]);

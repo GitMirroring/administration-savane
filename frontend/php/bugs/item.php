@@ -53,8 +53,7 @@ extract (sane_import ('get', ['name' => 'user']));
 
 $tracker = ARTIFACT;
 
-if (empty ($item_id))
-  exit_missing_param (['item_id']);
+exit_if_missing ('item_id');
 
 extract (utils_find_item ($tracker, $item_id, ['privacy', 'spamscore']));
 if ($spamscore >= 5)
@@ -69,9 +68,7 @@ $ctype = "text/plain";
 $fname = "$item_id.txt";
 if ($data_are_private)
   {
-    if (empty ($user))
-      exit_missing_param (['user']);
-
+    exit_if_missing ('user');
     $user_id = user_getid ($user);
     if (empty ($user_id))
       exit_error (markup_rich (sprintf (_("User *%s* not found."), $user)));
