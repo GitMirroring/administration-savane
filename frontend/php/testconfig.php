@@ -653,15 +653,33 @@ else
   }
 $page .= "</p>\n";
 
-function test_mysql ()
+function test_db_structure ()
 {
-  print html_h (2, "Database configuration");
+  print html_h (2, 'Database structure');
+  $defs = [];
+  $t = 'user';
+  $tstruct = get_table_structure ($t);
+  $f = 'gpg_key';
+  $defs["$t.$f"] = check_mediumtext ($tstruct, $t, $f);
+  $f = 'confirm_hash';
+  $defs["$t.$f"] = check_varchar ($tstruct, $t, $f);
+  $t = 'user_preferences';
+  $tstruct = get_table_structure ($t);
+  $f = 'preference_value';
+  $defs["$t.$f"] = check_mediumtext ($tstruct, $t, $f);
+  print html_dl ($defs);
+}
+
+function try_db_connect ()
+{
   $db_err = db_connect ();
-  if ($db_err !== null)
-    {
-      print $db_err;
-      return;
-    }
+  if ($db_err === null)
+    return false;
+  print $db_err;
+  return true;
+}
+function mysql_params_to_test ()
+{
   # When sql_mode contains 'ONLY_FULL_GROUP_BY', queries like
   # "SELECT groups.group_name, groups.group_id, groups.unix_group_name,"
   # ...
@@ -672,34 +690,48 @@ function test_mysql ()
   # Since MySQL 5.7, this is default. We could use ANY_VALUE ()
   # to workaround this, but it is only introduced in 5.7,
   # so won't work with older MySQLs.
+  $wrong_modes = ['ONLY_FULL_GROUP_BY', 'STRICT_TRANS_TABLES'];
   $mysql_params = [
-    '@@GLOBAL.version' => null,
-    '@@GLOBAL.sql_mode' => null,
-    '@@SESSION.sql_mode' =>
+    '@@GLOBAL.version' => [null],
+    '@@GLOBAL.sql_mode' => [null, $wrong_modes],
+    '@@SESSION.sql_mode' => [
       "<em>This should</em> <strong>not</strong> <em>include</em> "
-        . "<code>ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</code><em>.</em>"
+        . "<code>ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</code><em>.</em>",
+      $wrong_modes
+    ]
   ];
-  $mysql_highlight = [
-    '@@GLOBAL.sql_mode' => 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES',
-    '@@SESSION.sql_mode' => 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES'
-  ];
+  return $mysql_params;
+}
+
+function test_mysql_params ()
+{
+  $mysql_params = mysql_params_to_test ();
   $defs = [];
   foreach ($mysql_params as $param => $comment)
     {
       $result = db_execute ("SELECT $param");
       $value = db_result ($result, 0, $param);
-      if (isset ($mysql_highlight[$param]))
+      if (isset ($comment[1]))
         {
-          $vals = explode (",", $mysql_highlight[$param]);
+          $vals = $comment[1];
           foreach ($vals as $i => $v)
             $value = str_replace ($v, "<strong>$v</strong>", $value);
         }
       $value = "'$value'";
-      if ($comment !== null)
-        $value .= "<br />\n$comment";
+      if ($comment[0] !== null)
+        $value .= "<br />\n{$comment[0]}";
       $defs[$param] = $value;
     }
-  print html_dl ($defs);
+  return $defs;
+}
+
+function test_mysql ()
+{
+  print html_h (2, "Database configuration");
+  if (try_db_connect ())
+    return;
+  print html_dl (test_mysql_params ());
+  test_db_structure ();
 }
 
 function list_unset_val ($must_be_unset, $value)
@@ -761,6 +793,45 @@ function test_sysvars ()
       . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
   print "<p>Savane generally uses safe default values when variables\n"
     . "are not set in the configuration file.</p>\n";
+}
+
+function get_table_structure ($table)
+{
+  $ret = [];
+  $res = db_execute ("DESCRIBE `$table`");
+  while ($row = db_fetch_array ($res))
+    $ret[$row['Field']] = $row;
+  return $ret;
+}
+
+function db_field_type_expected ($type, $table, $field)
+{
+  return " <strong>$type is expected.</strong>\n"
+    . " Run <code>ALTER TABLE `$table` MODIFY `$field` $type;</code>\n"
+    . "to upgrade the column.";
+}
+
+function check_mediumtext ($table_struct, $table, $field)
+{
+  if (!array_key_exists ($field, $table_struct))
+    return '<strong>Undefined</strong>';
+  $type = strtolower ($table_struct[$field]['Type']);
+  if (in_array ($type, ['mediumtext', 'bigtext']))
+    return $type;
+  return $type . db_field_type_expected ('mediumtext', $table, $field);
+}
+
+function check_varchar ($table_struct, $table, $field, $n = 128)
+{
+  if (!array_key_exists ($field, $table_struct))
+    return '<strong>Undefined</strong>';
+  $type = strtolower ($table_struct[$field]['Type']);
+  $wrong_type = $type . db_field_type_expected ("varchar($n)", $table, $field);
+  if (!preg_match ('/varchar[(]([0-9]+)[)]/', $type, $matches))
+    return $wrong_type;
+  if ($n > $matches[1])
+    return $wrong_type;
+  return $type;
 }
 
 function test_sysconfigs ()
