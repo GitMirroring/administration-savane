@@ -2450,7 +2450,7 @@ CREATE TABLE `user` (
   `uidNumber` int(11) DEFAULT NULL,
   `spamscore` int(2) DEFAULT 0,
   `add_date` int(11) NOT NULL DEFAULT 0,
-  `confirm_hash` varchar(32) DEFAULT NULL,
+  `confirm_hash` varchar(128) DEFAULT NULL,
   `authorized_keys` text DEFAULT NULL,
   `authorized_keys_count` int(11) DEFAULT NULL,
   `email_new` text DEFAULT NULL,
