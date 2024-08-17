@@ -265,7 +265,7 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
       . '&amp;category_id=1&amp;status_id=1&amp;set=custom',
       $img . _("Pending Group List")
     );
-    $reg_count = number_format (stats_getprojects_pending ());
+    $reg_count = stats_get_pending_groups ();
     print ' ';
     printf (
       ngettext (

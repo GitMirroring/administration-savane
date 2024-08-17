@@ -51,17 +51,34 @@ function stats_get_generic ($query, $params = [])
   return $row['count'];
 }
 
-function stats_getprojects_active ($type_id = "")
+function stats_count_by_type ($stats, $type_ids)
 {
-  return stats_getprojects ($type_id);
+  if ($type_ids === null)
+    $type_ids = array_keys ($stats);
+  if (!is_array ($type_ids))
+    $type_ids = [$type_ids];
+  $cnt = 0;
+  foreach ($type_ids as $type)
+    if (!empty ($stats[$type]))
+      $cnt += $stats[$type];
+  return $cnt;
 }
 
-function stats_getprojects_bytype_active ($type_id)
+function stats_get_active_groups ($type_id = null)
 {
-  return stats_getprojects_active ($type_id);
+  static $stats = [];
+  if (!empty ($stats))
+    return stats_count_by_type ($stats, $type_id);
+  $res = db_execute ("
+    SELECT type, count(*) AS count FROM groups WHERE status = 'A'
+    GROUP BY type"
+  );
+  while ($row = db_fetch_array ($res))
+    $stats[$row['type']] = $row['count'];
+  return stats_count_by_type ($stats, $type_id);
 }
 
-function stats_getprojects_pending ()
+function stats_get_pending_groups ()
 {
   return stats_get_generic (
     "SELECT count(*) AS count FROM groups WHERE status = 'P'"

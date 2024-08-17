@@ -46,148 +46,211 @@ function show_altrow ($i)
   return '<div class="' . utils_altrow ($i) . '"><span class="smaller">';
 }
 
-function show_features_boxes ()
+function show_general_stats ()
 {
   global $HTML;
-  $return = '';
-
-  # General stats.
-  $return .= $HTML->box_top (
+  $ret = $HTML->box_top (
     utils_link (
       $GLOBALS['sys_home'] . "stats/",
       # TRANSLATORS: the argument is site name (like Savannah).
       sprintf(_("%s Statistics"), $GLOBALS['sys_name']), "sortbutton"
     )
   );
-  $return .= show_sitestats ();
-  $return .= $HTML->box_bottom ();
+  $ret .= show_sitestats ();
+  return $ret . $HTML->box_bottom ();
+}
 
-  # Job offers stats.
+function show_help_wanted ()
+{
+  global $HTML;
   $jobs = people_show_category_list ();
+  if (!$jobs)
+    return '';
+  return "<br />\n" . $HTML->box_top (_("Help Wanted"), '', 1)
+    . $jobs . $HTML->box_bottom (1);
+}
 
-  if ($jobs)
-    {
-      $return .= "<br />\n";
-      $return .= $HTML->box_top (_("Help Wanted"),'',1);
-      $return .= $jobs;
-      $return .= $HTML->box_bottom (1);
-    }
-
-  # Popular items.
+function show_popular_items ()
+{
+  global $HTML;
   $votes = show_votes ();
+  if (!$votes)
+    return '';
+  return "<br />\n" . $HTML->box_top (_("Most Popular Items"), '', 1)
+    . $votes . $HTML->box_bottom (1);
+}
 
-  if ($votes)
+function show_group_type ($type, $groupdata)
+{
+  global $HTML, $j, $sys_home;
+  # TRANSLATORS: the argument is group type like Official GNU software
+  # or www.gnu.org translation teams; for the full list, check
+  # frontend/site-specific/gnu/admin/groupedit_grouptype.php.
+  $lname = gettext ($type['name']);
+  $ret = "<br />\n";
+  $ret .= $HTML->box_top (sprintf (_("Newest %s"), $lname), '', 1);
+  $ret .= $groupdata;
+  $ret .= show_altrow ($j) . '<a href="'
+    . "{$sys_home}search/?type_of_search=soft&amp;words=%%%&amp;type="
+    . $type['type_id'] . '">[';
+  # TRANSLATORS: the argument is group type like Official GNU software
+  # or www.gnu.org translation teams.
+  $ret .= sprintf (_("all %s"), $lname) . "]</a></span></div>\n";
+  $ret .= $HTML->box_bottom (1);
+  return $ret;
+}
+
+function show_group_type_stats ()
+{
+  $ret = '';
+  $types = fetch_group_types ();
+  foreach ($types as $eachtype)
     {
-      $return .= "<br />\n";
-      $return .= $HTML->box_top (_("Most Popular Items"), '', 1);
-      $return .= $votes;
-      $return .= $HTML->box_bottom (1);
-    }
-
-  # Group type stats.
-  $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY name");
-  $limit = 5;
-
-  while ($eachtype = db_fetch_array ($result))
-    {
-      $groupdata = show_newest_groups ($eachtype['type_id'], $limit);
+      $groupdata = show_newest_groups ($eachtype['type_id']);
       if (!$groupdata)
         continue;
-      # TRANSLATORS: the argument is group type like Official GNU software
-      # or www.gnu.org translation teams; for the full list, check
-      # frontend/site-specific/gnu/admin/groupedit_grouptype.php.
-      $lname = gettext ($eachtype['name']);
-      $return .= "<br />\n";
-      $return .= $HTML->box_top (sprintf (_("Newest %s"), $lname), '', 1);
-      $return .= $groupdata;
-      global $j, $sys_home;
-      $return .= show_altrow ($j) . '<a href="'
-        . "{$sys_home}search/?type_of_search=soft&amp;words=%%%&amp;type="
-        . $eachtype['type_id'] . '">[';
-      # TRANSLATORS: the argument is group type like Official GNU software
-      # or www.gnu.org translation teams.
-      $return .= sprintf (_("all %s"), $lname) . "]</a></span></div>\n";
-      $return .= $HTML->box_bottom (1);
+      $ret .= show_group_type ($eachtype, $groupdata);
     }
-  return $return;
+  return $ret;
+}
+
+function show_features_boxes ()
+{
+  return show_general_stats ()
+    . show_help_wanted ()
+    . show_popular_items ()
+    . show_group_type_stats ();
+}
+
+function show_user_stats ()
+{
+  $ret = '<span class="smaller">';
+  $users = stats_getusers ();
+  $ret .= sprintf (
+    ngettext ("%s registered user", "%s registered users", $users),
+    "<b>$users</b>"
+  );
+  $ret .= "</span></div>\n";
+  return $ret;
+}
+
+function show_active_groups ()
+{
+  $groups = stats_get_active_groups ();
+  $ret = sprintf (
+    ngettext ("%s hosted group", "%s hosted groups", $groups),
+    "<strong>$groups</strong>"
+  );
+  $ret .= "</span></div>\n";
+  return $ret;
+}
+
+function show_active_groups_per_type ($eachtype)
+{
+  global $sys_home;
+  $n = stats_get_active_groups ($eachtype['type_id']);
+  if ($n < 1)
+    return null;
+  $ret = "&nbsp;&nbsp;- <a href=\"{$sys_home}search/"
+    . '?type_of_search=soft&amp;words=%%%&amp;type='
+    . $eachtype['type_id'] . '" class="center">';
+  $ret .= ' ' . gettext ($eachtype['name']) . ": $n</a></span></div>\n";
+  return $ret;
+}
+
+function show_pending_groups ()
+{
+  $pending = stats_get_pending_groups ();
+  $msg = ngettext (
+   "+ %s registration pending", "+ %s registrations pending", $pending
+  );
+  $ret = sprintf ($msg, $pending);
+  return $ret . '</span>';
 }
 
 function show_sitestats ()
 {
-  global $sys_home;
-
-  $return = '<span class="smaller">';
-  $users = stats_getusers ();
-  $return .= sprintf (
-    ngettext ("%s registered user", "%s registered users", $users),
-    "<strong>$users</strong>"
-  );
-  $return .= "</span></div>\n";
   $i = 0;
-  $return .= show_altrow ($i++);
-  $groups = stats_getprojects_active ();
-  $return .= sprintf (
-    ngettext ("%s hosted group", "%s hosted groups", $groups),
-    "<strong>$groups</strong>"
-  );
-  $return .= "</span></div>\n";
+  $ret = show_user_stats ();
+  $ret .= show_altrow ($i++);
+  $ret .= show_active_groups ();
   $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY name");
   while ($eachtype = db_fetch_array ($result))
     {
-      $n = stats_getprojects_bytype_active ($eachtype['type_id']);
-      if ($n < 1)
+      $groups = show_active_groups_per_type ($eachtype);
+      if ($groups === null)
         continue;
-      $return .= show_altrow ($i++);
-      $return .= "&nbsp;&nbsp;- <a href=\"{$sys_home}search/"
-        . '?type_of_search=soft&amp;words=%%%&amp;type='
-        . $eachtype['type_id'] . '" class="center">';
-      $return .= ' ' . gettext ($eachtype['name']) . ": $n</a></span></div>\n";
+      $ret .= show_altrow ($i++) . $groups;
     }
-  $pending = stats_getprojects_pending ();
-  $return .= show_altrow ($i++) . '&nbsp;&nbsp;';
-  $return .= sprintf (
-    ngettext (
-     "+ %s registration pending", "+ %s registrations pending", $pending
-    ),
-    $pending
+  $ret .= show_altrow ($i++) . '&nbsp;&nbsp;';
+  $ret .= show_pending_groups ();
+  return $ret;
+}
+
+function fetch_group_types ()
+{
+  $result = db_execute ("SELECT type_id, name FROM group_type ORDER BY name");
+  $ret = [];
+  while ($row = db_fetch_array ($result))
+    $ret[] = $row;
+  return $ret;
+}
+
+function fetch_newest_groups ()
+{
+  static $ret = null;
+  if ($ret !== null)
+    return $ret;
+  $limit = 5;
+  $result = db_execute ("
+    SELECT group_id, type, unix_group_name, group_name, register_time FROM groups
+    WHERE is_public = 1 AND status = 'A' AND register_time >= ?
+    ORDER BY register_time DESC", [time () - 2 * 30 * 24 * 3600]
   );
-  return $return . '</span>';
+  $ret = [];
+  while ($row = db_fetch_array ($result))
+    {
+      $type = $row['type'];
+      if (empty ($ret[$type]))
+        $ret[$type] = [];
+      if (count($ret[$type]) <= $limit)
+        $ret[$type][] = $row;
+    }
+  return $ret;
+}
+
+function fetch_base_hosts ()
+{
+  static $ret = null;
+  if ($ret !== null)
+    return $ret;
+  $result = db_execute ("SELECT type_id, base_host FROM group_type");
+  $ret = [];
+  while ($row = db_fetch_array ($result))
+    $ret[$row['type_id']] = $row['base_host'];
+  return $ret;
 }
 
 # Show groups that were added less than 2 months ago.
-function show_newest_groups ($group_type, $limit)
+function show_newest_groups ($group_type)
 {
   global $j, $sys_home;
-
-  $since = time () - 2 * 30 * 24 * 3600;
-  $res_newgrp = db_execute ("
-    SELECT group_id, unix_group_name, group_name, register_time FROM groups
-    WHERE is_public = 1 AND status = 'A' AND type = ? AND register_time >= ?
-    ORDER BY register_time DESC LIMIT ?", [$group_type, $since, $limit]
-  );
-  if (!db_numrows ($res_newgrp))
+  $newest_groups = fetch_newest_groups ();
+  if (empty ($newest_groups[$group_type]))
     return false;
-
+  $base_hosts = fetch_base_hosts ();
   $base_url = '';
-  $res_newgrp_type = db_execute (
-    "SELECT type_id, base_host FROM group_type WHERE type_id = ?",
-    [$group_type]
-  );
-  $row_newgrp_type = db_fetch_array ($res_newgrp_type);
-  if ($row_newgrp_type['base_host'])
-    $base_url = session_protocol () . '://' . $row_newgrp_type['base_host'];
-
-  $return = '';
-  while ($row = db_fetch_array ($res_newgrp))
+  if ($base_hosts[$group_type])
+    $base_url = session_protocol () . '://' . $base_hosts[$group_type];
+  $ret = '';
+  foreach ($newest_groups[$group_type] as $row)
     if ($row['register_time'])
-      {
-        $return .= show_altrow ($j++) . '&nbsp;&nbsp;- <a href="'
-          . "$base_url{$sys_home}projects/$row[unix_group_name]/\">"
-          . $row['group_name'] . '</a>, '
-          . utils_format_date ($row['register_time'], 'minimal')
-          . '</span></div>';
-      }
-  return $return;
+      $ret .= show_altrow ($j++) . '&nbsp;&nbsp;- <a href="'
+        . "$base_url{$sys_home}projects/$row[unix_group_name]/\">"
+        . $row['group_name'] . '</a>, '
+        . utils_format_date ($row['register_time'], 'minimal')
+        . '</span></div>';
+  return $ret;
 }
 
 function get_top_votes ($limit)

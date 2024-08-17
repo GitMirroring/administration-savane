@@ -158,37 +158,50 @@ function people_show_table ()
     . "\" />\n</form>\n";
 }
 
+function people_fetch_categories ()
+{
+  $ret = [];
+  $result = db_execute (
+    "SELECT * FROM people_job_category ORDER BY category_id"
+  );
+  while ($row = db_fetch_array ($result))
+    $ret[$row['category_id']] = $row;
+  return $ret;
+}
+
+function people_fetch_job_counts ()
+{
+  $result = db_execute ("
+     SELECT category_id, count(*) AS count FROM people_job
+     WHERE status_id = 1 GROUP BY category_id"
+  );
+  $ret = [];
+  while ($row = db_fetch_array ($result))
+    $ret[] = $row;
+  return $ret;
+}
+
 # Show a list of categories.
 # Provide links to drill into a detail page that shows these categories.
 function people_show_category_list ()
 {
   $finalize = function ($r) { return "<ul class=\"boxli\">$r</ul>\n"; };
-  $sql = "SELECT * FROM people_job_category ORDER BY category_id";
-  $result = db_execute ($sql);
-  $rows = db_numrows ($result);
-  $return = '';
-  if ($rows < 1)
+  $categories = people_fetch_categories ();
+  if (empty ($categories))
     return $finalize ("<li>" . _("No categories found") . "</li>");
-  for ($i = $j = 0; $i < $rows; $i++)
+  $ret = ''; $j = 0;
+  foreach (people_fetch_job_counts () as $row)
     {
-      $count_res = db_execute ("
-        SELECT count(*) AS count FROM people_job
-        WHERE category_id = ? AND status_id = 1",
-        [db_result ($result, $i, 'category_id')]
-      );
-
-      # Print only if there are results within the category.
-      if (db_result ($count_res, 0, 'count') <= 0)
+      if (!$row['count'])
         continue;
-      $j++;
-      $return .= '<li class="' . utils_altrow ($j)
+      $cat_id = $row['category_id'];
+      $ret .= '<li class="' . utils_altrow ($j++)
         . '"><span class="smaller">&nbsp;&nbsp;- <a href="'
-        . $GLOBALS['sys_home'] . 'people/?categories[]='
-        . db_result ($result, $i, 'category_id') . '">'
-        . db_result ($count_res, 0, 'count')
-        . ' ' . db_result ($result, $i, 'name') . "</a></span></li>\n";
+        . $GLOBALS['sys_home'] . 'people/?categories[]=' . $cat_id . '">'
+        . $row['count'] . ' ' . $categories[$cat_id]['name']
+        . "</a></span></li>\n";
     }
-  return $finalize ($return);
+  return $finalize ($ret);
 }
 
 function people_job_status_box ($name = 'status_id', $checked = 'xyxy')
