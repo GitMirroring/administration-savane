@@ -309,20 +309,24 @@ function news_markup_details ($story)
   return preg_replace ("/(<br \\/>\s*)*((<\\/p>\s*)?)$/", '$2', $ret);
 }
 
-function news_item_url ($row, $reply)
+function news_item_url ($rows, $replies)
 {
-  global $sys_home;
-
-  if ($reply === '')
-    $url = "news/?id={$row['id']}";
-   else
-    $url = "forum/forum.php?forum_id={$row['forum_id']}";
-  return "$sys_home$url";
+  $ret = [];
+  foreach ($rows as $row)
+    {
+      $reply = $replies[$row['forum_id']];
+      if ($reply === '')
+        $url = "news/?id={$row['id']}";
+      else
+        $url = "forum/forum.php?forum_id={$row['forum_id']}";
+      $ret[] = $GLOBALS['sys_home'] . $url;
+    }
+  return $ret;
 }
 
 function news_link ($row, $reply)
 {
-  $url = news_item_url ($row, $reply);
+  list ($url) = news_item_url ([$row], $reply);
   return "<a href=\"$url\">[...]</a>";
 }
 
@@ -340,49 +344,75 @@ function news_format_details ($row, $reply)
     $matches = [0 => ['', strlen ($story)]];
   $head = substr ($story, 0, $matches[0][1]);
   $tail = $matches[0][0];
-  $link = news_link ($row, $reply);
+  $link = news_link ($row, [$row['forum_id'] => $reply]);
   return "$head\n$link$tail\n";
 }
 
-function news_reply_count ($forum_id)
+function news_reply_count ($forum_ids)
 {
-  $result = db_execute (
-    "SELECT group_forum_id FROM forum WHERE group_forum_id = ?", [$forum_id]
+  $ret = [];
+  if (empty ($forum_ids))
+    return $ret;
+  $result = db_execute ("
+    SELECT group_forum_id AS forum_id, count(msg_id) AS cnt FROM forum
+    WHERE group_forum_id " . utils_in_placeholders ($forum_ids) . "
+    GROUP BY group_forum_id", $forum_ids
   );
-  $cnt = db_numrows ($result);
-  if (!$cnt)
-    return '';
-  return  ' - ' . sprintf (ngettext ("%s reply", "%s replies", $cnt), $cnt);
+  $cnt = [];
+  while ($row = db_fetch_array ($result))
+    $cnt[$row['forum_id']] = $row['cnt'];
+  foreach ($forum_ids as $id)
+    {
+      $ret[$id] = '';
+      if (!array_key_exists ($id, $cnt))
+        continue;
+      $c = $cnt[$id];
+      $ret[$id] = ' - ' . sprintf (ngettext ("%s reply", "%s replies", $c), $c);
+    }
+  return $ret;
 }
 
-function news_format_item ($row, $show_details, $i)
+function news_list_forum_ids ($rows)
+{
+  $ret = [];
+  foreach ($rows as $r)
+    $ret[] = $r['forum_id'];
+  return $ret;
+}
+
+function news_format_item ($row, $link, $reply, $show_details)
 {
   global $sys_home;
-  $return = $det = '';
-  $reply = news_reply_count ($row['forum_id']);
-  $link = news_item_url ($row, $reply);
-  $return .= news_new_subbox ($i)
-    . "<a href=\"$link\"><strong>{$row['summary']}</strong></a>";
+  $ret = "<a href=\"$link\"><b>{$row['summary']}</b></a>";
+  $det = '';
   if ($show_details)
     {
-      $return .= "<br />\n&nbsp;&nbsp;&nbsp;&nbsp;";
+      $ret .= "<br />\n&nbsp;&nbsp;&nbsp;&nbsp;";
       $det = news_format_details ($row, $reply);
     }
   $uname = $row['user_name'];
-  $return .= ' <span class="smaller"><em>' . _("posted by")
+  $ret .= ' <span class="smaller"><em>' . _("posted by")
     . " <a href=\"{$sys_home}users/$uname\">$uname</a>, "
     . utils_format_date ($row['date']) . "$reply</em></span>\n$det";
-  return $return;
+  return $ret;
 }
 
 function news_list_items ($result, $show_details)
 {
   if (!db_numrows ($result))
     return ['<p><strong>' . _("No news found") . "</strong></p>\n", -1];
-  $return = '';
-  for ($i = 0; $row = db_fetch_array ($result); $i++)
-    $return .= news_format_item ($row, $show_details, $i);
-  return [$return, $i];
+  $rows = [];
+  for ($n = 0; $row = db_fetch_array ($result); $n++)
+    $rows[] = $row;
+  $ret = '';
+  $reply = news_reply_count (news_list_forum_ids ($rows));
+  $link = news_item_url ($rows, $reply);
+  for ($i = 0; $i < $n; $i++)
+    $ret .= news_new_subbox ($i)
+      . news_format_item (
+          $rows[$i], $link[$i], $reply[$rows[$i]['forum_id']], $show_details
+        );
+  return [$ret, $n];
 }
 
 function news_bottom_link ($group_id, $news_n)
