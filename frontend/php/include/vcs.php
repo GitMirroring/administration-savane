@@ -60,9 +60,19 @@ function vcs_save_sorting ($vcs, $group_id, &$repos)
   group_set_preference ($group_id, "vcs:$vcs:repo-order", $order);
 }
 
-function vcs_get_repo_pref ($vcs, $group_id, $pref, $repo)
+function vcs_get_repo_pref ($vcs, $group_id, $pref_name, $repo)
 {
-  return group_get_preference ($group_id, "vcs:$vcs:$pref:$repo");
+  $repos = utils_make_arg_array ($repo);
+  $names = $ret = [];
+  foreach ($repos as $r)
+    $names[] = "vcs:$vcs:$pref_name:$r";
+  $pref_array = group_get_preference ($group_id, $names);
+  foreach ($pref_array as $name => $val)
+    {
+      $n = str_replace ("vcs:$vcs:$pref_name:", "", $name);
+      $ret[$n] = $val;
+    }
+  return utils_return_val ($repo, $ret);
 }
 function vcs_set_repo_pref ($vcs, $group_id, $pref, $repo, $val)
 {
@@ -99,12 +109,14 @@ function vcs_get_repo_readme ($vcs, $group_id, $name)
 # Use descriptions from database when available.
 function vcs_override_descriptions ($vcs, $group_id, $repos)
 {
-  $ret = [];
+  $ret = $names = $desc = [];
+  foreach ($repos as $r)
+    $names[] = $r['name'];
+  $desc = vcs_get_repo_description ($vcs, $group_id, $names);
   foreach ($repos as $r)
     {
-      $desc = vcs_get_repo_description ($vcs, $group_id, $r['name']);
-      if (!empty ($desc))
-        $r['desc'] = $desc;
+      if (!empty ($desc[$r['name']]))
+        $r['desc'] = $desc[$r['name']];
       $ret[] = $r;
     }
   return $ret;
@@ -138,7 +150,7 @@ function vcs_get_repos ($vcs, $group_id)
   $func = "{$vcs}_list_repos";
   if (!function_exists ($func))
     return [];
-  $group = project_get_object ($group_id);
+  $group = group_get_object ($group_id);
   $group_name = $group->getUnixName ();
   if (empty ($sys_vcs_dir) || !is_array ($sys_vcs_dir))
     return [];
@@ -242,7 +254,7 @@ function vcs_page ($vcs, $group_id)
   if ($vcs_name === null)
     exit_error ();
 
-  $group = project_get_object ($group_id);
+  $group = group_get_object ($group_id);
   if (!$group->Uses ($vcs) && !$group->UsesForHomepage ($vcs))
     exit_error (_("This group doesn't use this tool."));
 
