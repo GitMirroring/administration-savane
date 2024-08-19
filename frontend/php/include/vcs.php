@@ -143,8 +143,7 @@ function vcs_sort_repos ($vcs, $group_id, $repos)
   return $ret;
 }
 
-# Get array of repository descriptions.
-function vcs_get_repos ($vcs, $group_id)
+function vcs_fetch_repos ($vcs, $group_id)
 {
   global $sys_vcs_dir;
   $func = "{$vcs}_list_repos";
@@ -164,6 +163,18 @@ function vcs_get_repos ($vcs, $group_id)
   $repos = $func ($group_name, $vcs_dir, $clone_path);
   $repos = vcs_override_descriptions ($vcs, $group_id, $repos);
   return vcs_sort_repos ($vcs, $group_id, $repos);
+}
+
+# Get array of repository descriptions.
+function vcs_get_repos ($vcs, $group_id, $reload = false)
+{
+  static $cache = [];
+  if (array_key_exists ($vcs, $cache)
+    && array_key_exists ($group_id, $cache[$vcs]) && !$reload
+  )
+    return $cache[$vcs][$group_id];
+  $cache[$vcs][$group_id] = vcs_fetch_repos ($vcs, $group_id);
+  return $cache[$vcs][$group_id];
 }
 
 function vcs_print_browsing_preface ($vcs_name)

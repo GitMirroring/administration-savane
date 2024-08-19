@@ -284,7 +284,7 @@ if (isset ($submit) && $have_name)
     )
       if (isset ($v))
         vcs_set_repo_pref ($vcs, $group_id, $k, $name, $v);
-    $repos = vcs_get_repos ($vcs, $group_id);
+    $repos = vcs_get_repos ($vcs, $group_id, true);
   }
 
 page_start ();
