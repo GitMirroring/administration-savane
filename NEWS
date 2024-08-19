@@ -32,6 +32,8 @@
 
 * Tracker attachment deletion is protected with form_id.
 
+* Quotes and commas are allowed in user.realname.
+
 * The 'user not found' error specifies the user.
 
 * The 'item not found' error specifies the item.

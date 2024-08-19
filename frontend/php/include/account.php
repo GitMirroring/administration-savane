@@ -225,7 +225,7 @@ function account_sanitize_realname ($name)
 {
   if (!is_string ($name))
     return '';
-  return trim (strtr ($name, "'\",<", "    "));
+  return trim (strtr ($name, "<", " "));
 }
 
 function account_namevalid (
