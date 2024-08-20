@@ -1,7 +1,8 @@
 <?php
-# Recipe page.
+# Handle simple tracker URL aliases.
+#
 # Copyright (C) 1999, 2000 The SourceForge Crew
-# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2013, 2014, 2017-2024 Ineiev
@@ -40,9 +41,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 require_once ('../include/init.php');
-$url = preg_replace (
-  ":^$sys_url_topdir/recipe:", "$sys_url_topdir/cookbook",
-  $_SERVER['REQUEST_URI']
-);
-session_redirect ($url);
+$aliases = [
+  'bug' => 'bugs', 'sr' => 'support', 'recipe' => 'cookbook',
+  'docs' => 'cookbook'
+];
+$url = $_SERVER['REQUEST_URI'];
+$pref = preg_replace ('#//*#', '/', "$sys_url_topdir/");
+if (strpos ($url, $pref) !== 0)
+  exit_error ();
+$url = substr ($url, strlen ($pref));
+if (!preg_match ('#^(.*)(/.*)#', $url, $matches))
+  exit_error ();
+if (empty ($aliases[$matches[1]]))
+  exit_error ();
+session_redirect ($pref . $aliases[$matches[1]] . $matches[2]);
 ?>

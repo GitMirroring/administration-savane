@@ -385,7 +385,6 @@ ordinary_files = \
   php/css/www.gnu.org.css \
   php/cvs/admin/index.php \
   php/cvs/index.php \
-  php/docs/index.php \
   php/file \
   php/file.php \
   php/files/index.php \
@@ -460,6 +459,7 @@ ordinary_files = \
   php/include/stats/general.php \
   php/include/theme.php \
   php/include/timezones.php \
+  php/include/tracker-alias-redirect.php \
   php/include/trackers/conf.php \
   php/include/trackers/cookbook.php \
   php/include/trackers/data.php \
@@ -533,7 +533,6 @@ ordinary_files = \
   php/projects \
   php/projects.php \
   php/project/stats/.htaccess \
-  php/recipe/index.php \
   php/register/index.php \
   php/register/requirements.php \
   php/register/upload.php \
@@ -552,7 +551,6 @@ ordinary_files = \
   php/siteadmin/user_changepw.php \
   php/siteadmin/usergroup.php \
   php/siteadmin/userlist.php \
-  php/sr/index.php \
   php/stats/index.php \
   php/testconfig.php \
   php/testing/error.php \
@@ -629,6 +627,7 @@ dir_links = \
   php/arch \
   php/bzr \
   php/cookbook \
+  php/docs \
   php/hg \
   php/images/Cafe.theme \
   php/images/Cappuccino.theme \
@@ -711,8 +710,10 @@ dir_links = \
   php/images/www.gnu.org.theme/misc \
   php/images/www.gnu.org.theme/roles \
   php/patch \
-  php/support \
+  php/recipe \
   php/svn \
+  php/support \
+  php/sr \
   php/task \
   site-specific/gnu-content \
   site-specific/nongnu-content \

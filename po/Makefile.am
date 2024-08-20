@@ -17,7 +17,6 @@ POTFILES = \
 	frontend/php/bug/index.php \
 	frontend/php/git/admin/index.php \
 	frontend/php/git/index.php \
-	frontend/php/docs/index.php \
 	frontend/php/bugs/comment.php \
 	frontend/php/bugs/item.php \
 	frontend/php/bugs/dependencies.php \
@@ -68,7 +67,6 @@ POTFILES = \
 	frontend/php/account/register.php \
 	frontend/php/account/impersonate.php \
 	frontend/php/account/su.php \
-	frontend/php/recipe/index.php \
 	frontend/php/mail/index.php \
 	frontend/php/mail/admin/index.php \
 	frontend/php/register/index.php \
@@ -127,6 +125,7 @@ POTFILES = \
 	frontend/php/include/vcs.php \
 	frontend/php/include/vcs/git.php \
 	frontend/php/include/graphs.php \
+	frontend/php/include/tracker-alias-redirect.php \
 	frontend/php/include/trackers/format.php \
 	frontend/php/include/trackers/cookbook.php \
 	frontend/php/include/trackers/general.php \
@@ -192,7 +191,6 @@ POTFILES = \
 	frontend/php/news/approve.php \
 	frontend/php/users.php \
 	frontend/php/css/graph-widths.php \
-	frontend/php/sr/index.php \
 	frontend/php/markup-test.php \
 	frontend/php/js/hide-span.php \
 	frontend/php/js/captcha.php \
