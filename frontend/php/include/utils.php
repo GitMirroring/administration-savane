@@ -1120,6 +1120,11 @@ function utils_debug_output_rusage ($ru)
   return $ret;
 }
 
+function utils_format_timestamp ($t)
+{
+  return sprintf ("%.3f ms", $t);
+}
+
 function utils_debug_output_db_queries ()
 {
   global $db_queries_filed;
@@ -1128,13 +1133,19 @@ function utils_debug_output_db_queries ()
   $head[1] = '-multi-';
   $head[0] = preg_replace ('/./', '-', $head[1]);
   $ret = '  ' . utils_no_i18n ('DB queries:') . "\n";
+  $ts_total = 0;
   foreach ($db_queries_filed as $entry)
     {
+      $ts_total += $entry[3];
+      $ts = utils_format_timestamp ($entry[3]);
       $h = $head[$entry[1]? 1: 0];
       $sql = preg_replace ("/^\n*/", '', $entry[0]);
-      $ret .= "$h\n{$entry[2]}\n$sql\n";
+      $ret .= "$h Elapsed time: $ts\n{$entry[2]}\n$sql\n";
     }
-  return "$ret$head[0]\n\n";
+  $ts_total = utils_format_timestamp ($ts_total);
+  $footer = "Total number of DB queries: " . count ($db_queries_filed)
+   . "\nTotal time elapsed in DB queries: $ts_total";
+  return "$ret$head[0]\n$footer\n\n";
 }
 
 function utils_output_debug_footer ()
@@ -1142,8 +1153,10 @@ function utils_output_debug_footer ()
   global $sys_debug_footer;
   if (empty ($sys_debug_footer))
     return;
+  $ts = utils_format_timestamp (error_timestamp () - $GLOBALS['TIMESTAMP_START']);
   $ru = getrusage ();
   $msg = utils_no_i18n ("PHP run summary") . "\n  "
+    . "Elapsed time: $ts\n  "
     . utils_no_i18n ("Included files:") . "\n";
   foreach (get_included_files () as $f)
     $msg .= error_relative_source_path ($f) . "\n";

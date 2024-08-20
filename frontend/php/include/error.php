@@ -41,6 +41,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+if (function_exists ('hrtime'))
+  {
+    function error_timestamp ()
+    {
+      return hrtime (true) / 1000000;
+    }
+  }
+else
+  {
+    function error_timestamp ()
+    {
+      return microtime (true) / 1000;
+    }
+  }
+
+$TIMESTAMP_START = error_timestamp ();
+
 function error_level_name ($errno)
 {
   $names = [

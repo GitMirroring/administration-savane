@@ -322,18 +322,29 @@ function db_format_backtrace ()
   return error_format_backtrace (false);
 }
 
-function db_query ($qstring, $multi_query = 0)
+function db_query_ ($qstring, $multi_query)
 {
-  global $mysql_conn, $db_qhandle, $db_queries_filed, $sys_debug_footer;
-  if (!empty ($sys_debug_footer))
-    $db_queries_filed[] = [$qstring, $multi_query, db_format_backtrace ()];
-
+  global $mysql_conn, $db_qhandle;
   if ($multi_query)
     return db_multi_query ($qstring);
   $db_qhandle = mysqli_query ($mysql_conn, $qstring);
   if ($db_qhandle)
     return $db_qhandle;
   return db_query_die ($qstring);
+}
+
+function db_query ($qstring, $multi_query = 0)
+{
+  global $sys_debug_footer, $db_queries_filed;
+  if (!empty ($sys_debug_footer))
+    $t = error_timestamp ();
+  $ret = db_query_ ($qstring, $multi_query);
+  if (empty ($sys_debug_footer))
+    return $ret;
+  $db_queries_filed[] = [
+    $qstring, $multi_query, db_format_backtrace (), error_timestamp () - $t
+  ];
+  return $ret;
 }
 
 function db_numrows ($qhandle)

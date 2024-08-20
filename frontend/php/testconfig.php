@@ -609,7 +609,8 @@ $phpfunctions =
       'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
     'sem_get' =>
       'Used when connecting mailman and updating the group file '
-      . '(--enable-sysvsem) ! [REQUIRED]'
+      . '(--enable-sysvsem) ! [REQUIRED]',
+    'hrtime'=> 'Optionally used in diagnostic timestamps.'
  ];
 $page .= list_facilities ('function_exists', $phpfunctions);
 

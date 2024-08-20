@@ -47,21 +47,6 @@ require_once ("sendmail.php");
 }
 
 namespace mm_ns {
-if (function_exists ('hrtime'))
-  {
-    function timestamp ()
-    {
-      return hrtime (true) / 1000000;
-    }
-  }
-else
-  {
-    function timestamp ()
-    {
-      return microtime (true) / 1000;
-    }
-  }
-
 function send_request ($cmd, $args)
 {
   $in = "command=$cmd\n";
@@ -108,14 +93,14 @@ function send_request1 ($args)
 
 function run ($cmd, $args)
 {
-  $t0 = timestamp ();
+  $t0 = error_timestamp ();
   $request = utils_run_lock (__FILE__, '\mm_ns\send_request1', [$cmd, $args]);
   if ($request === null)
     return ['error' => "Error: can't acquire semaphore",
-        'timestamp' => sprintf ("%.3f", timestamp () - $t0)
+        'timestamp' => sprintf ("%.3f", error_timestamp () - $t0)
       ];
   list ($lines, $error) = $request;
-  $t0 = timestamp () - $t0;
+  $t0 = error_timestamp () - $t0;
   $ret = parse_response ($lines);
   if (empty ($ret['error']))
     unset ($ret['error']);
