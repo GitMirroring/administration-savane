@@ -782,6 +782,8 @@ function test_sysconfigs ()
   print html_dl ($defs);
   print html_h (3, 'Limiting email error report rate', 'error-cc-limit');
   print error_test_cc_limit ();
+  print html_h (3, 'Timestamps', 'error-timestamp');
+  print '<p>' . error_test_timestamp () . "</p>\n";
 }
 
 $page .= html_h (2, "Configured settings");

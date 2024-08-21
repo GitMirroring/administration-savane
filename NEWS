@@ -46,6 +46,8 @@
 
 * Bug fixes:
 
+** microtime-based timestamps were wrong.
+
 ** When registering a user with too long realname, an SQL error was thrown;
    now the error results in a conventional feedback.
 

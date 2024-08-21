@@ -1,5 +1,5 @@
 <?php
-# Test error_check_cc_limit ().
+# Test functions from include/error.php.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -54,8 +54,11 @@ function no_i18n ($s)
   return $s;
 }
 
-$result = error_test_cc_limit_update ();
-if ($result === 'OK')
-  exit (0);
-print str_replace (['<strong>', '</strong>'], '', $result) . "\n";
+foreach (['cc_limit_update', 'timestamp'] as $f)
+  {
+    $func = "error_test_$f";
+    $result = $func ();
+    if ($result !== 'OK')
+      print str_replace (['<strong>', '</strong>'], '', $result) . "\n";
+  }
 ?>

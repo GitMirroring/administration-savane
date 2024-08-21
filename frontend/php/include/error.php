@@ -52,9 +52,22 @@ else
   {
     function error_timestamp ()
     {
-      return microtime (true) / 1000;
+      return microtime (true) * 1000;
     }
   }
+
+function error_test_timestamp ()
+{
+  $delay = 5000;
+  $t = error_timestamp ();
+  usleep ($delay);
+  $t -= error_timestamp ();
+  $t *= -1000;
+  $dt = abs ($t - $delay);
+  if ($dt / $delay < .1)
+    return 'OK';
+  return "<strong>Timestamp mismatch: $t vs $delay</strong>";
+}
 
 $TIMESTAMP_START = error_timestamp ();
 
