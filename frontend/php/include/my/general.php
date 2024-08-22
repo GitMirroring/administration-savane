@@ -401,14 +401,13 @@ function my_assign_item ($row, $tracker)
   $items_per_groups[$group][$item] = true;
 
   # Store data (ignore if already found).
-  if (isset ($item_data['item_id']) && is_array ($item_data['item_id'])
-      && array_key_exists ($item, $item_data['item_id']))
+  if (is_array ($item_data) && array_key_exists ($item, $item_data))
     return;
   $row['tracker'] = $tracker; $row['item_id'] = $row['bug_id'];
   $row['status'] = $row['resolution_id'];
   foreach (['item_id', 'tracker', 'date', 'priority', 'status', 'summary']
     as $key)
-    $item_data[$key][$item] = $row[$key];
+    $item_data[$item][$key] = $row[$key];
 }
 
 function my_get_item_status_field_value ($group_id, $item_status, $tracker)
@@ -512,18 +511,18 @@ function my_item_list_print (
           reset ($current_group_items);
           foreach ($current_group_items as $thisitem => $thisvalue)
             {
-              if (!isset ($item_data['item_id'][$thisitem]))
+              if (!isset ($item_data[$thisitem]))
                 continue;
 
-              $cur_item_id = $item_data['item_id'][$thisitem];
-              $tracker = $item_data['tracker'][$thisitem];
+              $it = $item_data[$thisitem];
+              $it_id = $it['item_id']; $tracker = $it['tracker'];
               $prefix = utils_get_tracker_prefix ($tracker);
               $icon = utils_get_tracker_icon ($tracker);
 
               # Found out the status full text name:
               # this is group-specific. If there is no group setup for this
               # then go to the default for the site
-              $item_status = $item_data['status'][$thisitem];
+              $item_status = $it['status'];
               $idx = "$current_group_id$tracker$item_status";
               if (!array_key_exists ($idx, $group_data))
                 $group_data[$idx] = my_get_item_status_field_value (
@@ -533,17 +532,14 @@ function my_item_list_print (
 
               # Print directly, to avoid putting too much things in memory
               print '<div class="'
-                . utils_get_priority_color (
-                    $item_data['priority'][$thisitem], $openclosed
-                  )
+                . utils_get_priority_color ($it['priority'], $openclosed)
                 . '">'
-                . "<a href=\"$sys_home$tracker/?$cur_item_id\" class='block'>"
+                . "<a href=\"$sys_home$tracker/?$it_id\" class='block'>"
                 . html_image ("contexts/$icon.png",
                     ['class' => 'icon', 'alt' => $tracker]
                   )
-                . $item_data['summary'][$thisitem]
-                . "&nbsp;<span class='xsmall'>($prefix #$cur_item_id"
-                . ", $status)</span></a></div>\n";
+                . $it['summary'] . "&nbsp;<span class='xsmall'>"
+                . "($prefix #$it_id, $status)</span></a></div>\n";
             }
         }
       # Add extra space to make the page easier to read.
