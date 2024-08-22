@@ -411,6 +411,25 @@ function my_assign_item ($row, $tracker)
     $item_data[$key][$item] = $row[$key];
 }
 
+function my_get_item_status_field_value ($group_id, $item_status, $tracker)
+{
+  $params = [GROUP_NONE, $group_id, $item_status];
+  $res = db_execute ("
+    SELECT group_id, value FROM {$tracker}_field_value
+    WHERE bug_field_id = '108' AND group_id IN (?, ?) AND value_id = ?",
+    $params
+  );
+  array_pop ($params);
+  foreach ($params as $p)
+    {
+      db_data_seek ($res);
+      while ($row = db_fetch_array ($res))
+        if ($row['group_id'] == $p)
+          $ret = $row['value'];
+    }
+  return $ret;
+}
+
 # Extract items data from database, put in hashes.
 function my_item_list_extractdata ($sql_result, $tracker)
 {
@@ -507,16 +526,9 @@ function my_item_list_print (
               $item_status = $item_data['status'][$thisitem];
               $idx = "$current_group_id$tracker$item_status";
               if (!array_key_exists ($idx, $group_data))
-                {
-                  $res = db_execute ("
-                      SELECT value FROM {$tracker}_field_value
-                      WHERE
-                        bug_field_id = '108' AND (group_id = ? OR group_id = '100')
-                        AND value_id = ? ORDER BY bug_fv_id DESC LIMIT 1",
-                        [$current_group_id, $item_status]
-                  );
-                  $group_data[$idx] = db_result ($res, 0, 'value');
-                }
+                $group_data[$idx] = my_get_item_status_field_value (
+                  $current_group_id,  $item_status, $tracker
+                );
               $status = $group_data[$idx];
 
               # Print directly, to avoid putting too much things in memory
