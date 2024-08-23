@@ -168,12 +168,13 @@ if ($squad_id)
 
     print form_header ();
     print form_hidden (["group_id" => $group_id, "squad_id" => $squad_id]);
-    print '<p><span class="preinput"><label for="form_realname">'
-          . _("Real Name:") . "</label></span><br />\n&nbsp;&nbsp;";
+    print '<p><span class="preinput">'
+      . html_label ("form_realname", _("Display name:"))
+      . "</span><br />\n&nbsp;&nbsp;";
     print form_input ("text", "form_realname", $realname)
       . " &lt;$squad_name&gt;</p>\n";
     print form_submit (_("Update"), "update_general") . ' '
-      . form_submit (_("Delete Squad"), "update_delete_step1") . "</form>\n";
+      . form_submit (_("Delete squad"), "update_delete_step1") . "</form>\n";
 
     print html_h (2, _("Removing members"));
 
@@ -363,12 +364,13 @@ if ($rows < db_numrows ($result))
   {
     print form_header ("$php_self#form");
     print form_hidden (["group_id" => $group_id]);
-    print '<p><span class="preinput"><label for="form_loginname">'
-      . _("Squad Login Name:") . "</label></span>\n<br />&nbsp;&nbsp;";
+    print '<p><span class="preinput">'
+      . html_label ("form_loginname", _("Squad login name:"))
+      . "</span>\n<br />&nbsp;&nbsp;";
     print "$group-" . form_input ("text", "form_loginname", $form_loginname)
       . "</p>\n";
     print '<p><span class="preinput">'
-      . html_label ("form_realname", _("Squad Full Name:"))
+      . html_label ("form_realname", _("Squad full name:"))
       . "</span>\n<br />&nbsp;&nbsp;";
     print form_input ("text", "form_realname", $form_realname) . "</p>\n";
     print form_footer ();

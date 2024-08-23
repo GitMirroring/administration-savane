@@ -115,7 +115,10 @@ site_user_header (['context' => 'account']);
 $res_user = db_execute (
   "SELECT * FROM user WHERE user_id = ?", [user_getid ()]
 );
-$row_user = db_fetch_array ($res_user);
+$row_user = user_get_fields ([
+  'user_id', 'user_name', 'add_date', 'email', 'realname', 'email_hide',
+  'timezone', 'theme'
+]);
 
 print '<p>' . _("You can change all of your account features from here.")
   . "</p>\n";
@@ -124,7 +127,7 @@ print form_tag ();
 print html_h (2, _("Significant Arrangements"));
 
 print $HTML->box_top (_('Authentication Setup'));
-print '<p><a href="change.php?item=password">' . _("Change Password")
+print '<p><a href="change.php?item=password">' . _("Change password")
   . "</a></p>\n";
 print '<p class="smaller">'
   . _("This password gives access to the web interface.");
@@ -144,13 +147,13 @@ print '<p><a href="editsshkeys.php">';
 if ($keynum > 0)
   printf (
     ngettext (
-      "Edit the %d SSH Public Key registered",
-      "Edit the %d SSH Public Keys registered",
+      "Edit the %d SSH public key registered",
+      "Edit the %d SSH public keys registered",
       $keynum),
     $keynum
   );
 else
-  print _("Register an SSH Public Key");
+  print _("Register SSH public keys");
 
 print "</a></p>\n<p class='smaller'>";
 utils_get_content ("account/index_ssh");
@@ -158,7 +161,7 @@ print "</p>\n";
 
 $i++;
 print_box_next_item ();
-print '<p><a href="change.php?item=gpgkey">' . _("Edit GPG Key")
+print '<p><a href="change.php?item=gpgkey">' . _("Edit GPG key")
   . "</a></p>\n";
 print '<p class="smaller">';
 utils_get_content ("account/index_gpg");
@@ -196,26 +199,26 @@ print $HTML->box_top (_('Identity Record'));
 print '<p>';
 printf (_("Account #%s"), $row_user['user_id']);
 print "</p>\n<p class='smaller'>";
-printf (_("Your login is %s."), "<strong>{$row_user['user_name']}</strong>");
+printf (_("Your login is %s."), "<b>{$row_user['user_name']}</b>");
 # TRANSLATORS: the argument is registration date.
 printf (
   ' ' . _("You registered your account on %s."),
-  '<strong>' . utils_format_date ($row_user['add_date']) . '</strong>'
+  '<b>' . utils_format_date ($row_user['add_date']) . '</b>'
 );
 print "</p>\n";
 
 $i = 0;
 print_box_next_item ();
-print '<p><a href="change.php?item=realname">' . _("Change Real Name")
+print '<p><a href="change.php?item=realname">' . _("Change display name")
   . "</a></p>\n";
 print '<p class="smaller">';
 # TRANSLATORS: the argument is full name.
-printf (_("You are %s."), "<strong>{$row_user['realname']}</strong>");
+printf (_("You are %s."), "<b>{$row_user['realname']}</b>");
 print "</p>\n";
 
 $i++;
 print_box_next_item ();
-print '<p><a href="resume.php">' . _("Edit Resume and Skills") . "</a></p>\n";
+print '<p><a href="resume.php">' . _("Edit resume and skills") . "</a></p>\n";
 print '<p class="smaller">'
   . _("Details about your experience and skills may be of interest to other "
       . "users\nor visitors.")
@@ -224,7 +227,7 @@ print '<p class="smaller">'
 $i++;
 print_box_next_item ();
 print "<p><a href=\"{$sys_home}users/{$row_user['user_name']}\">"
-  . _("View your Public Profile") . "</a></p>\n";
+  . _("View your public profile") . "</a></p>\n";
 print '<p class="smaller">' . _("Your profile can be viewed by everybody.")
  . "</p>\n";
 
@@ -232,13 +235,13 @@ print $HTML->box_bottom ();
 
 print $HTML->box_top (_('Mail Setup'));
 
-print '<p><a href="change.php?item=email">' . _("Change Email Address")
+print '<p><a href="change.php?item=email">' . _("Change email address")
   . "</a></p>\n";
 print '<p class="smaller">';
 printf (
   _("Your current address is %s. It is essential to us that this\n"
     . "address remains valid. Keep it up to date."),
-  "<strong>{$row_user['email']}</strong>"
+  "<b>{$row_user['email']}</b>"
 );
 print "</p>\n";
 
@@ -246,7 +249,7 @@ $i = 0;
 print_box_next_item ();
 
 print '<p><a href="change_notifications.php">'
-  . _("Edit Personal Notification Settings") . "</a></p>\n";
+  . _("Edit personal notification settings") . "</a></p>\n";
 print '<p class="smaller">'
   . _("Here is defined when the trackers should send email notifications. It\n"
       . "permits also to configure the subject line prefix of sent mails.")
@@ -254,7 +257,7 @@ print '<p class="smaller">'
 
 $i++;
 print_box_next_item ();
-print '<p><a href="cc.php">' . _("Cancel Mail Notifications") . "</a></p>\n";
+print '<p><a href="cc.php">' . _("Cancel mail notifications") . "</a></p>\n";
 print '<p class="smaller">' . _("Here, you can cancel all mail notifications.")
   . "</p>\n";
 
@@ -406,7 +409,7 @@ printf (
   _("If you are no longer member of any project and do not intend to use\n"
     . "%s further, you may want to delete your account. This action cannot "
     . "be undone\nand your current login will be forever lost."),
-  "<strong>$sys_name</strong>"
+  "<b>$sys_name</b>"
 );
 print "</p>\n";
 

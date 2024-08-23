@@ -65,7 +65,7 @@ print '<p class="warn">'
 
 print form_header ('lostpw-confirm.php');
 print '<p><span class="preinput"> &nbsp;&nbsp;';
-print _("Login Name:") . ' &nbsp;&nbsp;</span>';
+print _("Login name:") . ' &nbsp;&nbsp;</span>';
 print '<input type="text" name="form_loginname" /> &nbsp;&nbsp;';
 print form_submit (_("Send lost password hash"), 'send') . "</p>\n";
 print "</form>\n";

@@ -171,7 +171,7 @@ print form_hidden (['uri' => $uri]);
 # the rest of form, so they don't mess with the normal order when you
 # press TAB on the keyboard (login -> password -> post).
 print '<p><span class="preinput">'
-  . html_label ('form_loginname', _("Login Name:"))
+  . html_label ('form_loginname', _("Login name:"))
   . "</span><br />&nbsp;&nbsp;\n";
 print "<input type='text' name='form_loginname' value=\"$form_loginname"
   . '" tabindex="1" /> <a class="smaller" href="register.php" tabindex="2">['

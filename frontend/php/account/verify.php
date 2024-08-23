@@ -97,7 +97,7 @@ print '<p>'
 
 print form_header ();
 print '<p><span class="preinput">'
-  . _("Login Name") . ":</span><br />\n&nbsp;&nbsp;";
+  . _("Login name:") . "</span><br />\n&nbsp;&nbsp;";
 print form_input ("text", "form_loginname");
 print "</p>\n";
 

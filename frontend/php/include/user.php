@@ -209,6 +209,22 @@ function user_get_field ($user_id, $field)
   return utils_return_val ($user_id, $ret);
 }
 
+function user_get_fields ($fields, $user_id = 0)
+{
+  if (!$user_id)
+    $user_id = user_getid ();
+  $arr = user_get_array ([$user_id]);
+  foreach ($arr as $row)
+    {
+      $ret = [];
+      foreach ($fields as $f)
+        if (array_key_exists ($f, $row))
+          $ret[$f] = $row[$f];
+      return $ret;
+    }
+  return [];
+}
+
 function user_get_gpg_key ($user_id = 0, $minified = false)
 {
   $uids = user_get_uids_array ($user_id);

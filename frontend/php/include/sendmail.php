@@ -334,7 +334,7 @@ function sendmail_mail_signed ($to, $subj, $body, $headers)
 # Send mails with specific subject line.
 function sendmail_send_to_list ($user_name, $user_subj, $message, $context)
 {
-  $ret = '';
+  $ret = true;
   $context['cc'] = sendmail_cc_addresses ($user_name, $context);
   foreach ($user_subj as $v => $u_subj)
     {
@@ -344,7 +344,8 @@ function sendmail_send_to_list ($user_name, $user_subj, $message, $context)
       $headers .= sendmail_reply_to_headers ($v, $user_name[$v], $context);
       if (empty ($GLOBALS['int_delayspamcheck']))
         {
-          $ret .= sendmail_mail_signed ($u_name, $u_subj, $body, $headers);
+          if (!sendmail_mail_signed ($u_name, $u_subj, $body, $headers))
+            $ret = false;
           # TRANSLATORS: the argument is a comma-separated list of recipients.
           fb (sprintf (_("Mail sent to %s"), join (', ', $user_name[$v])));
           continue;

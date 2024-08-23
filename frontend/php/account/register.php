@@ -229,17 +229,17 @@ site_header (
 print form_header ();
 $br = "</span><br />\n&nbsp;&nbsp;";
 $pre = '<p><span class="preinput">';
-print $pre . _("Login Name:") . $br;
+print $pre . _("Login name:") . $br;
 print form_input ("text", "form_loginname", $form_loginname);
 print $pre . account_password_help () . '</span></p>';
-print $pre . _("Password / passphrase:") . $br;
+print $pre . _("Passphrase:") . $br;
 print form_input ("password", "form_pw", $form_pw) . "</p>\n";
-print $pre . _("Re-type Password:") . $br;
+print $pre . _("Re-type passphrase:") . $br;
 print form_input ("password", "form_pw2", $form_pw2) . "</p>\n";
-print $pre . _("Real Name:") . $br;
+print $pre . _("Display name:") . $br;
 print form_input ('text', 'form_realname', $form_realname, 'size="30"');
 print "</p>\n";
-print $pre . _("Email Address:") . $br;
+print $pre . _("Email address:") . $br;
 print form_input ('text', "form_email", $form_email, 'size="30"');
 print "<br />\n" . '<span class="text">'
   . _("This email address will be verified before account activation.")
