@@ -84,18 +84,7 @@ if ($result && $rows > 0)
   }
 
 # Get the list of squads the user is member of.
-$result = db_execute (
-  "SELECT squad_id FROM user_squad WHERE user_id = ?", $user_arr
-);
-$rows = db_numrows ($result);
-$usersquads = [];
-$nosquads = 1;
-if ($result && $rows > 0)
-  {
-    unset ($nosquads);
-    for ($j = 0; $j < $rows; $j++)
-      $usersquads[] = db_result ($result, $j, 'squad_id');
-  }
+list ($usersquads, $nosquads) = user_get_squads ();
 
 $threshold = $form_threshold;
 if ($threshold)

@@ -545,6 +545,23 @@ function user_delete_query_forms ($user_id, $art)
   );
 }
 
+function user_get_squads ($user_id = 0)
+{
+  static $squads = [];
+  if (empty ($user_id))
+    $user_id = user_getid ();
+  if (array_key_exists ($user_id, $squads))
+    return $squads[$user_id];
+
+  $result = db_execute (
+    "SELECT squad_id FROM user_squad WHERE user_id = ?", [$user_id]
+  );
+  $squads[$user_id] = [];
+  while ($row = db_fetch_array ($result))
+    $squads[$user_id][] = $row['squad_id'];
+  return [$squads[$user_id], empty ($squads[$user_id])];
+}
+
 # Delete user's data that are not stored in the 'user' table.
 function user_delete_aux_data ($user_id)
 {

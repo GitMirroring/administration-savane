@@ -82,19 +82,7 @@ else
   $nogroups = 1;
 
 # Get the list of squads the user is member of.
-$result = db_execute (
-  "SELECT squad_id FROM user_squad WHERE user_id = ?", [user_getid ()]
-);
-$rows = db_numrows ($result);
-$usersquads = [];
-if ($result && $rows > 0)
-  {
-    unset ($nosquads);
-    for ($j = 0; $j < $rows; $j++)
-      $usersquads[] = db_result ($result, $j, 'squad_id');
-  }
-else
-  $nosquads = 1;
+list ($usersquads, $nosquads) = user_get_squads ();
 
 # Get a timestamp to get new items (15 days).
 $new_date_limit = time () - 15 * 24 * 3600;
