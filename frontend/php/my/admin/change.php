@@ -67,10 +67,15 @@ extract (sane_import ('request',
 
 form_check ($submit_buttons);
 
+if (empty ($step))
+  $step = 0;
+
 exit_if_missing ('item');
 if (!user_getid ())
   exit_error (_("Invalid User"), _("That user does not exist."));
-$row_user = user_get_fields (['realname', 'user_pw', 'email', 'email_new']);
+$row_user = user_get_fields ([
+  'user_name', 'realname', 'user_pw', 'email', 'email_new'
+]);
 
 function update_realname ()
 {
@@ -283,9 +288,8 @@ function report_step0_result ($fail, $newval)
   if ($fail)
     {
       fb (
-        _("The system reported a failure when trying to "
-          . "send\nthe confirmation mail. Please retry and "
-          . "report that problem to\nadministrators."),
+        _("The system reported a failure when trying to send\nthe confirmation "
+          . "mail. Please retry and report that problem to\nadministrators."),
         1
       );
       return;
@@ -320,8 +324,6 @@ function validate_confirm_hash ($confirm_hash)
   $res_user = db_execute (
     "SELECT user_id FROM user WHERE confirm_hash = ?", [$confirm_hash]
   );
-  if (db_numrows ($res_user) > 1)
-    exit_error (_("This confirmation hash is included in DB more than once."));
   if (!db_numrows ($res_user))
     exit_error (_("Invalid confirmation hash."));
   $uid = db_result ($res_user, 0, 'user_id');
@@ -350,40 +352,24 @@ function update_email_confirm2 ()
 
 function discard_email ()
 {
-  $success = db_autoexecute ('user',
-    ['confirm_hash' => null, 'email_new' => null], DB_AUTOQUERY_UPDATE,
-    "user_id = ? AND confirm_hash = ?", [user_getid (), $confirm_hash]
-  );
-  if ($success)
-    fb (_("Address change process discarded."));
-  else
-    fb (
-      _("Failed to discard the address change process, please "
-        . "contact\nadministrators."),
-      1
-    );
-  return $success;
-}
-
-function update_confirm ()
-{
-  # Cf. form at the end.
-  return false;
+  return discard_hash ([_("Address change process discarded."),
+    _("Failed to discard the address change process, please "
+      . "contact\nadministrators.")
+  ]);
 }
 
 function run_steps ($funcs)
 {
   global $step;
-  $st = $step? $step: 0;
-  if (array_key_exists ($st, $funcs))
-    return $funcs[$st] ();
+  if (array_key_exists ($step, $funcs))
+    return $funcs[$step] ();
   return false;
 }
 
 function update_email ()
 {
   return run_steps ([
-    0 => 'update_email_step0', 'confirm' => 'update_confirm',
+    0 => 'update_email_step0',
     'confirm2' => 'update_email_confirm2', 'discard' => 'discard_email'
   ]);
 }
@@ -407,7 +393,7 @@ function exit_if_member_of_any_group ()
 
 function deletion_message ($url)
 {
-  global $sys_name;
+  global $sys_name, $row_user;
   # TRANSLATORS: the argument is site name (like Savannah).
   $message = sprintf (
     _("Someone, presumably you, has requested your %s account "
@@ -444,7 +430,7 @@ function report_delete_step0_result ($success)
 {
   $msg =
     _("The system reported a failure when trying to send\nthe confirmation "
-      . "mail. Please retry and report that " . "problem to\nadministrators.");
+      . "mail. Please retry and report that problem to\nadministrators.");
   if ($success)
     $msg =
       _("Follow the instructions in the email to complete the "
@@ -475,215 +461,227 @@ function delete_confirm2 ()
   return true;
 }
 
+function discard_hash ($str)
+{
+  global $row_user, $confirm_hash;
+  validate_confirm_hash ($confirm_hash);
+  $success = account_clear_confirm_hash ($row_user['user_name']);
+  fb ($str[$success? 0: 1], !$success);
+  return $success;
+}
+
 function delete_discard ()
 {
-  $success = db_autoexecute (
-    'user', ['confirm_hash' => null], DB_AUTOQUERY_UPDATE,
-    "confirm_hash = ?", [$confirm_hash]
-  );
-  $msg = _("Failed to discard account deletion process, please "
-           . "contact administrators.");
-  if ($success)
-    $msg = _("Account deletion process discarded.");
-  fb ($msg, !$success);
-  return $success;
+  return discard_hash ([("Account deletion process discarded."),
+    _("Failed to discard account deletion process, please "
+      . "contact administrators.")
+  ]);
 }
 
 function delete_account ()
 {
-  return run_steps ([0 => 'delete_account_step0', 'confirm' => 'update_confirm',
+  return run_steps ([0 => 'delete_account_step0',
     'confirm2' => 'delete_confirm2', 'discard' => 'delete_discard'
   ]);
 }
 
+function page_option ($option_set, $def_val = false)
+{
+  global $step, $item;
+  if (!array_key_exists ($item, $option_set))
+    return $def_val;
+  $ret = $option_set[$item];
+  if (is_string ($ret))
+    return $ret;
+  if (!array_key_exists ($step, $ret))
+    return $def_val;
+  return $ret[$step];
+}
+
+function preinp_label ($str, $for = 'newvalue')
+{
+  return "<span class='preinput'>" . html_label ($for, $str)
+    . "</span>&nbsp;&nbsp;";
+}
+
+function default_input ($title, $value = '')
+{
+  print preinp_label ($title) . "<br />\n"
+    . form_input ('text', 'newvalue', $value);
+}
+
+function input_realname ()
+{
+  global $row_user;
+  default_input (_("New display name:"), $row_user['realname']);
+}
+
+function input_timezone ()
+{
+  global $TZs;
+  print preinp_label (
+    _("No matter where you live, you can see all dates and times as if "
+      . "it were in\nyour neighborhood.")
+  );
+  $input_specific = html_build_select_box_from_arrays (
+    $TZs, $TZs, 'newvalue', user_get_timezone (), true, 'GMT', false,
+    'Any', false, _('Timezone')
+  );
+}
+
+function input_password ()
+{
+  $titles = ["oldvalue" => _("Current passphrase:"),
+    "newvalue" => _("New passphrase:"),
+    "newvaluecheck" => _("Re-type new passphrase:")
+  ];
+  $ret = [];
+  foreach ($titles as $k => $v)
+    $ret[] .= '<p>' . preinp_label ($v, $k) . "<br />\n"
+      . form_input ('password', $k) . "</p>\n";
+  print join ('', $ret);
+}
+
+function input_gpgkey ()
+{
+  global $gpg_sample_text, $gpg_gnu_maintainers_note, $test_gpg_key;
+  $old_key = user_get_gpg_key ();
+  extract (sane_import ('request', ['pass' => ['newvalue']]));
+  if (!$newvalue)
+    $newvalue = $old_key;
+  print $gpg_sample_text;
+  print preinp_label (_("New GPG key")) . "<br />\n"
+    . form_textarea ('newvalue', utils_specialchars ($newvalue),
+        'cols="70" rows="20" wrap="virtual"'
+      );
+  print "\n";
+  print '<p>' . form_submit (_("Test GPG keys"), 'test_gpg_key')
+    . ' ' . _("(Testing is recommended before updating.)") . "</p>\n"
+    . "\n<hr />\n";
+  print $gpg_gnu_maintainers_note;
+  if ($test_gpg_key)
+    print gpg_run_checks ($newvalue);
+}
+
+function email_input_0 ()
+{
+  default_input (_('New email address:'));
+}
+
+function email_input_confirm ()
+{
+  global $confirm_hash;
+  print preinp_label (_('Confirmation hash:'), 'confirm_hash')
+    . form_input ('text', 'confirm_hash', $confirm_hash, "readonly='readonly'")
+    . form_hidden (['step' => 'confirm2']);
+}
+
+function input_discard ()
+{
+  global $confirm_hash;
+  print preinp_label (_('Discard hash:'), $confirm_hash)
+    . form_input ('text', 'confirm_hash', $confirm_hash, "readonly='readonly'")
+    . form_hidden (['step' => 'discard']);
+}
+
+function delete_input_0 ()
+{
+  print preinp_label (_('Do you really want to delete your user account?'));
+  print form_checkbox (
+      "newvalue", 0,
+      ['value' => "deletionconfirmed", 'title' => _("Delete account"),]
+    )
+    . ' ' . _("Yes, I really do");
+}
+
+$titles = [
+  'realname' => _("Change Display Name"), 'timezone' => _("Change Timezone"),
+  'password' => _("Change Password"), 'gpgkey' => _("Change GPG Keys"),
+  'email' => [
+    0 => _("Change Email Address"), 'confirm' => _("Confirm Email Change"),
+    'discard' => _("Discard Email Change")
+  ],
+  'delete' => [
+    0 => _("Delete Account"), 'confirm' => _("Confirm account deletion"),
+    'discard' => _("Discard account deletion"),
+  ]
+];
+
+$preambles = [
+  'password' => account_password_help (),
+  'email' => [
+    0 =>
+      _("Changing your email address will require confirmation from\n"
+        . "your new email address, so that we can ensure we have "
+        . "a good email address on\nfile.")
+        . "</p>\n<p>"
+      . _("We need to maintain an accurate email address for each user "
+          . "due to the\nlevel of access we grant via this account. If "
+          . "we need to reach a user for\nissues related to this server, "
+          . "it is important that we be able to do so.")
+      . "</p>\n<p>"
+      . _("Submitting the form below will mail a confirmation URL to "
+         . "the new email\naddress; visiting this link will complete "
+         . "the email change. The old address\nwill also receive "
+         . "an email message, this one with a URL to discard the\n"
+         . "request."),
+    'confirm' => _('Push &ldquo;Update&rdquo; to confirm your email change')
+  ],
+  'delete' => [
+    0 => _("This process will require email confirmation."),
+    'confirm' =>
+      _('Push &ldquo;Update&rdquo; to confirm your account deletion'),
+  ]
+];
+
+$update_func = [
+  'realname' => 'update_realname', 'timezone' => 'update_timezone',
+  'password' => 'update_password', 'gpgkey' => 'update_gpgkey',
+  'email' => 'update_email', 'delete' => 'delete_account'
+];
+
+$input_func = [
+  'realname' => 'input_realname', 'timezone' => 'input_timezone',
+  'password' => 'input_password', 'gpgkey' => 'input_gpgkey',
+  'email' => [
+    0 => 'email_input_0', 'confirm' => 'email_input_confirm',
+    'discard' => 'input_discard'
+  ],
+  'delete' => [0 => 'delete_input_0', 'confirm' => 'email_input_confirm',
+    'discard' => 'input_discard'
+  ]
+];
+
 if ($item == 'delete')
   exit_if_member_of_any_group ();
 
-# Update the database.
+if ($step == 'confirm')
+  {
+    # At this step, a GET request is used because the URL comes
+    # from the confrimation email.  That means no form_id-based CSRF
+    # mitigation; in order to use it, we form a POST request as
+    # the 'confirm2' step.  The hash is validated just to reveal
+    # the errors at an earlier stage.
+    validate_confirm_hash ($confirm_hash);
+  }
+
 if ($update)
   {
-    $funcs = [
-      'realname' => 'update_realname', 'timezone' => 'update_timezone',
-      'password' => 'update_password', 'gpgkey' => 'update_gpgkey',
-      'email' => 'update_email', 'delete' => 'delete_account'
-    ];
-    $success = false;
-    if (array_key_exists ($item, $funcs))
-      $success = $funcs[$item] ();
-    if ($success)
-      session_redirect (
-        "{$sys_home}my/admin/?feedback=" . rawurlencode ($feedback)
-      );
+    $f = page_option ($update_func);
+    if ($f !== false)
+      if ($f ())
+        session_redirect (
+          "{$sys_home}my/admin/?feedback=" . rawurlencode ($feedback)
+        );
   } # if ($update).
 
-# If we reach this point, it means that not successful update has been
-# already made.
-
-# Texts to be displayed.
-$preamble = '';
-$input_specific = '';
-
-# Defines some information if not specific.
-$form_item_names = ['newvalue'];
-$input_titles = [''];
-$input_types = ['text'];
-
-# Define the page depending on the item given.
-if ($item == "realname")
-  {
-    $title = _("Change Display Name");
-    $input_titles[0] = _("New display name:");
-    $input_specific = form_input ('text', 'newvalue', $row_user['realname']);
-  }
-elseif ($item == "timezone")
-  {
-    $title = _("Change Timezone");
-    $input_titles[0] =
-      _("No matter where you live, you can see all dates and times as if "
-        . "it were in\nyour neighborhood.");
-    $input_specific = html_build_select_box_from_arrays (
-      $TZs, $TZs, 'newvalue', user_get_timezone (), true, 'GMT', false,
-      'Any', false, _('Timezone')
-    );
-  }
-elseif ($item == "password")
-  {
-    $title = _("Change Password");
-    $preamble = account_password_help ();
-    $input_titles = [
-      _("Current password:"), _("New password / passphrase:"),
-      _("Re-type new password:"),
-    ];
-
-    $form_item_names = ["oldvalue", "newvalue", "newvaluecheck"];
-    $input_types = ["password", "password", "password"];
-  }
-elseif ($item == "gpgkey")
-  {
-    extract (sane_import ('request', ['pass' => ['newvalue']]));
-    $old_key = user_get_gpg_key ();
-    $title = _("Change GPG Keys");
-    $input_titles = [""];
-    $input_specific = $gpg_sample_text;
-
-    if (!$newvalue)
-      $newvalue = $old_key;
-
-    $input_specific .= form_textarea (
-      'newvalue', utils_specialchars ($newvalue),
-      'title="' . _("New GPG key") . '" cols="70" rows="20" wrap="virtual"'
-    );
-    $input_specific .= "\n";
-    $input_specific .= '<p><input type="submit" name="test_gpg_key" value="'
-      . _("Test GPG keys") . '" /> '
-      . _("(Testing is recommended before updating.)") . "</p>\n"
-      . "\n<hr />\n";
-    $input_specific .= $gpg_gnu_maintainers_note;
-    if ($test_gpg_key)
-      $input_specific .= gpg_run_checks ($newvalue);
-  }
-elseif ($item == "email")
-  {
-    # First step.
-    if (!$step)
-      {
-        $title = _("Change Email Address");
-        $input_titles = [_('New email address:')];
-        $preamble = _("Changing your email address will require confirmation "
-          . "from\nyour new email address, so that we can ensure we have "
-          . "a good email address on\nfile.")
-          . "</p>\n<p>"
-          . _("We need to maintain an accurate email address for each user "
-              . "due to the\nlevel of access we grant via this account. If "
-              . "we need to reach a user for\nissues related to this server, "
-              . "it is important that we be able to do so.")
-          . "</p>\n<p>"
-          . _("Submitting the form below will mail a confirmation URL to "
-             . "the new email\naddress; visiting this link will complete "
-             . "the email change. The old address\nwill also receive "
-             . "an email message, this one with a URL to discard the\n"
-             . "request.")
-          . "</p>\n";
-      }
-    elseif ($step == "confirm")
-      {
-        $title = _("Confirm Email Change");
-        $preamble = _('Push &ldquo;Update&rdquo; to confirm your email change');
-        $input_titles = [_('Confirmation hash:')];
-        $input_specific = "<input type='text' readonly='readonly' "
-          . "name='confirm_hash' value='$confirm_hash' />";
-        $input_specific .= form_hidden (['step' => 'confirm2']);
-      }
-    elseif ($step == "discard")
-      {
-        $title = _("Discard Email Change");
-        $input_specific = "<input type='text' readonly='readonly' "
-          . "name='confirm_hash' value='$confirm_hash' />";
-      }
-  }
-elseif ($item == "delete")
-  {
-    # First step.
-    if (!$step)
-      {
-        $title = _("Delete Account");
-        $input_titles = [_('Do you really want to delete your user account?')];
-        $input_specific =
-          form_checkbox (
-            "newvalue", 0,
-            ['value' => "deletionconfirmed", 'title' => _("Delete account"),]
-          )
-          . ' ' . _("Yes, I really do");
-        $preamble = _("This process will require email confirmation.");
-      }
-    elseif ($step == "confirm")
-      {
-        $title = _("Confirm account deletion");
-        $preamble =
-          _('Push &ldquo;Update&rdquo; to confirm your account deletion');
-        $input_titles = [_('Confirmation hash:')];
-        $input_specific = "<input type='text' readonly='readonly' "
-          . 'name="confirm_hash" value="' . $confirm_hash . '" />'
-          . form_hidden (['step' => 'confirm2']);
-      }
-    elseif ($step == 'discard')
-      {
-        $title = _("Discard account deletion");
-        $input_titles = [_('Discard hash:')];
-        $input_specific = "<input type='text' readonly='readonly' "
-          . "name='confirm_hash' value='$confirm_hash' />"
-          . form_hidden (['step' => 'discard']);
-      }
-  }
-
-if (empty ($title))
-  $title = sprintf (_("Unknown user settings item (%s)"), $item);
-
-site_user_header (['title' => $title, 'context' => 'account']);
-if (empty ($input_titles[0]))
-  $input_titles[0] = $title;
-
-if ($preamble)
-  print "<p>$preamble</p>\n";
-
+site_user_header (['title' => page_option ($titles), 'context' => 'account']);
+print '<p>' . page_option ($preambles, '') . "</p>\n";
 print form_header ();
 
-$input_spec = [$input_specific];
-for ($i = 0; $i < 3; $i++)
-  {
-    $head = $tail = '';
-    if (!isset ($form_item_names[$i]))
-      break;
-    $input_title = $input_titles[$i];
-    $n = $form_item_names[$i];
-    if (empty ($input_spec[$i]))
-      $input_title = html_label ($n, $input_title);
-    print "<br />\n<span class='preinput'>$input_title</span>&nbsp;&nbsp;";
-    if (empty ($input_spec[$i]))
-      print "<input name=\"$n\" id=\"$n\" type=\"{$input_types[$i]}\" />";
-    else
-      print $input_spec[$i];
-  }
+$f = page_option ($input_func);
+if ($f !== false)
+  $f ();
 
 print form_hidden (['item' => $item]);
 print '<p>' . form_submit (_("Update")) . "</p>\n</form>\n";

@@ -549,4 +549,15 @@ function account_new_keys_alert ($user_id)
     ['subject' => $subject, 'body' => $message]
   );
 }
+
+function account_clear_confirm_hash ($name)
+{
+  $uid = user_getid ($name);
+  if (empty ($uid))
+    return false;
+  return db_autoexecute (
+    'user', ['confirm_hash' => null, 'email_new' => null], DB_AUTOQUERY_UPDATE,
+    'user_id = ?', [$uid]
+  );
+}
 ?>
