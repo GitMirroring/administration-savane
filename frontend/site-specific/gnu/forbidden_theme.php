@@ -1,5 +1,5 @@
 <?php
-# Savannah - Forbidden themes
+# Savannah - Forbidden themes.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
@@ -41,25 +41,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-#    You can fed $forbid_theme_regexp by a perl regexp
-#    with theme names you want to forbid on your system.
+# You can set $forbid_theme_regexp to a Perl regexp with theme names
+# to forbid on your system.
 #
-#    The theme name given in this regexp must not have the extension
-#    .css.
+# The theme name given in this regexp must not have the extension .css.
 #
-#    This forbid_theme_regexp site specific variable be useful if you
-#    do not want to provide to users every  themes available for Savannah,
-#    for instance because some of them creates troubles with a browser
-#    widely used in your company/organisation.
+# This forbid_theme_regexp site specific variable be useful if you
+# do not want to provide users with all themes available for Savane,
+# for instance because some of them create troubles.
 #
-#    By default, Savannah forbid only themes which have been made for
-#    a specific installation and are very very close to a more generic
-#    theme.
-
-
-// The perl regexp:
-//    The two slashes (/ /) are mandatory, see the preg_match manual.
-
+# By default, Savane forbids only themes made for a specific installation
+# and very very close to a more generic theme.
 $GLOBALS['forbid_theme_regexp'] = "/^(cern|savanedu)$/";
-
 ?>

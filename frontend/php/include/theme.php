@@ -45,7 +45,7 @@
 # database the setting, so someone using another computer can easily
 # remember the theme he previously chose.
 
-require_once(dirname(__FILE__).'/utils.php');
+require_once (dirname (__FILE__) . '/utils.php');
 
 # Jump to the next theme available.
 function theme_rotate_jump ($user_theme)
@@ -58,46 +58,43 @@ function theme_rotate_jump ($user_theme)
     theme_get_random (true);
 }
 
-# Return an array with all the themes, but not the special case "rotate"
+function theme_filter_css ($path, $file)
+{
+  global $forbid_theme_regexp;
+  # Ignore symlinks.
+  if (is_link ("$path$file"))
+    return null;
+
+  # Take only css files.
+  if (!preg_match ("/^(.*)\.css$/", $file, $matches))
+    return null;
+
+  # Forbidden themes are ignored.
+  if (preg_match ($forbid_theme_regexp, strtolower ($matches[1])))
+    return null;
+  return $matches[1];
+}
+
+# Return an array with all the themes except the special cases "rotate"
 # and "random".
 function theme_list ()
 {
-  utils_get_content("forbidden_theme");
-
-  # Feed the array.
-  $theme = array();
-  $dir = opendir($GLOBALS['sys_www_topdir']."/css/");
-  while ($file = readdir($dir))
+  utils_get_content ("forbidden_theme");
+  $theme = [];
+  $path = $GLOBALS['sys_www_topdir'] . '/css/';
+  $dir = opendir ($path);
+  while ($file = readdir ($dir))
     {
-      # Ignore symlinks.
-      if (is_link($GLOBALS['sys_www_topdir']."/css/$file"))
-        continue;
-
-      # Take only correct css files.
-      if (!preg_match("/^(.*)\.css$/", $file, $matches))
-        continue;
-
-      # base.css is always ignored
-      # (as of nov 2006, there are in the subdirectory internal, so this
-      # is only here for backward compat).
-      if ($matches[1] == "base")
-        continue;
-
-      # Forbidden themes are also ignored.
-      if (preg_match($GLOBALS['forbid_theme_regexp'], strtolower($matches[1])))
-        continue;
-
-      $theme[] = $matches[1];
+      $entry = theme_filter_css ($path, $file);
+      if ($entry !== null)
+        $theme[] = $entry;
     }
-  closedir($dir);
-
-  # Sort themes - case insensitive.
-  natcasesort($theme);
-
-  # No result? Return only the default theme.
+  closedir ($dir);
+  natcasesort ($theme); # Sort themes - case insensitive.
+  # No result?  Return only the default theme.
   # (If there were no result, there is a problem anyway somewhere in the
   # installation.)
-  if (!count($theme))
+  if (!count ($theme))
     $theme[] = $GLOBALS['sys_themedefault'];
   return $theme;
 }
@@ -106,23 +103,20 @@ function theme_list ()
 function theme_guidelines_check ($theme)
 {
   # Get from the README the latest GUIDELINES number.
-  preg_match("/VERSION: (.*)/",
-             utils_read_file($GLOBALS['sys_www_topdir']."/css/README"),
-             $latest);
+  preg_match ("/VERSION: (.*)/",
+    utils_read_file ($GLOBALS['sys_www_topdir'] . "/css/README"), $latest
+   );
   # Get from the css the current GUIDELINES number.
-  preg_match("/\/\* GUIDELINES VERSION FOLLOWED: (.*) \*\//",
-             utils_read_file($GLOBALS['sys_www_topdir']."/css/".$theme.".css"),
-             $current);
-
-  if ($latest[1] != $current[1])
-    return false;
-  return true;
+  preg_match ("/\/\* GUIDELINES VERSION FOLLOWED: (.*) \*\//",
+    utils_read_file ($GLOBALS['sys_www_topdir'] . "/css/$theme.css"), $current
+  );
+  return $latest[1] == $current[1];
 }
 
 # If the theme is valid, return $user_theme; else return default theme.
 function theme_validate ($user_theme)
 {
-  utils_get_content("forbidden_theme");
+  utils_get_content ("forbidden_theme");
 
   # Disallow going towards filesystem root and other queer paths.
   $forbidden = preg_match (',(/[.]*/|^/|/$|\s),', $user_theme);
