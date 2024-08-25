@@ -72,42 +72,47 @@ $uri_enc = utils_urlencode ($uri);
 if (!$from_brother)
   session_check_cookies ($uri, $uri_enc);
 
+function validate_login ($from_brother, $form_loginname, $form_pw)
+{
+  global $sesion_uid, $session_hash, $cookie_for_a_year;
+  if ($from_brother)
+    extract (sane_import ('get',
+      ['digits' => 'session_uid', 'xdigits' => 'session_hash']
+    ));
+  if (isset ($session_uid) && session_exists ($session_uid, $session_hash))
+    {
+      session_set_new_cookies ($session_uid, $cookie_for_a_year);
+      return true;
+    }
+  return session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
+}
+
+function arrange_session ($uri, $uri_enc)
+{
+  global $sys_home, $stay_in_ssl, $sys_https_url;
+  session_set_theme ();
+  # We return to our brother 'my', where we login originally,
+  # unless we are request to go to an uri.
+  if (!$uri)
+    {
+      $uri = "{$sys_home}my/";
+      $uri_enc = utils_urlencode ($uri);
+    }
+  session_login_brother ($uri, $uri_enc);
+  # If no brother domain is defined, just return to the page the login
+  # was requested from.
+  $url = $uri;
+  if ($stay_in_ssl)
+    $url = "$sys_https_url$url";
+  session_redirect ($url);
+}
+
 if (!empty ($login))
   {
-    if ($from_brother)
-      {
-        extract (sane_import ('get',
-          ['digits' => 'session_uid', 'xdigits' => 'session_hash']
-        ));
-      }
-
-    if (isset ($session_uid) && session_exists ($session_uid, $session_hash))
-      {
-        session_set_new_cookies ($session_uid, $cookie_for_a_year);
-        $success = 1;
-      }
-    else
-      $success =
-        session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
+    $success = validate_login ($from_brother, $form_loginname, $form_pw);
     if ($success)
-      {
-        session_set_theme ();
-        # We return to our brother 'my', where we login originally,
-        # unless we are request to go to an uri.
-        if (!$uri)
-          {
-            $uri = "{$sys_home}my/";
-            $uri_enc = utils_urlencode ($uri);
-          }
-        session_login_brother ($uri, $uri_enc);
-        # If no brother domain is defined, just return
-        # to the page the login was requested from.
-        $url = $uri;
-        if ($stay_in_ssl)
-          $url = "$sys_https_url$url";
-        session_redirect ($url);
-      } # $success
-  } # !empty ($login)
+      arrange_session ($uri, $uri_enc);
+  }
 
 if (isset ($session_hash))
   {
@@ -120,7 +125,7 @@ if (isset ($session_hash))
   }
 
 site_header (['title' => _("Login")]);
-if (!empty ($login) && !$success)
+if (!empty ($login) && empty ($success))
   {
     if (isset ($signal_pending_account) && $signal_pending_account == 1)
       {
