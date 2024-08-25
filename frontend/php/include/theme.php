@@ -128,15 +128,10 @@ function theme_validate ($user_theme)
     $forbidden = true;
 
   if ($forbidden)
-    {
-      trigger_error ("Forbidden theme '$user_theme', user " . user_getname ());
-      return $GLOBALS['sys_themedefault'];
-    }
+    return $GLOBALS['sys_themedefault'];
 
   if (file_exists ($GLOBALS['sys_www_topdir'] . "/css/$user_theme.css"))
     return $user_theme;
-  if ($user_theme != '')
-    trigger_error ("Invalid theme '$user_theme', user " . user_getname ());
   return $GLOBALS['sys_themedefault'];
 }
 
