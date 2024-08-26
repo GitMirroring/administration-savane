@@ -74,7 +74,7 @@ exit_if_missing ('item');
 if (!user_getid ())
   exit_error (_("Invalid User"), _("That user does not exist."));
 $row_user = user_get_fields ([
-  'user_name', 'realname', 'user_pw', 'email', 'email_new'
+  'user_name', 'realname', 'user_pw', 'email', 'email_new', 'confirm_hash'
 ]);
 
 function update_realname ()
@@ -319,16 +319,11 @@ function update_email_step0 ()
 
 function validate_confirm_hash ($confirm_hash)
 {
+  global $row_user;
   if (!preg_match ("/^[a-f0-9]{16}$/", $confirm_hash))
     exit_error (_("Invalid confirmation hash."));
-  $res_user = db_execute (
-    "SELECT user_id FROM user WHERE confirm_hash = ?", [$confirm_hash]
-  );
-  if (!db_numrows ($res_user))
+  if ($row_user['confirm_hash'] != $confirm_hash)
     exit_error (_("Invalid confirmation hash."));
-  $uid = db_result ($res_user, 0, 'user_id');
-  if ($uid !== user_getid ())
-    exit_error (_("Invalid User"));
 }
 
 function update_email_confirm2 ()
