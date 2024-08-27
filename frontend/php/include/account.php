@@ -45,6 +45,9 @@ require_once (dirname (__FILE__) . '/utils.php');
 require_once (dirname (__FILE__) . '/pwqcheck.php');
 require_once (dirname (__FILE__) . '/random-bytes.php');
 
+define ('HASH_NEW_ACCOUNT', 'new');
+define ('HASH_LOSTPW', 'lostpw');
+
 # Return a string explaining current pwcheck requirements.
 function expand_pwqcheck_options ()
 {
@@ -542,8 +545,7 @@ function account_new_keys_alert ($user_id)
       . "If it wasn't you, maybe someone is trying to compromise your "
       . "account..."), $sys_name
   );
-  # TRANSLATORS: the argument is site name (like Savannah).
-  $message .= "\n" . sprintf (_("-- the %s team."), $sys_name) . "\n";
+  $message .= "\n" . utils_team_signature ();
   sendmail_mail (
     ['to' => user_get_email ($user_id)],
     ['subject' => $subject, 'body' => $message]
@@ -559,5 +561,48 @@ function account_clear_confirm_hash ($name)
     'user', ['confirm_hash' => null, 'email_new' => null], DB_AUTOQUERY_UPDATE,
     'user_id = ?', [$uid]
   );
+}
+
+define ('CONFIRM_HASH_SEPARATOR', '#');
+
+# Exit if $confirm_hash and $item doesn't match the $uid's data from `user`.
+function account_validate_confirm_hash ($confirm_hash, $item, $uid = 0)
+{
+  if (empty ($confirm_hash))
+    $confirm_hash = '';
+  $confirm_field = user_get_field ($uid, 'confirm_hash');
+  if (empty ($confirm_field))
+    exit_error (_("Invalid confirmation hash."));
+  $ch = explode (CONFIRM_HASH_SEPARATOR, $confirm_field);
+  if (count ($ch) < 2)
+    exit_error (_("Invalid confirmation hash."));
+  if ($ch[0] != $item)
+    exit_error (_("Invalid confirmation hash."));
+  if (!preg_match ("/^[a-f0-9]{32}$/", $confirm_hash))
+    exit_error (_("Invalid confirmation hash."));
+  if (!account_validpw ($ch[1], $confirm_hash))
+    exit_error (_("Invalid confirmation hash."));
+}
+
+# The hash is stored in the database hashed: if it weren't, an attacker
+# with a read access to the database would be able e.g. to set passwords
+# for any accounts.
+function account_generate_confirm_hash ($item, $params = [], $user_id = 0)
+{
+  if (!$user_id)
+    $user_id = user_getid ();
+  $confirm_hash = random_hash ();
+  $hash_enc = account_encryptpw ($confirm_hash);
+  $params['confirm_hash'] = $item . CONFIRM_HASH_SEPARATOR . $hash_enc;
+  $success = db_autoexecute ('user', $params,
+    DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
+  );
+  if (!$success)
+    {
+      fb (_("Failed to update the database."), 1);
+      return null;
+    }
+  fb (_("Database updated."));
+  return $confirm_hash;
 }
 ?>

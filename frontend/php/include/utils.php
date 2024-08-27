@@ -1196,5 +1196,11 @@ function utils_return_val ($arg, $ret)
   foreach ($ret as $val)
     return $val;
 }
+function utils_team_signature ()
+{
+  global $sys_name;
+  # TRANSLATORS: the argument is site name (like Savannah).
+  return sprintf (_("-- the %s team."), $sys_name) . "\n";
+}
 } # namespace {
 ?>

@@ -146,82 +146,97 @@ elseif ($sys_registration_captcha)
     $antispam_is_valid = false;
   }
 
+function check_duplicate_user_names ($user_id, $new_name)
+{
+  $result = db_execute (
+    "SELECT user_id FROM user WHERE user_name = ?", [$new_name]
+  );
+  if (db_numrows ($result) < 2)
+    return;
+  user_purge ($user_id);
+  exit_error (_("That username already exists."));
+}
+
+function create_user ()
+{
+  global $form_loginname, $form_pw, $form_realname, $form_email;
+  $new_name = strtolower ($form_loginname);
+  $passwd = account_encryptpw ($form_pw);
+  $vals = ['user_name' => $new_name, 'user_pw' => $passwd,
+    'status' => USER_STATUS_PENDING, 'realname' => $form_realname,
+    'email' => $form_email, 'add_date' => time ()
+  ];
+  $result = db_autoexecute ('user', $vals);
+  if (!$result)
+    exit_error ('error', db_error ());
+  $user_id = db_insertid ($result);
+  check_duplicate_user_names ($user_id, $new_name);
+  $hash = account_generate_confirm_hash (HASH_NEW_ACCOUNT, [], $user_id);
+  if ($hash === null)
+    exit_error ();
+  return [$user_id, $hash];
+}
+
+function notify_user ($user_id, $confirm_hash)
+{
+  global $sys_name, $sys_https_url, $sys_home, $form_email;
+  # TRANSLATORS: the argument is the name of the system (like "Savannah").
+  $message_head = sprintf (
+    _("Thank you for registering on the %s web site.\n"
+      . "(Your login is not mentioned in this mail to prevent account "
+      . "creation by robots.\n\n"
+      . "In order to complete your registration, visit the following URL:"),
+   $sys_name
+  );
+  $message_head .=  "\n$sys_https_url{$sys_home}"
+    . "account/verify.php?confirm_hash=";
+  $message_tail = "\n\n" . _("Enjoy the site.") . "\n\n"
+    . utils_team_signature ();
+  $message = "$message_head$confirm_hash$message_tail";
+  sendmail_mail (
+    ['to' => $form_email],
+    # TRANSLATORS: the argument is the name of the system (like "Savannah").
+    [ 'subject' => sprintf (_("%s account registration"), $sys_name),
+      'body' => $message]
+  );
+  return "{$message_head}XXXXXXXXXXXXXXXXXXXXXXXXX$message_tail";
+}
+
+function congratulate ($user_id, $msg)
+{
+  global $sys_name, $sys_mail_replyto, $sys_mail_domain, $HTML;
+  $HTML->header (['title' => _("Register Confirmation")]);
+  print html_h (2, "$sys_name: " . _("New Account Registration Confirmation"));
+  # TRANSLATORS: the argument is the name of the system (like "Savannah").
+  printf (_("Congratulations. You have registered on %s."), $sys_name);
+  print "\n";
+  printf (_("Your login is %s."), '<b>' . user_getname ($user_id) . '</b>');
+  print "\n<p>";
+  printf (
+    _("You are now being sent a confirmation email to verify your\nemail "
+      . "address. Visiting the link sent to you in this email will activate "
+      . "your\naccount. The email is sent from &lt;%s&gt;, it contains a "
+      . "text like this:"),
+    "$sys_mail_replyto@$sys_mail_domain"
+  );
+  print "</p>\n<blockquote><pre>\n$msg\n</pre></blockquote>\n<p><em>"
+    . _("If you don't receive it within a reasonable time, contact website\n"
+        . "administration.")
+    . "</em></p>\n";
+  $HTML->footer ([]);
+}
+
 $form_is_valid = $login_is_valid && $pw_is_valid && $email_is_valid
   && $realname_is_valid && $antispam_is_valid;
 
 if ($form_is_valid)
   {
-    $passwd = account_encryptpw ($form_pw);
-    $confirm_hash = substr (random_hash (), 0, 16);
-    $new_name = strtolower ($form_loginname);
-    $vals = ['user_name' => $new_name, 'user_pw' => $passwd,
-      'status' => USER_STATUS_PENDING,
-      'realname' => $form_realname, 'email' => $form_email,
-      'add_date' => time (), 'confirm_hash' => $confirm_hash
-    ];
-    $result = db_autoexecute ('user', $vals);
-
-    if (!$result)
-      exit_error ('error', db_error ());
-    $newuserid = db_insertid ($result);
-    $result = db_execute (
-      "SELECT user_id FROM user WHERE user_name = ?", [$new_name]
-    );
-    if (db_numrows ($result) > 1)
-      {
-        user_purge ($newuserid);
-        fb (_("That username already exists."), 1);
-      }
-
-    # TRANSLATORS: the argument is the name of the system (like "Savannah").
-    $message_head = sprintf (
-      _("Thank you for registering on the %s web site.\n"
-        . "(Your login is not mentioned in this mail to prevent account "
-        . "creation by robots.\n\n"
-        . "In order to complete your registration, visit the following URL:"),
-     $sys_name
-    );
-    $message_head .=  "\n$sys_https_url{$sys_home}"
-      . "account/verify.php?confirm_hash=";
-    $message_tail = "\n\n" . _("Enjoy the site.") . "\n\n";
-    # TRANSLATORS: the argument is the name of the system (like "Savannah").
-    $message_tail .= sprintf (_("-- the %s team.") . "\n\n", $sys_name);
-    $message = "$message_head$confirm_hash$message_tail";
-
-    sendmail_mail (
-      ['to' => $form_email],
-      # TRANSLATORS: the argument is the name of the system (like "Savannah").
-      [ 'subject' => sprintf (_("%s account registration"), $sys_name),
-        'body' => $message]
-    );
-
-    $HTML->header (['title' => _("Register Confirmation")]);
-    print "<h2>$sys_name: "
-      . _("New Account Registration Confirmation") . "</h2>\n";
-    # TRANSLATORS: the argument is the name of the system (like "Savannah").
-    printf (_("Congratulations. You have registered on %s."), $sys_name);
-    print "\n";
-    printf (
-      _("Your login is %s."),
-      '<strong>' . user_getname ($newuserid) . '</strong>'
-    );
-    print "\n<p>";
-    printf (
-      _("You are now being sent a confirmation email to verify your\nemail "
-        . "address. Visiting the link sent to you in this email will activate "
-        . "your\naccount. The email is sent from &lt;%s&gt;, it contains a "
-        . "text like this:"),
-      "$sys_mail_replyto@$sys_mail_domain"
-    );
-    print "</p>\n<blockquote><pre>\n$message_head"
-      . "XXXXXXXXXXXXXXXXXXXXXXXXX$message_tail"
-      ."\n</pre></blockquote>\n<p><em>"
-      . _("If you don't receive it within a reasonable time, contact website\n"
-          . "administration.")
-      . "</em></p>\n";
-    $HTML->footer ([]);
+    list ($user_id, $confirm_hash) = create_user ();
+    $msg = notify_user ($user_id, $confirm_hash);
+    congratulate ($user_id, $msg);
     exit;
   } # if ($form_is_valid)
+
 # Not valid registration, or first time at page.
 site_header (
   ['title' => _("User account registration"), 'context' => 'account']

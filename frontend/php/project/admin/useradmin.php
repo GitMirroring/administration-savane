@@ -231,10 +231,9 @@ if ($action == 'approve_for_group' && $user_ids)
            sprintf (
              "You've been approved as a member of the group %s on %s,\n"
              . "where you are registered as %s.",
-            group_getname ($group_id), $sys_name,
-            user_getname ($user)
-          )
-          . "\n\n" . sprintf ("-- the %s team.", $sys_name) . "\n";
+             group_getname ($group_id), $sys_name, user_getname ($user)
+           )
+         . "\n\n" . utils_team_signature ();
 
         sendmail_mail (
           ['to' => $email], ['subject' => $title, 'body' => $message]

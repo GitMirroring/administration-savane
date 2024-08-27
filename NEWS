@@ -30,6 +30,9 @@
 * user.confirm_hash is stored in the database after applying crypt()
   like user.user_pw; it increases from varchar(32) to varchar(128).
 
+* user.confirm_hash includes the function (change email, delete account, reset
+  password, new account); the hash is only valid for that function.
+
 * The auxiliary file domain is configured and listened to
   separately from and in parallel to the main ('control') domain.
 

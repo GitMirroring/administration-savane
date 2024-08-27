@@ -642,7 +642,7 @@ function user_rename ($user_id, $new_name)
 # This function should always be used in a secure context, when user_id
 # is 100% sure.
 # Best is to not to pass the user_id argument unless necessary.
-function user_delete ($user_id = false, $confirm_hash = false)
+function user_delete ($user_id = false)
 {
   if (!$user_id)
     $user_id = user_getid ();
@@ -651,15 +651,6 @@ function user_delete ($user_id = false, $confirm_hash = false)
   # and owner of the account.
   if (!user_is_super_user () && $user_id != user_getid ())
     exit_permission_denied ();
-
-  $confirm_hash_test = '';
-  $confirm_hash_param = [];
-  # If self-destruct, the correct confirm_hash must be provided.
-  if (!user_is_super_user ())
-    {
-      $confirm_hash_test = " confirm_hash = ? AND ";
-      $confirm_hash_param = [$confirm_hash];
-    }
 
   if (!user_has_history ($user_id))
     {
@@ -673,12 +664,11 @@ function user_delete ($user_id = false, $confirm_hash = false)
     $new_realname = '-';
   $success = db_autoexecute ('user',
     [ 'user_pw' => '!', 'realname' => $new_realname, 'status' => 'S',
-      'email' => 'idontexist@example.net', 'confirm_hash' => '',
+      'email' => 'idontexist@savane.test', 'confirm_hash' => null,
       'authorized_keys' => '', 'people_view_skills' => '0',
       'people_resume' => '', 'timezone' => 'GMT', 'theme' => '',
       'gpg_key' => '', 'email_new' => ''],
-    DB_AUTOQUERY_UPDATE, "$confirm_hash_test user_id = ?",
-    array_merge ($confirm_hash_param, [$user_id])
+    DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
   );
   if (!$success)
     {

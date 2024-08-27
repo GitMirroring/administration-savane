@@ -56,14 +56,11 @@ extract (sane_import ('post',
 form_check ('update');
 exit_if_missing (['confirm_hash', 'user_id']);
 
-$result = db_execute (
-  "SELECT user_name, confirm_hash FROM user WHERE user_id = ?", [$user_id]
-);
-if (!db_numrows ($result))
+if (!user_exists ($user_id))
   exit_error (sprintf (_("User #%s not found."), $user_id));
-$row = db_fetch_array ($result);
-if (!account_validpw ($row['confirm_hash'], $confirm_hash))
-  exit_error (_("Invalid confirmation hash."));
+account_validate_confirm_hash ($confirm_hash, HASH_LOSTPW, $user_id);
+$realname = user_getrealname ($user_id);
+$user_name = user_getname ($user_id);
 
 if ($update && $form_pw)
   {
@@ -72,7 +69,7 @@ if ($update && $form_pw)
     elseif (account_pwvalid ($form_pw))
       {
         db_autoexecute ('user',
-          ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => ''],
+          ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => null],
           DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
         );
         session_redirect ("{$sys_home}account/login.php");
@@ -82,16 +79,16 @@ if ($update && $form_pw)
 site_header (['title' => _("Lost Passphrase Login")]);
 print html_h (2, _("Lost Passphrase Login"));
 print '<p>';
-printf (_("Welcome, %s."), $row['user_name']);
+printf (_("Welcome, %s."), "$realname <$user_name>");
 print ' ' . _("You may now change your passphrase.") . "</p>\n";
 print form_header ();
 print '<div>' . account_password_help () . "</div>\n";
-print '<div class="inputfield"><strong>'
-  . html_label ('form_pw', _("New passphrase:")) . '</strong>';
+print '<div class="inputfield"><b>'
+  . html_label ('form_pw', _("New passphrase:")) . '</b>';
 print form_input ("password", "form_pw") . "</div>\n";
 
-print '<div class="inputfield"><strong>'
-  . html_label ('form_pw2', _("New passphrase (repeat):")) . '</strong>';
+print '<div class="inputfield"><b>'
+  . html_label ('form_pw2', _("New passphrase (repeat):")) . '</b>';
 print form_input ("password", "form_pw2") . "</div>\n";
 
 print form_hidden (['confirm_hash' => $confirm_hash, 'user_id' => $user_id]);

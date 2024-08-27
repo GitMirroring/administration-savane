@@ -42,7 +42,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-foreach (['init', 'sane', 'sendmail', 'random-bytes', 'account'] as $inc)
+foreach (['init', 'sane', 'sendmail', 'account'] as $inc)
   require_once ("../include/$inc.php");
 
 extract (sane_import ('post', ['name' => 'form_loginname']));
@@ -52,11 +52,6 @@ form_check ();
 if (user_isloggedin ())
   session_redirect ("{$sys_home}my/");
 
-$confirm_hash = md5 (random_bytes (8));
-# The hash is stored in the database hashed: if it weren't, an attacker
-# with a read access to the database would be able to set passwords
-# for any accounts.
-$hash_encrypted = account_encryptpw ($confirm_hash);
 # Account check.
 $sql = "SELECT * FROM user WHERE user_name = ? AND status = ?";
 $res_user = db_execute ($sql, [$form_loginname, USER_STATUS_ACTIVE]);
@@ -116,10 +111,9 @@ else
     );
   }
 
-db_execute (
-  "UPDATE user SET confirm_hash = ? WHERE user_id = ?", [$hash_encrypted, $uid]
-);
-
+$confirm_hash = account_generate_confirm_hash (HASH_LOSTPW, [], $uid);
+if ($confirm_hash === null)
+  exit_error ();
 # TRANSLATORS: the argument is a domain (like "savannah.gnu.org"
 # vs. "savannah.nongnu.org").
 $message = sprintf (
@@ -141,8 +135,7 @@ $message .=
   _("In any case make sure that you do not disclose this URL to\n"
     . "somebody else, e.g. do not mail this to a public mailinglist!\n\n"
 );
-$message .= sprintf (_("-- the %s team."), $GLOBALS['sys_name'])
-  . "\n" . join (sendmail_signature ());
+$message .= utils_team_signature () . join (sendmail_signature ());
 
 # We should not add i18n to admin messages.
 $message_for_admin =

@@ -41,28 +41,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-foreach (['init', 'database', 'spam', 'sane', 'sendmail'] as $i)
+foreach (['init', 'database', 'spam', 'sane', 'sendmail', 'markup'] as $i)
   require_once ("../include/$i.php");
 
 extract (sane_import ('get', ['name' => 'form_user']));
-$res_user = db_execute ("SELECT * FROM user WHERE user_name = ?", [$form_user]);
-$row_user = NULL;
-if (db_numrows ($res_user) > 0)
-  $row_user = db_fetch_array ($res_user);
-
+exit_if_missing ('form_user');
+$user_id = user_getid ($form_user);
+if (empty ($user_id))
+  exit_error (markup_rich (sprintf (_('User *%s* not found.'), $form_user)));
+$row_user = user_get_fields (['status', 'email'], $user_id);
 # Only mail if pending.
-if (empty ($row_user) || $row_user['status'] != USER_STATUS_PENDING)
+if ($row_user['status'] != USER_STATUS_PENDING)
   exit_error (_("Error"), _("This account is not pending verification."));
+
+# No way to get the old hash, so just generate a new one.
+$confirm_hash = account_generate_confirm_hash (HASH_NEW_ACCOUNT, [], $user_id);
 
 $message =
   sprintf (_("Thank you for registering on the %s web site."), $sys_name)
   . "\n"
   . _("In order to complete your registration, visit the following URL:")
   . "\n\n$sys_https_url$sys_home"
-  . "account/verify.php?confirm_hash=$row_user[confirm_hash]\n\n"
+  . "account/verify.php?confirm_hash=$confirm_hash\n\n"
   . _("Enjoy the site.") . "\n\n";
-# TRANSLATORS: the argument is the name of the system (like "Savannah").
-$message .= sprintf (_("-- the %s team."), $sys_name) . "\n";
+$message .= utils_team_signature ();
 sendmail_mail (
   ['to' => $row_user['email']],
   ['subject' => "$sys_name " . _("Account Registration"), 'body' => $message]

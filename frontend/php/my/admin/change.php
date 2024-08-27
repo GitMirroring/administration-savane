@@ -197,13 +197,6 @@ function confirm_hash_url ($confirm_hash, $func = 'email')
     . "item=$func&confirm_hash=$confirm_hash";
 }
 
-function savane_team_signature ()
-{
-  global $sys_name;
-  # TRANSLATORS: the argument is site name (like Savannah).
-  return sprintf (_("-- the %s team."), $sys_name) . "\n";
-}
-
 function email_step0_message ($url)
 {
   global $sys_name;
@@ -214,8 +207,7 @@ function email_step0_message ($url)
       . "email change:"),
     $sys_name);
   $message .= "\n\n$url&step=confirm\n\n";
-  # TRANSLATORS: the argument is site name (like Savannah).
-  return $message . savane_team_signature ();
+  return $message . utils_team_signature ();
 }
 
 function email_step0_warning ($url, $newvalue)
@@ -238,27 +230,7 @@ function email_step0_warning ($url, $newvalue)
       . "the following URL\nto discard the email change "
       . "and report the problem to us:")
   . "\n\n$url&step=discard\n\n";
-  return $msg . savane_team_signature ();
-}
-
-function generate_confirm_hash ($new_email = null)
-{
-  global $session_hash;
-  # Build a new confirm hash.
-  $confirm_hash = substr (md5 ($session_hash . time ()), 0, 16);
-  $params = ['confirm_hash' => $confirm_hash];
-  if ($new_email !== null)
-    $params['email_new'] = $new_email;
-  $success = db_autoexecute ('user', $params,
-    DB_AUTOQUERY_UPDATE, "user_id = ?", [user_getid ()]
-  );
-  if (!$success)
-    {
-      fb (_("Failed to update the database."), 1);
-      return null;
-    }
-  fb (_("Database updated."));
-  return $confirm_hash;
+  return $msg . utils_team_signature ();
 }
 
 function email_step0_notify ($newvalue, $confirm_hash)
@@ -285,57 +257,39 @@ function email_step0_notify ($newvalue, $confirm_hash)
 
 function report_step0_result ($fail, $newval)
 {
-  if ($fail)
-    {
-      fb (
-        _("The system reported a failure when trying to send\nthe confirmation "
-          . "mail. Please retry and report that problem to\nadministrators."),
-        1
-      );
-      return;
-    }
   # TRANSLATORS: the argument is email address.
-  $msg = sprintf (
-    _("Confirmation mailed to %s."), $newval
-  );
-  fb ($msg . ' '
-    . _("Follow the instructions in the email to "
-        . "complete the email change.")
-  );
+  $msg = sprintf (_("Confirmation mailed to %s."), $newval) . ' '
+    . _("Follow the instructions in the email to complete the email change.");
+  if ($fail)
+    $msg =
+      _("The system reported a failure when trying to send\nthe confirmation "
+        . "mail. Please retry and report that problem to\nadministrators.");
+  fb ($msg, $fail);
 }
 
 function update_email_step0 ()
 {
-  $newval = extract_email_newvalue ();
-  if (!account_emailvalid ($newval))
+  global $item;
+  $val = extract_email_newvalue ();
+  if (!account_emailvalid ($val))
     return;
-  $confirm_hash = generate_confirm_hash ($newval);
+  $confirm_hash = account_generate_confirm_hash ($item, ['email_new' => $val]);
   if ($confirm_hash === null)
     return false;
-  $fail = email_step0_notify ($newval, $confirm_hash);
-  report_step0_result ($fail, $newval);
+  $fail = email_step0_notify ($val, $confirm_hash);
+  report_step0_result ($fail, $val);
   return !$fail;
-}
-
-function validate_confirm_hash ($confirm_hash)
-{
-  global $row_user;
-  if (!preg_match ("/^[a-f0-9]{16}$/", $confirm_hash))
-    exit_error (_("Invalid confirmation hash."));
-  if ($row_user['confirm_hash'] != $confirm_hash)
-    exit_error (_("Invalid confirmation hash."));
 }
 
 function update_email_confirm2 ()
 {
-  global $confirm_hash, $row_user;
-  validate_confirm_hash ($confirm_hash);
+  global $confirm_hash, $row_user, $item;
+  account_validate_confirm_hash ($confirm_hash, $item);
   $success = db_autoexecute (
    'user',
     [ 'email' => $row_user['email_new'],
       'confirm_hash' => null, 'email_new' => null ],
-    DB_AUTOQUERY_UPDATE, "user_id = ? AND confirm_hash = ?",
-    [user_getid (), $confirm_hash]
+    DB_AUTOQUERY_UPDATE, "user_id = ?", [user_getid ()]
   );
 
   if ($success)
@@ -407,7 +361,7 @@ function deletion_message ($url)
         . "following URL to discard\nthe process and report "
         . "ASAP the problem to us:")
     . "\n\n$url&step=discard\n\n";
-  return $message . savane_team_signature ();
+  return $message . utils_team_signature ();
 }
 
 function delete_step0_notify ($confirm_hash)
@@ -435,12 +389,13 @@ function report_delete_step0_result ($success)
 
 function delete_account_step0 ()
 {
+  global $item;
   extract (sane_import ('request',
     ['strings' => [['newvalue', ['deletionconfirmed']]]]
   ));
   if ($newvalue != 'deletionconfirmed')
     return;
-  $confirm_hash = generate_confirm_hash ();
+  $confirm_hash = account_generate_confirm_hash ($item);
   if ($confirm_hash === null)
     return false;
   $success = delete_step0_notify ($confirm_hash);
@@ -450,16 +405,16 @@ function delete_account_step0 ()
 
 function delete_confirm2 ()
 {
-  global $confirm_hash;
-  validate_confirm_hash ($confirm_hash);
-  user_delete (0, $confirm_hash);
+  global $confirm_hash, $item;
+  account_validate_confirm_hash ($confirm_hash, $item);
+  user_delete ();
   return true;
 }
 
 function discard_hash ($str)
 {
-  global $row_user, $confirm_hash;
-  validate_confirm_hash ($confirm_hash);
+  global $row_user, $confirm_hash, $item;
+  account_validate_confirm_hash ($confirm_hash, $item);
   $success = account_clear_confirm_hash ($row_user['user_name']);
   fb ($str[$success? 0: 1], !$success);
   return $success;
@@ -650,14 +605,14 @@ $input_func = [
 if ($item == 'delete')
   exit_if_member_of_any_group ();
 
-if ($step == 'confirm')
+if (in_array ($step, ['confirm', 'discard']))
   {
     # At this step, a GET request is used because the URL comes
     # from the confrimation email.  That means no form_id-based CSRF
     # mitigation; in order to use it, we form a POST request as
     # the 'confirm2' step.  The hash is validated just to reveal
     # the errors at an earlier stage.
-    validate_confirm_hash ($confirm_hash);
+    account_validate_confirm_hash ($confirm_hash, $item);
   }
 
 if ($update)

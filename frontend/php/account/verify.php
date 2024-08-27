@@ -41,11 +41,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/spam.php');
-require_once ('../include/html.php');
-require_once ('../include/form.php');
-require_once ('../include/exit.php');
+foreach (['init', 'spam', 'html', 'form', 'exit', 'account'] as $i)
+  require_once ("../include/$i.php");
 
 extract (sane_import ('post',
   ['true' => 'update', 'name' => 'form_loginname', 'pass' => 'form_pw']
@@ -59,37 +56,27 @@ form_check ('update');
 if (user_isloggedin ())
   session_redirect ("{$sys_home}my/");
 
-if (!empty ($update))
-  {
-    # First check just confirmation hash.
-    $res = db_execute ("
-      SELECT confirm_hash, status FROM user
-      WHERE user_name = ? AND status <> ?",
-      [$form_loginname, USER_STATUS_SQUAD]
-    );
-    if (db_numrows ($res) < 1)
-      exit_error (_("Invalid username."));
+function run_update ()
+{
+  global $update, $form_loginname, $sys_home, $form_pw, $confirm_hash;
+  if (empty ($update))
+    return;
+  $uid = user_getid ($form_loginname);
+  if (empty ($uid) || user_squad_exists ($uid))
+    exit_error (_("Invalid username."));
+  account_validate_confirm_hash ($confirm_hash, HASH_NEW_ACCOUNT, $uid);
+  if (!session_login_valid ($form_loginname, $form_pw, 0, 1))
+    return;
+  db_autoexecute ('user', ['status' => 'A', 'confirm_hash' => null],
+    DB_AUTOQUERY_UPDATE, 'user_name = ?', [$form_loginname]
+  );
+  session_redirect ("{$sys_home}account/first.php");
+}
 
-    $usr = db_fetch_array ($res);
-    if ($confirm_hash != $usr['confirm_hash'])
-      # TRANSLATORS: confirmation hash is a secret code sent to the user.
-      exit_error (_("Invalid confirmation hash"));
-
-    # Then check valid login.
-    if (session_login_valid ($form_loginname, $form_pw, 0, 1))
-      {
-        $res = db_execute (
-          "UPDATE user SET status = 'A' WHERE user_name = ?",
-          [$form_loginname]
-        );
-        session_redirect ("{$sys_home}account/first.php");
-      }
-  }
+run_update ();
 site_header (['title' => _("Login")]);
-print '<h2> ';
 # TRANSLATORS: the argument is the name of the system (like "Savannah").
-printf (_("%s Account Verification"), $sys_name);
-print "</h2>\n";
+print html_h (2, sprintf (_("%s Account Verification"), $sys_name));
 print '<p>'
  . _("In order to complete your registration, login now. Your account\n"
      . "will then be activated for normal logins.")
@@ -97,12 +84,13 @@ print '<p>'
 
 print form_header ();
 print '<p><span class="preinput">'
-  . _("Login name:") . "</span><br />\n&nbsp;&nbsp;";
+  . html_label ('form_loginname', _("Login name:"))
+  . "</span><br />\n&nbsp;&nbsp;";
 print form_input ("text", "form_loginname");
 print "</p>\n";
 
 print '<p><span class="preinput">'
-  . _("Password") . ":</span><br />\n&nbsp;&nbsp;";
+  . html_label ('form_pw', _("Password:")) . "</span><br />\n&nbsp;&nbsp;";
 print form_input ("password", "form_pw");
 print "</p>\n";
 
