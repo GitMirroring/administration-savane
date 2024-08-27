@@ -235,7 +235,7 @@ function check_user_name ($name)
 {
   $user_id = user_getid ($name);
   if (empty ($user_id))
-    display_page (sprintf (no_i18n ("User *%s* not found."), $user));
+    display_page (sprintf (no_i18n ("User *%s* not found."), $name));
   return [$name, $user_id];
 }
 
