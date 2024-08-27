@@ -49,65 +49,63 @@ require_once ('../include/news/general.php');
 extract (sane_import ('request', ['digits' => 'msg_id']));
 
 
-if ($msg_id)
-  {
-    # Figure out which group this message is in, for the sake of the admin links.
-    $result = db_execute ("
-      SELECT
-        l.group_id, l.forum_name, f.group_forum_id, f.thread_id
-      FROM forum_group_list l, forum f
-      WHERE l.group_forum_id = f.group_forum_id AND f.msg_id = ?",
-      [$msg_id]
-    );
-    if (!db_numrows ($result))
-      exit_error ();
-    $row = db_fetch_array ($result);
-    $forum_id = $row['group_forum_id'];
-    $thread_id = $row['thread_id'];
-    $forum_name = $row['forum_name'];
-    forum_header (['title' => $row['forum_name']]);
-    print "<p>";
-
-    $sql = "
-      SELECT
-        u.user_name, f.group_forum_id, f.thread_id, f.subject, f.date, f.body
-      FROM forum f, user u WHERE u.user_id = f.posted_by AND f.msg_id = ?";
-
-    $result = db_execute ($sql, [$msg_id]);
-    if (!db_numrows ($result))
-      exit_error (_('Message not found.'));
-    $row = db_fetch_array ($result);
-
-    # TRANSLATORS: the argument is message id.
-    print html_build_list_table_top ([sprintf (_('Message %s'), $msg_id)]);
-
-    print "<tr>\n<td>\n";
-    # TRANSLATORS: the first argument is subject, the second is user's name,
-    # the third is date.
-    printf (_('%1$s (posted by %2$s, %3$s)'), '<b>' . $row["subject"] . '</b>',
-      utils_user_link ($row["user_name"]), utils_format_date ($row["date"])
-    );
-    print '<p>';
-    print markup_rich ($row['body']);
-    print "</p>\n</td>\n</tr>\n</table>\n";
-    # Show entire thread.
-    # Highlight the current message in the thread list.
-    $current_message = $msg_id;
-    print show_thread ($row['thread_id']);
-    print '<p>&nbsp;<p>';
-    if ($GLOBALS['sys_enable_forum_comments'])
-      {
-        print '<p id="followup">' . _("Post a followup to this message")
-          . "</p>\n";
-        show_post_form (
-          $row['group_forum_id'], $row['thread_id'], $msg_id, $row['subject']
-        );
-      }
-  }
-else
+if (empty ($msg_id))
   {
     forum_header (['title' => _('Choose a message first')]);
     print '<p>' . _('You must choose a message first') . "</p>\n";
+    forum_footer ([]);
+    exit;
+  }
+# Figure out which group this message is in, for the sake of the admin links.
+$result = db_execute ("
+  SELECT
+    l.group_id, l.forum_name, f.group_forum_id, f.thread_id
+  FROM forum_group_list l, forum f
+  WHERE l.group_forum_id = f.group_forum_id AND f.msg_id = ?",
+  [$msg_id]
+);
+if (!db_numrows ($result))
+  exit_error ();
+$row = db_fetch_array ($result);
+$forum_id = $row['group_forum_id'];
+$thread_id = $row['thread_id'];
+$forum_name = $row['forum_name'];
+forum_header (['title' => $row['forum_name']]);
+print "<p>";
+
+$sql = "
+  SELECT
+    u.user_name, f.group_forum_id, f.thread_id, f.subject, f.date, f.body
+  FROM forum f, user u WHERE u.user_id = f.posted_by AND f.msg_id = ?";
+
+$result = db_execute ($sql, [$msg_id]);
+if (!db_numrows ($result))
+  exit_error (_('Message not found.'));
+$row = db_fetch_array ($result);
+
+# TRANSLATORS: the argument is message id.
+print html_build_list_table_top ([sprintf (_('Message %s'), $msg_id)]);
+
+print "<tr>\n<td>\n";
+# TRANSLATORS: the first argument is subject, the second is user's name,
+# the third is date.
+printf (_('%1$s (posted by %2$s, %3$s)'), '<b>' . $row["subject"] . '</b>',
+  utils_user_link ($row["user_name"]), utils_format_date ($row["date"])
+);
+print '<p>';
+print markup_rich ($row['body']);
+print "</p>\n</td>\n</tr>\n</table>\n";
+# Show entire thread.
+# Highlight the current message in the thread list.
+$current_message = $msg_id;
+print show_thread ($row['thread_id']);
+print '<p>&nbsp;<p>';
+if ($GLOBALS['sys_enable_forum_comments'])
+  {
+    print '<p id="followup">' . _("Post a followup to this message") . "</p>\n";
+    show_post_form (
+      $row['group_forum_id'], $row['thread_id'], $msg_id, $row['subject']
+    );
   }
 forum_footer ([]);
 ?>
