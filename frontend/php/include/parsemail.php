@@ -65,17 +65,84 @@ function parsemail_get_part ($mime, $idx, $msg)
 
 function parsemail_extract_callback ($x)
 {
-  global $parsemail_extract_part_ret;
-  $parsemail_extract_part_ret .= $x;
+  global $parsemail_extract_part_accum;
+  $parsemail_extract_part_accum .= $x;
 }
 
 function parsemail_extract_part ($mime, $idx, $msg)
 {
-  global $parsemail_extract_part_ret;
+  global $parsemail_extract_part_accum;
   $p = mailparse_msg_get_part ($mime, $idx);
-  $parsemail_extract_part_ret = '';
+  $parsemail_extract_part_accum = '';
   mailparse_msg_extract_part ($p, $msg, 'parsemail_extract_callback');
-  return $parsemail_extract_part_ret;
+  return $parsemail_extract_part_accum;
+}
+
+function parsemail_check_part_attrib ($mime, $idx, $attr)
+{
+  $data = parsemail_get_part_data ($mime, $idx);
+  foreach ($attr as $k => $v)
+    {
+      if (empty ($data[$k]))
+        return 1;
+      if ($v != $data[$k])
+        return 2;
+    }
+  return 0;
+}
+
+function parsemail_check_topmost_part ($mime, $struct, $idx)
+{
+  if (strstr ($idx, '.'))
+    return false;
+  $protocol_is_wrong = parsemail_check_part_attrib (
+    $mime, $idx,
+    [
+      'content-protocol' => 'application/pgp-signature',
+      'content-type' => 'multipart/signed'
+    ]
+  );
+  if ($protocol_is_wrong)
+    return false;
+  if (!(in_array ("$idx.1", $struct) && in_array ("$idx.2", $struct)))
+    return false;
+  if (in_array ("$idx.3", $struct))
+     return false;
+  return !parsemail_check_part_attrib (
+    $mime, "$idx.2", ['content-type' => 'application/pgp-signature']
+  );
+}
+
+function parsemail_analyze_struct ($mime, $struct, $error_handler)
+{
+  $topmost_parts = [];
+  foreach ($struct as $idx)
+    if (parsemail_check_topmost_part ($mime, $struct, $idx))
+      $topmost_parts[] = $idx;
+  if (empty ($topmost_parts))
+    {
+      parsemail_close ($mime);
+      return $error_handler (
+        'Wrong message structure ' . error_print_r ($struct)
+      );
+   }
+  $ret = PHP_INT_MAX;
+  foreach ($topmost_parts as $p)
+    if ($p < $ret)
+      $ret = $p;
+  return ["$ret.2", "$ret.1"];
+}
+
+# Remove trailing empty lines, they turn out to break the signature.
+function parsemail_fixup_multipart_part ($mime, $idx, $msg)
+{
+  $part = parsemail_get_part ($mime, $idx, $msg);
+  $multipart = !parsemail_check_part_attrib (
+    $mime, $idx, ['content-type' => 'multipart/mixed']
+  );
+  if ($multipart)
+    $part = preg_replace ("/(\r\n)+$/s", "\r\n", $part);
+  return $part;
 }
 
 function parsemail_parse_mime ($mime, $msg, $error_handler)
@@ -86,18 +153,16 @@ function parsemail_parse_mime ($mime, $msg, $error_handler)
       $ret = parsemail_extract_part ($mime, $struct[0], $msg);
       return [[$ret], $ret];
     }
-  if (count ($struct) != 3)
-    {
-      parsemail_close ($mime);
-      return $error_handler ('Wrong message part number');
-    }
   $ret = [];
-  foreach ([2, 1] as $i)
+  foreach (parsemail_analyze_struct ($mime, $struct, $error_handler) as $idx)
     {
-      $idx = $struct[$i];
-      $ret[] = parsemail_get_part ($mime, $idx, $msg);
+      $latest = $idx;
+      $ret[] = parsemail_fixup_multipart_part ($mime, $idx, $msg);
     }
-  return [$ret, parsemail_extract_part ($mime, $struct[1], $msg)];
+  $ret = [$ret, parsemail_extract_part ($mime, $latest, $msg)];
+  # Check for nesting like in the 'protected-headers=v1' protocol.
+  $ret[] = in_array ("$latest.1", $struct);
+  return $ret;
 }
 
 function parsemail_open ($email)
@@ -115,15 +180,34 @@ function parsemail_close ($mime)
   mailparse_msg_free ($mime);
   $mime = null;
 }
+function parsemail_parse_body ($mime, $msg, $error_handler)
+{
+  $struct = mailparse_msg_get_structure ($mime);
+  $idx = '1.1';
+  if (in_array ($idx, $struct))
+    return parsemail_extract_part ($mime, $idx, $msg);
+  parsemail_close ($mime);
+  return $error_handler ("No subpart $idx found");
+}
+
+function parsemail_extract_body ($email, $error_handler)
+{
+  if (!function_exists ('mailparse_msg_create'))
+    return $error_handler ('Mailparse extension not found');
+  $mime = parsemail_open ($email);
+  $ret = parsemail_parse_body ($mime, $email, $error_handler);
+  parsemail_close ($mime);
+  return $ret;
+}
 
 function parsemail_extract_message ($email, $error_handler)
 {
   if (!function_exists ('mailparse_msg_create'))
     return [[$email], $email]; # This may work with clearsigned messages.
   $mime = parsemail_open ($email);
-  list ($input, $msg) = parsemail_parse_mime ($mime, $email, $error_handler);
+  $ret = parsemail_parse_mime ($mime, $email, $error_handler);
   parsemail_close ($mime);
-  return [$input, $msg];
+  return $ret;
 }
 
 function parsemail_list_headers ($headers)
