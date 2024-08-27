@@ -59,6 +59,8 @@ if ($msg_id)
       WHERE l.group_forum_id = f.group_forum_id AND f.msg_id = ?",
       [$msg_id]
     );
+    if (!db_numrows ($result))
+      exit_error ();
     $row = db_fetch_array ($result);
     $forum_id = $row['group_forum_id'];
     $thread_id = $row['thread_id'];
@@ -82,8 +84,7 @@ if ($msg_id)
     print "<tr>\n<td>\n";
     # TRANSLATORS: the first argument is subject, the second is user's name,
     # the third is date.
-    printf (_('%1$s (posted by %2$s, %3$s)'),
-      '<strong>' . $row["subject"] . '</strong>',
+    printf (_('%1$s (posted by %2$s, %3$s)'), '<b>' . $row["subject"] . '</b>',
       utils_user_link ($row["user_name"]), utils_format_date ($row["date"])
     );
     print '<p>';
