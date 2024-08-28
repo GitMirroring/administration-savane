@@ -70,6 +70,7 @@ function run_update ()
   db_autoexecute ('user', ['status' => 'A', 'confirm_hash' => null],
     DB_AUTOQUERY_UPDATE, 'user_name = ?', [$form_loginname]
   );
+  account_clear_confirm_hash ($form_loginname);
   session_redirect ("{$sys_home}account/first.php");
 }
 
