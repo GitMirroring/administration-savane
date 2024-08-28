@@ -56,6 +56,7 @@ use Time::Local;
 
 our $dbd;
 our $sys_banned_email_domains;
+our %sys_banned_email_names;
 
 my $script = "sv_cleaner";
 my $logfile = "/var/log/sv_cleaner.log";
@@ -151,6 +152,8 @@ delete_and_log ("user_lostpw", "TIMESTAMPDIFF(hour, date, now()) > 23",
 
 sub send_notification
 {
+  print_log ("-- sending notification") if $verbose > 2;
+  return if $dry_run;
   my ($name, $email) = @_;
   my $sys = GetConf ("sys_name");
   my $body = "Your $sys account <$name> is automatically\n"
@@ -220,11 +223,40 @@ sub suspend_account
   EOF
 }
 
-sub domain_is_banned
+sub email_domain_is_banned
 {
   my ($email) = @_;
-  return 0 if $sys_banned_email_domains eq "";
-  return $email =~ /$sys_banned_email_domains/;
+  return 0 if $sys_banned_email_domains eq '';
+  print_log ("--- checking against <$sys_banned_email_domains>")
+    if $verbose > 2;
+  my $banned = ($email =~ /$sys_banned_email_domains/);
+  print_log ("---- <$email> matched <$sys_banned_email_domains>")
+    if ($banned and $verbose > 2);
+  return $banned;
+}
+
+sub email_name_is_banned
+{
+  my ($email, $name) = @_;
+  foreach my $key (keys (%sys_banned_email_names))
+    {
+      my $name_re = $sys_banned_email_names{$key};
+      print_log ("--- checking against $name_re <$key>") if ($verbose > 2);
+      next unless $email =~ /$key/;
+      print_log ("---- <$email> matched <$key>") if ($verbose > 2);
+      next unless $name =~ /$name_re/;
+      print_log ("---- $name matched $name_re") if ($verbose > 2);
+      return 1;
+    }
+  return 0;
+}
+
+sub email_is_banned
+{
+  my ($email, $name) = @_;
+  print_log ("-- checking against banned regular expressions") if $verbose > 2;
+  return 1 if email_domain_is_banned ($email);
+  return email_name_is_banned ($email, $name);
 }
 
 sub remove_account
@@ -240,8 +272,6 @@ sub remove_account
       suspend_account ($id, $name, $email);
     }
   purge_account_aux_data ($id);
-  return if $dry_run;
-  send_notification ($name, $email) unless domain_is_banned ($email);
 }
 
 sub account_has_tracker_history
@@ -323,12 +353,24 @@ sub clean_account
   print_log ("- trying user $user") if ($verbose > 0);
   print_log ("- account is too new to purge (unless banned)")
     if ($ut > $t1 && $verbose > 1);
-
-  return if ($ut > $t1 && !domain_is_banned ($email));
+  my $banned = email_is_banned ($email, $name);
+  return if ($ut > $t1 && !$banned);
   $active = account_is_active ($id, $name);
   return if $active > 1;
   print_log ("- removing $user: $active");
   remove_account ($id, $name, $email, $active);
+  send_notification ($name, $email) unless $banned;
+}
+
+sub log_banned_email_names
+{
+  foreach my $key (keys (%sys_banned_email_names))
+    {
+      print_log (
+        '- banned name: /' . $sys_banned_email_names{$key} . '/ => /'
+        . $key . '/'
+      );
+    }
 }
 
 sub clean_idle_accounts
@@ -338,6 +380,7 @@ sub clean_idle_accounts
   $t0 -= 4 * 30 * 24 * 3600 if $big_cleanup;
 
   print_log ("- clean idle; banned domains: ($sys_banned_email_domains)");
+  log_banned_email_names ();
   foreach my $user (
     GetDB (
       "user", "status = 'A' AND add_date > $t0",

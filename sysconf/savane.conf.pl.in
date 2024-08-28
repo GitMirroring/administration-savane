@@ -8,4 +8,6 @@ our $sys_dbnetworking = "@SV_DB_NETWORKING@";
 our $sys_dbpasswd="@SV_DB_PASSWORD@";
 our $sys_dbsocket = "@mysql_socket@"
   if $sys_dbnetworking eq 'no';
+our $sys_banned_email_domains = '';
+our %sys_banned_email_names = ();
 return 1;

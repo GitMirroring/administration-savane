@@ -132,6 +132,8 @@
 * In sv_cleaner, data amount in a few queries is reduced using
   more restrictive conditions.
 
+* New configuration variable for sv_cleaner, %sys_banned_email_names.
+
 * New script, sv_gen_passwd_group.
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
