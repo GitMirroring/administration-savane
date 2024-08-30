@@ -57,14 +57,19 @@ $editable_reports = trackers_data_get_editable_reports ($group_id, $is_admin);
 $reports_updated = false;
 
 $names = [];
-$submits = ['post_changes', 'create_report', 'update_report','delete_report'];
+$submits = [
+  'post_changes', 'create_report', 'update_report', 'delete_report', 'copy'
+];
 if ($is_admin)
   $submits[] = 'set_default';
 $names['true'] = $submits;
 $names['specialchars'] = ['rep_name', 'rep_desc'];
 $names['strings'] = [['rep_scope', scopes_sanitized ($is_admin, $group_id)]];
 
-$prefixes = ['TFSRCH', 'TFREP', 'TFCW', 'CBSRCH', 'CBREP'];
+$prefixes = [
+  'tf_search' => 'TFSRCH', 'tf_report' => 'TFREP', 'tf_colwidth' => 'TFCW',
+  'cb_search' => 'CBSRCH', 'cb_report' => 'CBREP'
+];
 $suffixes = [
   'bug_id', 'submitted_by', 'date', 'close_date', 'planned_starting_date',
   'planned_close_date', 'category_id', 'priority', 'resolution_id',
@@ -123,7 +128,7 @@ function rep_scope_input ($scope = null)
   return "<p>$label&nbsp;$ret</p>\n";
 }
 
-function print_rep_header ($name, $desc, $scope = null)
+function print_rep_header ($name = '', $desc = '', $scope = null)
 {
   $name = utils_specialchars_decode ($name, ENT_QUOTES);
   $desc = utils_specialchars_decode ($desc, ENT_QUOTES);
@@ -162,8 +167,10 @@ function print_field_use_as_output ($field, $td)
 
 function print_field ($i, $field)
 {
-  global $cb_search, $cb_search_chk, $cb_attr, $rank_extra;
-  global $tf_colwidth, $tf_colwidth_val, $tf_search, $tf_search_val;
+  global $cb_search_chk, $cb_attr, $rank_extra, $cb_search;
+  global $tf_colwidth_val, $tf_colwidth, $tf_search_val, $tf_search;
+  global $cb_report, $cb_report_chk, $tf_report, $tf_report_val;
+  extract (report_common_field_names ($field));
 
   $td = '<td align="center">';
   print '<tr class="' . utils_altrow ($i) . '">';
@@ -236,8 +243,7 @@ function print_default_query_input ()
     _("Browse with the %s query form by default.") . "\n",
     $form_query_type
   );
-  print '<input class="bold" value="' . _("Apply")
-    . "\" name='go_report' type='submit' />\n</form>\n";
+  print form_submit (_("Apply"), 'go_report', 'class="bold"') . "\n</form>\n";
 }
 
 function delete_report ($report_id)
@@ -319,32 +325,32 @@ function report_update_result ($res, $rep_name)
   fb (sprintf ($msg, $fb_name), $err);
 }
 
+function report_common_field_names ($field)
+{
+  $ret = [];
+  foreach ($GLOBALS['prefixes'] as $var => $pref)
+    $ret[$var] = "{$pref}_$field";
+  return $ret;
+}
+
 function report_update_field_params ($report_id, $field)
 {
   if ($field == 'group_id' || $field == 'comment_type_id')
     return null;
-
-  $cb_search = "CBSRCH_$field";
-  $cb_report = "CBREP_$field";
-  $tf_search = "TFSRCH_$field";
-  $tf_report = "TFREP_$field";
-  $tf_colwidth = "TFCW_$field";
-
-  if (!
-    ($GLOBALS[$cb_search] || $GLOBALS[$cb_report]
-      || $GLOBALS[$tf_search] || $GLOBALS[$tf_report])
-  )
+  extract (report_common_field_names ($field));
+  global $$cb_search, $$cb_report, $$tf_search, $$tf_report, $$tf_colwidth;
+  if (!($$cb_search || $$cb_report || $$tf_search || $$tf_report))
     return null;
-  $cb_search_val = ($GLOBALS[$cb_search]? 1: 0);
-  $cb_report_val = ($GLOBALS[$cb_report]? 1: 0);
-  $tf_search_val = ($GLOBALS[$tf_search]? $GLOBALS[$tf_search]: null);
-  $tf_report_val = ($GLOBALS[$tf_report]? $GLOBALS[$tf_report]: null);
+  $cb_search_val = $$cb_search? 1: 0;
+  $cb_report_val = $$cb_report? 1: 0;
+  $tf_search_val = $$tf_search? $$tf_search: null;
+  $tf_report_val = $$tf_report? $$tf_report: null;
 
   $tf_colwidth_val = null;
-  if (!empty ($GLOBALS[$tf_colwidth]))
-    $tf_colwidth_val = $GLOBALS[$tf_colwidth];
+  if (!empty ($$tf_colwidth))
+    $tf_colwidth_val = $$tf_colwidth;
   return [$report_id, $field, $cb_search_val, $cb_report_val,
-      $tf_search_val, $tf_report_val, $tf_colwidth_val
+    $tf_search_val, $tf_report_val, $tf_colwidth_val
   ];
 }
 
@@ -373,10 +379,181 @@ function update_fields ($report_id, $rep_name)
         report_id, field_name, show_on_query, show_on_result, place_query,
         place_result, col_width
       )
-     VALUES ';
+    VALUES ';
   list ($sql_tail, $params) = report_update_params ($report_id);
   $res = db_execute ("$sql$sql_tail", $params);
   report_update_result ($res, $rep_name);
+}
+
+function report_data_field_is_shown ($field)
+{
+  # Do not show fields not used in the tracker.
+  if (!trackers_data_is_used ($field))
+    return false;
+
+  # Never show some special fields.
+  if (trackers_data_is_special ($field))
+    if (($field == 'group_id') || ($field == 'comment_type_id'))
+      return false;
+  return true;
+}
+
+function report_default_rank ($field)
+{
+  $def_vals = [
+    'summary' => 5, 'resolution_id' => 10, 'category_id' => 25,
+    'severity' => 25, 'vote' => 25, 'submitted_by' => 50, 'assigned_to' => 50
+  ];
+  if (empty ($def_vals[$field]))
+    return 100;
+  return $def_vals[$field];
+}
+
+function fetch_report_data ($report_id)
+{
+  $table = ARTIFACT . '_report';
+  $res = db_execute ("SELECT * FROM $table WHERE report_id = ?", [$report_id]);
+  if (!db_numrows ($res))
+    {
+      # TRANSLATORS: the argument is report id (a number).
+      exit_error (sprintf (_("Unknown Report ID (%s)"), $report_id));
+    }
+  $res_fld = db_execute (
+    "SELECT * FROM {$table}_field WHERE report_id = ?", [$report_id]
+  );
+  $ret = [];
+  while ($row = db_fetch_array ($res_fld))
+    $ret[$row['field_name']] = $row;
+  return [$ret, db_fetch_array ($res)];
+}
+
+function print_mod_report_header ($title, $hidden, $title_arr, $row = null)
+{
+  $hid = array_merge (['post_changes' => 'y'], $hidden);
+  trackers_header_admin (['title' => $title]);
+  print form_tag () . form_hidden ($hid);
+  if ($row === null)
+    $row = ['name' => '', 'description' => '', 'scope' => null];
+  print_rep_header ($row['name'], $row['description'], $row['scope']);
+  print html_build_list_table_top ($title_arr);
+}
+
+function copy_tf_vals ($ff)
+{
+  foreach (
+    [
+      'search' => 'place_query', 'report' => 'place_result',
+      'colwidth' => 'col_width',
+    ] as $k => $v
+  )
+    {
+      global ${"tf_{$k}_val"};
+      ${"tf_{$k}_val"} = empty ($ff[$v])? '': $ff[$v];
+    }
+}
+
+function fixup_updated_vals ()
+{
+  global $cb_search_chk, $cb_report_chk, $cb_attr, $rank_extra;
+  $cb_search_chk = 0;
+  $cb_attr['disabled'] = 'disabled';
+  $rank_extra = " disabled='disabled'";
+  $tf_search_val = '';
+}
+
+function copy_field_vals ($fld, $field)
+{
+  global $cb_search_chk, $cb_report_chk;
+  $ff = [];
+  if (array_key_exists ($field, $fld))
+    $ff = $fld[$field];
+  $cb_search_chk = !empty ($ff['show_on_query']);
+  $cb_report_chk = !empty ($ff['show_on_result']);
+  copy_tf_vals ($ff);
+}
+
+function show_mod_field ($field, $i, $fld = null)
+{
+  global $cb_report_chk, $cb_attr, $rank_extra;
+  global $tf_report_val, $tf_colwidth_val;
+  if (!report_data_field_is_shown ($field))
+    return;
+  extract (report_common_field_names ($field));
+  if ($fld !== null)
+    copy_field_vals ($fld, $field);
+  else
+    $tf_report_val = report_default_rank ($field);
+
+  $cb_attr = ['title' => _("Use as a Search Criterion")];
+  $rank_extra = '';
+  if ($field == 'updated')
+    fixup_updated_vals ();
+  if ($fld === null)
+    {
+      $cb_report_chk = 0; $tf_colwidth_val = '';
+    }
+  print_field ($i, $field);
+}
+
+function show_mod_report ($group_id, $title_arr, $report_id = 0)
+{
+  $title = $report_id? _("Modify a Query Form"): _("Create a New Query Form");
+  $params = ['group_id' => $group_id];
+  $button = 'create_report';
+  $row = null;
+  if ($report_id)
+    {
+      list ($fld, $row) = fetch_report_data ($report_id);
+      $params['report_id'] = $report_id;
+      $button = 'update_report';
+    }
+  $params[$button] = 'y';
+  print_mod_report_header ($params, $title_arr, $row);
+  $i = 0;
+  while ($field = trackers_list_all_fields ())
+    show_mod_field ($field, $i++, $fld);
+  print "</table>\n" . form_footer (false, 'submit');
+  trackers_footer ();
+  exit (0);
+}
+
+function list_report_to_edit ($row, $group, $i)
+{
+  global $php_self;
+  print '<tr class="' . utils_altrow ($i) . '"><td>';
+
+  $url = "$php_self?group=$group&show_report=1&report_id={$row['report_id']}";
+  print "<a href=\"$url\">{$row['report_id']}</a></td>\n";
+  print "<td><a href=\"$url\">{$row['name']}</a></td>\n";
+  print "\n<td>{$row['description']}</td>\n"
+    . "\n<td align=\"center\">" . scope_label ($row['scope'])
+    . '</td>' . "\n<td align=\"center\">";
+
+  print form_tag ()
+    . form_hidden([
+        'delete_report' => 1, 'report_id' => $row['report_id'],
+        'group' => $group, 'rep_name' => utils_urlencode ($row['name'])
+      ])
+    . form_image_trash ('del_rep') . "</form>\n";
+  print "</td>\n</tr>\n";
+}
+
+function list_editable_reports ($editable_reports, $group)
+{
+  if (empty ($editable_reports))
+    {
+      print '<p>' . _("No query form defined yet.") . "</p>\n";
+      return;
+    }
+  print html_h (2, _("Existing Query Forms"));
+  $titles = [
+    _("ID"), _("Query form name"), _("Description"), _("Scope"), _("Delete")
+  ];
+  print html_build_list_table_top ($titles);
+  $i = 0;
+  foreach ($editable_reports as $row)
+    list_report_to_edit ($row, $group, $i++);
+  print "</table>\n";
 }
 
 $def_query = group_get_preference ($group_id, ARTIFACT . "_default_query");
@@ -410,193 +587,17 @@ $title_arr = [
 ];
 
 if ($new_report)
-  {
-    trackers_header_admin (['title' => _("Create a New Query Form")]);
-
-    print form_tag ();
-    print form_hidden (
-      ["create_report" => "y", "group_id" => $group_id, "post_changes" => "y"]
-    );
-    print_rep_header ('', '');
-    print html_build_list_table_top ($title_arr);
-    $i = 0;
-    while ($field = trackers_list_all_fields ())
-      {
-        # Do not show fields not used by the project.
-        if (!trackers_data_is_used ($field))
-          continue;
-
-        # Do not show some special fields any way.
-        if (trackers_data_is_special ($field))
-          {
-            if (($field == 'group_id') || ($field == 'comment_type_id'))
-              continue;
-          }
-
-        $cb_search = "CBSRCH_$field";
-        $cb_report = "CBREP_$field";
-        $tf_search = "TFSRCH_$field";
-        $tf_report = "TFREP_$field";
-        $tf_colwidth = "TFCW_$field";
-
-        # For the rank values, set defaults, for the common fields, as
-        # it gets easily messy when not specified.
-        $tf_report_val = 100;
-
-        # Summary should be just after the item id.
-        if ($field == 'summary')
-          $tf_report_val = 5;
-        # Statis should just after.
-        if ($field == 'resolution_id')
-          $tf_report_val = 10;
-        # Moderately important fields.
-        if ($field == 'category_id' || $field == 'severity' || $field == 'vote')
-          $tf_report_val = 25;
-        # Very moderately important fields.
-        if ($field == 'submitted_by' || $field == 'assigned_to')
-          $tf_report_val = 50;
-
-        $cb_attr = ['title' => _("Use as a Search Criterion")];
-        $rank_extra = '';
-        if ($field == 'updated')
-          {
-            $cb_attr['disabled'] = 'disabled';
-            $rank_extra = " disabled='disabled'";
-          }
-        $cb_report_chk = 0; $tf_colwidth_val = '';
-        print_field ($i++, $field);
-      }
-    print "</table>\n<p><center><input type='submit' name='submit' value=\""
-      . _('Submit') . "\" /></center></p>\n</form>\n";
-    trackers_footer ();
-    exit (0);
-  } # if ($new_report)
+  show_mod_report ($group_id, $title_arr);
 
 if ($show_report)
-  {
-    trackers_header_admin (['title' => _("Modify a Query Form")]);
-
-    # Fetch the report to update.
-    $res = db_execute (
-      "SELECT * FROM " . ARTIFACT . "_report WHERE report_id = ?",
-      [$report_id]
-    );
-    if (!db_numrows ($res))
-      {
-        # TRANSLATORS: the argument is report id (a number).
-        exit_error (sprintf (_("Unknown Report ID (%s)"), $report_id));
-      }
-
-    $res_fld = db_execute (
-      "SELECT * FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
-      [$report_id]
-    );
-
-    # Build the list of fields involved in this report.
-    while ($arr = db_fetch_array ($res_fld))
-      $fld[$arr['field_name']] = $arr;
-
-    print form_tag ()
-      . form_hidden ([
-          "update_report" => "y", "group_id" => $group_id,
-          "report_id" => $report_id, "post_changes" => "y"
-        ]);
-    $row = db_fetch_array ($res);
-    print_rep_header ($row['name'], $row['description'], $row['scope']);
-
-    print html_build_list_table_top ($title_arr);
-    $i = 0;
-    while ($field = trackers_list_all_fields ())
-      {
-        # Do not show fields not used by the project.
-        if (!trackers_data_is_used ($field))
-          continue;
-
-        # Do not show some special fields any way.
-        if (trackers_data_is_special ($field))
-          {
-            if ($field == 'group_id' || $field == 'comment_type_id')
-              continue;
-          }
-
-        $cb_search = "CBSRCH_$field";
-        $cb_report = "CBREP_$field";
-        $tf_search = "TFSRCH_$field";
-        $tf_report = "TFREP_$field";
-        $tf_colwidth = "TFCW_$field";
-
-        $ff = [];
-        if (array_key_exists ($field, $fld))
-          $ff = $fld[$field];
-        $cb_search_chk = !empty ($ff['show_on_query']);
-        $cb_report_chk = !empty ($ff['show_on_result']);
-        foreach (
-          [
-            'search' => 'place_query', 'report' => 'place_result',
-            'colwidth' => 'col_width',
-          ] as $k => $v
-        )
-          ${"tf_{$k}_val"} = (empty ($ff[$v])? '': $ff[$v]);
-
-        $cb_attr = ['title' => _("Use as a Search Criterion")];
-        $rank_extra = '';
-        if ($field == 'updated')
-          {
-            $cb_search_chk = 0;
-            $cb_attr['disabled'] = 'disabled';
-            $rank_extra = " disabled='disabled'";
-            $tf_search_val = '';
-          }
-        print_field ($i++, $field);
-      }
-    print "</table>\n"
-      . '<p><center><input type="submit" name="submit" value="'
-      . _("Submit") . "\" /></center></p>\n</form>\n";
-    trackers_footer ();
-    exit (0);
-  } # if ($show_report)
+  show_mod_report ($group_id, $title_arr, $report_id);
 
 trackers_header_admin (['title' => _("Edit Query Forms")]);
 print_default_query_input ();
 if ($reports_updated)
   $editable_reports = trackers_data_get_editable_reports ($group_id, $is_admin);
 
-if (count ($editable_reports))
-  {
-    print html_h (2, _("Existing Query Forms"));
-    print
-      html_build_list_table_top (
-        [
-          _("ID"), _("Query form name"), _("Description"), _("Scope"),
-          _("Delete"),
-        ]
-      );
-    $i = 0;
-    foreach ($editable_reports as $arr)
-      {
-        print '<tr class="' . utils_altrow ($i++) . '"><td>';
-
-        $url = $php_self
-          . "?group=$group&show_report=1&report_id={$arr['report_id']}";
-        print "<a href=\"$url\">{$arr['report_id']}</a></td>\n";
-        print "<td><a href=\"$url\">{$arr['name']}</a></td>\n";
-        print "\n<td>{$arr['description']}</td>\n"
-          . "\n<td align=\"center\">" . scope_label ($arr['scope'])
-          . '</td>' . "\n<td align=\"center\">";
-
-        print form_tag ()
-          . form_hidden([
-              'delete_report' => 1, 'report_id' => $arr['report_id'],
-              'group' => $group, 'rep_name' => utils_urlencode ($arr['name'])
-            ])
-          . form_image_trash ('del_rep') . "</form>\n";
-        print "</td>\n</tr>\n";
-      }
-    print "</table>\n";
-  }
-else
-  print '<p>' . _("No query form defined yet.") . "</p>\n";
-
+list_editable_reports ($editable_reports, $group);
 print '<p>';
 printf (
   _("You can <a href=\"%s\"> create a new query form</a>."),
