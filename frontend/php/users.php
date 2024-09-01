@@ -1,5 +1,5 @@
-<?php # -*- PHP -*-
-# User homepage.
+<?php
+# User public page.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Free Software Foundation, Inc.
@@ -47,15 +47,12 @@ define ('CONTEXT', 'people');
 require_once ('include/init.php');
 require_once ('include/sendmail.php');
 
-# Extract user's name.
-$pathinfo = preg_replace ("/\?.*/", "", basename ($_SERVER['REQUEST_URI']));
-
-$user_arr = user_get_array ($pathinfo);
-
+$sanitized = sane_import_name (_("User *%s* not found."));
+$user_arr = user_get_array ($sanitized);
 if (empty ($user_arr))
-  exit_error (markup_rich (sprintf (_("User *%s* not found."), $pathinfo)));
+  exit_error (markup_rich (sprintf (_("User *%s* not found."), $sanitized)));
 
-$extra_script_name = "/$pathinfo";
+$extra_script_name = "/$sanitized";
 $user_id = $user_arr['user_id'];
 
 require_directory ("my");

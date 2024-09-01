@@ -442,4 +442,17 @@ function sane_import ($input, $names)
     }
   return $values;
 }
+
+# Extract group or user from REQUEST_URI.  Used in projects.php and users.php.
+function sane_import_name ($msg_fmt)
+{
+  $n = basename (preg_replace ("/\?.*/", "", $_SERVER['REQUEST_URI']));
+  # Historically, a few groups that don't match the 'name' sanitizer exist,
+  # so we use 'path' which seems safe enough both ways.
+  $sanitized = sane_import (['n' => $n], ['path' => 'n']);
+  if (isset ($sanitized['n']))
+    return $sanitized['n'];
+  $msg = sprintf ($msg_fmt, utils_specialchars (rawurldecode ($n)));
+  exit_error (markup_rich ($msg));
+}
 ?>

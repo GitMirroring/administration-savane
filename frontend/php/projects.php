@@ -1,5 +1,5 @@
-<?php # -*- PHP -*-
-# Group homepage.
+<?php
+# Group main page.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Free Software Foundation, Inc.
@@ -46,29 +46,17 @@
 define ('CONTEXT', 'project');
 require_once ('include/init.php');
 
-$group_name = [
-  'group' => basename (preg_replace ("/\?.*/", "", $_SERVER['REQUEST_URI']))
-];
-$name_sanitized = sane_import ($group_name, ['name' => 'group']);
-if (!isset ($name_sanitized['group']))
-  {
-    $msg = sprintf (_("Wrong group name '%s'."),
-      utils_specialchars (rawurldecode ($group_name['group']))
-    );
-    exit_error ($msg);
-  }
-$pathinfo = $name_sanitized['group'];
-
+$sanitized = sane_import_name (_("Wrong group name '%s'."));
 $res_grp = db_execute (
-  "SELECT * FROM groups WHERE unix_group_name = ?", [$pathinfo]
+  "SELECT * FROM groups WHERE unix_group_name = ?", [$sanitized]
 );
 
-$msg = sprintf (_("Group '%s' does not exist."), $pathinfo);
+$msg = sprintf (_("Group '%s' does not exist."), $sanitized);
 if (!db_numrows ($res_grp))
   exit_error ($msg);
 
-$group = $pathinfo;
-$extra_script_name = "/$pathinfo";
+$group = $sanitized;
+$extra_script_name = "/$sanitized";
 $group_id = db_result ($res_grp, 0, 'group_id');
 
 $project = group_get_object ($group_id);
