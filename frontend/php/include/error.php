@@ -56,9 +56,8 @@ else
     }
   }
 
-function error_test_timestamp ()
+function error_test_timestamp ($delay = 5000)
 {
-  $delay = 5000;
   $t = error_timestamp ();
   usleep ($delay);
   $t -= error_timestamp ();
@@ -66,6 +65,9 @@ function error_test_timestamp ()
   $dt = abs ($t - $delay);
   if ($dt / $delay < .1)
     return 'OK';
+  if ($delay < 30000)
+    # No success; give it a chance with a lower resolution.
+    return error_test_timestamp ($delay * 4);
   return "<strong>Timestamp mismatch: $t vs $delay</strong>";
 }
 
