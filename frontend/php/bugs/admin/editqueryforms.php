@@ -383,7 +383,7 @@ $def_query = group_get_preference ($group_id, ARTIFACT . "_default_query");
 if ($def_query === false)
   $def_query = 100;
 
-if ($set_default)
+if (!empty ($set_default))
   {
     if (empty ($report_id))
       $report_id = $def_query;
