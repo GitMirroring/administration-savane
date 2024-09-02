@@ -88,7 +88,7 @@ foreach ($custom_suff as $suf => $num)
   for ($i = 1; $i <= $num; $i++)
     $suffixes[] = "custom_$suf$i";
 
-$names['digits'] = [];
+$names['digits'] = ['rep_copy_from'];
 foreach ($prefixes as $pref)
   foreach ($suffixes as $suf)
     $names['digits'][] = "{$pref}_$suf";
@@ -100,6 +100,23 @@ form_check ($submits);
 
 # Initialize global bug structures.
 trackers_init ($group_id);
+
+function check_copy_from ($report_id)
+{
+  global $copy, $rep_copy_from;
+  if (empty ($copy) || empty ($rep_copy_from))
+    return $report_id;
+  return $rep_copy_from;
+}
+
+function fetch_reports ($group_id)
+{
+  $ret = [];
+  $res = trackers_data_get_reports ($group_id, user_getid ());
+  while ($row = db_fetch_array ($res))
+    $ret[$row['report_id']] = $row;
+  return $ret;
+}
 
 function rep_label ($suff, $label)
 {
@@ -128,17 +145,20 @@ function rep_scope_input ($scope = null)
   return "<p>$label&nbsp;$ret</p>\n";
 }
 
-function print_rep_header ($name = '', $desc = '', $scope = null)
+function print_copyable_reports ()
 {
-  $name = utils_specialchars_decode ($name, ENT_QUOTES);
-  $desc = utils_specialchars_decode ($desc, ENT_QUOTES);
-  print '<p>' . rep_label ('name', _("Name:"))
-    . form_input ('text', 'rep_name', $name, "size='20' maxlength='20'")
-    . "</p>\n";
-  print rep_scope_input ($scope);
-  print '<p>' . rep_label ('desc', _("Description:"))
-    . form_input ('text', 'rep_desc', $desc, "size='50' maxlength='120'")
-    . "</p>\n";
+  global $group_id, $report_list;
+  print rep_label ('copy_from', _('Copy from query form:'));
+  $vals = $texts = [];
+  foreach ($report_list as $v => $row)
+    {
+      $vals[] = $v;
+      $texts[] = $row['name'];
+    }
+  print html_build_select_box_from_arrays (
+    $vals, $texts, 'rep_copy_from', 'x', false
+  );
+  print "\n&nbsp;" . form_submit (_('Copy'), 'copy') . "\n";
 }
 
 function print_field_use_as_output ($field, $td)
@@ -223,7 +243,7 @@ function scope_label ($s)
   return "[$s]";
 }
 
-function print_default_query_input ()
+function print_default_query_input ($report_list)
 {
   global $group_id, $def_query, $is_admin;
   if ($group_id == GROUP_NONE || !$is_admin)
@@ -233,16 +253,16 @@ function print_default_query_input ()
 
   # The default query form is selected from the form queries available
   # for anonumous users.
-  $res_report = trackers_data_get_reports ($group_id, 0);
-  $form_query_type = html_build_select_box (
-    $res_report, 'report_id', $def_query, true, _('Basic'), false, 'Any',
-    false, _('query form')
+  $texts = $vals =  [];
+  foreach ($report_list as $id => $row)
+    if ($row['scope'] != 'I')
+      {
+        $vals[] = $id; $texts[] = $row['name'];
+      }
+  $form_query = html_build_select_box_from_arrays (
+    $vals, $texts, 'report_id', $def_query, true, _('Basic')
   );
-
-  printf (
-    _("Browse with the %s query form by default.") . "\n",
-    $form_query_type
-  );
+  printf (_("Browse with the %s query form by default.") . "\n", $form_query);
   print form_submit (_("Apply"), 'go_report', 'class="bold"') . "\n</form>\n";
 }
 
@@ -409,22 +429,45 @@ function report_default_rank ($field)
   return $def_vals[$field];
 }
 
-function fetch_report_data ($report_id)
+function fetch_report ($tbl, $report_id)
 {
-  $table = ARTIFACT . '_report';
-  $res = db_execute ("SELECT * FROM $table WHERE report_id = ?", [$report_id]);
-  if (!db_numrows ($res))
-    {
-      # TRANSLATORS: the argument is report id (a number).
-      exit_error (sprintf (_("Unknown Report ID (%s)"), $report_id));
-    }
+  if (empty ($report_id))
+    return null;
+  $res = db_execute ("SELECT * FROM $tbl WHERE report_id = ?", [$report_id]);
+  if (db_numrows ($res))
+    return db_fetch_array ($res);
+  # TRANSLATORS: the argument is report id (a number).
+  exit_error (sprintf (_("Unknown Report ID (%s)"), $report_id));
+}
+
+function fetch_report_data ($report_id, $fld_report_id)
+{
+  $tbl = ARTIFACT . '_report';
+  $rep = fetch_report ($tbl, $report_id);
   $res_fld = db_execute (
-    "SELECT * FROM {$table}_field WHERE report_id = ?", [$report_id]
+    "SELECT * FROM {$tbl}_field WHERE report_id = ?", [$fld_report_id]
   );
   $ret = [];
   while ($row = db_fetch_array ($res_fld))
     $ret[$row['field_name']] = $row;
-  return [$ret, db_fetch_array ($res)];
+  return [$ret, $rep];
+}
+
+function extract_report_name_description ($row)
+{
+  global $copy;
+  if (!empty ($row))
+    {
+      $row['desc'] = $row['description'];
+      return $row;
+    }
+  $row = ['name' => '', 'desc' => '', 'scope' => null];
+  if (empty ($copy))
+    return $row;
+  foreach (array_keys ($row) as $k)
+    if (!empty ($GLOBALS["rep_$k"]))
+      $row[$k] = $GLOBALS["rep_$k"];
+  return $row;
 }
 
 function print_mod_report_header ($title, $hidden, $title_arr, $row = null)
@@ -432,9 +475,17 @@ function print_mod_report_header ($title, $hidden, $title_arr, $row = null)
   $hid = array_merge (['post_changes' => 'y'], $hidden);
   trackers_header_admin (['title' => $title]);
   print form_tag () . form_hidden ($hid);
-  if ($row === null)
-    $row = ['name' => '', 'description' => '', 'scope' => null];
-  print_rep_header ($row['name'], $row['description'], $row['scope']);
+  $row = extract_report_name_description ($row);
+  $name = utils_specialchars_decode ($row['name'], ENT_QUOTES);
+  $desc = utils_specialchars_decode ($row['desc'], ENT_QUOTES);
+  print '<p>' . rep_label ('name', _("Name:"))
+    . form_input ('text', 'rep_name', $name, "size='20' maxlength='20'")
+    . "</p>\n";
+  print rep_scope_input ($row['scope']);
+  print '<p>' . rep_label ('desc', _("Description:"))
+    . form_input ('text', 'rep_desc', $desc, "size='50' maxlength='120'")
+    . "</p>\n";
+  print_copyable_reports ();
   print html_build_list_table_top ($title_arr);
 }
 
@@ -495,20 +546,28 @@ function show_mod_field ($field, $i, $fld = null)
   print_field ($i, $field);
 }
 
-function show_mod_report ($group_id, $title_arr, $report_id = 0)
+function rep_header_params ($group_id, $report_id)
 {
-  $title = $report_id? _("Modify a Query Form"): _("Create a New Query Form");
   $params = ['group_id' => $group_id];
   $button = 'create_report';
-  $row = null;
   if ($report_id)
     {
-      list ($fld, $row) = fetch_report_data ($report_id);
       $params['report_id'] = $report_id;
       $button = 'update_report';
     }
   $params[$button] = 'y';
-  print_mod_report_header ($params, $title_arr, $row);
+  return $params;
+}
+
+function show_mod_report ($group_id, $title_arr, $report_id = 0)
+{
+  $title = $report_id? _("Modify a Query Form"): _("Create a New Query Form");
+  $params = rep_header_params ($group_id, $report_id);
+  $row = $fld = null;
+  $fld_report_id = check_copy_from ($report_id);
+  if ($report_id || $fld_report_id)
+    list ($fld, $row) = fetch_report_data ($report_id, $fld_report_id);
+  print_mod_report_header ($title, $params, $title_arr, $row);
   $i = 0;
   while ($field = trackers_list_all_fields ())
     show_mod_field ($field, $i++, $fld);
@@ -569,7 +628,15 @@ if (!empty ($set_default))
     $def_query = $report_id;
   }
 
-if ($post_changes)
+if ($copy)
+  {
+    # Do nothing, just pre-fill the controls with different values.
+    if ($create_report)
+      $new_report = true;
+    elseif ($update_report)
+      $show_report = true;
+  }
+elseif ($post_changes)
   {
     if ($update_report)
       $report_id = pre_update_report ();
@@ -585,7 +652,7 @@ $title_arr = [
   _("Rank on Search"), _("Use as an Output Column"), _("Rank on Output"),
   _("Column width (optional)"),
 ];
-
+$report_list = fetch_reports ($group_id);
 if ($new_report)
   show_mod_report ($group_id, $title_arr);
 
@@ -593,7 +660,7 @@ if ($show_report)
   show_mod_report ($group_id, $title_arr, $report_id);
 
 trackers_header_admin (['title' => _("Edit Query Forms")]);
-print_default_query_input ();
+print_default_query_input ($report_list);
 if ($reports_updated)
   $editable_reports = trackers_data_get_editable_reports ($group_id, $is_admin);
 

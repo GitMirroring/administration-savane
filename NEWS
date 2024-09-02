@@ -60,6 +60,9 @@
 
 * A control to enable cookbook is added in project/admin/editgroupfeatures.php.
 
+* A control to copy field settings from existing query forms is added to
+  bugs/admin/editqueryforms.php.
+
 * Bug fixes:
 
 ** microtime-based timestamps were wrong.

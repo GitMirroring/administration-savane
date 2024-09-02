@@ -2184,7 +2184,7 @@ function trackers_data_get_reports ($group_id, $user_id)
 {
   $system_scope = 'S'; $group_scope = 'P'; $personal_scope = 'I';
   $sql = "
-    SELECT report_id, name FROM " . ARTIFACT . "_report
+    SELECT report_id, name, scope FROM " . ARTIFACT . "_report
     WHERE
       (group_id = ? AND scope = ?) OR scope = ?";
   $params = [$group_id, $group_scope, $system_scope];
