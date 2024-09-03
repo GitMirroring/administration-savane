@@ -30,7 +30,8 @@ Runs every 5 minutes on mgt1.
 accounts/sv_gen_passwd_group
 ============================
 
-May be used to generate the passwd and group files for libnss-extrausers.
+Generates the passwd and group files that may be used with libnss-extrausers.
+Runs a minute after sv_assign_uid_gid on frontend2.
 
 accounts/sv_groups
 ==================
