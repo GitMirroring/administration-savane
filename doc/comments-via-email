@@ -73,20 +73,26 @@ procmail script; a sample script follows.
   SV_HOST=savannah
   SV_URL=https://savannah.gnu.org
 
+  # Space and Tab.
+  ST = " 	"
+  # Space, Tab or end of line, once or more times.
+  S = "([$ST]|$)+"
+
   :0: D
-  * $ ^To: +[0-9]+-[a-z]+-$SV_HOST +<$TRACKER_EMAIL>
+  * $ ^To:.*$S\/[0-9]+-[a-z]+-$SV_HOST$S<$TRACKER_EMAIL>
   {
+    ADDRESS = "$MATCH"
     :0 w
-    * ^To: +\/[0-9]+
-    { UID=$MATCH }
+    * ADDRESS ?? ()\/[0-9]+
+    { UID = "$MATCH" }
     :0 w
-    * ^To: [0-9]+-\/[a-z]+
-    { TRACKER=$MATCH }
+    * ADDRESS ?? [0-9]+-\/[a-z]+
+    { TRACKER = "$MATCH" }
     :0 w
     # Actual SV_HOST; it isn't actually used, but the script could
     # modify the URL to process requests from multiple sources.
-    * ^To: [0-9]+-[a-z]+-\/[^ ]+
-    { SV_HOST=$MATCH }
+    * ADDRESS ?? [0-9]+-[a-z]+-\/[^ ]+
+    { SV_HOST = "$MATCH" }
     # It looks like the length of procmail variable values is limited,
     # so format messages in files.
     :0
