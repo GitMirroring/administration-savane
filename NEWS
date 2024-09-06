@@ -123,6 +123,8 @@
 
 ** Cookbook list in sitemenu was broken since 2023-01 (676b695c7).
 
+** In php/include/trackers_run/mod.php, the roles weren't displayed correctly.
+
 [BACKEND]
 
 * In sv_cleaner, look for a longer period when deleting idle accounts
