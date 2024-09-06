@@ -551,7 +551,7 @@ function utils_show_result_set (
   $rows = db_numrows ($result);
   $cols = db_numfields ($result);
 
-  print "<h$level>$title</h$level>\n";
+  print html_h ($level, $title);
   print "<table border='0' width='100%' summary=\"$title\">\n";
 
   print "<tr>\n";

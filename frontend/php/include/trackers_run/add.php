@@ -68,9 +68,9 @@ $res_preamble = db_execute (
 
 $preamble = db_result ($res_preamble, 0, $grp_field);
 if ($preamble)
-  print '<h2>' . _("Preamble") . "</h2>\n" . markup_rich ($preamble);
+  print html_h (2, _("Preamble")) . markup_rich ($preamble);
 
-print '<h2>' . _("Details") . "</h2>\n";
+print html_h (2, _("Details"));
 
 # Beginning of the submission form with fixed fields.
 print form_header (
@@ -198,14 +198,14 @@ print
 
 if ($preview)
   {
-    print '<h2>' . _('Preview') . "</h2>\n\n";
+    print html_h (2, _('Preview'));
     if (isset ($details))
       print markup_full (utils_specialchars ($details));
   }
 
 
 print "<p>&nbsp;</p>\n";
-print '<h2>' . _("Attached Files") . "</h2>\n";
+print html_h (2, _("Attached Files"));
 printf (
   _("(Note: upload size limit is set to %s kB, after insertion of\n"
     . "the required escape characters.)"),
@@ -232,7 +232,7 @@ print '<span class="preinput">' . _("Comment:") . "</span><br />\n"
 if ($is_trackeradmin)
   {
     print "<p>&nbsp;</p>\n";
-    print '<h2>' . _("Mail Notification CC") . "</h2>\n";
+    print html_h (2, _("Mail Notification CC"));
 
     # TRANSLATORS: the argument is site name (like Savannah).
     print '<p>';
