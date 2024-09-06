@@ -597,10 +597,10 @@ function group_null_perm ($art)
   return $ret;
 }
 
-function group_get_default_permissions ($group_id)
+function group_get_default_permissions ($group_id, $reload = false)
 {
   static $cached = [];
-  if (array_key_exists ($group_id, $cached))
+  if (!$reload && array_key_exists ($group_id, $cached))
     return $cached[$group_id];
   $res = db_execute (
     "SELECT * FROM groups_default_permissions WHERE group_id = ?", [$group_id]

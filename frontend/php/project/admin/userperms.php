@@ -710,6 +710,7 @@ if ($update)
     update_posting_restrictions ($fields, $group_id);
 
     fetch_user_list ($group_id);
+    group_get_default_permissions ($group_id, true);
     fetch_group_data ($group_id);
   } # if ($update)
 
