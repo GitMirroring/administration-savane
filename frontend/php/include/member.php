@@ -328,53 +328,41 @@ function member_check_split_flags ($flag)
   return [$flag_tracker, $flag_level];
 }
 
+function member_check_single_perm ($value, $flag_level, $strict)
+{
+  # Compare the value and what is asked.
+  if ($value == $flag_level)
+    return true; # If the value is equal to the flag, $u is obviously included.
+  if ($strict)
+    return false;
+  if (2 == $value && in_array ($flag_level, [1, 3]))
+    # The value is equal to 2 (manager and tech) if tech (1)
+    # or manager (3) is asked.
+    return true;
+  if (2 == $flag_level  && in_array ($value, [1, 3]))
+    # If the value is equal to 3 (manager) or 1 (techn) if tech
+    # and manager (2) is asked, it is "true".
+    return true;
+  return false;
+}
+
 function member_check_array_perms ($group_id, $flag, $uids, $strict)
 {
   list ($flag_tracker, $flag_level) = member_check_split_flags ($flag);
   $values = member_array_getpermissions ($group_id, $flag_tracker, $uids);
+  $def_perms = group_getpermissions ($group_id, $flag_tracker);
+  if (!$def_perms)
+    $def_perms = group_gettypepermissions ($group_id, $flag_tracker);
+  if (!$def_perms)
+    $def_perms = "ERROR";
   $ret = [];
   foreach ($uids as $u)
     {
-      $value = null;
-      if (isset ($values[$u]))
+      $value = $def_perms;
+      if (!empty ($values[$u]))
         $value = $values[$u];
-      if (!$value)
-        {
-          if (!isset ($group_perms))
-            $group_perms = group_getpermissions ($group_id, $flag_tracker);
-          $value = $group_perms;
-        }
-      if (!$value)
-        {
-          if (!isset ($type_perms))
-            $type_perms = group_gettypepermissions ($group_id, $flag_tracker);
-          $value = $type_perms;
-        }
-      if (!$value)
-        $value = "ERROR";
-
-      # Compare the value and what is asked.
-      if ($value == $flag_level)
-        {
-          # If the value is equal to the flag, $u is obviously included.
-          $ret[] = $u;
-          continue;
-        }
-      if ($strict)
-        continue;
-      if (2 == $value && (1 == $flag_level || 3 == $flag_level))
-        {
-          # The value is equal to 2 (manager and tech) if tech (1)
-          # or manager (3) is asked.
-          $ret[] = $u;
-          continue;
-        }
-      if (2 == $flag_level  && (1 == $value || 3 == $value))
-        {
-          # If the value is equal to 3 (manager) or 1 (techn) if tech
-          # and manager (2) is asked, it is "true".
-          $ret[] = $u;
-        }
+      if (member_check_single_perm ($value, $flag_level, $strict))
+        $ret[] = $u;
     }
   return $ret;
 }
