@@ -599,54 +599,64 @@ function html_build_multiple_select_box (
   return "$return</select>\n";
 }
 
-function html_select_permission_box ($artifact, $row, $level = "member")
+function html_permission_box_vals ($artifact, $row, $level)
 {
   $num = '';
+  $value = $row;
   if ($level == "type")
-    {
-      $value = $row;
-      $default = 0;
-    }
+    $default = null;
   elseif ($level == "group")
-    {
-      $value = $row;
-      $default = _("Group Type Default");
-    }
+    $default = _("Group Type Default");
   else
     {
       $num = $row['user_id'];
       $value = $row["{$artifact}_flags"];
       $default = _("Group Default");
     }
+  return [$num, $value, $default];
+}
 
-  print "<td align=\"center\">\n"
-    . '<select title="' . _("Roles of members")
-    . "\" name=\"{$artifact}_user_$num\">\n";
-  if ($default)
+function html_permission_box_option_labels ()
+{
+  return [
+    [9, _("None")],
+    [1, _("Technician"), 1],
+    [3, _("Manager")],
+    [2, _("Techn. & Manager"), 1],
+  ];
+}
+
+function html_permission_box_print_options ($artifact, $value, $default)
+{
+  if ($default !== null)
     {
       $sel = 'NULL';
       if ($value)
         $sel = 'value';
       print "  " . form_option ('NULL', $sel, $default);;
     }
-  $labels = [
-    [9, _("None")],
-    [1, _("Technician"), 1],
-    [3, _("Manager")],
-    [2, _("Techn. & Manager"), 1],
-  ];
-  foreach ($labels as $vl)
+  foreach (html_permission_box_option_labels () as $vl)
     {
       if ($artifact == 'news' && count ($vl) > 2)
         continue;
       print "  " . form_option ($vl[0], $value, $vl[1]);
     }
+}
+
+function html_select_permission_box ($artifact, $row, $level = "member")
+{
+  list ($num, $value, $default) =
+    html_permission_box_vals ($artifact, $row, $level);
+  print "<td align=\"center\">\n"
+    . '<select title="' . _("Roles of members")
+    . "\" name=\"{$artifact}_user_$num\">\n";
+  html_permission_box_print_options ($artifact, $value, $default);
   print "</select>\n";
   if (!$value && $level == "group")
     {
       $value = group_gettypepermissions ($GLOBALS['group_id'], $artifact);
       print "<br />\n(";
-      foreach ($labels as $vl)
+      foreach (html_permission_box_option_labels () as $vl)
         if ($value == $vl[0])
           print $vl[1];
       print ")\n";
