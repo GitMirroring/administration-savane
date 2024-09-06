@@ -369,9 +369,7 @@ function show_dependent_item ($item_id, $dependson = 0)
   global $group_id;
 
   $artifacts = ["support", "bugs", "task", "patch"];
-  $is_manager = member_check (
-    0, $group_id, member_create_tracker_flag (ARTIFACT) . '1'
-  );
+  $is_manager = member_check (0, $group_id, 1);
   if (!$dependson)
     $title = _("Items that depend on this one");
   else
@@ -510,9 +508,7 @@ function show_dependent_item ($item_id, $dependson = 0)
       # rights, being project member is enough).
       if (!array_key_exists ($current_group_id, $allowed_to_see))
         $allowed_to_see[$current_group_id] =
-          member_check (
-            0, $current_group_id, member_create_tracker_flag (ARTIFACT) . '2'
-          );
+          member_check (0, $current_group_id, 2);
 
       if ($content[$key]['privacy'] == "2"
           && !$allowed_to_see[$current_group_id]

@@ -345,7 +345,7 @@ function sitemenu_recipe_sql_role ()
   $ret = '';
   if (!(defined ('ARTIFACT') && AUDIENCE == 'members'))
     return $ret;
-  # We are on a tracker and we have a project member:
+  # We are on a tracker and we have a group member:
   #  - it may be a manager or a technician, or both
   # We must select
   #  - items for all members
@@ -353,11 +353,9 @@ function sitemenu_recipe_sql_role ()
   #  + items for technicians if we have a technician
   # Which leads to
   #  allmembers=1 OR (manager=1 if manager) OR (technician=1 if technician).
-  $flag = member_create_tracker_flag (ARTIFACT) . '1';
-  if (member_check (0, $group_id, $flag))
+  if (member_check (0, $group_id, 1))
     $ret = " OR audience_technicians = '1'";
-  $flag = member_create_tracker_flag (ARTIFACT) . '3';
-  if (member_check (0, $group_id, $flag))
+  if (member_check (0, $group_id, 3))
     $ret .= " OR audience_managers = '1'";
   return $ret;
 }

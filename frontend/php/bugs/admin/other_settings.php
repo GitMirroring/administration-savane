@@ -84,11 +84,8 @@ require_directory ("project");
 if (!$group_id)
   exit_no_group();
 
-if (
-  # Must be at least Bug Admin or Project Admin.
-  !member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '2')
-  && !user_ismember ($group_id, 'A')
-)
+# Must be at least tracker admin or group admin.
+if (!member_check (0, $group_id, 2) && !user_ismember ($group_id, 'A'))
   exit_permission_denied ();
 
 function fetch_preamble ($group_id, $artifact)

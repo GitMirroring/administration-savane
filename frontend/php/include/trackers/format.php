@@ -655,9 +655,7 @@ function format_item_attached_files ($item_id, $group_id, $ascii, $public)
   if (!db_numrows ($result))
     return $out;
 
-  $manager = member_check (
-    0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
-  );
+  $manager = member_check (0, $group_id, 2);
   $out .= format_list_item_files ($result, $manager, $ascii, $public);
   if (!$ascii)
     $out .= $HTML->box_bottom (1);
@@ -699,9 +697,7 @@ function format_item_cc_list_comment ($row)
 
 function format_item_cc_list_user_data ($group_id)
 {
-  $ret['manager'] = member_check (
-    0, $group_id, member_create_tracker_flag (ARTIFACT) . '2'
-  );
+  $ret['manager'] = member_check (0, $group_id, 2);
   $u_id = user_getid ();
   $ret['u_name'] = user_getname ($u_id);
   $ret['u_mail'] = user_getemail ($u_id);

@@ -82,8 +82,7 @@ print "\n<table cellpadding='0' width='100%'>";
 # Now display the variable part of the field list (depending on the project).
 $i = 0;
 $j = 0;
-$is_trackeradmin =
-  member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '2');
+$is_trackeradmin = member_check (0, $group_id, 2);
 
 while ($field_name = trackers_list_all_fields ())
   {

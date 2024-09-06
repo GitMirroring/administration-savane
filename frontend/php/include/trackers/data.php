@@ -1110,9 +1110,7 @@ function trackers_data_get_technicians ($group_id)
 {
   # Get list of members.
   $uids = array_keys (member_get_group_members ($group_id));
-  $uids = member_check_array (
-    $uids, $group_id, member_create_tracker_flag (ARTIFACT) . '1'
-  );
+  $uids = member_check_array ($uids, $group_id, 1);
   $sql = "SELECT user_id, user_name FROM user WHERE ";
   if (empty ($uids))
     $sql .= 'NULL'; # Return a valid (but empty) result set.
@@ -1676,9 +1674,7 @@ function trackers_data_reassign_item (
   global $group_id;
 
   # Can only be done by a tracker manager.
-  if (
-    !member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '2')
-  )
+  if (!member_check (0, $group_id, 2))
     return false;
   # If the new group_id is equal to the current one, nothing need
   # to be done, unless the artifact changed.

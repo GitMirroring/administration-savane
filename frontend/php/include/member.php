@@ -417,7 +417,7 @@ function member_users_are_in_group ($group_id, $uids)
 #        please use member_create_tracker_flag(ARTIFACT))
 #    - the second letter, if specified, designate a role
 #       1 = technician
-#       2 = technican AND manager
+#       2 = technician AND manager
 #       3 = manager
 #
 # The strict variable permit to have a return "true" only if the flag
@@ -426,6 +426,8 @@ function member_users_are_in_group ($group_id, $uids)
 # you can use that flag.
 function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
 {
+  if (in_array ($flag, [1, 2, 3]))
+    $flag = member_create_tracker_flag (ARTIFACT) . "$flag";
   list ($uids, $ret) = member_check_propagate_uids ($user_id);
   if (empty ($uids))
     return $ret;

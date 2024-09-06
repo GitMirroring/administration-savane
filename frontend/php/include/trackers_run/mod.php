@@ -124,9 +124,7 @@ trackers_header (
 # Check if the user have a specific role.
 $check_member = function ($role)
 {
-  global $group_id;
-  $flag = member_create_tracker_flag (ARTIFACT) . $role;
-  return member_check (0, $group_id, $flag);
+  return member_check (0, $GLOBALS['group_id'], $role);
 };
 $member_help = function ($title, $arr)
 {
@@ -134,8 +132,8 @@ $member_help = function ($title, $arr)
   print help ($title, $arr);
   print "</p>\n";
 };
-$is_manager = $check_member ('3');
-if ($check_member ('2'))
+$is_manager = $check_member (3);
+if ($check_member (2))
   $member_help (
     _("You are both technician and manager for this tracker."),
     [
@@ -144,7 +142,7 @@ if ($check_member ('2'))
      _("manager") => _("fully manage the items"),
     ]
   );
-elseif ($check_member ('1'))
+elseif ($check_member (1))
   $member_help (
     _("You are technician for this tracker."),
     [

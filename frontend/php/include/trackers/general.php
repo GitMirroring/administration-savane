@@ -1297,8 +1297,7 @@ function trackers_delete_cc (
       # - the CC name is the current user
       # - the CC email address matches the one of the current user
       # - the current user is the person who added a given name in CC list
-      $mem_f = member_create_tracker_flag (ARTIFACT) . '2';
-      if (!member_check (0, $group_id, $mem_f))
+      if (!member_check (0, $group_id, 2))
         if (
           $user_id != $email && $user_id != $added_by
           && user_getname ($user_id) != $email
@@ -1359,7 +1358,7 @@ function trackers_delete_dependency (
   # But well, consequences would be small an it will be easy to identify
   # the criminal.
 
-  if (member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '1'))
+  if (member_check (0, $group_id, 1))
     $result = db_execute ("
       DELETE FROM " . ARTIFACT . "_dependencies
       WHERE
@@ -1707,10 +1706,7 @@ function trackers_fetch_item_access_data ($item_id, $user_id)
   if ($group->isError ())
     exit_no_group ();
 
-  $fields['is_trackeradmin'] = member_check (
-    $user_id, $fields['group_id'],
-    member_create_tracker_flag (ARTIFACT) . '2'
-  );
+  $fields['is_trackeradmin'] = member_check ($user_id, $fields['group_id'], 2);
   return $fields;
 }
 

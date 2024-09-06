@@ -51,8 +51,7 @@ require_once ('../include/trackers/votes.php');
 if (!$group_id)
   exit_no_group ();
 
-$is_trackeradmin =
-  member_check (0, $group_id, member_create_tracker_flag (ARTIFACT) . '2');
+$is_trackeradmin = member_check (0, $group_id, 2);
 
 function extract_revert_order ()
 {
