@@ -210,7 +210,7 @@ function output_group_info ($user_id)
   if (empty ($group_list))
     return;
   print "<br />\n";
-  print $HTML->box_top (_("Group membeship"), '', 1);
+  print $HTML->box_top (_("Group membership"), '', 1);
   print "<ul class='boxli'>";
   $j = 1;
   foreach ($group_list as $gid => $v)
