@@ -3,6 +3,13 @@
 * A short commit ID was added to displayed Savane version unless built
   from an exact release.
 
+* The procedures related to user.confirm_hash are improved: the hash is stored
+  in the database after applying crypt() like user.user_pw, it increases
+  from varchar(32) to varchar(153); the hash includes the function
+  (change email, delete account, reset password, new account), the hash
+  is only valid for that function; the hash includes the creation date,
+  sv_cleaner resets hashes after 3 days.
+
 [FRONTEND]
 
 * Emails sent from Savane frontend can be GPG-signed, see
@@ -26,12 +33,6 @@
   area rather than in the feedback frame.
 
 * In testconfig.php, basic 'gpg --verify' and 'gpg --decrypt' tests are added.
-
-* user.confirm_hash is stored in the database after applying crypt()
-  like user.user_pw; it increases from varchar(32) to varchar(128).
-
-* user.confirm_hash includes the function (change email, delete account, reset
-  password, new account); the hash is only valid for that function.
 
 * The auxiliary file domain is configured and listened to
   separately from and in parallel to the main ('control') domain.

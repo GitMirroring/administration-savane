@@ -821,7 +821,7 @@ function check_mediumtext ($table_struct, $table, $field)
   return $type . db_field_type_expected ('mediumtext', $table, $field);
 }
 
-function check_varchar ($table_struct, $table, $field, $n = 128)
+function check_varchar ($table_struct, $table, $field, $n = 153)
 {
   if (!array_key_exists ($field, $table_struct))
     return '<strong>Undefined</strong>';

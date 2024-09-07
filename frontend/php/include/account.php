@@ -576,6 +576,8 @@ function account_validate_confirm_hash ($confirm_hash, $item, $uid = 0)
   $ch = explode (CONFIRM_HASH_SEPARATOR, $confirm_field);
   if (count ($ch) < 2)
     exit_error (_("Invalid confirmation hash."));
+  while (count ($ch) > 2)
+    array_shift ($ch); # Drop the hash creation date.
   if ($ch[0] != $item)
     exit_error (_("Invalid confirmation hash."));
   if (!preg_match ("/^[a-f0-9]{32}$/", $confirm_hash))
@@ -591,9 +593,10 @@ function account_generate_confirm_hash ($item, $params = [], $user_id = 0)
 {
   if (!$user_id)
     $user_id = user_getid ();
+  $s = CONFIRM_HASH_SEPARATOR;
   $confirm_hash = random_hash ();
   $hash_enc = account_encryptpw ($confirm_hash);
-  $params['confirm_hash'] = $item . CONFIRM_HASH_SEPARATOR . $hash_enc;
+  $params['confirm_hash'] = time () . "$s$item$s$hash_enc";
   $success = db_autoexecute ('user', $params,
     DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
   );

@@ -394,6 +394,58 @@ sub clean_idle_accounts
     }
 }
 
+sub check_hash_time
+{
+  my ($user, $t) = @_;
+  chomp ($user);
+  my ($id, $name, $hash) = split (/,/, $user);
+  my ($t0, $func) = split (/#/, $hash);
+  # Leave the old versions of the hash format:
+  return (0, 0) if $t0 eq $hash; # No separator at all.
+  return (0, 0) unless $t0 =~ /^\d+$/; # The first field isn't a timestamp.
+
+  return (0, 0) if $t - $t0 < 3 * 24 * 3600;
+  return ($id, $func);
+}
+
+sub get_uids_with_expired_hash
+{
+  my $t = `date +%s`;
+  my @ret;
+  foreach my $user (
+    GetDB (
+      'user', "status = 'A' AND confirm_hash IS NOT NULL",
+      'user_id, user_name, confirm_hash'
+    )
+  )
+    {
+      my ($id, $func) = check_hash_time ($user, $t);
+      push (@ret, "$id,$func") if $id;
+    }
+  return @ret;
+}
+
+sub clean_confirm_hashes
+{
+  my @cleaned = get_uids_with_expired_hash ();
+  return unless $#cleaned >= 0;
+  my (@cleaned_ids, @cleaned_notes);
+  foreach my $id_func (@cleaned)
+    {
+      my ($id, $func) = split (/,/, $id_func);
+      push (@cleaned_ids, $id);
+      push (@cleaned_notes, "$id ($func)");
+    }
+  my $uids = join (', ', @cleaned_ids);
+  my $notes = join (', ', @cleaned_notes);
+  print_log ("- cleaning confirm_hash for user_id: $notes");
+  return if $dry_run;
+  $dbd->do ("
+    UPDATE `user` SET `confirm_hash` = NULL, `email_new` = NULL
+    WHERE `user_id` IN ($uids)"
+  );
+}
+
 sub clean_tracker_item
 {
   my ($tracker, $item) = @_;
@@ -433,6 +485,7 @@ sub cleanup_news
 }
 
 clean_idle_accounts ();
+clean_confirm_hashes ();
 finish_work () unless ($big_cleanup);
 cleanup_news ();
 
