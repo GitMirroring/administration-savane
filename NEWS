@@ -69,6 +69,9 @@
 ** In /my/items.php, item count wasn't displayed correctly in collapsed
    sections.
 
+** Database character set was set to 'utf8' instead of 'utf8mb4'; search
+   with non-ASCII characters resulted in an SQL error.
+
 ** microtime-based timestamps were wrong.
 
 ** When registering a user with too long realname, an SQL error was thrown;

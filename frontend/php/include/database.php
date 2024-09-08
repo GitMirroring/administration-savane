@@ -78,7 +78,7 @@ function db_connect ()
   if (!$conn)
     return
       "<p>Failed to connect to database: " . mysqli_connect_error () . "</p>\n";
-  mysqli_set_charset ($conn, 'utf8');
+  mysqli_set_charset ($conn, 'utf8mb4');
   $mysql_conn = $conn;
   return null;
 }
