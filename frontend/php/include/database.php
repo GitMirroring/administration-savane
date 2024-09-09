@@ -64,12 +64,30 @@ function db_check_mysqli ()
   exit;
 }
 
-function db_connect ()
+function db_charset_name ()
+{
+  global $mysql_conn;
+  return mysqli_character_set_name ($mysql_conn);
+}
+
+function db_set_charset ($charset)
+{
+  global $sys_dbcharset, $mysql_conn;
+  if (empty ($sys_dbcharset))
+    $sys_dbcharset = 'utf8mb4';
+  if (empty ($charset))
+    $charset = $sys_dbcharset;
+  return mysqli_set_charset ($mysql_conn, $charset);
+}
+
+function db_connect ($charset = null)
 {
   global $sys_dbhost, $sys_dbport, $sys_dbuser, $sys_dbpasswd, $sys_dbname;
   global $sys_dbsocket, $mysql_conn, $db_queries_filed;
 
-  $mysql_conn = null; $db_queries_filed = [];
+  $mysql_conn = null;
+  if (empty ($db_queries_filed))
+    $db_queries_filed = [];
   db_check_mysqli ();
 
   mysqli_report (MYSQLI_REPORT_ERROR);
@@ -78,9 +96,17 @@ function db_connect ()
   if (!$conn)
     return
       "<p>Failed to connect to database: " . mysqli_connect_error () . "</p>\n";
-  mysqli_set_charset ($conn, 'utf8mb4');
   $mysql_conn = $conn;
+  db_set_charset ($charset);
   return null;
+}
+
+function db_reconnect ($charset)
+{
+  global $mysql_conn;
+  if ($mysql_conn)
+    mysqli_close ($mysql_conn);
+  db_connect ($charset);
 }
 
 function db_real_escape_string ($string)

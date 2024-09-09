@@ -670,6 +670,83 @@ function test_db_structure ()
   print html_dl ($defs);
 }
 
+function array_add_suff ($arr, $suff)
+{
+  if (!is_array ($suff))
+    $suff = [$suff];
+  $ret = [];
+  foreach ($suff as $s)
+    $ret = array_merge ($ret,
+      array_map (function ($x) use ($s) { return "{$x}_$s"; }, $arr)
+    );
+  return $ret;
+}
+
+function test_utf8_search_get_test_set ()
+{
+  $trackers = ['cookbook', 'patch'];
+  $descr = array_add_suff ($trackers, ['field', 'field_value', 'report']);
+  array_push ($descr,
+    'group_type', 'trackers_notification_event', 'trackers_notification_role'
+  );
+  $named = ['people_job_category', 'people_job_status', 'people_skill'];
+  return [
+    'name' => $named, 'description' => $descr, 'originator_phone' => $trackers,
+    'title' => array_add_suff ($trackers, 'canned_responses')
+  ];
+}
+
+function try_utf8_search ()
+{
+  $saved = utils_disable_warnings (E_ALL);
+  db_query_prevent_die (true);
+  $ret = [];
+  foreach (test_utf8_search_get_test_set () as $col => $tables)
+    foreach ($tables as $tbl)
+      {
+        $res = db_query (
+          "SELECT NULL FROM `$tbl` WHERE `$col` LIKE '%😅' LIMIT 1"
+        );
+        if ($res !== false)
+          continue;
+        $ret[] = "<strong>Search in $tbl.$col failed:</strong> " . db_error ();
+      }
+  db_query_prevent_die (false);
+  utils_restore_warnings ($saved);
+  if (empty ($ret))
+    return 'OK';
+  return join ("<br />\n", $ret);
+}
+
+function test_utf8_search ()
+{
+  $sets_to_try = ['utf8', 'utf8mb4', 'utf8mb3'];
+  print html_h (3, 'Unicode search', ['id' => 'utf8-search']);
+  $saved_charset = db_charset_name ();
+  $defs = ['Initial character set' => $saved_charset];
+  $test_result = try_utf8_search ();
+  $defs['UTF-8 search'] = $test_result;
+  if ($test_result != 'OK')
+    {
+      foreach ($sets_to_try as $charset)
+        {
+          if ($charset === $saved_charset)
+            continue;
+          db_reconnect ($charset);
+          $test_result = try_utf8_search ();
+          $defs["UTF-8 search ($charset charset)"] = $test_result;
+        }
+      db_reconnect ($saved_charset);
+    }
+  print html_dl ($defs);
+}
+
+function test_db_features ()
+{
+  print html_h (2, 'Database features');
+  test_utf8_search ();
+}
+
 function try_db_connect ()
 {
   $db_err = db_connect ();
@@ -732,6 +809,7 @@ function test_mysql ()
     return;
   print html_dl (test_mysql_params ());
   test_db_structure ();
+  test_db_features ();
 }
 
 function list_unset_val ($must_be_unset, $value)
@@ -763,7 +841,9 @@ function list_sysvar ($tag, &$defs)
 
 function output_sysvars ()
 {
+  $GLOBALS['sys_debug_footer'] = $GLOBALS['saved_sys_debug_footer'];
   $variables = [
+    'dbcharset',
     'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
     'default_domain', 'brother_domain', 'file_domain', 'https_host',
     'gpg_name', 'gpg_home', 'graphviz',
@@ -778,6 +858,7 @@ function output_sysvars ()
   foreach ($variables as $tag)
     list_sysvar ($tag, $defs);
   print html_dl ($defs);
+  $GLOBALS['sys_debug_footer'] = true;
 }
 
 function test_sysvars ()

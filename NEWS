@@ -64,13 +64,16 @@
 * A control to copy field settings from existing query forms is added to
   bugs/admin/editqueryforms.php.
 
+* Database character set is made configurable with the new savane.conf.php
+  variable, $sys_dbcharset; with a wrong setting, search including non-ASCII
+  characters results in an SQL error.  In testconfig.php, the current setting
+  is tested, and if fails, the test is also run on a list of other possible
+  character sets.
+
 * Bug fixes:
 
 ** In /my/items.php, item count wasn't displayed correctly in collapsed
    sections.
-
-** Database character set was set to 'utf8' instead of 'utf8mb4'; search
-   with non-ASCII characters resulted in an SQL error.
 
 ** microtime-based timestamps were wrong.
 

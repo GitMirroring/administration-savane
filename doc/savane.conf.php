@@ -136,4 +136,9 @@ $sys_cc_error = [
 
 # Add debugging summary to error log every time when page output completes.
 $sys_debug_footer = true;
+# Character set to select when connecting to the database.
+# It looks like various combinations of DB server versions and database
+# initialization settings may call for specific character sets when connecting
+# to the database.  In testconfig.php, a few values are tested if needed.
+$sys_dbcharset = 'utf8';
 ?>
