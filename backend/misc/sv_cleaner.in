@@ -215,10 +215,10 @@ sub suspend_account
   $dbd->do (<<"  EOF");
     UPDATE user
     SET
-      user_name = '_$id', user_pw = '!', realname = '-*-', status = 'S',
-      email = 'idontexist\@example.net', confirm_hash = '',
+      user_name = '_$id', user_pw = '!', realname = '-#-', status = 'S',
+      email = 'idontexist\@savane.test', confirm_hash = null,
       authorized_keys = '', people_view_skills = 0, people_resume = '',
-      timezone = 'GMT', theme = '', gpg_key = '', email_new = ''
+      timezone = 'GMT', theme = '', gpg_key = '', email_new = null
     WHERE user_id = $id
   EOF
 }

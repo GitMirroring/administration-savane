@@ -137,6 +137,10 @@
 * In sv_cleaner, data amount in a few queries is reduced using
   more restrictive conditions.
 
+* When suspending accounts in sv_cleaner, realname is set to '-#-' to
+  distinguish from accounts suspended manually by site admins; confirm_hash
+  and email_new are set to null; email is set to idontexist@savane.test.
+
 * New configuration variable for sv_cleaner, %sys_banned_email_names.
 
 * New script, sv_gen_passwd_group.
