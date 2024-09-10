@@ -804,6 +804,11 @@ function test_mysql_params ()
 
 function test_mysql ()
 {
+  global $sys_debug_footer, $saved_sys_debug_footer;
+  if (empty ($sys_debug_footer))
+    $sys_debug_footer = false;
+  $saved_sys_debug_footer = $sys_debug_footer;
+  $sys_debug_footer = true;
   print html_h (2, "Database configuration");
   if (try_db_connect ())
     return;
@@ -814,16 +819,16 @@ function test_mysql ()
 
 function list_unset_val ($must_be_unset, $value)
 {
-  if ($must_be_unset)
+  if (!$must_be_unset)
     {
       if ($value === '<>')
-        return 'unset';
-      return "$value\n<br /><strong>This variable should not be set "
-        . "at production servers.</strong>";
+        return '<strong>unset</strong>';
+      return $value;
     }
   if ($value === '<>')
-    return '<strong>unset</strong>';
-  return $value;
+    return 'unset';
+  return "$value\n<br /><strong>This variable should not be set "
+    . "at production servers.</strong>";
 }
 
 function list_sysvar ($tag, &$defs)
@@ -841,7 +846,6 @@ function list_sysvar ($tag, &$defs)
 
 function output_sysvars ()
 {
-  $GLOBALS['sys_debug_footer'] = $GLOBALS['saved_sys_debug_footer'];
   $variables = [
     'dbcharset',
     'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
@@ -858,7 +862,6 @@ function output_sysvars ()
   foreach ($variables as $tag)
     list_sysvar ($tag, $defs);
   print html_dl ($defs);
-  $GLOBALS['sys_debug_footer'] = true;
 }
 
 function test_sysvars ()
@@ -943,8 +946,11 @@ $page .= html_h (2, "Configured settings");
 if (is_readable ($sys_conf_file))
   test_sysconfigs ();
 else
-  print "Since $sys_conf_file does not exist or is not readable, "
+  print "$page\nSince $sys_conf_file does not exist or is not readable, "
     . "this part cannot be checked.";
+$footer = utils_specialchars (utils_debug_footer ());
+print "<pre>$footer</pre>\n";
 print "</body>\n</html>\n";
+$sys_debug_footer = $saved_sys_debug_footer;
 utils_output_debug_footer ();
 ?>

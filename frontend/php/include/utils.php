@@ -1133,7 +1133,7 @@ function utils_format_timestamp ($t)
   return sprintf ("%.3f ms", $t);
 }
 
-function utils_debug_output_db_queries ()
+function utils_debug_output_db_queries ($list_includes)
 {
   global $db_queries_filed;
   if (empty ($db_queries_filed))
@@ -1146,9 +1146,10 @@ function utils_debug_output_db_queries ()
     {
       $ts_total += $entry[3];
       $ts = utils_format_timestamp ($entry[3]);
-      $h = $head[$entry[1]? 1: 0];
-      $sql = preg_replace ("/^\n*/", '', $entry[0]);
-      $ret .= "$h Elapsed time: $ts\n{$entry[2]}\n$sql\n";
+      $ret .= $head[$entry[1]? 1: 0] . " Elapsed time: $ts\n";
+      if ($list_includes)
+        $ret .= "{$entry[2]}\n";
+      $ret .= preg_replace ("/^\n*/", '', $entry[0]) . "\n";
     }
   $ts_total = utils_format_timestamp ($ts_total);
   $footer = "Total number of DB queries: " . count ($db_queries_filed)
@@ -1156,22 +1157,27 @@ function utils_debug_output_db_queries ()
   return "$ret$head[0]\n$footer\n\n";
 }
 
-function utils_output_debug_footer ()
+function utils_debug_footer ($list_includes = false)
 {
-  global $sys_debug_footer;
-  if (empty ($sys_debug_footer))
-    return;
   $ts = utils_format_timestamp (error_timestamp () - $GLOBALS['TIMESTAMP_START']);
   $ru = getrusage ();
   $msg = utils_no_i18n ("PHP run summary") . "\n  "
-    . "Elapsed time: $ts\n  "
-    . utils_no_i18n ("Included files:") . "\n";
-  foreach (get_included_files () as $f)
-    $msg .= error_relative_source_path ($f) . "\n";
+    . "Elapsed time: $ts\n";
+  if ($list_includes)
+    {
+      $msg .= "  " . utils_no_i18n ("Included files:") . "\n";
+      foreach (get_included_files () as $f)
+        $msg .= error_relative_source_path ($f) . "\n";
+    }
   $msg .= "\n";
-  $msg .= utils_debug_output_db_queries ();
-  $msg .= utils_debug_output_rusage ($ru);
-  trigger_error ($msg);
+  $msg .= utils_debug_output_db_queries ($list_includes);
+  return $msg . utils_debug_output_rusage ($ru);
+}
+
+function utils_output_debug_footer ()
+{
+  if (!empty ($GLOBALS['sys_debug_footer']))
+    trigger_error (utils_debug_footer (true));
 }
 
 # Unify the argument that may be scalar or array (return an array);
