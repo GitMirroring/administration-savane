@@ -1085,7 +1085,7 @@ function utils_debug_output_tv (&$ru, $var, $label)
   if (!array_key_exists ("ru_$var.tv_sec", $ru))
     return '';
   $sec = $ru["ru_$var.tv_sec"] + $ru["ru_$var.tv_usec"] / 1000000;
-  $ret = sprintf (utils_no_i18n ("%s: %.6f\n"), $label, $sec);
+  $ret = sprintf (utils_no_i18n ("%s: %.6f s\n"), $label, $sec);
   unset ($ru["ru_$var.tv_sec"]);
   unset ($ru["ru_$var.tv_usec"]);
   return $ret;
