@@ -48,8 +48,6 @@ define ('USER_STATUS_SQUAD', MEMBER_FLAGS_SQUAD);
 define ('USER_STATUS_SUSPENDED', 'S');
 define ('USER_STATUS_DELETED', 'D');
 
-# Unset these globals until register_globals if off everywhere.
-unset ($USER_IS_SUPER_USER);
 # User records in this array can be accessed by user_id as well as by user_name.
 # the user_name keys are in the lower case, user names are case-insensitive.
 $USER_ARR = [];
@@ -67,8 +65,8 @@ function user_isloggedin ()
 
 function user_can_be_super_user ($user_id = 0)
 {
-  global $USER_IS_SUPER_USER;
-  if (isset ($USER_IS_SUPER_USER))
+  static $USER_IS_SUPER_USER = null;
+  if ($USER_IS_SUPER_USER !== null)
     return $USER_IS_SUPER_USER;
   $USER_IS_SUPER_USER = false;
   if (empty ($user_id))
