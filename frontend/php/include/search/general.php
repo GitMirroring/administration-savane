@@ -471,9 +471,7 @@ function search_run (
           $sql .= " AND t.group_id = ? ";
           $sql_params[] = $only_group_id;
         }
-
-      $sql .= " AND t.spamscore < 5
-        GROUP BY bug_id, summary, date, user_name ORDER BY t.date DESC ";
+      $sql .= " AND t.spamscore < 5 ORDER BY t.date DESC ";
     }
 
   $sql .= " LIMIT ?, ?";
