@@ -704,15 +704,20 @@ function user_delete ($user_id = false)
 function user_list_groups_with_history ($uid, $skip)
 {
   return db_execute ("
-    SELECT
-      g.group_name, g.group_id, g.unix_group_name, g.is_public,
-      u.admin_flags, h.date
-    FROM groups g, user_group u, group_history h, user a
-    WHERE
-      g.group_id = u.group_id AND h.group_id = u.group_id $skip
-      AND u.user_id = ? AND a.user_id = ? AND h.old_value = a.user_name
-      AND g.status = 'A' AND h.field_name IN ('Added User', 'Approved User')
-    GROUP BY g.group_id ORDER BY g.group_id", [$uid, $uid]
+    SELECT g.group_name, g.unix_group_name, g.is_public,ug.*
+    FROM
+      ( SELECT u.group_id, u.admin_flags, max(h.date) AS date
+        FROM
+          group_history h JOIN user a ON h.old_value = a.user_name
+          JOIN user_group u
+            ON h.group_id = u.group_id AND u.user_id = a.user_id
+        WHERE
+          u.user_id = ? $skip
+          AND h.field_name IN ('Added User', 'Approved User')
+          GROUP BY u.group_id, u.admin_flags ORDER BY u.group_id
+      ) ug
+      JOIN `groups` g ON g.group_id = ug.group_id
+    ORDER BY ug.group_id", [$uid]
   );
 }
 

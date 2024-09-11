@@ -732,9 +732,8 @@ function trackers_trim_email ($email)
 function trackers_get_cc_list ($artifact, $item_id)
 {
   return db_execute ("
-    SELECT email, added_by FROM {$artifact}_cc
-    WHERE bug_id = ? GROUP BY email LIMIT 150",
-    [$item_id]
+    SELECT email, min(added_by) AS added_by FROM {$artifact}_cc
+    WHERE bug_id = ? GROUP BY email LIMIT 150", [$item_id]
   );
 }
 

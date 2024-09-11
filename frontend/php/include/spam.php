@@ -267,7 +267,7 @@ function spam_get_user_score ($user_id = 0, $set_by_user_id = 0)
   # We cannot do a count because it does not allow us to use GROUP BY.
   $userscore = 0;
   $result = db_execute ("
-    SELECT score FROM trackers_spamscore
+    SELECT max(score) AS score FROM trackers_spamscore
     WHERE affected_user_id = ? $set_by_user_id_sql GROUP BY reporter_user_id",
     array_merge ([$user_id], $set_by_user_id_params)
   );
