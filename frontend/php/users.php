@@ -212,9 +212,9 @@ function output_squad_info ($user_id)
   global $HTML;
   print "<br />\n" . $HTML->box_top (_("Members"), '', 1);
   $result = db_execute ("
-    SELECT u.user_name, u.realname, u.user_id
-    FROM user u JOIN user_squad s ON u.user_id = s.user_id
-    WHERE s.squad_id = ? GROUP BY u.user_name", [$user_id]
+    SELECT user_name, realname, user_id FROM user
+    WHERE user_id IN (SELECT user_id FROM user_squad WHERE squad_id = ?)",
+    [$user_id]
   );
   $j = 1;
   $items = '';

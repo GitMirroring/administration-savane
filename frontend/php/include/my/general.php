@@ -161,11 +161,15 @@ function my_item_list_assigned_arg ($role, $uid)
 function my_fill_items_per_groups_entry ($from, $where, $params, $gid)
 {
   global $items_per_groups;
-  $res = db_execute ("
-    SELECT count(t.bug_id) AS count $from
-    $where AND t.group_id = ? GROUP BY bug_id LIMIT ?", $params
+  array_pop ($params);
+  $res = db_execute (
+    "SELECT count(t.bug_id) AS cnt $from $where AND t.group_id = ?", $params
   );
-  $items_per_groups[$gid] = array_fill (0, db_numrows ($res), true);
+  if (!array_key_exists ($gid, $items_per_groups))
+    $items_per_groups[$gid] = [];
+  while ($row = db_fetch_array ($res))
+    for ($i = 0; $i < $row['cnt']; $i++)
+      $items_per_groups[$gid][] = true;
 }
 
 function my_group_condition ($groups, $role)
@@ -213,8 +217,6 @@ function my_item_list_buildsql ($tracker, $role, $threshold, $openclosed, $uid)
       g.group_id, g.group_name, g.unix_group_name";
   $from = "FROM $tracker t JOIN groups g ON t.group_id = g.group_id ";
   $select_params = $from_params = [];
-  # FIXME: should we put a SQL LIMIT, to avoid cases of users that would
-  # have tons of items, with a meaningful error message?
   if ($role == "assignee" || $role == "submitter")
     {
       # Items listing in My Items: assigned to and posted by.
@@ -318,8 +320,7 @@ function my_item_list_buildsql ($tracker, $role, $threshold, $openclosed, $uid)
   if (empty ($restrict_to_groups_params) && $role != 'submitter')
     return false;
   $group_cond = my_group_condition ($restrict_to_groups_params, $role);
-  $sql = "$select\n$from\n$where\n$group_cond
-    GROUP BY bug_id ORDER BY t.date DESC";
+  $sql = "$select\n$from\n$where\n$group_cond ORDER BY t.date DESC";
   $sql_params = array_merge (
     $select_params, $from_params, $where_params, $restrict_to_groups_params
   );

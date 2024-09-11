@@ -168,7 +168,7 @@ function look_for_non_members ($group_id, $words)
         (select * from user_group ug WHERE group_id = ?) ug
       ON u.user_id = ug.user_id
     WHERE $kw_sql AND status = 'A' AND ug.onduty IS NULL
-    GROUP BY u.user_id ORDER BY user_name LIMIT 26", $sql_params
+    ORDER BY user_name LIMIT 26", $sql_params
     );
 }
 

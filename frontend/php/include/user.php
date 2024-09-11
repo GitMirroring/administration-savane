@@ -722,9 +722,9 @@ function user_list_groups_without_history ($uid, $skip)
   return db_execute ("
     SELECT g.group_name, g.group_id, g.unix_group_name, g.is_public,
       u.admin_flags, 0 as date
-    FROM groups g, user_group u
+    FROM `groups` g, user_group u
     WHERE g.group_id = u.group_id AND u.user_id = ? AND g.status = 'A' $skip
-    GROUP BY g.group_id ORDER BY g.group_id", [$uid]
+    ORDER BY g.group_id", [$uid]
   );
 }
 
