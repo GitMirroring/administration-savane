@@ -104,7 +104,7 @@ function user_check_ismember ($user_id, $group_id, $type = 0)
   return member_check ($user_id, $group_id, $type);
 }
 
-# Get the groups to which a user belongs.
+# Get the ids of the groups the user belongs to.
 function user_groups ($uid)
 {
   $result = db_execute ("SELECT * FROM user_group WHERE user_id = ", [$uid]);
@@ -112,6 +112,24 @@ function user_groups ($uid)
   while ($val = db_fetch_array ($result))
     array_push ($arr, $val['group_id']);
   return $arr;
+}
+
+# Return arrays of ids and names of the groups the user belogs to.
+function user_group_names ($uid)
+{
+  $result = db_execute ("
+    SELECT g.group_id, g.unix_group_name, g.group_name
+    FROM `groups` g JOIN user_group u ON g.group_id = u.group_id
+    WHERE u.user_id = ? AND g.status = 'A' ORDER BY g.unix_group_name", [$uid]
+  );
+  $ids = $names = [];
+  while ($row = db_fetch_array ($result))
+    {
+      $uname = $row['unix_group_name'];
+      $names[$uname] = $row['group_name'];
+      $ids[$uname] = $row['group_id'];
+    }
+  return [$ids, $names];
 }
 
 # Get the email of a user.

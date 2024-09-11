@@ -88,27 +88,8 @@ print html_splitpage ("start");
 
 if (!$is_suspended)
   {
-    # List items:
-    #  - ignore recipes, it is less personal
-    #  - ignore closed items, it would make a page that dont scale for
-    #    very active developers
-    #  - ignore private items
-
-    $result = db_execute ("
-      SELECT g.group_name, g.group_id, g.unix_group_name, g.status
-      FROM groups g JOIN user_group u ON g.group_id = u.group_id
-      WHERE u.user_id = ? AND g.status = 'A'
-      GROUP BY g.unix_group_name ORDER BY g.unix_group_name",
-      [user_getid ()]
-    );
-    $usergroups = $usergroups_groupid = $usersquads = $group_data = [];
-    while ($row = db_fetch_array ($result))
-      {
-        $unixname = $row['unix_group_name'];
-        $usergroups[$unixname] = $row['group_name'];
-        $usergroups_groupid[$unixname] = $row['group_id'];
-      }
-
+    $usersquads = $group_data = [];
+    list ($usergroups_groupid, $usergroups) = user_group_names (user_getid ());
     if (!$is_squad)
       {
         # Meaningless for squads.

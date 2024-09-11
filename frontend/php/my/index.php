@@ -59,23 +59,7 @@ print '<p>'
       . "in groups you are a member of.")
   . "</p>\n";
 
-# Get the list of projects the user is member of.
-$result = db_execute ("
-  SELECT g.group_name, g.group_id, g.unix_group_name, g.status
-  FROM groups g, user_group u
-  WHERE g.group_id = u.group_id AND u.user_id = ? AND g.status = 'A'
-  GROUP BY g.unix_group_name ORDER BY g.unix_group_name", [user_getid ()]
-);
-$rows = db_numrows ($result);
-$usergroups = $usergroups_groupid = [];
-if ($result && $rows > 0)
-  for ($j = 0; $j < $rows; $j++)
-    {
-      $unixname = db_result ($result, $j, 'unix_group_name');
-      $usergroups[$unixname] = db_result ($result, $j, 'group_name');
-      $usergroups_groupid[$unixname] = db_result ($result, $j, 'group_id');
-    }
-
+list ($usergroups_groupid, $usergroups) = user_group_names (user_getid ());
 # Get the list of squads the user is member of.
 list ($usersquads, $nosquads) = user_get_squads ();
 
