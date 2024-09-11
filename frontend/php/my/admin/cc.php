@@ -95,23 +95,19 @@ print '<p>'
       . "lists\nof any items of the selected groups.")
   . "<p>\n";
 
-# Find all CC the users is registered to receive, list them per groups.
+# Find all CC the user is registered to receive, list them per groups.
 $groups_with_cc = $groups_with_cc_gid = [];
-foreach ($trackers as $tracker)
+foreach ($trackers as $tr)
   {
     $result = db_execute ("
-      SELECT g.unix_group_name, g.group_name, t.group_id
-      FROM groups g, $tracker t, {$tracker}_cc cc
-      WHERE
-        g.group_id = t.group_id AND t.bug_id = cc.bug_id
-        AND cc.email IN (?, ?, ?)
-      GROUP BY g.group_name",
-      [$user_id, $user_email, $user_name]
+      SELECT g.unix_group_name, g.group_name, g.group_id
+      FROM
+        `groups` g JOIN $tr t ON g.group_id = t.group_id
+        JOIN {$tr}_cc cc ON t.bug_id = cc.bug_id
+      WHERE cc.email IN (?, ?, ?)", [$user_id, $user_email, $user_name]
     );
-    while ($entry = db_fetch_array($result))
+    while ($entry = db_fetch_array ($result))
       {
-        if (isset ($groups_with_cc[$entry['group_id']]))
-          continue;
         $groups_with_cc[$entry['unix_group_name']] = $entry['group_name'];
         $groups_with_cc_gid[$entry['unix_group_name']] = $entry['group_id'];
       }
