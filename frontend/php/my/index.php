@@ -69,17 +69,12 @@ $result = db_execute ("
 $rows = db_numrows ($result);
 $usergroups = $usergroups_groupid = [];
 if ($result && $rows > 0)
-  {
-    unset ($nogroups);
-    for ($j = 0; $j < $rows; $j++)
-      {
-        $unixname = db_result ($result, $j, 'unix_group_name');
-        $usergroups[$unixname] = db_result ($result, $j, 'group_name');
-        $usergroups_groupid[$unixname] = db_result ($result, $j, 'group_id');
-      }
-  }
-else
-  $nogroups = 1;
+  for ($j = 0; $j < $rows; $j++)
+    {
+      $unixname = db_result ($result, $j, 'unix_group_name');
+      $usergroups[$unixname] = db_result ($result, $j, 'group_name');
+      $usergroups_groupid[$unixname] = db_result ($result, $j, 'group_id');
+    }
 
 # Get the list of squads the user is member of.
 list ($usersquads, $nosquads) = user_get_squads ();
