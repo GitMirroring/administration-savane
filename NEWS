@@ -12,6 +12,8 @@
 
 [FRONTEND]
 
+* The SQL queries are made ONLY_FULL_GROUP_BY-compliant.
+
 * Emails sent from Savane frontend can be GPG-signed, see
   doc/signed-notifications.
 

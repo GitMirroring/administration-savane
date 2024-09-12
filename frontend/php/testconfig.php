@@ -757,23 +757,13 @@ function try_db_connect ()
 }
 function mysql_params_to_test ()
 {
-  # When sql_mode contains 'ONLY_FULL_GROUP_BY', queries like
-  # "SELECT groups.group_name, groups.group_id, groups.unix_group_name,"
-  # ...
-  # . "GROUP BY groups.unix_group_name "
-  # . "ORDER BY groups.unix_group_name"
-  # used e.g. in my/groups.php result in an error.
-  #
-  # Since MySQL 5.7, this is default. We could use ANY_VALUE ()
-  # to workaround this, but it is only introduced in 5.7,
-  # so won't work with older MySQLs.
-  $wrong_modes = ['ONLY_FULL_GROUP_BY', 'STRICT_TRANS_TABLES'];
+  $wrong_modes = ['STRICT_TRANS_TABLES'];
   $mysql_params = [
     '@@GLOBAL.version' => [null],
     '@@GLOBAL.sql_mode' => [null, $wrong_modes],
     '@@SESSION.sql_mode' => [
       "<em>This should</em> <strong>not</strong> <em>include</em> "
-        . "<code>ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</code><em>.</em>",
+        . "<code>" . join(',', $wrong_modes) . "</code><em>.</em>",
       $wrong_modes
     ]
   ];

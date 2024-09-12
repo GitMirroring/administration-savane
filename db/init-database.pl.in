@@ -144,7 +144,7 @@ sub make_launch_db_conf
   my $cmd = "echo $query | " . mysql_cmd () . " --skip-column-names";
   my $mode = `$cmd`;
   chomp $mode;
-  $mode =~ s/\b(ONLY_FULL_GROUP_BY|STRICT_TRANS_TABLES)\b//g;
+  $mode =~ s/\b(STRICT_TRANS_TABLES)\b//g;
   $mode =~ s/(^|,),*/$1/g;
   $mode =~ s/,$//;
   die "Can't open $conf_file for writing: $!\n" unless open FH, '>', $conf_file;
