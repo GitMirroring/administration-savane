@@ -209,7 +209,7 @@ function check_for_duplicates ($item_id, $user_id, $comment)
     SELECT bug_history_id FROM " . ARTIFACT . "_history
     WHERE
       bug_id = ? AND mod_by = ? AND field_name = 'details' AND old_value = ?",
-    [$item_id, $user_id, $comment]
+    [$item_id, $user_id, utils_specialchars ($comment)]
   );
   if (!db_numrows ($res))
     return;
