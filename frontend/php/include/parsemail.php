@@ -145,13 +145,21 @@ function parsemail_fixup_multipart_part ($mime, $idx, $msg)
   return $part;
 }
 
+function parsemail_get_part_charset ($mime, $idx)
+{
+  $data = parsemail_get_part_data ($mime, $idx);
+  if (!empty ($data['charset']))
+    return $data['charset'];
+  return null;
+}
+
 function parsemail_parse_mime ($mime, $msg, $error_handler)
 {
   $struct = mailparse_msg_get_structure ($mime);
   if (count ($struct) == 1) # Hopefully a clearsigned message.
     {
       $ret = parsemail_extract_part ($mime, $struct[0], $msg);
-      return [[$ret], $ret];
+      return [[$ret], $ret, 0, parsemail_get_part_charset ($mime, $struct[0])];
     }
   $ret = [];
   foreach (parsemail_analyze_struct ($mime, $struct, $error_handler) as $idx)
@@ -162,6 +170,7 @@ function parsemail_parse_mime ($mime, $msg, $error_handler)
   $ret = [$ret, parsemail_extract_part ($mime, $latest, $msg)];
   # Check for nesting like in the 'protected-headers=v1' protocol.
   $ret[] = in_array ("$latest.1", $struct);
+  $ret[] = parsemail_get_part_charset ($mime, $latest);
   return $ret;
 }
 
