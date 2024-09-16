@@ -53,35 +53,46 @@ extract (sane_import ('request',
   ['preg' => [['cancel', '/^(\d+|any)$/']]]
 ));
 
+function cancel_all ($tr_cc, $cc_set)
+{
+  return
+    db_execute ("DELETE FROM $tr_cc WHERE $tr_cc.email IN (?, ?, ?)", $cc_set);
+}
+
+function list_bugs_ccing ($tracker, $tr_cc, $group, $cc_set)
+{
+  $result = db_execute ("
+     SELECT DISTINCT t.bug_id
+     FROM $tracker t JOIN $tr_cc c ON t.bug_id = c.bug_id
+     WHERE t.group_id = ? AND c.email IN (?, ?, ?)",
+     array_merge ([$group], $cc_set)
+  );
+  $bug_ids = [];
+  while ($entry = db_fetch_array ($result))
+    $bug_ids[] = $entry['bug_id'];
+  return $bug_ids;
+}
+
+function cancel_in_tracker ($tracker, $group, $cc_set)
+{
+  $tr_cc = "{$tracker}_cc";
+  if ($group == 'any')
+    return cancell_all ($tr_cc, $cc_set);
+  $bug_ids = list_bugs_ccing ($tracker, $tr_cc, $group, $cc_set);
+  if (empty ($bug_ids))
+    return true;
+  return db_execute ("
+    DELETE FROM $tr_cc
+    WHERE email IN (?, ?, ?) AND bug_id " . utils_in_placeholders ($bug_ids),
+    array_merge ($cc_set, $bug_ids)
+  );
+}
+
 if (!empty ($cancel))
-  {
-    $whichgroup = $cancel;
-    foreach ($trackers as $tracker)
-      {
-        $tr_cc = "{$tracker}_cc";
-        if ($whichgroup == 'any')
-          {
-            # If it all groups, go the easy way
-            db_execute (
-              "DELETE FROM $tr_cc WHERE $tr_cc.email IN (?, ?, ?)",
-              [$user_id, $user_email, $user_name]
-            );
-            continue;
-          }
-        # If we need to remove items only for a given group, we first need
-        # to get this list of items.
-        $result = db_execute (
-          "SELECT bug_id FROM $tracker WHERE group_id = ?", [$whichgroup]
-        );
-        while ($entry = db_fetch_array ($result))
-          db_execute (
-            "DELETE FROM $tr_cc WHERE bug_id = ? AND $tr_cc.email IN (?, ?, ?)",
-            [$entry['bug_id'], $user_id, $user_email, $user_name]
-          );
-      }
-    # Not much crosscheck here, so no feedback (the result should be obvious
-    # anyway).
-  }
+  foreach ($trackers as $tracker)
+    cancel_in_tracker (
+      $tracker, $cancel, [$user_id, $user_email, $user_name]
+    );
 
 # Actually prints the HTML page.
 site_user_header (
@@ -121,9 +132,7 @@ if (!count ($groups_with_cc))
     exit;
   }
 
-print $HTML->box_top (
-  _("Groups to which belong items you are in Carbon Copy for")
-);
+print $HTML->box_top (_("Groups with items you are in Carbon Copy for"));
 ksort ($groups_with_cc);
 $i = 0;
 foreach ($groups_with_cc as $thisunixname => $thisname)
