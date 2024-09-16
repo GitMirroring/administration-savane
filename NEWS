@@ -66,6 +66,9 @@
 
 * Bug fixes:
 
+** In /my/items.php, item count wasn't displayed correctly in collapsed
+   sections.
+
 ** microtime-based timestamps were wrong.
 
 ** When registering a user with too long realname, an SQL error was thrown;

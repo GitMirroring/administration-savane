@@ -72,41 +72,34 @@ function my_set_hide_pref ($role, $group_id, $val)
   user_set_preference (my_hide_pref_name ($role, $group_id), $val);
 }
 
-#  Function that generates hide and show URLs to expand and collapse
-#  sections of the personal page.
-#
-# Input:
-#  $hide = hide param as given in the script URL (-1 means no param was given)
+# Generate URLs to expand and collapse sections of the personal page.
 #
 # Output:
-#  $hide_url: URL to use in the page to switch from hide to show or vice versa
+#  $hide_flag: true if the section must be hidden, false otherwise.
 #  $count_diff: difference between the number of items in the list between now
 #    and the previous last time the section was open (can be negative if items
 #    were removed).
-#  $hide_flag: true if the section must be hidden, false otherwise.
-function my_hide_url ($role, $group_id, $count, $link = "")
+#  $hide_url: URL to use in the page to switch from hide to show or vice versa
+function my_hide_url ($role, $group_id, $count, $link)
 {
   # Determine if we should hide or not.
   $hide = my_is_hidden ($role, $group_id);
 
   # Compare with preferences, update preference if not equal.
   $old_pref_value = my_get_hide_pref ($role, $group_id);
-  $old_count = 0;
   $arr = explode ('|', $old_pref_value);
-  if (!empty ($arr[1]))
-    $old_count = $arr[1];
   $pref_value = "$hide|$count";
   if ($old_pref_value != $pref_value)
     my_set_hide_pref ($role, $group_id, $pref_value);
-
   $hide_url = my_hide_link ($role, $group_id, $link, $hide);
-  return [$hide, $count - $old_count, $hide_url];
+  return [$hide, $hide_url];
 }
 
 # Determine whether a given group items of a given role should be hidden or not.
 function my_is_hidden ($role, $group_id)
 {
-  # Extract URL arguments.
+  if ($GLOBALS['my_never_hide_items'])
+    return 0;
   $args = sane_import ('get',
     ["digits" => ["hide_group_id", ["hide_$role", [0, 1]]]]
   );
@@ -126,10 +119,9 @@ function my_is_hidden ($role, $group_id)
   return $old_hide;
 }
 
-function my_item_count ($total, $new)
+function my_item_count ($total)
 {
-  return ' '
-    . sprintf (_('(new items: %1$s, total: %2$s)'), $total, $new) . "\n";
+  return sprintf (ngettext ("(%s item)", "(%s items)", $total), $total) . "\n";
 }
 
 # Function that expect item_data and $group_data to exist as globals,
@@ -139,6 +131,7 @@ function my_item_list (
 )
 {
   global $item_data, $group_data, $items_per_groups, $maybe_missed_rows;
+  $GLOBALS['my_never_hide_items'] = $condensed;
 
   $items_per_groups = []; $maybe_missed_rows = 0;
   $openclosed =  $openclosed == "open"? 1: 3; # Status: 1 = open, 3 = closed.
@@ -404,10 +397,10 @@ function my_item_group_header ($gid, $idx, $condensed, $role)
   else
     {
       $count = count ($items_per_groups[$gid]);
-      list ($hide_now, $count_diff, $hide_url) =
+      list ($hide_now, $hide_url) =
         my_hide_url ($role, $gid, $count, '<b>' . $group_data[$idx] . '</b>');
       print $hide_url . ' <span class="smaller">'
-        . my_item_count ($count, max (0, $count_diff)) . "</span>";
+        . my_item_count ($count) . "</span>";
     }
   print "</div>\n";
   return $hide_now;
@@ -418,7 +411,7 @@ function my_item_list_extractdata ($sql_result, $tracker)
 {
   global $sql_limit, $maybe_missed_rows;
   if (!$sql_result)
-    return [];
+    return;
 
   $rows = db_numrows ($sql_result);
   # Record for later if we maybe missed items.
@@ -427,7 +420,6 @@ function my_item_list_extractdata ($sql_result, $tracker)
 
   while ($row = db_fetch_array ($sql_result))
     my_assign_item ($row, $tracker);
-  return $rows;
 }
 
 function my_item_print_item ($item, $gid, $openclosed)
