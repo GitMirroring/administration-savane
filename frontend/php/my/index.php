@@ -64,106 +64,77 @@ list ($usergroups_groupid, $usergroups) = user_group_names (user_getid ());
 list ($usersquads, $nosquads) = user_get_squads ();
 
 # Get a timestamp to get new items (15 days).
-$new_date_limit = time () - 15 * 24 * 3600;
+$date_limit = time () - 15 * 24 * 3600;
 
 # Right part.
 print html_splitpage (1);
 
+function fetch_news ($date_limit, $gids, $cond)
+{
+  if (empty ($gids))
+    return false;
+  $gid_sql = "group_id " . utils_in_placeholders ($gids);
+  $res = db_execute ("
+    SELECT group_id, date, id, summary FROM news_bytes
+    WHERE date > ? AND $cond AND $gid_sql
+    ORDER BY date DESC", array_merge ([$date_limit], $gids)
+  );
+  return $res;
+}
+
+function output_news_entry ($row, $j)
+{
+  global $sys_home;
+  print '<div class="' . utils_altrow ($j) . '">';
+  print "<a href=\"{$sys_home}news/approve.php?approve=1&amp;id="
+    . $row['id'] . '&amp;group=' . group_getunixname ($row['group_id']) . '">'
+    . $row['summary'] . "</a><br />\n";
+  print '<span class="smaller">';
+  # TRANSLATORS: the first argument is group name, the second is date.
+  printf (_('Group %1$s, %2$s'),
+    group_getname ($row['group_id']), utils_format_date ($row['date'])
+  );
+  print "</span>\n</div>\n";
+}
+
 # News to approve.
-# Shown only if the user is news manager somewhere and if any item found.
+# Show only if the user is a news manager somewhere and if any item found.
 reset ($usergroups);
 reset ($usergroups_groupid);
-unset ($result);
 unset ($rows);
-# Build an sql request that will fetch any relevant news.
-$sql = "
-  SELECT group_id, date, id, summary FROM news_bytes
-  WHERE date > ? AND is_approved = '5' AND (";
-$params = [$new_date_limit];
-$link = '';
-
+$gids = [];
 foreach ($usergroups as $group => $groupname)
   {
     if (!member_check (0, $usergroups_groupid[$group], 'N3'))
       continue;
-    $sql .= "{$link}group_id = ? ";
-    $link = "OR ";
-    $params[] = $usergroups_groupid[$group];
+    $gids[] = $usergroups_groupid[$group];
   }
-$sql .= ") ORDER BY date DESC";
-
-# If there is no relevant group, it is not even necessary
-# to run the sql command.
-$result = NULL;
-if ($link !== '')
-  {
-    $result = db_execute ($sql, $params);
-    $rows = db_numrows ($result);
-  }
-
-if ($result && $rows > 0)
+$res = fetch_news ($date_limit, $gids, "is_approved = '5'");
+if (db_numrows ($res))
   {
     print "<br />\n<div class='box'><div class='boxtitle'>"
       . _("News Waiting for Approval") . "</div>\n";
-    for ($j = 0; $j < $rows; $j++)
-      {
-        print '<div class="' . utils_altrow ($j) . '">';
-        print '<a href="' . $sys_home . 'news/approve.php?approve=1&amp;id='
-          . db_result ($result, $j, 'id') . '&amp;group='
-          . group_getunixname (db_result ($result, $j, 'group_id')) . '">'
-          . db_result($result, $j, 'summary') . "</a><br />\n";
-        print '<span class="smaller">';
-        # TRANSLATORS: the first argument is project name, the second is date.
-        printf (_('Project %1$s, %2$s'),
-          group_getname (db_result ($result, $j, 'group_id')),
-          utils_format_date (db_result ($result, $j, 'date'))
-        );
-        print "</span>\n</div>\n";
-      }
+    $j = 0;
+    while ($row = db_fetch_array ($res))
+      output_news_entry ($row, $j++);
     print "</div>\n";
   }
 
-# Latest Approved News.
 print "<br />\n<div class='box'><div class='boxtitle'>"
   . _("News") . "</div>\n";
 reset ($usergroups);
 reset ($usergroups_groupid);
-# Build an sql request that will fetch any relevant news.
-$sql = "
-SELECT group_id, date, forum_id, summary FROM news_bytes
-WHERE
-  date > ? AND is_approved in ('0', '1') AND (group_id = ? ";
-$params = [$new_date_limit, $sys_group_id];
-
+$gids = [$sys_group_id];
 foreach ($usergroups as $group => $groupname)
-  {
-    $sql .= "OR group_id = ? ";
-    $params[] = $usergroups_groupid[$group];
-  }
-$sql .= ") ORDER BY date DESC";
+  $gids[] = $usergroups_groupid[$group];
 
-$result = db_execute ($sql, $params);
-$rows = db_numrows ($result);
-if ($result && $rows > 0)
-  for ($j = 0; $j < $rows; $j++)
-    {
-      print '<div class="' . utils_altrow ($j) . '">';
-      print '<a href="' . $sys_home . 'forum/forum.php?forum_id='
-        . db_result ($result, $j, 'forum_id') . '">'
-        . db_result ($result, $j, 'summary') . "</a><br />\n";
-      print '<span class="smaller">';
-      # TRANSLATORS: the first argument is project name, the second is date.
-      printf (_('Project %1$s, %2$s'),
-        group_getname (db_result ($result, $j, 'group_id')),
-        utils_format_date (db_result ($result, $j, 'date'))
-      );
-      print "</span></div>\n";
-    }
-else
-  {
-    # TRANSLATORS: it means, no approved news.
-    print _("None found");
-  }
+$res = fetch_news ($date_limit, $gids, "is_approved IN ('0', '1')");
+$j = 0;
+while ($row = db_fetch_array ($res))
+  output_news_entry ($row, $j++);
+if (!$j)
+  # TRANSLATORS: it means, no approved news.
+  print _("None found");
 print "</div>\n";
 
 # Left part.
