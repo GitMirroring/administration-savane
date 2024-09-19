@@ -564,7 +564,6 @@ ordinary_files = \
   php/testing/sane.php \
   php/testing/test.php \
   php/testing/utils.php \
-  php/.topdir \
   php/u \
   php/us \
   php/users \

@@ -122,20 +122,7 @@ if (empty ($sys_dbport))
 if (empty ($sys_dbsocket))
   $sys_dbsocket = null;
 
-# Detect where we are, unless it's explicitly specified
-# in the configuration file:
-if (empty ($sys_www_topdir))
-  {
-    $sys_www_topdir = getcwd ();
-    $sys_url_topdir = dirname ($_SERVER['SCRIPT_NAME']);
-    while ($sys_www_topdir != '/' && !file_exists ("$sys_www_topdir/.topdir"))
-      {
-        $sys_www_topdir = dirname ($sys_www_topdir);
-        $sys_url_topdir = dirname ($sys_url_topdir);
-      }
-    if (!file_exists ("$sys_www_topdir/.topdir"))
-      die ("Could not find Savane's top directory (missing .topdir file)");
-  }
+init_detect_topdir ();
 
 # Add a trailing slash.
 $sys_home = $GLOBALS['sys_url_topdir'];
@@ -161,6 +148,24 @@ $php_self = utils_specialchars ($_SERVER['PHP_SELF']);
 # this, make the banner work with the headers instead.
 utils_set_csp_headers ();
 utils_update_decimal_separator ();
+
+# Detect where we are unless explicitly specified in the configuration file.
+function init_detect_topdir ()
+{
+  global $sys_www_topdir, $sys_url_topdir;
+  if (!empty ($sys_www_topdir))
+    return;
+  $sys_www_topdir = getcwd ();
+  $sys_url_topdir = dirname ($_SERVER['SCRIPT_NAME']);
+  $test = 'testconfig.php';
+  while ($sys_www_topdir != '/' && !file_exists ("$sys_www_topdir/$test"))
+    {
+      $sys_www_topdir = dirname ($sys_www_topdir);
+      $sys_url_topdir = dirname ($sys_url_topdir);
+    }
+  if (!file_exists ("$sys_www_topdir/$test"))
+    die ("Could not find Savane's top directory (missing $test)");
+}
 
 # Source (require) all specific include files of a module from
 # the include area (all include files of a module are arranged
