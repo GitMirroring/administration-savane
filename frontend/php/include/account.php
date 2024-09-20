@@ -479,13 +479,60 @@ function account_encryptpw ($plainpw)
   return crypt ($plainpw, "$pfx$salt");
 }
 
+function account_get_random_byte ()
+{
+  if (defined ('TESTING_ACCOUNT'))
+    return mt_rand (0, 255); # Return deterministic numbers when testing.
+  return ord (random_bytes (1));
+}
+
+function account_gen_random_order ($len)
+{
+  $ret = [];
+  for ($i = 0; $i < $len; $i++)
+    $ret[] = $i;
+  for ($i = $j = 0; $i < $len - 1; $i++)
+    {
+      if (!$j)
+        {
+          for ($s = $k = 0; $k < 4; $k++)
+            $s = $s * 256 + account_get_random_byte ();
+          mt_srand ($s);
+          $j = 63;
+        }
+      $r = mt_rand ($i, $len - 1);
+      $t = $ret[$i];
+      $ret[$i] = $ret[$r];
+      $ret[$r] = $t;
+      $j--;
+    }
+  return $ret;
+}
+
+function account_compare_hash ($h0, $h)
+{
+  # Try to run in input-independent time; randomize the order
+  # the characters are compared in (hopefully PHP optimizing procedures
+  # won't be able to figure out that the result is just string comparison).
+  $n = strlen ($h0);
+  $order = account_gen_random_order ($n);
+  $weights = [false => 2, true => 1];
+  $ret = $n * 2;
+  for ($i = 0; $i < $n; $i++)
+    {
+      $j = $order[$i];
+      $ret -= $weights[substr ($h0, $j, 1) === substr ($h, $j, 1)];
+    }
+  return $ret == $n;
+}
+
 function account_validpw ($stored_pw, $plain_pw)
 {
   if (empty ($stored_pw) || empty ($plain_pw))
     return false;
   if (strlen ($stored_pw) < 2) # Disabled account, for sure.
     return false;
-  return crypt ($plain_pw, $stored_pw) == $stored_pw;
+  return account_compare_hash (crypt ($plain_pw, $stored_pw), $stored_pw);
 }
 
 function account_key_separator ()

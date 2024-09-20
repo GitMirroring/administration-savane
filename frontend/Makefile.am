@@ -553,6 +553,7 @@ ordinary_files = \
   php/siteadmin/userlist.php \
   php/stats/index.php \
   php/testconfig.php \
+  php/testing/account.php \
   php/testing/error.php \
   php/testing/format_date.php \
   php/testing/gpg/ecc25519-pub.asc \
@@ -768,7 +769,7 @@ installcheck-local: $(installcheck_local_targets)
 
 installcheck-run-tests: ; \
   cd $(dest_dir)/php; \
-  for t in error format_date markup sane utils; do \
+  for t in account error format_date markup sane utils; do \
     res=`$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php \
       || echo Exit code of \
          \'$(PHP) -c $(DESTDIR)/$(confdir)/php.ini testing/$$t.php\' is $$?`; \
