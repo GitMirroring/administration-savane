@@ -141,4 +141,6 @@ $sys_debug_footer = true;
 # initialization settings may call for specific character sets when connecting
 # to the database.  In testconfig.php, a few values are tested if needed.
 $sys_dbcharset = 'utf8';
+# Number of rounds used to hash passwords.
+$sys_pw_rounds = 500000;
 ?>

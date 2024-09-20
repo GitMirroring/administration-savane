@@ -469,14 +469,40 @@ function account_genunixpw ($plainpw)
   return account_encryptpw ($plainpw);
 }
 
+function account_get_pw_rounds ()
+{
+  global $sys_pw_rounds;
+  if (empty ($sys_pw_rounds))
+    return 5000;
+  return $sys_pw_rounds;
+}
+
 function account_encryptpw ($plainpw)
 {
   $salt = account_gensalt (16);
   # rounds=5000 is the 2010 glibc default, possibly we'll upgrade in
   # the future, better have this explicit.
   # Cf. http://www.akkadia.org/drepper/sha-crypt.html
-  $pfx = '$6$rounds=5000$';
+  $pfx = '$6$rounds=' . account_get_pw_rounds () . '$';
   return crypt ($plainpw, "$pfx$salt");
+}
+
+function account_set_pw ($user_id, $plainpw, $more_fields = [])
+{
+  $params = $more_fields;
+  $params['user_pw'] = account_encryptpw ($plainpw);
+  return db_autoexecute (
+    'user', $params, DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
+  );
+}
+
+function account_upgrade_pw ($stored_pw, $plainpw, $user_id)
+{
+  if (!preg_match ('/[$]rounds=(\d+)[$]/', $stored_pw, $matches))
+    return;
+  if (account_get_pw_rounds () <= $matches[1])
+    return;
+  account_set_pw ($user_id, $plainpw);
 }
 
 function account_get_random_byte ()

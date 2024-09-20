@@ -843,7 +843,8 @@ function output_sysvars ()
     'gpg_name', 'gpg_home', 'graphviz',
     'etc_dir', 'incdir', 'upload_dir', 'url_topdir',
     'www_topdir', 'linguas', 'localedir',
-    'mail_admin', 'mail_domain', 'mail_replyto', 'name', 'reply_to',
+    'mail_admin', 'mail_domain', 'mail_replyto', 'name',
+    'pw_rounds', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_cgit', 'group_file', '!debug_footer'

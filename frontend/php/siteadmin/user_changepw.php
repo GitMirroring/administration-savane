@@ -91,9 +91,7 @@ print html_h (2, no_i18n ('Savannah Password Change'));
 if (validate_inputs ())
   {
     # If we got this far, it must be good.
-    db_autoexecute ('user', ['user_pw' => account_encryptpw ($form_pw)],
-      DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
-    );
+    account_set_pw ($user_id, $form_pw);
     print "<p>"
       . no_i18n ("Congratulations. You have managed to change this user's\n"
           . "password.")

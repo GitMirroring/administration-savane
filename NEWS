@@ -12,6 +12,9 @@
 
 [FRONTEND]
 
+* New savane.conf.php variable, $sys_pw_rounds.  The password hashes are
+  upgraded on log in.
+
 * The SQL queries are made ONLY_FULL_GROUP_BY-compliant.
 
 * Emails sent from Savane frontend can be GPG-signed, see

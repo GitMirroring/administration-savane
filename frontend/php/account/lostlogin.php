@@ -68,10 +68,7 @@ if ($update && $form_pw)
       fb (_("Passphrases do not match."), 1);
     elseif (account_pwvalid ($form_pw))
       {
-        db_autoexecute ('user',
-          ['user_pw' => account_encryptpw ($form_pw), 'confirm_hash' => null],
-          DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
-        );
+        account_set_pw ($user_id, $form_pw, ['confirm_hash' => null]);
         session_redirect ("{$sys_home}account/login.php");
       }
   }

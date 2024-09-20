@@ -154,6 +154,7 @@ function session_login_valid (
       fb (_('Invalid password'), 1);
       return false;
     }
+  account_upgrade_pw ($usr['user_pw'], $password, $usr['user_id']);
   session_set_new ($usr['user_id'], $cookie_for_a_year);
   return true;
 }

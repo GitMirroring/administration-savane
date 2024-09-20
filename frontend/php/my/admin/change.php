@@ -151,10 +151,7 @@ function update_password ()
 
   if (validate_pw_fields ($oldvalue, $newvalue, $newvaluecheck))
     return false;
-  $success = db_autoexecute (
-    'user', ['user_pw' => account_encryptpw ($newvalue)],
-     DB_AUTOQUERY_UPDATE, "user_id = ?", [user_getid ()]
-  );
+  $success = account_set_pw (user_getid (), $newvalue);
   if ($success)
     fb (_("Password updated."));
   else
