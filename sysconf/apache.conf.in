@@ -93,8 +93,12 @@ ServerName @WWW_SERVER_HOST@
   </Files>
   ErrorDocument 404 /404.php
 
-  # Restrict access into include/
+  # Restrict access into include/ and testing/
   <Directory "@frontenddir@/php/include/">
+    Require all denied
+  </Directory>
+
+  <Directory "@frontenddir@/php/testing/">
     Require all denied
   </Directory>
 
