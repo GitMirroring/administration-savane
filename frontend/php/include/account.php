@@ -469,21 +469,26 @@ function account_genunixpw ($plainpw)
   return account_encryptpw ($plainpw);
 }
 
-function account_get_pw_rounds ()
+function account_get_pw_rounds ($use_few_rounds = false)
 {
   global $sys_pw_rounds;
+  if ($use_few_rounds)
+    # When storing a random hash as opposed to a passphrase, the number
+    # of rounds doesn't matter because the search space is guaranteed to be
+    # large.  Use the minimum round number in such cases.
+    return 1000;
   if (empty ($sys_pw_rounds))
     return 5000;
   return $sys_pw_rounds;
 }
 
-function account_encryptpw ($plainpw)
+function account_encryptpw ($plainpw, $use_few_rounds = false)
 {
   $salt = account_gensalt (16);
   # rounds=5000 is the 2010 glibc default, possibly we'll upgrade in
   # the future, better have this explicit.
   # Cf. http://www.akkadia.org/drepper/sha-crypt.html
-  $pfx = '$6$rounds=' . account_get_pw_rounds () . '$';
+  $pfx = '$6$rounds=' . account_get_pw_rounds ($use_few_rounds) . '$';
   return crypt ($plainpw, "$pfx$salt");
 }
 
@@ -671,7 +676,7 @@ function account_generate_confirm_hash ($item, $params = [], $user_id = 0)
     $user_id = user_getid ();
   $s = CONFIRM_HASH_SEPARATOR;
   $confirm_hash = random_hash ();
-  $hash_enc = account_encryptpw ($confirm_hash);
+  $hash_enc = account_encryptpw ($confirm_hash, true);
   $params['confirm_hash'] = time () . "$s$item$s$hash_enc";
   $success = db_autoexecute ('user', $params,
     DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
