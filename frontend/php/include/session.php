@@ -320,34 +320,21 @@ function session_set_new_cookies ($user_id, $cookie_for_a_year = 0)
 function session_set ()
 {
   global $G_SESSION, $G_USER;
-
-  # Assume bad session_hash and session. If all checks work, then allow
-  # otherwise make new session.
-  $id_is_good = 0;
-
-  # Here also check for good hash, set if new session is needed.
   extract (sane_import ('cookie',
     ['hash' => 'session_hash', 'digits' => 'session_uid'])
   );
-  if ($session_hash && $session_uid)
-    {
-      $result = db_execute ("
-        SELECT * FROM session WHERE session_hash = ? AND user_id = ?",
-        [$session_hash, $session_uid]
-      );
-      $G_SESSION = db_fetch_array ($result);
+  if (!($session_hash && $session_uid))
+    return;
+  $result = db_execute (
+    "SELECT * FROM session WHERE session_hash = ? AND user_id = ?",
+    [$session_hash, $session_uid]
+  );
+  $G_SESSION = db_fetch_array ($result);
 
-      if (!empty ($G_SESSION['session_hash']))
-        $id_is_good = 1;
-    } # if ($session_hash && $session_uid)
-
-  if ($id_is_good)
-    session_setglobals ($G_SESSION['user_id']);
+  if (empty ($G_SESSION['session_hash']))
+    unset ($G_SESSION, $G_USER);
   else
-    {
-      unset ($G_SESSION);
-      unset ($G_USER);
-    }
+    session_setglobals ($G_SESSION['user_id']);
 }
 
 function session_count ($uid)
