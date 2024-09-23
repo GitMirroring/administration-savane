@@ -399,7 +399,7 @@ sub check_hash_time
   my ($user, $t) = @_;
   chomp ($user);
   my ($id, $name, $hash) = split (/,/, $user);
-  my ($t0, $func) = split (/#/, $hash);
+  my ($t0, $func) = split (/!/, $hash);
   # Leave the old versions of the hash format:
   return (0, 0) if $t0 eq $hash; # No separator at all.
   return (0, 0) unless $t0 =~ /^\d+$/; # The first field isn't a timestamp.
