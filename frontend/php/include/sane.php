@@ -252,7 +252,7 @@ $sane_sanitizers['preg'] = function ($in, &$out, $i, $arg)
 $sane_sanitizers['hash'] = function ($in, &$out, $i, $arg)
 {
   global $sane_sanitizers;
-  return $sane_sanitizers['preg'] ($in, $out, $i, '/^[a-f\d]+$/');
+  return $sane_sanitizers['preg'] ($in, $out, $i, '/^[a-f\d;]+$/');
 };
 
 $sane_sanitizers['path'] = function ($in,  &$out, $i, $arg)

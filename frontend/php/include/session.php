@@ -250,10 +250,39 @@ function session_setglobals ($user_id)
   $G_USER = user_get_array ($user_id);
 }
 
-# Try inserting new session hash in the table.  Return false if the hash already
-# exists; when $tries_left is zero, the error shows up in the browser and
-# terminates the further output (it would be more user-friendly to explain what
-# happened, but the event is unlikely enough to cut the corners).
+function session_hash_parts ($hash)
+{
+  if (preg_match ('/(.*;)(.*)/', $hash, $m))
+    return [$m[2], $m[1]];
+  return [$hash, null];
+}
+
+function session_fetch_data ($uid, $hash)
+{
+  list ($clean_hash, $param) = session_hash_parts ($hash);
+  if (empty ($param))
+    $param = $hash;
+  else
+    $param .= '%';
+  $res = db_execute (
+    'SELECT * FROM session WHERE user_id = ? AND session_hash LIKE ?',
+    [$uid, $param]
+  );
+  while ($row = db_fetch_array ($res))
+    if (session_valid_hash ($row['session_hash'], $clean_hash))
+      {
+        $row['hash_enc'] = $row['session_hash'];
+        $row['session_hash'] = $hash;
+        return $row;
+      }
+  return null;
+}
+
+# Try inserting a new session hash in the table.  Return null if the hash
+# already exists, and the new database row when the insert is successful;
+# when $tries_left is zero, the error shows up in the browser and terminates
+# the further output (it would be more user-friendly to explain what happened,
+# but the event is unlikely enough to cut the corners).
 function session_try_insert_hash ($user_id, $hash, $tries_left)
 {
   $vals = ['session_hash' => $hash, 'user_id' => $user_id,
@@ -265,7 +294,16 @@ function session_try_insert_hash ($user_id, $hash, $tries_left)
   $res = db_autoexecute ('session', $vals);
   db_query_prevent_die (false);
   utils_restore_warnings ($saved);
-  return !empty ($res);
+  if (empty ($res))
+    return null;
+  return $vals;
+}
+
+function session_generate_ticket ()
+{
+  $ret = microtime (true);
+  $ret -= floor ($ret);
+  return (int)($ret * 10000);
 }
 
 function session_generate_hash ($user_id)
@@ -274,11 +312,17 @@ function session_generate_hash ($user_id)
   while ($tries--)
     {
       $hash = random_hash ();
-      if (session_try_insert_hash ($user_id, $hash, $tries))
-        return db_execute (
-          'SELECT * FROM session WHERE session_hash = ?', [$hash]
-        );
-      trigger_error ("duplicate hash $hash detected, tries left: $tries");
+      $ticket = session_generate_ticket ();
+      $hhash = "$ticket;" . account_encryptpw ($hash, true);
+      $vals = session_try_insert_hash ($user_id, $hhash, $tries);
+      if (empty ($vals))
+        {
+          trigger_error ("duplicate hash $hhash detected, tries left: $tries");
+          continue;
+        }
+      $vals['hash_enc'] = $hhash;
+      $vals['session_hash'] = "$ticket;$hash";
+      return $vals;
     }
   return false;
 }
@@ -286,8 +330,9 @@ function session_generate_hash ($user_id)
 function session_set_new ($user_id, $cookie_for_a_year)
 {
   global $G_SESSION, $session_hash;
-  $res = session_generate_hash ($user_id);
-  $G_SESSION = db_fetch_array ($res);
+  $G_SESSION = session_generate_hash ($user_id);
+  if (empty ($G_SESSION))
+    return;
   session_setglobals ($G_SESSION['user_id']);
   $session_hash = $G_SESSION['session_hash'];
 
@@ -295,7 +340,7 @@ function session_set_new ($user_id, $cookie_for_a_year)
   # kill all other sessions.
   if (user_get_preference ("keep_only_one_session"))
     db_execute ("DELETE FROM session WHERE session_hash <> ? AND user_id = ?",
-      [$session_hash, $user_id]
+      [$G_SESSION['hash_enc'], $user_id]
     );
   session_set_new_cookies ($user_id, $cookie_for_a_year);
 }
@@ -325,11 +370,7 @@ function session_set ()
   );
   if (!($session_hash && $session_uid))
     return;
-  $result = db_execute (
-    "SELECT * FROM session WHERE session_hash = ? AND user_id = ?",
-    [$session_hash, $session_uid]
-  );
-  $G_SESSION = db_fetch_array ($result);
+  $G_SESSION = session_fetch_data ($session_uid, $session_hash);
 
   if (empty ($G_SESSION['session_hash']))
     unset ($G_SESSION, $G_USER);
@@ -344,21 +385,24 @@ function session_count ($uid)
   ));
 }
 
+function session_valid_hash ($stored_hash, $hash)
+{
+  list ($clean_hash, $ticket) = session_hash_parts ($stored_hash);
+  if (empty ($ticket))
+    return $hash === $stored_hash;
+  return account_validpw ($clean_hash, $hash);
+}
+
 function session_exists ($uid, $hash)
 {
-  $res = db_execute (
-    "SELECT NULL FROM session WHERE user_id = ?  AND session_hash = ?",
-    [$uid, $hash]
-  );
-  return db_numrows ($res) == 1;
+  return session_fetch_data ($uid, $hash) !== null;
 }
 
 function session_logout ()
 {
-  # If the session was validated, we can assume that the cookie session_hash
-  # is reliable.
-  extract (sane_import ('cookie', ['xdigits' => 'session_hash']));
-  db_execute ("DELETE FROM session WHERE session_hash = ?", [$session_hash]);
+  db_execute ("DELETE FROM session WHERE session_hash = ?",
+    [$GLOBALS['G_SESSION']['hash_enc']]
+  );
   session_delete_cookie ('redirect_to_https');
   session_delete_cookie ('session_hash');
   session_delete_cookie ('session_uid');

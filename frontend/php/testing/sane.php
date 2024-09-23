@@ -133,7 +133,7 @@ $reference = 'account/impersonate.php';
 
   test_sane_import ($in, $names, $out);
 
-  $in['session_hash'] = '9ad59d2d0703e7f015d54e725ce099fc1fd1433c';
+  $in['session_hash'] = '0289;9ad59d2d0703e7f015d54e725ce099fc1fd1433c';
   $out['session_hash'] = $in['session_hash'];
 
   test_sane_import ($in, $names, $out);
@@ -164,6 +164,13 @@ $reference = 'account/login.php';
   $in['brotherhood'] = false;
   test_sane_import ($in, $names, $out);
   $in['cookie_for_a_year'] = $out['cookie_for_a_year'] = 1;
+  test_sane_import ($in, $names, $out);
+  $names = ['digits' => 'session_uid', 'hash' => 'session_hash'];
+  $in = [
+    'session_uid' => 4913,
+    'session_hash' => '0289;9ad59d2d0703e7f015d54e725ce099fc1fd1433c'
+  ];
+  $out = $in;
   test_sane_import ($in, $names, $out);
 }
 
@@ -631,7 +638,7 @@ $reference = 'include/session.php';
   ];
 
   $in = [
-    'session_hash' => '0cc175b9c0f1b6a831c399e269772661',
+    'session_hash' => '4913;0cc175b9c0f1b6a831c399e269772661',
     'session_uid' => 83521
   ];
 
@@ -1518,7 +1525,7 @@ $reference = 'my/admin/change.php';
    'update' => true,
    'step' => 'discard',
    'test_gpg_key' => true,
-   'session_hash' => md5 (5),
+   'session_hash' => '4913;' . md5 (5),
    'confirm_hash' => md5 (6),
   ];
   test_sane_import ($in, $names, $out);
@@ -1598,18 +1605,15 @@ $reference = 'my/admin/sessions.php';
     'strings' => [['func', 'del']],
     'true' => 'dkeep_one',
     'digits' => 'dtime',
-    'preg' =>
-      [
-        ['dip_addr', ',^[[:xdigit:]./:]+$,'],
-        ['dsession_hash', '/^[a-f\d]+[.]{3}$/']
-      ],
+    'specialchars' => 'dsession_hash',
+    'preg' => [['dip_addr', ',^[[:xdigit:]./:]+$,']],
   ];
   $in = $out = [
     'dip_addr' => '127.0.0.1/24:5',
     'func' => 'del',
     'dkeep_one' => true,
     'dtime' => 1,
-    'dsession_hash' => substr (md5 (0), 0, 6) . "..."
+    'dsession_hash' => "..." . substr (md5 (0), -8)
   ];
   test_sane_import ($in, $names, $out);
   $in['dip_addr'] = $out['dip_addr'] = '2023:01:da8b:6fa1:b93c:f5b4:3593:26a2';

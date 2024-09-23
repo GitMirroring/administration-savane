@@ -77,7 +77,7 @@ function validate_login ($from_brother, $form_loginname, $form_pw)
   global $sesion_uid, $session_hash, $cookie_for_a_year;
   if ($from_brother)
     extract (sane_import ('get',
-      ['digits' => 'session_uid', 'xdigits' => 'session_hash']
+      ['digits' => 'session_uid', 'hash' => 'session_hash']
     ));
   if (isset ($session_uid) && session_exists ($session_uid, $session_hash))
     {

@@ -653,20 +653,28 @@ else
   }
 $page .= "</p>\n";
 
+function test_db_fields ($t, $field_func, &$defs)
+{
+  $tstruct = get_table_structure ($t);
+  foreach ($field_func as $f => $func)
+    if (is_array ($func))
+      $defs["$t.$f"] = $func[0] ($tstruct, $t, $f, $func[1]);
+    else
+      $defs["$t.$f"] = $func ($tstruct, $t, $f);
+}
+
 function test_db_structure ()
 {
   print html_h (2, 'Database structure');
   $defs = [];
-  $t = 'user';
-  $tstruct = get_table_structure ($t);
-  $f = 'gpg_key';
-  $defs["$t.$f"] = check_mediumtext ($tstruct, $t, $f);
-  $f = 'confirm_hash';
-  $defs["$t.$f"] = check_varchar ($tstruct, $t, $f);
-  $t = 'user_preferences';
-  $tstruct = get_table_structure ($t);
-  $f = 'preference_value';
-  $defs["$t.$f"] = check_mediumtext ($tstruct, $t, $f);
+  $table_fields = [
+    'user' =>
+      ['gpg_key' => 'check_mediumtext', 'confirm_hash' => 'check_varchar'],
+    'user_preferences' => ['preference_value' => 'check_mediumtext'],
+    'session' => ['session_hash' => 'check_varchar']
+  ];
+  foreach ($table_fields as $t => $field_func)
+    test_db_fields ($t, $field_func, $defs);
   print html_dl ($defs);
 }
 

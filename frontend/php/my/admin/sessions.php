@@ -50,11 +50,8 @@ extract (sane_import ('get',
     'strings' => [['func', 'del']],
     'true' => 'dkeep_one',
     'digits' => 'dtime',
-    'preg' =>
-      [
-        ['dip_addr', ',^[[:xdigit:]./:]+$,'],
-        ['dsession_hash', '/^[a-f\d]+[.]{3}$/']
-      ],
+    'specialchars' => 'dsession_hash',
+    'preg' => [['dip_addr', ',^[[:xdigit:]./:]+$,']],
   ]
 ));
 extract (sane_import ('cookie', ['hash' => 'session_hash']));
@@ -64,11 +61,10 @@ if ($func == 'del')
     if ($dsession_hash && $dip_addr && $dtime)
       {
         # Delete one session.
-        $dsession_hash = substr ($dsession_hash, 0, 6) . "%";
+        $dsession_hash = "%" . substr ($dsession_hash, 3);
         $res = db_execute ("
           DELETE FROM session
-          WHERE
-            session_hash like ? AND ip_addr = ?  AND time = ? AND user_id = ?
+          WHERE session_hash LIKE ? AND ip_addr = ? AND time = ? AND user_id = ?
           LIMIT 1", [$dsession_hash, $dip_addr, $dtime, user_getid ()]
         );
         if ($res)
@@ -82,7 +78,7 @@ if ($func == 'del')
         # Delete all sessions apart from the current one.
         $res = db_execute ("
           DELETE FROM session WHERE session_hash <> ? AND user_id = ?",
-          [$session_hash, user_getid ()]
+          [$G_SESSION['hash_enc'], user_getid ()]
         );
         if ($res)
           # TRANSLATORS: this is a report of a successful action.
@@ -103,40 +99,31 @@ if (db_numrows ($res) < 1)
 
 print $HTML->box_top (_("Opened Sessions"));
 $i = 0;
-while ($row = db_fetch_array ($res))
+list ($clean_hash) = session_hash_parts ($session_hash);
+for ($i = 0; $row = db_fetch_array ($res); $i++)
   {
-    $i++;
-    if ($i > 1)
+    if ($i)
       print $HTML->box_nextitem (utils_altrow ($i));
-
-    # We destroy a part of the session hash because in no case we want to
-    # provide in clear text that complete information that could be used
-    # for forgery (even if it is true that this page access is normally
-    # properly restricted).
-    $dsession_hash = substr($row['session_hash'], 0, 6) . "...";
-    # Do not incitate users to kill their own session.
+    $dsession_hash = "..." . substr ($row['session_hash'], -8);
     print '<span class="trash">';
-    if ($session_hash != $row['session_hash'])
+    if ($row['session_hash'] === $G_SESSION['hash_enc'])
+      print _("Current session") . ' ';
+    else
       print utils_link (
-        "$php_self?func=del&amp;dsession_hash=$dsession_hash&amp;dip_addr="
-        . $row['ip_addr'] . '&amp;dtime=' . $row['time'],
+        "$php_self?func=del&amp;dsession_hash=$dsession_hash&amp;"
+        . "dip_addr={$row['ip_addr']}&amp;dtime={$row['time']}",
         html_image_trash (['alt' => _("Kill this session")])
       );
-    else
-      print _("Current session").' ';
     print '</span>';
 
     # TRANSLATORS: The variables are session identifier, time, remote host.
     printf (_('Session %1$s opened on %2$s from %3$s'), $dsession_hash,
-      utils_format_date($row['time']), gethostbyaddr($row['ip_addr']));
+      utils_format_date ($row['time']), gethostbyaddr ($row['ip_addr']));
     print "<br />\n&nbsp;";
   }
 
-# Allow to kill sessions apart the current one,
-# if more than 3 sessions were counted (otherwise, it looks overkill).
 if ($i > 3)
   {
-    $i++;
     print $HTML->box_nextitem (utils_altrow ($i));
     print '<span class="trash">';
     print utils_link (

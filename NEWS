@@ -12,6 +12,11 @@
 
 [FRONTEND]
 
+* Session hash values are stored in the database after applying crypt() like
+  user.confirm_hash; `session`.`session_hash` is promoted from char(32)
+  to varchar(153), so read-only database access doesn't easily let the attacker
+  use the existing sessions to impersonate users any more.
+
 * New savane.conf.php variable, $sys_pw_rounds.  The password hashes are
   upgraded on log in.
 

@@ -1690,7 +1690,7 @@ DROP TABLE IF EXISTS `session`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `session` (
   `user_id` int(11) NOT NULL DEFAULT 0,
-  `session_hash` char(32) NOT NULL DEFAULT '',
+  `session_hash` varchar(153) NOT NULL DEFAULT '',
   `stay_in_ssl` int(1) NOT NULL DEFAULT 1,
   `ip_addr` char(39) NOT NULL DEFAULT '',
   `time` int(11) NOT NULL DEFAULT 0,
