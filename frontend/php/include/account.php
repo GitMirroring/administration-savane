@@ -636,7 +636,7 @@ function account_clear_confirm_hash ($name)
   );
 }
 
-define ('CONFIRM_HASH_SEPARATOR', ['!','#']);
+define ('CONFIRM_HASH_SEPARATOR', '!');
 
 # Exit if $confirm_hash and $item doesn't match the $uid's data from `user`.
 function account_validate_confirm_hash ($confirm_hash, $item, $uid = 0)
@@ -646,12 +646,7 @@ function account_validate_confirm_hash ($confirm_hash, $item, $uid = 0)
   $confirm_field = user_get_field ($uid, 'confirm_hash');
   if (empty ($confirm_field))
     exit_error (_("Invalid confirmation hash."));
-  foreach (CONFIRM_HASH_SEPARATOR as $s)
-    {
-      $ch = explode ($s, $confirm_field);
-      if (count ($ch) > 2)
-        break;
-    }
+  $ch = explode (CONFIRM_HASH_SEPARATOR, $confirm_field);
   if (count ($ch) <= 2)
     exit_error (_("Invalid confirmation hash."));
   while (count ($ch) > 2)
@@ -669,7 +664,7 @@ function account_generate_confirm_hash ($item, $params = [], $user_id = 0)
 {
   if (!$user_id)
     $user_id = user_getid ();
-  $s = CONFIRM_HASH_SEPARATOR[0];
+  $s = CONFIRM_HASH_SEPARATOR;
   $confirm_hash = random_hash ();
   $hash_enc = account_encryptpw ($confirm_hash);
   $params['confirm_hash'] = time () . "$s$item$s$hash_enc";
