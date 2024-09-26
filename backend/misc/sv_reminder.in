@@ -46,7 +46,6 @@ use Savane;
 use Savane::Util;
 use Getopt::Long;
 use Time::Local;
-use Date::Calc qw(Add_Delta_YMD);
 
 our $sys_name;
 our $sys_https_host;
@@ -114,39 +113,37 @@ sub decode_freq
 
 AcquireReplicationLock ();
 
-# List of users supposed to receive a batch.
-my %user;
-
-# items{user} = ("bugs,54212", "patch,1321")
+# $items{user} = ("bugs,54212", "patch,1321")
 my %items;
 
-# summary{"bugs,542"} = summary of the item.
+# $summary{"bugs,542"} = summary of the item.
 my %summary;
 
 # Determine the timestamp of one month ago, one week ago and one day ago.
-# With these, we'll run only 3 SQL command and find out which users need
-# to receive a bach.
 my $date0 = time;
-my $now = timelocal (localtime ($date0));
+my $now = $date0;
 
-sub date_before
+sub month_before
 {
-  my ($d0, $dd, $dm) = @_;
-  my ($sec, $mi, $h, $d, $m, $y) = localtime ($d0);
-  ($y, $m, $d) = Add_Delta_YMD ($y + 1900, $m + 1, $d, 0, -$dm, -$dd);
-  return timelocal ($sec, $mi, $h, $d, $m - 1, $y - 1900);
+  my ($sec, $mi, $h, $d, $m, $y) = gmtime (shift);
+  if (--$m < 0)
+    {
+      $m = 11;
+      $y--;
+    }
+  return timegm ($sec, $mi, $h, $d, $m, $y);
 }
 
 $date0 += 289; # Allow for differences in script launch time.
-my $daybefore = date_before ($date0, 1, 0);
-my $weekbefore = date_before ($date0, 7, 0);
-my $monthbefore = date_before ($date0, 0, 1);
+my $daybefore = $date0 - 24 * 3600;
+my $weekbefore = $date0 - 7 * 24 * 3600;
+my $monthbefore = month_before ($date0);
 
 print_log ("time before: day $daybefore, week $weekbefore; month $monthbefore")
   if $verbose;
 
-print_log ("date before: day " . localtime ($daybefore)
-  . ", week " . localtime ($weekbefore) . ", month " . localtime ($monthbefore)
+print_log ("date before: day " . gmtime ($daybefore)
+  . ", week " . gmtime ($weekbefore) . ", month " . gmtime ($monthbefore)
 ) if $verbose;
 
 my %user_frequency;
@@ -227,7 +224,7 @@ foreach my $line
     chomp ($line);
     my ($id, $lastsent) = split (",", $line);
     $last_sent{$id} = $lastsent;
-    print_log ("last sent (user #$id): " . localtime ($lastsent)) if $verbose;
+    print_log ("last sent (user #$id): " . gmtime ($lastsent)) if $verbose;
     clear_preferences ($id)
       unless (exists $user_frequency{$id} && $user_frequency{$id});
     $user_frequency{$id} = 0
@@ -249,7 +246,7 @@ foreach my $user_id (keys %user_names)
     next unless $user_frequency{$user_id};
     my $lastsent = "never sent";
     my $batch = decode_freq ($user_frequency{$user_id});
-    $lastsent = "last sent " . localtime $last_sent{$user_id}
+    $lastsent = "last sent " . gmtime ($last_sent{$user_id})
       if exists $last_sent{$user_id};
     push (@user_case2, $user_id);
     print_log ("case2 for $batch batch: user #$user_id, $lastsent")

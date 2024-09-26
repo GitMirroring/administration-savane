@@ -127,8 +127,6 @@ Run Time
 ** DBI (libdbi-perl in Trisquel)
 ** DBD::mysql (libdbd-mysql-perl, depends on libdbi-perl in Trisquel)
 ** Mail::Send (libmailtools-perl in Trisquel)
-** Date::Calc (libdate-calc-perl in Trisquel)
-** Digest::MD5 (in an unmaintained test suite)
 ** Geo::IP (libgeo-ip-perl, geoip-database in Trisquel) - mirror-redirect
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
