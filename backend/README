@@ -51,12 +51,13 @@ accounts/sv_membersh
 ====================
 
 Restricted shell provided to Savane users who connect through SSH.
-Used on download0, vcs0, vcs1, vcs2.
+Used on download0.
 
 external/mirror-redirect
 ========================
 
 A URL mirror redirector for "download" and "ftpmirror" servers.
+Used on download0.
 
 extra/git/sv_cgit_about_filter.pl
 =================================
@@ -143,10 +144,19 @@ Runs Apache and a local web server on top it.
 sbin/sv_kill_db.pl
 ==================
 
-Kills database server launched with sbin/sv_launch_db.pl
+Kills database server launched with sbin/sv_launch_db.pl.
 
 sbin/sv_launch_db.pl
 ====================
 
 Runs an instance of database server specifically for its Savane
 installation.
+
+sbin/sv_php_server.pl
+=====================
+
+Runs the PHP built-in server specifically for its Savane installation.
+This script has an option to specify the PHP binary to use, so
+it can be used to test various PHP versions without the need to
+re-install Savane; however, the PHP built-in server is only suitable
+for testing.
