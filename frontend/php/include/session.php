@@ -261,12 +261,10 @@ function session_fetch_data ($uid, $hash)
 {
   list ($clean_hash, $param) = session_hash_parts ($hash);
   if (empty ($param))
-    $param = $hash;
-  else
-    $param .= '%';
+    return null;
   $res = db_execute (
     'SELECT * FROM session WHERE user_id = ? AND session_hash LIKE ?',
-    [$uid, $param]
+    [$uid, "$param%"]
   );
   while ($row = db_fetch_array ($res))
     if (session_valid_hash ($row['session_hash'], $clean_hash))
@@ -388,8 +386,6 @@ function session_count ($uid)
 function session_valid_hash ($stored_hash, $hash)
 {
   list ($clean_hash, $ticket) = session_hash_parts ($stored_hash);
-  if (empty ($ticket))
-    return $hash === $stored_hash;
   return account_validpw ($clean_hash, $hash);
 }
 
