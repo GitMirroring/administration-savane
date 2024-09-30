@@ -28,8 +28,8 @@ the number of the item, like
   > {savane: user = 83521; tracker = task; item = 4913}
 
 For the request to be accepted, this info should be present in your message.
-The PHP code ignores anything that's written below that line,
-and it also removes the quoted Savane footer, 'Reply to this item&c.'
+The PHP code ignores anything that's written below that line, and it also
+removes the quoted Savane footer, 'To reply to this notification&c.'
 Other text is used as the comment.
 
 For basic troubleshooting, you can visit /$tracker/comment.php and fill

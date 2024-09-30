@@ -95,7 +95,7 @@ function trim_message ($msg)
 {
   return preg_replace (
     "/\n[^\n]*_____________________*\s*\n"
-    . "([^\n]*\n)?[^\n]*Reply to this item at:.*$/s",
+    . "([^\n]*\n)?[^\n]*To reply to this notification,.*$/s",
     '', $msg
   );
 }
