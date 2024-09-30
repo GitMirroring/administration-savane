@@ -11,6 +11,22 @@ data into a HTTP request to $SERVER_URL/$tracker/comment.php.  Then
 comment.php validates the request and adds a comment to the tracker
 in case of success.
 
+Note that Savane sends personal notifications to specific users in the next
+cases.
+
+* The user submitted the item or contributed to it; then the user
+  is automatically added to the CC list of the item before the notification
+  on the update or on the new item is sent.
+* The user has been explicitly added to the CC list of the item, either
+  as the login name or as the numeric user ID.
+* The user is listed in the tracker CC list in the preferences of the group,
+  either as the login name or as the numeric user ID.
+
+When the accumulated CC list of the item contains an email address
+(as opposed to Savane account references), the Savane account isn't
+defined, so Savane sends notifications to such addresses without
+the data for replying by email.
+
 = Users' perspective
 
 Savane accepts messages signed with any of the GnuPG keys registered
@@ -41,7 +57,7 @@ Note that the script checks whether the user has already added the same
 comment in that item, and rejects duplicate comments, so an intercepted
 message can't be used to add more comments signed by the user.
 
-= Savane admin's perspective
+= Savane admins' perspective
 
 In order to enable the feature savane.conf.php should configure a template
 for the reply-to address, like
