@@ -2070,6 +2070,8 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   $insert_fields['details'] = utils_specialchars ($vfl['details']);
   $insert_fields['spamscore'] = $spamscore;
   $insert_fields['ip'] = '127.0.0.1';
+  for ($i = 1; $i <= 10; $i++)
+    $insert_fields["custom_ta$i"] = '';
 
   # Actually insert the entry.
   $result = db_autoexecute (ARTIFACT, $insert_fields, DB_AUTOQUERY_INSERT);

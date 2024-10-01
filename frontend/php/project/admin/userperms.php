@@ -343,13 +343,14 @@ function group_field_reference ()
   return $reference;
 }
 
-function no_group_changes (&$fields)
+function no_group_changes (&$fields, &$reference)
 {
-  $reference = group_field_reference ();
+  $f = $fields;
+  foreach ($f as $k => $v)
+    if ($v === 'NULL')
+      $fields[$k] = 0;
   foreach ($fields as $k => $v)
     {
-      if ($v === 'NULL')
-        $v = 0;
       if (!array_key_exists ($k, $reference))
         $reference[$k] = 0;
       if ($v != $reference[$k])
@@ -360,7 +361,8 @@ function no_group_changes (&$fields)
 
 function update_group (&$fields, $group_id, $titles)
 {
-  if (no_group_changes ($fields))
+  $reference = group_field_reference ();
+  if (no_group_changes ($fields, $reference))
     return;
   $result = db_autoexecute ('groups_default_permissions',
     $fields, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]

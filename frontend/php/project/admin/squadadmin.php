@@ -279,7 +279,7 @@ function create_squad (&$form_loginname, &$form_realname, $group)
     'user',
     [
       'user_name' => strtolower ($group . "-" . $form_loginname),
-      'user_pw' => '!', 'realname' => $form_realname,
+      'user_pw' => '!', 'realname' => $form_realname, 'people_resume' => '',
       'email' => "{$sys_mail_replyto}@{$sys_mail_domain}",
       'add_date' => time (), 'status' => USER_STATUS_SQUAD, 'email_hide' => 1,
     ],
