@@ -74,10 +74,11 @@ function wash_user ()
 
 function format_user_data ($entry, $i)
 {
-  global $php_self;
+  global $php_self, $sys_home;
+  $url = "{$sys_home}siteadmin/usergroup.php?user_id={$entry['user_id']}";
 
   return '<td>'
-    . utils_user_link ($entry['user_name'], $entry['realname'])
+    . utils_link ($url, "{$entry['realname']} &lt;{$entry['user_name']}&gt;")
     . "</td>\n<td class='center'>{$entry['spamscore']}</td>\n"
     . "</td>\n<td class='center'>"
     . utils_link ("$php_self?wash_user_id={$entry['user_id']}#users_results",
