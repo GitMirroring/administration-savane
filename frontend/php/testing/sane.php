@@ -2212,11 +2212,9 @@ $reference = 'siteadmin/index.php';
 $reference = 'siteadmin/spamlist.php';
 {
   $names = [
-    'digits' => ['ban_user_id', 'wash_user_id', 'max_rows', 'offset']
+    'digits' => ['wash_user_id', 'max_rows', 'offset']
   ];
-  $in = $out = [
-    'ban_user_id' => 1, 'wash_user_id' => 2, 'max_rows' => 3, 'offset' => 4
-  ];
+  $in = $out = ['wash_user_id' => 2, 'max_rows' => 3, 'offset' => 4];
   test_sane_import ($in, $names, $out);
 }
 

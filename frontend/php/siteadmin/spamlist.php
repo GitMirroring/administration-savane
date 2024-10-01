@@ -49,16 +49,8 @@ session_require (['group' => '1', 'admin_flags' => 'A']);
 # for Savannah admins who use English.
 
 extract (sane_import ('get',
-  ['digits' => ['ban_user_id', 'wash_user_id', 'max_rows', 'offset']]
+  ['digits' => ['wash_user_id', 'max_rows', 'offset']]
 ));
-
-if ($ban_user_id)
-  {
-    if (!user_exists ($ban_user_id))
-      fb (sprintf (no_i18n ("User #%s not found."), $ban_user_id), 1);
-    else
-      user_delete ($ban_user_id);
-  }
 
 if ($wash_user_id)
   {
@@ -86,25 +78,17 @@ site_admin_header (
   ['title' => no_i18n ("Monitor Spam"), 'context' => 'admhome']
 );
 
-print '<h2>' . html_anchor (no_i18n ("Suspected users"), "users_results")
-  . "</h2>\n<p>"
+print html_h (2, html_anchor (no_i18n ("Suspected users"), "users_results"))
+  . "<p>"
   . no_i18n (
       "Follow the list of users that post comments that as been flagged\n"
-      . "as spam.  You can remove accounts if their users are obvious\n"
-      . "spammers.  If the comment was flagged by mistake,\n"
-      . "you can wash user's reputation."
+      . "as spam."
     )
-  . ' <span class="warn">'
-  . no_i18n (
-      "Removed accounts can't be undeleted.  Be careful.\n"
-      . "For efficiency purpose, there won't be any warnings."
-    )
-  . "</span></p>\n";
+  . "</p>\n";
 
 $title_arr = [
-  no_i18n ("User"), no_i18n ("Score"), no_i18n ("Remove"),
-  no_i18n ("Wash score"), no_i18n ("Incriminated posts"),
-  no_i18n ("Flagged by")
+  no_i18n ("User"), no_i18n ("Score"), no_i18n ("Wash score"),
+  no_i18n ("Incriminated posts"), no_i18n ("Flagged by")
 ];
 
 if (empty ($max_rows))
@@ -177,11 +161,6 @@ while ($entry = db_fetch_array ($result))
     print '<td width="25%">'
       . utils_user_link ($entry['user_name'], $entry['realname'])
       . "</td>\n<td width='5%' class='center'>{$entry['spamscore']}</td>\n"
-      . '<td width="5%" class="center">'
-      . utils_link (
-         "$php_self?ban_user_id=" . $entry['user_id'] . '#users_results',
-         html_image_trash (['alt' =>  no_i18n ("Remove")])
-        )
       . "</td>\n<td width='5%' class='center'>"
       . utils_link ("$php_self?wash_user_id={$entry['user_id']}#users_results",
           html_image ('bool/ok.png', ['alt=' => no_i18n ("Wash score")])
