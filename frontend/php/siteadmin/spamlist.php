@@ -109,7 +109,8 @@ function get_incriminated_posts ($user_id)
         $sys_home . $ent['artifact'] . '/?item_id=' . $ent['item_id']
         . '&amp;func=viewspam&amp;comment_internal_id='
         . $ent['comment_id'] . '#spam' . $ent['comment_id'],
-        no_i18n ("here")
+        utils_get_tracker_prefix ($ent['artifact']) . " #" . $ent['item_id']
+        . "(" . $ent['comment_id'] . ")"
       );
     }
   return [array_keys ($flagged_by), $incriminated_posts];
