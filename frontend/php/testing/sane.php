@@ -778,18 +778,7 @@ $reference = 'include/trackers/data.php';
 
 $reference = 'include/trackers/format.php';
 {
-  $names = [
-    'strings' => [
-      [
-        'func',
-        [
-         'flagspam', 'unflagspam', 'viewspam', 'delete_file',
-         'delete_cc'
-        ]
-      ]
-    ],
-    'digits' => 'comment_internal_id'
-  ];
+  $names = ['digits' => 'comment_internal_id', 'funcs' => 'func'];
   $in = [
     'func' => 'viewspam',
     'comment_internal_id' => 23

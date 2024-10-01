@@ -1158,7 +1158,7 @@ function trackers_data_get_followups ($item_id)
             AND f.field_name = 'comment_type_id'
         ) fv
         ON bhi.type = fv.value_id AND bhi.grp = fv.group_id
-      ORDER BY date", [$item_id]
+      ORDER BY bug_history_id", [$item_id]
     );
 }
 

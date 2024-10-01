@@ -140,6 +140,11 @@
 
 ** In php/include/trackers_run/mod.php, the roles weren't displayed correctly.
 
+** In php/include/trackers_run/mod.php, the latest assignee's comment wasn't
+   highlighted correctly depending on the comment display order.  The 'Flag spam'
+   and 'Unflag spam' links directed to the previous and following comments
+   that may not exist.
+
 [BACKEND]
 
 * In sv_cleaner, look for a longer period when deleting idle accounts

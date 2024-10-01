@@ -73,15 +73,13 @@ function format_entry ($entry, &$hist_id, $preview = false)
 function format_fetch_details ($item_id, $preview)
 {
   $max_entries = $hist_id = 0;
-
-  # Get original submission.
   $result = db_execute ("
     SELECT submitted_by, date, details, spamscore
-    FROM " . ARTIFACT . " WHERE bug_id = ?  LIMIT 1", [$item_id]
+    FROM " . ARTIFACT . " WHERE bug_id = ? LIMIT 1", [$item_id]
   );
   $data = [format_entry (db_fetch_array ($result), $hist_id)];
 
-  # Get comments (the spam is included to preserve comment No).
+  # Get comments (spam is included to preserve comment No).
   $result = trackers_data_get_followups ($item_id);
   while ($entry = db_fetch_array ($result))
     {
@@ -96,27 +94,281 @@ function format_fetch_details ($item_id, $preview)
   return [$data, $max_entries, $hist_id];
 }
 
-function format_import_detail_params ()
+# Sort entries according to user config.
+function format_enforce_comment_order (&$data, $ascii)
 {
-  $out = sane_import ('get',
-    [
-      'strings' => [
-        [
-          'func',
-          ['flagspam', 'unflagspam', 'viewspam', 'delete_file', 'delete_cc']
-        ]
-      ],
-      'digits' => 'comment_internal_id'
-    ]
+  global $reverse_comment_order;
+  $comment_order = user_get_preference ("reverse_comments_order");
+  if ($reverse_comment_order)
+    $comment_order = !$comment_order;
+  if ($ascii || !$comment_order)
+    $data = array_reverse ($data, true);
+  reset ($data);
+  return $comment_order;
+}
+
+# Highlight the latest comment of the assignees, icon for assignees,
+# other cosmetics.
+function format_mark_assignees (&$data, $item_assigned_to, $group_id)
+{
+  extract (sane_import ('get', ['funcs' => 'func']));
+  $assignees_id = format_details_assignees ($item_assigned_to, $group_id);
+  $img = html_image (
+    "roles/assignee.png", ['title' => _("In charge of this item.")]
   );
-  $ret = [];
-  foreach (['func', 'comment_internal_id'] as $k)
+  for ($i = count ($data) - 1; $i >= 0; $i--)
     {
-      if (empty ($out[$k]))
-        $out[$k] = 0;
-      $ret[] = $out[$k];
+      $uid = $data[$i]['user_id'];
+      $data[$i]['assignee_mark'] = '';
+      $data[$i]['class'] = utils_altrow ($i);
+      if ($uid === 100 || empty ($assignees_id[$uid]))
+        continue;
+      if (empty ($have_highlighted))
+        $data[$i]['class'] = 'boxhighlight';
+      $have_highlighted = true;
+      $data[$i]['assignee_mark'] = $img;
     }
+  if ($data[0]['is_spam'] && (empty ($func) || $func !== "flagspam"))
+    fb (_("This item has been reported to be a spam"), 1);
+}
+
+function format_comment_type ($entry, $ascii)
+{
+  $ret = null;
+  if (isset ($entry['comment_type']) && $entry['comment_type'] !== 'None')
+    $ret = $entry['comment_type'];
+  if (empty ($ret))
+    return '';
+  $ret = "[$ret]";
+  if (!$ascii)
+    $ret = "<b>$ret</b>";
   return $ret;
+}
+
+function format_mark_data (&$data, $item_assigned_to, $group_id, $ascii)
+{
+  $logged_in = user_isloggedin ();
+  $uid = user_getid ();
+  for ($i = count ($data) - 1; $i >= 0; $i--)
+    {
+      $user_id = $data[$i]['user_id'];
+      $data[$i]['is_spam'] = $data[$i]['spamscore'] > 4;
+      $data[$i]['comment_type'] = format_comment_type ($data[$i], $ascii);
+      if ($ascii)
+        continue;
+      $score = sprintf (_("Current spam score: %s"), $data[$i]['spamscore']);
+      $data[$i]['score'] = "title=\"$score\"";
+      $data[$i]['own_post'] =  $logged_in && $uid == $user_id;
+      $markup_func = $i? 'markup_rich': 'markup_full';
+      $data[$i]['html'] = $markup_func ($data[$i]['text']);
+      $data[$i]['icon'] = format_member_icon_img ($user_id, $group_id);
+    }
+  if (!$ascii)
+    format_mark_assignees ($data, $item_assigned_to, $group_id);
+}
+
+function format_set_comment_ids (&$data, $item_id, $ascii)
+{
+  if ($ascii)
+    return;
+  extract (sane_import ('get',
+    ['digits' => 'comment_internal_id', 'funcs' => 'func']
+  ));
+  foreach (['func', 'comment_internal_id'] as $k)
+    if (empty ($$k))
+      $$k = 0;
+  foreach (array_keys ($data) as $k)
+    {
+      $int_id = $data[$k]['int_id'] = $data[$k]['comment_internal_id'];
+      $data[$k]['comment_ids'] =
+        "&amp;item_id=$item_id&amp;comment_internal_id=$int_id";
+      $data[$k]['viewspam'] = $data[$k]['own_post']
+        || ($func === 'viewspam' && $comment_internal_id == $int_id);
+      list ($data[$k]['user_link'], $data[$k]['spam_title'])
+        = format_poster_name ($data[$k]);
+    }
+}
+
+function format_comment_ascii ($entry)
+{
+  if ($entry['is_spam'])
+    # In ascii output, always ignore spam.
+    return '';
+  $out = "\n-------------------------------------------------------\n";
+  $date = utils_format_date ($entry['date']);
+  if ($entry['realname'])
+    $name = "{$entry['realname']} <{$entry['user_name']}>";
+  else
+    $name = "Anonymous";
+  $out .= sprintf ("Date: %-30s By: %s\n", $date, $name);
+  $out .= $entry['comment_type'];
+  if ($entry['comment_type'])
+    $out .= "\n";
+  return $out . markup_ascii ($entry['text']) . "\n";
+}
+
+function format_details_header ($ascii)
+{
+  if ($ascii)
+    return "    _______________________________________________________\n\n"
+      . "Follow-up Comments:\n\n";
+  return html_build_list_table_top ([]);
+}
+
+# Find how to which users the item was assigned to: if it is squad, several
+# users may be assignees.
+function format_details_assignees ($item_assigned_to, $group_id)
+{
+  $assignee_id = user_getid ($item_assigned_to);
+  $assignees_id = [$assignee_id => true];
+  if (!member_check_squad ($assignee_id, $group_id))
+    return $assignees_id;
+  $res = db_execute (
+    "SELECT user_id FROM user_squad WHERE squad_id = ? and group_id = ?",
+    [$assignee_id, $group_id]
+  );
+  while ($row = db_fetch_array ($res))
+    $assignees_id[$row['user_id']] = true;
+  return $assignees_id;
+}
+
+# Cosmetics if the user is group member (we shan't go as far
+# as presenting a different icon for specific roles, like manager).
+function format_member_icon ($poster_id, $group_id)
+{
+  if ($poster_id == 100)
+    return ['', ''];
+  if (member_check ($poster_id, $group_id, 'A'))
+    {
+      if ($group_id == $GLOBALS['sys_group_id'])
+        return ["site-admin", _("Site Administrator")];
+      return ["project-admin", _("Group administrator")];
+    }
+  if (member_check ($poster_id, $group_id))
+    # Plain group member.
+    return ["project-member", _("Group Member")];
+  return ['', ''];
+}
+
+function format_member_icon_img ($poster_id, $group_id)
+{
+  list ($icon, $icon_alt) = format_member_icon ($poster_id, $group_id);
+  if (empty ($icon))
+     return '';
+  return "<br />\n<span class='help'>"
+    . html_image ("roles/$icon.png", ['alt' => $icon_alt])
+    . '</span>';
+}
+
+function format_quote_button ($allow_quote, $comment_number)
+{
+  if (!$allow_quote)
+    return '';
+  return "<button name='quote_no' value='$comment_number'>"
+    . _('Quote') . "</button>";
+}
+
+function format_comment_title ($entry, $comment_number, $allow_quote)
+{
+  $ret = "<td valign='top'>\n";
+  if ($entry['preview'])
+    $ret .= "<p><b>" . _("This is a preview") . "</b></p>\n";
+  $ret .= "<a id='comment$comment_number' href='#comment$comment_number' "
+    . "class='preinput'>\n" . utils_format_date($entry['date']) . ', ';
+  if ($comment_number > 0)
+    $ret .= sprintf (_("comment #%s:"), $comment_number);
+  else
+    {
+      $msg = _("original submission:");
+      if (ARTIFACT == "cookbook")
+        $msg = _("recipe preview:");
+      $ret .= "<b>$msg</b>\n";
+    }
+  $ret .= "</a>&nbsp;";
+  return $ret . format_quote_button ($allow_quote, $comment_number);
+}
+
+function format_poster_name ($entry)
+{
+  $link_user_name = $spammer_user_name = $entry['user_name'];
+  if ($entry['user_id'] == 100)
+    {
+      $spammer_user_name = _("anonymous");
+      $link_user_name = null;
+    }
+  $user_link = utils_user_link ($link_user_name, $entry['realname']);
+  $spam_title = sprintf (_("Spam posted by %s"), $spammer_user_name);
+  return [$user_link, $spam_title];
+}
+
+function format_detail_url_start ()
+{
+  return $GLOBALS['php_self'] . '?func=';
+}
+
+function format_spam_hidden ($entry)
+{
+  $url_start = format_detail_url_start ();
+  return "\n<tr class=\"{$entry['class']}extra\">"
+    . "<td class='xsmall'>&nbsp;</td>\n"
+    . "<td class='xsmall'><a {$entry['score']} href=\"$url_start"
+    . "viewspam{$entry['comment_ids']}#spam{$entry['int_id']}\">"
+    . $entry['spam_title'] . "</a></td></tr>\n";
+}
+
+function format_spam_foreword ($class)
+{
+  return "\n<tr class=\"$class\">\n"
+    . "<td valign='top'>\n<span class='warn'>("
+    . _("Why is this post is considered to be spam? Users may have "
+        . "reported it to be\nspam or, if it has been recently posted, "
+        . "it may just be waiting for spamchecks\nto be run.")
+    . ")</span><br />\n";
+}
+
+function format_spam_text ($entry, $comment_no, $is_admin)
+{
+  if (!$entry['is_spam'])
+    return '';
+  if (!$entry['viewspam'])
+     return format_spam_hidden ($entry);
+  $url_start = format_detail_url_start ();
+  $ret = format_spam_foreword ($entry['class']);
+  # The admin and the submitter may actually see the incriminated item.
+  if ($entry['own_post'] || $is_admin)
+    $ret .=  $entry['html'];
+  $ret .= "<br />\n<br /></td>\n<td class=\"{$entry['class']}extra\" "
+    . "id=\"spam{$entry['int_id']}\">\n{$entry['user_link']}<br />\n";
+
+  if ($is_admin)
+    $ret .= "\n<br /><br /><a {$entry['score']} href=\"$url_start"
+      . "unflagspam{$entry['comment_ids']}#comment$comment_no\">"
+      . html_image ("bool/ok.png", ['class' => 'icon'])
+      . _("Unflag as spam") . '</a>';
+  return "$ret</td></tr>\n";
+}
+
+function format_flag_as_spam ($entry, $comment_no)
+{
+  # Allow non-anonymous users to mark spam of non-members except themselves.
+  if (!user_isloggedin () || $entry['icon'] !== '' || $entry['own_post'])
+    return '';
+  $url_start = format_detail_url_start ();
+  # Surround by two line breaks, to keep that link clearly
+  # separated from anything else, to avoid clicks by error.
+  $sep = "<br /><br />\n";
+  return "$sep<a {$entry['score']} href=\"$url_start"
+    . "flagspam{$entry['comment_ids']}#comment$comment_no\">"
+    . html_image_trash (['class' => 'icon']) . _("Flag as spam") . "</a>$sep";
+}
+
+function format_comment_body ($entry, $comment_no)
+{
+  return "<br />\n{$entry['comment_type']}"
+    . "<div class='tracker_comment'>{$entry['html']}</div>\n</td>\n"
+    . "<td class=\"{$entry['class']}extra\">"
+    . $entry['user_link'] . $entry['icon'] . $entry['assignee_mark']
+    . format_flag_as_spam ($entry, $comment_no) . '</td>';
 }
 
 function format_details (
@@ -124,258 +376,29 @@ function format_details (
   $preview = [], $allow_quote = true
 )
 {
-  global $reverse_comment_order;
   list ($data, $max_entries, $hist_id) =
     format_fetch_details ($item_id, $preview);
-
-  # Sort entries according to user config.
-  $comment_order = user_get_preference ("reverse_comments_order");
-  if ($reverse_comment_order)
-    $comment_order = !$comment_order;
-  if (!$ascii && $comment_order)
-    ksort ($data);
-  else
-    krsort ($data);
-
-  $out = '';
-  if ($ascii)
-    $out .= "    _______________________________________________________\n\n"
-      . "Follow-up Comments:\n\n";
-  else
-    $out .= html_build_list_table_top ([]);
-
-  # Find how to which users the item was assigned to: if it is squad, several
-  # users may be assignees.
-  $assignee_id = user_getid ($item_assigned_to);
-  $assignees_id = [$assignee_id => true];
-  if (member_check_squad ($assignee_id, $group_id))
-    {
-      $result_assignee_squad = db_execute("
-        SELECT user_id FROM user_squad WHERE squad_id = ? and group_id = ?",
-        [$assignee_id, $group_id]
-      );
-      while ($row_assignee_squad = db_fetch_array ($result_assignee_squad))
-        $assignees_id[$row_assignee_squad['user_id']] = true;
-    }
-
-  # Loop through the follow-up comments and format them.
-  reset ($data);
-  $i = 0; # Comment counter.
-  $j = 0; # Counter for background color.
-  $previous = false;
+  format_mark_data ($data, $item_assigned_to, $group_id, $ascii);
+  format_set_comment_ids ($data, $item_id, $ascii);
+  $comment_order = format_enforce_comment_order ($data, $ascii);
+  $out = format_details_header ($ascii);
   $is_admin = member_check (0, $group_id, 'A');
-  list ($func, $comment_internal_id) = format_import_detail_params ();
-  foreach ($data as $entry)
+  foreach ($data as $i => $entry)
     {
-      # Ignore if found an entry without date (should not happen).
-      if ($entry['date'] < 1)
-        continue;
-
-      # Determine if it is a spam.
-      $is_spam = false;
-      if ($entry['spamscore'] > 4)
-        $is_spam = true;
-
-      # In ascii output, always ignore spam.
-      if ($ascii && $is_spam)
-        continue;
-
-      $score = sprintf (_("Current spam score: %s"), $entry['spamscore']);
-      $score = "title=\"$score\"";
-      $int_id = $entry['comment_internal_id'];
-      $comment_ids = "&amp;item_id=$item_id&amp;comment_internal_id=$int_id";
-      $url_start = "{$GLOBALS['php_self']}?func=";
-      $class = utils_altrow (++$j);
-
-      # Find out what would be this comment number.
-      if ($comment_order)
-        $comment_number = $i;
-      else
-        $comment_number = ($max_entries - $i);
-      $i++;
-
-      # Full markup only for original submission.
-      if ($comment_number < 1)
-        $markedup_text = markup_full ($entry['text']);
-      else
-        $markedup_text = markup_rich ($entry['text']);
-      $link_user_name = $spammer_user_name = $entry['user_name'];
-      if ($entry['user_id'] == 100)
-        {
-          $spammer_user_name = _("anonymous");
-          $link_user_name = null;
-        }
-      $user_link = utils_user_link ($link_user_name, $entry['realname']);
-      if ($is_spam)
-        {
-          # If we are dealing with the original submission put a feedback
-          # warning (not if the item was just flagged).
-          if ($entry['comment_internal_id'] < 1 && $func != "flagspam")
-            fb (_("This item has been reported to be a spam"), 1);
-
-          $own_post = user_isloggedin () && user_getid () == $entry['user_id'];
-
-          # The admin may actually want to see the incriminated item.
-          # The submitter too.
-          if (($func == "viewspam" && $comment_internal_id == $int_id)
-              || $own_post)
-            {
-              $out .= "\n<tr class=\"$class\">\n"
-                . "<td valign='top'>\n<span class='warn'>("
-                . _("Why is this post is considered to be spam? "
-                    . "Users may have reported it to be\nspam or, if it has "
-                    . "been recently posted, it may just be waiting for "
-                    . "spamchecks\nto be run.")
-                . ")</span><br />\n";
-              if ($own_post || $is_admin)
-                $out .=  $markedup_text;
-              $out .= "<br />\n<br /></td>\n<td class=\"{$class}extra\" "
-                . "id=\"spam{$int_id}\">\n$user_link<br />\n";
-
-              if ($is_admin)
-                {
-                  $cn = $comment_number + 1;
-                  $out .= "\n<br /><br />(<a $score href=\"$url_start"
-                    . "unflagspam$comment_ids#comment$cn\">"
-                    . html_image ("bool/ok.png", ['class' => 'icon'])
-                    . _("Unflag as spam") . '</a>)';
-                }
-              $out .= "</td></tr>\n";
-            }
-          else
-            $out .= "\n<tr class=\"{$class}extra\">"
-              . "<td class='xsmall'>&nbsp;</td>\n"
-              . "<td class='xsmall'><a $score href=\"$url_start"
-              . "viewspam$comment_ids#spam$int_id\">"
-              . sprintf (_("Spam posted by %s"), $spammer_user_name)
-              . "</a></td></tr>\n";
-          continue;
-        } # if ($is_spam)
-
-      $comment_type = null;
-      if (isset ($entry['comment_type']))
-        $comment_type = $entry['comment_type'];
-
-      if ($comment_type == 'None' || $comment_type == '')
-        $comment_type = '';
-      else
-        $comment_type = "[$comment_type]";
-
       if ($ascii)
         {
-          $out .= "\n-------------------------------------------------------\n";
-
-          $date = utils_format_date ($entry['date']);
-          if ($entry['realname'])
-            $name = "{$entry['realname']} <{$entry['user_name']}>";
-          else
-            $name = "Anonymous";
-          $out .= sprintf ("Date: %-30s By: %s\n", $date, $name);
-          $out .= $comment_type;
-          if ($comment_type)
-            $out .= "\n";
-          $out .= markup_ascii ($entry['text']) . "\n";
+          $out .= format_comment_ascii ($entry);
           continue;
         }
-      if ($comment_type)
-        $comment_type = "<b>$comment_type</b><br />\n";
-
-      $icon = $icon_alt = '';
-      $poster_id = $entry['user_id'];
-
-      # Ignore user 100 (anonymous).
-      if ($poster_id != 100)
-        {
-          # Cosmetics if the user is assignee.
-          if (array_key_exists ($poster_id, $assignees_id))
-            {
-              # Highlight the latest comment of the assignee.
-              if ($previous != 1)
-                {
-                  $class = "boxhighlight";
-                  $previous = 1;
-                }
-            }
-
-          # Cosmetics if the user is project member (we shan't go as far
-          # as presenting a different icon for specific roles, like
-          # manager).
-
-          if (member_check ($poster_id, $group_id, 'A'))
-            {
-              # Project admin case: if the group is the admin group,
-              # show the specific site admin icon.
-              if ($group_id == $GLOBALS['sys_group_id'])
-                {
-                  $icon = "site-admin";
-                  $icon_alt = _("Site Administrator");
-                }
-              else
-                {
-                  $icon = "project-admin";
-                  $icon_alt = _("Group administrator");
-                }
-            }
-          elseif (member_check ($poster_id, $group_id))
-            {
-              # Simple project member.
-              $icon = "project-member";
-              $icon_alt = _("Group Member");
-            }
-        } # if ($poster_id != 100)
-
-      $out .= "\n<tr class=\"$class\"><td valign='top'>\n";
-      if ($entry['preview'])
-        $out .= "<p><b>" . _("This is a preview") . "</b></p>\n";
-      $out .= "<a id='comment$comment_number' href='#comment$comment_number' "
-        . "class='preinput'>\n" . utils_format_date($entry['date']) . ', ';
-
-      if ($comment_number < 1)
-        {
-          $msg = _("original submission:");
-          if (ARTIFACT == "cookbook")
-            $msg = _("recipe preview:");
-          $out .= "<b>$msg</b>\n";
-        }
-      else
-        $out .= sprintf (_("comment #%s:"), $comment_number);
-
-      $out .= "</a>&nbsp;";
-      if ($allow_quote)
-        $out .=  "<button name='quote_no' value='$comment_number'>"
-          . _('Quote') . "</button>";
-      $out .= "<br />\n$comment_type";
-      $out .= "<div class='tracker_comment'>$markedup_text</div>\n</td>\n";
-      $out .= "<td class=\"{$class}extra\">$user_link";
-      if ($icon)
-        $out .= "<br />\n<span class='help'>"
-          . html_image ("roles/$icon.png", ['alt' => $icon_alt])
-          . '</span>';
-
-      if ($poster_id != 100 && array_key_exists ($poster_id, $assignees_id))
-        $out .= html_image (
-          "roles/assignee.png", ['title' => _("In charge of this item.")]
-        );
-
-      # If not a member of the project, allow to mark as spam.
-      # For performance reason, do not check here if the user already
-      # flagged the comment as spam, it will be done only if the user tries
-      # to do it twice.
-      if (user_isloggedin() && !$icon && $poster_id != user_getid ())
-        {
-          # Surround by two line breaks, to keep that link clearly
-          # separated from anything else, to avoid clicks by error.
-          $out .= "<br /><br />\n";
-          $cn = $comment_number - 1;
-          $out .= "(<a $score\n  href=\"$url_start"
-            . "flagspam$comment_ids#comment$cn\">"
-            . html_image ("misc/trash.png", ['class' => 'icon'])
-            . _("Flag as spam") . "</a>)<br /><br />\n";
-        }
-      $out .= "</td></tr>\n";
+      $out .= format_spam_text ($entry, $i, $is_admin);
+      if ($entry['is_spam'])
+        continue;
+      $out .= "\n<tr class=\"{$entry['class']}\">"
+        . format_comment_title ($entry, $i, $allow_quote)
+        . format_comment_body ($entry, $i)
+        . "</tr>\n";
     } # foreach ($data as $entry)
   $out .= $ascii? "\n\n\n": "</table>\n";
-
   return [$out, $max_entries, $comment_order];
 }
 
