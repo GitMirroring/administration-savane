@@ -332,7 +332,7 @@ function show_item_details (
   );
   if ($item_no < 1)
     return $text;
-  $ctl = form_submit (_('Reverse comment order'), 'revert_bis');
+  $ctl = form_submit (_('Reverse comment order'), 'reverse_bis');
   if ($item_no > 5 && !$comment_order)
     {
       $jumpto_text = _("Jump to the original submission");

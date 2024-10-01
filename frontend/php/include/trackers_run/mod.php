@@ -513,8 +513,8 @@ if ($item_discussion_lock)
     print "</p>\n";
   }
 print html_hidsubpart_header ("discussion", _("Discussion"));
-if ($revert_comment_order)
-  print form_hidden (['revert_order' => 1]);
+if ($reverse_comment_order)
+  print form_hidden (['reverse_order' => 1]);
 
 $new_comment = [];
 if ($preview)

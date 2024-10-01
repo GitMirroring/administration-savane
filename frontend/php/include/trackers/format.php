@@ -124,13 +124,13 @@ function format_details (
   $preview = [], $allow_quote = true
 )
 {
-  global $revert_comment_order;
+  global $reverse_comment_order;
   list ($data, $max_entries, $hist_id) =
     format_fetch_details ($item_id, $preview);
 
   # Sort entries according to user config.
   $comment_order = user_get_preference ("reverse_comments_order");
-  if ($revert_comment_order)
+  if ($reverse_comment_order)
     $comment_order = !$comment_order;
   if (!$ascii && $comment_order)
     ksort ($data);
