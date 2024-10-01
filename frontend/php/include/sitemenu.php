@@ -266,8 +266,7 @@ function sitemenu_print_recipes ($result)
   print "\n";
   print '<li class="relatedrecipes">';
   print '<div id="relatedrecipes">'
-    . html_image ('contexts/help.png', ['alt=' => "icon"])
-    . _("Related Recipes:") . "</div>\n";
+    . html_image ('contexts/help.png') . _("Related Recipes:") . "</div>\n";
   while ($row = db_fetch_array ($result))
     sitemenu_print_related_recipe ($row);
   print "</li><!-- end relatedrecipes -->\n";

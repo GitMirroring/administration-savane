@@ -121,7 +121,7 @@ $result = db_execute ("
 );
 if (!db_numrows ($result))
   {
-    print '<p>' . no_i18n ("No suspects found") . "</p\n";
+    print '<p>' . no_i18n ("No suspects found.") . "</p>\n";
     $HTML->footer ([]);
     exit (0);
   }
