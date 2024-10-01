@@ -116,7 +116,7 @@ $offset = intval ($offset);
 
 $result = db_execute ("
   SELECT user_name, realname, user_id, spamscore FROM user
-  WHERE status='A' AND spamscore > 0
+  WHERE status = 'A' AND spamscore > 0
   ORDER BY spamscore DESC LIMIT ?, ?", [$offset, $max_rows + 1]
 );
 if (!db_numrows ($result))
@@ -173,18 +173,18 @@ while ($entry = db_fetch_array ($result))
     $flagged_by = rtrim ($flagged_by, ', ');
     $incriminated_posts = rtrim ($incriminated_posts, ', ');
 
-    print '<tr class="' . utils_altrow($i) . '">';
+    print '<tr class="' . utils_altrow ($i) . '">';
     print '<td width="25%">'
       . utils_user_link ($entry['user_name'], $entry['realname'])
       . "</td>\n<td width='5%' class='center'>{$entry['spamscore']}</td>\n"
       . '<td width="5%" class="center">'
       . utils_link (
          "$php_self?ban_user_id=" . $entry['user_id'] . '#users_results',
-         html_image_trash (['alt' =>  no_i18n("Remove")])
+         html_image_trash (['alt' =>  no_i18n ("Remove")])
         )
       . "</td>\n<td width='5%' class='center'>"
       . utils_link ("$php_self?wash_user_id={$entry['user_id']}#users_results",
-          html_image ('bool/ok.png', ['alt=' => no_i18n("Wash score")])
+          html_image ('bool/ok.png', ['alt=' => no_i18n ("Wash score")])
         )
       . "</td>\n<td width='30%'>$incriminated_posts</td>\n"
       . "<td width='30%'>$flagged_by</td>\n</tr>\n";

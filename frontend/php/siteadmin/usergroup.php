@@ -354,8 +354,8 @@ function account_title ($user_id)
 function account_form ($user_id, $row_user)
 {
   $ret = account_title ($user_id);
-   if ($row_user['status'] == USER_STATUS_SQUAD)
-     return $ret . '<p>' . no_i18n ('This is a squad.') . "</p>\n";
+  if ($row_user['status'] == USER_STATUS_SQUAD)
+    return $ret . '<p>' . no_i18n ('This is a squad.') . "</p>\n";
   $ret .= rename_form ($user_id, $row_user['user_name']);
   $ret .= show_status ($user_id, $row_user['status']);
   $ret .= email_form ($user_id, $row_user['email']);
