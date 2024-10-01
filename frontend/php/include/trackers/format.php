@@ -199,17 +199,19 @@ function format_details (
         $markedup_text = markup_full ($entry['text']);
       else
         $markedup_text = markup_rich ($entry['text']);
+      $link_user_name = $spammer_user_name = $entry['user_name'];
+      if ($entry['user_id'] == 100)
+        {
+          $spammer_user_name = _("anonymous");
+          $link_user_name = null;
+        }
+      $user_link = utils_user_link ($link_user_name, $entry['realname']);
       if ($is_spam)
         {
           # If we are dealing with the original submission put a feedback
           # warning (not if the item was just flagged).
           if ($entry['comment_internal_id'] < 1 && $func != "flagspam")
             fb (_("This item has been reported to be a spam"), 1);
-
-          if ($entry['user_id'] != 100)
-            $spammer_user_name = $entry['user_name'];
-          else
-            $spammer_user_name = _("anonymous");
 
           $own_post = user_isloggedin () && user_getid () == $entry['user_id'];
 
@@ -228,11 +230,7 @@ function format_details (
               if ($own_post || $is_admin)
                 $out .=  $markedup_text;
               $out .= "<br />\n<br /></td>\n<td class=\"{$class}extra\" "
-                . "id=\"spam{$int_id}\">\n";
-
-              $out .=
-                utils_user_link ($entry['user_name'], $entry['realname'], true);
-              $out .= "<br />\n";
+                . "id=\"spam{$int_id}\">\n$user_link<br />\n";
 
               if ($is_admin)
                 {
@@ -245,14 +243,12 @@ function format_details (
               $out .= "</td></tr>\n";
             }
           else
-            {
-              $out .= "\n<tr class=\"{$class}extra\">"
-                . "<td class='xsmall'>&nbsp;</td>\n"
-                . "<td class='xsmall'><a $score href=\"$url_start"
-                . "viewspam$comment_ids#spam$int_id\">"
-                . sprintf (_("Spam posted by %s"), $spammer_user_name)
-                . "</a></td></tr>\n";
-            }
+            $out .= "\n<tr class=\"{$class}extra\">"
+              . "<td class='xsmall'>&nbsp;</td>\n"
+              . "<td class='xsmall'><a $score href=\"$url_start"
+              . "viewspam$comment_ids#spam$int_id\">"
+              . sprintf (_("Spam posted by %s"), $spammer_user_name)
+              . "</a></td></tr>\n";
           continue;
         } # if ($is_spam)
 
@@ -350,16 +346,11 @@ function format_details (
           . _('Quote') . "</button>";
       $out .= "<br />\n$comment_type";
       $out .= "<div class='tracker_comment'>$markedup_text</div>\n</td>\n";
-
-      $out .= "<td class=\"{$class}extra\">"
-        . utils_user_link ($entry['user_name'], $entry['realname'], true);
-
+      $out .= "<td class=\"{$class}extra\">$user_link";
       if ($icon)
-        {
-          $out .= "<br />\n<span class='help'>"
-            . html_image ("roles/$icon.png", ['alt' => $icon_alt])
-            . '</span>';
-        }
+        $out .= "<br />\n<span class='help'>"
+          . html_image ("roles/$icon.png", ['alt' => $icon_alt])
+          . '</span>';
 
       if ($poster_id != 100 && array_key_exists ($poster_id, $assignees_id))
         $out .= html_image (

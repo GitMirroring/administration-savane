@@ -426,20 +426,17 @@ function utils_result_column_to_array ($result, $col = 0, $localize = false)
   return $arr;
 }
 
-function utils_user_link ($username, $realname = false, $noneisanonymous = false)
+function utils_user_link ($username, $realname = false)
 {
   global $sys_home;
 
-  if ($username == 'None' || empty($username))
-    {
-      # Would be nice to always return _("Anonymous"); but in some cases it is
-      # really none (assigned_to).
-      if (!$noneisanonymous)
-        # TRANSLATORS: Displayed when no user is selected.
-        return _('None');
-      # TRANSLATORS: anonymous user.
-      return _("Anonymous");
-    }
+  if ($username === 'None')
+    # TRANSLATORS: Displayed when no user is selected.
+    return _('None');
+
+  if (empty ($username))
+    # TRANSLATORS: anonymous user.
+    return _("Anonymous");
   $re = "<a href=\"{$sys_home}users/$username\">";
   if ($realname)
     $re .= "$realname &lt;$username&gt;";
