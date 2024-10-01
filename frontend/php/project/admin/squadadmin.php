@@ -315,7 +315,7 @@ if ($update)
 if ($update_delete_step2 && $deletionconfirmed == "yes")
   {
     $squad_id_to_delete = $squad_id_to_delete;
-    $delete_result = member_admin_flags_qyery ($group_id,
+    $delete_result = member_admin_flags_query ($group_id,
        '= ? AND u.user_id = ?', [MEMBER_FLAGS_SQUAD, $squad_id_to_delete]
     );
     if (!db_numrows ($delete_result))
