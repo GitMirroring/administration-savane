@@ -76,10 +76,10 @@ function format_user_data ($entry, $i)
 {
   global $php_self;
 
-  return '<td width="25%">'
+  return '<td>'
     . utils_user_link ($entry['user_name'], $entry['realname'])
-    . "</td>\n<td width='5%' class='center'>{$entry['spamscore']}</td>\n"
-    . "</td>\n<td width='5%' class='center'>"
+    . "</td>\n<td class='center'>{$entry['spamscore']}</td>\n"
+    . "</td>\n<td class='center'>"
     . utils_link ("$php_self?wash_user_id={$entry['user_id']}#users_results",
         html_image ('bool/ok.png', ['alt=' => no_i18n ("Wash score")])
       )
@@ -179,8 +179,8 @@ while ($entry = db_fetch_array ($result))
       get_incriminated_posts ($entry['user_id']);
     print '<tr class="' . utils_altrow ($i) . '">';
     print format_user_data ($entry, $i);
-    print "<td width='30%'>" . join (', ', $incriminated_posts) . "</td>\n"
-      . "<td width='30%'>" . format_flagged_by ($flagged_by) . "</td>\n</tr>\n";
+    print "<td>" . join (', ', $incriminated_posts) . "</td>\n"
+      . "<td>" . format_flagged_by ($flagged_by) . "</td>\n</tr>\n";
   }
 print "</table>\n";
 
