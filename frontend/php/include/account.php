@@ -507,9 +507,14 @@ function account_upgrade_pw ($stored_pw, $plainpw, $user_id)
 
 function account_get_random_byte ()
 {
-  if (defined ('TESTING_ACCOUNT'))
-    return mt_rand (0, 255); # Return deterministic numbers when testing.
-  return ord (random_bytes (1));
+  if (!defined ('TESTING_ACCOUNT'))
+    return ord (random_bytes (1));
+  # Return deterministic numbers when testing.
+  static $init_needed = true;
+  if ($init_needed)
+    mt_srand (0);
+  $init_needed = false;
+  return mt_rand (0, 255);
 }
 
 function account_gen_random_order ($len)
@@ -523,7 +528,7 @@ function account_gen_random_order ($len)
         {
           for ($s = $k = 0; $k < 4; $k++)
             $s = $s * 256 + account_get_random_byte ();
-          mt_srand ($s);
+          mt_srand ((int)$s);
           $j = 63;
         }
       $r = mt_rand ($i, $len - 1);
