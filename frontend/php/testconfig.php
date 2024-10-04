@@ -881,15 +881,22 @@ function get_table_structure ($table)
 
 function db_field_type_expected ($type, $table, $field)
 {
-  return " <strong>$type is expected.</strong>\n"
+  return "<br />\n<strong>$type is expected.</strong><br />\n"
     . " Run <code>ALTER TABLE `$table` MODIFY `$field` $type;</code>\n"
     . "to upgrade the column.";
+}
+
+function db_field_undefined ($type, $table, $field)
+{
+  return "<strong>Undefined</strong><br />\n"
+   . " Run <code>ALTER TABLE `$table` ADD `$field` $type;</code>\n"
+    . "to create the column.";
 }
 
 function check_mediumtext ($table_struct, $table, $field)
 {
   if (!array_key_exists ($field, $table_struct))
-    return '<strong>Undefined</strong>';
+    return db_field_undefined ('mediumtext', $table, $field);
   $type = strtolower ($table_struct[$field]['Type']);
   if (in_array ($type, ['mediumtext', 'bigtext']))
     return $type;
@@ -898,10 +905,11 @@ function check_mediumtext ($table_struct, $table, $field)
 
 function check_varchar ($table_struct, $table, $field, $n = 153)
 {
+  $right_type = "varchar($n)";
   if (!array_key_exists ($field, $table_struct))
-    return '<strong>Undefined</strong>';
+    return db_field_undefined ($right_type, $table, $field);
   $type = strtolower ($table_struct[$field]['Type']);
-  $wrong_type = $type . db_field_type_expected ("varchar($n)", $table, $field);
+  $wrong_type = $type . db_field_type_expected ($right_type, $table, $field);
   if (!preg_match ('/varchar[(]([0-9]+)[)]/', $type, $matches))
     return $wrong_type;
   if ($n > $matches[1])
