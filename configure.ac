@@ -85,28 +85,10 @@ AS_CASE(["x$MYSQL_BIN"], [x], [AC_MSG_ERROR([Database client not found])])
 AC_PATH_PROG([GRAPHVIZ_BIN], [dot])
 AC_ARG_VAR([GRAPHVIZ_BIN], [Graphviz executable])
 
-AC_MSG_CHECKING([whether to regenerate ChangeLog])
-AC_ARG_ENABLE([changelog],
-  [AS_HELP_STRING([--enable-changelog], [update ChangeLog from git logs])],
-  [], [enable_changelog=no])
-AC_MSG_RESULT([$enable_changelog])
-
 AC_PATH_PROG([GIT], [git])
 AC_ARG_VAR([GIT], [Git executable])
 
-AS_CASE(["x$GIT"], [x], [], [
-  AS_IF([test -d "$srcdir/.git"], [
-    AS_CASE(["x$enable_changelog"], [xyes], [
-      AS_ECHO(["Updating ChangeLog..."])
-      "$SED" '1,/^=\{51\}/{/^=\{51\}/p;d}' "$srcdir/ChangeLog" > ChangeLog.git
-      "$GIT" --git-dir="$srcdir/.git" log --no-decorate --numstat \
-        | "$SED" "s,[[[:space:]]]*$,," > "$srcdir/ChangeLog"
-      echo >> "$srcdir/ChangeLog"
-      cat ChangeLog.git >> "$srcdir/ChangeLog"
-      rm ChangeLog.git
-    ])
-  ])
-])
+AX_GEN_CHANGELOG
 
 AC_MSG_CHECKING([whether to initialize database])
 AC_ARG_ENABLE([database],
