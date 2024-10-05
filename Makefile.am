@@ -38,7 +38,11 @@ endif
 if HAVE_FRONTEND
 conf_files += $(frontend_conf)
 sbin_files += $(frontend_sbin)
+all: dist
 endif
+dist: fixup-news
+fixup-news: ; test `${SED} '1s/-.*//;q' ${srcdir}/NEWS` != '????' \
+  || ${SED} -i '1s/.*/0000-00-00 '"${VERSION}-${SV_GIT_COMMIT}/" ${srcdir}/NEWS
 
 backend_bin_common = \
   backend/accounts/sv_assign_uid_gid \

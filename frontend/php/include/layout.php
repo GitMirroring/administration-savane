@@ -150,7 +150,7 @@ class Layout extends savane_error
   {
     global $sys_name, $savane_version, $sys_home, $stone_age_menu;
 
-    $url = git_get_savane_url (git_get_commit ());
+    $url = git_get_savane_url ();
 
     # Avoid any cache by setting an expire time in the past, without
     # distinction.
@@ -213,19 +213,18 @@ class Layout extends savane_error
   function generic_footer ($params)
   {
     global $savane_version;
-    $commit = git_get_commit ();
     print '<p class="footer">';
     utils_get_content ("page_footer");
     $root = realpath (dirname (__FILE__) . "/../../..");
     $page =
       preg_replace (":^$root:", '', realpath ($_SERVER['SCRIPT_FILENAME']));
-    $url = git_get_savane_url ($commit, $page);
+    $url = git_get_savane_url ($page);
     print "<br />\n" . utils_link ($url, _('Page source code'));
 
     print "</p>\n<div align='right'><p>";
     # TRANSLATORS: the argument is version of Savane (like 3.2).
     printf (_("Powered by Savane %s."), $savane_version);
-    $url = git_get_savane_url ($commit);
+    $url = git_get_savane_url ();
     print "<br />" . utils_link ($url, _("Corresponding source code"));
     print "</p></div>\n</div> <!-- class='main' -->\n";
     print "</div> <!-- class='realbody' -->\n";

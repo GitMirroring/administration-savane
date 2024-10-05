@@ -43,7 +43,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Figure out the commit of the corresponding source code.
-function git_get_commit ()
+function git_get_commit_ ()
 {
   $default_val = $GLOBALS['ac_git_commit'];
   $git_dir = dirname (__FILE__) . "/../../../.git";
@@ -62,16 +62,22 @@ function git_get_commit ()
     return $default_val;
   return trim (file_get_contents ($ref_file));
 }
-function git_get_savane_url ($commit = null, $page = null)
+function git_get_commit ()
+{
+  static $ret = null;
+  if ($ret === null)
+    $ret = git_get_commit_ ();
+  return $ret;
+}
+function git_get_savane_url ($page = null)
 {
   global $sys_savane_cgit;
-  if ($commit === null)
-    $commit = '';
-  else
-    $commit = "?id=$commit";
+  $commit = git_get_commit ();
   if (null === $page)
+    return git_get_tarball_url ();
+  if ('' === $page)
     return "$sys_savane_cgit/commit/$commit";
-  return "$sys_savane_cgit/plain/$page$commit";
+  return "$sys_savane_cgit/plain/$page?id=$commit";
 }
 
 function git_get_tarball_name ()
@@ -86,7 +92,12 @@ function git_get_tarball_url ()
   $prot = 'http';
   if (isset ($GLOBALS['sys_https_host']))
     $prot .= 's';
-  return "$prot:{$GLOBALS['sys_savane_cgit']}/snapshot/$tarball_name";
+  $base = $GLOBALS['sys_savane_cgit'] . '/snapshot';
+  $src_dir = 'source';
+  if (file_exists ("$src_dir/$tarball_name"))
+    $base = '//' . $GLOBALS['sys_default_domain'] . $GLOBALS['sys_home']
+      . $src_dir;
+  return "$prot:$base/$tarball_name";
 }
 
 # Return non-zero when tarball URL results in an error.

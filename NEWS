@@ -75,6 +75,9 @@
   is tested, and if fails, the test is also run on a list of other possible
   character sets.
 
+* A distribution tarball is generated, installed and served from frontend,
+  without relying on cgit.
+
 * Bug fixes:
 
 ** In /my/items.php, item count wasn't displayed correctly in collapsed

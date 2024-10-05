@@ -456,7 +456,7 @@ $page .= html_h (2, "Savane source code");
 function check_source_code ()
 {
   $commit = git_get_commit ();
-  $cgit_url = git_get_savane_url ($commit);
+  $cgit_url = git_get_savane_url ('');
   $tarball_name = git_get_tarball_name ();
   $tarball_url = git_get_tarball_url ();
   if (git_check_tarball ())

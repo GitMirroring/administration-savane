@@ -760,7 +760,10 @@ install-data-hook: ; \
     test -e "$$base" && { cd $$saved_pwd; continue; } ; \
     $(LN_S) -f "$$source" $$base || exit 1; \
     cd $$saved_pwd; \
-  done
+  done; \
+  ${MKDIR_P} "${dest_dir}/php/source"; \
+  ${INSTALL} -m 444 ../savane-${VERSION}.tar.gz \
+    "${dest_dir}/php/source/savane-${SV_GIT_COMMIT}.tar.gz"
 
 installcheck_local_targets = installcheck-run-tests installcheck-test-symlinks
 
