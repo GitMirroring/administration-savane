@@ -34,6 +34,7 @@ POTFILES = \
 	frontend/php/bugs/admin/other_settings.php \
 	frontend/php/bugs/admin/editqueryforms.php \
 	frontend/php/bugs/admin/notification_settings.php \
+	frontend/php/testing/account.php \
 	frontend/php/testing/error.php \
 	frontend/php/testing/sane.php \
 	frontend/php/testing/markup.php \
