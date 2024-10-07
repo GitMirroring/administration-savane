@@ -1205,5 +1205,116 @@ function utils_team_signature ()
   # TRANSLATORS: the argument is site name (like Savannah).
   return sprintf (_("-- the %s team."), $sys_name) . "\n";
 }
+
+# Fetch current idNumber (that may or may not be NULL) and the next
+# idNumber to assign.
+function utils_get_next_idNumber ($id, $params)
+{
+  list ($min_id, $tbl, $col, $id_col) = $params;
+  $result = db_execute ("
+    SELECT
+      IFNULL(MAX(`$col`) + 1, 0) AS `next_id`,
+      (SELECT `$col` FROM `$tbl` WHERE `$id_col` = ?) AS `id`
+    FROM `$tbl`", [$id]
+  );
+  $row = db_fetch_array ($result);
+  if (empty ($row))
+    {
+      trigger_error ("Can't fetch $col data; probably DB connection issue");
+      return [0, 0];
+    }
+  if ($row['next_id'] < $min_id)
+    $row['next_id'] = $min_id;
+  return [$row['id'], $row['next_id']];
+}
+
+function utils_idNumber_is_unique ($id, $idN, $params)
+{
+  list ($min_id, $tbl, $col, $id_col) = $params;
+  $res = db_execute (
+    "SELECT COUNT(`$id_col`) AS `cnt` FROM `$tbl` WHERE `$col` = ?", [$idN]
+  );
+  $row = db_fetch_array ($res);
+  if (empty ($row))
+    return false;
+  if ($row['cnt'] == 1)
+    return true;
+  trigger_error (
+    "$col $idN assignment failed for $type #$id ({$row['cnt']} entities found)"
+  );
+  # Probably someone assigned the same idNumber to a different row meanwhile.
+  # Revert our change.
+  if ($row['cnt'] > 1)
+    db_execute (
+      "UPDATE `$tbl` SET `$col` = ? WHERE `$id_col` = ?", [null, $id]
+    );
+  return false;
+}
+
+function utils_idNumber_matches ($id, $idN, $params)
+{
+  list ($min_id, $tbl, $col, $id_col) = $params;
+  $res = db_execute (
+    "SELECT `$col` AS `id` FROM `$tbl` WHERE `$id_col` = ?", [$id]
+  );
+  $row = db_fetch_array ($res);
+  if (empty ($row))
+    return false;
+  return $row['id'] == $idN;
+}
+
+# Values to switch between updating uidNumber and gidNumber
+# in utils_assign_idNumber ().
+function utils_get_assign_idNumber_params ($type)
+{
+  global $sys_min_uidNumber, $sys_min_gidNumber;
+  $cases = [
+    'user'  => [$sys_min_uidNumber, 'user', 'uidNumber', 'user_id'],
+    'group' => [$sys_min_gidNumber, 'groups', 'gidNumber', 'group_id'],
+  ];
+  return $cases[$type];
+}
+
+# Try to assign a new idNumber to the database entity $id (in the context
+# of $type).  Return the new idNumber in case of success, else return zero.
+function utils_try_assign_idNumber ($id, $type)
+{
+  $params = utils_get_assign_idNumber_params ($type);
+  list ($cur_id, $idN) = utils_get_next_idNumber ($id, $params);
+  if (!empty ($cur_id))
+    return $cur_id;
+  if (empty ($idN))
+    return 0;
+  list ($min_id, $tbl, $col, $id_col) = $params;
+  db_execute ("UPDATE `$tbl` SET `$col` = ? WHERE `$id_col` = ?", [$idN, $id]);
+  if (!utils_idNumber_is_unique ($id, $idN, $params))
+    return 0;
+  if (!utils_idNumber_matches ($id, $idN, $params))
+    return 0;
+  return $idN;
+}
+
+# Assign a new idNumber depending on $type ('user' or 'group'),
+# return its value on success and zero on failure.
+function utils_assign_idNumber ($id, $type = 'user')
+{
+  for ($i = 0; $i < 0x11; $i++)
+    {
+      # Hopefully we don't run multiple instances of frontend installed
+      # in separate locations, so we may pass __FILE__ to utils_sem_acquire ().
+      # The competition from the backend scripts is eliminated because
+      # we first assign idNumber, then update the status of the entity.
+      $sem = utils_sem_acquire (__FILE__);
+      # Concurrent runs aren't probable anyway, so we just proceed even
+      # in the unlikely case when we fail to acquire a semaphore.
+      $uid = utils_try_assign_idNumber ($id, $type);
+      if ($sem)
+        sem_release ($sem);
+      if ($uid)
+        return $uid;
+    }
+  trigger_error ("Can't assign idNumber for $type #$id");
+  return 0;
+}
 } # namespace {
 ?>

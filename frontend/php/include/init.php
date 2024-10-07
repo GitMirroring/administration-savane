@@ -79,6 +79,7 @@ $sys_mail_admin = get_current_user ();
 $sys_mail_replyto = "NO-REPLY.INVALID-ADDRESS";
 $sys_email_adress="$sys_mail_admin@$sys_mail_domain";
 $sys_gpg_name = "gpg";
+$sys_min_uidNumber = $sys_min_gidNumber = 5000;
 
 # Debug variables
 # (add them in tests/minimal_configs/Makefile, possibly commented out).

@@ -143,4 +143,9 @@ $sys_debug_footer = true;
 $sys_dbcharset = 'utf8';
 # Number of rounds used to hash passwords.
 $sys_pw_rounds = 500000;
+
+# Minimum user ID and group ID numbers used for Savane users and groups
+# for SSH access.
+$sys_min_uidNumber = 5000;
+$sys_min_gidNumber = 5000;
 ?>

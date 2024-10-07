@@ -20,6 +20,11 @@
 * New savane.conf.php variable, $sys_pw_rounds.  The password hashes are
   upgraded on log in.
 
+* New savane.conf.php variables, $sys_min_uidNumber and $sys_min_gidNumber.
+  The frontend code assigns `user`.`uidNumber`, `groups`.`gidNumber`,
+  `user_group`.`cache_uidNumber`, `user_group`.`cache_gidNumber` when
+  needed, making the sv_assign_uid_gid script unnecessary.
+
 * The SQL queries are made ONLY_FULL_GROUP_BY-compliant.
 
 * Emails sent from Savane frontend can be GPG-signed, see

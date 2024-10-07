@@ -84,6 +84,10 @@ form_check ($submit_buttons);
 
 if (!form_vars_empty ($submit_buttons))
   {
+    # Assign gidNumber before updating the status in order to
+    # avoid the race condition with backend scripts.
+    if ($form_status === 'A')
+      group_assign_gidNumber ($group_id);
     # Full details update.
     if ($update)
       {

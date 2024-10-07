@@ -47,6 +47,8 @@ define ('MEMBER_FLAGS_ADMIN', 'A');
 define ('MEMBER_FLAGS_PENDING', 'P');
 define ('MEMBER_FLAGS_SQUAD', 'SQD');
 
+$MEMBER_FLAGS_ACTIVE = [MEMBER_FLAGS_MEMBER => 1, MEMBER_FLAGS_ADMIN => 1];
+
 function member_history_label_on_add ($status)
 {
   if ($status === MEMBER_FLAGS_PENDING)
@@ -54,6 +56,32 @@ function member_history_label_on_add ($status)
   if ($status === MEMBER_FLAGS_SQUAD)
     return 'Created Squad';
   return 'Added User';
+}
+
+# Assign user.uidNumber (invoked whenever a user joins a group);
+# update numbers cached in user_group.
+function member_assign_uidNumber ($user_id)
+{
+  $uid = utils_assign_idNumber ($user_id);
+  if (empty ($uid))
+    return;
+  db_execute ("
+    UPDATE `user_group` u, `groups` g
+    SET u.`cache_uidNumber` = ?, u.`cache_gidNumber` = g.`gidNumber`
+    WHERE `user_id` = ? AND u.`group_id` = g.`group_id`", [$uid, $user_id]
+  );
+}
+
+function member_user_group_fields ($user_id, $group_id, $status)
+{
+  $uid = user_get_field ($user_id, 'uidNumber');
+  $gid = group_get_gidNumber ($group_id);
+  $cols = [
+   'admin_flags' => $status, 'cache_gidNumber' => $gid,
+   'cache_uidNumber' => $uid
+  ];
+  $cond = ['user_id' => $user_id, 'group_id' => $group_id];
+  return [$cols, $cond];
 }
 
 # Add or update a user to a group; $status is the 'admin_flags'.
@@ -64,10 +92,12 @@ function member_add ($user_id, $group_id, $status = '')
       fb (_("This user is already member of the group."), 1);
       return 0;
     }
-  $result = db_autoexecute ('user_group',
-    ['user_id' => $user_id, 'group_id' => $group_id, 'admin_flags' => $status],
-    DB_AUTOQUERY_INSERT
-  );
+  if ($status === MEMBER_FLAGS_MEMBER)
+    # Assign uidNumber before backend scripts have a chance to
+    # do that concurrently.
+    member_assign_uidNumber ($user_id);
+  list ($cols, $cond) = member_user_group_fields ($user_id, $group_id, $status);
+  $result = db_autoexecute ('user_group', array_merge ($cols, $cond));
   if (!$result)
     return $result;
   if ($status === MEMBER_FLAGS_MEMBER)
@@ -90,7 +120,7 @@ function member_admin_flags_query ($group_id, $cond, $arg)
 
 function member_fetch_group_data ($group_id)
 {
-  $admin_flags = [MEMBER_FLAGS_MEMBER, MEMBER_FLAGS_ADMIN];
+  $admin_flags = array_keys ($GLOBALS['MEMBER_FLAGS_ACTIVE']);
   $result = db_execute ("
     SELECT
       unix_group_name AS name,
@@ -150,15 +180,16 @@ function member_update_group_file ($group_id)
 # Approve a pending user for a group.
 function member_approve ($user_id, $group_id)
 {
-  $result = db_execute ("
-    UPDATE user_group SET admin_flags = '' WHERE user_id = ? AND group_id = ?",
-    [$user_id, $group_id]
+  member_assign_uidNumber ($user_id);
+  list ($cols, $cond) =
+    member_user_group_fields ($user_id, $group_id, MEMBER_FLAGS_MEMBER);
+  $result = db_autoexecute (
+    'user_group', $cols, DB_AUTOQUERY_UPDATE, join (' AND ', $cond)
   );
-  if ($result)
-    {
-      group_add_history ('Approved User', user_getname ($user_id), $group_id);
-      member_update_group_file ($group_id);
-    }
+  if (!$result)
+    return $result;
+  member_update_group_file ($group_id);
+  group_add_history ('Approved User', user_getname ($user_id), $group_id);
   return $result;
 }
 

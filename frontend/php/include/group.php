@@ -737,6 +737,34 @@ function group_get_history ($group_id = false)
   );
 }
 
+function group_get_gidNumber ($group_id)
+{
+  $data = group_get_object ($group_id)->data_array;
+  return $data['gidNumber'];
+}
+
+function group_update_member_uidNumbers ($group_id)
+{
+  foreach (member_get_group_members ($group_id) as $m)
+    if (!empty ($GLOBALS['MEMBER_FLAGS_ACTIVE'][$m['admin_flags']]))
+      member_assign_uidNumber ($m['user_id']);
+}
+
+# Assign groups.gidNumber; update numbers cached in user_group.
+function group_assign_gidNumber ($group_id)
+{
+  if (!utils_assign_idNumber ($group_id, 'group'))
+    {
+      fb (no_i18n ("Failed to assign gidNumber"), 1);
+      return;
+    }
+  db_execute ("
+    UPDATE `user_group` u, `groups` g SET u.`cache_gidNumber` = g.`gidNumber`
+    WHERE u.`group_id` = ? AND u.`group_id` = g.`group_id`", [$group_id]
+  );
+  group_update_member_uidNumbers ($group_id);
+}
+
 # Handle the insertion of history for these parameters.
 function group_add_history ($field_name, $old_value, $group_id)
 {
