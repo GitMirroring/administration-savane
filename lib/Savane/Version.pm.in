@@ -95,6 +95,7 @@ sub parse_argv
   Getopt::Long::Configure ("pass_through");
   GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
   Getopt::Long::Configure ("no_pass_through");
+  $version = 0 if $help;
   return ($help, $version);
 }
 
@@ -105,8 +106,41 @@ sub get_prog_name
   return basename ($name);
 }
 
+sub substitute_help_string
+{
+  my $help_string = shift;
+  my ($prog_escaped, $prog_name);
+  $prog_name = get_prog_name ();
+  ($prog_escaped = $0) =~ s,.,[$&],g;
+  $prog_escaped =~ s/,/\\,/g;
+  $help_string =~ s,(^|\W)$prog_escaped(\W|$),\1$prog_name\2,g;
+  return $help_string;
+}
+
+sub print_intro
+{
+  my ($version, $external) = @_;
+  my $prog_name = get_prog_name ();
+
+  my $intro = $external?
+    "isn't part of Savane, but is used with it.": "is part of Savane.";
+  print "$prog_name $intro\n\n" if $version;
+  print "Savane version: ". GetVersion () . "\n";
+  print_legal_notices ($external) if $version;
+}
+
+sub die_on_init_errors
+{
+  if (defined $INC{'Savane/DB.pm'})
+    {
+      require Savane::DB;
+      Savane::DB->import ('db_die_if_unconnected');
+      db_die_if_unconnected ();
+    }
+}
+
 # Parse command line, check if help or version options are present,
-# print the requested info and exit.
+# print the requested info and exit; else die on init errors.
 
 # $_[0] is help string.
 # If $_[1], modify the output to say it isn't part of Savane,
@@ -114,21 +148,15 @@ sub get_prog_name
 sub PrintVersionOrHelp
 {
   my ($help_string, $external) = @_;
-  my ($prog_escaped, $prog_name);
   my ($help, $version) = parse_argv ();
-  return unless $help || $version;
-  $version = 0 if $help;
-  $prog_name = get_prog_name ();
-  ($prog_escaped = $0) =~ s,.,[$&],g;
-  $prog_escaped =~ s/,/\\,/g;
-  $help_string =~ s,(^|\W)$prog_escaped(\W|$),\1$prog_name\2,g;
-
+  unless ($help || $version)
+    {
+      die_on_init_errors ();
+      return;
+    }
+  $help_string = substitute_help_string ($help_string);
   print "$help_string\n\n" if $help;
-  my $intro = $external?
-    "isn't part of Savane, but is used with it.": "is part of Savane.";
-  print "$prog_name $intro\n\n" if $version;
-  print "Savane version: ". GetVersion () . "\n";
-  print_legal_notices ($external) if $version;
+  print_intro ($version, $external);
   exit (0);
 }
 
