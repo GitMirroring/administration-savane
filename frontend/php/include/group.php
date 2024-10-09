@@ -56,6 +56,13 @@ define ('TRACKER_PERM_NOBODY', 6);
 
 define ('GROUP_NONE', 100);
 
+define ('GROUP_STATUS_ACTIVE', 'A');
+define ('GROUP_STATUS_PENDING', 'P');
+define ('GROUP_STATUS_DELETED', 'D');
+define ('GROUP_STATUS_SPECIAL', 'X');
+
+$GROUP_STATUS_EDITABLE = [GROUP_STATUS_ACTIVE => 1, GROUP_STATUS_PENDING => 1];
+
 function group_get_object ($group_id)
 {
   # Create a common set of group objects,

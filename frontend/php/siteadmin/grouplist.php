@@ -60,6 +60,74 @@ extract (sane_import ('get',
   ]
 ));
 
+extract (sane_import ('post',
+  ['digits' => 'group_id_to_assign', 'true' => 'assign_gid']
+));
+
+function fetch_member_data ($data)
+{
+  $ret = $gids = [];
+  foreach ($data as $row)
+    {
+      $gids[] = $row['group_id'];
+      $ret[$row['group_id']] = [];
+    }
+  $res = db_execute ("
+    SELECT `user_id`, `group_id`, `admin_flags` FROM `user_group`
+    WHERE `group_id` " . utils_in_placeholders ($gids), $gids
+  );
+  while ($row = db_fetch_array ($res))
+    {
+      $gid = $row['group_id'];
+      if (!array_key_exists ($gid, $ret))
+        continue;
+      if (empty ($ret[$gid][$row['admin_flags']]))
+        $ret[$gid][$row['admin_flags']] = 1;
+      else
+        $ret[$gid][$row['admin_flags']]++;
+    }
+  return $ret;
+}
+
+function count_members ($data)
+{
+  $ret = [];
+  foreach (fetch_member_data ($data) as $group_id => $row)
+    {
+      $out = [];
+      foreach ($row as $k => $v)
+        $out[] = "[$k] => $v";
+      if (empty ($out))
+        $out = ['<b>0</b>'];
+      $ret[$group_id] = join ('<br />', $out);
+    }
+  return $ret;
+}
+
+function group_gidN_label ($grp)
+{
+  if ($grp['gidNumber'] !== null)
+    return $grp['gidNumber'];
+  return "<b>NULL</b>";
+}
+
+function output_group ($grp, $members, $inc)
+{
+  global $status_arr;
+  $gid = group_gidN_label ($grp);
+  $name = $grp['group_name'];
+  $status = $grp['status'];
+  if ($status != GROUP_STATUS_SPECIAL)
+    $name = "<a href=\"groupedit.php?group_id={$grp['group_id']}\">$name</a>";
+  print '<tr class="' . utils_altrow ($inc) . '">';
+  print "<td>$name</td>\n<td>{$grp['unix_group_name']}</td>\n<td>$gid</td>\n";
+  print "<td>{$status_arr[$status]}</td>\n";
+  print '<td>' . ($grp['is_public']? no_i18n ("public"): no_i18n ("private"))
+    . "</td>\n";
+  print "<td>$grp[license]</td>\n<td>$members</td>\n";
+  print "</tr>\n";
+}
+
 print html_h (2, no_i18n ("Group List Filter"));
 
 $title_arr = [no_i18n ("Status"), no_i18n ("Number")];
@@ -73,16 +141,20 @@ print '<td>' . $row['count'] . "</td\n";
 print "</tr>\n";
 
 print '<tr class="' . utils_altrow ($inc++) . '">';
-$res = db_execute ("SELECT count(*) AS count FROM groups WHERE status = 'P'");
+$res = db_execute (
+  "SELECT count(*) AS count FROM groups WHERE status = ?",
+  [GROUP_STATUS_PENDING]
+);
 $row = db_fetch_array ();
 print '<td><a href="grouplist.php?status=P">'
-  . no_i18n (
-      "Pending groups (normally, an opened task should exist about them)"
-    )
+  . no_i18n ("Pending groups (an open task should exist about them)")
   . "</a></td>\n<td>" . $row['count'] . "</td>\n</tr>\n";
 
 print '<tr class="' . utils_altrow ($inc++) . '">';
-$res = db_execute ("SELECT count(*) AS count FROM groups WHERE status = 'D'");
+$res = db_execute (
+  "SELECT count(*) AS count FROM groups WHERE status = ?",
+  [GROUP_STATUS_DELETED]
+);
 $row = db_fetch_array ();
 print '<td><a href="grouplist.php?status=D">'
   . no_i18n ("Deleted groups (the backend will remove the record soon)")
@@ -155,8 +227,9 @@ elseif ($groupsearch)
 
 $res = db_execute ("
   SELECT DISTINCTROW
-    group_name, unix_group_name, group_id, is_public, status, license
-  FROM groups WHERE $where ORDER BY group_name LIMIT ?, ?",
+    `group_name`, `unix_group_name`, `group_id`, `is_public`, `status`,
+    `license`, `gidNumber`
+  FROM `groups` WHERE $where ORDER BY `group_name` LIMIT ?, ?",
   [$offset, $MAX_ROW + 1]
 );
 if (!$res)
@@ -166,8 +239,9 @@ print "<p><strong>$msg</strong></p>\n";
 $rows = $rows_returned = db_numrows ($res);
 
 $title_arr = [
-  no_i18n ("Group Name"), no_i18n ("System Name"), no_i18n ("Status"),
-  no_i18n ("Public?"), no_i18n ("License"), no_i18n ("Members")
+  no_i18n ("Group Name"), no_i18n ("System Name"), no_i18n ('gidNumber'),
+  no_i18n ("Status"), no_i18n ("Visibility"), no_i18n ("License"),
+  no_i18n ("Members")
 ];
 
 print html_build_list_table_top ($title_arr);
@@ -182,28 +256,12 @@ else
   {
     if ($rows_returned > $MAX_ROW)
       $rows = $MAX_ROW;
+    $data = [];
     for ($i = 0; $i < $rows; $i++)
-      {
-        $grp = db_fetch_array ($res);
-        $grp_name = $grp['group_name'];
-        if (in_array ($grp['status'], ['A', 'P']))
-          $grp_name =
-            "<a href=\"groupedit.php?group_id=$grp[group_id]\">$grp_name</a>";
-        print '<tr class="' . utils_altrow ($inc++) . '">';
-        print "<td>$grp_name</td>\n";
-        print "<td>$grp[unix_group_name]</td>\n";
-        print '<td>' . $status_arr[$grp['status']] . "</td>\n";
-        print '<td>' . ($grp['is_public']? no_i18n ("yes"): no_i18n ("no"))
-          . "</td>\n";
-        print "<td>$grp[license]</td>\n";
-
-        $res_count = db_execute (
-          "SELECT user_id FROM user_group WHERE group_id = ?",
-          [$grp['group_id']]
-        );
-        print "<td>" . db_numrows ($res_count) . "</td>\n";
-        print "</tr>\n";
-      }
+      $data[$i] = db_fetch_array ($res);
+    $members = count_members ($data);
+    foreach ($data as $d)
+      output_group ($d, $members[$d['group_id']], $inc++);
   }
 print "</table>\n";
 
