@@ -64,6 +64,8 @@ extract (sane_import ('post',
   ['digits' => 'group_id_to_assign', 'true' => 'assign_gid']
 ));
 
+form_check (['assign_gid']);
+
 function fetch_member_data ($data)
 {
   $ret = $gids = [];
@@ -108,7 +110,12 @@ function group_gidN_label ($grp)
 {
   if ($grp['gidNumber'] !== null)
     return $grp['gidNumber'];
-  return "<b>NULL</b>";
+  $ret = "<b>NULL</b>";
+  if (empty ($GLOBALS['GROUP_STATUS_EDITABLE'][$grp['status']]))
+    return $ret;
+  return "$ret<br />\n" . form_tag ()
+    . form_hidden (['group_id_to_assign' => $grp['group_id']])
+    . form_submit (no_i18n ("Assign"), 'assign_gid') . "</form>\n";
 }
 
 function output_group ($grp, $members, $inc)
@@ -127,6 +134,9 @@ function output_group ($grp, $members, $inc)
   print "<td>$grp[license]</td>\n<td>$members</td>\n";
   print "</tr>\n";
 }
+
+if (!empty ($assign_gid) && !empty ($group_id_to_assign))
+  group_assign_gidNumber ($group_id_to_assign);
 
 print html_h (2, no_i18n ("Group List Filter"));
 
