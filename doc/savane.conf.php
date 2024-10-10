@@ -116,12 +116,6 @@ $sys_vcs_dir = [
   'git' => ['dir' => "$sys_appdatadir/vcs/git", 'clone-path' => '/srv/git']
 ];
 
-# The group file for libnss-extrausers updated every time when users are added
-# or removed from any group.  Frontend code doesn't handle data like the list
-# of existing groups and their Unix GIDs, so whenever a new group is added,
-# sv_gen_passwd_group should run to update the file.
-$sys_group_file = "$sys_appdatadir/group";
-
 # The GnuPG executable.
 $sys_gpg_name = 'gpg';
 # Directory where email signing key is located,
@@ -148,4 +142,8 @@ $sys_pw_rounds = 500000;
 # for SSH access.
 $sys_min_uidNumber = 5000;
 $sys_min_gidNumber = 5000;
+
+# The group file for libnss-extrausers updated every time when users are added
+# or removed from any group.
+$sys_group_file = "$sys_appdatadir/group";
 ?>

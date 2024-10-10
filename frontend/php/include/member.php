@@ -123,7 +123,7 @@ function member_fetch_group_data ($group_id)
   $admin_flags = array_keys ($GLOBALS['MEMBER_FLAGS_ACTIVE']);
   $result = db_execute ("
     SELECT
-      unix_group_name AS name,
+      unix_group_name AS name, gidNumber AS gid,
       group_concat(user_name ORDER BY user_name) AS users
     FROM groups g, user u, user_group ug
     WHERE
@@ -146,17 +146,28 @@ function member_group_file_unavailable ()
   return !is_readable ($GLOBALS['sys_group_file']);
 }
 
+function member_group_line ($data)
+{
+  return $data['name'] . ':x:' . $data['gid'] . ':' . $data['users'] . "\n";
+}
+
 function member_substitute_group ($arg)
 {
   list ($tmp_file, $data) = $arg;
   $out = fopen ($tmp_file, 'w');
   $in = fopen ($GLOBALS['sys_group_file'], 'r');
+  $record = member_group_line ($data);
   while (false !== ($line = fgets ($in)))
     {
-      if (preg_match ("/^{$data['name']}:/", $line))
-        $line = preg_replace ("/[^:]*\n$/", $data['users'] . "\n", $line);
+      if ($record !== null && preg_match ("/^{$data['name']}:/", $line))
+        {
+          $line = $record;
+          $record = null;
+        }
       fwrite ($out, $line);
     }
+  if ($record !== null)
+    fwrite ($out, $record);
   fclose ($in);
   fclose ($out);
   chmod ($tmp_file, 0644);

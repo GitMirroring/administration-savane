@@ -31,8 +31,8 @@ There are two ways to pass the resulting data to the operating system.
 * Using libnss-extrausers.  The 'group' and the 'passwd' files are generated
   with the sv_gen_passwd_group script in a cron job; the 'group' file is also
   updated automatically in the Web UI when the users are added to or removed
-  from a group.  The relevant savane.conf.php variables are $sys_group_file,
-  $sys_min_gidNumber, $sys_min_uidNumber.
+  from a group, and when a group is approved.  The relevant savane.conf.php
+  variables are $sys_group_file, $sys_min_gidNumber, $sys_min_uidNumber.
 
 Copyright (C) 1999, 2000 The SourceForge Crew
 Copyright (C) 2000-2006 Mathieu Roy
