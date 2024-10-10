@@ -1,0 +1,46 @@
+This file describes how Savane maps groups and users from its database to Unix
+groups and users.
+
+Savane 'user' and 'groups' tables have distinct columns for numeric identifiers
+used in Savane Web UI and when accessing Savane accounts via SSH, user_id
+and uidNumber for users and group_id and gidNumber for groups.  For access
+convenience, uidNumber and gidNumber are duplicated as in the cache_uidNumber
+and the cache_gidNumber columns in the user_group table.
+
+Groups and users are created with NULL gidNumber and uidNumber, i.e. without
+corresponding Unix users and groups.  New values of uidNumber are assigned
+when the user joins an active group, or when any pending group submitted
+by the user is approved.  The gidNumber values are assigned when the group
+is approved.  In all those cases the user_group table is updated.  Re-assigning
+these values is not supported.
+
+Since 2024-10, the assignments are made in the Web UI; previously, they were
+handled by the sv_assign_uid_gid script that run every 5 minutes in a cron job.
+These procedures don't conflict: the cron job only handles the users that are
+members of any active group and the groups that are active, while the Web UI
+updates uidNumber, gidNumber and their copies in the user_group table before
+making the respective groups active and adding the users to groups.
+For the groups that are not created the usual way (like coming from
+db/initial.sql), the Web UI offers a button to assign gidNumber manually
+on siteadmin/grouplist.php.
+
+There are two ways to pass the resulting data to the operating system.
+
+* The earliest one, using libnss-mysql.  As of 2024-09, libnss-mysql
+  is maintained for Savannah by Bob Proulx.
+* Using libnss-extrausers.  The 'group' and the 'passwd' files are generated
+  with the sv_gen_passwd_group script in a cron job; the 'group' file is also
+  updated automatically in the Web UI when the users are added to or removed
+  from a group.  The relevant savane.conf.php variables are $sys_group_file,
+  $sys_min_gidNumber, $sys_min_uidNumber.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2024 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
