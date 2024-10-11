@@ -278,7 +278,7 @@ init-database: make-var-subdirs install-conf-link install-conf-files
 	$(skip_init_db) $(PERL) db/init-database.pl "$(DESTDIR)"
 	$(skip_init_db) test -e db/init.stamp || exit 1
 
-.PHONY: install-conf-link instal-conf-files make-var-subdirs init-database
+.PHONY: install-conf-link install-conf-files make-var-subdirs init-database
 
 uninstall-local: ; \
   for i in $(conf_files) launch-db.pl; do \
