@@ -38,11 +38,7 @@ endif
 if HAVE_FRONTEND
 conf_files += $(frontend_conf)
 sbin_files += $(frontend_sbin)
-all: dist
 endif
-dist: fixup-news
-fixup-news: ; test `${SED} '1s/-.*//;q' ${srcdir}/NEWS` != '????' \
-  || ${SED} -i '1s/.*/0000-00-00 '"${VERSION}-${SV_GIT_COMMIT}/" ${srcdir}/NEWS
 
 backend_bin_common = \
   backend/accounts/sv_assign_uid_gid \
@@ -271,6 +267,13 @@ install-conf-files: $(conf_files:%=sysconf/%) ; \
 
 make-var-subdirs: ; $(MKDIR_P) $(dirs_to_make)
 install-data-local: init-database
+if HAVE_FRONTEND
+	test `${SED} '1s/-.*//;q' ${srcdir}/NEWS` != '????' \
+	  || ${SED} -i '1s/.*/0000-00-00 '"${VERSION}-${SV_GIT_COMMIT}/" \
+	       ${srcdir}/NEWS
+	$(MAKE) $(AM_MAKEFLAGS) dist
+endif
+
 init-database: make-var-subdirs install-conf-link install-conf-files
 	$(skip_init_db) $(PERL) db/init-database.pl "$(DESTDIR)"
 	$(skip_init_db) test -e db/init.stamp || exit 1
