@@ -807,6 +807,8 @@ $froms[] = $next_from;
 
 $from_params = [];
 $more_from = '';
+if (empty ($history_date))
+  $history_date = '';
 if ($history_search)
   {
     list ($unix_history_date, $ok) = utils_date_to_unixtime ($history_date);
