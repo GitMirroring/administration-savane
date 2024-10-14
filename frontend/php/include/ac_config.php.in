@@ -45,6 +45,7 @@ $exec_prefix = "@exec_prefix@";
 $bindir = "@bindir@";
 $datarootdir = "@datarootdir@";
 $sys_confdir = "@sysconfdir@";
+$sys_pkgconfdir = "@confdir@";
 $sys_localedir = "@localedir@";
 unset ($prefix, $datarootdir);
 $savane_version = "@VERSION@";

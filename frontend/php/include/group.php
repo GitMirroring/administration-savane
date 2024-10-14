@@ -770,7 +770,7 @@ function group_assign_gidNumber ($group_id)
     WHERE u.`group_id` = ? AND u.`group_id` = g.`group_id`", [$group_id]
   );
   group_update_member_uidNumbers ($group_id);
-  member_update_group_file ($group_id);
+  member_update_file ($group_id, 'group');
 }
 
 # Handle the insertion of history for these parameters.

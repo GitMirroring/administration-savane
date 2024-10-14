@@ -80,6 +80,9 @@ $sys_mail_replyto = "NO-REPLY.INVALID-ADDRESS";
 $sys_email_adress="$sys_mail_admin@$sys_mail_domain";
 $sys_gpg_name = "gpg";
 $sys_min_uidNumber = $sys_min_gidNumber = 5000;
+$sys_passwd_common_gid = 1003;
+$sys_passwd_home_dir = "$sys_pkgconfdir/user-home-dir";
+$sys_passwd_user_shell = "$sys_pkgconfdir/user-shell";
 
 # Debug variables
 # (add them in tests/minimal_configs/Makefile, possibly commented out).

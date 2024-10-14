@@ -65,6 +65,7 @@ function member_assign_uidNumber ($user_id)
   $uid = utils_assign_idNumber ($user_id);
   if (empty ($uid))
     return;
+  member_update_file ($user_id, 'passwd');
   db_execute ("
     UPDATE `user_group` u, `groups` g
     SET u.`cache_uidNumber` = ?, u.`cache_gidNumber` = g.`gidNumber`
@@ -101,7 +102,7 @@ function member_add ($user_id, $group_id, $status = '')
   if (!$result)
     return $result;
   if ($status === MEMBER_FLAGS_MEMBER)
-    member_update_group_file ($group_id);
+    member_update_file ($group_id, 'group');
   $comment = member_history_label_on_add ($status);
   group_add_history ($comment, user_getname ($user_id), $group_id);
   return $result;
@@ -123,7 +124,7 @@ function member_fetch_group_data ($group_id)
   $admin_flags = array_keys ($GLOBALS['MEMBER_FLAGS_ACTIVE']);
   $result = db_execute ("
     SELECT
-      unix_group_name AS name, gidNumber AS gid,
+      unix_group_name AS name, MAX(gidNumber) AS gid,
       group_concat(user_name ORDER BY user_name) AS users
     FROM groups g, user u, user_group ug
     WHERE
@@ -134,58 +135,79 @@ function member_fetch_group_data ($group_id)
   );
   if (!db_numrows ($result))
     return null;
-  return db_fetch_array ($result);
+  $r = db_fetch_array ($result);
+  $r['line'] = $r['name'] . ':x:' . $r['gid'] . ':' . $r['users'] . "\n";
+  return $r;
 }
 
-function member_group_file_unavailable ()
+function member_fetch_passwd_data ($user_id)
 {
-  if (!array_key_exists ('sys_group_file', $GLOBALS))
+  global $sys_passwd_common_gid, $sys_passwd_home_dir, $sys_passwd_user_shell;
+  $data = user_get_fields (['user_name', 'realname', 'uidNumber'], $user_id);
+  if (empty ($data))
+    return null;
+  $data['name'] = $data['user_name'];
+  $line = [$data['user_name'], 'x', $data['uidNumber'], $sys_passwd_common_gid];
+  $line[] = str_replace (':', ' ', $data['realname']);
+  $line[] = $sys_passwd_home_dir;
+  $line[] = $sys_passwd_user_shell;
+  $data['line'] = join (':', $line) . "\n";
+  return $data;
+}
+
+function member_file_unavailable ($var)
+{
+  if (!array_key_exists ($var, $GLOBALS))
     return true;
-  if (!is_file ($GLOBALS['sys_group_file']))
+  if (!is_file ($GLOBALS[$var]))
     return true;
-  return !is_readable ($GLOBALS['sys_group_file']);
+  return !is_readable ($GLOBALS[$var]);
 }
 
-function member_group_line ($data)
+function member_substitute_line (&$data, $line)
 {
-  return $data['name'] . ':x:' . $data['gid'] . ':' . $data['users'] . "\n";
+  if (empty ($data['line']))
+    return $line;
+  if (!preg_match ("/^{$data['name']}:/", $line))
+    return $line;
+  $line = $data['line'];
+  $data['line'] = null;
+  return $line;
 }
 
-function member_substitute_group ($arg)
+function member_substitute_file ($arg)
 {
-  list ($tmp_file, $data) = $arg;
+  list ($tmp_file, $id, $file, $fetch_func) = $arg;
+  $data = $fetch_func ($id);
+  if ($data === null)
+    return;
   $out = fopen ($tmp_file, 'w');
-  $in = fopen ($GLOBALS['sys_group_file'], 'r');
-  $record = member_group_line ($data);
+  $in = fopen ($GLOBALS[$file], 'r');
   while (false !== ($line = fgets ($in)))
-    {
-      if ($record !== null && preg_match ("/^{$data['name']}:/", $line))
-        {
-          $line = $record;
-          $record = null;
-        }
-      fwrite ($out, $line);
-    }
-  if ($record !== null)
-    fwrite ($out, $record);
+    fwrite ($out, member_substitute_line ($data, $line));
+  if ($data['line'] !== null)
+    fwrite ($out, $data['line']);
   fclose ($in);
   fclose ($out);
   chmod ($tmp_file, 0644);
-  rename ($tmp_file, $GLOBALS['sys_group_file']);
+  rename ($tmp_file, $GLOBALS[$file]);
 }
 
-function member_update_group_file ($group_id)
+function member_update_file ($id, $type)
 {
-  global $sys_group_file;
-  if (member_group_file_unavailable ())
+  $files = ['group' => 'sys_group_file', 'passwd' => 'sys_passwd_file'];
+  $fetch = [
+    'group' => 'member_fetch_group_data', 'passwd' => 'member_fetch_passwd_data'
+  ];
+  if (member_file_unavailable ($files[$type]))
     return;
-  $data = member_fetch_group_data ($group_id);
-  if ($data === null)
-    return;
-  $tmp = utils_mktemp ('group');
+  $tmp = utils_mktemp ($type);
   if ($tmp === null)
     return;
-  utils_run_lock ($sys_group_file, 'member_substitute_group', [$tmp, $data]);
+  utils_run_lock (
+    $GLOBALS[$files[$type]], 'member_substitute_file',
+    [$tmp, $id, $files[$type], $fetch[$type]]
+  );
 }
 
 # Approve a pending user for a group.
@@ -199,7 +221,7 @@ function member_approve ($user_id, $group_id)
   );
   if (!$result)
     return $result;
-  member_update_group_file ($group_id);
+  member_update_file ($group_id, 'group');
   group_add_history ('Approved User', user_getname ($user_id), $group_id);
   return $result;
 }
@@ -250,7 +272,7 @@ function member_remove ($user_id, $group_id)
   else
     {
       group_add_history ('Removed User', user_getname ($user_id), $group_id);
-      member_update_group_file ($group_id);
+      member_update_file ($group_id, 'group');
     }
   return member_purge_from_user_squad ($user_id, $group_id, $admin_flags);
 }

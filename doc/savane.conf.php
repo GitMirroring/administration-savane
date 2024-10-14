@@ -146,4 +146,11 @@ $sys_min_gidNumber = 5000;
 # The group file for libnss-extrausers updated every time when users are added
 # or removed from any group.
 $sys_group_file = "$sys_appdatadir/group";
+# The passwd file for libnss-extrausers updated every time when uidNumber
+# is assigned.
+$sys_passwd_file = "$sys_appdatadir/passwd";
+# Settings used when updating $sys_passwd_file.
+$sys_passwd_common_gid = 1003;
+$sys_passwd_home_dir = "$sys_pkgconfdir/user-home-dir";
+$sys_passwd_user_shell = "$sys_pkgconfdir/user-shell";
 ?>

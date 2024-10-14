@@ -20,10 +20,13 @@
 * New savane.conf.php variable, $sys_pw_rounds.  The password hashes are
   upgraded on log in.
 
-* New savane.conf.php variables, $sys_min_uidNumber and $sys_min_gidNumber.
-  The frontend code assigns `user`.`uidNumber`, `groups`.`gidNumber`,
-  `user_group`.`cache_uidNumber`, `user_group`.`cache_gidNumber` when
-  needed, making the sv_assign_uid_gid script unnecessary.
+* New savane.conf.php variables, $sys_min_uidNumber and $sys_min_gidNumber,
+  $sys_passwd_file, $sys_passwd_common_gid, $sys_passwd_home_dir,
+  $sys_passwd_user_shell.  The frontend code assigns `user`.`uidNumber`,
+  `groups`.`gidNumber`, `user_group`.`cache_uidNumber`,
+  `user_group`.`cache_gidNumber` when needed.  It also optionally updates
+  the group and passwd files for libnss-extrausers, making the cron job running
+  sv_assign_uid_gid unnecessary.
 
 * The SQL queries are made ONLY_FULL_GROUP_BY-compliant.
 
