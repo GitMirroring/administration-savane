@@ -1067,142 +1067,162 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
   return [$changed, $comment];
 }
 
-function trackers_attach_file ($item_id, $file, $file_description, &$changes)
+function trackers_upload_size_invalid ($file_name)
+{
+  if ($GLOBALS['current_upload_size'] >= 0)
+    return false;
+  # TRANSLATORS: the argument is file name.
+  $msg = sprintf (
+    _("Unexpected error, disregarding file %s attachment"), $file_name
+  );
+  fb ($msg, 1);
+  return true;
+}
+
+function trackers_upload_size_notice ()
+{
+  $size = $GLOBALS['current_upload_size'];
+  if (!$size)
+    return '';
+  # Explanation added when an upload is refused,
+  # if the upload count is involved.
+  return ' ' . sprintf (
+    ngettext (
+      "You already uploaded %s kilobyte.", "You already uploaded %s kilobytes.",
+      $size),
+    $size
+  );
+}
+
+function trackers_attachments_dir_unaccessible ()
 {
   global $sys_trackers_attachments_dir;
-  $input_file = $file['tmp_name'];
-  $input_file_name = preg_replace ('/[&<\s"\';?!*]/', '@', $file['name']);
-  $input_file_type = $file['type'];
-  $input_file_size = $file['size'];
-  $user_id = (user_isloggedin ()? user_getid (): 100);
-
-  if (!is_writable ($sys_trackers_attachments_dir))
-    {
-      $msg = sprintf (
-        _("The upload directory '%s' is not writable."),
-        $sys_trackers_attachments_dir
-      );
-      fb ($msg, 1);
-      return false;
-    }
-  if (!is_uploaded_file ($input_file))
-    {
-      $msg = sprintf (
-        _("File %s not attached: unable to open it"),
-        $input_file_name
-      );
-      fb ($msg, 1);
-      return false;
-    }
-
-  # Found of the previous upload count.
-  # It could not be inferior to 0. If it is, someone obviously find a way
-  # to tamper, ignore the file.
-  $current_upload_size = $GLOBALS['current_upload_size'];
-  $current_upload_size_comment = '';
-  if ($current_upload_size < 0)
-    {
-      # TRANSLATORS: the argument is file name.
-      fb (
-        sprintf (
-          _("Unexpected error, disregarding file %s attachment"),
-          $input_file_name),
-        1
-      );
-      return false;
-    }
-  if ($current_upload_size > 0)
-    {
-      # Explanation added when an upload is refused, if the upload count
-      # is involved.
-      $current_upload_size_comment = ' '
-        . sprintf (
-            ngettext (
-              "You already uploaded %s kilobyte.",
-              "You already uploaded %s kilobytes.",
-              $current_upload_size),
-            $current_upload_size
-          );
-    }
-
-  # Check file size.
-  # Note: in english, use the expression kilobytes, and not kB, because
-  # feedback is in lowercase for the whole string.
-  # We always add the current upload count.
-  $filesize = round (filesize ($input_file) / 1024);
-  $uploadsize = $filesize + $current_upload_size;
-  if ($uploadsize > $GLOBALS['sys_upload_max'])
-    {
-      $msg_not_attached =
-        sprintf (ngettext (
-          "File %s not attached: its size is %s kilobyte.",
-          "File %s not attached: its size is %s kilobytes.",
-          $filesize), $input_file_name, $filesize
-        );
-      $msg_max_size =
-        sprintf (ngettext (
-          "Maximum allowed file size is %s kilobyte,\n"
-          . "after escaping characters as required.",
-          "Maximum allowed file size is %s kilobytes,\n"
-          . "after escaping characters as required.",
-          $GLOBALS['sys_upload_max']),
-          $GLOBALS['sys_upload_max']
-        );
-      fb ("$msg_not_attached $msg_max_size$current_upload_size_comment", 1);
-      return false;
-    }
-  if (filesize ($input_file) == 0)
-    {
-      fb (
-        sprintf (_("File %s is empty."), $input_file_name)
-        . $current_upload_size_comment,
-        1
-      );
-      return false;
-    }
-
-  # Update the upload count value (before the actual database insert, safer).
-  $GLOBALS['current_upload_size'] = $uploadsize;
-
-  $res = db_autoexecute (
-    'trackers_file',
-    [
-      'item_id' => $item_id, 'artifact' => ARTIFACT,
-      'submitted_by' => $user_id, 'date' => time (),
-      'description' => $file_description, 'filename' => $input_file_name,
-      'filesize' => $input_file_size, 'filetype' => $input_file_type
-    ],
-    DB_AUTOQUERY_INSERT
+  if (is_writable ($sys_trackers_attachments_dir))
+    return false;
+  $msg = sprintf (
+    _("The upload directory '%s' is not writable."),
+    $sys_trackers_attachments_dir
   );
+  fb ($msg, 1);
+  return true;
+}
 
-  if (!$res)
-    {
-      fb (sprintf (_("Error while attaching file %s"), $input_file_name), 1);
-      return false;
-    }
-  $file_id = db_insertid ($res);
-  if (
-    !move_uploaded_file ($input_file, "$sys_trackers_attachments_dir/$file_id")
-  )
-    {
-      fb (
-        sprintf (_("Error while saving file %s on disk"), $input_file_name),
-        1
-      );
-      return false;
-    }
+function trackers_not_uploaded_file ($input_file, $file_name)
+{
+  if (is_uploaded_file ($input_file))
+    return false;
+  $msg = sprintf (
+    _("File %s not attached: unable to open it"), $file_name
+  );
+  fb ($msg, 1);
+  return true;
+}
 
-  $file_id = db_insertid ($res);
+function trackers_get_upload_size ($file)
+{
+  $filesize = round (filesize ($file) / 1024);
+  return $filesize + $GLOBALS['current_upload_size'];
+}
+
+function trackers_file_too_big ($file, $file_name, $comment)
+{
+  $filesize = round (filesize ($file) / 1024);
+  if (trackers_get_upload_size ($file) <= $GLOBALS['sys_upload_max'])
+    return false;
+  $msg_not_attached = sprintf (ngettext (
+    "File %s not attached: its size is %s kilobyte.",
+    "File %s not attached: its size is %s kilobytes.",
+    $filesize), $file_name, $filesize
+  );
+  $msg_max_size = sprintf (ngettext (
+    "Maximum allowed file size is %s kilobyte,\n"
+    . "after escaping characters as required.",
+    "Maximum allowed file size is %s kilobytes,\n"
+    . "after escaping characters as required.",
+    $GLOBALS['sys_upload_max']), $GLOBALS['sys_upload_max']
+  );
+  fb ("$msg_not_attached $msg_max_size$comment", 1);
+  return true;
+}
+
+function trackers_file_is_empty ($file, $file_name, $size_comment)
+{
+  if (filesize ($file))
+    return false;
+  fb (sprintf (_("File %s is empty."), $file_name) . $size_comment, 1);
+  return true;
+}
+
+function trackers_check_upload_size ($file, $file_name)
+{
+  if (trackers_upload_size_invalid ($file_name))
+    return true;
+  $size_comment = trackers_upload_size_notice ();
+  if (trackers_file_is_empty ($file, $file_name, $size_comment))
+    return true;
+  return trackers_file_too_big ($file, $file_name, $size_comment);
+}
+
+function trackers_check_upload_params ($file, $file_name)
+{
+  if (trackers_attachments_dir_unaccessible ())
+    return true;
+  if (trackers_not_uploaded_file ($file['tmp_name'], $file_name))
+    return true;
+  return trackers_check_upload_size ($file['tmp_name'], $file_name);
+}
+
+function trackers_insert_attachment ($params)
+{
+  $params['artifact'] = ARTIFACT;
+  $params['date'] = time ();
+  $params['filetype'] = $params['file']['type'];
+  $params['filesize'] = $params['file']['size'];
+  unset ($params['file']);
+  $res = db_autoexecute ('trackers_file', $params, DB_AUTOQUERY_INSERT);
+  if ($res)
+    return db_insertid ($res);
+  fb (sprintf (_("Error while attaching file %s"), $file_name), 1);
+  return false;
+}
+
+function trackers_move_attachment ($file, $file_id, $file_name)
+{
+  global $sys_trackers_attachments_dir;
+  if (move_uploaded_file ($file, "$sys_trackers_attachments_dir/$file_id"))
+    return false;
+  fb (sprintf (_("Error while saving file %s on disk"), $file_name), 1);
+  return true;
+}
+
+function trackers_post_attach ($item_id, $file_id, $file_name)
+{
   # TRANSLATORS: the argument is file id (a number).
   fb (sprintf (_("file #%s attached"), $file_id));
-
   trackers_data_add_history (
-    "Attached File", "-", "Added $input_file_name, #$file_id", $item_id,
-    0, 0, 1
+    "Attached File", "-", "Added $file_name, #$file_id", $item_id, 0, 0, 1
   );
-  # Add the guy in CC.
   if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
     trackers_add_cc ($item_id, user_getid (), "-UPD-");
+}
+
+function trackers_attach_file ($item_id, $file, $description, &$changes)
+{
+  global $current_upload_size;
+  $file_name = preg_replace ('/[&<\s"\';?!*]/', '@', $file['name']);
+  $user_id = (user_isloggedin ()? user_getid (): 100);
+  if (trackers_check_upload_params ($file, $file_name))
+    return false;
+  $current_upload_size = trackers_get_upload_size ($file['tmp_name']);
+  $file_id = trackers_insert_attachment ([
+    'item_id' => $item_id, 'submitted_by' => $user_id,
+    'description' => $description, 'filename' => $file_name, 'file' => $file
+  ]);
+  if (!$file_id)
+    return false;
+  if (trackers_move_attachment ($file['tmp_name'], $file_id, $file_name))
+    return false;
+  trackers_post_attach ($item_id, $file_id, $file_name);
   return $file_id;
 }
 
