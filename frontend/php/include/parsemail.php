@@ -169,7 +169,10 @@ function parsemail_parse_mime ($mime, $msg, $error_handler)
     }
   $ret = [$ret, parsemail_extract_part ($mime, $latest, $msg)];
   # Check for nesting like in the 'protected-headers=v1' protocol.
-  $ret[] = in_array ("$latest.1", $struct);
+  $nested = in_array ("$latest.1", $struct);
+  $ret[] = $nested;
+  if ($nested)
+    $latest .= '.1';
   $ret[] = parsemail_get_part_charset ($mime, $latest);
   return $ret;
 }
