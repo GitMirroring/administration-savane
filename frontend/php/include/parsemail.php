@@ -192,24 +192,62 @@ function parsemail_close ($mime)
   mailparse_msg_free ($mime);
   $mime = null;
 }
-function parsemail_parse_body ($mime, $msg, $error_handler)
+
+function parsemail_extract_attachment ($mime, $email, $i)
 {
-  $struct = mailparse_msg_get_structure ($mime);
-  $idx = '1.1';
-  if (in_array ($idx, $struct))
-    return parsemail_extract_part ($mime, $idx, $msg);
-  parsemail_close ($mime);
-  return $error_handler ("No subpart $idx found");
+  $idx = "1.$i";
+  $data = parsemail_get_part_data ($mime, $idx);
+  if (empty ($data['content-disposition']))
+    return null;
+  if ($data['content-disposition'] !== 'attachment')
+    return null;
+  $msg = parsemail_extract_part ($mime, $idx, $email);
+  if (array_key_exists ('charset', $data))
+    $msg = iconv ($data['charset'], 'UTF-8//IGNORE', $msg);
+  if (!array_key_exists ('disposition-filename', $data))
+    $data['disposition-filename'] = $i;
+  if (!array_key_exists ('content-type', $data))
+     $data['content-type'] = null;
+  if (!array_key_exists ('content-description', $data))
+    $data['content-description'] = '';
+  foreach (['content-type', 'disposition-filename', 'content-description']
+    as $f
+  )
+    $data[$f] = iconv_mime_decode ($data[$f]);
+  return [
+    'name' => $data['disposition-filename'], 'type' => $data['content-type'],
+    'body' => $msg, 'description' => $data['content-description']
+  ];
 }
 
-function parsemail_extract_body ($email, $error_handler)
+function parsemail_extract_files ($mime, $email, $struct)
+{
+  $ret = [];
+  for ($i = 2; in_array ("1.$i", $struct); $i++)
+    {
+      $item = parsemail_extract_attachment ($mime, $email, $i);
+      if ($item !== null)
+        $ret[] = $item;
+    }
+  return $ret;
+}
+
+function parsemail_parse_nested ($email, $error_handler)
 {
   if (!function_exists ('mailparse_msg_create'))
     return $error_handler ('Mailparse extension not found');
   $mime = parsemail_open ($email);
-  $ret = parsemail_parse_body ($mime, $email, $error_handler);
+  $struct = mailparse_msg_get_structure ($mime);
+  $idx = '1.1';
+  if (!in_array ($idx, $struct))
+    {
+      parsemail_close ($mime);
+      return $error_handler ("No subpart $idx found");
+    }
+  $ret = parsemail_extract_part ($mime, $idx, $email);
+  $files = parsemail_extract_files ($mime, $email, $struct);
   parsemail_close ($mime);
-  return $ret;
+  return [$ret, $files];
 }
 
 function parsemail_extract_message ($email, $error_handler)

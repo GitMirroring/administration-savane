@@ -1023,17 +1023,21 @@ function trackers_mail_followup (
 function trackers_add_file ($item_id, $file, $file_description, &$changes)
 {
   if (empty ($file['tmp_name']))
-    return '';
-  if ($file['error'] != UPLOAD_ERR_OK)
-    return '';
+    return null;
+  if (empty ($file['emailed']) && $file['error'] != UPLOAD_ERR_OK)
+    return null;
 
   $id = trackers_attach_file ($item_id, $file, $file_description, $changes);
   if (!$id)
-    return '';
+    {
+      if (is_file ($file['tmp_name']))
+        unlink ($file['tmp_name']);
+      return null;
+    }
   $changes['attach'][] = [
     'name' => $file['name'], 'size' => $file['size'], 'id' => $id
   ];
-  return "file #$id, ";
+  return "file #$id";
 }
 
 # Wrapper for trackers_attach_file that will find out if one or more files
@@ -1042,29 +1046,20 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
 {
   # Reset the global used to count the current upload size.
   $GLOBALS['current_upload_size'] = 0;
-
-  $changed = false;
-  $comment = '';
-
-  $filenames = [];
+  $comment = $filenames = [];
   for ($i = 1; $i < 5; $i++)
     $filenames[] = "input_file$i";
   $files = sane_import ('files', ['pass' => $filenames]);
   extract (sane_import ('post', ['specialchars' => 'file_description']));
   foreach ($files as $file)
-    $comment .= trackers_add_file (
+    $comment[] = trackers_add_file (
       $item_id, $file, $file_description, $changes
     );
-
-  if ($comment)
-    {
-      $changed = true;
-      $comment = "\n\n(" . rtrim ($comment, ", ") . ")";
-    }
-
-  # Trash the used global.
   unset ($GLOBALS['current_upload_size']);
-  return [$changed, $comment];
+  $comment = array_filter ($comment);
+  if (empty ($comment))
+    return [false, ''];
+  return [true, "\n\n(" . join (', ', $comment) . ")"];
 }
 
 function trackers_upload_size_invalid ($file_name)
@@ -1147,6 +1142,7 @@ function trackers_file_too_big ($file, $file_name, $comment)
 
 function trackers_file_is_empty ($file, $file_name, $size_comment)
 {
+  clearstatcache (true, $file);
   if (filesize ($file))
     return false;
   fb (sprintf (_("File %s is empty."), $file_name) . $size_comment, 1);
@@ -1167,7 +1163,10 @@ function trackers_check_upload_params ($file, $file_name)
 {
   if (trackers_attachments_dir_unaccessible ())
     return true;
-  if (trackers_not_uploaded_file ($file['tmp_name'], $file_name))
+  if (
+    empty ($file['emailed'])
+    && trackers_not_uploaded_file ($file['tmp_name'], $file_name)
+  )
     return true;
   return trackers_check_upload_size ($file['tmp_name'], $file_name);
 }
@@ -1189,7 +1188,7 @@ function trackers_insert_attachment ($params)
 function trackers_move_attachment ($file, $file_id, $file_name)
 {
   global $sys_trackers_attachments_dir;
-  if (move_uploaded_file ($file, "$sys_trackers_attachments_dir/$file_id"))
+  if (rename ($file, "$sys_trackers_attachments_dir/$file_id"))
     return false;
   fb (sprintf (_("Error while saving file %s on disk"), $file_name), 1);
   return true;

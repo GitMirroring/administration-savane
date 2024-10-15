@@ -79,16 +79,17 @@ function extract_message ($mbox, $user_id)
     parsemail_extract_message ($mbox, 'display_page');
   list ($error_code, $error_msg, $decrypted)
     = gpg\verify_for ($user_id, $input);
+  $files = [];
   if ($error_code)
     display_page ($error_msg);
   if (count ($input) < 2)
     # Non-detached signature: the message needs 'decrypting'.
     $msg = $decrypted;
   elseif (!empty ($nested))
-    $msg = parsemail_extract_body ($input[1], 'display_page');
+    list ($msg, $files) = parsemail_parse_nested ($input[1], 'display_page');
   if (!empty ($charset))
     $msg = iconv ($charset, 'UTF-8//IGNORE', $msg);
-  return $msg;
+  return [$msg, $files];
 }
 
 function trim_message ($msg)
@@ -216,11 +217,38 @@ function check_for_duplicates ($item_id, $user_id, $comment)
   display_page (no_i18n ("Duplicate message has been rejected."));
 }
 
-function add_follow_up ($params, $user_id, $group_id)
+function make_tmp_attachment ($file)
+{
+  $ret = [
+    'tmp_name' => utils_mktemp ('sv-attach'), 'name' => $file['name'],
+    'type' => $file['type'], 'size' => strlen ($file['body']), 'emailed' => true
+  ];
+  if (empty ($ret['tmp_name']))
+    return null;
+  $out = fopen ($ret['tmp_name'], 'w');
+  fwrite ($out, $file['body']);
+  fclose ($out);
+  chmod ($ret['tmp_name'], 0644);
+  return $ret;
+}
+
+function add_follow_up ($params, $group_id, $files)
 {
   trackers_init ($group_id);
-  $vfl = $changes = [];
+  $GLOBALS['current_upload_size'] = 0;
+  $vfl = $changes = $file_refs = [];
   $item_id = $params['item'];
+  foreach ($files as $f)
+    {
+      $att = make_tmp_attachment ($f);
+      if ($att === null)
+        continue;
+      $file_refs[] =
+        trackers_add_file ($item_id, $att, $f['description'], $changes);
+    }
+  $file_refs = array_filter ($file_refs);
+  if (!empty ($file_refs))
+    $params['comment'] .= "\n\n(" . join (', ', $file_refs) . ")";
   trackers_data\handle_update\update_details (
     $params['comment'], $item_id, $group_id, $vfl, $changes
   );
@@ -260,11 +288,12 @@ function import_post_data ()
 }
 
 import_post_data ();
-$params = parse_message (extract_message ($mbox, $user_id));
+list ($msg, $files) = extract_message ($mbox, $user_id);
+$params = parse_message ($msg);
 validate_params ($params);
 $group_id = check_permissions ($user_id, $params['item']);
 
 check_for_duplicates ($params['item'], $user_id, $params['comment']);
-add_follow_up ($params, $user_id, $group_id);
+add_follow_up ($params, $group_id, $files);
 display_page ();
 ?>
