@@ -86,7 +86,7 @@ function git_get_tarball_name ()
   return "{$GLOBALS['ac_package_tarname']}-$commit.tar.gz";
 }
 
-function git_get_tarball_url ()
+function git_get_tarball_url ($force_git = false)
 {
   $tarball_name = git_get_tarball_name ();
   $prot = 'http';
@@ -94,7 +94,7 @@ function git_get_tarball_url ()
     $prot .= 's';
   $base = $GLOBALS['sys_savane_cgit'] . '/snapshot';
   $src_dir = 'source';
-  if (file_exists ("$src_dir/$tarball_name"))
+  if (file_exists ("$src_dir/$tarball_name") && !$force_git)
     $base = '//' . $GLOBALS['sys_default_domain'] . $GLOBALS['sys_home']
       . $src_dir;
   return "$prot:$base/$tarball_name";
@@ -103,7 +103,9 @@ function git_get_tarball_url ()
 # Return non-zero when tarball URL results in an error.
 function git_check_tarball ()
 {
-  $url = git_get_tarball_url ();
+  # The built-in server may be blocked if given two requests at once.
+  $force_git = php_sapi_name () === 'cli-server';
+  $url = git_get_tarball_url ($force_git);
   # Don't emit warnings when fopen fails.
   $error_state = utils_disable_warnings (E_WARNING);
   $f = fopen ($url, 'r');
