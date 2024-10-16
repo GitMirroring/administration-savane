@@ -17,17 +17,6 @@
   to varchar(153), so read-only database access doesn't easily let the attacker
   use the existing sessions to impersonate users any more.
 
-* New savane.conf.php variable, $sys_pw_rounds.  The password hashes are
-  upgraded on log in.
-
-* New savane.conf.php variables, $sys_min_uidNumber and $sys_min_gidNumber,
-  $sys_passwd_file, $sys_passwd_common_gid, $sys_passwd_home_dir,
-  $sys_passwd_user_shell.  The frontend code assigns `user`.`uidNumber`,
-  `groups`.`gidNumber`, `user_group`.`cache_uidNumber`,
-  `user_group`.`cache_gidNumber` when needed.  It also optionally updates
-  the group and passwd files for libnss-extrausers, making the cron job running
-  sv_assign_uid_gid unnecessary.
-
 * The SQL queries are made ONLY_FULL_GROUP_BY-compliant.
 
 * Emails sent from Savane frontend can be GPG-signed, see
@@ -68,9 +57,6 @@
 
 * Email error report rate is limited.
 
-* New savane.php.conf variables, $sys_group_file and $sys_debug_footer
-  (see doc/savane.conf.php).
-
 * The number of SQL queries is reduced in several cases.
 
 * A means to edit system-wide query forms is added.
@@ -82,14 +68,26 @@
 * A control to copy field settings from existing query forms is added to
   bugs/admin/editqueryforms.php.
 
-* Database character set is made configurable with the new savane.conf.php
-  variable, $sys_dbcharset; with a wrong setting, search including non-ASCII
-  characters results in an SQL error.  In testconfig.php, the current setting
-  is tested, and if fails, the test is also run on a list of other possible
-  character sets.
-
 * A distribution tarball is generated, installed and served from frontend,
   without relying on cgit.
+
+* New savane.conf.php variables, see doc/savane.conf.php:
+
+** $sys_pw_rounds.  The password hashes are upgraded on log in.
+
+** $sys_debug_footer, to report PHP run summary.
+
+** $sys_min_uidNumber, $sys_min_gidNumber, $sys_group_file, $sys_passwd_file,
+   $sys_passwd_common_gid, $sys_passwd_home_dir, $sys_passwd_user_shell.
+   The frontend code assigns `user`.`uidNumber`, `groups`.`gidNumber`,
+   `user_group`.`cache_uidNumber`, `user_group`.`cache_gidNumber` when needed.
+   It also optionally updates the group and passwd files for libnss-extrausers,
+   making the cron job running sv_assign_uid_gid unnecessary.
+
+** $sys_dbcharset, to configure database character set; with a wrong setting,
+   search in trackers including non-ASCII characters results in an SQL error.
+   In testconfig.php, the current setting is tested, and if fails, the test
+   is also run on a list of other possible character sets.
 
 * Bug fixes:
 
@@ -110,20 +108,24 @@
 ** In my/groups.php, the 'Search Groups' text input wasn't pre-filled
    with the previous search.
 
-** Field usage assignment was broken in bugs/admin/field_usage.php.
-
 ** In my/groups.php, search was broken. Reported on sv-hackers@ on 2024-06-10,
   <95fc6bdd-d684-459c-9948-1a2215d7809a@alphapapa.net>.
 
-** Login-related cookies in the 'brother domain' were always set for a year.
+** Field usage assignment was broken in bugs/admin/field_usage.php.
 
-** Since 2024-01 (d3962d3fe), form processing in /siteadmin/groupedit.php
-   didn't work for pending groups.
+** Login-related cookies in the 'brother domain' were always set for a year.
 
 ** /include/markup.php didn't recognize lists with PHP 5.
 
-** In /git/admin/index.php, the controls for reordering repositories
-   didn't work since 2024-01, d3962d3feb.
+** Since 2024-01 (d3962d3fe):
+
+*** Form processing in /siteadmin/groupedit.php didn't work for pending groups.
+
+*** In /git/admin/index.php, the controls for reordering repositories
+    didn't work.
+
+*** The controls for removing members from groups and changing admin_flags
+    in siteadmin/usergroup.php were broken.
 
 ** Instructions for anonymous CVS were broken since bb2d0d189 in
    site-specific/gnu/cvs/index.php.
@@ -137,20 +139,19 @@
 ** In bugs/admin/editqueryforms.php, the "Rank on Search" column displayed
    empty values when editing queries since 2022-03 (d69b1ca491033).
 
-** Links for deleting attachments in trackers were broken since 3b884877e.
+** Links for deleting attachments in trackers were broken since 2023-12
+   (3b884877e).
 
-** Since 39180aea8, file removal records in tracker history didn't work.
+** Since 2023-12 (39180aea8), file removal records in tracker history didn't
+   work.
 
-** Since 02c3255f7e7b, session and other cookies were passed
+** Since 2022-09 (02c3255f7e7b), session and other cookies were passed
    to the auxiliary file domain.
 
 ** In frontend/php/file.php, error messages were output in a way that
    made little sense.
 
 ** Field value transition editing was broken since 2022-04 (8a7f2c11f).
-
-** The controls for removing members from groups and changing admin_flags
-   in siteadmin/usergroup.php were broken since d3962d3feb7.
 
 ** Cookbook list in sitemenu was broken since 2023-01 (676b695c7).
 
@@ -164,31 +165,22 @@
 [BACKEND]
 
 * In sv_cleaner, look for a longer period when deleting idle accounts
-  in the --big-cleanup mode.
-
-* In sv_cleaner, personal query forms of removed users are cleaned.
-
-* In sv_cleaner, logs are made more detailed.
-
-* In sv_cleaner, data amount in a few queries is reduced using
-  more restrictive conditions.
-
-* When suspending accounts in sv_cleaner, realname is set to '-#-' to
-  distinguish from accounts suspended manually by site admins; confirm_hash
-  and email_new are set to null; email is set to idontexist@savane.test.
-
-* New configuration variable for sv_cleaner, %sys_banned_email_names.
+  in the --big-cleanup mode. Personal query forms of removed users are cleaned.
+  Logs are made more detailed.  Data amount in a few queries is reduced using
+  more restrictive conditions.  When suspending accounts, realname is set
+  to '-#-' to distinguish from accounts suspended manually by site admins;
+  confirm_hash and email_new are set to null; email is set
+  to idontexist@savane.test.  New option, --verbose.  New configuration
+  variable, %sys_banned_email_names.
 
 * New script, sv_gen_passwd_group.
 
 * In sv_php_server.pl, the -d option to pass additional INI directives to PHP
   was added.
 
-* New option in sv_cleaner, --verbose.
-
 * Bug fixes:
 
-** sv_miror-redirect sometimes opens log files, bug fails to write any entries.
+** miror-redirect sometimes opens log files, but fails to write any entries.
    sv_collect-mirror-stats.in now removes such stale files.
 
 ** In sv_membersh.pl.in, spurious carriage returns at the end of lines
