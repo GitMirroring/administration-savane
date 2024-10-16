@@ -24,14 +24,18 @@ they are installed on.
 accounts/sv_assign_uid_gid
 ==========================
 
-Links Savane users and groups to Unix uid and gid numbers.
-Runs every 5 minutes on mgt1.
+Assigns Unix uid and gid numbers to Savane users and groups.  Numbers
+for the newly approved groups and the users joining active groups are assigned
+synchronously in Web UI; this script may be needed to generate those numbers
+in the fresh installation, for example, from ../db/initial.sql.
 
 accounts/sv_gen_passwd_group
 ============================
 
 Generates the passwd and group files that may be used with libnss-extrausers.
-Runs a minute after sv_assign_uid_gid on frontend2.
+After the initial generation, the updates in those files may be handled
+synchronously in Web UI, see variables $sys_group_file...$sys_passwd_user_shell
+in ../doc/savane.conf.php.
 
 accounts/sv_groups
 ==================
