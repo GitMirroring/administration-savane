@@ -46,7 +46,6 @@ AC_INIT([Savane], [3.13-gamma], [savannah-hackers-public@gnu.org], [savane],
   [https://savannah.gnu.org/projects/administration])
 
 AC_CONFIG_AUX_DIR(autotools)
-# For future version of aclocal:
 AC_CONFIG_MACRO_DIR(autotools/m4)
 AM_INIT_AUTOMAKE([1.11.1])
 AM_PO_SUBDIRS
