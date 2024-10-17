@@ -20,66 +20,75 @@
 #
 # LICENSE
 #
-#   Copyright (c) 2009 Marco Gomes <mpglesi@gmail.com>
-#   Copyright (c) 2009 Ruben Fonseca <fonseka@gmail.com>
+#   Copyright (C) 2009 Marco Gomes <mpglesi@gmail.com>
+#   Copyright (C) 2009 Ruben Fonseca <fonseka@gmail.com>
+#   Copyright (C) 2024 Ineiev <ineiev@gnu.org>
 #
 #   Copying and distribution of this file, with or without modification, are
 #   permitted in any medium without royalty provided the copyright notice
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
+#
+# CHANGELOG
+#
+#   2024-10-17 ineiev replace 'cut' and 'wc' with $PERL, use AS_IF and AS_CASE,
+#     enclose arguments in brackets, refactor, show detected module versions,
+#     improve diagnostics.
 
-#serial 10
+# was serial 10
 
 AU_ALIAS([AC_PERL_MODULE_VERSION], [AX_PERL_MODULE_VERSION])
-AC_DEFUN([AX_PERL_MODULE_VERSION],[dnl
-ac_perl_list_modules="$1"
-# Make sure we have perl
-if test -z "$PERL"; then
-AC_CHECK_PROG(PERL,perl,perl)
-fi
-
-# Check the number of arguments
-args_num=`echo $ac_perl_list_modules | wc -w`
-check_args=$(( $args_num % 2 ))
-if test "$check_args" = "1" ; then
-  AC_MSG_ERROR(syntax error)
-else
-  eval
-fi
-
-if test "x$PERL" != x; then
+AC_DEFUN([AX_PERL_MODULE_VERSION_CHECK_ARGS], [
+  ac_perl_list_modules="$1"
+  # Make sure we have Perl.
+  AS_CASE(["x$PERL"], [x], [AC_CHECK_PROG([PERL], [perl], [perl])])
+  AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([could not find perl])])
+  args_num=`$PERL -e 'print ([$]#ARGV + 1)' $ac_perl_list_modules`
+  AS_CASE([`$PERL -e 'print ((shift) % 2)' $args_num`], [1],
+    [AC_MSG_ERROR([[AX_PERL_MODULE_VERSION]: wrong argument "$1"])]
+  )
+])
+AC_DEFUN([AX_PERL_MODULE_VERSION_SHIFT_MODULE], [
+  module_name=`$PERL -e 'print shift' $ac_perl_list_modules`
+  module_version=`$PERL -e 'shift; print shift' $ac_perl_list_modules`
+  ac_perl_list_modules=` \
+    $PERL -e 'shift; shift; $, = " "; print @ARGV' $ac_perl_list_modules`
+  msg="for perl module $module_name"
+  AS_CASE([$module_version], [0], [], [msg="$msg version $module_version"])
+  AC_MSG_CHECKING([$msg])
+])
+AC_DEFUN([AX_PERL_MODULE_VERSION_MAKE_RESULT], [
+  AS_CASE([$ac_failed], [0], [
+      :
+      $1
+    ], [
+      :
+      $2
+    ]
+  )
+])
+AC_DEFUN([AX_PERL_MODULE_VERSION_FAILED], [
+  AS_CASE(["x$1"], [x],
+    [AC_MSG_RESULT([not found])], [AC_MSG_RESULT([no: $1])]
+  )
+  ac_failed=1
+  ac_perl_list_modules=""
+])
+AC_DEFUN([AX_PERL_MODULE_VERSION], [
+  AX_PERL_MODULE_VERSION_CHECK_ARGS([$1])
   ac_failed=0
-  while test ${#ac_perl_list_modules} -gt 2 ; do
-	module_name=`echo $ac_perl_list_modules | cut -d " " -f 1`
-	module_version=`echo $ac_perl_list_modules | cut -d " " -f 2`
-	ac_perl_list_modules=`echo $ac_perl_list_modules | cut -d " " -f 3-`
-	AC_MSG_CHECKING(for perl module $module_name version $module_version)
-
-	$PERL "-M$module_name" -e exit > /dev/null 2>&1
-	if test $? -ne 0; then
-	  AC_MSG_RESULT(no);
-	  ac_failed=1
-	  ac_perl_list_modules=""
-	else
-	  version=`$PERL "-M$module_name" -e 'print $'"$module_name::VERSION" 2>&1`
-	  $PERL -e 'exit(shift cmp shift)' "$version" "$module_version"
-	  if test $? -eq 0 -o $? -eq 1 ; then
-	    AC_MSG_RESULT(ok);
-	  else
-	    AC_MSG_RESULT(no)
-	    ac_failed=1
-	    ac_perl_list_modules=""
-	  fi
-	fi;
+  while test -n "$ac_perl_list_modules" ; do
+    AX_PERL_MODULE_VERSION_SHIFT_MODULE
+    AS_IF([$PERL "-M$module_name" -e exit > /dev/null 2>&1], [
+        version=`\
+          $PERL "-M$module_name" -e 'print $'"$module_name::VERSION" 2>&1`
+        AS_CASE(
+          [`$PERL -e 'print (shift cmp shift)' "$version" "$module_version"`],
+          [-1], [AX_PERL_MODULE_VERSION_FAILED([$version])],
+          [AC_MSG_RESULT([ok: $version])]
+        )
+      ], [AX_PERL_MODULE_VERSION_FAILED]
+    )dnl AS_IF([$PERL "-M$module_name" -e exit > /dev/null 2>&1],
   done
-
-  if test "$ac_failed" = 0; then
-    :
-    $2
-  else
-    :
-    $3
-  fi
-else
-  AC_MSG_ERROR(could not find perl)
-fi])dnl
+  AX_PERL_MODULE_VERSION_MAKE_RESULT([$2], [$3])
+])dnl AC_DEFUN([AX_PERL_MODULE_VERSION],
