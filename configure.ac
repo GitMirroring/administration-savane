@@ -125,7 +125,7 @@ AC_MSG_RESULT([$enable_frontend])
 AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
-AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0 Date::Calc 0],
+AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
   [have_perl_modules=yes], [have_perl_modules=no]
 )
 
