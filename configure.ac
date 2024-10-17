@@ -43,7 +43,8 @@
 # Use a version without trailing '-gamma*' for releases; with '-gamma*',
 # a short commit ID is appended to the displayed Savane version.
 AC_INIT([Savane], [3.13-gamma], [savannah-hackers-public@gnu.org], [savane],
-  [https://savannah.gnu.org/projects/administration])
+  [https://savannah.gnu.org/projects/administration]
+)
 
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_MACRO_DIR(autotools/m4)
@@ -55,8 +56,8 @@ AC_PROG_SED
 
 AC_SUBST([DIRNAME],
   [['${SED} -e "s,\([^/]\)/*$$,\1,;tb;:b;s,^[^/]*$$,.,;tq;" \
-    -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']])
-
+    -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']]
+)
 AC_PATH_PROG([PERL], [perl])
 AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
 AC_ARG_VAR([PERL], [Perl executable])
@@ -73,10 +74,12 @@ AC_ARG_VAR([WWW_SERVER_BIN], [Apache2 executable])
 AC_PATH_PROG([MYSQLD_BIN], [mysqld], [], [$PATH$PATH_SEPARATOR/usr/sbin])
 AC_ARG_VAR([MYSQLD_BIN], [MariaDB daemon])
 AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin])
+  [$PATH$PATH_SEPARATOR/usr/sbin]
+)
 AC_ARG_VAR([MYSQLD_SAFE_BIN], [MariaDB 'safe' daemon])
 AC_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin])
+  [$PATH$PATH_SEPARATOR/usr/sbin]
+)
 AC_ARG_VAR([MYSQL_INSTALLDB_BIN], [mysql_install_db executable])
 AC_PATH_PROG([MYSQL_BIN], [mysql])
 AC_ARG_VAR([MYSQL_BIN], [Database client])
@@ -92,34 +95,42 @@ AX_GEN_CHANGELOG
 AC_MSG_CHECKING([whether to initialize database])
 AC_ARG_ENABLE([database],
   [AS_HELP_STRING([--disable-database], [do not initialize database])],
-  [], [enable_database=yes])
+  [], [enable_database=yes]
+)
 AS_CASE(["x$enable_database"], [xno], [], [enable_database=yes])
 AC_MSG_RESULT([$enable_database])
 AM_CONDITIONAL([HAVE_DATABASE], [test "x$enable_database" = xyes])
 AC_MSG_CHECKING([whether to insert sample database entries])
 AC_ARG_ENABLE([sample-db],
   [AS_HELP_STRING([--enable-sample-db], [insert sample database entries])],
-  [], [enable_sample_db=no])
+  [], [enable_sample_db=no]
+)
 AS_CASE(["x$enable_sample_db"], [xyes], [], [enable_sample_db=no])
 AC_MSG_RESULT([$enable_sample_db])
 AS_CASE(["$enable_database.$MYSQL_BIN"], [yes.],
-  [AC_MSG_ERROR([Database client not found])])
+  [AC_MSG_ERROR([Database client not found])]
+)
 AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN$MYSQLD_BIN"], [yes.],
-  [AC_MSG_ERROR([Neither mysql_install_db nor mysqld found.])])
+  [AC_MSG_ERROR([Neither mysql_install_db nor mysqld found.])]
+)
 AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN"], [yes.],
-  [AC_MSG_WARN([mysql_install_db not found; falling back to mysqld])])
+  [AC_MSG_WARN([mysql_install_db not found; falling back to mysqld])]
+)
 AS_CASE(["$enable_database.$MYSQLD_SAFE_BIN"], [yes.],
-  [AC_MSG_ERROR([mysqld_safe not found])])
+  [AC_MSG_ERROR([mysqld_safe not found])]
+)
 AS_CASE(["$enable_database.$enable_sample_db"], [no.yes],
   [
     AC_MSG_ERROR([Sample entries are requested without database initialization])
-  ])
+  ]
+)
 AC_SUBST([ADD_SAMPLE_DB], [$enable_sample_db])
 
 AC_MSG_CHECKING([whether to install frontend part])
 AC_ARG_ENABLE([frontend],
   [AS_HELP_STRING([--disable-frontend], [skip frontend (PHP) part])],
-  [], [enable_frontend=yes])
+  [], [enable_frontend=yes]
+)
 AS_CASE(["x$enable_frontend"], [xno], [], [enable_frontend=yes])
 AC_MSG_RESULT([$enable_frontend])
 AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
@@ -132,7 +143,8 @@ AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],
   [AS_HELP_STRING([--enable-mirror], [install mirror-related scripts])],
-  [], [enable_mirror=no])
+  [], [enable_mirror=no]
+)
 AS_CASE(["x$enable_mirror"], [xyes], [], [enable_mirror=no])
 AC_MSG_RESULT([$enable_mirror])
 AM_CONDITIONAL([HAVE_MIRROR], [test "x$enable_mirror" = xyes])
@@ -141,10 +153,10 @@ AX_PERL_MODULE_VERSION([Geo::IP 0 Locale::Codes 0 LWP::Simple 0],
 )
 
 AC_MSG_CHECKING([for Git commit])
-SV_GIT_COMMIT=`"$SED" 's,^commit ,,;q' $srcdir/ChangeLog`
+SV_GIT_COMMIT=`$SED 's,^commit ,,;q' $srcdir/ChangeLog`
 commit_source='guessed from ChangeLog'
 AS_IF([test -d "$srcdir/.git"], [
-  head=`"$SED" 's,^ref: ,,;q' $srcdir/.git/HEAD`
+  head=`$SED 's,^ref: ,,;q' $srcdir/.git/HEAD`
   AS_CASE(["$head"], [*/*],
     [SV_GIT_COMMIT=`cat $srcdir/.git/$head`],
     [SV_GIT_COMMIT="$head"])
@@ -160,43 +172,50 @@ AC_SUBST([SV_GIT_COMMIT])
 AC_MSG_CHECKING([whether to use sendmail])
 AC_ARG_ENABLE([sendmail],
   AS_HELP_STRING([--disable-sendmail], [do not use sendmail]),
-  [], [enable_sendmail=yes])
+  [], [enable_sendmail=yes]
+)
 AS_CASE(["x$enable_sendmail"], [xyes], [],
   [
     enable_sendmail=no
     SENDMAIL=
-  ])
+  ]
+)
 AC_MSG_RESULT([$enable_sendmail])
 AM_CONDITIONAL([HAVE_SENDMAIL], [test "x$SENDMAIL" != x])
 
 AC_MSG_CHECKING([for database name])
 AC_ARG_WITH([db-name],
   AS_HELP_STRING([--with-db-name], [name of the database [savane]]),
-  [SV_DB_NAME="$withval"], [SV_DB_NAME=$PACKAGE])
+  [SV_DB_NAME="$withval"], [SV_DB_NAME=$PACKAGE]
+)
 AC_MSG_RESULT([$SV_DB_NAME])
 
 AC_MSG_CHECKING([for database user])
 AC_ARG_WITH([db-user],
   AS_HELP_STRING([--with-db-user], [database user [sv]]),
-  [SV_DB_USER="$withval"], [SV_DB_USER=sv])
+  [SV_DB_USER="$withval"], [SV_DB_USER=sv]
+)
 AC_MSG_RESULT([$SV_DB_USER])
 
 AC_MSG_CHECKING([for database host])
 AC_ARG_WITH([db-host],
   AS_HELP_STRING([--with-db-host], [host of the database [localhost]]),
-  [SV_DB_HOST="$withval"], [SV_DB_HOST=localhost])
+  [SV_DB_HOST="$withval"], [SV_DB_HOST=localhost]
+)
 AC_MSG_RESULT([$SV_DB_HOST])
 
 AC_MSG_CHECKING([for database port])
 AC_ARG_WITH([db-port],
   AS_HELP_STRING([--with-db-port], [port to connect to database [none]]),
-  [SV_DB_PORT="$withval"; db_port="$SV_DB_PORT"], [db_port=none])
+  [SV_DB_PORT="$withval"; db_port="$SV_DB_PORT"], [db_port=none]
+)
 AC_MSG_RESULT([$db_port])
 
 AC_MSG_CHECKING([whether to disable database networking])
 AC_ARG_ENABLE([db-networking],
   AS_HELP_STRING([--enable-db-networking], [run database over network [no]]),
-  [], [enable_db_networking=no])
+  [], [enable_db_networking=no]
+)
 AS_CASE(["x$enable_db_networking"], [xno], [], [enable_db_networking=yes])
 AC_MSG_RESULT([$enable_db_networking])
 
@@ -204,19 +223,22 @@ AC_MSG_CHECKING([for database options])
 AC_ARG_WITH([db-options],
   AS_HELP_STRING([--with-db-options],
     [parameters to give MariaDB when initializing the database []]),
-  [SV_DB_OPTIONS="$withval"])
+  [SV_DB_OPTIONS="$withval"]
+)
 AC_MSG_RESULT([$SV_DB_OPTIONS])
 
 AC_MSG_CHECKING([for database credentials])
 AC_ARG_WITH([db-credentials],
   AS_HELP_STRING([--with-db-credentials],
-    [path to the file with database credentials in form password=_PASSWD_]))
+    [path to the file with database credentials in form password=_PASSWD_])
+)
 AC_MSG_RESULT([$with_db_credentials])
 AS_CASE(["x$with_db_credentials"], [xno], [],
-  [ AS_IF([test -f  "$with_db_credentials"],
+  [ AS_IF([test -f "$with_db_credentials"],
       [SV_DB_PASSWORD=`
-        "$SED" ['/^password=/!d;s,[^=]*=,,;q'] < "$with_db_credentials"`])
-  ])
+        $SED ['/^password=/!d;s,[^=]*=,,;q'] < "$with_db_credentials"`])
+  ]
+)
 
 AC_SUBST([SV_DB_HOST])
 AC_SUBST([SV_DB_PORT])
@@ -232,32 +254,37 @@ AC_SUBST(SV_CONF)
 AC_MSG_CHECKING([for Apache user])
 AC_ARG_WITH([apache-user],
   AS_HELP_STRING([--with-apache-user], [webserver user [current user]]),
-  [WWW_SERVER_USER="$withval"], [WWW_SERVER_USER=`whoami`])
+  [WWW_SERVER_USER="$withval"], [WWW_SERVER_USER=`whoami`]
+)
 AC_MSG_RESULT([$WWW_SERVER_USER])
 AC_SUBST([WWW_SERVER_USER])
 
 AC_MSG_CHECKING([for Apache group])
 AC_ARG_WITH([apache-group],
   AS_HELP_STRING([--with-apache-group], [webserver group [the same as user]]),
-  [WWW_SERVER_GROUP="$withval"], [WWW_SERVER_GROUP="$WWW_SERVER_USER"])
+  [WWW_SERVER_GROUP="$withval"], [WWW_SERVER_GROUP="$WWW_SERVER_USER"]
+)
 AC_MSG_RESULT([$WWW_SERVER_GROUP])
 AC_SUBST([WWW_SERVER_GROUP])
 AC_MSG_CHECKING([for Apache host])
 AC_ARG_WITH([apache-host],
   AS_HELP_STRING([--with-apache-host], [webserver host [127.0.0.85]]),
-  [WWW_SERVER_HOST="$withval"], [WWW_SERVER_HOST="127.0.0.85"])
+  [WWW_SERVER_HOST="$withval"], [WWW_SERVER_HOST="127.0.0.85"]
+)
 AC_MSG_RESULT([$WWW_SERVER_HOST])
 AC_SUBST([WWW_SERVER_HOST])
 AC_MSG_CHECKING([for Apache file host])
 AC_ARG_WITH([apache-file-host],
   AS_HELP_STRING([--with-apache-file-host], [file server host [127.0.0.86]]),
-  [FILE_SERVER_HOST="$withval"], [FILE_SERVER_HOST="127.0.0.86"])
+  [FILE_SERVER_HOST="$withval"], [FILE_SERVER_HOST="127.0.0.86"]
+)
 AC_MSG_RESULT([$FILE_SERVER_HOST])
 AC_SUBST([FILE_SERVER_HOST])
 AC_MSG_CHECKING([for Apache port])
 AC_ARG_WITH([apache-port],
   AS_HELP_STRING([--with-apache-port], [webserver port [4913]]),
-  [WWW_SERVER_PORT="$withval"], [WWW_SERVER_PORT="4913"])
+  [WWW_SERVER_PORT="$withval"], [WWW_SERVER_PORT="4913"]
+)
 AC_MSG_RESULT([$WWW_SERVER_PORT])
 AC_SUBST([WWW_SERVER_PORT])
 WWW_HOST=$WWW_SERVER_HOST
@@ -266,7 +293,8 @@ AS_IF([test "x$WWW_SERVER_PORT" != x80 -a "x$WWW_SERVER_PORT" != x],
   [
     WWW_HOST="$WWW_HOST:$WWW_SERVER_PORT"
     FILE_HOST="$FILE_HOST:$WWW_SERVER_PORT"
-  ])
+  ]
+)
 AC_SUBST([WWW_HOST])
 AC_SUBST([FILE_HOST])
 
@@ -302,43 +330,49 @@ AS_IF([test "$WWW_SERVER_PORT" -lt 1024],
   [
     AS_ECHO(["Note: Apache port is less than 1024;"])
     AS_ECHO(["      sv_frontendctl will require root privileges."])
-  ])
+  ]
+)
 AS_CASE(["x$SV_DB_USER"], [x],
-  [AS_ECHO(["Note: Database user is unconfigured"])])
+  [AS_ECHO(["Note: Database user is unconfigured"])]
+)
 AS_CASE(["x$SV_DB_PASSWORD"], [x],
-  [AS_ECHO(["Note: Database password is empty"])])
-
+  [AS_ECHO(["Note: Database password is empty"])]
+)
 AS_CASE(["x$SV_DB_NAME"], [x],
-  [AS_ECHO(["Note: Database name is unconfigured"])])
+  [AS_ECHO(["Note: Database name is unconfigured"])]
+)
 AS_CASE(["x$SV_DB_HOST"], [x],
-  [AS_ECHO(["Note: Database host is unconfigured"])])
-
+  [AS_ECHO(["Note: Database host is unconfigured"])]
+)
 mbox="$localstatedir/lib/$PACKAGE/log/sendmail.mbox"
 
 AS_CASE(["x$SENDMAIL"], [x],
   [
     AS_ECHO(["Note: sendmail is unconfigured."])
     AS_ECHO(["      Email will be directed to $mbox."])
-  ])
+  ]
+)
 
 AS_CASE(["$enable_frontend.$GRAPHVIZ_BIN"], [yes.],
   [
     AS_ECHO(["Note: graphviz is unconfigured."])
     AS_ECHO(["      Dependency graphs will not be shown."])
-  ])
+  ]
+)
 
 AS_CASE(["x$have_perl_modules"], [xno],
   [
     AS_ECHO(["Note: Some Perl modules are missing."])
     AS_ECHO(["      Backend scripts may not work."])
-  ])
+  ]
+)
 
 AS_CASE(["$have_mirror_perl.$enable_mirror"], [no.yes],
   [
     AS_ECHO(["Note: Perl modules for mirror scripts are missing."])
     AS_ECHO(["      The installcheck target will fail."])
-  ])
-
+  ]
+)
 AS_ECHO([])
 AS_ECHO(["Now you can run"])
 AS_ECHO(["  make all install installcheck"])
