@@ -88,7 +88,7 @@ if (!$allow_resume)
 if ($update_profile)
   {
     $arg_arr = [$people_view_skills, user_getid ()];
-    $sql_str = "people_view_skills=?";
+    $sql_str = "people_view_skills = ?";
     if ($allow_resume)
       {
         if (!$people_resume)
@@ -128,10 +128,10 @@ elseif ($update_skill_inventory)
           [$skill_level_id, $skill_year_id, user_getid (), $skill_inventory_id]
         );
 
-        if (!db_affected_rows ($result))
-          fb (_("User Skill update failed"), 1);
-        else
+        if (db_affected_rows ($result))
           fb (_("User Skills updated successfully"));
+        else
+          fb (_("User Skill update failed"), 1);
       }
   }
 elseif ($delete_from_skill_inventory)
@@ -144,10 +144,10 @@ elseif ($delete_from_skill_inventory)
       WHERE user_id = ? AND skill_inventory_id = ?",
       [user_getid (), $skill_inventory_id]
     );
-    if (!db_affected_rows ($result))
-      fb (_("User Skill Delete failed"), 1);
-    else
+    if (db_affected_rows ($result))
       fb (_("User Skill Deleted successfully"));
+    else
+      fb (_("User Skill Delete failed"), 1);
   }
 
 # Fill in the info to edit the resume.
