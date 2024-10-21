@@ -50,7 +50,7 @@ exit_if_missing ('user_id');
 $user_arr = user_get_array ($user_id);
 
 if (empty ($user_arr))
-  exit_error (sprintf (_("User #%s not found."), $user_id));
+  exit_user_not_found ($user_id);
 
 if ($user_arr['people_view_skills'] != 1)
   exit_error (_("Resume & Skills page for this user is disabled"));

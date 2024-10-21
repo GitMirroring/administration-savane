@@ -57,7 +57,7 @@ form_check ('update');
 exit_if_missing (['confirm_hash', 'user_id']);
 
 if (!user_exists ($user_id))
-  exit_error (sprintf (_("User #%s not found."), $user_id));
+  exit_user_not_found ($user_id);
 account_validate_confirm_hash ($confirm_hash, HASH_LOSTPW, $user_id);
 $realname = user_getrealname ($user_id);
 $user_name = user_getname ($user_id);

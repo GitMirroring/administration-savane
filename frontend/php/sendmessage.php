@@ -66,8 +66,7 @@ $result = db_execute (
 );
 
 if (db_numrows ($result) < 1)
-  # TRANSLATORS: the argument is user id (a number).
-  exit_error (sprintf (_('User %s does not exist'), $touser));
+  exit_user_not_found ($touser);
 
 if (!$send_mail)
   {

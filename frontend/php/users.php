@@ -50,7 +50,7 @@ require_once ('include/sendmail.php');
 $sanitized = sane_import_name (_("User *%s* not found."));
 $user_arr = user_get_array ($sanitized);
 if (empty ($user_arr))
-  exit_error (markup_rich (sprintf (_("User *%s* not found."), $sanitized)));
+  exit_user_not_found ($sanitized);
 
 $extra_script_name = "/$sanitized";
 $user_id = $user_arr['user_id'];

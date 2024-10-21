@@ -71,7 +71,7 @@ if ($data_are_private)
     exit_if_missing ('user');
     $user_id = user_getid ($user);
     if (empty ($user_id))
-      exit_error (markup_rich (sprintf (_("User *%s* not found."), $user)));
+      exit_user_not_found ($user);
 
     if ($privacy == '2' && !member_check_private ($user_id, $group_id))
       exit_permission_denied ();

@@ -161,7 +161,7 @@ print '<p>'
 
 $result = db_execute ("SELECT * FROM user WHERE user_id = ?", [user_getid ()]);
 if (!db_numrows ($result))
-  exit_error (_("No such user"));
+  exit_user_not_found (user_getid ());
 utils_get_content ("people/editresume");
 
 print form_tag () . html_h (2, _("Publicly Viewable"))

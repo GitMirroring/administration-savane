@@ -52,7 +52,7 @@ form_check ('impersonate');
 
 $new_uid = user_getid ($user_name);
 if ($new_uid == 0)
-  exit_error (_("This user doesn't exist."));
+  exit_user_not_found ($user_name);
 
 # Modify session information to become the target user.
 $result = db_execute (

@@ -46,7 +46,7 @@ extract (sane_import ('get', ['digits' => 'user_id']));
 
 exit_if_missing ('user_id');
 if (!user_exists ($user_id))
-  exit_error (sprintf (_("User #%s not found."), $user_id));
+  exit_user_not_found ($user_id);
 $user_name = user_getname ($user_id);
 $key = user_get_gpg_key ($user_id);
 if (empty ($key))

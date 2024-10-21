@@ -147,4 +147,13 @@ function exit_test_usesmail ($group_id)
   if (!$project->Uses ('mail'))
     exit_error (_("Error"), _("This project has turned off mailing lists"));
 }
+
+function exit_user_not_found ($user)
+{
+  if (ctype_digit ($user))
+    $msg = _("User #%s not found.");
+  else
+    $msg = _("User *%s* not found.");
+  exit_error (markup_rich (sprintf ($msg, $user)));
+}
 ?>
