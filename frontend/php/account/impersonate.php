@@ -46,8 +46,9 @@ if (!user_is_super_user ())
   exit_error (_("You need to be site administrator to use this feature."));
 
 extract (sane_import ('post',
-  ['name' => 'user_name', 'internal_uri' => 'uri', true => 'impersonate']
+  ['name' => 'user_name', 'internal_uri' => 'uri', 'true' => 'impersonate']
 ));
+exit_if_missing (['uri', 'user_name', 'impersonate']);
 form_check ('impersonate');
 
 $new_uid = user_getid ($user_name);

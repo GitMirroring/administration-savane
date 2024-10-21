@@ -119,23 +119,15 @@ function test_sane_import ($in, $names, $out)
 $reference = 'account/impersonate.php';
 {
   $names = [
-    'name' => 'user_name',
-    'internal_uri' => 'uri',
-    'hash' => 'session_hash'
+    'name' => 'user_name', 'internal_uri' => 'uri', 'true' => 'impersonate'
   ];
   $in =  [
     'user_name' => 'agn',
     'uri' => '/account/login.php',
-    'session_hash' => '/account/login.php'
+    'impersonate' => 'Impersonate'
   ];
   $out = $in;
-  $out['session_hash'] = null;
-
-  test_sane_import ($in, $names, $out);
-
-  $in['session_hash'] = '0289;9ad59d2d0703e7f015d54e725ce099fc1fd1433c';
-  $out['session_hash'] = $in['session_hash'];
-
+  $out['impersonate'] = true;
   test_sane_import ($in, $names, $out);
 }
 
