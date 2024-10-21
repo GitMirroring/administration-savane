@@ -1,5 +1,6 @@
 <?php
-# Become another user for testing his/her problems
+# Become another user to test problems.
+#
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
@@ -54,10 +55,9 @@ if ($new_uid == 0)
   exit_error (_("This user doesn't exist."));
 
 # Modify session information to become the target user.
-extract (sane_import ('cookie', ['hash' => 'session_hash']));
 $result = db_execute (
   "UPDATE session SET user_id = ? WHERE session_hash = ?",
-  [$new_uid, $session_hash]
+  [$new_uid, $G_SESSION['hash_enc']]
 );
 session_cookie ('session_uid', $new_uid);
 session_redirect ($uri);
