@@ -114,16 +114,6 @@ if (!empty ($login))
       arrange_session ($uri, $uri_enc);
   }
 
-if (isset ($session_hash))
-  {
-    # Nuke their old session securely.
-    session_delete_cookie ('session_hash');
-    if (isset ($user_id))
-      db_execute ("DELETE FROM session WHERE session_hash = ? AND user = ?",
-        [$session_hash, $user_id]
-      );
-  }
-
 site_header (['title' => _("Login")]);
 if (!empty ($login) && empty ($success))
   {
