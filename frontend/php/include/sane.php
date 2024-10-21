@@ -298,6 +298,7 @@ function sane_func ($x)
   global $sane_sanitizers;
   if (isset($sane_sanitizers[$x]))
     return $sane_sanitizers[$x];
+  trigger_error ('No [' . error_print_r ($x) . '] sanitizer found');
   return null;
 }
 
@@ -312,6 +313,8 @@ function sane_assign_arr_func ($arg_in, &$func_arg)
       $ret = $arg_in[0];
       $func_arg = $arg_in[1];
     }
+  if ($ret === null)
+    return null;
   return sane_func ($ret);
 }
 
