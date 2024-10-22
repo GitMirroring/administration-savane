@@ -163,15 +163,17 @@ if ($row['filename'] != basename (rawurldecode ($_SERVER['PHP_SELF'])))
       . "registered in the database")
   );
 
-$path = $sys_trackers_attachments_dir . '/' . $file_id;
+$path = "$sys_trackers_attachments_dir/$file_id";
 if (!is_readable ($path))
   file_exit_error (_("No access to the file."));
 
-# Download the patch with the correct filetype.
+$row['agpl'] = trim (git_agpl_notice ('This file is served with Savane.'));
+
+# Serve the file with respective attributes.
 $headers = [
   'filetype' => 'Content-Type: ', 'filesize' => 'Content-Length: ',
   'filename' => 'Content-Disposition: attachment; filename=',
-  'description' => 'Content-Description: '
+  'description' => 'Content-Description: ', 'agpl' => 'Source-Code-Offer: '
 ];
 foreach ($headers as $field => $h)
   {
@@ -180,7 +182,6 @@ foreach ($headers as $field => $h)
     $val = str_replace (["\n", "\r"], ' ', $row[$field]);
     header ("$h$val");
   }
-# Dump file to the browser.
-readfile ("$sys_trackers_attachments_dir/$file_id");
+readfile ($path);
 exit (0);
 ?>
