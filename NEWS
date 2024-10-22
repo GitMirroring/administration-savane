@@ -8,6 +8,8 @@
 
 ** robots.txt and JavaScript files didn't include the AGPL notice.
 
+** Source tarball detection in the installation area wasn't correct.
+
 2024-10-17 3.14
 
 * A short commit ID was added to displayed Savane version unless built
