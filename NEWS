@@ -2,6 +2,9 @@
 
 [FRONTEND]
 
+* The headers are omitted when serving tracker attachments when the respective
+  fields are empty.
+
 * Bugs fixes:
 
 ** The 'Impersonate' facility didn't work since 2024-09 (e3a4540efed).

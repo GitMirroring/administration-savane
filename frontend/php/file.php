@@ -175,6 +175,8 @@ $headers = [
 ];
 foreach ($headers as $field => $h)
   {
+    if (empty ($row[$field]))
+      continue;
     $val = str_replace (["\n", "\r"], ' ', $row[$field]);
     header ("$h$val");
   }
