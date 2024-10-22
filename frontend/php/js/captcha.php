@@ -44,8 +44,8 @@
 require_once ('../include/init.php');
 header ('Content-Type: text/javascript');
 
-print
-"document.getElementById('captcha_js_link').onclick =
+print git_agpl_notice_for_js ()
+  . "document.getElementById('captcha_js_link').onclick =
 function ()
 {
   document.getElementById('captcha').src =

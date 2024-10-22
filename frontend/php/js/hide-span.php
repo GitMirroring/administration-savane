@@ -41,12 +41,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once('../include/sane.php');
+require_once ('../include/init.php');
 header ('Content-Type: text/javascript');
 extract (sane_import ('request', ['preg' => [['box_id', '/^\w*$/']]]));
 
 if ($box_id === null)
   $box_id = "";
 
-print "document.getElementById('$box_id').style.display='none';\n";
+print git_agpl_notice_for_js ()
+  . "document.getElementById('$box_id').style.display='none';\n";
 ?>

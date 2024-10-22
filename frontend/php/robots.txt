@@ -1,4 +1,8 @@
-# Search engine crawlers restrictions.
+<?php
+header ('Content-Type: text/plain; charset=UTF-8');
+$skip_csp_headers = 1;
+include ("include/init.php");
+?># Search engine crawlers restrictions.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -40,7 +44,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
+#<?php print substr (git_agpl_notice_commented (), 1); ?>
+
 # This file is checked by crawlers only if installed at the root "/"
 # of the website (it won't be read if you installed Savane in a
 # subdirectory such as http://yoursite.tld/savane/), so paths in this

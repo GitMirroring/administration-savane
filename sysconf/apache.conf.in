@@ -88,7 +88,7 @@ ServerName @WWW_SERVER_HOST@
 
     DirectoryIndex index.php
   </Directory>
-  <Files ~ "^(users|us|u|projects|pr|p|file)$">
+  <Files ~ "^(users|us|u|projects|pr|p|file|robots\.txt)$">
     SetHandler application/x-httpd-php
   </Files>
   ErrorDocument 404 /404.php

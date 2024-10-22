@@ -6,6 +6,8 @@
 
 ** The 'Impersonate' facility didn't work since 2024-09 (e3a4540efed).
 
+** robots.txt and JavaScript files didn't include the AGPL notice.
+
 2024-10-17 3.14
 
 * A short commit ID was added to displayed Savane version unless built

@@ -41,15 +41,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once('../include/sane.php');
+require_once ('../include/init.php');
 header ('Content-Type: text/javascript');
 extract (sane_import ('request', ['preg' => [['suffix', '/^\w*$/']]]));
 
 if ($suffix === null)
   $suffix = "";
 
-print
-"document.getElementById('feedback').onclick =
+print git_agpl_notice_for_js ()
+  . "document.getElementById('feedback').onclick =
 function ()
 {
   document.getElementById('feedback$suffix').style.visibility = 'hidden'

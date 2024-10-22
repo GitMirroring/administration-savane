@@ -42,10 +42,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../include/sane.php');
+require_once ('../include/init.php');
 header ('Content-Type: text/javascript');
 
-extract (sane_import('request',
+extract (sane_import ('request',
   [
     'digits' => 'deploy',
     'preg' => [['box_id', 'suffix', '/^\w*$/']],
@@ -72,7 +72,8 @@ $sign_func = function ($sign, $id, $legend)
   return "<span class=\"show-hide\" id=\"$id\">"
    . "<span class=\"minusorplus\">($sign)</span>$legend</span>";
 };
-print "document.write('"
+print git_agpl_notice_for_js ()
+  . "document.write('"
   .  $sign_func ('-', $hide, $legend) .  $sign_func ('+', $show, $legend)
   . "');\n";
 

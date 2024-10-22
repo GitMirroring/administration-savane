@@ -64,11 +64,12 @@ foreach ($sym as $file => $aliases)
         return true;
       }
 
-if (preg_match ('#^/file\b#', $path))
-  {
-    include "$phpdir/file.php";
-    return true;
-  }
+foreach (['file\b' => 'file.php', 'robots.txt$' => 'robots.txt'] as $exp => $f)
+  if (preg_match ("#^/$exp#", $path))
+    {
+      include "$phpdir/$f";
+      return true;
+    }
 
 return false;
 ?>

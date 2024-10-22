@@ -125,4 +125,13 @@ function git_agpl_notice ($msg = null)
     . git_get_tarball_url () . "\n";
   return wordwrap ($msg, 78);
 }
+
+function git_agpl_notice_commented ($msg = null, $line_prefix = '#')
+{
+  return preg_replace ('/^/m', "$line_prefix ", git_agpl_notice ($msg));
+}
+function git_agpl_notice_for_js ()
+{
+  return git_agpl_notice_commented ("This script is served with Savane.", '//');
+}
 ?>
