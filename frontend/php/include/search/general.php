@@ -331,7 +331,13 @@ function search_failed ()
   print _("None found. Please note that only search words of more than two\n"
           . "characters are valid.");
   print '</span>';
-  print db_error();
+  print db_error ();
+}
+
+function search_failed_exit ()
+{
+  search_failed ();
+  exit;
 }
 
 # Build
@@ -366,115 +372,111 @@ function search_keywords_in_fields ($keywords, $fields, $and_or = 'OR')
   return [$allfields_sql, $allfields_sql_params];
 }
 
-# Run a search in the database, by default in programs.
-function search_run (
-  $keywords, $type_of_search = "soft", $return_error_messages = 1
-)
+function search_convert_keywords_to_sql ($keywords)
 {
-  global $type, $exact, $crit, $offset, $only_group_id, $max_rows;
-  $and_or = $crit;
-
-  if (!is_scalar ($keywords))
-    {
-      search_failed ();
-      exit;
-    }
-
-  # Remove useless blank spaces, escape nasty characters.
+  # Remove useless blank spaces.
   $keywords = trim ($keywords);
 
   # Convert the wildcard * to the similar SQL one, when it is alone.
   if ($keywords == "*")
     $keywords = "%%%";
 
-  # Replace the wildcard * to the similar SQL one, when included in a
-  # word.
+  # Replace the wildcard * to the similar SQL one, when included in a word.
   $keywords = strtr ($keywords, "*", "%");
+  return $keywords;
+}
 
-  # Convert the crit form value to the SQL equiv.
-  if ($exact)
-    $and_or = 'AND';
-  else
-    $and_or = 'OR';
+function search_sanitize ($keywords, $exact, $exit_on_error)
+{
+  if (!is_scalar ($keywords))
+    search_failed_exit ();
+
+  $keywords = search_convert_keywords_to_sql ($keywords);
+  $and_or = $exact? 'AND': 'OR';
 
   # Accept only to do a search for more than 2 characters.
   # Exit only if we were not told to avoid returning error messages.
   # Note: we tell user we want more than 3 characters, to incitate to
   # do clever searches.  But it will be ok for only 2 characters (limit
   # that conveniently allow us to search by items numbers).
-  if ($keywords && (strlen ($keywords) < 3) && $return_error_messages)
-    {
-      search_failed ();
-      exit;
-    }
+  if ($keywords && (strlen ($keywords) < 3) && $exit_on_error)
+    search_failed_exit ();
+  return [explode (" ", $keywords), $and_or];
+}
 
-  $arr_keywords = explode (" ", $keywords);
-  $sql = '';
+function search_soft_params ($keywords, $and_or, $type)
+{
+  $sql = "
+    SELECT group_name, unix_group_name, type, group_id, short_description
+    FROM groups WHERE status = 'A' AND is_public = '1' ";
   $sql_params = [];
-
-  $tos = $type_of_search;
-  if ($tos == "soft")
+  if ($type)
     {
-      $sql = "
-        SELECT group_name, unix_group_name, type, group_id, short_description
-        FROM groups WHERE status = 'A' AND is_public = '1' ";
-      if ($type)
-        {
-          $sql .= "AND type = ? ";
-          $sql_params[] = $type;
-        }
-
-      list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-        $arr_keywords,
-        ['group_name', 'short_description', 'unix_group_name', 'group_id'],
-        $and_or
-      );
-      $sql .= " AND $kw_sql ORDER BY group_name, unix_group_name ";
-      $sql_params = array_merge($sql_params, $kw_sql_params);
+      $sql .= "AND type = ? ";
+      $sql_params[] = $type;
     }
-  elseif ($tos == "people")
-    {
-      $sql = "SELECT user_name, user_id, realname FROM user WHERE status = 'A'";
+  list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
+    $keywords,
+    ['group_name', 'short_description', 'unix_group_name', 'group_id'],
+    $and_or
+  );
+  $sql .= " AND $kw_sql ORDER BY group_name, unix_group_name ";
+  return [$sql, array_merge ($sql_params, $kw_sql_params)];
+}
 
-      list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-        $arr_keywords, ['user_name', 'realname', 'user_id'], $and_or
-      );
-      $sql .= " AND $kw_sql ORDER BY user_name ";
-      $sql_params = array_merge($sql_params, $kw_sql_params);
-    }
-  elseif (!in_array ($tos, utils_get_tracker_list ()))
+function search_people_params ($keywords, $and_or)
+{
+  $sql = "SELECT user_name, user_id, realname FROM user WHERE status = 'A'";
+
+  list ($kw_sql, $sql_params) = search_keywords_in_fields (
+    $keywords, ['user_name', 'realname', 'user_id'], $and_or
+  );
+  $sql .= " AND $kw_sql ORDER BY user_name ";
+  return [$sql, $sql_params];
+}
+
+function search_tracker_params ($keywords, $and_or, $tracker, $only_group_id)
+{
+  $sql = "
+    SELECT
+      t.bug_id, t.summary, t.date, t.privacy,
+      t.submitted_by, user.user_name, t.group_id
+    FROM $tracker t, user, groups
+    WHERE user.user_id = t.submitted_by AND groups.group_id = t.group_id ";
+  if ($tracker != 'cookbook')
+    # Cookbook is enabled in the `group_preferences` table.
+    # Allow cookbook lookups even when cookbook isn't used.
+    $sql .= "AND groups.use_$tracker = 1";
+
+  list ($kw_sql, $sql_params) = search_keywords_in_fields (
+    $keywords, ["t.details", "t.summary", "t.bug_id"], $and_or
+  );
+  $sql .= " AND $kw_sql ";
+  if (!$only_group_id)
+    return [$sql, $sql_params];
+  $sql .= " AND t.group_id = ? ";
+  $sql_params[] = $only_group_id;
+  return [$sql, $sql_params];
+}
+
+# Run a search in the database, by default in programs.
+function search_run ($keywords, $search_area = "soft", $exit_on_error = 1)
+{
+  global $type, $exact, $offset, $max_rows, $only_group_id;
+  list ($keywords, $and_or) =
+    search_sanitize ($keywords, $exact, $exit_on_error);
+  if ($search_area == "soft")
+    list ($sql, $sql_params) =
+      search_soft_params ($keywords, $and_or, $type);
+  elseif ($search_area == "people")
+    list ($sql, $sql_params) =
+      search_people_params ($keywords, $and_or);
+  elseif (!in_array ($search_area, utils_get_tracker_list ()))
     exit_error (_("Invalid search."));
   else
-    {
-      $sql = "
-        SELECT
-          t.bug_id, t.summary, t.date, t.privacy,
-          t.submitted_by, user.user_name, t.group_id
-        FROM $tos t, user, groups
-        WHERE
-          user.user_id = t.submitted_by AND groups.group_id = t.group_id ";
-      if ($tos != 'cookbook')
-        # As of 2021, we have no use_cookbook in the groups table.
-        $sql .= "AND groups.use_$tos = 1";
-
-      list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-        $arr_keywords, [ "t.details", "t.summary", "t.bug_id"], $and_or
-      );
-
-      $sql .= " AND $kw_sql ";
-      $sql_params = array_merge ($sql_params, $kw_sql_params);
-
-      if ($only_group_id)
-        {
-          # $search_without_group_id can be set to avoid restricting search
-          # to a group even if group_id is set.
-          $sql .= " AND t.group_id = ? ";
-          $sql_params[] = $only_group_id;
-        }
-      $sql .= " AND t.spamscore < 5 ORDER BY t.date DESC ";
-    }
-
-  $sql .= " LIMIT ?, ?";
+    list ($sql, $sql_params) =
+      search_tracker_params ($keywords, $and_or, $search_area, $only_group_id);
+  $sql .= " AND t.spamscore < 5 ORDER BY t.date DESC LIMIT ?, ?";
   $sql_params[] = intval ($offset);
   $sql_params[] = $max_rows + 1;
   return db_execute ($sql, $sql_params);
