@@ -154,7 +154,7 @@ function trackers_filter_out_items (&$items_for_digest, $items, $dependencies)
 {
   global $include_closed, $chunksz, $offset;
   $filtered = [];
-  $i = 0;
+  $i = $total = 0;
   foreach ($items_for_digest as $it)
     {
       $item = $items[$it];
@@ -164,6 +164,7 @@ function trackers_filter_out_items (&$items_for_digest, $items, $dependencies)
         continue;
       if (empty ($include_closed) && $item['status_id'] == 3)
         continue;
+      $total++;
       if ($i++ < $offset)
         continue;
       if ($i > $offset + $chunksz)
@@ -171,7 +172,7 @@ function trackers_filter_out_items (&$items_for_digest, $items, $dependencies)
       $filtered[] = $it;
     }
   $items_for_digest = $filtered;
-  return $i;
+  return [$i, $total];
 }
 
 function trackers_view_dependencies ($list_format)
@@ -179,13 +180,14 @@ function trackers_view_dependencies ($list_format)
   global $item_no;
   list ($items_for_digest, $group_items) = trackers_list_group_items ();
   $deps = trackers_list_dependencies ($items_for_digest);
-  $item_no = trackers_filter_out_items ($items_for_digest, $group_items, $deps);
+  list ($item_no, $total) =
+    trackers_filter_out_items ($items_for_digest, $group_items, $deps);
   $f = "trackers_output_list_$list_format";
-  $f ($items_for_digest, $group_items, $deps);
+  $f ($items_for_digest, $group_items, $deps, $total);
   return $items_for_digest;
 }
 
-function trackers_output_list_file ($text, $type, $extension)
+function trackers_output_list_file ($text, $type, $extension, $total = 0)
 {
   global $group;
   $name = "$group-" . ARTIFACT . ".$extension";
@@ -298,7 +300,9 @@ function trackers_print_item_link ($row)
    . ": &nbsp;$summary &nbsp;</span>";
 
 }
-function trackers_print_item_list_html ($items_for_digest, $items, $dependencies)
+function trackers_print_item_list_html (
+  $items_for_digest, $items, $dependencies, $total
+)
 {
   if (empty ($items_for_digest))
     {
@@ -312,12 +316,12 @@ function trackers_print_item_list_html ($items_for_digest, $items, $dependencies
       print '<li class="' . utils_altrow ($i++) . "\">\n<p>";
       trackers_print_item_link ($items[$it]);
       print "</p>\n";
-      trackers_print_item_deps ($dependencies[$it]);
+      trackers_print_item_deps ($dependencies[$it], $total);
       print "</li>\n";
     }
   print "</ul>\n";
 }
-function trackers_nextprev ()
+function trackers_viewdep_nextprev ($total)
 {
   global $sys_home, $max_rows, $chunksz, $offset, $group, $item_no;
   global $include_closed;
@@ -327,19 +331,23 @@ function trackers_nextprev ()
   $url = $sys_home . ARTIFACT . "/dependencies.php?group=$group";
   if (!empty ($include_closed))
     $url .= "&amp;include_closed";
-  html_nextprev ($url, $chunksz, $item_no - $offset);
+  html_nextprev ($url, $chunksz, $item_no - $offset, $total);
 }
-function trackers_output_list_html ($items_for_digest, $items, $dependencies)
+function trackers_output_list_html (
+  $items_for_digest, $items, $dependencies, $total
+)
 {
   trackers_header (['title' => _("Dependencies")]);
   trackers_print_view_deps_controls ();
   print "<div id='results'>\n";
-  trackers_nextprev ();
+  trackers_viewdep_nextprev ($total);
   if (!empty ($items_for_digest))
     trackers_print_item_list_img ($items, $dependencies);
-  trackers_print_item_list_html ($items_for_digest, $items, $dependencies);
+  trackers_print_item_list_html (
+    $items_for_digest, $items, $dependencies, $total
+  );
   print trackers_warn_about_hidden ();
-  trackers_nextprev ();
+  trackers_viewdep_nextprev ($total);
   print "</div><!-- id='results' -->\n";
   trackers_footer ();
 }
@@ -372,14 +380,14 @@ function trackers_gen_list_text ($items_for_digest, $group_items, $deps)
     }
   return $head . trackers_label_items ($listed, $group_items, $deps) . $links . "}\n";
 }
-function trackers_output_list_text ($items_for_digest, $items, $deps)
+function trackers_output_list_text ($items_for_digest, $items, $deps, $total)
 {
   trackers_output_list_file (
     trackers_gen_list_text ($items_for_digest, $items, $deps),
     'text/plain', 'txt'
   );
 }
-function trackers_gen_list_svg ($items_for_digest, $items, $deps)
+function trackers_gen_list_svg ($items_for_digest, $items, $deps, $total = 0)
 {
   global $sys_graphviz;
   if (empty ($sys_graphviz))
@@ -388,7 +396,7 @@ function trackers_gen_list_svg ($items_for_digest, $items, $deps)
   utils_run_proc ("$sys_graphviz -Tsvg", $out, $err, ['in' => $list_text]);
   return $out;
 }
-function trackers_output_list_svg ($items_for_digest, $items, $deps)
+function trackers_output_list_svg ($items_for_digest, $items, $deps, $total)
 {
   trackers_output_list_file (
     trackers_gen_list_svg ($items_for_digest, $items, $deps),

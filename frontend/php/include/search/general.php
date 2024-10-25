@@ -340,6 +340,21 @@ function search_failed_exit ()
   exit;
 }
 
+function search_keywords_field_sql ($keywords, $field, $and_or)
+{
+  $sql_bits = $sql_params = [];
+  foreach($keywords as $keyword)
+    {
+      $sql_bits[] = "$field LIKE ?";
+      if (preg_match('/_id$/', $field))
+        # Strip "#" from, eg, "#153".
+        $keyword = str_replace ('#', '', $keyword);
+      $sql_params[] = "%$keyword%";
+    }
+  $bits = '(' . join (" $and_or ", $sql_bits) . ')';
+  return [$bits, $sql_params];
+}
+
 # Build
 # "((field1 LIKE '%kw1%' and/or field1 LIKE '%kw2%' ...)
 #   or (field2 LIKE '%kw1%' and/or field2 LIKE '%kw2%' ...)
@@ -348,28 +363,16 @@ function search_failed_exit ()
 # $and_or <=> 'AND'/'OR' <=> all/any word
 function search_keywords_in_fields ($keywords, $fields, $and_or = 'OR')
 {
-  $allfields_sql_bits = $allfields_sql_params = [];
+  $sql_bits = $sql_params = [];
   foreach ($fields as $field)
     {
-      $thisfield_sql_bits = $thisfield_sql_params = [];
-      foreach($keywords as $keyword)
-        {
-          $thisfield_sql_bits[] = "$field LIKE ?";
-          if (preg_match('/_id$/', $field))
-            # Strip "#" from, eg, "#153".
-            $thisfield_sql_params[] = '%'
-              . str_replace ('#', '', $keyword) . '%';
-          else
-            $thisfield_sql_params[] = "%$keyword%";
-        }
-      $allfields_sql_bits[] =
-        '(' . join (" $and_or ", $thisfield_sql_bits) . ')';
-      $allfields_sql_params = array_merge (
-        $allfields_sql_params, $thisfield_sql_params
-      );
+      list ($bits, $params) =
+        search_keywords_field_sql ($keywords, $field, $and_or);
+      $sql_bits[] = $bits;
+      $sql_params = array_merge ($sql_params, $params);
     }
-  $allfields_sql = '(' . join (' OR ', $allfields_sql_bits) . ')';
-  return [$allfields_sql, $allfields_sql_params];
+  $allfields_sql = '(' . join (' OR ', $sql_bits) . ')';
+  return [$allfields_sql, $sql_params];
 }
 
 function search_convert_keywords_to_sql ($keywords)
@@ -406,80 +409,101 @@ function search_sanitize ($keywords, $exact, $exit_on_error)
 
 function search_soft_params ($keywords, $and_or, $type)
 {
-  $sql = "
-    SELECT group_name, unix_group_name, type, group_id, short_description
-    FROM groups WHERE status = 'A' AND is_public = '1' ";
+  $fields = [
+    'group_id', 'group_name', 'short_description', 'unix_group_name'
+  ];
+  $sql = "groups WHERE status = 'A' AND is_public = '1'";
   $sql_params = [];
   if ($type)
     {
-      $sql .= "AND type = ? ";
+      $sql .= " AND type = ?";
       $sql_params[] = $type;
+      $fields[] = 'type';
     }
-  list ($kw_sql, $kw_sql_params) = search_keywords_in_fields (
-    $keywords,
-    ['group_name', 'short_description', 'unix_group_name', 'group_id'],
-    $and_or
-  );
-  $sql .= " AND $kw_sql ORDER BY group_name, unix_group_name ";
-  return [$sql, array_merge ($sql_params, $kw_sql_params)];
+  list ($kw_sql, $kw_params) =
+    search_keywords_in_fields ($keywords, $fields, $and_or);
+  if (!in_array ('type', $fields))
+    $fields[] = 'type';
+  $sql .= " AND $kw_sql";
+  $sql_params = array_merge ($sql_params, $kw_params);
+  return [$fields, $sql, $sql_params, 'group_name, unix_group_name'];
 }
 
 function search_people_params ($keywords, $and_or)
 {
-  $sql = "SELECT user_name, user_id, realname FROM user WHERE status = 'A'";
+  $fields = ['user_id', 'user_name', 'realname', 'user_id'];
+  $sql = "user WHERE status = 'A'";
 
-  list ($kw_sql, $sql_params) = search_keywords_in_fields (
-    $keywords, ['user_name', 'realname', 'user_id'], $and_or
-  );
-  $sql .= " AND $kw_sql ORDER BY user_name ";
-  return [$sql, $sql_params];
+  list ($kw_sql, $sql_params) =
+    search_keywords_in_fields ($keywords, $fields, $and_or);
+  $sql .= " AND $kw_sql";
+  return [$fields, $sql, $sql_params, 'user_name'];
 }
 
 function search_tracker_params ($keywords, $and_or, $tracker, $only_group_id)
 {
-  $sql = "
-    SELECT
-      t.bug_id, t.summary, t.date, t.privacy,
-      t.submitted_by, user.user_name, t.group_id
-    FROM $tracker t, user, groups
-    WHERE user.user_id = t.submitted_by AND groups.group_id = t.group_id ";
+  $fields = ['t.bug_id', 't.details', 't.summary'];
+  $sql = "$tracker t, user, groups
+    WHERE user.user_id = t.submitted_by AND groups.group_id = t.group_id";
   if ($tracker != 'cookbook')
     # Cookbook is enabled in the `group_preferences` table.
     # Allow cookbook lookups even when cookbook isn't used.
-    $sql .= "AND groups.use_$tracker = 1";
+    $sql .= " AND groups.use_$tracker = 1";
 
-  list ($kw_sql, $sql_params) = search_keywords_in_fields (
-    $keywords, ["t.details", "t.summary", "t.bug_id"], $and_or
+  list ($kw_sql, $sql_params) =
+    search_keywords_in_fields ($keywords, $fields, $and_or);
+  $sql .= " AND $kw_sql";
+  if ($only_group_id)
+    {
+      $sql .= " AND t.group_id = ?";
+      $sql_params[] = $only_group_id;
+    }
+  $sql .= " AND t.spamscore < 5";
+  array_push ($fields,
+    't.date', 't.privacy', 't.submitted_by', 'user.user_name', 't.group_id'
   );
-  $sql .= " AND $kw_sql ";
-  if (!$only_group_id)
-    return [$sql, $sql_params];
-  $sql .= " AND t.group_id = ? ";
-  $sql_params[] = $only_group_id;
-  return [$sql, $sql_params];
+  return [$fields, $sql, $sql_params, 't.bug_id DESC'];
+}
+
+function search_get_row_count ($sql, $fields, $sql_params)
+{
+  $result = db_execute (
+    "SELECT count(DISTINCT({$fields[0]})) AS cnt FROM $sql", $sql_params
+  );
+  if (!db_numrows ($result))
+    search_failed_exit ();
+  return db_result ($result, 0, 'cnt');
+}
+
+function search_run_query ($sql, $sql_params, $fields, $order)
+{
+  global $max_rows, $offset;
+  $fields = join (', ', $fields);
+  $sql = "SELECT $fields FROM $sql ORDER BY $order LIMIT ?, ?";
+  array_push ($sql_params, intval ($offset), $max_rows + 1);
+  return db_execute ($sql, $sql_params);
 }
 
 # Run a search in the database, by default in programs.
 function search_run ($keywords, $search_area = "soft", $exit_on_error = 1)
 {
-  global $type, $exact, $offset, $max_rows, $only_group_id;
+  global $type, $exact, $offset, $max_rows, $only_group_id, $search_total_rows;
+  $search_total_rows = 0;
   list ($keywords, $and_or) =
     search_sanitize ($keywords, $exact, $exit_on_error);
   if ($search_area == "soft")
-    list ($sql, $sql_params) =
+    list ($fields, $sql, $sql_params, $order) =
       search_soft_params ($keywords, $and_or, $type);
   elseif ($search_area == "people")
-    list ($sql, $sql_params) =
+    list ($fields, $sql, $sql_params, $order) =
       search_people_params ($keywords, $and_or);
   elseif (!in_array ($search_area, utils_get_tracker_list ()))
     exit_error (_("Invalid search."));
   else
-    list ($sql, $sql_params) =
+    list ($fields, $sql, $sql_params, $order) =
       search_tracker_params ($keywords, $and_or, $search_area, $only_group_id);
-  $sql .= " AND t.spamscore < 5 ORDER BY t.date DESC LIMIT ?, ?";
-  $sql_params[] = intval ($offset);
-  $sql_params[] = $max_rows + 1;
-  return db_execute ($sql, $sql_params);
+  $search_total_rows = search_get_row_count ($sql, $fields, $sql_params);
+  return search_run_query ($sql, $sql_params, $fields, $order);
 }
 
 function search_exact ($keywords)

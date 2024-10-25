@@ -2214,7 +2214,7 @@ $reference = 'siteadmin/user_changepw.php';
 $reference = 'siteadmin/usergroup.php';
 {
   $names = [
-    'digits' => ['user_id', 'comment_max_rows', 'comment_offset'],
+    'digits' => ['user_id', 'max_rows', 'offset'],
     'strings' => [
       [
         'action',
@@ -2226,7 +2226,7 @@ $reference = 'siteadmin/usergroup.php';
     ],
   ];
   $in = $out = [
-    'user_id' => 83521, 'comment_max_rows' => 51, 'comment_offset' => 119,
+    'user_id' => 83521, 'max_rows' => 51, 'offset' => 119,
     'action' => 'delete'
   ];
   test_sane_import ($in, $names, $out);

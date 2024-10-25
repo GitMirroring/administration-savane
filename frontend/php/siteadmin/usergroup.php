@@ -58,9 +58,7 @@ $actions = ['remove_user_from_group', 'update_user_group',
 ];
 
 extract (sane_import ('request',
-  [
-    'digits' => ['user_id', 'comment_max_rows', 'comment_offset']
-  ]
+  ['digits' => ['user_id', 'max_rows', 'offset']]
 ));
 extract (sane_import ('post',
   [
@@ -77,17 +75,17 @@ form_check ('update');
 if (empty ($update))
   $action = null;
 
-if (empty ($comment_max_rows))
-  $comment_max_rows = 50;
+if (empty ($max_rows))
+  $max_rows = 50;
 
-$max_rows = intval ($comment_max_rows);
-$offset = intval ($comment_offset);
+$max_rows = intval ($max_rows);
+$offset = intval ($offset);
 
-function contribution_nextprev ($user_id, $max_rows, $result)
+function contribution_nextprev ($user_id, $max_rows, $result, $total_rows)
 {
   global $php_self;
   html_nextprev (
-    "$php_self?user_id=$user_id", $max_rows, db_numrows ($result), 'comment'
+    "$php_self?user_id=$user_id", $max_rows, db_numrows ($result), $total_rows
   );
 }
 
@@ -95,57 +93,76 @@ function print_contribution_heading ($user_id)
 {
   if ($user_id == 100)
     return;
-  print html_h (2, no_i18n ("Contributions"));
+  print html_h (2, no_i18n ("Contributions"), 'results');
 }
 
-function tracker_query ($user_id, $tracker)
+function tracker_new_item_fields ($user_id, $link, $tracker, $summarize)
+{
+  if ($summarize)
+    return 'COUNT(bug_id) AS cnt';
+  return "
+    CONCAT(\"$link\", 'New Item in ', '$tracker #', bug_id, ': ',
+       summary, '</a>') AS summary,
+    details, spamscore, 0 AS comment_id, date";
+}
+function tracker_comment_fields ($user_id, $link, $tracker, $summarize)
+{
+  if ($summarize)
+    return 'COUNT(bug_history_id) AS cnt';
+  return "
+    CONCAT(\"$link\", 'Comment #', bug_history_id, ' in ',
+      '$tracker #', bug_id, ' (', field_name, ')</a>') AS summary,
+    old_value AS details, spamscore, bug_history_id AS comment_id, date";
+}
+
+function tracker_query ($user_id, $tracker, $summarize)
 {
   $link = "<a href='/$tracker/\?\", bug_id, \"'>";
+  $new_fields = tracker_new_item_fields ($user_id, $link, $tracker, $summarize);
+  $comment_fields =
+    tracker_comment_fields ($user_id, $link, $tracker, $summarize);
   return "
-    SELECT
-      CONCAT(\"$link\", 'New Item in ', '$tracker #', bug_id, ': ',
-        summary, '</a>')
-      as summary,
-      details, spamscore, 0 as comment_id, date
-    FROM $tracker
-    WHERE submitted_by = $user_id
+    SELECT $new_fields FROM $tracker WHERE submitted_by = $user_id
     UNION
-    SELECT
-      CONCAT(\"$link\", 'Comment #', bug_history_id, ' in ',
-        '$tracker #', bug_id, ' (', field_name, ')</a>')
-      as summary,
-      old_value as details, spamscore, bug_history_id as comment_id, date
-    FROM {$tracker}_history
-    WHERE mod_by = $user_id";
+    SELECT $comment_fields FROM {$tracker}_history WHERE mod_by = $user_id";
 }
 
-function inclusion_requests_query ($user_name)
+function inclusion_requiests_fields ($summarize)
 {
+  if ($summarize)
+    return 'COUNT(g.group_id)';
   return "
-    SELECT
-      CONCAT(\"<a href=\\\"/project/admin/history.php?group=\",
-        g.unix_group_name, \"\\\">Request for inclusion in \",
-        g.group_name, \"</a>\")
-      as summary,
-      \" \" as details, -1 as spamscore, group_history_id as comment_id,
-      h.date as date
+    CONCAT(\"<a href=\\\"/project/admin/history.php?group=\",
+      g.unix_group_name, \"\\\">Request for inclusion in \",
+      g.group_name, \"</a>\") AS summary,
+    \" \" AS details, -1 AS spamscore, group_history_id AS comment_id,
+    h.date AS date";
+}
+
+function inclusion_requests_query ($user_name, $summarize)
+{
+  $fields = inclusion_requiests_fields ($summarize);
+  return "
+    SELECT $fields
     FROM group_history h, groups g
     WHERE
       h.old_value = \"$user_name\" AND g.group_id = h.group_id
       AND h.field_name = \"User Requested Membership\"";
 }
 
-function contribution_query ($user_id, $user_name, $offset, $max_rows)
+function contribution_query ($user_id, $user_name, $offset = -1, $max_rows = -1)
 {
-  $max_plus = $max_rows + 1;
-  $trackers = utils_get_tracker_list ();
+  $summarize = $offset < 0;
   $queries = [];
-  foreach ($trackers as $tracker)
-    $queries[] = tracker_query ($user_id, $tracker);
+  foreach (utils_get_tracker_list () as $tracker)
+    $queries[] = tracker_query ($user_id, $tracker, $summarize);
   if ($user_id != 100)
-    $queries[] = inclusion_requests_query ($user_name);
+    $queries[] = inclusion_requests_query ($user_name, $summarize);
   $query = join (" UNION ", $queries);
-  return $query . " ORDER BY date DESC LIMIT $offset, $max_plus";
+  $max_plus = $max_rows + 1;
+  if (!$summarize)
+    $query .= " ORDER BY date DESC LIMIT $offset, $max_plus";
+  return $query;
 }
 
 function entry_text ($entry)
@@ -185,9 +202,19 @@ function output_contributions ($result, $offset, $max_rows)
   return $defs;
 }
 
+function count_user_contributions ($user_id, $user_name)
+{
+  $query = contribution_query ($user_id, $user_name, -1);
+  $result = db_execute ($query);
+  for ($ret = 0; $row = db_fetch_array ($result); $ret += $row['cnt'])
+    ; # Empty cycle body.
+  return $ret;
+}
+
 function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
 {
   print_contribution_heading ($user_id);
+  $total_rows = count_user_contributions ($user_id, $user_name);
   $query = contribution_query ($user_id, $user_name, $offset, $max_rows);
   $result = db_execute ($query);
   if (db_numrows ($result) < 1)
@@ -195,11 +222,11 @@ function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
       print '<p>' . no_i18n ('No contributions found.') . "</p>\n";
       return;
     }
-  contribution_nextprev ($user_id, $max_rows, $result);
+  contribution_nextprev ($user_id, $max_rows, $result, $total_rows);
   print html_dl (
     output_contributions ($result, $offset, $max_rows), 'comment_results'
   );
-  contribution_nextprev ($user_id, $max_rows, $result);
+  contribution_nextprev ($user_id, $max_rows, $result, $total_rows);
 }
 
 function report_db_result ($result, $msg_err, $msg_ok)

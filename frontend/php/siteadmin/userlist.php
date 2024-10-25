@@ -50,9 +50,8 @@ site_admin_header (['title' => no_i18n("User List"), 'context' => 'admuser']);
 
 extract (sane_import ('get',
   [
-    'digits' => ['offset', 'user_id'],
-    'specialchars' => 'text_search',
-    'name' => 'user_name_search',
+    'digits' => ['offset', 'user_id', 'max_rows'],
+    'specialchars' => 'text_search', 'name' => 'user_name_search'
   ]
 ));
 extract (sane_import ('request', ['pass' => 'search']));
@@ -62,7 +61,7 @@ $abc_array = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
   '2', '3', '4', '5', '6', '7', '8', '9', '_'
 ];
 
-print html_h (2, no_i18n ("User Search"))
+print html_h (2, no_i18n ("User search"))
   . no_i18n ("Display users beginning with:") . ' ';
 
 for ($i = 0; $i < count ($abc_array); $i++)
@@ -77,65 +76,52 @@ print form_tag (['method' => 'get', 'name' => 'usersrch'])
   . form_hidden (['usersearch' => '1'])
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
-$MAX_ROW = 100;
-$offset = intval($offset);
+if (empty ($max_rows))
+  $max_rows = 100;
+$offset = intval ($offset);
 
 $sql_fields =
   "user.user_id, user.user_name, user.status, user.people_view_skills";
 $sql_order = 'ORDER BY user.user_name LIMIT ?, ?';
+$sql = 'FROM user';
+$sql_params = [];
 
 if ($group_id)
   {
-    # Show list for one group.
     $group_listed = group_getname ($group_id);
-
-    $result = db_execute ("
-      SELECT $sql_fields FROM user, user_group
-      WHERE user.user_id = user_group.user_id AND user_group.group_id = ?
-      $sql_order",
-      [$group_id, $offset, $MAX_ROW + 1]
-    );
+    $sql_params = [$group_id];
+    $sql .= ', user_group
+      WHERE user.user_id = user_group.user_id AND user_group.group_id = ?';
   }
 else
   {
-    $group_listed = no_i18n("All Groups");
+    $group_listed = no_i18n ("All Groups");
 
     if ($user_name_search)
       {
-        $result = db_execute("
-          SELECT $sql_fields FROM user
-          WHERE user_name LIKE ?
-          $sql_order",
-          [
-            str_replace ('_', '\_', $user_name_search) . '%',
-            $offset, $MAX_ROW + 1
-          ]
-        );
+        $sql .= ' WHERE user_name LIKE ?';
+        $sql_params = [str_replace ('_', '\_', $user_name_search) . '%'];
       }
     elseif ($text_search)
       {
-        $term = utils_specialchars_decode ($text_search);
-        $result = db_execute ("
-          SELECT $sql_fields FROM user
-          WHERE
+        $sql .= ' WHERE
             user_name LIKE ? OR user_id LIKE ?
-            OR realname LIKE ? OR email LIKE ?
-          $sql_order",
-          [$term, $term, $term, $term, $offset, $MAX_ROW + 1]
-        );
-      }
-    else
-      {
-        $result = db_execute ("
-          SELECT $sql_fields FROM user $sql_order",
-          [$offset, $MAX_ROW + 1]
-        );
+            OR realname LIKE ? OR email LIKE ?';
+        $term = utils_specialchars_decode ($text_search);
+        $sql_params = [$term, $term, $term, $term];
       }
   }
 
-print '<h2>';
-printf (no_i18n ("User List for %s"), "<strong>$group_listed</strong>");
-print "</h2>\n";
+$result = db_execute (
+  "SELECT COUNT(DISTINCT(user_id)) AS cnt $sql", $sql_params
+);
+$total_rows = db_fetch_array ($result)['cnt'];
+array_push ($sql_params, $offset, $max_rows + 1);
+$result = db_execute ("SELECT $sql_fields $sql $sql_order", $sql_params);
+
+print html_h (2,
+  sprintf (no_i18n ("User list for %s"), "<strong>$group_listed</strong>")
+);
 
 $rows = $rows_returned = db_numrows ($result);
 
@@ -146,13 +132,13 @@ print html_build_list_table_top (
 function finish_page ()
 {
   global $user_name_search, $search, $text_search, $rows, $rows_returned;
-  global $HTML, $php_self;
+  global $total_rows, $HTML, $php_self;
   print "</table>\n";
   html_nextprev (
     "$php_self?user_name_search=$user_name_search"
     . '&amp;usersearch=1&amp;search=' . utils_urlencode ($search)
     . "&amp;text_search=$text_search",
-    $rows, $rows_returned
+    $rows, $rows_returned, $total_rows
   );
   $HTML->footer ([]);
   exit (0);
@@ -166,8 +152,8 @@ if ($rows_returned < 1)
   finish_page ();
 }
 
-if ($rows_returned > $MAX_ROW)
-  $rows = $MAX_ROW;
+if ($rows_returned > $max_rows)
+  $rows = $max_rows;
 
 for ($i = 0; $i < $rows; $i++)
   {

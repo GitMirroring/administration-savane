@@ -235,9 +235,17 @@ elseif ($groupsearch)
   $search_url = "&groupsearch=1&search=" . utils_urlencode ($search);
 }
 
+$total_rows = 0;
+$res = db_execute (
+  "SELECT count(DISTINCT(`group_id`)) AS `cnt` FROM `groups` WHERE $where"
+);
+
+if (!$res)
+  $feedback = db_error ();
+$total_rows = db_fetch_array ($res)['cnt'];
+
 $res = db_execute ("
-  SELECT DISTINCTROW
-    `group_name`, `unix_group_name`, `group_id`, `is_public`, `status`,
+  SELECT `group_name`, `unix_group_name`, `group_id`, `is_public`, `status`,
     `license`, `gidNumber`
   FROM `groups` WHERE $where ORDER BY `group_name` LIMIT ?, ?",
   [$offset, $MAX_ROW + 1]
@@ -276,9 +284,9 @@ else
 print "</table>\n";
 
 html_nextprev (
- '?groupsearch=1&amp;group_name_search=' . utils_urlencode ($group_name_search)
- . '&amp;search=' . utils_urlencode ($search),
- $rows, $rows_returned
+  '?groupsearch=1&amp;group_name_search=' . utils_urlencode ($group_name_search)
+  . '&amp;search=' . utils_urlencode ($search),
+  $rows, $rows_returned, $total_rows
 );
 
 site_admin_footer ([]);

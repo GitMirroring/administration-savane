@@ -151,17 +151,23 @@ if (empty ($offset))
   $offset = 0;
 $offset = intval ($offset);
 
-$result = db_execute ("
-  SELECT user_name, realname, user_id, spamscore FROM user
-  WHERE status = 'A' AND spamscore > 0
-  ORDER BY spamscore DESC LIMIT ?, ?", [$offset, $max_rows + 1]
-);
-if (!db_numrows ($result))
+$sql = "FROM user WHERE status = 'A' AND spamscore > 0";
+$result = db_execute ("SELECT count(DISTINCT(user_id)) AS cnt $sql");
+$cnt = 0;
+if (db_numrows ($result))
+  $cnt = db_fetch_array ($result)['cnt'];
+
+if (!$cnt)
   {
     print '<p>' . no_i18n ("No suspects found.") . "</p>\n";
     $HTML->footer ([]);
     exit (0);
   }
+
+$result = db_execute ("
+  SELECT user_name, realname, user_id, spamscore $sql
+  ORDER BY spamscore DESC LIMIT ?, ?", [$offset, $max_rows + 1]
+);
 
 print html_build_list_table_top ($title_arr);
 
@@ -185,6 +191,6 @@ while ($entry = db_fetch_array ($result))
   }
 print "</table>\n";
 
-html_nextprev ("$php_self?", $max_rows, $i);
+html_nextprev ("$php_self?", $max_rows, $i, $cnt);
 $HTML->footer ([]);
 ?>

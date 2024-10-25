@@ -1,5 +1,5 @@
 <?php
-# Show items
+# Show items.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2001, 2002 Laurent Julliard, CodeX Team, Xerox

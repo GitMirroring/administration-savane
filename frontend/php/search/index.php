@@ -79,8 +79,8 @@ $result = search_run ($words, $type_of_search);
 
 function finish_page ()
 {
-  global $words, $type_of_search, $type, $exact, $rows;
-  global $rows_returned, $sys_home, $only_group_id;
+  global $sys_home, $only_group_id, $words, $type_of_search;
+  global $type, $exact, $rows, $rows_returned, $search_total_rows;
 
   $nextprev_url =
     "{$sys_home}search/?type_of_search=$type_of_search&amp;words="
@@ -92,7 +92,7 @@ function finish_page ()
   if (isset ($exact))
     $nextprev_url .= "&amp;exact=$exact";
 
-  html_nextprev ($nextprev_url, $rows, $rows_returned);
+  html_nextprev ($nextprev_url, $rows, $rows_returned, $search_total_rows);
   site_footer ([]);
   exit (0);
 }
@@ -123,19 +123,19 @@ if ($type_of_search == 'soft')
 
     for ($i = 0; $i < $rows; $i++)
       {
+        $row = db_fetch_array ($result);
+        if (empty ($row))
+          break;
         $res_type = db_execute (
-          "SELECT name FROM group_type WHERE type_id = ?",
-          [db_result ($result, $i, 'type')]
+          "SELECT name FROM group_type WHERE type_id = ?", [$row['type']]
         );
+        $name = db_fetch_array ($res_type)['name'];
 
         print '<tr class="' . html_get_alt_row_color ($i)
-          . '"><td><a href="../projects/'
-          . db_result ($result, $i, 'unix_group_name')
-          . '">' . db_result ($result, $i, 'group_name')
-          . "</a></td>\n<td>"
-          . db_result ($result, $i, 'short_description')
-          . "</td>\n<td>"
-          . gettext (db_result ($res_type, 0, 'name')) . "</td>\n</tr>\n";
+          . '"><td><a href="../projects/' . $row['unix_group_name']
+          . '">' . $row['group_name'] . "</a></td>\n<td>"
+          . $row['short_description'] . "</td>\n<td>"
+          . gettext ($name) . "</td>\n</tr>\n";
       }
     print "</table>\n";
     print '<p>'
@@ -161,13 +161,11 @@ if ($type_of_search == "people")
 
         for ($i = 0; $i < $rows; $i++)
           {
-            $namequery = preg_replace (
-              '/[^a-z]+/i', '+', db_result ($result, $i, 'realname')
-            );
+            $row = db_fetch_array ($result);
+            $namequery = preg_replace ('/[^a-z]+/i', '+', $row['realname']);
             print "<tr class=\"" . html_get_alt_row_color ($i) . "\"><td>"
-              . utils_user_link (db_result ($result, $i, 'user_name'))
-              . "</td>\n<td>" . db_result ($result, $i, 'realname')
-              . "</td>\n</tr>\n";
+              . utils_user_link ($row['user_name'])
+              . "</td>\n<td>" . $row['realname'] . "</td>\n</tr>\n";
           }
         print "</table>\n";
       }
@@ -203,6 +201,7 @@ print html_build_list_table_top ($titles);
 print "\n";
 
 $i = 0;
+db_data_seek ($result);
 while ($i < $rows && $row = db_fetch_array ($result))
   {
     if ($row['privacy'] == "2" && !member_check_private (0, $row['group_id'])
