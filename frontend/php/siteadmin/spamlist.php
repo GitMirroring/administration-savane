@@ -81,8 +81,8 @@ function format_user_data ($entry, $i)
     . utils_link ($url, "{$entry['realname']} &lt;{$entry['user_name']}&gt;")
     . "</td>\n<td class='center'>{$entry['spamscore']}</td>\n"
     . "</td>\n<td class='center'>"
-    . utils_link ("$php_self?wash_user_id={$entry['user_id']}#users_results",
-        html_image ('bool/ok.png', ['alt=' => no_i18n ("Wash score")])
+    . utils_link ("$php_self?wash_user_id={$entry['user_id']}#results",
+        html_image ('bool/ok.png', ['alt' => no_i18n ("Wash score")])
       )
     . "</td>\n";
 }
@@ -185,6 +185,6 @@ while ($entry = db_fetch_array ($result))
   }
 print "</table>\n";
 
-html_nextprev ("$php_self?", $max_rows, $i, "users");
+html_nextprev ("$php_self?", $max_rows, $i);
 $HTML->footer ([]);
 ?>

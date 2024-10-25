@@ -163,48 +163,51 @@ function html_image_dir ($theme, $suffix = null)
   return $ret;
 }
 
-function html_nextprev_link ($search_url, $varprefix, $offset)
+function html_nextprev_link ($search_url, $offset)
 {
   global $max_rows;
-  print "<a href=\"$search_url&amp;{$varprefix}offset="
-    . "$offset&amp;{$varprefix}max_rows="
-    . utils_specialchars ($max_rows) . "#{$varprefix}results\">";
+  print "<a href=\"$search_url&amp;offset="
+    . "$offset&amp;max_rows=" . utils_specialchars ($max_rows) . "#results\">";
 }
 
-function html_nextprev ($search_url, $rows, $rows_returned, $varprefix = false)
+function html_print_prev ($search_url, $offset, $max_rows)
 {
-  global $offset, $sys_home, $max_rows;
+  $prev_msg = _("Previous Results");
+  if (!$offset)
+    {
+      print html_image ("arrows/previousgrey.png") . " <i>$prev_msg</i>";
+      return;
+    }
+  $prev_offset = $offset - $max_rows;
+  if ($prev_offset < 0)
+    $prev_offset = 0;
+  html_nextprev_link ($search_url, $prev_offset);
+  print html_image ("arrows/previous.png") . " $prev_msg</a>";
+}
 
-  if (!$varprefix)
-    $varprefix = '';
-  else
-    $varprefix .= '_';
+function html_print_next ($search_url, $rows, $rows_returned)
+{
+  global $offset;
+  $next_msg = _("Next Results");
+  if ($rows_returned <= $rows)
+    {
+      print "<i>$next_msg</i> " . html_image ("arrows/nextgrey.png");
+      return;
+    }
+  html_nextprev_link ($search_url, $offset + $rows);
+  print "$next_msg " . html_image ("arrows/next.png") . "</a>";
+}
 
+function html_nextprev ($search_url, $rows, $rows_returned)
+{
+  global $offset, $max_rows;
   if ($rows_returned < $rows && !$offset)
     return;
-  $prev_msg = _("Previous Results");
-  $next_msg = _("Next Results");
+
   print "\n<br /><p class=\"nextprev\">\n";
-
-  if ($offset)
-    {
-      $prev_offset = $offset - $max_rows;
-      if ($prev_offset < 0)
-        $prev_offset = 0;
-      html_nextprev_link ($search_url, $varprefix, $prev_offset);
-      print html_image ("arrows/previous.png") . " $prev_msg</a>";
-    }
-  else
-    print html_image ("arrows/previousgrey.png") . " <i>$prev_msg</i>";
+  html_print_prev ($search_url, $offset, $max_rows);
   print "&nbsp; &nbsp; &nbsp;";
-
-  if ($rows_returned > $rows)
-    {
-      html_nextprev_link ($search_url, $varprefix, $offset + $rows);
-      print "$next_msg " . html_image ("arrows/next.png") . "</a>";
-    }
-  else
-    print "<i>$next_msg</i> " . html_image ("arrows/nextgrey.png");
+  html_print_next ($search_url, $rows, $rows_returned);
   print "</p>\n";
 }
 
