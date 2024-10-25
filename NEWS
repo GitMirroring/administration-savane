@@ -15,6 +15,10 @@
 
 ** Source tarball detection in the installation area wasn't correct.
 
+[I18N]
+
+* Update French, Hebrew.
+
 2024-10-17 3.14
 
 * A short commit ID was added to displayed Savane version unless built
