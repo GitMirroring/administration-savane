@@ -133,7 +133,8 @@ if ($type_of_search == 'soft')
 
         print '<tr class="' . html_get_alt_row_color ($i)
           . '"><td><a href="../projects/' . $row['unix_group_name']
-          . '">' . $row['group_name'] . "</a></td>\n<td>"
+          . '">' . "<b>[{$row['unix_group_name']}]</b> "
+          . $row['group_name'] . "</a></td>\n<td>"
           . $row['short_description'] . "</td>\n<td>"
           . gettext ($name) . "</td>\n</tr>\n";
       }
