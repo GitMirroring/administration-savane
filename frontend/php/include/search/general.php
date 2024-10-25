@@ -47,7 +47,7 @@ require_once (dirname (__FILE__) . '/../utils.php');
 # Check if the group uses any trackers to search in.
 function search_has_group_anything_to_search ($gid)
 {
-  $cases = ['support', 'bugs', 'task', 'patch'];
+  $cases = utils_get_tracker_list ();
   $group = project_get_object ($gid);
   foreach ($cases as $tracker)
     if ($group->Uses ($tracker))
