@@ -59,20 +59,13 @@ foreach ($includes as $i)
 extract (sane_import ('request',
   [
     'true' => 'include_closed',
-    'digits' =>  ['chunksz', ['offset', [0, 410338673]]]
+    'digits' =>  ['max_rows', ['offset', [0, 410338673]]]
   ]
 ));
-extract (sane_import ('get', ['digits' => [['max_rows', [1, 4913]]]]));
 
-if (!empty ($max_rows))
-  $chunksz = $max_rows;
-
-$default_chunksz = 10;
-if (empty ($chunksz))
-  $chunksz = $default_chunksz;
-$chunksz = intval ($chunksz);
-if ($chunksz <= 0)
-  $chunksz = $default_chunksz;
+if (empty ($max_rows))
+  $max_rows = 10;
+$max_rows = intval ($max_rows);
 
 trackers_view_dependencies ($list_format);
 ?>

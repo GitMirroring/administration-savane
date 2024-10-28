@@ -172,7 +172,7 @@ print '<td><a href="grouplist.php?status=D">'
 print "</tr>\n";
 print "</table>\n";
 
-$MAX_ROW = !empty ($max_rows)? $max_rows: 100;
+$max_rows = !empty ($max_rows)? $max_rows: 100;
 
 $abc_array = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
@@ -248,13 +248,13 @@ $res = db_execute ("
   SELECT `group_name`, `unix_group_name`, `group_id`, `is_public`, `status`,
     `license`, `gidNumber`
   FROM `groups` WHERE $where ORDER BY `group_name` LIMIT ?, ?",
-  [$offset, $MAX_ROW + 1]
+  [$offset, $max_rows + 1]
 );
 if (!$res)
   $feedback = db_error ();
 print "<p><strong>$msg</strong></p>\n";
 
-$rows = $rows_returned = db_numrows ($res);
+$rows = db_numrows ($res);
 
 $title_arr = [
   no_i18n ("Group Name"), no_i18n ("System Name"), no_i18n ('gidNumber'),
@@ -264,7 +264,7 @@ $title_arr = [
 
 print html_build_list_table_top ($title_arr);
 
-if ($rows_returned < 1)
+if ($rows < 1)
   {
     print '<tr class="' . utils_altrow ($inc++) . '"><td colspan="7">';
     print no_i18n ("No matches.");
@@ -272,8 +272,8 @@ if ($rows_returned < 1)
   }
 else
   {
-    if ($rows_returned > $MAX_ROW)
-      $rows = $MAX_ROW;
+    if ($rows > $max_rows)
+      $rows = $max_rows;
     $data = [];
     for ($i = 0; $i < $rows; $i++)
       $data[$i] = db_fetch_array ($res);
@@ -286,7 +286,7 @@ print "</table>\n";
 html_nextprev (
   '?groupsearch=1&amp;group_name_search=' . utils_urlencode ($group_name_search)
   . '&amp;search=' . utils_urlencode ($search),
-  $rows, $rows_returned, $total_rows
+  $offset, $max_rows, $total_rows
 );
 
 site_admin_footer ([]);

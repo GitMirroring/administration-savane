@@ -123,7 +123,7 @@ print html_h (2,
   sprintf (no_i18n ("User list for %s"), "<strong>$group_listed</strong>")
 );
 
-$rows = $rows_returned = db_numrows ($result);
+$rows = db_numrows ($result);
 
 print html_build_list_table_top (
   [no_i18n ("Id"), no_i18n ("User"), no_i18n ("Status"), no_i18n ("Profile")]
@@ -131,28 +131,28 @@ print html_build_list_table_top (
 
 function finish_page ()
 {
-  global $user_name_search, $search, $text_search, $rows, $rows_returned;
-  global $total_rows, $HTML, $php_self;
+  global $user_name_search, $search, $text_search;
+  global $offset, $max_rows, $total_rows, $HTML, $php_self;
   print "</table>\n";
   html_nextprev (
     "$php_self?user_name_search=$user_name_search"
     . '&amp;usersearch=1&amp;search=' . utils_urlencode ($search)
     . "&amp;text_search=$text_search",
-    $rows, $rows_returned, $total_rows
+    $offset, $max_rows, $total_rows
   );
   $HTML->footer ([]);
   exit (0);
 }
 
 $inc = 0;
-if ($rows_returned < 1)
+if ($rows < 1)
 {
   print '<tr class="' . utils_altrow ($inc++)
     . '"><td colspan="7">'. no_i18n ("No matches") . ".</td></tr>\n";
   finish_page ();
 }
 
-if ($rows_returned > $max_rows)
+if ($rows > $max_rows)
   $rows = $max_rows;
 
 for ($i = 0; $i < $rows; $i++)

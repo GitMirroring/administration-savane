@@ -152,7 +152,7 @@ function trackers_warn_about_hidden ($html_format = true)
 # Drop unaccessible, unlinked and other unappropriate items.
 function trackers_filter_out_items (&$items_for_digest, $items, $dependencies)
 {
-  global $include_closed, $chunksz, $offset;
+  global $include_closed, $max_rows, $offset;
   $filtered = [];
   $i = $total = 0;
   foreach ($items_for_digest as $it)
@@ -167,7 +167,7 @@ function trackers_filter_out_items (&$items_for_digest, $items, $dependencies)
       $total++;
       if ($i++ < $offset)
         continue;
-      if ($i > $offset + $chunksz)
+      if ($i > $offset + $max_rows)
         continue;
       $filtered[] = $it;
     }
@@ -238,22 +238,22 @@ function trackers_print_item_list_img ($items, $dependencies)
     return;
   $url = "$sys_home" . ARTIFACT . "/dependencies.php?";
   $args = ['list_format=svg'];
-  foreach (['group', 'include_closed', 'offset', 'chunksz'] as $var)
+  foreach (['group', 'include_closed', 'offset', 'max_rows'] as $var)
     {
       if (empty ($GLOBALS[$var]))
         continue;
       $args[] = "$var={$GLOBALS[$var]}";
     }
   $url .= join ('&', $args);
-  print "<img width='100%' src=\"$url\" alt=\""
-   . _('Dependency graph') . "\" />\n";
+  print "<img src=\"$url\" alt=\"" . _('Dependency graph')
+    . " width='100%'\" />\n";
 }
 function trackers_print_view_deps_controls ()
 {
-  global $include_closed, $chunksz, $offset, $group;
+  global $include_closed, $group;
   print form_tag (['method' => 'get']);
   print form_hidden (['func' => 'view-dependencies', 'group' => $group]);
-  print trackers_chunksz_control ();
+  print trackers_chunksz_control ('max_rows');
   print "&nbsp; &nbsp;\n";
   print form_checkbox ('include_closed', !empty ($include_closed),
     ['label' => _('Include closed items')]);
@@ -323,15 +323,14 @@ function trackers_print_item_list_html (
 }
 function trackers_viewdep_nextprev ($total)
 {
-  global $sys_home, $max_rows, $chunksz, $offset, $group, $item_no;
-  global $include_closed;
-  $max_rows = $chunksz;
-  if (empty ($offset) && $item_no <= $chunksz)
+  global $sys_home, $group, $item_no, $include_closed;
+  global $max_rows, $offset;
+  if (empty ($offset) && $item_no <= $max_rows)
     return;
   $url = $sys_home . ARTIFACT . "/dependencies.php?group=$group";
   if (!empty ($include_closed))
     $url .= "&amp;include_closed";
-  html_nextprev ($url, $chunksz, $item_no - $offset, $total);
+  html_nextprev ($url, $offset, $max_rows, $total);
 }
 function trackers_output_list_html (
   $items_for_digest, $items, $dependencies, $total

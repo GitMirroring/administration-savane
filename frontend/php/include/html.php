@@ -165,62 +165,68 @@ function html_image_dir ($theme, $suffix = null)
 
 function html_nextprev_link ($url, $offset, $max_rows)
 {
-  print "<a href=\"$url&amp;offset="
+  return "<a href=\"$url&amp;offset="
     . "$offset&amp;max_rows=" . utils_specialchars ($max_rows) . "#results\">";
 }
 
-function html_print_prev ($url, $offset, $max_rows)
+function html_prev ($url, $offset, $max_rows, $total_rows)
 {
-  $prev_msg = _("Previous");
-  $begin_msg = _("Begin");
+  if ($total_rows < $max_rows)
+    return '';
+  $begin_msg = _("Begin"); $prev_msg = _("Previous");
   $sep = '&nbsp;&nbsp;&nbsp;&nbsp;';
   if (!$offset)
-    {
-      print html_image ('arrows/firstgrey.png') . " <i>$begin_msg</i>$sep"
-        . html_image ("arrows/previousgrey.png") . " <i>$prev_msg</i>";
-      return;
-    }
+    return html_image ('arrows/firstgrey.png') . " <i>$begin_msg</i>$sep"
+      . html_image ("arrows/previousgrey.png") . " <i>$prev_msg</i>";
   $prev_offset = $offset - $max_rows;
   if ($prev_offset < 0)
     $prev_offset = 0;
-  html_nextprev_link ($url, 0, $max_rows);
-  print html_image ('arrows/first.png') . " $begin_msg</a>$sep";
-  html_nextprev_link ($url, $prev_offset, $max_rows);
-  print html_image ('arrows/previous.png') . " $prev_msg</a>";
+  $ret = html_nextprev_link ($url, 0, $max_rows);
+  $ret .= html_image ('arrows/first.png') . " $begin_msg</a>$sep";
+  $ret .= html_nextprev_link ($url, $prev_offset, $max_rows);
+  return $ret . html_image ('arrows/previous.png') . " $prev_msg</a>";
 }
 
-function html_print_next ($url, $rows, $rows_returned, $total_rows)
+function html_next ($url, $offset, $max_rows, $total_rows)
 {
-  global $offset, $max_rows;
-  $next_msg = _("Next");
-  $end_msg = _("End");
-  $sep = '&nbsp;&nbsp;&nbsp;&nbsp;';
-  if ($rows_returned <= $rows)
-    {
-      print "<i>$next_msg</i> " . html_image ("arrows/nextgrey.png")
-        . "$sep<i>$end_msg</i> " . html_image ('arrows/lastgrey.png');
-      return;
-    }
-  html_nextprev_link ($url, $offset + $rows, $max_rows);
-  print "$next_msg " . html_image ("arrows/next.png") . "</a>$sep";
+  if ($total_rows < $max_rows)
+    return '';
+  $next_msg = _("Next"); $end_msg = _("End");
+  $sep = '&nbsp; &nbsp;';
+  $rows = min ($max_rows, $total_rows - $offset);
+  if ($offset + $max_rows >= $total_rows)
+    return "<i>$next_msg</i> " . html_image ("arrows/nextgrey.png")
+      . "$sep<i>$end_msg</i> " . html_image ('arrows/lastgrey.png');
+  $ret = html_nextprev_link ($url, $offset + $rows, $max_rows);
+  $ret .= "$next_msg " . html_image ("arrows/next.png") . "</a>$sep";
   $last_page = $total_rows - ($total_rows % $max_rows);
   if ($last_page == $total_rows)
     $last_page -= $max_rows;
-  html_nextprev_link ($url, $last_page, $max_rows);
-  print "$end_msg " . html_image ("arrows/last.png") . "</a>";
+  $ret .= html_nextprev_link ($url, $last_page, $max_rows);
+  return "$ret$end_msg " . html_image ("arrows/last.png") . "</a>";
 }
 
-function html_nextprev ($url, $rows, $rows_returned, $total_rows)
+function html_nextprev_str ($url, $offset, $max_rows, $total_rows)
 {
-  global $offset, $max_rows;
-  if ($rows_returned < $rows && !$offset)
-    return;
+  if ($total_rows < $max_rows)
+    return '';
+  $ret = "<p class=\"nextprev\">\n";
+  $sep = "&nbsp; &nbsp; &nbsp;";
+  $ret .= html_prev ($url, $offset, $max_rows, $total_rows) . $sep;
+  $latest_item = min ($offset + $max_rows, $total_rows);
+  $ret .= sprintf (
+    # TRANSLATORS: The first argument is the number of the first item shown,
+    # the second argument is the number of the last item shown,
+    # the third argument is the total number of items.
+    _('%1$s&ndash;%2$s / %3$s'), $offset + 1, $latest_item, $total_rows
+  );
+  $ret .= $sep . html_next ($url, $offset, $max_rows, $total_rows);
+  return "$ret</p>\n";
+}
 
-  print "\n<br /><p class=\"nextprev\">\n";
-  html_print_prev ($url, $offset, $max_rows);
-  print "&nbsp; &nbsp; &nbsp;";
-  html_print_next ($url, $rows, $rows_returned, $total_rows);
-  print "</p>\n";
+function html_nextprev ($url, $offset, $max_rows, $total_rows)
+{
+  print html_nextprev_str ($url, $offset, $max_rows, $total_rows);
 }
 
 function html_anchor ($content, $name)

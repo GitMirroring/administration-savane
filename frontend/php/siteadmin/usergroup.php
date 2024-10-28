@@ -81,12 +81,10 @@ if (empty ($max_rows))
 $max_rows = intval ($max_rows);
 $offset = intval ($offset);
 
-function contribution_nextprev ($user_id, $max_rows, $result, $total_rows)
+function contribution_nextprev ($uid, $offset, $max_rows, $total_rows)
 {
   global $php_self;
-  html_nextprev (
-    "$php_self?user_id=$user_id", $max_rows, db_numrows ($result), $total_rows
-  );
+  html_nextprev ("$php_self?user_id=$uid", $offset, $max_rows, $total_rows);
 }
 
 function print_contribution_heading ($user_id)
@@ -222,11 +220,11 @@ function list_user_contributions ($user_id, $user_name, $offset, $max_rows)
       print '<p>' . no_i18n ('No contributions found.') . "</p>\n";
       return;
     }
-  contribution_nextprev ($user_id, $max_rows, $result, $total_rows);
+  contribution_nextprev ($user_id, $offset, $max_rows, $total_rows);
   print html_dl (
     output_contributions ($result, $offset, $max_rows), 'comment_results'
   );
-  contribution_nextprev ($user_id, $max_rows, $result, $total_rows);
+  contribution_nextprev ($user_id, $offset, $max_rows, $total_rows);
 }
 
 function report_db_result ($result, $msg_err, $msg_ok)

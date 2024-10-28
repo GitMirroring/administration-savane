@@ -191,6 +191,6 @@ while ($entry = db_fetch_array ($result))
   }
 print "</table>\n";
 
-html_nextprev ("$php_self?", $max_rows, $i, $cnt);
+html_nextprev ("$php_self?", $offset, $max_rows, $cnt);
 $HTML->footer ([]);
 ?>

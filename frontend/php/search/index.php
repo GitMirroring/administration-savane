@@ -75,12 +75,10 @@ if (!$words || !is_scalar ($words))
     exit;
   }
 
-$result = search_run ($words, $type_of_search);
-
 function finish_page ()
 {
   global $sys_home, $only_group_id, $words, $type_of_search;
-  global $type, $exact, $rows, $rows_returned, $search_total_rows;
+  global $type, $exact, $search_total_rows, $offset, $max_rows;
 
   $nextprev_url =
     "{$sys_home}search/?type_of_search=$type_of_search&amp;words="
@@ -92,24 +90,27 @@ function finish_page ()
   if (isset ($exact))
     $nextprev_url .= "&amp;exact=$exact";
 
-  html_nextprev ($nextprev_url, $rows, $rows_returned, $search_total_rows);
+  html_nextprev ($nextprev_url, $offset, $max_rows, $search_total_rows);
   site_footer ([]);
   exit (0);
 }
 
-function check_search_fail ($result)
+function check_search_fail ($result, $max_rows)
 {
   $rows = db_numrows ($result);
   if ($rows)
-    return $rows;
+    {
+      if ($rows > $max_rows)
+        $rows = $max_rows;
+      return $rows;
+    }
   search_failed ();
   finish_page ();
   return 0;
 }
 
-$rows = $rows_returned = check_search_fail ($result);
-if ($rows_returned > $max_rows)
-  $rows = $max_rows;
+$result = search_run ($words, $type_of_search);
+$rows = check_search_fail ($result, $max_rows);
 
 if ($type_of_search == 'soft')
   {
