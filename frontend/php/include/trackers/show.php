@@ -45,67 +45,6 @@
 require_once (dirname (__FILE__) . '/cookbook.php');
 require_once (dirname (__FILE__) . '/../utils.php');
 
-function show_item_navbar_begin ($url, $offset, $total_rows)
-{
-  global $chunksz;
-  if ($total_rows <= $chunksz)
-    return '';
-  if ($offset > 0)
-    return
-      '<a href="' . $url . '&amp;offset=0#results">'
-      . html_image ('arrows/first.png')
-      . ' ' . _("Begin") . '</a>&nbsp;&nbsp;&nbsp;&nbsp;'
-      . '<a href="' . $url . '&amp;offset=' . ($offset - $chunksz)
-      . '#results">' . html_image ('arrows/previous.png')
-      . " " . _("Previous Results") . '</a>';
-  return html_image ('arrows/firstgrey.png')
-    . ' <i>' . _("Begin") . '</i>&nbsp;&nbsp;&nbsp;&nbsp;'
-    . html_image ('arrows/previousgrey.png') . ' <i>'
-    . _("Previous Results") . '</i>';
-}
-
-function show_item_navbar_end ($url, $offset, $total_rows)
-{
-  global $chunksz;
-  if ($total_rows <= $chunksz)
-    return '';
-  if ($offset + $chunksz < $total_rows)
-    {
-      $offset_end = $total_rows - ($total_rows % $chunksz);
-      if ($offset_end == $total_rows)
-        $offset_end -= $chunksz;
-
-      return
-        '<a href="' . $url . '&amp;offset='
-        . ($offset + $chunksz) . '#results">' . _("Next Results") . ' '
-        . html_image ('arrows/next.png') . '</a>&nbsp;&nbsp;&nbsp;&nbsp;'
-        . "<a href=\"$url&amp;offset=$offset_end#results\">"
-        . _("End") . ' ' . html_image ('arrows/last.png') . '</a>';
-    }
-  return '<i>' . _("Next Results") . '</i> '
-    . html_image ('arrows/nextgrey.png')
-    . '&nbsp;&nbsp;&nbsp;&nbsp;<i>' . _("End") . '</i> '
-    . html_image ('arrows/lastgrey.png');
-}
-
-# Return HTML showing <-- Prev Total number of items Next -->.
-function show_item_navbar ($url, $offset, $total_rows)
-{
-  global $chunksz;
-  $nav_bar = show_item_navbar_begin ($url, $offset, $total_rows);
-
-  $nav_bar .= "<span class='item-count'> &nbsp;  &nbsp; &nbsp; &nbsp; "
-    . sprintf (ngettext (
-        "%d matching item", "%d matching items", $total_rows), $total_rows
-      );
-  $offset_last = min ($offset + $chunksz - 1, $total_rows - 1);
-  # TRANSLATORS: the arguments are offsets of items in the list.
-  $nav_bar .= " - "
-    . sprintf (_('Items %1$s to %2$s'), $offset + 1, $offset_last + 1)
-    . "  &nbsp; &nbsp; &nbsp; &nbsp; </span>";
-  return $nav_bar . show_item_navbar_end ($url, $offset, $total_rows);
-}
-
 function show_item_field_try_date ($field, $value)
 {
   if (!trackers_data_is_date_field ($field))
@@ -191,19 +130,20 @@ function show_item_list (
   $items, $offset, $total_rows, $fields, $titles, $widths, $url
 )
 {
+  global $chunksz;
   $links = [];
   foreach ($fields as $field)
     $links[] = "$url&amp;order=$field#results";
-  $nav_bar = show_item_navbar ($url, $offset, $total_rows);
+  $nav_bar = html_nextprev_str ($url, $offset, $chunksz, $total_rows);
 
-  print "<p id='results' class='item-navbar'>$nav_bar</p>\n";
+  print "<div id='results'>$nav_bar</div>\n";
   print html_build_list_table_top ($titles, $links);
 
   $field_num = count ($fields);
   foreach ($items as $row)
     show_item_in_list ($row, $fields, $widths, $field_num);
   print "</table>\n";
-  print "<br />\n<p class='item-navbar'>$nav_bar</p><br />\n";
+  print "$nav_bar";
 }
 
 # Show the changes of the tracker data we have for this item,
