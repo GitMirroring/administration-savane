@@ -171,7 +171,7 @@ function html_nextprev_link ($url, $offset, $max_rows)
 
 function html_print_prev ($url, $offset, $max_rows)
 {
-  $prev_msg = _("Previous Results");
+  $prev_msg = _("Previous");
   $begin_msg = _("Begin");
   $sep = '&nbsp;&nbsp;&nbsp;&nbsp;';
   if (!$offset)
@@ -192,7 +192,7 @@ function html_print_prev ($url, $offset, $max_rows)
 function html_print_next ($url, $rows, $rows_returned, $total_rows)
 {
   global $offset, $max_rows;
-  $next_msg = _("Next Results");
+  $next_msg = _("Next");
   $end_msg = _("End");
   $sep = '&nbsp;&nbsp;&nbsp;&nbsp;';
   if ($rows_returned <= $rows)
