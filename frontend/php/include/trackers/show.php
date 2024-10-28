@@ -142,8 +142,7 @@ function show_item_list (
   $field_num = count ($fields);
   foreach ($items as $row)
     show_item_in_list ($row, $fields, $widths, $field_num);
-  print "</table>\n";
-  print "$nav_bar";
+  print "</table>\n$nav_bar";
 }
 
 # Show the changes of the tracker data we have for this item,

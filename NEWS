@@ -7,6 +7,8 @@
 * The headers are omitted when serving tracker attachments when the respective
   fields are empty.
 
+* More controls are added to navigate search results.
+
 * Bugs fixes:
 
 ** When assigning uidNumber, user_group.cache_user_name wasn't updated.
