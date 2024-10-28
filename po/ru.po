@@ -45,10 +45,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.13\n"
+"Project-Id-Version: savane 3.14\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2024-09-02 10:24+0000\n"
-"PO-Revision-Date: 2024-09-02 15:44+0000\n"
+"POT-Creation-Date: 2024-10-28 11:24+0000\n"
+"PO-Revision-Date: 2024-10-28 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -119,10 +119,6 @@ msgstr "Обновить"
 #, php-format
 msgid "Item #%s not found."
 msgstr "Заявка № %s не найдена."
-
-#, php-format
-msgid "User *%s* not found."
-msgstr "Пользователь *%s* не найден."
 
 #. TRANSLATORS: the argument is file id (a number).
 #, php-format
@@ -844,9 +840,6 @@ msgstr "Скопировать из формы запроса:"
 msgid "Copy"
 msgstr "Копировать"
 
-msgid "Name:"
-msgstr "Имя:"
-
 msgid "Use as an Output Column"
 msgstr "Использовать как столбец результатов"
 
@@ -894,6 +887,9 @@ msgstr "Не удалось обновить форму запроса \"%s\""
 #, php-format
 msgid "Unknown Report ID (%s)"
 msgstr "Неизвестный идентификатор отчета (%s)"
+
+msgid "Name:"
+msgstr "Имя:"
 
 msgid "Use as a Search Criterion"
 msgstr "Использовать в качестве критерия поиска"
@@ -1196,12 +1192,6 @@ msgstr[0] "%s заявка,"
 msgstr[1] "%s заявки,"
 msgstr[2] "%s заявок,"
 
-msgid "(%s item)"
-msgid_plural "(%s items)"
-msgstr[0] "(%s заявка)"
-msgstr[1] "(%s заявки)"
-msgstr[2] "(%s заявок)"
-
 #, php-format
 msgid "including %s still open<!-- item -->"
 msgid_plural "including %s still open<!-- items -->"
@@ -1217,10 +1207,6 @@ msgstr "Популярные стили оформления"
 
 msgid "No users yet."
 msgstr "Пользователей пока нет."
-
-#, php-format
-msgid "User #%s not found."
-msgstr "Пользователь № %s не найден"
 
 msgid "Resume & Skills page for this user is disabled"
 msgstr "Страница навыков этого пользователя отключена"
@@ -1544,6 +1530,10 @@ msgid ""
 "This account hasn't been activated, please contact website administration"
 msgstr ""
 "Эта учетная запись не была активирована, обратитесь к администрации сайта"
+
+#, php-format
+msgid "User *%s* not found."
+msgstr "Пользователь *%s* не найден."
 
 msgid "Invalid User"
 msgstr "Неправильное имя пользователя."
@@ -1898,9 +1888,6 @@ msgstr "Воспроизвести вопрос"
 
 msgid "You need to be site administrator to use this feature."
 msgstr "Для этого вам нужно быть администратором сайта."
-
-msgid "This user doesn't exist."
-msgstr "Этот пользователь не существует."
 
 msgid "You shouldn't have come to this page."
 msgstr "Вы не должны были попасть на эту страницу."
@@ -2390,13 +2377,13 @@ msgstr ""
 "поручены или поручены вам; здесь также перечислены новости проектов, в "
 "которых вы участвуете."
 
-msgid "News Waiting for Approval"
-msgstr "Новости, ожидающие подтверждения"
-
 #. TRANSLATORS: the first argument is group name, the second is date.
 #, php-format
 msgid "Group %1$s, %2$s"
 msgstr "Группа %1$s, %2$s"
+
+msgid "News Waiting for Approval"
+msgstr "Новости, ожидающие подтверждения"
 
 msgid "News"
 msgstr "Новости"
@@ -2410,17 +2397,17 @@ msgstr "Новые порученные заявки"
 msgid "Missing information: fill in all required fields"
 msgstr "Не хватает сведений: заполните все обязательные поля"
 
-msgid "User Skill update failed"
-msgstr "Не удалось обновить навыки"
-
 msgid "User Skills updated successfully"
 msgstr "Навыки обновлены успешно"
 
-msgid "User Skill Delete failed"
-msgstr "Сбой при удалении навыка"
+msgid "User Skill update failed"
+msgstr "Не удалось обновить навыки"
 
 msgid "User Skill Deleted successfully"
 msgstr "Навык успешно удален"
+
+msgid "User Skill Delete failed"
+msgstr "Сбой при удалении навыка"
 
 msgid "Edit Your Resume & Skills"
 msgstr "Редактировать страницу навыков"
@@ -2431,9 +2418,6 @@ msgid ""
 msgstr ""
 "Подробности о вашем опыте и навыках, которые могут интересовать других "
 "пользователей или посетителей."
-
-msgid "No such user"
-msgstr "Такого пользователя нет"
 
 msgid "Publicly Viewable"
 msgstr "Общедоступно"
@@ -2917,11 +2901,11 @@ msgstr "Ничего не найдено."
 msgid "Opened Sessions"
 msgstr "Открытые сеансы"
 
-msgid "Kill this session"
-msgstr "Закрыть этот сеанс"
-
 msgid "Current session"
 msgstr "Текущий сеанс:"
+
+msgid "Kill this session"
+msgstr "Закрыть этот сеанс"
 
 #. TRANSLATORS: The variables are session identifier, time, remote host.
 #, php-format
@@ -4501,15 +4485,47 @@ msgstr "Данных нет, график построен не будет"
 msgid "The total number of results is zero."
 msgstr "Общее число результатов равно нулю."
 
-#, php-format
-msgid "Current spam score: %s"
-msgstr "Текущий спамовый счетчик: %s"
+msgid "In charge of this item."
+msgstr "Отвечает за эту заявку."
 
 msgid "This item has been reported to be a spam"
 msgstr "Об этой заявке сообщили как о спаме"
 
+#, php-format
+msgid "Current spam score: %s"
+msgstr "Текущий спамовый счетчик: %s"
+
+msgid "Site Administrator"
+msgstr "Администратор сайта"
+
+msgid "Group administrator"
+msgstr "Администратор группы"
+
+msgid "Group Member"
+msgstr "Член группы"
+
+msgid "Quote"
+msgstr "Цитировать"
+
+msgid "This is a preview"
+msgstr "Это предварительный просмотр"
+
+#, php-format
+msgid "comment #%s:"
+msgstr "комментарий №%s:"
+
+msgid "original submission:"
+msgstr "первоначальная заявка:"
+
+msgid "recipe preview:"
+msgstr "предварительный просмотр рецепта:"
+
 msgid "anonymous"
 msgstr "анонимный"
+
+#, php-format
+msgid "Spam posted by %s"
+msgstr "Спам, посланный пользователем %s"
 
 msgid ""
 "Why is this post is considered to be spam? Users may have reported it to be\n"
@@ -4522,38 +4538,6 @@ msgstr ""
 
 msgid "Unflag as spam"
 msgstr "Сбросить признак спама"
-
-#, php-format
-msgid "Spam posted by %s"
-msgstr "Спам, посланный пользователем %s"
-
-msgid "Site Administrator"
-msgstr "Администратор сайта"
-
-msgid "Group administrator"
-msgstr "Администратор группы"
-
-msgid "Group Member"
-msgstr "Член группы"
-
-msgid "This is a preview"
-msgstr "Это предварительный просмотр"
-
-msgid "original submission:"
-msgstr "первоначальная заявка:"
-
-msgid "recipe preview:"
-msgstr "предварительный просмотр рецепта:"
-
-#, php-format
-msgid "comment #%s:"
-msgstr "комментарий №%s:"
-
-msgid "Quote"
-msgstr "Цитировать"
-
-msgid "In charge of this item."
-msgstr "Отвечает за эту заявку."
 
 msgid "Flag as spam"
 msgstr "Выставить признак спама"
@@ -4760,14 +4744,6 @@ msgid "Could not send item update."
 msgstr "Не удалось отправить обновление заявки."
 
 #, php-format
-msgid "The upload directory '%s' is not writable."
-msgstr "Каталог для загрузки \"%s\" недоступен для записи."
-
-#, php-format
-msgid "File %s not attached: unable to open it"
-msgstr "Файл %s не приложен: его не удалось открыть"
-
-#, php-format
 msgid "Unexpected error, disregarding file %s attachment"
 msgstr "Неожиданная ошибка, файл приложения %s игнорируется"
 
@@ -4777,6 +4753,14 @@ msgid_plural "You already uploaded %s kilobytes."
 msgstr[0] "Вы же отправили %s килобайт."
 msgstr[1] "Вы же отправили %s килобайта."
 msgstr[2] "Вы же отправили %s килобайт."
+
+#, php-format
+msgid "The upload directory '%s' is not writable."
+msgstr "Каталог для загрузки \"%s\" недоступен для записи."
+
+#, php-format
+msgid "File %s not attached: unable to open it"
+msgstr "Файл %s не приложен: его не удалось открыть"
 
 #, php-format
 msgid "File %s not attached: its size is %s kilobyte."
@@ -4847,29 +4831,6 @@ msgstr "по возрастанию"
 #. TRANSLATORS: this string specifies sorting order.
 msgid "down"
 msgstr "по убыванию"
-
-msgid "Begin"
-msgstr "Начало"
-
-msgid "Previous Results"
-msgstr "Предыдущие"
-
-msgid "Next Results"
-msgstr "Следующие"
-
-msgid "End"
-msgstr "Конец"
-
-#, php-format
-msgid "%d matching item"
-msgid_plural "%d matching items"
-msgstr[0] "%d подходящая заявка"
-msgstr[1] "%d подходящие заявки"
-msgstr[2] "%d подходящих заявок"
-
-#, php-format
-msgid "Items %1$s to %2$s"
-msgstr "Заявки с %1$s по %2$s"
 
 msgid "No changes have been made to this item"
 msgstr "Эта заявка не изменялась"
@@ -5068,8 +5029,7 @@ msgstr "Не удается скопировать приложенный фай
 msgid ""
 "Unable to duplicate a CC address (%s) from the\n"
 "original item report information."
-msgstr ""
-"Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
+msgstr "Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
 
 msgid "Original item is now closed."
 msgstr "Первоначальная заявка закрыта."
@@ -5765,6 +5725,10 @@ msgstr "Недостающие параметры"
 msgid "This project has turned off mailing lists"
 msgstr "В этом проекте списки рассылки отключены"
 
+#, php-format
+msgid "User #%s not found."
+msgstr "Пользователь № %s не найден"
+
 msgid "db_query_escape: Missing parameter"
 msgstr "db_query_escape: Недостающий параметр"
 
@@ -5817,6 +5781,27 @@ msgstr ""
 msgid "Display Criteria"
 msgstr "Критерии отображения"
 
+#. TRANSLATORS: The string shows a range of item numbers to display.
+#, php-format
+msgid "%1$s&ndash;%2$s"
+msgstr "%1$s&ndash;%2$s"
+
+msgid "Begin"
+msgstr "начало"
+
+msgid "Previous"
+msgstr "назад"
+
+msgid "Next"
+msgstr "вперед"
+
+msgid "End"
+msgstr "конец"
+
+#, php-format
+msgid "%1$s&ndash;%2$s / %3$s"
+msgstr "%1$s&ndash;%2$s / %3$s"
+
 msgid "Show feedback again"
 msgstr "Повторить ответное сообщение"
 
@@ -5841,9 +5826,6 @@ msgstr "Исходное для типа группы"
 msgid "Group Default"
 msgstr "Исходное для группы"
 
-msgid "Roles of members"
-msgstr "Роли участников"
-
 msgid "Technician"
 msgstr "Техник"
 
@@ -5852,6 +5834,9 @@ msgstr "Секретарь"
 
 msgid "Techn. & Manager"
 msgstr "Техник-секретарь"
+
+msgid "Roles of members"
+msgstr "Роли участников"
 
 msgid "Same as for new items"
 msgstr "Так же, как для новых"
@@ -5979,8 +5964,11 @@ msgstr ""
 "можно отключить это сообщение."
 
 #, php-format
-msgid "(new items: %1$s, total: %2$s)"
-msgstr "(новых заявок: %1$s, всего: %2$s)"
+msgid "(%s item)"
+msgid_plural "(%s items)"
+msgstr[0] "(%s заявка)"
+msgstr[1] "(%s заявки)"
+msgstr[2] "(%s заявок)"
 
 msgid "Invalid tracker name:"
 msgstr "Неправильное название журнала:"
@@ -7654,11 +7642,6 @@ msgstr ""
 msgid "Text to test"
 msgstr "Текст для теста"
 
-#. TRANSLATORS: the argument is user id (a number).
-#, php-format
-msgid "User %s does not exist"
-msgstr "Пользователь %s не существует"
-
 msgid "Send a message"
 msgstr "Послать сообщение"
 
@@ -8974,6 +8957,37 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid "This user doesn't exist."
+#~ msgstr "Этот пользователь не существует."
+
+#~ msgid "No such user"
+#~ msgstr "Такого пользователя нет"
+
+#~ msgid "Previous Results"
+#~ msgstr "Предыдущие"
+
+#~ msgid "Next Results"
+#~ msgstr "Следующие"
+
+#, php-format
+#~ msgid "%d matching item"
+#~ msgid_plural "%d matching items"
+#~ msgstr[0] "найден %d объект"
+#~ msgstr[1] "найдено %d объекта"
+#~ msgstr[2] "найдено %d объектов"
+
+#, php-format
+#~ msgid "Items %1$s to %2$s"
+#~ msgstr "Заявки с %1$s по %2$s"
+
+#, php-format
+#~ msgid "(new items: %1$s, total: %2$s)"
+#~ msgstr "(новых заявок: %1$s, всего: %2$s)"
+
+#, php-format
+#~ msgid "User %s does not exist"
+#~ msgstr "Пользователь %s не существует"
 
 #~ msgid "Invalid confirmation hash"
 #~ msgstr "Неправильный код подтверждения"
