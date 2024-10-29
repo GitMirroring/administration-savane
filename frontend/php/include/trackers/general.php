@@ -355,10 +355,11 @@ function trackers_field_date_operator ($field_name, $value = '', $ro = false)
     . "\" name=\"{$field_name}_op\">$options</select>\n";
 }
 
-function trackers_chunksz_control ($var = 'chunksz')
+function trackers_max_rows_control ()
 {
-  return html_label ($var, _("Items to show at once:")) . '&nbsp;'
-    . form_input ('text', $var, $GLOBALS[$var], 'size="3" maxlength="5"');
+  global $max_rows;
+  return html_label ('max_rows', _("Items to show at once:")) . '&nbsp;'
+    . form_input ('text', 'max_rows', $max_rows, 'size="3" maxlength="5"');
 }
 
 function trackers_field_text (

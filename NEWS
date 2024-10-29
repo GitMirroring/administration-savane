@@ -7,7 +7,7 @@
 * The headers are omitted when serving tracker attachments when the respective
   fields are empty.
 
-* More controls are added to navigate search results.
+* More controls are added to navigate search results, see Savannah sr #109559.
 
 * Bugs fixes:
 

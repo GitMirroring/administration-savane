@@ -126,23 +126,17 @@ function show_item_in_list ($row, $fields, $widths, $field_num)
   print "</tr>\n";
 }
 
-function show_item_list (
-  $items, $offset, $total_rows, $fields, $titles, $widths, $url
-)
+function show_item_list ($items, $fields, $titles, $widths, $url)
 {
-  global $chunksz;
   $links = [];
   foreach ($fields as $field)
     $links[] = "$url&amp;order=$field#results";
-  $nav_bar = html_nextprev_str ($url, $offset, $chunksz, $total_rows);
-
-  print "<div id='results'>$nav_bar</div>\n";
   print html_build_list_table_top ($titles, $links);
 
   $field_num = count ($fields);
   foreach ($items as $row)
     show_item_in_list ($row, $fields, $widths, $field_num);
-  print "</table>\n$nav_bar";
+  print "</table>\n";
 }
 
 # Show the changes of the tracker data we have for this item,

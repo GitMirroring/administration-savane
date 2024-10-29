@@ -46,21 +46,13 @@ require_once ('../include/init.php');
 $tos_values = array_merge (['soft', 'people'], utils_get_tracker_list ());
 extract (sane_import ('request',
   [
-    'digits' =>
-      [ 'type', 'only_group_id', ['offset', [0, 410338673]],
-        ['max_rows', [1, 4913]], ['exact', [0, 1]]
-      ],
+    'digits' => ['type', 'only_group_id', ['exact', [0, 1]]],
     'strings' => [['type_of_search', $tos_values]],
     'pass' => ['words0', 'words1', 'words'],
   ]
 ));
 
-if (empty ($offset))
-  $offset = 0;
-
-if (empty ($max_rows))
-  $max_rows = 25;
-
+html_nextprev_extract_params (25);
 foreach ([0, 1] as $n)
   if (!empty (${"words$n"}))
     $words = ${"words$n"};

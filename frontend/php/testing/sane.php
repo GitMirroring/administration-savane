@@ -291,6 +291,18 @@ $reference = 'cookbook/index.php';
   test_sane_import ($in, $names, $out);
 }
 
+$reference = 'bugs/dependencies.php';
+{
+  $names = [
+    'strings' => [['list_format', ['default' => 'html', 'text', 'svg']]]
+  ];
+  $in = ['include_closed' => 1, 'list_format' => 'png'];
+  $out = ['list_format' => 'html'];
+  test_sane_import ($in, $names, $out);
+  $in = ['include_closed' => 1, 'list_format' => 'png'];
+  $out = ['include_closed' => true];
+}
+
 $reference = 'css/graph-widths.php';
 {
   $names = ['preg' => [['widths', '/^[.,\d]+$/']]];
@@ -1106,7 +1118,7 @@ $reference = 'include/trackers_run/browse.php';
   $names = [
     'digits' =>
       [
-        'chunksz', 'offset', 'report_id',
+        'report_id',
         ['msort', 'sumORdet', 'advsrch', 'history_search', [0, 1]],
         ['spamscore', [1, null]],
         ['history_date_yearfd', [1900, null]],
@@ -1128,8 +1140,6 @@ $reference = 'include/trackers_run/browse.php';
       ],
   ];
   $in = [
-    'chunksz' => 40,
-    'offset' => 83521,
     'report_id' => 5,
     'history_field' => 0,
     'msort' => 0,
@@ -2038,21 +2048,14 @@ $reference = 'search/index.php';
 {
   $tos_values = array_merge (['soft', 'people'], utils_get_tracker_list ());
   $names = [
-    'digits' =>
-      [ 'type', 'only_group_id', ['offset', [0, 410338673]],
-        ['max_rows', [1, 4913]], ['exact', [0, 1]]
-      ],
+    'digits' => ['type', 'only_group_id', ['exact', [0, 1]]],
     'strings' => [['type_of_search', $tos_values]],
     'pass' => 'words',
   ];
   $in = $out = [
-    'type' => 1, 'exact' => 0, 'offset' => 2, 'max_rows' => 3,
+    'type' => 1, 'exact' => 0,
     'only_group_id' => 4, 'type_of_search' => 'soft', 'words' => 'w',
   ];
-  test_sane_import ($in, $names, $out);
-  $in['offset'] = -1; $out['offset'] = 1;
-  test_sane_import ($in, $names, $out);
-  $in['max_rows'] = 0; $out['max_rows'] = null;
   test_sane_import ($in, $names, $out);
 }
 
@@ -2214,7 +2217,7 @@ $reference = 'siteadmin/user_changepw.php';
 $reference = 'siteadmin/usergroup.php';
 {
   $names = [
-    'digits' => ['user_id', 'max_rows', 'offset'],
+    'digits' => 'user_id',
     'strings' => [
       [
         'action',
@@ -2225,10 +2228,7 @@ $reference = 'siteadmin/usergroup.php';
       ],
     ],
   ];
-  $in = $out = [
-    'user_id' => 83521, 'max_rows' => 51, 'offset' => 119,
-    'action' => 'delete'
-  ];
+  $in = $out = ['user_id' => 83521, 'action' => 'delete'];
   test_sane_import ($in, $names, $out);
   $names = [
     'name' => 'new_name',
@@ -2246,15 +2246,14 @@ $reference = 'siteadmin/usergroup.php';
 $reference = 'siteadmin/userlist.php';
 {
   $names = [
-    'digits' => ['offset', 'user_id'],
-    'specialchars' => 'text_search',
+    'digits' => 'user_id', 'specialchars' => 'text_search',
     'strings' => [
       ['action', ['delete', 'suspend', 'activate']],
     ],
     'name' => 'user_name_search',
   ];
   $in = $out = [
-    'offset' => 1, 'user_id' => 289, 'text_search' => 'text',
+    'user_id' => 289, 'text_search' => 'text',
     'action' => 'delete', 'user_name_search' => 'agn'
   ];
   test_sane_import ($in, $names, $out);

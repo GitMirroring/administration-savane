@@ -56,16 +56,8 @@ $includes = ['init', 'http', 'trackers/general', 'trackers/view-dependencies'];
 foreach ($includes as $i)
   require_once ("../include/$i.php");
 
-extract (sane_import ('request',
-  [
-    'true' => 'include_closed',
-    'digits' =>  ['max_rows', ['offset', [0, 410338673]]]
-  ]
-));
+extract (sane_import ('request', ['true' => 'include_closed']));
 
-if (empty ($max_rows))
-  $max_rows = 10;
-$max_rows = intval ($max_rows);
-
+html_nextprev_extract_params (10);
 trackers_view_dependencies ($list_format);
 ?>

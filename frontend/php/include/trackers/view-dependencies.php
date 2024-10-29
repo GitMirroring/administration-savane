@@ -253,7 +253,7 @@ function trackers_print_view_deps_controls ()
   global $include_closed, $group;
   print form_tag (['method' => 'get']);
   print form_hidden (['func' => 'view-dependencies', 'group' => $group]);
-  print trackers_chunksz_control ('max_rows');
+  print trackers_max_rows_control ('max_rows');
   print "&nbsp; &nbsp;\n";
   print form_checkbox ('include_closed', !empty ($include_closed),
     ['label' => _('Include closed items')]);

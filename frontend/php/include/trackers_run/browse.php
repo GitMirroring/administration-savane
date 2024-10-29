@@ -52,7 +52,7 @@ extract (sane_import ('get',
   [
     'digits' =>
       [
-        'chunksz', 'offset', 'report_id',
+        'report_id',
         ['msort', 'sumORdet', 'advsrch', 'history_search', [0, 1]],
         ['spamscore', [1, null]],
         ['history_date_yearfd', [1900, null]],
@@ -75,21 +75,12 @@ extract (sane_import ('get',
   ]
 ));
 
+html_nextprev_extract_params ();
 # Number of search criteria (boxes) displayed in one row.
 $fields_per_line = 5;
 
 # Avoid undesired user input.
 $browse_preamble = '';
-
-$default_chunksz = 50;
-
-# Number of bugs displayed on screen in one chunk.
-# Default 50.
-if (empty ($chunksz))
-  $chunksz = $default_chunksz;
-$chunksz = intval ($chunksz);
-if ($chunksz <= 0) # Catch values like "00" (non-empty, but intval is zero).
-  $chunksz = $default_chunksz;
 
 # Digest mode? Set the digest variable to one.
 $digest = $func == 'digest';
@@ -292,11 +283,11 @@ if (!$set)
                     || $field == 'sumORdet'
                 )
                   $$field = $value_id;
-                elseif ($field == 'chunksz')
+                elseif (in_array ($field, ['chunksz', 'max_rows']))
                   {
-                    $chunksz = intval ($value_id);
-                    if ($chunksz <= 0)
-                      $chunksz = $default_chunksz;
+                    $max_rows = intval ($value_id);
+                    if ($max_rows <= 0)
+                      $max_rows = 50;
                   }
                 elseif ($field == 'history')
                   {
@@ -344,7 +335,7 @@ elseif ($set == 'custom')
           if (is_scalar ($value_id))
             $pref_stg .= "&amp;{$field}[]=$value_id";
       }
-    $pref_stg .= "&amp;advsrch=$advsrch&amp;msort=$msort&amp;chunksz=$chunksz";
+    $pref_stg .= "&amp;advsrch=$advsrch&amp;msort=$msort&amp;max_rows=$max_rows";
     $pref_stg .= "&amp;spamscore=$spamscore&amp;report_id=$report_id";
     $pref_stg .= "&amp;sumORdet=$sumORdet";
 
@@ -410,13 +401,13 @@ $where .= ")";
 # It would be too heavy on the database if this was done very frequently
 # and we already found some project giving direct links to 500 the browse
 # item page with 500 items shown by default.
-# Save the wanted number of chunksz, for later.
-$wanted_chunksz = $chunksz;
-if ($chunksz > 150 && !$digest)
-  $chunksz = 150;
+# Save the wanted number of max_rows for later use.
+$wanted_max_rows = $max_rows;
+if ($max_rows > 150 && !$digest)
+  $max_rows = 150;
 
 $limit = "LIMIT ?, ?";
-$limit_params = [$offset, $chunksz];
+$limit_params = [$offset, $max_rows];
 
 # Prepare for summary and original submission as 'special' criteria.
 $summary_search = 0;
@@ -1087,7 +1078,7 @@ if ($history_search)
     . "&amp;history_date=$history_date";
 
 $form .= '<p class="smaller">';
-$form .= trackers_chunksz_control () . ' ';
+$form .= trackers_max_rows_control () . ' ';
 if ($is_trackeradmin)
   $form .=
     sprintf (
@@ -1096,9 +1087,9 @@ if ($is_trackeradmin)
         'size="3" maxlength="2" title="'
         . _("Spam level of items to hide") . '"')
     );
-if ($wanted_chunksz != $chunksz)
+if ($wanted_max_rows != $max_rows)
   {
-    # No use of ngettext as $chunksz will never be below 10, otherwise
+    # No use of ngettext as $max_rows will never be below 10, otherwise
     # it would mean that Savane would be modified to never list more
     # than 10 items at once, which is almost nothing.
     $form .= ' <span class="warn">'
@@ -1107,7 +1098,7 @@ if ($wanted_chunksz != $chunksz)
             . "Printer Version.",
           "Warning: only %s items can be shown at once, unless using "
             . "Printer Version.",
-           $chunksz), $chunksz
+           $max_rows), $max_rows
         )
       . '</span>';
   }
@@ -1152,17 +1143,17 @@ if ($totalrows > 0)
   }
 
 print html_show_displayoptions ($form, $form_opening, $form_submit);
-
-if ($digest)
-  print form_tag (['method' => 'get'])
-    . form_hidden (['group' => $group, 'func' => "digestselectfield"]);
-
 if ($totalrows > 0)
   {
-    show_item_list ($result_array, $offset, $totalrows, $col_list,
-      $lbl_list, $width_list, $url);
+    $nav_bar = html_nextprev_str ($url, $offset, $max_rows, $totalrows);
+    print "<div id='results'>$nav_bar</div>\n";
+    if ($digest)
+      print form_tag (['method' => 'get'])
+        . form_hidden (['group' => $group, 'func' => "digestselectfield"]);
+    show_item_list ($result_array, $col_list, $lbl_list, $width_list, $url);
     if ($digest)
       print form_footer (_("Proceed to Digest next step"));
+    print $nav_bar;
     show_priority_colors_key ();
   }
 else

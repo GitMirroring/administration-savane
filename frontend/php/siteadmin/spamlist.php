@@ -48,7 +48,7 @@ session_require (['group' => '1', 'admin_flags' => 'A']);
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
 
-extract (sane_import ('get', ['digits' => ['max_rows', 'offset']]));
+html_nextprev_extract_params (100);
 
 function wash_user ()
 {
@@ -143,13 +143,6 @@ $title_arr = [
   no_i18n ("User"), no_i18n ("Score"), no_i18n ("Wash score"),
   no_i18n ("Incriminated posts"), no_i18n ("Flagged by")
 ];
-
-if (empty ($max_rows))
-  $max_rows = 50;
-
-if (empty ($offset))
-  $offset = 0;
-$offset = intval ($offset);
 
 $sql = "FROM user WHERE status = 'A' AND spamscore > 0";
 $result = db_execute ("SELECT count(DISTINCT(user_id)) AS cnt $sql");

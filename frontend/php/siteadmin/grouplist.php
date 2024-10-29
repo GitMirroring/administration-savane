@@ -52,7 +52,6 @@ site_admin_header (
 
 extract (sane_import ('get',
   [
-    'digits' => ['offset', 'max_rows'],
     'name' => 'group_name_search',
     'preg' => [['status', '/^[A-Z]$/']],
     'pass' => 'search',
@@ -65,6 +64,7 @@ extract (sane_import ('post',
 ));
 
 form_check (['assign_gid']);
+html_nextprev_extract_params (100);
 
 function fetch_member_data ($data)
 {
@@ -171,8 +171,6 @@ print '<td><a href="grouplist.php?status=D">'
   . "</a></td>\n<td>" . $row['count'] . "</td>\n";
 print "</tr>\n";
 print "</table>\n";
-
-$max_rows = !empty ($max_rows)? $max_rows: 100;
 
 $abc_array = [
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',

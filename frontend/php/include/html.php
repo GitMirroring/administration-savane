@@ -170,8 +170,8 @@ function html_nextprev_separator ()
 
 function html_nextprev_link ($url, $offset, $max_rows)
 {
-  return "<a href=\"$url&amp;offset="
-    . "$offset&amp;max_rows=" . utils_specialchars ($max_rows) . "#results\">";
+  $start = $offset + 1;
+  return "<a href=\"$url&amp;start=$start&amp;max_rows=$max_rows#results\">";
 }
 
 function html_medium_link ($url, $offset, $max_rows)
@@ -223,7 +223,7 @@ function html_prev ($url, $offset, $max_rows, $total_rows)
   if ($offset < 0)
     $offset = 0;
   $ret .= html_nextprev_link ($url, $offset, $max_rows);
-  return $ret . html_image ('arrows/previous.png') . " $prev_msg</a>";
+  return $ret . html_image ('arrows/previous.png') . " $prev_msg</a>$sep";
 }
 
 function html_next ($url, $offset, $max_rows, $total_rows)
@@ -233,10 +233,10 @@ function html_next ($url, $offset, $max_rows, $total_rows)
   $next_msg = _("Next"); $end_msg = _("End");
   $sep = html_nextprev_separator ();
   $rows = min ($max_rows, $total_rows - $offset);
-  if ($offset + $max_rows >= $total_rows)
-    return "<i>$next_msg</i> " . html_image ("arrows/nextgrey.png")
+  if ($offset + $max_rows > $total_rows)
+    return "$sep<i>$next_msg</i> " . html_image ("arrows/nextgrey.png")
       . "$sep<i>$end_msg</i> " . html_image ('arrows/lastgrey.png');
-  $ret = html_nextprev_link ($url, $offset + $rows, $max_rows);
+  $ret = $sep . html_nextprev_link ($url, $offset + $rows, $max_rows);
   $ret .= "$next_msg " . html_image ("arrows/next.png") . "</a>$sep";
   $ret .= html_more ($url, $offset, $max_rows, $total_rows);
   $last_page = $total_rows - ($total_rows % $max_rows);
@@ -244,6 +244,43 @@ function html_next ($url, $offset, $max_rows, $total_rows)
     $last_page -= $max_rows;
   $ret .= html_nextprev_link ($url, $last_page, $max_rows);
   return "$ret$end_msg " . html_image ("arrows/last.png") . "</a>";
+}
+
+function html_nextprev_extract_params ($default_max_rows = 50)
+{
+  extract (sane_import ('request',
+    [
+      'digits' => [
+        ['max_rows', [1, 4913]],
+        ['offset', [0, 410338672]], ['start', [1, 410338673]]
+      ]
+    ]
+  ));
+  if (empty ($max_rows)
+    || !intval ($max_rows) # Values like '00' aren't empty, but intval is zero.
+  )
+    $max_rows = $default_max_rows;
+  if (empty ($offset))
+    $offset = 0;
+  if (!empty ($start))
+    $offset = $start - 1;
+  foreach (['max_rows', 'offset'] as $v)
+    $GLOBALS[$v] = intval ($$v);
+}
+
+function html_nextprev_item_count ($offset, $max_rows, $total_rows, $have_form)
+{
+  $first_item = $offset;
+  if ($have_form)
+    $first_item = form_hidden (['max_rows' => $max_rows])
+      . form_input ('text', 'start', $offset + 1, 'size="3"');
+  $latest_item = min ($offset + $max_rows, $total_rows);
+  return sprintf (
+    # TRANSLATORS: The first argument is the number of the first item shown,
+    # the second argument is the number of the last item shown,
+    # the third argument is the total number of items.
+    _('%1$s&ndash;%2$s / %3$s'), $first_item, $latest_item, $total_rows
+  );
 }
 
 function html_nextprev_str ($url, $offset, $max_rows, $total_rows)
@@ -254,17 +291,17 @@ function html_nextprev_str ($url, $offset, $max_rows, $total_rows)
       $msg = ngettext ( "%d matching item", "%d matching items", $total_rows);
       return $ret . sprintf ($msg, $total_rows);
     }
-  $sep = html_nextprev_separator ();
-  $ret .= html_prev ($url, $offset, $max_rows, $total_rows) . $sep;
-  $latest_item = min ($offset + $max_rows, $total_rows);
-  $ret .= sprintf (
-    # TRANSLATORS: The first argument is the number of the first item shown,
-    # the second argument is the number of the last item shown,
-    # the third argument is the total number of items.
-    _('%1$s&ndash;%2$s / %3$s'), $offset + 1, $latest_item, $total_rows
+  $have_form = $total_rows > $max_rows;
+  if ($have_form)
+    $ret = form_tag (['action' => "$url#results"]) . $ret;
+  $ret .= html_prev ($url, $offset, $max_rows, $total_rows);
+  $ret .= html_nextprev_item_count (
+    $offset, $max_rows, $total_rows, $have_form
   );
-  $ret .= $sep . html_next ($url, $offset, $max_rows, $total_rows);
-  return "$ret</p>\n";
+  $ret .= html_next ($url, $offset, $max_rows, $total_rows) . "</p>\n";
+  if ($have_form)
+    $ret .= "</form>\n";
+  return $ret;
 }
 
 function html_nextprev ($url, $offset, $max_rows, $total_rows)

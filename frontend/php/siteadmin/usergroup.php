@@ -57,9 +57,7 @@ $actions = ['remove_user_from_group', 'update_user_group',
   'update_user', 'add_user_to_group', 'rename', 'delete', 'activate'
 ];
 
-extract (sane_import ('request',
-  ['digits' => ['user_id', 'max_rows', 'offset']]
-));
+extract (sane_import ('request', ['digits' => 'user_id']));
 extract (sane_import ('post',
   [
     'strings' => [['action', $actions]],
@@ -75,11 +73,7 @@ form_check ('update');
 if (empty ($update))
   $action = null;
 
-if (empty ($max_rows))
-  $max_rows = 50;
-
-$max_rows = intval ($max_rows);
-$offset = intval ($offset);
+html_nextprev_extract_params ();
 
 function contribution_nextprev ($uid, $offset, $max_rows, $total_rows)
 {

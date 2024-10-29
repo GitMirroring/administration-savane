@@ -50,11 +50,12 @@ site_admin_header (['title' => no_i18n("User List"), 'context' => 'admuser']);
 
 extract (sane_import ('get',
   [
-    'digits' => ['offset', 'user_id', 'max_rows'],
-    'specialchars' => 'text_search', 'name' => 'user_name_search'
+    'digits' => 'user_id', 'specialchars' => 'text_search',
+    'name' => 'user_name_search'
   ]
 ));
 extract (sane_import ('request', ['pass' => 'search']));
+html_nextprev_extract_params (100);
 
 $abc_array = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1',
@@ -76,8 +77,6 @@ print form_tag (['method' => 'get', 'name' => 'usersrch'])
   . form_hidden (['usersearch' => '1'])
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
-if (empty ($max_rows))
-  $max_rows = 100;
 $offset = intval ($offset);
 
 $sql_fields =
