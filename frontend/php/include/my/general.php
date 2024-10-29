@@ -136,7 +136,7 @@ function my_item_list (
   $items_per_groups = []; $maybe_missed_rows = 0;
   $openclosed =  $openclosed == "open"? 1: 3; # Status: 1 = open, 3 = closed.
 
-  foreach (array_diff (utils_get_tracker_list (), ['cookbook']) as $tracker)
+  foreach (utils_get_dependable_trackers () as $tracker)
     {
       # Create the SQL request.
       $sql_result = my_item_list_buildsql (

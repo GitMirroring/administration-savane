@@ -1620,7 +1620,7 @@ function handle_update (
   update_close_date ($item_id, $vfl, $row, $upd_list);
 
   # Enter new dependencies.
-  $artifacts = array_diff (utils_get_tracker_list (), ['cookbook']);
+  $artifacts = utils_get_dependable_trackers ();
   $address = '';
   foreach ($artifacts as $art)
     {

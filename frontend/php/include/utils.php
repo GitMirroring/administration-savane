@@ -473,6 +473,11 @@ function utils_get_tracker_list ()
   return ['bugs', 'support', 'task', 'patch', 'cookbook'];
 }
 
+function utils_get_dependable_trackers ()
+{
+  return array_diff (utils_get_tracker_list (), ['cookbook']);
+}
+
 function utils_get_tracker_icon ($tracker)
 {
   if ($tracker == "bugs")

@@ -318,217 +318,231 @@ function show_item_dependency ($item_id)
   return show_dependent_item ($item_id, 1);
 }
 
-# Look for items that depends on $item_id in all artifacts (default)
-# or look for items that $item_id depends on in all artifact.
-function show_dependent_item ($item_id, $dependson = 0)
+function show_depend_link_title ($tracker)
 {
-  global $group_id;
+  $titles = [
+    'support' => _('support dependencies'), 'bugs' => _('bug dependencies'),
+    'task' => _('task dependencies'), 'patch' => _('patch dependencies')
+  ];
+  if (array_key_exists ($tracker, $titles))
+    return $titles[$tracker];
+  return
+    # TRANSLATORS: the argument is tracker name, unlocalized
+    # (this string is a fallback that should never actually be used).
+    sprintf (_("%s dependencies"), $tracker);
+}
 
-  $artifacts = ["support", "bugs", "task", "patch"];
-  $is_manager = member_check (0, $group_id, 1);
-  if (!$dependson)
-    $title = _("Items that depend on this one");
-  else
-    $title = _("Depends on the following items");
-
-  # Create hash that will contain every relevant info
-  # with keys like $date.$item_id so it will be sorted by date (first)
-  # and item_id (second).
-  $content = [];
-
-  # Slurps the database.
-  $item_exists = false;
-  $item_exists_tracker = [];
-  foreach ($artifacts as $art)
-    {
-      $sql_params = [$item_id];
-      if ($dependson)
-        {
-          $art_dep = ARTIFACT;
-          $sql_params[] = $art;
-          $where = "art.bug_id = art_dep.is_dependent_on_item_id
-            AND art_dep.item_id = ?";
-        }
-      else
-        {
-          $art_dep = $art;
-          $sql_params[] = ARTIFACT;
-          $where = "art.bug_id = art_dep.item_id
-             AND art_dep.is_dependent_on_item_id = ? ";
-        }
-     $art_dep .= '_dependencies';
-     $sql = "
-       SELECT
-         art.bug_id, art.date, art.summary, art.status_id, art.resolution_id,
-         art.group_id, art.priority, art.privacy, art.submitted_by
-       FROM $art art, $art_dep art_dep
-       WHERE
-         $where
-         AND art_dep.is_dependent_on_item_id_artifact = ?
-       ORDER by art.bug_id";
-      $res_all = db_execute ($sql, $sql_params);
-
-      while ($res_arr = db_fetch_array ($res_all))
-        {
-          # Note for later that at least one item was found.
-          $item_exists = true;
-          $item_exists_tracker[$art] = 1;
-
-          # Generate unique key date.tracker#nnn.
-          $key = $res_arr['date'] . ".$art#" . $res_arr['bug_id'];
-
-          # Store relevant data.
-          $content[$key]['item_id'] = $res_arr['bug_id'];
-          $content[$key]['tracker'] = $art;
-          foreach (
-            [
-              'date', 'summary', 'status_id', 'resolution_id', 'group_id',
-              'priority', 'privacy', 'submitted_by'
-            ] as $k
-          )
-            $content[$key][$k] = $res_arr[$k];
-        }
-    } # foreach ($artifacts as $art)
-
-  # No item found? Exit here.
-  if (!$item_exists)
-    {
-      print '<p class="warn">' . sprintf (("%s: %s"), $title, _("None found"))
-        . "</p>\n";
-      return;
-    }
-
-  # Give back the HTML output, if we have some data.
-  global $HTML, $php_self;
-  print $HTML->box_top ($title, '', 1);
-
-  # Create a hash to avoid looking several times for the same info.
-  $dstatus = $allowed_to_see = $group_getname = [];
-
-  # Sort the content by key, which contain the date as first field
-  # (so order by date).
-  ksort ($content);
-  $i = 0;
-
-  foreach ($content as $key => $val)
-    {
-      $current_item_id = $content[$key]['item_id'];
-      $tracker = $content[$key]['tracker'];
-      $current_group_id = $content[$key]['group_id'];
-      $link_to_item = $GLOBALS['sys_home'] . "$tracker/?$current_item_id";
-
-      # Found out the status full text name:
-      # this is project specific. If there is no project setup for this
-      # then go to the default for the site.
-      $st_key = $current_group_id . $tracker . $content[$key]['resolution_id'];
-      if (!array_key_exists ($st_key, $dstatus))
-        {
-          $dstatus[$st_key] =
-            db_result (db_execute ("
-              SELECT value FROM {$tracker}_field_value
-              WHERE
-                bug_field_id = '108' AND (group_id = ? OR group_id = 100)
-                AND value_id = ?
-              ORDER BY bug_fv_id DESC LIMIT 1",
-              [$group_id, $content[$key]['resolution_id']]), 0, 'value'
-           );
-        }
-      $status = $dstatus[$st_key];
-
-      print '<div class=\''
-        . utils_get_priority_color (
-            $content[$key]['priority'], $content[$key]['status_id']
-          )
-        . "'>\n";
-
-      # Ability to remove a dependency is only given to technician
-      # level members of a project.
-      if ($dependson && $is_manager)
-        print '<span class="trash"><a href="'
-          . "$php_self?func=delete_dependency&amp;item_id=$item_id"
-          . "&amp;item_depends_on=$current_item_id"
-          . "&amp;item_depends_on_artifact=$tracker\">"
-          . html_image_trash (
-              ['class' => 'icon', 'alt' => _("Delete this dependency")]
-            )
-          . '</a></span>';
-
-      print "<a href=\"$link_to_item\" class='block'>";
-
-      print html_image (
-        'contexts/' . utils_get_tracker_icon ($tracker) . '.png',
-         ['class' => 'icon', 'alt' => $tracker]);
-
-      # Print summary only if the item is not private.
-      # Check privacy right (dont care about the tracker specific
-      # rights, being project member is enough).
-      if (!array_key_exists ($current_group_id, $allowed_to_see))
-        $allowed_to_see[$current_group_id] =
-          member_check (0, $current_group_id, 2);
-
-      if ($content[$key]['privacy'] == "2"
-          && !$allowed_to_see[$current_group_id]
-          && $content[$key]['submitted_by'] != user_getid ())
-        print _("---- Private ----");
-      else
-        print $content[$key]['summary'];
-
-      # Print group info if the item is from another group.
-      $fromgroup = null;
-      if ($current_group_id != $group_id)
-        {
-          if (!array_key_exists ($current_group_id, $group_getname))
-            $group_getname[$current_group_id] =
-              group_getname ($content[$key]['group_id']) . ', ';
-
-          $fromgroup = $group_getname[$current_group_id];
-        }
-
-      # Mention the status.
-      print '&nbsp;<span class="xsmall">('
-        . utils_get_tracker_prefix ($tracker)
-        . " #$current_item_id, $fromgroup$status)</span></a>";
-      print "</div>\n";
-      $i++;
-    }
-  print $HTML->box_bottom (1);
-
-  # Add links to make digests.
-  reset ($artifacts);
+function show_depend_output_bottom ($item_id, $group_id, $tracker_set)
+{
+  print $GLOBALS['HTML']->box_bottom (1);
   print '<p class="noprint"><span class="preinput">' . _("Digest:")
     . "</span>\n<br />&nbsp;&nbsp;&nbsp;";
-  $content = '';
+  $artifacts = utils_get_dependable_trackers ();
+  $links = [];
   foreach ($artifacts as $tracker)
     {
-      if (empty ($item_exists_tracker[$tracker]))
+      if (empty ($tracker_set[$tracker]))
         continue;
-      switch ($tracker)
-        {
-        case "support":
-          $linktitle = _("support dependencies");
-          break;
-        case "bugs":
-          $linktitle = _("bug dependencies");
-          break;
-        case "task":
-          $linktitle = _("task dependencies");
-          break;
-        case "patch":
-          $linktitle = _("patch dependencies");
-          break;
-        default:
-          # TRANSLATORS: the argument is tracker name, unlocalized
-          # (this string is a fallback that should never actually be used).
-          $linktitle = sprintf (_("%s dependencies"), $tracker);
-        }
-      $content .= utils_link (
+      $linktitle = show_depend_link_title ($tracker);
+      $links[] .= utils_link (
         $GLOBALS['sys_home'] . "$tracker/?group_id=$group_id"
           . '&amp;func=digestselectfield&amp;dependencies_of_item='
           . $item_id . '&amp;dependencies_of_tracker=' . ARTIFACT,
         $linktitle, 'noprint'
       );
-      $content .= ', ';
     }
-  print rtrim ($content, ', ') . ".</p>\n";
+  print join (', ', $links) . ".</p>\n";
+}
+
+function show_dependent_art_params ($dependson, $art)
+{
+  if ($dependson)
+    return
+      [
+        ARTIFACT . '_dependencies', $art,
+        "art.bug_id = art_dep.is_dependent_on_item_id AND art_dep.item_id = ?"
+      ];
+  return
+    [
+      $art . '_dependencies', ARTIFACT,
+      "art.bug_id = art_dep.item_id AND art_dep.is_dependent_on_item_id = ? "
+    ];
+}
+
+function show_dependent_run_query ($sql_params, $art, $art_dep, $where)
+{
+  $sql = "
+   SELECT
+     art.bug_id, art.date, art.summary, art.status_id, art.resolution_id,
+     art.group_id, art.priority, art.privacy, art.submitted_by
+   FROM $art art, $art_dep art_dep
+   WHERE
+     $where
+     AND art_dep.is_dependent_on_item_id_artifact = ?
+   ORDER by art.bug_id";
+  return db_execute ($sql, $sql_params);
+}
+
+function show_dependent_fetch_items ($result, $art, &$tracker_set, &$items)
+{
+  $fields = [
+    'date', 'summary', 'status_id', 'resolution_id', 'group_id',
+    'priority', 'privacy', 'submitted_by'
+  ];
+  while ($row = db_fetch_array ($result))
+    {
+      $tracker_set[$art] = 1;
+      $key = $row['date'] . ".$art#" . $row['bug_id'];
+      $items[$key]['item_id'] = $row['bug_id'];
+      $items[$key]['tracker'] = $art;
+      foreach ($fields as $k)
+        $items[$key][$k] = $row[$k];
+    }
+}
+
+function show_dependent_get_items ($item_id, $dependson)
+{
+  # Create hash that will contain every relevant info
+  # with keys like $date.$item_id so it will be sorted by date (first)
+  # and item_id (second).
+  $items = $tracker_set = [];
+  foreach (utils_get_dependable_trackers () as $art)
+    {
+      $sql_params = [$item_id];
+      list ($art_dep, $param, $where) =
+        show_dependent_art_params ($dependson, $art);
+      $sql_params[] = $param;
+      $result = show_dependent_run_query ($sql_params, $art, $art_dep, $where);
+      show_dependent_fetch_items ($result, $art, $tracker_set, $items);
+    } # foreach ($artifacts as $art)
+  # Sort the items by key, which contain the date as first field
+  # (so order by date).
+  ksort ($items);
+  return [$items, $tracker_set];
+}
+
+function show_dependent_check_for_empty ($tracker_set, $dependson)
+{
+  if ($dependson)
+    $title = _("Depends on the following items");
+  else
+    $title = _("Items that depend on this one");
+  if (!empty ($tracker_set))
+    return $title;
+  print '<p class="warn">' . sprintf (("%s: %s"), $title, _("None found"))
+    . "</p>\n";
+  return null;
+}
+
+function show_dependent_output_top ($tracker_set, $dependson)
+{
+  $title = show_dependent_check_for_empty ($tracker_set, $dependson);
+  if ($title === null)
+    return true;
+  print $GLOBALS['HTML']->box_top ($title, '', 1);
+  return false;
+}
+
+function show_dependent_trash_link ($item_id, $current_item_id, $tracker)
+{
+  global $php_self;
+  return "<span class='trash'><a href=\"$php_self?func=delete_dependency"
+    . "&amp;item_id=$item_id&amp;item_depends_on=$current_item_id"
+    . "&amp;item_depends_on_artifact=$tracker\">"
+    . html_image_trash (
+        ['class' => 'icon', 'alt' => _("Delete this dependency")]
+      )
+    . '</a></span>';
+}
+
+function show_dependent_priority_color ($item)
+{
+  return '<div class=\''
+    . utils_get_priority_color ($item['priority'], $item['status_id']) . "'>\n";
+}
+
+function show_dependent_item_key ($item)
+{
+  $st_key = $item['group_id'] . $item['tracker'] . $item['resolution_id'];
+}
+
+# Find out the status full text name: this is group-specific.
+# If there is no group setup for this, go to the default for the site.
+function show_dependent_status_name ($st_key, $tracker, $item)
+{
+  global $group_id;
+  static $dstatus = [];
+  $st_key = show_dependent_item_key ($item);
+  if (array_key_exists ($st_key, $dstatus))
+    return $dstatus[$st_key];
+  $res = db_execute ("
+    SELECT value FROM {$tracker}_field_value
+    WHERE
+      bug_field_id = '108' AND (group_id = ? OR group_id = 100)
+      AND value_id = ?
+    ORDER BY bug_fv_id DESC LIMIT 1",
+    [$group_id, $item['resolution_id']]
+  );
+  $dstatus[$st_key] = db_result ($res, 0, 'value');
+  return $dstatus[$st_key];
+}
+
+function show_dependent_item_summary ($item, $access)
+{
+  if ($item['privacy'] == "2" && !$access
+      && $item['submitted_by'] != user_getid ())
+    print _("---- Private ----");
+  else
+    print $item['summary'];
+}
+
+function show_dependent_from_group ($grp_id, $item_id, $status, $tracker)
+{
+  global $group_id;
+  # Print group info if the item is from another group.
+  $from_group = '';
+  if ($grp_id != $group_id)
+    $from_group = group_getname ($grp_id) . ', ';
+  print '&nbsp;<span class="xsmall">(' . utils_get_tracker_prefix ($tracker)
+    . " #$item_id, $from_group$status)</span></a>";
+}
+
+function show_dependent_single_item ($item_id, $item, $show_trash, &$access)
+{
+  $cur_item = $item['item_id'];
+  $tracker = $item['tracker'];
+  $grp_id = $item['group_id'];
+  $st_key = show_dependent_item_key ($item);
+  print show_dependent_priority_color ($item);
+  if ($show_trash)
+    print show_dependent_trash_link ($item_id, $cur_item, $tracker);
+  $link_to_item = $GLOBALS['sys_home'] . "$tracker/?$cur_item";
+  print "<a href=\"$link_to_item\" class='block'>";
+  print html_image (
+    'contexts/' . utils_get_tracker_icon ($tracker) . '.png',
+     ['class' => 'icon', 'alt' => $tracker]);
+  # Print summary only if the item is not private.  Check privacy (don't
+  # care about the tracker-specific rights, being group member is enough).
+  if (!array_key_exists ($grp_id, $access))
+    $access[$grp_id] = member_check (0, $grp_id, 2);
+  show_dependent_item_summary ($item, $access[$grp_id]);
+  $status = show_dependent_status_name ($st_key, $tracker, $item);
+  show_dependent_from_group ($grp_id, $cur_item, $status, $tracker);
+  print "</div>\n";
+}
+
+# Look for items that depend on $item_id in all trackers,
+# or look for items that $item_id depends on in all trackers.
+function show_dependent_item ($item_id, $dependson = 0)
+{
+  global $group_id;
+  list ($items, $tracker_set) = show_dependent_get_items ($item_id, $dependson);
+  if (show_dependent_output_top ($tracker_set, $dependson))
+    return;
+  $show_trash = $dependson && member_check (0, $group_id, 1);
+  $access = [];
+  foreach ($items as $item)
+    show_dependent_single_item ($item_id, $item, $show_trash, $access);
+  show_depend_output_bottom ($item_id, $group_id, $tracker_set);
 }
 ?>
