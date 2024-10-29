@@ -139,119 +139,142 @@ function show_item_list ($items, $fields, $titles, $widths, $url)
   print "</table>\n";
 }
 
-# Show the changes of the tracker data we have for this item,
-# excluding details.
-function show_item_history ($item_id, $group_id, $no_limit = false)
+function show_history_previous_value ($field, $group_id, $value_id)
 {
-  $result = trackers_data_get_history ($item_id);
-  $rows = db_numrows ($result);
-
-  if ($rows <= 0)
+  if (trackers_data_is_select_box ($field))
     {
-      print "\n<span class='warn'>"
-        . _("No changes have been made to this item") . '</span>';
+      # Its a select box look for value in clear.
+      # (If we hit case of transition automatique update, show it in
+      # specific way).
+      if ($value_id != "transition-other-field-update")
+        {
+          print trackers_data_get_value ($field, $group_id, $value_id);
+          return;
+        }
+      print "-" . _("Automatic update due to transitions settings") . "-";
       return;
     }
+  if (trackers_data_is_date_field ($field))
+    {
+      # For date fields do some special processing.
+      print utils_format_date ($value_id, 'natural');
+      return;
+    }
+  print markup_basic (utils_specialchars ($value_id));
+}
 
+function show_history_current_value ($field, $group_id, $new_value_id)
+{
+  if (trackers_data_is_select_box ($field))
+    print trackers_data_get_value ($field, $group_id, $new_value_id);
+  elseif (trackers_data_is_date_field ($field))
+    print utils_format_date ($new_value_id, 'natural');
+  else
+    print markup_basic (utils_specialchars ($new_value_id));
+}
+
+function show_history_check_rows ($rows)
+{
+  if ($rows > 0)
+    return false;
+  print "\n<span class='warn'>"
+    . _("No changes have been made to this item") . '</span>';
+  return true;
+}
+
+function show_history_title ($rows, $no_limit)
+{
   # If no limit is not set, print only 25 latest news items
   # yeupou--gnu.org 2004-09-17: currently we provide no way to get the
   # full history. We will see if users request it.
-  if (!$no_limit)
-    {
-      if ($rows > 25)
-        $rows = 25;
+  if ($no_limit)
+    return;
 
-      $title = sprintf (ngettext (
-        "Follows %s latest change.", "Follow %s latest changes.", $rows), $rows
-      );
-      print "\n<p>$title</p>\n";
-    }
+  $title = sprintf (ngettext (
+    "Follows %s latest change.", "Follow %s latest changes.", $rows), $rows
+  );
+  print "\n<p>$title</p>\n";
+}
 
+function show_history_top ($rows, $no_limit)
+{
+  if (show_history_check_rows ($rows))
+    return -1;
+  show_history_title ($rows, $no_limit);
+  if (!$no_limit && $rows > 25)
+    $rows = 25;
   print html_build_list_table_top (
     [
       _("Date"), _("Changed by"), _("Updated Field"), _("Previous Value"),
       "=>", _("Replaced by")
     ]
   );
+  return $rows;
+}
 
-  $j = 0;
+function show_history_date_and_user ($date, $user, $j)
+{
+  print "\n<tr class=\"" . utils_altrow ($j) . '">';
+  print '<td align="center" class="smaller">'
+    . utils_format_date ($date, 'natural') . "</td>\n";
+  print '<td align="center" class="smaller">'
+    . utils_user_link ($user) . "</td>\n";
+}
+
+function show_history_values ($field, $group_id, $value_id, $new_value_id)
+{
+  print '<td class="smaller" align="right">';
+  show_history_previous_value ($field, $group_id, $value_id);
+  print "</td>\n<td class='smaller' align='center'>"
+    . html_image ('arrows/next.png') . "</td>\n"
+    . '<td class="smaller" align="left">';
+  show_history_current_value ($field, $group_id, $new_value_id);
+  print "</td>\n";
+}
+
+function show_history_extract_field ($row)
+{
+  $vars = [
+    'field_name' => 'field', 'date' => 'date', 'mod_by' => 'user',
+    'old_value' => 'value_id', 'new_value' => 'new_value_id'
+  ];
+  $ret = [];
+  foreach ($vars as $field => $var_name)
+    $ret[$var_name] = $row[$field];
+  $ret['user'] = user_getname ($ret['user']);
+  # If the stored label is "realdetails", it means it is the details
+  # field (realdetails is used because someone had the nasty idea to
+  # use "details" to mean "comment").
+  if ($ret['field'] == "realdetails")
+    $ret['field'] = "details";
+  $label = trackers_data_get_label ($ret['field']);
+  if (!$label)
+    $label = $ret['field'];
+  $ret['field_label'] = $label;
+  return $ret;
+}
+
+# Show the changes of the tracker data we have for this item, excluding details.
+function show_item_history ($item_id, $group_id, $no_limit = false)
+{
+  $result = trackers_data_get_history ($item_id);
+  $rows = show_history_top (db_numrows ($result), $no_limit);
+  if ($rows < 0)
+    return;
   $previous_date = $previous_user = null;
-  for ($i = 0; $i < $rows; $i++)
+  for ($i = $j = 0; ($row = db_fetch_array ($result)) && $i < $rows; $i++)
     {
-      $field = db_result ($result, $i, 'field_name');
-
-      # If the stored label is "realdetails", it means it is the details
-      # field (realdetails is used because someone had the nasty idea to
-      # use "details" to mean "comment").
-      if ($field == "realdetails")
-        $field = "details";
-
-      $field_label = trackers_data_get_label ($field);
-
-      # If field_label is empty, no label was found, return
-      # as it is stored.
-      if (!$field_label)
-        $field_label = $field;
-
-      $value_id =  db_result ($result, $i, 'old_value');
-      $new_value_id =  db_result ($result, $i, 'new_value');
-
-      $date = db_result ($result, $i, 'date');
-      $user = user_getname (db_result ($result, $i, 'mod_by'));
-
-      # If the previous date and user are equal, do not print user
-      # and date.
+      extract (show_history_extract_field ($row));
       if ($date == $previous_date && $user == $previous_user)
         print "\n<tr class=\"" . utils_altrow ($j)
           . "\"><td>&nbsp;</td>\n<td>&nbsp;</td>\n";
       else
-        {
-          $j++;
-          print "\n<tr class=\"" . utils_altrow ($j) . '">';
-          print '<td align="center" class="smaller">'
-            . utils_format_date ($date, 'natural') . "</td>\n";
-          print '<td align="center" class="smaller">'
-            . utils_user_link ($user) . "</td>\n";
-        }
-
-      $previous_date = $date;
-      $previous_user = $user;
-
-      # Updated Field.
+        show_history_date_and_user ($date, $user, ++$j);
+      $previous_date = $date; $previous_user = $user;
       print "<td class='smaller' align='center'>$field_label</td>";
-
-      # Previous value.
-      print '<td class="smaller" align="right">';
-      if (trackers_data_is_select_box ($field))
-        {
-          # Its a select box look for value in clear.
-          # (If we hit case of transition automatique update, show it in
-          # specific way).
-          if ($value_id == "transition-other-field-update")
-            print "-" . _("Automatic update due to transitions settings")
-              . "-";
-          else
-            print trackers_data_get_value ($field, $group_id, $value_id);
-        }
-      elseif (trackers_data_is_date_field ($field))
-        {
-          # For date fields do some special processing.
-          print utils_format_date ($value_id, 'natural');
-        }
-      else
-        print markup_basic (utils_specialchars ($value_id));
-
-       print "</td>\n<td class='smaller' align='center'>"
-         . html_image ('arrows/next.png') . "</td>\n"
-         . '<td class="smaller" align="left">';
-      if (trackers_data_is_select_box ($field))
-        print trackers_data_get_value ($field, $group_id, $new_value_id);
-      elseif (trackers_data_is_date_field ($field))
-        print utils_format_date ($new_value_id, 'natural');
-      else
-        print markup_basic (utils_specialchars ($new_value_id));
-      print "</td>\n</tr>\n";
-    } # for ($i = 0; $i < $rows; $i++)
+      show_history_values ($field, $group_id, $value_id, $new_value_id);
+      print "</tr>\n";
+    } # for ($i = $j = 0; ($row = db_fetch_array ($result)) && $i < $rows; $i++)
   print "</table>\n";
 }
 
