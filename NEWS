@@ -9,7 +9,7 @@
 
 * More controls are added to navigate search results, see Savannah sr #109559.
 
-* Bugs fixes:
+* Bug fixes:
 
 ** When assigning uidNumber, user_group.cache_user_name wasn't updated.
 
@@ -18,6 +18,14 @@
 ** robots.txt and JavaScript files didn't include the AGPL notice.
 
 ** Source tarball detection in the installation area wasn't correct.
+
+[BACKEND]
+
+* Bug fixes:
+
+** In sv_reminder, the function computing 'month ago' times croaked
+   when the previous month was shorter than current day-of-month;
+   broken since 2024-09 (ca20a8e47).
 
 [I18N]
 

@@ -45,7 +45,7 @@ use strict;
 use Savane;
 use Savane::Util;
 use Getopt::Long;
-use Time::Local;
+use Time::Local 'timegm_nocheck';
 
 our $sys_name;
 our $sys_https_host;
@@ -131,7 +131,7 @@ sub month_before
       $m = 11;
       $y--;
     }
-  return timegm ($sec, $mi, $h, $d, $m, $y);
+  return timegm_nocheck ($sec, $mi, $h, $d, $m, $y);
 }
 
 $date0 += 289; # Allow for differences in script launch time.
