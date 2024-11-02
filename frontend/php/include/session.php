@@ -252,6 +252,8 @@ function session_setglobals ($user_id)
 
 function session_hash_parts ($hash)
 {
+  if (empty ($hash))
+    return ['', null];
   if (preg_match ('/(.*;)(.*)/', $hash, $m))
     return [$m[2], $m[1]];
   return [$hash, null];
