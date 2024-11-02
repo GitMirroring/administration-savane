@@ -30,6 +30,31 @@ sample assumes using pinentry-tty as GnuPG pinentry program):
   uid                      Savane trackers (unattended signatures) \
     <INVALID.NOREPLY@gnu.org>
 
+In order to accept encrypted messages from users, add an encryption-capable
+subkey,
+
+  $ gpg --home gnupg --quick-add-key 47E203CF0DA7AD3D6F3061F1CF765D6441A6E2E6 \
+    cv25519 encrypt 0
+  We need to generate a lot of random bytes. It is a good idea to perform
+  some other action (type on the keyboard, move the mouse, utilize the
+  disks) during the prime generation; this gives the random number
+  generator a better chance to gain enough entropy.
+  Please enter the passphrase to
+  protect your new key
+  Passphrase:
+  Repeat:
+  You have not entered a passphrase - this is in general a bad idea!
+  Please confirm that you do not want to have any protection on your key.
+    Yes, protection is not needed
+    Enter new passphrase
+  [ye]? y
+
+Add a user ID with the email used to accept the comments to the key
+so that user's mailing programs could find it when encrypting emails,
+
+  $ gpg --home gnupg --quick-add-uid 47E203CF0DA7AD3D6F3061F1CF765D6441A6E2E6 \
+    'Savane trackers (unattended usage) <savannah-trackers@gnu.org>'
+
 Set appropriate group and owner for the home GnuPG directory if needed,
 
   $ chown -R www-data:www-data /var/lib/savane/gnupg

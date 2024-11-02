@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* Support for encrypted comments via email was added.
+
 * A 'Source-Code-Offer' header is added when serving tracker attachments.
 
 * The headers are omitted when serving tracker attachments when the respective

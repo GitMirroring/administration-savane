@@ -113,24 +113,19 @@ function parsemail_check_topmost_part ($mime, $struct, $idx)
   );
 }
 
-function parsemail_analyze_struct ($mime, $struct, $error_handler)
+function parsemail_analyze_parts ($mime, $struct)
 {
   $topmost_parts = [];
   foreach ($struct as $idx)
     if (parsemail_check_topmost_part ($mime, $struct, $idx))
       $topmost_parts[] = $idx;
   if (empty ($topmost_parts))
-    {
-      parsemail_close ($mime);
-      return $error_handler (
-        'Wrong message structure ' . error_print_r ($struct)
-      );
-   }
+    return [null, 'Wrong message structure ' . error_print_r ($struct)];
   $ret = PHP_INT_MAX;
   foreach ($topmost_parts as $p)
     if ($p < $ret)
       $ret = $p;
-  return ["$ret.2", "$ret.1"];
+  return [["$ret.2", "$ret.1"], null];
 }
 
 # Remove trailing empty lines, they turn out to break the signature.
@@ -153,28 +148,81 @@ function parsemail_get_part_charset ($mime, $idx)
   return null;
 }
 
-function parsemail_parse_mime ($mime, $msg, $error_handler)
+function parsemail_message_is_encrypted ($mime)
+{
+  $expected = [
+    '1' => [
+      'content-protocol' => 'application/pgp-encrypted',
+      'content-type' => 'multipart/encrypted'
+    ],
+    '1.1' => [
+      'content-type' => 'application/pgp-encrypted',
+      'content-disposition' => 'attachment'
+    ],
+    '1.2' => ['content-disposition' => 'attachment']
+  ];
+  $struct = mailparse_msg_get_structure ($mime);
+  if (array_diff ($struct, array_keys ($expected)) != [])
+    return false;
+  if (array_diff (array_keys ($expected), $struct) != [])
+    return false;
+  foreach ($expected as $idx => $attributes)
+  if (parsemail_check_part_attrib ($mime, $idx, $attributes))
+    return false;
+  return true;
+}
+
+function parsemail_decrypt ($mime, $msg, $user_id)
+{
+  $struct = mailparse_msg_get_structure ($mime);
+  $extracted = parsemail_extract_part ($mime, '1.2', $msg);
+  list ($error_code, $error_msg, $decrypted)
+    = gpg_decrypt_and_verify ($extracted, $user_id);
+  if ($error_code)
+    return [null, $error_msg];
+  $msg = "From savane@savane.test Tue Sep 27 12:35:59 1983\n"
+    . "From: <savane@savene.test>\n"
+    . "MIME-Version: 1.0\n$decrypted";
+  list ($msg, $files, $error) = parsemail_parse_nested ($msg);
+  return  [[$msg, $files], $error];
+}
+
+function parsemail_analyze_struct ($mime, $struct, $msg)
+{
+  $ret = [];
+  list ($parts, $error) = parsemail_analyze_parts ($mime, $struct);
+  if ($error !== null)
+    return [null, null, $error];
+  foreach ($parts as $idx)
+    {
+      $latest = $idx;
+      $ret[] = parsemail_fixup_multipart_part ($mime, $idx, $msg);
+    }
+  return [$ret, $latest, null];
+}
+
+function parsemail_parse_mime ($mime, $msg)
 {
   $struct = mailparse_msg_get_structure ($mime);
   if (count ($struct) == 1) # Hopefully a clearsigned message.
     {
       $ret = parsemail_extract_part ($mime, $struct[0], $msg);
-      return [[$ret], $ret, 0, parsemail_get_part_charset ($mime, $struct[0])];
+      return [
+        [[$ret], $ret, 0, parsemail_get_part_charset ($mime, $struct[0])], null
+      ];
     }
-  $ret = [];
-  foreach (parsemail_analyze_struct ($mime, $struct, $error_handler) as $idx)
-    {
-      $latest = $idx;
-      $ret[] = parsemail_fixup_multipart_part ($mime, $idx, $msg);
-    }
-  $ret = [$ret, parsemail_extract_part ($mime, $latest, $msg)];
+  list ($parts, $latest, $error) =
+    parsemail_analyze_struct ($mime, $struct, $msg);
+  if ($error !== null)
+    return [null, $error];
+  $ret = [$parts, parsemail_extract_part ($mime, $latest, $msg)];
   # Check for nesting like in the 'protected-headers=v1' protocol.
   $nested = in_array ("$latest.1", $struct);
   $ret[] = $nested;
   if ($nested)
     $latest .= '.1';
   $ret[] = parsemail_get_part_charset ($mime, $latest);
-  return $ret;
+  return [$ret, null];
 }
 
 function parsemail_open ($email)
@@ -186,11 +234,7 @@ function parsemail_open ($email)
 
 function parsemail_close ($mime)
 {
-  global $mime;
-  if ($mime === null)
-    return;
   mailparse_msg_free ($mime);
-  $mime = null;
 }
 
 function parsemail_extract_attachment ($mime, $email, $i)
@@ -232,31 +276,68 @@ function parsemail_extract_files ($mime, $email, $struct)
   return $ret;
 }
 
-function parsemail_parse_nested ($email, $error_handler)
+function parsemail_nested ($mime, $email)
 {
-  if (!function_exists ('mailparse_msg_create'))
-    return $error_handler ('Mailparse extension not found');
-  $mime = parsemail_open ($email);
   $struct = mailparse_msg_get_structure ($mime);
   $idx = '1.1';
   if (!in_array ($idx, $struct))
-    {
-      parsemail_close ($mime);
-      return $error_handler ("No subpart $idx found");
-    }
+    $idx = '1';
   $ret = parsemail_extract_part ($mime, $idx, $email);
   $files = parsemail_extract_files ($mime, $email, $struct);
-  parsemail_close ($mime);
-  return [$ret, $files];
+  return [$ret, $files, null];
 }
 
-function parsemail_extract_message ($email, $error_handler)
+function parsemail_parse_nested ($email)
+{
+  $mime = parsemail_open ($email);
+  $ret = parsemail_nested ($mime, $email);
+  mailparse_msg_free ($mime);
+  return $ret;
+}
+
+function parsemail_extract ($mime, $email, $user_id)
+{
+  if (parsemail_message_is_encrypted ($mime))
+    return parsemail_decrypt ($mime, $email, $user_id);
+  list ($ret, $error) = parsemail_parse_mime ($mime, $email);
+  if ($error !== null)
+    return [null, $error];
+  list ($input, $msg, $nested, $charset) = $ret;
+  list ($error, $error_msg, $decrypted) = gpg\verify_for ($user_id, $input);
+  if ($error)
+    return [null, $error_msg];
+  $files = [];
+  if (count ($input) < 2)
+    $msg = $decrypted; # Non-detached signature: needs 'decrypting'.
+  elseif (!empty ($nested))
+    {
+      list ($msg, $files, $error) = parsemail_parse_nested ($input[1]);
+      if ($error !== null)
+        return [null, $error];
+    }
+  if (!empty ($charset))
+    $msg = iconv ($charset, 'UTF-8//IGNORE', $msg);
+  return [[$msg, $files], null];
+}
+
+# This may work with clearsigned messages: extracting without the mailparse
+# extension.
+function parsemail_extract_basic ($email, $user_id, $error_handler)
+{
+  list ($error_code, $error_msg, $text) = gpg\verify_for ($user_id, [$email]);
+  if ($error_code)
+    return $error_handler ($error_msg);
+  return [$text, []];
+}
+function parsemail_extract_message ($email, $user_id, $error_handler)
 {
   if (!function_exists ('mailparse_msg_create'))
-    return [[$email], $email]; # This may work with clearsigned messages.
+    return parsemail_extact_basic ($email, $user_id, $error_handler);
   $mime = parsemail_open ($email);
-  $ret = parsemail_parse_mime ($mime, $email, $error_handler);
+  list ($ret, $error) = parsemail_extract ($mime, $email, $user_id);
   parsemail_close ($mime);
+  if ($error !== null)
+    return $error_handler ($error);
   return $ret;
 }
 

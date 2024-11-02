@@ -44,6 +44,16 @@
 namespace {
 require_once (dirname (__FILE__) . "/utils.php");
 require_once (dirname (__FILE__) . "/user.php");
+
+define ('GPG_ERROR_GPG_FAILED', 1);
+define ('GPG_ERROR_VERIFY_FAILED', 2);
+define ('GPG_ERROR_NO_USABLE_KEY', 3);
+define ('GPG_ERROR_NO_USER_ID', 4);
+define ('GPG_ERROR_NO_TEMP_DIR', 5);
+define ('GPG_ERROR_INVALID_KEY', 6);
+
+define ('GNUPG_ENCRYPT_CAPABILITY', 'E');
+define ('GNUPG_SIGN_CAPABILITY', 'S');
 }
 
 namespace gpg {
@@ -52,6 +62,15 @@ function gpg_name ()
 {
   return "'{$GLOBALS['sys_gpg_name']}'";
 }
+# Form a gpg command line using $sys_home and ending with $tail.
+function gpg_batch_home ($tail = '')
+{
+  global $sys_gpg_home;
+  if (empty ($sys_gpg_home))
+    return [null, expand_error (true, GPG_ERROR_NO_USABLE_KEY)];
+  return [gpg_name () . " --batch --home '$sys_gpg_home' $tail", null];
+}
+
 function gpg_version ()
 {
   utils_run_proc (gpg_name () . " --version", $output, $err);
@@ -161,16 +180,6 @@ function test_import ($key, $temp_dir, &$output)
   return test_gpg_command ($temp_dir, '--batch --import', $output, $key);
 }
 
-define ('GPG_ERROR_GPG_FAILED', 1);
-define ('GPG_ERROR_VERIFY_FAILED', 2);
-define ('GPG_ERROR_NO_USABLE_KEY', 3);
-define ('GPG_ERROR_NO_USER_ID', 4);
-define ('GPG_ERROR_NO_TEMP_DIR', 5);
-define ('GPG_ERROR_INVALID_KEY', 6);
-
-define ('GNUPG_ENCRYPT_CAPABILITY', 'E');
-define ('GNUPG_SIGN_CAPABILITY', 'S');
-
 # The message is a slightly modified ASCII art
 # from https://www.gnu.org/graphics/gnu-ascii2.html .
 function test_message ()
@@ -221,12 +230,15 @@ function run_tests ($key, $temp_dir, &$output, $run_encryption, $level)
     test_encryption ($temp_dir, $level, $output);
 }
 
-function import_key ($key)
+function import_key ($key, $home = null)
 {
   $error = 0;
   if (empty ($key))
     return GPG_ERROR_NO_USER_ID;
-  $temp_dir = utils_mktemp ("sv-gpg", 'dir');
+  if ($home !== null)
+    $temp_dir = $home;
+  else
+    $temp_dir = utils_mktemp ("sv-gpg", 'dir');
   if (empty ($temp_dir))
     return [$temp_dir, GPG_ERROR_NO_TEMP_DIR];
   $cmd = gpg_name () . " --home '$temp_dir' --batch -q --import";
@@ -269,7 +281,7 @@ function find_appropriate_key ($home, $capability = GNUPG_ENCRYPT_CAPABILITY)
 # Import keys of user $uid_k when it's a number, or use $uid_k as the keys
 # to import, look for a key with requested $capability.  Return an array
 # with key ID, the directory where the keys are imported, and the error code.
-function get_key ($uid_k, $capability = GNUPG_ENCRYPT_CAPABILITY)
+function get_key ($uid_k, $capability = GNUPG_ENCRYPT_CAPABILITY, $home = null)
 {
   $key = $uid_k;
   if (ctype_digit ($uid_k))
@@ -279,7 +291,7 @@ function get_key ($uid_k, $capability = GNUPG_ENCRYPT_CAPABILITY)
       else
         return [null, null, GPG_ERROR_NO_USER_ID];
     }
-  list ($temp_dir, $error) = import_key ($key);
+  list ($temp_dir, $error) = import_key ($key, $home);
   $key_id = null;
   if (empty ($error))
     list ($key_id, $error) = find_appropriate_key ($temp_dir, $capability);
@@ -372,9 +384,9 @@ function verify ($home, $input)
 
 # Check if the message is signed with a key registered for the given user,
 # and extract it.
-function verify_for ($user_id, $input)
+function verify_for ($user_id, $input, $home = null)
 {
-  list ($key, $home, $error) = get_key ($user_id, GNUPG_SIGN_CAPABILITY);
+  list ($key, $home, $error) = get_key ($user_id, GNUPG_SIGN_CAPABILITY, $home);
   if ($error)
     return [$error, error_str ($error), ''];
   $ret = verify ($home, $input);
@@ -496,22 +508,38 @@ function gpg_minify_key ($key)
 }
 function gpg_sign ($input)
 {
-  global $sys_gpg_home;
-  $cmd = gpg\gpg_name () . " --batch --home '$sys_gpg_home' -a -b -v";
+  list ($cmd, $error) = gpg\gpg_batch_home ('-a -b -v');
+  if (empty ($cmd))
+    return ['', true, $error, null];
   $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
   $micalg = gpg\extract_micalg ($res, $err);
   return [$out, $res, gpg\expand_error ($res, 0, $out, $err), $micalg];
 }
 function gpg_get_sys_key ()
 {
-  global $sys_gpg_home;
-  if (empty ($sys_gpg_home))
+  list ($cmd, $error) = gpg\gpg_batch_home ('-a --export');
+  if (empty ($cmd))
     return '';
-  $cmd = gpg\gpg_name () . " --batch --home '$sys_gpg_home' -a --export";
   $res = utils_run_proc ($cmd, $out, $err);
   if ($res)
     return gpg\expand_error ($res, 0, $out, $err);
   return $out;
+}
+function gpg_decrypt_and_verify ($input, $user_id)
+{
+  global $sys_gpg_home;
+  list ($cmd, $error) = gpg\gpg_batch_home ();
+  if (empty ($cmd))
+    return $error;
+  $temp_dir = utils_mktemp ("sv-gpg-decrypt", 'dir');
+  $home = "$temp_dir/gpg";
+  $cmd = "cp -a '$sys_gpg_home' '$home'";
+  $res = utils_run_proc ($cmd, $out, $err);
+  if ($res)
+    return gpg\expand_error ($res, GPG_ERROR_NO_TEMP_DIR);
+  $ret = gpg\verify_for ($user_id, [$input], $home);
+  rmdir ($temp_dir);
+  return $ret;
 }
 } # namespace {
 ?>

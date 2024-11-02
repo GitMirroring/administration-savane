@@ -75,21 +75,7 @@ function display_page ($msg = null)
 
 function extract_message ($mbox, $user_id)
 {
-  list ($input, $msg, $nested, $charset) =
-    parsemail_extract_message ($mbox, 'display_page');
-  list ($error_code, $error_msg, $decrypted)
-    = gpg\verify_for ($user_id, $input);
-  $files = [];
-  if ($error_code)
-    display_page ($error_msg);
-  if (count ($input) < 2)
-    # Non-detached signature: the message needs 'decrypting'.
-    $msg = $decrypted;
-  elseif (!empty ($nested))
-    list ($msg, $files) = parsemail_parse_nested ($input[1], 'display_page');
-  if (!empty ($charset))
-    $msg = iconv ($charset, 'UTF-8//IGNORE', $msg);
-  return [$msg, $files];
+  return parsemail_extract_message ($mbox, $user_id, 'display_page');
 }
 
 function trim_message ($msg)

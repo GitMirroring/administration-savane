@@ -9,7 +9,9 @@ to the notitication by email.  When the user replies to the message,
 it comes to a specific address, and a simple script redirects the
 data into a HTTP request to $SERVER_URL/$tracker/comment.php.  Then
 comment.php validates the request and adds a comment to the tracker
-in case of success.
+in case of success.  If Savane GnuPG key has a usable encryption-capable
+subkey, users can send their messages encrypted.  (For more info on Savane
+GnuPG key setup, see doc/signed-notifications.)
 
 Note that Savane sends personal notifications to specific users in the next
 cases.
