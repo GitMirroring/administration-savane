@@ -56,13 +56,66 @@ function sendmail_signature ()
     . "\nhttps://$sys_default_domain$sys_home\n"];
 }
 
+function sendmail_wrap_commented ($lines, $length)
+{
+  if (empty ($lines))
+    return "\n";
+  $body = join ("\n", $lines);
+  if (!preg_match ("/^[ \t]*>[ \t]*/", $body, $matches))
+    return $body;
+  $body = preg_replace ("/(^|\n)[ \t]*>[ \t]*/", '\1', $body);
+  $length--;
+  if ($length < 34)
+    $length = 34;
+  $body = sendmail_wrap_body ($body, $length);
+  $body = preg_replace ("/(^|\n)/", '\1> ', $body);
+  return preg_replace ("/(^|\n)> >/", '\1>>', $body);
+}
+
+function sendmail_wrap_lines ($chunks, $length)
+{
+  $ret = [];
+  foreach ($chunks as $ch)
+    {
+      list ($comment, $lines) = $ch;
+      if ($comment)
+        {
+          $ret[] = sendmail_wrap_commented ($lines, $length);
+          continue;
+        }
+      $ret[] = wordwrap (join ("\n", $lines), $length);
+    }
+  return preg_replace ("/[ \t]*(\n|$)/", '\1', join ("\n", $ret));
+}
+
+function sendmail_wrap_body ($body, $length = 78)
+{
+  $chunks = $accum = []; $in_comment = 0;
+  foreach (explode ("\n", $body) as $line)
+    {
+      $comment = intval (preg_match ("/^[ \t]*>/", $line));
+      if ($in_comment == $comment)
+        {
+          $accum[] = $line;
+          continue;
+        }
+      if (count ($accum))
+        $chunks[] = [$in_comment, $accum];
+      $accum = [$line];
+      $in_comment = $comment;
+    }
+  if (count ($accum))
+    $chunks[] = [$comment, $accum];
+  return sendmail_wrap_lines ($chunks, $length);
+}
+
 function sendmail_format_body (&$message, $context)
 {
   $message['sig'] = [];
   if (!empty ($context['skip_format_body']))
     return;
   $body = $message['body'];
-  $body = wordwrap ($body, 78);
+  $body = sendmail_wrap_body ($body);
   $message['body'] = $body;
   $message['sig'] = sendmail_signature ();
 }
