@@ -1745,4 +1745,86 @@ function trackers_may_user_comment ($user_id, $item_id)
   );
   return [$ret, $fields];
 }
+
+function trackers_search_report_failure ()
+{
+  print "<br />\n<span class='warn'>"
+    . _("None found. Please note that only search words of more than\n"
+        . "three characters are valid.");
+  print '</span>';
+  return 0;
+}
+function tracker_list_dependency ($row, $tracker, $only_group)
+{
+  global $item_id;
+  # Avoid item depending on itself.  Hide private items unless accessible.
+  if ($row['privacy'] == 2 && !member_check_private (0, $row['group_id']))
+    return false;
+  if ($row['bug_id'] == $item_id && $tracker === ARTIFACT)
+    return false;
+  print "<br />\n";
+  $label = "$tracker #{$row['bug_id']}: {$row['summary']}";
+  if (!$only_group)
+    $label .= ', ' . _("group") . ' ' . group_getname ($row['group_id']);
+  print '&nbsp;&nbsp;&nbsp;'
+    . form_checkbox (
+        "dependent_on_{$tracker}[]", 0,
+        ['value' => $row['bug_id'], 'label' => $label]
+      );
+  return true;
+}
+
+function trackers_list_dependencies_in_tracker ($search, $tracker, $only_group)
+{
+  $result = search_run ($search, $tracker, 0);
+  if (!db_numrows ($result))
+    return false;
+  $anything_found = 0;
+  while ($row = db_fetch_array ($result))
+    $anything_found |= tracker_list_dependency ($row, $tracker, $only_group);
+  return $anything_found;
+}
+
+function trackers_search_dependencies_header ($search)
+{
+  print "<p><span class='preinput'>";
+  printf (
+    _("Please select a dependency to add in the result of your search\n"
+      . "of '%s' in the database:"),
+    utils_specialchars ($search)
+  );
+  print '</span>';
+}
+
+function trackers_search_deps ($search, $artifact, $only_group)
+{
+  # If we have less than 4 characters, to avoid giving lot of feedback
+  # and put an exit to the report, just consider the search as a failure.
+  if (strlen ($search) < 4)
+    return false;
+  if ($only_group)
+    $GLOBALS['only_group_id'] = $GLOBALS['group_id'];
+  $GLOBALS['exact'] = 0;  # Do not ask for all words,
+  if ($artifact == "all")
+    $artifacts = utils_get_dependable_trackers ();
+  else
+    $artifacts = [$artifact];
+  $anything_found = false;
+  foreach ($artifacts as $tracker)
+    $anything_found |=
+      trackers_list_dependencies_in_tracker ($search, $tracker, $only_group);
+  return $anything_found;
+}
+
+function trackers_search_dependencies ($search, $artifact, $only_group)
+{
+  if (!$search)
+    return;
+  trackers_search_dependencies_header ($search);
+  $only_group = ($only_group == 'notany');
+  $anything_found = trackers_search_deps ($search, $artifact, $only_group);
+  if ($anything_found)
+    return;
+  trackers_search_report_failure ();
+}
 ?>

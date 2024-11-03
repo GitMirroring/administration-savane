@@ -593,19 +593,16 @@ print html_hidsubpart_header ("dependencies", _("Dependencies"));
 if ($is_trackeradmin)
   {
     print '<p class="noprint"><span class="preinput">';
-    if ($depends_search)
-      {
-        # Print a specific message if we are already at step 2 of filling
-        # a dependency.
-        print _("New search, in case the previous one was not satisfactory "
-                . "(to\nfill a dependency against):");
-      }
-    else
-      print _("Search an item (to fill a dependency against):");
-
+    print html_label ('depends_search',
+      $depends_search?
+        _("New search, in case the previous one was not satisfactory "
+          . "(to\nfill a dependency against):"):
+        _("Search an item (to fill a dependency against):")
+    );
     print "</span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" title="' . _("Terms to look for")
-      . "\" name='depends_search' size='40' maxlength='255' /><br />\n";
+      . form_input ('text',  'depends_search', $depends_search,
+          "size='40' maxlength='255'"
+        ) . "<br />\n";
 
     $tracker_select =
     '&nbsp;&nbsp;&nbsp;<select title="' . _("Tracker to search in")
@@ -651,79 +648,10 @@ if ($is_trackeradmin)
     else
       print form_submit (_("Search"), "submit");
 
-    # Search results, if we are already at step 2.
-    if ($depends_search)
-      {
-        print "</p>\n<p><span class='preinput'>";
-        printf (
-          _("Please select a dependency to add in the result of your search\n"
-            . "of '%s' in the database:"),
-          utils_specialchars ($depends_search)
-        );
-        print '</span>';
-
-        $success = false;
-
-        # If we have less than 4 characters, to avoid giving lot of feedback
-        # and put an exit to the report, just consider the search as a failure.
-    if (strlen ($depends_search) > 3)
-          {
-            # Build the list of trackers to take account of.
-            if ($depends_search_only_artifact == "all")
-              $artifacts = ["support", "bugs", "task", "patch"];
-            else
-              $artifacts = [$depends_search_only_artifact];
-
-            # Actually search on each asked trackers.
-            foreach ($artifacts as $num => $tracker)
-              {
-                if ($depends_search_only_group == "notany")
-                  $GLOBALS['only_group_id'] = $group_id;
-
-                # Do not ask for all words,
-                $GLOBALS['exact'] = 0;
-
-                $result_search = search_run ($depends_search, $tracker, 0);
-                $success = db_numrows ($result_search) + $success;
-
-                # Print the result, if existing.
-                if (db_numrows ($result_search) == 0)
-                  continue;
-                while (list ($res_id, $res_summary, $res_date, $res_privacy,
-                             $res_submitter_id, $res_submitter_name,
-                             $res_group) = db_fetch_array ($result_search))
-                  {
-                    # Avoid item depending on itself.
-                    # Hide private items unless accessible.
-                    if (
-                      $res_privacy == 2 && !member_check_private (0, $res_group)
-                    )
-                      continue;
-                    if ($res_id != $item_id || $tracker != ARTIFACT)
-                      {
-                         # Right now only print id, summary and group.
-                         # We may change that depending on users feedback.
-                         print "<br />\n";
-                         $label = "$tracker #$res_id: $res_summary, "
-                           . _("group") . ' ' . group_getname ($res_group);
-                         print '&nbsp;&nbsp;&nbsp;'
-                           . form_checkbox (
-                               "dependent_on_{$tracker}[]", 0,
-                               ['value' => $res_id, 'label' => $label]
-                             );
-                      }
-                    }
-              } # foreach ($artifacts as $num => $tracker)
-          } # if (strlen ($depends_search) > 3)
-        if (!$success)
-          {
-            print "<br />\n<span class='warn'>";
-            print
-              _("None found. Please note that only search words of more than\n"
-                . "three characters are valid.");
-            print '</span>';
-          }
-      } # if ($depends_search)
+    trackers_search_dependencies (
+      $depends_search, $depends_search_only_artifact,
+      $depends_search_only_group
+    );
     print "</p>\n";
   } # if ($is_trackeradmin)
 print show_item_dependency ($item_id);
