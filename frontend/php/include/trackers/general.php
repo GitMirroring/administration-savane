@@ -1725,6 +1725,8 @@ function trackers_fetch_item_access_data ($item_id, $user_id)
     exit_no_group ();
 
   $fields['is_trackeradmin'] = member_check ($user_id, $fields['group_id'], 2);
+  if (user_is_super_user () && $user_id == user_getid ())
+    $fields['is_trackeradmin'] = true;
   return $fields;
 }
 
