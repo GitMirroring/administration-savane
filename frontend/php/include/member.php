@@ -68,8 +68,10 @@ function member_assign_uidNumber ($user_id)
   member_update_file ($user_id, 'passwd');
   db_execute ("
     UPDATE `user_group` u, `groups` g
-    SET u.`cache_uidNumber` = ?, u.`cache_gidNumber` = g.`gidNumber`
-    WHERE `user_id` = ? AND u.`group_id` = g.`group_id`", [$uid, $user_id]
+    SET u.`cache_uidNumber` = ?, u.`cache_gidNumber` = g.`gidNumber`,
+      u.`cache_user_name` = ?
+    WHERE `user_id` = ? AND u.`group_id` = g.`group_id`",
+    [$uid, user_getname ($user_id), $user_id]
   );
 }
 
