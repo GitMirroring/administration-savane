@@ -1282,6 +1282,7 @@ function utils_get_assign_idNumber_params ($type)
 
 # Try to assign a new idNumber to the database entity $id (in the context
 # of $type).  Return the new idNumber in case of success, else return zero.
+# When the entity already has an idNumber, return its current idNumber.
 function utils_try_assign_idNumber ($id, $type)
 {
   $params = utils_get_assign_idNumber_params ($type);
@@ -1299,8 +1300,8 @@ function utils_try_assign_idNumber ($id, $type)
   return $idN;
 }
 
-# Assign a new idNumber depending on $type ('user' or 'group'),
-# return its value on success and zero on failure.
+# Assign a new idNumber depending on $type ('user' or 'group') unless
+# it has already been assigned, return its value on success and zero on failure.
 function utils_assign_idNumber ($id, $type = 'user')
 {
   for ($i = 0; $i < 0x11; $i++)
