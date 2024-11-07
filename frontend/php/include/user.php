@@ -634,6 +634,14 @@ function user_rename_in_group_history ($old_name, $new_name)
   );
 }
 
+function user_rename_in_user_group ($old_name, $new_name)
+{
+  db_execute (
+    "UPDATE `user_group` SET `cache_user_name` = ? WHERE `cache_user_name` = ?",
+    [$new_name, $old_name]
+  );
+}
+
 # If duplicate users with $new_name exist in the database,
 # revert user #$user_id to $old_name and return an error message,
 # else return null.
@@ -650,7 +658,7 @@ function user_check_for_duplicate_names ($user_id, $old_name, $new_name)
   return sprintf ('User <%s> already exists', $new_name);
 }
 
-# Rename account, with necessary history adjustments in the database.
+# Rename account, with necessary adjustments in the database.
 function user_rename ($user_id, $new_name)
 {
   $old_name = user_fetch_name ($user_id);
@@ -663,6 +671,7 @@ function user_rename ($user_id, $new_name)
   if ($error_msg !== null)
     return $errormsg;
   user_rename_in_group_history ($old_name, $new_name);
+  user_rename_in_user_group ($old_name, $new_name);
   return '';
 }
 
