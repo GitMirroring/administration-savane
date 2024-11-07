@@ -157,12 +157,15 @@ DbdDo (
 # implementation.  MySQL's GROUP_CONCAT will help.
 
 DbdDo (
-  "UPDATE user_group, user, groups
+  "UPDATE user_group ug, user u, groups g
    SET
-     user_group.cache_uidNumber = user.uidNumber,
-     user_group.cache_gidNumber = groups.gidNumber,
-     user_group.cache_user_name = user.user_name
-   WHERE user_group.user_id = user.user_id
-     AND user_group.group_id = groups.group_id
-     AND user_group.admin_flags <> 'P';"
+     ug.cache_uidNumber = u.uidNumber, ug.cache_gidNumber = g.gidNumber,
+     ug.cache_user_name = u.user_name
+   WHERE
+     (
+       ug.cache_uidNumber IS NULL OR ug.cache_gidNumber IS NULL
+       OR ug.cache_user_name IS NULL
+     )
+     AND ug.user_id = u.user_id AND ug.group_id = g.group_id
+     AND ug.admin_flags <> 'P';"
 );
