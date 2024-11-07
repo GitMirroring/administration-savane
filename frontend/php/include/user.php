@@ -624,33 +624,45 @@ function user_purge ($user_id)
   user_delete_aux_data ($user_id);
 }
 
-# Rename account, with necessary history adjustments in the database (unless
-# that would raise any concerns).
-function user_rename ($user_id, $new_name)
+function user_rename_in_group_history ($old_name, $new_name)
 {
   global $user_history_field_names;
+  db_execute ("
+    UPDATE group_history SET old_value = ?
+    WHERE old_value = ? AND $user_history_field_names",
+    [$new_name, $old_name]
+  );
+}
+
+# If duplicate users with $new_name exist in the database,
+# revert user #$user_id to $old_name and return an error message,
+# else return null.
+function user_check_for_duplicate_names ($user_id, $old_name, $new_name)
+{
+  $res = db_execute (
+    "SELECT user_id FROM user WHERE user_name = ?", [$new_name]
+  );
+  if (db_numrows ($res) < 2)
+    return null;
+  db_execute (
+    "UPDATE user SET user_name = ? WHERE user_id = ?", [$old_name, $user_id]
+  );
+  return sprintf ('User <%s> already exists', $new_name);
+}
+
+# Rename account, with necessary history adjustments in the database.
+function user_rename ($user_id, $new_name)
+{
   $old_name = user_fetch_name ($user_id);
   if ($old_name == '')
     return sprintf ('No user #%i in the database', $user_id);
   db_execute (
     "UPDATE user SET user_name = ? WHERE user_id = ?", [$new_name, $user_id]
   );
-  $res = db_execute (
-    "SELECT user_id FROM user WHERE user_name = ?", [$new_name]
-  );
-  if (db_numrows ($res) > 1)
-    {
-      db_execute (
-        "UPDATE user SET user_name = ? WHERE user_id = ?",
-        [$old_name, $user_id]
-      );
-      return sprintf ('User <%s> already exists', $new_name);
-    }
-  db_execute ("
-    UPDATE group_history set old_value = ?
-    WHERE old_value = ? AND $user_history_field_names",
-    [$new_name, $old_name]
-  );
+  $error_msg = user_check_for_duplicate_names ($user_id, $old_name, $new_name);
+  if ($error_msg !== null)
+    return $errormsg;
+  user_rename_in_group_history ($old_name, $new_name);
   return '';
 }
 
