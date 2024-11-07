@@ -167,5 +167,5 @@ DbdDo (
        OR ug.cache_user_name IS NULL
      )
      AND ug.user_id = u.user_id AND ug.group_id = g.group_id
-     AND ug.admin_flags <> 'P';"
+     AND ug.admin_flags IN ('A', '');"
 );
