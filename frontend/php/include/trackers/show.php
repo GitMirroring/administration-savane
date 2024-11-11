@@ -461,30 +461,22 @@ function show_dependent_priority_color ($item)
     . utils_get_priority_color ($item['priority'], $item['status_id']) . "'>\n";
 }
 
-function show_dependent_item_key ($item)
-{
-  $st_key = $item['group_id'] . $item['tracker'] . $item['resolution_id'];
-}
-
 # Find out the status full text name: this is group-specific.
 # If there is no group setup for this, go to the default for the site.
-function show_dependent_status_name ($st_key, $tracker, $item)
+function show_dependent_status_name ($item)
 {
-  global $group_id;
-  static $dstatus = [];
-  $st_key = show_dependent_item_key ($item);
-  if (array_key_exists ($st_key, $dstatus))
-    return $dstatus[$st_key];
+  static $names = [];
+  $st_key = $item['group_id'] . $item['tracker'] . $item['resolution_id'];
+  if (array_key_exists ($st_key, $names))
+    return $names[$st_key];
   $res = db_execute ("
-    SELECT value FROM {$tracker}_field_value
-    WHERE
-      bug_field_id = '108' AND (group_id = ? OR group_id = 100)
-      AND value_id = ?
+    SELECT value FROM {$item['tracker']}_field_value
+    WHERE bug_field_id = '108' AND group_id IN (?, 100) AND value_id = ?
     ORDER BY bug_fv_id DESC LIMIT 1",
-    [$group_id, $item['resolution_id']]
+    [$item['group_id'], $item['resolution_id']]
   );
-  $dstatus[$st_key] = db_result ($res, 0, 'value');
-  return $dstatus[$st_key];
+  $names[$st_key] = db_result ($res, 0, 'value');
+  return $names[$st_key];
 }
 
 function show_dependent_item_summary ($item, $access)
@@ -512,7 +504,6 @@ function show_dependent_single_item ($item_id, $item, $show_trash, &$access)
   $cur_item = $item['item_id'];
   $tracker = $item['tracker'];
   $grp_id = $item['group_id'];
-  $st_key = show_dependent_item_key ($item);
   print show_dependent_priority_color ($item);
   if ($show_trash)
     print show_dependent_trash_link ($item_id, $cur_item, $tracker);
@@ -526,7 +517,7 @@ function show_dependent_single_item ($item_id, $item, $show_trash, &$access)
   if (!array_key_exists ($grp_id, $access))
     $access[$grp_id] = member_check (0, $grp_id, 2);
   show_dependent_item_summary ($item, $access[$grp_id]);
-  $status = show_dependent_status_name ($st_key, $tracker, $item);
+  $status = show_dependent_status_name ($item);
   show_dependent_from_group ($grp_id, $cur_item, $status, $tracker);
   print "</div>\n";
 }
