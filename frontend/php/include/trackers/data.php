@@ -820,6 +820,39 @@ function trackers_data_is_value_set_empty (
   return db_numrows ($res) <= 0;
 }
 
+function trackers_data_copy_default_val ($field_id, $group_id, $row)
+{
+  $arr = [];
+  foreach (['value_id', 'value', 'description', 'order_id', 'status',
+    'email_ad'] as $k)
+    $arr[$k] = $row[$k];
+  $arr['bug_field_id'] = $field_id;
+  $arr['group_id'] = $group_id;
+  $res = db_autoexecute (ARTIFACT . "_field_value", $arr, DB_AUTOQUERY_INSERT);
+  if (db_affected_rows ($res))
+    return;
+  fb (_("Insert of default value failed."), 0);
+  db_error ();
+}
+
+function trackers_data_delete_field_value ($field_id, $group_id)
+{
+  $table = ARTIFACT . '_field_value';
+  db_execute (
+    "DELETE FROM `$table` WHERE `bug_field_id` = ? AND `group_id` = ?",
+    [$field_id, $group_id]
+  );
+}
+
+function trackers_data_get_default_field_values ($field_id)
+{
+  return db_execute ("
+    SELECT value_id, value, description, order_id, status, email_ad
+    FROM " . ARTIFACT . "_field_value WHERE bug_field_id = ? AND group_id = ?",
+    [$field_id, GROUP_NONE]
+  );
+}
+
 # Initialize the set of values for a given field for a given group by using
 # the system default (default values belong to group_id  = GROUP_NONE).
 function trackers_data_copy_default_values (
@@ -833,49 +866,12 @@ function trackers_data_copy_default_values (
   # because default values belong to GROUP_NONE by definition.
   if ($group_id == GROUP_NONE)
     return;
-  # First delete the existing value if any.
-  $res = db_execute ("
-    DELETE FROM " . ARTIFACT . "_field_value
-    WHERE bug_field_id = ? AND group_id = ?",
-    [$field_id, $group_id]
-  );
-
-  # Second insert default values (if any) from group 'None'.
-  # Rk: The target table of the INSERT statement cannot appear in
-  # the FROM clause of the SELECT part of the query, because it's forbidden
-  # in ANSI SQL to SELECT. So do it by hand !
-  $res = db_execute ("
-    SELECT value_id, value, description, order_id, status
-    FROM " . ARTIFACT . "_field_value WHERE bug_field_id = ? AND group_id = ?",
-    [$field_id, GROUP_NONE]
-  );
-  $rows = db_numrows ($res);
-
-  for ($i = 0; $i < $rows; $i++)
-    {
-      $value_id = db_result ($res, $i, 'value_id');
-      $value = db_result ($res, $i, 'value');
-      $description = db_result ($res, $i, 'description');
-      $order_id = db_result ($res, $i, 'order_id');
-      $status  = db_result ($res, $i, 'status');
-
-      $res_insert = db_autoexecute (
-        ARTIFACT . "_field_value",
-        [
-          'bug_field_id' => $field_id, 'group_id' => $group_id,
-          'value_id' => $value_id, 'value' => $value,
-          'description' => $description, 'order_id' => $order_id,
-          'status' => $status
-        ],
-        DB_AUTOQUERY_INSERT
-      );
-
-      if (db_affected_rows ($res_insert) < 1)
-        {
-          fb (_("Insert of default value failed."), 0);
-          db_error ();
-        }
-    }
+  trackers_data_delete_field_value ($field_id, $group_id);
+  # ANSI SQL disallows the target table of the INSERT statement appear
+  # in the FROM clause of the SELECT part of the query, so do it by hand.
+  $res = trackers_data_get_default_field_values ($field_id);
+  while ($row = db_fetch_array ($res))
+    trackers_data_copy_default_val ($field_id, $group_id, $row);
 }
 
 function trackers_data_get_cached_field_value ($field, $group_id, $value_id)
@@ -965,22 +961,11 @@ function trackers_data_create_value (
     fb (_("New field value inserted."));
 }
 
-# Insert a new value for a given field for a given group.
-function trackers_data_update_value (
-  $item_fv_id, $field, $group_id, $value, $description, $order_id,
-  $status = 'A'
-)
+function trackers_data_update_value_params ($item_fv_id, $field, $group_id)
 {
-  if (preg_match ("/^\s*$/", $value))
-    {
-      fb (_("Empty field value not allowed"), 0);
-      return;
-    }
-
   # Updating a bug field value that belong to GROUP_NONE is
   # forbidden. These are default values that cannot be changed, so
   # make sure to copy the default values first in the group context first.
-
   if ($res = trackers_data_is_default_value ($item_fv_id))
     {
       trackers_data_copy_default_values ($field, $group_id);
@@ -996,22 +981,40 @@ function trackers_data_update_value (
       $where_cond = "bug_fv_id = ? AND group_id <> ?";
       $where_cond_params = [$item_fv_id, GROUP_NONE];
     }
+  return [$where_cond, $where_cond_params];
+}
 
-  $result = db_autoexecute (
-    ARTIFACT . "_field_value",
-    [
-     'value' => $value,
-     'description' => $description,
-     'order_id' => $order_id,
-     'status' => $status
-    ],
-    DB_AUTOQUERY_UPDATE, "$where_cond", $where_cond_params
-  );
-
+function trackers_data_report_update_value ($result)
+{
   if (db_affected_rows ($result) < 1)
     fb (_("Update of field value failed."), 1);
   else
     fb (_("New field value updated."));
+}
+
+# Insert a new value for a given field for a given group.
+function trackers_data_update_value (
+  $item_fv_id, $field, $group_id, $value, $description, $order_id,
+  $status = 'A'
+)
+{
+  if (preg_match ("/^\s*$/", $value))
+    {
+      fb (_("Empty field value not allowed"), 0);
+      return;
+    }
+  list ($where_cond, $where_cond_params) =
+    trackers_data_update_value_params ($item_fv_id, $field, $group_id);
+
+  $result = db_autoexecute (
+    ARTIFACT . "_field_value",
+    [
+     'value' => $value, 'description' => $description,
+     'order_id' => $order_id, 'status' => $status, 'email_ad' => ''
+    ],
+    DB_AUTOQUERY_UPDATE, "$where_cond", $where_cond_params
+  );
+  trackers_data_report_update_value ($result);
 }
 
 # Reset a field settings to its defaults usage (values are untouched). The defaults
