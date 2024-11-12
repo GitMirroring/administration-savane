@@ -171,11 +171,11 @@ $class = utils_get_priority_color (
 $caption = "<i>$item_link</i>: {$res_arr['summary']}";
 print html_h (1, $caption, ['class' => $class]);
 
-print form_header (
-  null, "post", 'enctype="multipart/form-data" name="item_form"'
+print form_tag (
+  ['enctype' => 'multipart/form-data', 'name' => 'item_form'], "?$item_id"
 );
 $hidden = [
-  "group_id" => $group_id, "item_id" => $item_id,
+  "group_id" => $group_id,
   'func' => $enable_comments? 'postmoditem': 'detailitem'
 ];
 print form_hidden ($hidden);
