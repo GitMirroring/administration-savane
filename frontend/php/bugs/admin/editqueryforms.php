@@ -505,7 +505,7 @@ function copy_tf_vals ($ff)
 
 function fixup_updated_vals ()
 {
-  global $cb_search_chk, $cb_report_chk, $cb_attr, $rank_extra;
+  global $cb_search_chk, $tf_search_val, $cb_attr, $rank_extra;
   $cb_search_chk = 0;
   $cb_attr['disabled'] = 'disabled';
   $rank_extra = " disabled='disabled'";
@@ -528,7 +528,7 @@ function show_mod_field ($field, $i, $fld = null)
   global $cb_report_chk, $cb_attr, $rank_extra;
   global $tf_report_val, $tf_colwidth_val;
   if (!report_data_field_is_shown ($field))
-    return;
+    return 0;
   extract (report_common_field_names ($field));
   if ($fld !== null)
     copy_field_vals ($fld, $field);
@@ -544,6 +544,7 @@ function show_mod_field ($field, $i, $fld = null)
       $cb_report_chk = 0; $tf_colwidth_val = '';
     }
   print_field ($i, $field);
+  return 1;
 }
 
 function rep_header_params ($group_id, $report_id)
@@ -570,7 +571,7 @@ function show_mod_report ($group_id, $title_arr, $report_id = 0)
   print_mod_report_header ($title, $params, $title_arr, $row);
   $i = 0;
   while ($field = trackers_list_all_fields ())
-    show_mod_field ($field, $i++, $fld);
+    $i += show_mod_field ($field, $i, $fld);
   print "</table>\n" . form_footer (false, 'submit');
   trackers_footer ();
   exit (0);

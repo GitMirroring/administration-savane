@@ -25,6 +25,9 @@
 
 ** Source tarball detection in the installation area wasn't correct.
 
+** In bugs/admin/editqueryforms.php, the table row color assignment was
+   broken in 029ca1019 (2024-08).
+
 [BACKEND]
 
 * Bug fixes:
