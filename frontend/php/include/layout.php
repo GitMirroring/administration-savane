@@ -238,12 +238,6 @@ class Layout extends savane_error
     $this->generic_header_end ($params);
 
     print "\n<body>\n<div class='realbody'>\n";
-    print '<iframe title="FSF Fundraiser Banner"'
-      . 'src="//static.gnu.org/nosvn/banners/202411fundraiser/"'
-      . 'scrolling="no"'
-      . 'style="width: 100%; height: 300px; display: block; '
-      . 'margin: 0; border: 0 none; overflow: hidden;">'
-      . '</iframe>';
     sitemenu ($params);
     print "<div id='top' class='main'>\n";
     pagemenu ($params);
