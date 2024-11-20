@@ -218,8 +218,14 @@ function member_approve ($user_id, $group_id)
   member_assign_uidNumber ($user_id);
   list ($cols, $cond) =
     member_user_group_fields ($user_id, $group_id, MEMBER_FLAGS_MEMBER);
+  $where = $cond_list = [];
+  foreach ($cond as $k => $v)
+    {
+      $cond_list[] = $v;
+      $where[] = "$k = ?";
+    }
   $result = db_autoexecute (
-    'user_group', $cols, DB_AUTOQUERY_UPDATE, join (' AND ', $cond)
+    'user_group', $cols, DB_AUTOQUERY_UPDATE, join (' AND ', $where), $cond_list
   );
   if (!$result)
     return $result;
