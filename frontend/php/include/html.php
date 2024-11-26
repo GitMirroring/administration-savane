@@ -209,7 +209,7 @@ function html_more ($url, $offset, $max_rows, $total_rows)
 
 function html_prev ($url, $offset, $max_rows, $total_rows)
 {
-  if ($total_rows < $max_rows)
+  if ($total_rows <= $max_rows)
     return '';
   $begin_msg = _("Begin"); $prev_msg = _("Previous");
   $sep = html_nextprev_separator ();
@@ -228,12 +228,12 @@ function html_prev ($url, $offset, $max_rows, $total_rows)
 
 function html_next ($url, $offset, $max_rows, $total_rows)
 {
-  if ($total_rows < $max_rows)
+  if ($total_rows <= $max_rows)
     return '';
   $next_msg = _("Next"); $end_msg = _("End");
   $sep = html_nextprev_separator ();
   $rows = min ($max_rows, $total_rows - $offset);
-  if ($offset + $max_rows > $total_rows)
+  if ($offset + $max_rows >= $total_rows)
     return "$sep<i>$next_msg</i> " . html_image ("arrows/nextgrey.png")
       . "$sep<i>$end_msg</i> " . html_image ('arrows/lastgrey.png');
   $ret = $sep . html_nextprev_link ($url, $offset + $rows, $max_rows);
@@ -286,7 +286,7 @@ function html_nextprev_item_count ($offset, $max_rows, $total_rows, $have_form)
 function html_nextprev_str ($url, $offset, $max_rows, $total_rows)
 {
   $ret = "<p class=\"nextprev\">\n";
-  if ($total_rows < $max_rows)
+  if ($total_rows <= $max_rows)
     {
       $msg = ngettext ( "%d matching item", "%d matching items", $total_rows);
       return $ret . sprintf ($msg, $total_rows);
