@@ -857,7 +857,8 @@ function output_sysvars ()
     'pw_rounds', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max',
     'watch_anon_posts', 'new_user_watch_days',
-    'mailman_wrapper', 'savane_cgit', 'group_file', '!debug_footer'
+    'mailman_wrapper', 'savane_cgit', 'group_file', 'max_items_per_page',
+    '!debug_footer'
   ];
   $defs = [];
   foreach ($variables as $tag)

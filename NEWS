@@ -11,6 +11,8 @@
 
 * More controls are added to navigate search results, see Savannah sr #109559.
 
+* New configuration variable, $sys_max_items_per_page, Savannah sr #111154.
+
 * Bug fixes:
 
 ** When assigning uidNumber, user_group.cache_user_name wasn't updated.

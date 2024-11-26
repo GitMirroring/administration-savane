@@ -153,4 +153,8 @@ $sys_passwd_file = "$sys_appdatadir/passwd";
 $sys_passwd_common_gid = 1003;
 $sys_passwd_home_dir = "$sys_pkgconfdir/user-home-dir";
 $sys_passwd_user_shell = "$sys_pkgconfdir/user-shell";
+
+# The limiting value for the maximum item number shown at once when browsing
+# trackers.
+$sys_max_items_per_page = 1000;
 ?>

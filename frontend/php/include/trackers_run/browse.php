@@ -396,15 +396,16 @@ if ($user_id != 100)
   }
 $where .= ")";
 
-# If the user asked for more than 150 items to be shown,
-# restrict arbitrarily to 150:
-# It would be too heavy on the database if this was done very frequently
-# and we already found some project giving direct links to 500 the browse
-# item page with 500 items shown by default.
+# If the user asked for more items to be shown than the configured limit,
+# restrict to the limit: it would be too heavy on the database if this was
+# done very frequently and we already found some group giving direct
+# links to 500 the browse item page with 500 items shown by default.
 # Save the wanted number of max_rows for later use.
 $wanted_max_rows = $max_rows;
-if ($max_rows > 150 && !$digest)
-  $max_rows = 150;
+if (empty ($sys_max_items_per_page))
+  $sys_max_items_per_page = 150;
+if ($max_rows > $sys_max_items_per_page && !$digest)
+  $max_rows = $sys_max_items_per_page;
 
 $limit = "LIMIT ?, ?";
 $limit_params = [$offset, $max_rows];
