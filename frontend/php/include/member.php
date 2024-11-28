@@ -81,7 +81,7 @@ function member_user_group_fields ($user_id, $group_id, $status)
   $gid = group_get_gidNumber ($group_id);
   $cols = [
    'admin_flags' => $status, 'cache_gidNumber' => $gid,
-   'cache_uidNumber' => $uid
+   'cache_uidNumber' => $uid, 'cache_user_name' => user_getname ($user_id)
   ];
   $cond = ['user_id' => $user_id, 'group_id' => $group_id];
   return [$cols, $cond];
