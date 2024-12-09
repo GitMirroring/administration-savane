@@ -250,13 +250,14 @@ function context_title ()
 {
   global $group_id;
   $title = null;
-  foreach (['list', 'conf', 'custom'] as $f)
-    {
-      $func = "context_cont_{$f}_title";
-      $title = $func ();
-      if ($title !== null)
-        break;
-    }
+  if (defined ('CONTEXT'))
+    foreach (['list', 'conf', 'custom'] as $f)
+      {
+        $func = "context_cont_{$f}_title";
+        $title = $func ();
+        if ($title !== null)
+          break;
+      }
 
   if (isset ($group_id))
     {
