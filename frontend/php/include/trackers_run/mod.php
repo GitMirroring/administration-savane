@@ -818,8 +818,11 @@ if ($is_manager && ARTIFACT != "cookbook")
 
         $res = search_run ($reassign_change_group_search, "soft", 0);
         $list_is_empty = true;
-        while (list ($grp_name, $ug_name, $grp_id) = db_fetch_array ($res))
+        while ($row = db_fetch_array ($res))
           {
+            $grp_id = $row['group_id'];
+            $ug_name = $row['unix_group_name'];
+            $grp_name = $row['group_name'];
             if ($grp_id == $group_id) # Don't reassign to itself.
               continue;
             $list_is_empty = false;

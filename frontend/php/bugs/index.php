@@ -346,10 +346,16 @@ switch ($func)
 
     # To keep track of changes.
     $changes = [];
+    $deps_requested = false;
+    foreach (utils_get_dependable_trackers () as $t)
+      {
+        $var = "dependent_on_$t";
+        $deps_requested = $deps_requested || !empty ($$var);
+      }
 
     # Special case: we may be searching for an item, in that case
     # reprint the same page, plus search results.
-    if ($depends_search || $reassign_change_group_search)
+    if (($depends_search && !$deps_requested) || $reassign_change_group_search)
       {
         if ($depends_search)
           {
