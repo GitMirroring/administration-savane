@@ -1015,7 +1015,8 @@ function utils_disable_cache ()
 function utils_public_file_url ($file)
 {
   global $sys_home;
-  return "{$sys_home}file/{$file['name']}?file_id={$file['id']}";
+  $name = urlencode ($file['name']);
+  return "{$sys_home}file/$name?file_id={$file['id']}";
 }
 
 # Find an item in a tracker, fetch the fields listed in $fields
