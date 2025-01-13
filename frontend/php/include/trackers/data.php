@@ -9,7 +9,7 @@
 # Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
-# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
 #
 # This file is part of Savane.
 #
@@ -1670,6 +1670,24 @@ function trackers_data_handle_update (
   );
 }
 
+function trackers_data_reassign_check_artifact ($change_artifact)
+{
+  if ($change_artifact)
+    return false;
+  fb (_("Unable to find out to which artifact the item is to be\n"
+        . "reassigned, exiting."), 1);
+  return true;
+}
+
+function trackers_data_reassign_check_identical ($new_group_id, $artifact)
+{
+  global $group_id;
+  if ($new_group_id != $group_id || ARTIFACT != $artifact)
+    return false;
+  fb (_("No reassignation required or possible."), 1);
+  return true;
+}
+
 function trackers_data_reassign_item (
   $item_id, $reassign_change_group, $reassign_change_artifact
 )
@@ -1688,11 +1706,8 @@ function trackers_data_reassign_item (
   if (!$new_group_id)
     $new_group_id = $group_id;
 
-  if ($new_group_id == $group_id && ARTIFACT == $reassign_change_artifact)
-    {
-      fb (_("No reassignation required or possible."), 1);
-      return false;
-    }
+  if (trackers_data_reassign_check_identical ($new_group_id, $artifact))
+    return false;
 
   $now = time ();
 
@@ -1712,12 +1727,8 @@ function trackers_data_reassign_item (
   if (!$reassign_change_group)
     $reassign_change_group = $group_id;
 
-  if (!$reassign_change_artifact)
-    {
-      fb (_("Unable to find out to which artifact the item is to be\n"
-            . "reassigned, exiting."), 1);
-          return false;
-    }
+  if (trackers_data_reassign_check_artifact ($reassign_change_artifact))
+    return false;
 
   # Move item.
   $result = db_autoexecute (
