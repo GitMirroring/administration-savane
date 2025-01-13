@@ -6,9 +6,9 @@
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2002-2004, 2006 Rudy Gevaert
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
-# Copyright (C) 2015-2017 Bob Proulx
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
-# Copyright (C) 2013, 2014, 2017-2024 Ineiev <ineiev@gnu.org>
+# Copyright (C) 2015-2020, 2022, 2024 Bob Proulx
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #

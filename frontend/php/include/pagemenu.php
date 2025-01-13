@@ -9,7 +9,7 @@
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2008-2017, 2020 Karl Berry (tiny reordering, downcasing,
 #   #devtools)
-# Copyright (C) 2013, 2014, 2017-2024 Ineiev
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
 #
 # This file is part of Savane.
 #
