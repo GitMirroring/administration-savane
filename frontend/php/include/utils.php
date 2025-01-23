@@ -237,6 +237,7 @@ function utils_cutstring ($string, $length = 35)
 function utils_utils_strftime ($timestamp, $format)
 {
   $env['LC_ALL'] = setlocale (LC_TIME, 0);
+  $env['TZ'] = getenv ('TZ');
   $cmd = "date +$format -d @$timestamp";
   utils_run_proc ($cmd, $output, $error, ['env' => $env]);
   $output = substr ($output, 0, -1); # Drop trailing "\n".
