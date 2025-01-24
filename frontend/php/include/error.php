@@ -87,12 +87,13 @@ function error_level_name ($errno)
     E_USER_ERROR => "E_USER_ERROR",
     E_USER_WARNING => "E_USER_WARNING",
     E_USER_NOTICE => "E_USER_NOTICE",
-    E_STRICT => "E_STRICT",
     E_RECOVERABLE_ERROR => "E_RECOVERABLE_ERROR",
     E_DEPRECATED => "E_DEPRECATED",
     E_USER_DEPRECATED => "E_USER_DEPRECATED",
     E_ALL => "E_ALL"
   ];
+  if (version_compare (PHP_VERSION, '8.4.0') < 0)
+    $names[E_STRICT] = "E_STRICT";
   if (array_key_exists ($errno, $names))
     return $names[$errno];
   return $errno;

@@ -2,7 +2,7 @@
 
 [FRONTEND]
 
-* Support for PHP 8.4 was declared.
+* Support for PHP 8.4 was added.
 
 * Support for encrypted comments via email was added.
 
