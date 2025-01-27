@@ -272,7 +272,7 @@ while ($field_name = trackers_list_all_fields ())
     # its values. If we already have a value, we are probably in
     # step 2 of a search.
 
-    # If nocache is set, we were explicetely asked to rely only
+    # If nocache is set, we were explicitely asked to rely only
     # on database content.
     if (!isset ($nocache))
       $nocache = false;
@@ -289,7 +289,8 @@ while ($field_name = trackers_list_all_fields ())
                 $$field_name = mktime (0, 0, 0, $mn, $dy, $yr);
               }
           }
-        $field_value = utils_specialchars ($$field_name);
+        if (isset ($$field_name))
+          $field_value = utils_specialchars ($$field_name);
       }
     list ($sz,) = trackers_data_get_display_size ($field_name);
     $label = trackers_field_label_display (
