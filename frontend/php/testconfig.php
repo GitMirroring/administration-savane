@@ -44,8 +44,7 @@
 $testconfig_php = true;
 require_once ("include/ac_config.php");
 $sys_file_domain = '';
-$sys_linguas = "en:es";
-foreach (['i18n', 'database', 'mailman', 'savane-git'] as $inc)
+foreach (['database', 'mailman', 'savane-git'] as $inc)
   require_once ("include/$inc.php");
 
 function return_bytes ($v)
@@ -614,16 +613,72 @@ $phpfunctions =
  ];
 $page .= list_facilities ('function_exists', $phpfunctions);
 
+function test_language ($lang)
+{
+  global $locale_list;
+  if (!array_key_exists ($lang, $locale_list))
+    return "Locale for $lang is not defined.";
+  $loc = $locale_list[$lang];
+  $err = i18n_setup ($loc);
+  if (!empty ($err))
+    {
+      $ret = "<b>Fail:</b>\n<ul>\n";
+      foreach ($err as $e)
+        $ret .= "\n  <li>$e</li>\n";
+      return "$ret</ul>\n";
+    }
+  foreach (['Any', 'Apply'] as $str)
+    {
+      $res = gettext ($str);
+      if (($res == $str  && $lang == 'en') || ($res != $str && $lang != 'en'))
+        return "$str => $res";
+     }
+  $ret = "<b>Fail.</b> Check <code>locale -a</code> output,\n"
+    . "be sure to install language-pack-* in Trisquel";
+  return $ret;
+}
+
+function test_disabled_languages ($loc_list)
+{
+  global $sys_linguas;
+  $linguas = $sys_linguas;
+  $ret = "<p>Other defined languages: ";
+  if (empty ($loc_list))
+    return "{$ret}none.</p>\n";
+  $ret .= join (", ", array_keys ($loc_list)) . ".</p>\n";
+  $defs = [];
+  foreach ($loc_list as $code => $locale_names)
+    {
+      $sys_linguas .= ":$code";
+      register_language ($code, $locale_names[0], $locale_names[1]);
+      $defs[$code] = test_language ($code);
+    }
+  $sys_linguas = $linguas;
+  return $ret . html_dl ($defs);
+}
+
+function get_locales ()
+{
+  $res = utils_run_proc ('locale -a', $out, $err);
+  if ($res)
+    return "<p>Can't get locales defined: </p>\n<pre>$err</pre>\n";
+  $out = str_replace ("\n", ', ', substr ($out, 0, -1));
+  return "<p>Locales defined: $out.</p>\n";
+}
+
 function test_i18n ()
 {
-  i18n_setup ("es_ES.UTF-8");
-  $str = 'Any';
-  $res = gettext ($str);
-  if ($res == $str)
-    $ret = "<b>Fail.</b> Check <code>locale -a</code> output,\n"
-      . "be sure to install language-pack-* in Trisquel";
-  else
-    $ret = "$str => $res";
+  global $sys_linguas, $languages_available;
+  $loc_list = $languages_available;
+  $ret = get_locales () . "<p>sys_linguas: $sys_linguas</p>\n";
+  $defs = [];
+  foreach (explode (':', $sys_linguas) as $lang)
+    {
+      $defs[$lang] = test_language ($lang);
+      if (array_key_exists ($lang, $loc_list))
+        unset ($loc_list[$lang]);
+    }
+  $ret .= html_dl ($defs) . test_disabled_languages ($loc_list);
   i18n_setup ("en_US.UTF-8");
   return $ret;
 }
@@ -954,7 +1009,10 @@ function test_sysconfigs ()
 $page .= html_h (2, "Configured settings");
 
 if (is_readable ($sys_conf_file))
-  test_sysconfigs ();
+  {
+    require_once ("include/i18n.php");
+    test_sysconfigs ();
+  }
 else
   print "$page\nSince $sys_conf_file does not exist or is not readable, "
     . "this part cannot be checked.";

@@ -58,6 +58,9 @@ $locale_list = [];
 # Locale names offered for selection in /i18n.php.
 $locale_names = [];
 
+# Table of languages supported by Savane: $code => [$locale, $name].
+$languages_available = [];
+
 # Add language to arrays:
 # $code - language code
 # $locale - locale to use
@@ -65,7 +68,8 @@ $locale_names = [];
 # isn't offered for selection on /i18n.php.
 function register_language ($code, $locale, $name = "")
 {
-  global $locale_list, $locale_names, $sys_linguas;
+  global $locale_list, $locale_names, $sys_linguas, $languages_available;
+  $languages_available[$code] = [$locale, $name];
   if (false === strpos (":$sys_linguas:", ":$code:"))
     return;
   $locale_list[$code] = "$locale.UTF-8";
@@ -149,13 +153,18 @@ define ('SV_LANG', $best_lang);
 function i18n_setup ($locale)
 {
   global $sys_localedir;
+  $err = [];
   # The LANGUAGE variable would override our settings, so we unset it.
   putenv ("LANGUAGE=");
-  setlocale (LC_ALL, $locale);
+  if (setlocale (LC_ALL, $locale) === false)
+    $err[] = no_i18n ('Failed to set locale.');
   utils_update_decimal_separator ();
   if (!empty ($sys_localedir))
-    bindtextdomain ('savane', $sys_localedir);
-  textdomain ('savane');
+    if (bindtextdomain ('savane', $sys_localedir) == false)
+      $err[] = no_i18n ('Failed to bind text domain.');
+  if (textdomain ('savane') != 'savane')
+    $err[] = no_i18n ('Failed to set text domain.');
+  return $err;
 }
 i18n_setup  ($locale);
 ?>

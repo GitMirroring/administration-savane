@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* More tests for localization are added in testconfig.php.
+
 * Support for PHP 8.4 was added.
 
 * Support for encrypted comments via email was added.
