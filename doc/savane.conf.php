@@ -121,7 +121,7 @@ $sys_gpg_name = 'gpg';
 # Directory where email signing key is located,
 # see doc/signed-notifications.
 $sys_gpg_home = "$sys_appdatadir/gnupg";
-# Enabled languages for web UI.
+# Enabled languages for web UI; see doc/i18n.
 $sys_linguas = "en:es:fr:he:pt:pt-br:ru";
 # Report PHP errors to specified addresses, see doc/cc-error.
 $sys_cc_error = [

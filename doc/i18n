@@ -1,0 +1,31 @@
+Savane Web UI can display its pages in the language selected by the user.
+This file discusses how to configure the languages availble to the user
+in Savane.  These procedures were tested on Trisquel 11.0.
+
+In order to enable localization, assign a colon-separated list of language
+codes to the $sys_linguas variable in savane.conf.php.
+
+Run 'locale -a' and see if locales for all languages you selected are
+present.  When some languages are absent, you can either install
+the respective language-pack-* (in Trisquel) or uncomment the relevant
+lines in /etc/locale.gen and run locale-gen.
+
+After changing the locale set in your system, restart the web server.
+In case of Apache, 'apachectl -k graceful' isn't sufficient; run
+'apachectl -k stop', wait for the server to shut down and run
+'apachectl -k start'.
+
+You can see the results of localization-related tests at
+/testconfig.php#i18n, including the list of enabled and disabled
+languages and the list of locales enabled in your system.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2025 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
