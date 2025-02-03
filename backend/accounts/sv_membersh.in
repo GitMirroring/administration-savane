@@ -137,7 +137,8 @@ sub offer_source_code
     AGPL notice: $script is part of Savane.
     In order to download the corresponding source code of Savane, run
 
-      rsync -avz --cvs-exclude $ENV{'USER'}\@$source_code_url .
+      rsync -avz --no-D --no-l --no-o --no-g --cvs-exclude \\
+        $ENV{'USER'}\@$source_code_url .
 
     EOF
   $msg =~ s, {4},,gm;
