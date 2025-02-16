@@ -1,7 +1,7 @@
 #! @PERL@ -I@pkgdatadir@/lib
 
 # Copyright (C) 2016 Assaf Gordon <assafgordon@gmail.com)
-# Copyright (C) 2024 Ineiev
+# Copyright (C) 2024, 2025 Ineiev
 #
 # This file isn't part of Savane, but is used with it.
 #
@@ -27,6 +27,7 @@ use Savane::Version;
 
 my ($geoip_db, $geoip_db6);
 my $query_string = '';
+my $pull_size = 5;
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -38,11 +39,11 @@ A URL Mirror redirector for GNU Savannah \"dl\" and \"ftpmirror\" servers.
 
   Environment variables
 
-GEOIP_DB: path to GeoIP.dat (use GeoIP library default when undefined);
+GEOIP_DB: path to GeoIP.dat (use GeoIP library default when undefined).
 
-GEOIP6_DB: path to GeoIP6.dat (use GeoIP library default when undefined);
+GEOIP6_DB: path to GeoIP6.dat (use GeoIP library default when undefined).
 
-LOG_DIR: path to log directory (no logs when undefined);
+LOG_DIR: path to log directory (no logs when undefined).
 
 MIRROR_FILE: the mirror list to use.
   Suggested values:
@@ -55,11 +56,15 @@ PATH_INFO: the relative path of the requested file from the topmost directory.
 QUERY_STRING: in the TEST mode, allow overriding REMOTE_ADDR with the
   'addr' parameter and remote country code with the 'cc' parameter.
 
-REMOTE_ADDR: The IP of the user.
+REMOTE_ADDR: the IP of the user.
 
 REQUEST_SCHEME: http or https.
 
 TEST: output a test page instead of redirecting.
+
+PULL_SIZE: minimum number of mirrors to choose from ($pull_size by default).
+  If the nearest country has fewer mirrors, next nearest countries will be
+  added.
 
 Running from the command line:
 
@@ -106,6 +111,7 @@ PrintVersionOrHelp ($help, 1);
 $geoip_db = $ENV{'GEOIP_DB'} if $ENV{'GEOIP_DB'};
 $geoip_db6 = $ENV{'GEOIP6_DB'} if $ENV{'GEOIP6_DB'};
 $query_string = $ENV{'QUERY_STRING'} if exists $ENV{'QUERY_STRING'};
+$pull_size = $ENV{'PULL_SIZE'} if exists ($ENV{'PULL_SIZE'});
 
 my $remote_addr = $ENV{'REMOTE_ADDR'};
 die "REMOTE_ADDR environment variable is empty.\n" unless $remote_addr;
@@ -222,6 +228,24 @@ sub set_overrides
   return ($ret{'addr'}, $ret{'cc'});
 }
 
+sub get_source_list
+{
+  my $cc = shift;
+  my (@c_list, @m_list);
+  my $n = 0;
+  foreach my $s (split (',', $source_countries->{$cc}))
+    {
+      my @m = @{$mirrors->{$s}};
+      next if $#m < 0;
+      push @c_list, $s;
+      push @m_list, @m;
+      $n += $#m + 1;
+      last if $n >= $pull_size;
+    }
+  unshift (@m_list, join (',', @c_list));
+  return @m_list;
+}
+
 load_mirrors ($mirror_file);
 
 $gi = open_geoip ($geoip_db, $remote_addr)
@@ -231,8 +255,8 @@ my ($addr_ovr, $cc_ovr) = set_overrides ($query_string);
 $remote_addr = $addr_ovr || $remote_addr;
 my $remote_cc = remote_country ($remote_addr);
 $remote_cc = $cc_ovr || $remote_cc;
-my $source_cc = $source_countries->{$remote_cc || $default_cc};
-my @mirror_list = @{$mirrors->{$source_cc || $default_cc}};
+my @mirror_list = get_source_list ($remote_cc || $default_cc);
+my $source_cc = shift @mirror_list;
 
 my $fallback_mirror = "$scheme://download-mirror.savannah.gnu.org/releases";
 # $fallback_mirror shouldn't be used.  That can't occur unless
@@ -261,6 +285,7 @@ $remote_addr .= ' (overridden in query string)' if defined $addr_ovr;
 $remote_cc .= ' (overridden in query string)' if defined $cc_ovr;
 
 my $cc_mirrors = join ("\n    ", @mirror_list);
+my $actual_pull_size = $#mirror_list + 1;
 
 my $msg =<<"EOF";
   content-type: text/plain\r
@@ -273,6 +298,8 @@ my $msg =<<"EOF";
   Detected remote address: $remote_addr
   Detected country: $country
   Country code: $remote_cc
+  Pull from countries: $source_cc
+  Actual pull size: $actual_pull_size
   Suggested mirror: $mirror
 
   All mirrors from $source_cc:

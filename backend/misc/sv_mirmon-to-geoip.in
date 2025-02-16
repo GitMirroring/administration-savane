@@ -256,65 +256,65 @@ sub load_mirror_list
     }
 }
 
+sub denied_distance
+{
+  my ($c0, $c1) = @_;
+  return -1 unless defined $source_overrides{$c0};
+  foreach my $c (split /,/, $source_overrides{$c0})
+    {
+      $c =~ s/\s*//g;
+      next unless $c =~ m/^!(.*)/;
+      next unless "!$c1" eq $c;
+      return 289;
+    }
+  return -1;
+}
+
+sub preferred_distance
+{
+  my ($c0, $c1) = @_;
+  my $i = -1;
+  my $c;
+  return 1 unless defined $source_overrides{$c0};
+  foreach my $c (split /,/, $source_overrides{$c0})
+    {
+      $c =~ s/\s*//g;
+      next if $c =~ m/^!(.*)/;
+      return $i if $c eq $c1;
+      $i--;
+    }
+  return 1;
+}
+
 # The metric isn't exactly Euclidean on the geoid, but it must do for us.
 sub country_distance
 {
   my ($c0, $c1) = @_;
   my ($dx, $dy, $dz);
+  my $d;
+  $d = preferred_distance ($c0, $c1);
+  return $d if $d < -0;
+  $d = denied_distance ($c0, $c1);
+  return $d if $d > 0;
   $dx = $xc->{$c0} - $xc->{$c1};
   $dy = $yc->{$c0} - $yc->{$c1};
   $dz = $zc->{$c0} - $zc->{$c1};
   return $dx * $dx + $dy * $dy + $dz * $dz;
 }
 
-sub denied_countries
-{
-  my $cc = shift;
-  my %ret = ();
-  return %ret unless defined $source_overrides{$cc};
-  foreach my $c (split /,/, $source_overrides{$cc})
-    {
-      $c =~ s/\s*//g;
-      next unless $c =~ m/^!(.*)/;
-      $ret{$1} = 1;
-    }
-  return %ret;
-}
-
-sub preferred_countries
-{
-  my $cc = shift;
-  my @ret = ();
-  return @ret unless defined $source_overrides{$cc};
-  foreach my $c (split /,/, $source_overrides{$cc})
-    {
-      $c =~ s/\s*//g;
-      next if $c =~ m/^!(.*)/;
-      push @ret, $c;
-    }
-  return @ret;
-}
-
 sub find_source_country
 {
-  my ($code, $sch) = @_;
+  my ($code, $scheme) = @_;
   my $c;
-  foreach $c (preferred_countries ($code))
+  my %distances;
+  my @codes_sorted;
+  foreach $c (keys %{$countries->{$scheme}})
     {
-      return $c if defined $countries->{$sch}->{$c};
+      $distances{$c} = country_distance ($code, $c);
     }
-  my %denied = denied_countries ($code);
-  my ($min_dist, $min_code);
-  foreach $c (keys %{$countries->{$sch}})
-    {
-      my $dist = country_distance ($code, $c);
-      next if defined $denied{$c};
-      next if (defined $min_code && $min_dist < $dist);
-      $min_dist = $dist;
-      $min_code = $c;
-    }
-  $min_code ||= $fallback_country;
-  return $min_code;
+  @codes_sorted = sort { $distances{$a} <=> $distances{$b} } keys %distances;
+  return $fallback_country if $#codes_sorted < 0;
+  return join (',', @codes_sorted);
 }
 
 sub output_mirrors
