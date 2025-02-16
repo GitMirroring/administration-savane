@@ -106,5 +106,5 @@ full_list=$(printf "$agpled_list\n$rest_paths\n")
 years=$(parse_files "$full_list" | grep '^years:')
 
 fixup_notices "$agpled_list" || exit 1
-fixup_notices "$rest_paths" "-v skip_principals=1 -v dont_touch_license=1" \
+fixup_notices "$rest_paths" "-v dont_touch_license=1" \
   || exit 1
