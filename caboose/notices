@@ -18,6 +18,7 @@ cd "$top"
 rest_files="$(find doc -type f -print)"
 cd "$saved_wd"
 rest_files="ChangeLog README NEWS lib/Savane/Version.pm.in $rest_files"
+rest_files="INSTALL backend/README backend/external/README $rest_files"
 rest_paths="$(for i in $rest_files; do echo $top/$i; done)"
 
 list_files ()
