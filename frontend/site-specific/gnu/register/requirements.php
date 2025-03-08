@@ -55,14 +55,14 @@ print '<p>'
 if (substr ($GLOBALS['sys_default_domain'], -8) == ".gnu.org")
   print '<p>'
     . sprintf (
-        _("All packages registered in savannah.gnu.org are GNU packages,\n"
-          . "  so they should follow the "
-          . "<a href=\"%s\">GNU Coding Standards</a>."),
+        _("All packages registered in savannah.gnu.org (as opposed to "
+          . "savannah.<em>non</em>gnu.org) are GNU packages,\nso they should "
+          . "follow the <a href=\"%s\">GNU Coding Standards</a>."),
         '//www.gnu.org/prep/standards/'
       )
     . "</p>\n<p>"
     . _("Note that some parts of the GNU Coding standards are firm\n"
-        . "  requirements, while some are just preferences/suggestions.")
+        . "requirements, while some are just preferences or suggestions.")
     . "</p>\n";
 
 print "<p>"
@@ -84,7 +84,7 @@ printf (
 
 print "</p>\n<p>"
   . _("In order to preserve history and complete transparency, we will not\n"
-      . "remove projects with substantive content.")
+      . "remove projects that contain anything substantive.")
 
   . "</p>\n\n<h3>" . _('No dependencies on nonfree software') . "</h3>\n\n<p>"
   . sprintf (
@@ -184,13 +184,13 @@ printf (
 print "</p>\n<p>";
 
 printf (
-  _("Proper license notices should be applied to, at least, each source\n"
+  _("Proper legal notices should be applied to, at least, each source\n"
       . "(non-derived) file in your project.  For example, for the GPL, see "
       . "the\npage on <a href=\"%s\">How to Use GNU Licenses</a>.\n"
       . "In the case of binary source files, such as images,\n"
       . "it is ok for the license to be stated in a companion <tt>README</tt> "
       . "or\nsimilar file.  It is desirable for derived files to also include "
-      . "license\nnotices.  A copy of the full text of all applicable licenses "
+      . "legal\nnotices.  A copy of the full text of all applicable licenses "
       . "should also\nbe included in the project."),
    "//www.gnu.org/licenses/gpl-howto.html"
 );
