@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.14\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2024-10-28 11:24+0000\n"
-"PO-Revision-Date: 2024-10-28 15:44+0000\n"
+"POT-Creation-Date: 2025-03-08 10:48+0000\n"
+"PO-Revision-Date: 2025-03-08 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -3835,9 +3835,6 @@ msgstr ""
 msgid "Search an item (to fill a dependency against):"
 msgstr "Поиск заявки (для заполнения зависимости):"
 
-msgid "Terms to look for"
-msgstr "Слова для поиска"
-
 msgid "Tracker to search in"
 msgstr "Журнал для поиска"
 
@@ -3877,23 +3874,6 @@ msgstr "%1$s %2$s"
 
 msgid "New search"
 msgstr "Новый поиск"
-
-#, php-format
-msgid ""
-"Please select a dependency to add in the result of your search\n"
-"of '%s' in the database:"
-msgstr ""
-"Выберите зависимость, которую нужно добавить, из результата поиска по '%s':"
-
-msgid "group"
-msgstr "группа"
-
-msgid ""
-"None found. Please note that only search words of more than\n"
-"three characters are valid."
-msgstr ""
-"Ничего не найдено. Учтите, что в поиске участвуют только слова, в которых "
-"более трех символов."
 
 msgid "Mail Notification Carbon-Copy List"
 msgstr "Список оповещений"
@@ -4832,6 +4812,26 @@ msgstr "по возрастанию"
 msgid "down"
 msgstr "по убыванию"
 
+msgid ""
+"None found. Please note that only search words of more than\n"
+"three characters are valid."
+msgstr ""
+"Ничего не найдено. Учтите, что в поиске участвуют только слова, в которых "
+"более трех символов."
+
+msgid "group"
+msgstr "группа"
+
+#, php-format
+msgid ""
+"Please select a dependency to add in the result of your search\n"
+"of '%s' in the database:"
+msgstr ""
+"Выберите зависимость, которую нужно добавить, из результата поиска по '%s':"
+
+msgid "Automatic update due to transitions settings"
+msgstr "Автоматическое обновление согласно настройкам переходов"
+
 msgid "No changes have been made to this item"
 msgstr "Эта заявка не изменялась"
 
@@ -4854,9 +4854,6 @@ msgstr "Предыдущее значение"
 msgid "Replaced by"
 msgstr "Изменено на"
 
-msgid "Automatic update due to transitions settings"
-msgstr "Автоматическое обновление согласно настройкам переходов"
-
 msgid "Reverse comment order"
 msgstr "Обратить порядок комментариев"
 
@@ -4865,21 +4862,6 @@ msgstr "Первоначальная заявка"
 
 msgid "Jump to the recipe preview"
 msgstr "Предварительный просмотр рецепта"
-
-msgid "Items that depend on this one"
-msgstr "Заявки, зависящие от этой"
-
-msgid "Depends on the following items"
-msgstr "Зависит от следующих заявок"
-
-msgid "Delete this dependency"
-msgstr "Удалить эту зависимость"
-
-msgid "---- Private ----"
-msgstr "---- Скрыто ----"
-
-msgid "Digest:"
-msgstr "Сводка:"
 
 msgid "support dependencies"
 msgstr "зависимости журнала поддержки"
@@ -4898,6 +4880,21 @@ msgstr "зависимости журнала заплаток"
 #, php-format
 msgid "%s dependencies"
 msgstr "зависимости журнала %s"
+
+msgid "Digest:"
+msgstr "Сводка:"
+
+msgid "Depends on the following items"
+msgstr "Зависит от следующих заявок"
+
+msgid "Items that depend on this one"
+msgstr "Заявки, зависящие от этой"
+
+msgid "Delete this dependency"
+msgstr "Удалить эту зависимость"
+
+msgid "---- Private ----"
+msgstr "---- Скрыто ----"
 
 msgid ""
 "Here you can decide whether the lists of persons to be notified on new "
@@ -4992,13 +4989,13 @@ msgstr "Не удается обновить заявку"
 msgid "Item successfully updated"
 msgstr "Заявка успешно обновлена"
 
-msgid "No reassignation required or possible."
-msgstr "Переприсвоение не требуется или невозможно."
-
 msgid ""
 "Unable to find out to which artifact the item is to be\n"
 "reassigned, exiting."
 msgstr "Не удается определить, какому журналу нужно переприсвоить заявку."
+
+msgid "No reassignation required or possible."
+msgstr "Переприсвоение не требуется или невозможно."
 
 msgid "Unable to create a new item."
 msgstr "Не удается создать новую заявку."
@@ -5264,6 +5261,9 @@ msgstr "заплатки"
 #, php-format
 msgid "%s Patches"
 msgstr "заплатки %s"
+
+msgid "Terms to look for"
+msgstr "Слова для поиска"
 
 msgid "Area to search in"
 msgstr "Область поиска"
@@ -5798,9 +5798,19 @@ msgstr "вперед"
 msgid "End"
 msgstr "конец"
 
+#. TRANSLATORS: The first argument is the number of the first item shown,
+#. the second argument is the number of the last item shown,
+#. the third argument is the total number of items.
 #, php-format
 msgid "%1$s&ndash;%2$s / %3$s"
 msgstr "%1$s&ndash;%2$s / %3$s"
+
+#, php-format
+msgid "%d matching item"
+msgid_plural "%d matching items"
+msgstr[0] "найден %d объект"
+msgstr[1] "найдено %d объекта"
+msgstr[2] "найдено %d объектов"
 
 msgid "Show feedback again"
 msgstr "Повторить ответное сообщение"
@@ -8108,16 +8118,18 @@ msgstr ""
 
 #, php-format
 msgid ""
-"All packages registered in savannah.gnu.org are GNU packages,\n"
-"  so they should follow the <a href=\"%s\">GNU Coding Standards</a>."
+"All packages registered in savannah.gnu.org (as opposed to savannah.<em>non</"
+"em>gnu.org) are GNU packages,\n"
+"so they should follow the <a href=\"%s\">GNU Coding Standards</a>."
 msgstr ""
-"Все пакеты, регистрируемые на savannah.gnu.org, представляют\n"
+"Все пакеты, регистрируемые на savannah.gnu.org (в отличие от "
+"savannah.<em>nongnu</em>.org, представляют\n"
 "пакеты GNU, так что они должны следовать <a href=\"%s\">Стандартам "
 "программирования GNU</a>."
 
 msgid ""
 "Note that some parts of the GNU Coding standards are firm\n"
-"  requirements, while some are just preferences/suggestions."
+"requirements, while some are just preferences or suggestions."
 msgstr ""
 "Обратите внимание, что некоторые части Стандартов программирования GNU\n"
 "являются требованиями, в то время как другие&nbsp;&mdash; только\n"
@@ -8152,10 +8164,10 @@ msgstr ""
 
 msgid ""
 "In order to preserve history and complete transparency, we will not\n"
-"remove projects with substantive content."
+"remove projects that contain anything substantive."
 msgstr ""
 "В целях сохранения истории, а также полной прозрачности мы не удаляем "
-"проекты со сколько-нибудь значительным содержимым."
+"проекты, которые содержат что-либо значимое."
 
 msgid "No dependencies on nonfree software"
 msgstr "Независимость от несвободных программ"
@@ -8353,21 +8365,21 @@ msgstr ""
 
 #, php-format
 msgid ""
-"Proper license notices should be applied to, at least, each source\n"
+"Proper legal notices should be applied to, at least, each source\n"
 "(non-derived) file in your project.  For example, for the GPL, see the\n"
 "page on <a href=\"%s\">How to Use GNU Licenses</a>.\n"
 "In the case of binary source files, such as images,\n"
 "it is ok for the license to be stated in a companion <tt>README</tt> or\n"
-"similar file.  It is desirable for derived files to also include license\n"
+"similar file.  It is desirable for derived files to also include legal\n"
 "notices.  A copy of the full text of all applicable licenses should also\n"
 "be included in the project."
 msgstr ""
-"Соответствующие лицензионные уведомления должны прилагаться по меньшей мере "
-"к каждому исходном (не сгенерированному) файлу вашего проекта. Например, для "
+"Соответствующие юридические уведомления должны прилагаться по меньшей мере "
+"к каждому исходному (не сгенерированному) файлу вашего проекта. Например, для "
 "GPL см. страницу <a href=\"%s\">Как пользоваться лицензиями GNU</a>. В "
 "случае двоичных исходных файлов, таких как изображения, допустимо указывать "
 "лицензию в сопровождающем файле <tt>README</tt> или подобном ему. "
-"Желательно, чтобы сгенерированные файлы также содержали лицензионные "
+"Желательно, чтобы сгенерированные файлы также содержали юридические "
 "уведомления. Копия полного текста всех применяемых лицензий также должна "
 "включаться в проект."
 
@@ -8969,13 +8981,6 @@ msgstr "Эта группа содержит дополнения к офици�
 
 #~ msgid "Next Results"
 #~ msgstr "Следующие"
-
-#, php-format
-#~ msgid "%d matching item"
-#~ msgid_plural "%d matching items"
-#~ msgstr[0] "найден %d объект"
-#~ msgstr[1] "найдено %d объекта"
-#~ msgstr[2] "найдено %d объектов"
 
 #, php-format
 #~ msgid "Items %1$s to %2$s"
