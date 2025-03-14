@@ -8,6 +8,7 @@
 # Cronologia traducerii fișierului „savane”:
 # Traducerea inițială, făcută de R-GC, pentru versiunea savane-3.14, (55% - tradus), oct-2024.
 # Completare traducere, făcută de R-GC, pentru versiunea 3.14, (85% - tradus), feb-2025.
+# Completare traducere, făcută de R-GC, pentru versiunea 3.14, (100% - tradus), mar-2025.
 # Actualizare a traducerii pentru versiunea Y, făcută de X, Z(luna-anul).
 #
 msgid ""
@@ -15,15 +16,15 @@ msgstr ""
 "Project-Id-Version: savane 3.14\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
 "POT-Creation-Date: 2024-10-17 13:31+0000\n"
-"PO-Revision-Date: 2025-02-16 10:28+0100\n"
+"PO-Revision-Date: 2025-03-13 19:37+0100\n"
 "Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
 "Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
 "Language: ro\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n==0 || (n!=1 && n%100>=1 && n%100<=19) ? 1 : 2);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "X-Generator: Poedit 3.5\n"
 
 #: frontend/php/git/admin/index.php:54 frontend/php/cvs/admin/index.php:65
@@ -164,7 +165,7 @@ msgid ""
 "to the Carbon-Copy list."
 msgstr ""
 "Adresa de e-mail a expeditorului nu este valabilă și,\n"
-"prin urmare, nu a fost adăugată la lista  de „copie-la-indigo” (CC)."
+"prin urmare, nu a fost adăugată la lista de „copie-la-indigo” (CC)."
 
 #: frontend/php/bugs/index.php:321
 msgid "Missing parameters, nothing added."
@@ -1115,7 +1116,7 @@ msgstr "Lățimea coloanei (opțional)"
 
 #: frontend/php/bugs/admin/editqueryforms.php:216
 msgid "Personal"
-msgstr "personal"
+msgstr "Plic personal"
 
 #. TRANSLATORS: this string is as argument in
 #. "Browse with the %s query form".
@@ -8452,7 +8453,7 @@ msgstr "Inelul de chei GPG pentru publicarea grupului"
 #: frontend/php/project/memberlist-gpgkeys.php:66
 #, php-format
 msgid "Release GPG keyring of %s group."
-msgstr "Inelul de chei GPG pentru publicarea grupului %s"
+msgstr "Inelul de chei GPG pentru publicarea grupului %s."
 
 #: frontend/php/project/memberlist-gpgkeys.php:88
 #, php-format
@@ -8989,7 +8990,7 @@ msgstr ""
 
 #: frontend/php/project/admin/useradmin.php:105
 msgid "Approve users for group"
-msgstr ""
+msgstr "Aprobă utilizatorii pentru grup"
 
 #: frontend/php/project/admin/useradmin.php:111
 msgid "Removing users from group"
@@ -9001,6 +9002,10 @@ msgid ""
 "below. The administrators of a project cannot be removed unless they quit.\n"
 "Pending users are at the bottom of the list."
 msgstr ""
+"Pentru a elimina utilizatorii, selectați numele acestora\n"
+"și apăsați butonul de mai jos. Administratorii unui proiect\n"
+"nu pot fi eliminați decât dacă se retrag.\n"
+"Utilizatorii în așteptare sunt în partea de jos a listei."
 
 #: frontend/php/project/admin/useradmin.php:128
 msgid "Pending:"
@@ -9008,11 +9013,11 @@ msgstr "În așteptare:"
 
 #: frontend/php/project/admin/useradmin.php:138
 msgid "Remove users from group"
-msgstr ""
+msgstr "Eliminați utilizatorii din grup"
 
 #: frontend/php/project/admin/useradmin.php:143
 msgid "Adding users to group"
-msgstr ""
+msgstr "Adăugarea utilizatorilor în grup"
 
 #: frontend/php/project/admin/useradmin.php:145
 msgid ""
@@ -9020,145 +9025,147 @@ msgid ""
 "database with the following search tool. A list of users, depending on the\n"
 "names you'll type in this form, will be generated."
 msgstr ""
+"Puteți căuta unul sau mai mulți utilizatori pentru a-i adăuga,\n"
+"în întreaga bază de date a utilizatorilor cu următorul instrument\n"
+"de căutare. Va fi generată o listă de utilizatori, în funcție de\n"
+"numele pe care le veți introduce în acest formular."
 
 #: frontend/php/project/admin/useradmin.php:153
 msgid "Search users"
-msgstr ""
+msgstr "Caută utilizatori"
 
 #: frontend/php/project/admin/useradmin.php:186
 msgid "Add users to group"
-msgstr ""
+msgstr "Adaugă utilizatori în grup"
 
 #: frontend/php/project/admin/useradmin.php:194
 msgid "Below is the result of your search."
-msgstr ""
+msgstr "Mai jos este rezultatul căutării dvs."
 
 #: frontend/php/project/admin/useradmin.php:204
 #, php-format
 msgid "User %s added to the group."
-msgstr ""
+msgstr "Utilizatorul %s a fost adăugat în grup."
 
 #: frontend/php/project/admin/useradmin.php:216
 #, php-format
 msgid "User %s deleted from the group."
-msgstr ""
+msgstr "Utilizatorul %s a fost șters din grup."
 
 #: frontend/php/project/admin/userperms.php:113
 #, php-format
 msgid "Personal permissions of %s were overridden by squad permissions"
-msgstr ""
+msgstr "Permisiunile personale ale %s au fost înlocuite de permisiunile echipei"
 
 #: frontend/php/project/admin/userperms.php:137
 #, php-format
 msgid "Unable to change squad %s permissions"
-msgstr ""
+msgstr "Nu se pot modifica permisiunile echipei %s"
 
 #: frontend/php/project/admin/userperms.php:138
 #, php-format
 msgid "Unable to change user %s permissions"
-msgstr ""
+msgstr "Nu se pot modifica permisiunile utilizatorului %s"
 
 #: frontend/php/project/admin/userperms.php:153
 #, php-format
 msgid "Changed Squad %s Permissions"
-msgstr ""
+msgstr "Permisiuni schimbate pentru echipa %s"
 
 #: frontend/php/project/admin/userperms.php:158
 #, php-format
 msgid "Changed User %s Permissions"
-msgstr ""
+msgstr "Permisiuni schimbate pentru utilizatorul %s"
 
 #: frontend/php/project/admin/userperms.php:382
 msgid "Unable to change group default permissions."
-msgstr ""
+msgstr "Nu se pot modifica permisiunile implicite ale grupului."
 
 #: frontend/php/project/admin/userperms.php:384
 msgid "Permissions for the group updated."
-msgstr ""
+msgstr "Permisiunile pentru grup au fost actualizate."
 
 #: frontend/php/project/admin/userperms.php:463
 msgid "Squad members will automatically obtain their squad permissions."
-msgstr ""
+msgstr "Membrii echipei vor obține automat permisiunile lor de echipă."
 
 #: frontend/php/project/admin/userperms.php:476
 #: frontend/php/project/admin/userperms.php:540
 msgid "Private Items"
-msgstr ""
+msgstr "Elemente private"
 
 #: frontend/php/project/admin/userperms.php:503
 msgid "Permissions per squad"
-msgstr ""
+msgstr "Permisiuni pentru fiecare echipă"
 
 #: frontend/php/project/admin/userperms.php:506
 msgid "No Squads Found"
-msgstr ""
+msgstr "Nu s-au găsit echipe"
 
 #: frontend/php/project/admin/userperms.php:509
 #: frontend/php/project/admin/userperms.php:590
 msgid "General Permissions"
-msgstr ""
+msgstr "Permisiuni generale"
 
 #: frontend/php/project/admin/userperms.php:521
 msgid "Group admins are always allowed to read private items."
-msgstr ""
+msgstr "Administratorii grupului au întotdeauna permisiunea de a citi elementele private."
 
 #: frontend/php/project/admin/userperms.php:531
 msgid "You are Admin"
-msgstr ""
+msgstr "Sunteți administrator"
 
 #: frontend/php/project/admin/userperms.php:534
-#, fuzzy
 msgid "Admin"
-msgstr "administratori"
+msgstr "Administrator"
 
 #: frontend/php/project/admin/userperms.php:557
 #: frontend/php/project/admin/userperms.php:590
 msgid "On Duty"
-msgstr ""
+msgstr "În serviciu"
 
 #: frontend/php/project/admin/userperms.php:583
 msgid "Permissions per member"
-msgstr ""
+msgstr "Permisiuni pentru fiecare membru"
 
 #: frontend/php/project/admin/userperms.php:586
 msgid "No Members Found"
-msgstr ""
+msgstr "Nu s-au găsit membri"
 
 #: frontend/php/project/admin/userperms.php:599
 msgid "Group trackers posting restrictions"
-msgstr ""
+msgstr "Restricții de publicare a monitoarelor de grup"
 
 #. TRANSLATORS: this is the header for a column with two rows,
 #. "Posting new items" and "Posting comments".
 #: frontend/php/project/admin/userperms.php:603
 msgid "Applies when ..."
-msgstr ""
+msgstr "Se aplică când ..."
 
 #: frontend/php/project/admin/userperms.php:607
 msgid ""
 "Here you can set the minimal authentication level required in order to\n"
 "post on the trackers."
-msgstr ""
+msgstr "Aici puteți configura nivelul minim de autentificare necesar pentru a posta pe monitoare."
 
 #. TRANSLATORS: this is a column row whose header says "Applies when ...".
 #: frontend/php/project/admin/userperms.php:619
 msgid "Posting new items"
-msgstr ""
+msgstr "Publicarea de elemente noi"
 
 #. TRANSLATORS: this is a column row whose header says "Applies when ...".
 #: frontend/php/project/admin/userperms.php:633
 msgid "Posting comments"
-msgstr ""
+msgstr "Publicarea de comentarii"
 
 #: frontend/php/project/admin/userperms.php:661
 msgid "Group Default Permissions"
-msgstr ""
+msgstr "Permisiunile implicite ale grupului"
 
 #: frontend/php/project/admin/userperms.php:678
 #: frontend/php/project/admin/editgroupfeatures.php:360
-#, fuzzy
 msgid "Task Tracker"
-msgstr "<!-- Mutați la -->Gestionar de monitorizare a sarcinii/funcției"
+msgstr "Monitor de sarcini"
 
 #: frontend/php/project/admin/userperms.php:679
 msgid "Cookbook Manager"
@@ -9166,37 +9173,36 @@ msgstr "Gestionarul de rețete"
 
 #: frontend/php/project/admin/editgroupfeatures.php:170
 msgid "Update successful."
-msgstr ""
+msgstr "Actualizare efectuată cu succes."
 
 #: frontend/php/project/admin/editgroupfeatures.php:189
 msgid "Nothing to update."
-msgstr ""
+msgstr "Nimic de actualizat."
 
 #: frontend/php/project/admin/editgroupfeatures.php:265
 #: frontend/php/project/admin/editgroupfeatures.php:290
 msgid "Alternative Address"
-msgstr ""
+msgstr "Adresă alternativă"
 
 #: frontend/php/project/admin/editgroupfeatures.php:279
 msgid "You can activate or deactivate feature for your group. In some cases, depending on the system administrator's choices, you can even use change the URL for a feature. If the field &ldquo;alternative address&rdquo; is empty, the standard is used."
-msgstr ""
+msgstr "Puteți activa sau dezactiva funcția pentru grupul dvs. În unele cazuri, în funcție de opțiunile administratorului de sistem, puteți utiliza chiar și modificarea adresei URL pentru o caracteristică. Dacă câmpul &ldquo; adresa alternativă&rdquo; este gol, se utilizează adresa standard."
 
 #: frontend/php/project/admin/editgroupfeatures.php:289
 msgid "Feature, Artifact"
-msgstr ""
+msgstr "Caracteristică, artefact"
 
 #: frontend/php/project/admin/editgroupfeatures.php:289
-#, fuzzy
 msgid "Activated"
-msgstr "activat"
+msgstr "Activat"
 
 #: frontend/php/project/admin/editgroupfeatures.php:290
 msgid "Standard Address"
-msgstr ""
+msgstr "Adresă standard"
 
 #: frontend/php/project/admin/editgroupfeatures.php:298
 msgid "Homepage Source Code Web Browsing"
-msgstr ""
+msgstr "Răsfoind codul sursă al paginii principale"
 
 #: frontend/php/project/admin/editgroupfeatures.php:303
 msgid "Documentation"
@@ -9204,44 +9210,44 @@ msgstr "Documentație"
 
 #: frontend/php/project/admin/editgroupfeatures.php:319
 msgid "Download Area Directory"
-msgstr ""
+msgstr "Directorul ariei de descărcare"
 
 #: frontend/php/project/admin/editgroupfeatures.php:338
 msgid "CVS Web Browsing"
-msgstr ""
+msgstr "Navigare web prin depozitul CVS"
 
 #: frontend/php/project/admin/editgroupfeatures.php:342
 msgid "Arch Web Browsing"
-msgstr ""
+msgstr "Navigare web prin depozitul Arch"
 
 #: frontend/php/project/admin/editgroupfeatures.php:343
 msgid "Subversion Web Browsing"
-msgstr ""
+msgstr "Navigare web prin depozitul Subversion"
 
 #: frontend/php/project/admin/editgroupfeatures.php:344
 msgid "Git Web Browsing"
-msgstr ""
+msgstr "Navigare web prin depozitul Git"
 
 #: frontend/php/project/admin/editgroupfeatures.php:345
 msgid "Mercurial Web Browsing"
-msgstr ""
+msgstr "Navigare web prin depozitul Mercurial"
 
 #: frontend/php/project/admin/editgroupfeatures.php:346
 msgid "Bazaar Web Browsing"
-msgstr ""
+msgstr "Navigare web prin depozitul Bazaar"
 
 #: frontend/php/project/admin/history.php:52
 msgid "Group History"
-msgstr ""
+msgstr "Istoricul grupului"
 
 #: frontend/php/forum/forum.php:132
 msgid "This forum ID doesn't exist."
-msgstr ""
+msgstr "Acest ID de forum nu există."
 
 #. TRANSLATORS: this is forum style to select.
 #: frontend/php/forum/forum.php:193
 msgid "Nested"
-msgstr ""
+msgstr "Imbricat"
 
 #. TRANSLATORS: this is forum style to select.
 #: frontend/php/forum/forum.php:195
@@ -9251,12 +9257,12 @@ msgstr "Plat"
 #. TRANSLATORS: this is forum style to select.
 #: frontend/php/forum/forum.php:197
 msgid "Threaded"
-msgstr ""
+msgstr "Fire de discuție"
 
 #. TRANSLATORS: this is forum style to select.
 #: frontend/php/forum/forum.php:199
 msgid "No Comments"
-msgstr ""
+msgstr "Fără comentarii"
 
 #: frontend/php/forum/forum.php:203
 msgid "forum style"
@@ -9284,7 +9290,7 @@ msgstr "rânduri pe pagină"
 
 #: frontend/php/forum/forum.php:222
 msgid "Change View"
-msgstr ""
+msgstr "Schimbă vizualizarea"
 
 #: frontend/php/forum/forum.php:299
 msgid "Previous Messages"
@@ -9296,7 +9302,7 @@ msgstr "Mesajele următoare"
 
 #: frontend/php/forum/forum.php:324
 msgid "Start a New Thread:"
-msgstr ""
+msgstr "Începeți un nou fir de discuție:"
 
 #: frontend/php/forum/forum.php:333
 msgid "Error - choose a forum first"
@@ -9304,41 +9310,41 @@ msgstr "Eroare - alegeți mai întâi un forum"
 
 #: frontend/php/forum/message.php:54
 msgid "Choose a message first"
-msgstr ""
+msgstr "Alegeți mai întâi un mesaj"
 
 #: frontend/php/forum/message.php:55
 msgid "You must choose a message first"
-msgstr ""
+msgstr "Mai întâi trebuie să alegeți un mesaj"
 
 #: frontend/php/forum/message.php:83
 msgid "Message not found."
-msgstr ""
+msgstr "Mesajul nu a fost găsit."
 
 #. TRANSLATORS: the argument is message id.
 #: frontend/php/forum/message.php:87
-#, fuzzy, php-format
+#, php-format
 msgid "Message %s"
-msgstr "| Mesaj=%s"
+msgstr "Mesajul %s"
 
 #. TRANSLATORS: the first argument is subject, the second is user's name,
 #. the third is date.
 #: frontend/php/forum/message.php:92
 #, php-format
 msgid "%1$s (posted by %2$s, %3$s)"
-msgstr ""
+msgstr "%1$s (publicat de %2$s, %3$s)"
 
 #: frontend/php/forum/message.php:105
 msgid "Post a followup to this message"
-msgstr ""
+msgstr "Publicați o replică la acest mesaj"
 
 #: frontend/php/404-export.php:46
 msgid "Requested XML not Found (Error 404)"
-msgstr ""
+msgstr "Fișierul XML solicitat nu a fost găsit (eroare 404)"
 
 #: frontend/php/404-export.php:51
 #, php-format
 msgid "The XML file you are trying to access doesn't exist on %s."
-msgstr ""
+msgstr "Fișierul XML pe care încercați să îl accesați nu există pe %s."
 
 #: frontend/php/404-export.php:56
 #, php-format
@@ -9347,71 +9353,74 @@ msgid ""
 "think that there's a broken link on %s that must be repaired, <a href=\"%s\">\n"
 "file a support request</a>, mentioning the URL you tried to access (%s)."
 msgstr ""
+"Aceasta se datorează cu siguranță faptului că nu a fost încă generată sau\n"
+"este prea veche. Dacă credeți că există o legătură întreruptă pe %s\n"
+"care trebuie reparată, <a href=\"%s\"> depuneți o cerere de asistență</a>,\n"
+"menționând adresa URL pe care ați încercat să o accesați (%s)."
 
 #: frontend/php/404-export.php:66 frontend/php/404.php:63
 #, php-format
 msgid "Otherwise, you can return to the <a href=\"%s\">%s main page</a>."
-msgstr ""
+msgstr "În caz contrar, vă puteți întoarce la <a href=\"%s\">pagina principală a %s</a>."
 
 #: frontend/php/news/submit.php:72
 msgid "Title is missing"
-msgstr ""
+msgstr "Lipsește titlul"
 
 #: frontend/php/news/submit.php:75
 msgid "News Posted: it will need to be approved by a news manager of this group before it shows on the front page."
-msgstr ""
+msgstr "Știri publicate: va trebui să fie aprobate de un responsabil de știri al acestui grup înainte de a fi afișate pe prima pagină."
 
 #: frontend/php/news/submit.php:83
 msgid "Error doing insert"
-msgstr ""
+msgstr "Eroare la inserare"
 
 #: frontend/php/news/submit.php:90
 msgid "Submit News"
-msgstr ""
+msgstr "Trimiteți știri"
 
 #: frontend/php/news/submit.php:93
 msgid "A news manager of this group will have to review and approve the news."
-msgstr ""
+msgstr "Un responsabil de știri al acestui grup va trebui să revizuiască și să aprobe știrile."
 
 #: frontend/php/news/atom.php:52
-#, fuzzy
 msgid "No such group."
-msgstr "nu există acest grup"
+msgstr "Nu există acest grup."
 
 #. TRANSLATORS: this is page title, the argument is group name
 #. (like "GNU Coreutils").
 #: frontend/php/news/atom.php:82
 #, php-format
 msgid "%s - News"
-msgstr ""
+msgstr "%s - Știri"
 
 #: frontend/php/news/index.php:66
 msgid "This group doesn't post news."
-msgstr ""
+msgstr "Acest grup nu publică știri."
 
 #: frontend/php/news/index.php:80
 #, php-format
 msgid "Show details for the %s latest news."
 msgid_plural "Show details for the %s latest news."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Afișează detalii pentru %s dintre cele mai recente știri."
+msgstr[1] "Afișează detalii pentru %s dintre cele mai recente știri."
+msgstr[2] "Afișează detalii pentru %s dintre cele mai recente știri."
 
 #: frontend/php/news/index.php:85
 msgid "Number of news to show"
-msgstr ""
+msgstr "Numărul de știri de afișat"
 
 #: frontend/php/news/index.php:97
 msgid "Latest News Approved"
-msgstr ""
+msgstr "Ultimele știri aprobate"
 
 #: frontend/php/news/index.php:105
 msgid "Older News Approved"
-msgstr ""
+msgstr "Știri vechi aprobate"
 
 #: frontend/php/news/admin/index.php:64
 msgid "This group doesn't post news"
-msgstr ""
+msgstr "Acest grup nu publică știri"
 
 #: frontend/php/news/admin/index.php:72
 msgid "Updated"
@@ -9419,42 +9428,43 @@ msgstr "Actualizat"
 
 #: frontend/php/news/admin/index.php:81
 msgid "News Tracker Email Notification Settings"
-msgstr ""
+msgstr "Opțiuni de notificare prin e-mail pentru monitorul de știri"
 
 #: frontend/php/news/approve.php:60
 msgid "Action unavailable: only news managers can approve news."
-msgstr ""
+msgstr "Acțiune indisponibilă: numai responsabilii cu știrile pot aproba știrile."
 
 #: frontend/php/users.php:69 frontend/php/users.php:70
 msgid "-deleted account-"
-msgstr ""
+msgstr "-cont șters-"
 
 #. TRANSLATORS: the argument is user's name (like J. Random Hacker).
 #: frontend/php/users.php:75
 #, php-format
 msgid "%s profile"
-msgstr ""
+msgstr "Profil %s"
 
 #: frontend/php/users.php:84
 msgid ""
 "It is not a normal user account but a squad: it unites several\n"
 "users as if they were one (notifications, privileges, etc)."
 msgstr ""
+"Nu este un cont de utilizator normal, ci un cont de echipă: acesta reunește\n"
+"mai mulți utilizatori ca și cum ar fi unul singur (notificări, privilegii, etc.)."
 
 #: frontend/php/users.php:98
 #, php-format
 msgid "Open items submitted by %s"
-msgstr ""
+msgstr "Deschideți elementele trimise de %s"
 
 #: frontend/php/users.php:107
 #, php-format
 msgid "Open items assigned to %s"
-msgstr ""
+msgstr "Deschideți elementele atribuite la %s"
 
 #: frontend/php/users.php:113
-#, fuzzy
 msgid "General information"
-msgstr "\\ \\ Informații\\ generale"
+msgstr "Informații generale"
 
 #: frontend/php/users.php:123
 msgid "Note:"
@@ -9462,80 +9472,83 @@ msgstr "Notă:"
 
 #: frontend/php/users.php:124
 msgid "The account was deleted"
-msgstr ""
+msgstr "Contul a fost șters"
 
 #: frontend/php/users.php:142
 msgid "Send this user a mail"
-msgstr ""
+msgstr "Trimiteți un e-mail acestui utilizator"
 
 #: frontend/php/users.php:150
 msgid "Site member since:"
-msgstr ""
+msgstr "Membru al sitului de la data de:"
 
 #: frontend/php/users.php:163
 msgid "This user did not enable Resume & Skills."
-msgstr ""
+msgstr "Acest utilizator nu a activat CV-ul și competențele."
 
 #: frontend/php/users.php:166
 msgid "View Resume & Skills"
-msgstr ""
+msgstr "Vizualizare CV și competențe"
 
 #: frontend/php/users.php:172
 msgid "Download GPG Key"
-msgstr ""
+msgstr "Descarcă cheia GPG"
 
 #: frontend/php/users.php:191
 msgid "Group membership"
-msgstr ""
+msgstr "Membrii grupului"
 
 #: frontend/php/users.php:229
 msgid "No member found"
-msgstr ""
+msgstr "Nu s-a găsit niciun membru"
 
 #: frontend/php/users.php:244
 msgid "You could send a message if you were logged in."
-msgstr ""
+msgstr "Puteați trimite un mesaj dacă erați autentificat."
 
 #: frontend/php/markup-test.php:57 frontend/php/markup-test.php:68
 msgid "Test Markup"
-msgstr ""
+msgstr "Marcaj de testare"
 
 #: frontend/php/markup-test.php:60
 msgid "Markup Reminder and Test"
-msgstr ""
+msgstr "Reamintire și test de marcare"
 
 #: frontend/php/markup-test.php:62
 msgid ""
 "This page describes Savane markup language for formatting text you post\n"
 "in items or item comments. You can <a href=\"#test\">test it below</a>."
 msgstr ""
+"Această pagină descrie limbajul de marcare Savane pentru formatarea textului\n"
+"pe care îl publicați în articole sau comentarii la articole. Puteți <a \n"
+"href=\"#test\">testa mai jos</a>."
 
 #: frontend/php/markup-test.php:73
 msgid "Text to test"
-msgstr ""
+msgstr "Text pentru testare"
 
 #. TRANSLATORS: the argument is user id (a number).
 #: frontend/php/sendmessage.php:70
-#, fuzzy, php-format
+#, php-format
 msgid "User %s does not exist"
-msgstr "utilizatorul „%s” nu există."
+msgstr "Utilizatorul %s nu există."
 
 #: frontend/php/sendmessage.php:74
 msgid "Send a message"
-msgstr ""
+msgstr "Trimite un mesaj"
 
 #: frontend/php/sendmessage.php:88
 msgid "Message Sent"
-msgstr ""
+msgstr "Mesaj trimis"
 
 #: frontend/php/404.php:44
 msgid "Requested Page not Found (Error 404)"
-msgstr ""
+msgstr "Pagina solicitată nu a fost găsită (eroare 404)"
 
 #: frontend/php/404.php:48
 #, php-format
 msgid "The web page you are trying to access doesn't exist on %s."
-msgstr ""
+msgstr "Pagina web pe care încercați să o accesați nu există pe %s."
 
 #: frontend/php/404.php:53
 #, php-format
@@ -9544,18 +9557,21 @@ msgid ""
 "repaired, <a href=\"%s\">file a support request</a>, mentioning the URL you\n"
 "tried to access (%s)."
 msgstr ""
+"Dacă credeți că există o legătură întreruptă pe %s care trebuie reparată,\n"
+"<a href=\"%s\">întocmiți o cerere de asistență</a>, menționând adresa URL\n"
+"pe care ați încercat să o accesați (%s)."
 
 #: frontend/site-specific/gnu/git/index.php:51
 msgid "Note: this group has multiple Git repositories."
-msgstr ""
+msgstr "Notă: acest grup are mai multe depozite Git."
 
 #: frontend/site-specific/gnu/git/index.php:55
 msgid "Anonymous clone:"
-msgstr ""
+msgstr "Clonare anonimă:"
 
 #: frontend/site-specific/gnu/git/index.php:68
 msgid "Member clone:"
-msgstr ""
+msgstr "Clonare membru:"
 
 #: frontend/site-specific/gnu/git/index.php:73
 #: frontend/site-specific/gnu/svn/index.php:84
@@ -9563,7 +9579,7 @@ msgstr ""
 #: frontend/site-specific/gnu/hg/index.php:61
 #: frontend/site-specific/gnu/bzr/index.php:84
 msgid "membername"
-msgstr ""
+msgstr "nume-membru"
 
 #: frontend/site-specific/gnu/git/index.php:85
 #: frontend/site-specific/gnu/svn/index.php:78
@@ -9573,6 +9589,8 @@ msgid ""
 "The SSHv2 public key fingerprints for the machine hosting the source\n"
 "trees are:"
 msgstr ""
+"Amprentele digitale ale cheii publice SSHv2 pentru mașina care găzduiește\n"
+"arborii sursă sunt:"
 
 #: frontend/site-specific/gnu/git/index.php:89
 #: frontend/site-specific/gnu/hg/index.php:69
@@ -9581,7 +9599,7 @@ msgstr "Informații suplimentare"
 
 #: frontend/site-specific/gnu/svn/index.php:54
 msgid "Anonymous / read-only Subversion access"
-msgstr ""
+msgstr "Anonim / acces la Subversion numai-pentru-citire"
 
 #: frontend/site-specific/gnu/svn/index.php:56
 msgid ""
@@ -9589,10 +9607,13 @@ msgid ""
 "as follows.  The module you wish to check out must be specified as the\n"
 "&lt;<i>modulename</i>&gt;."
 msgstr ""
+"Depozitul Subversion al acestui proiect poate fi verificat anonim după cum\n"
+"urmează. Modulul pe care doriți să îl verificați trebuie să fie specificat\n"
+"ca &lt;<i>nume-modul</i>&gt;."
 
 #: frontend/site-specific/gnu/svn/index.php:61
 msgid "Access using the SVN protocol:"
-msgstr ""
+msgstr "Accesați folosind protocolul SVN:"
 
 #: frontend/site-specific/gnu/svn/index.php:63
 #: frontend/site-specific/gnu/svn/index.php:66
@@ -9600,11 +9621,11 @@ msgstr ""
 #: frontend/site-specific/gnu/cvs/index.php:72
 #: frontend/site-specific/gnu/cvs/index.php:112
 msgid "modulename"
-msgstr ""
+msgstr "nume-modul"
 
 #: frontend/site-specific/gnu/svn/index.php:64
 msgid "Access using HTTP (slower):"
-msgstr ""
+msgstr "Accesați folosind HTTP (mai lent):"
 
 #: frontend/site-specific/gnu/svn/index.php:68
 msgid ""
@@ -9612,22 +9633,25 @@ msgid ""
 "<i>modulename</i>. Refer to a project's specific instructions if\n"
 "you're unsure, or browse the repository with ViewVC."
 msgstr ""
+"De obicei, veți dori să utilizați <tt>trunk</tt> pentru\n"
+"<i>nume-modul</i>. Consultați instrucțiunile specifice unui proiect dacă\n"
+"nu sunteți sigur sau răsfoiți depozitul cu ViewVC."
 
 #: frontend/site-specific/gnu/svn/index.php:74
 msgid "Group member Subversion access via SSH"
-msgstr ""
+msgstr "Acces la Subversion pentru membrii grupului prin SSH"
 
 #: frontend/site-specific/gnu/svn/index.php:76
 msgid "Member access is performed using the Subversion over SSH method."
-msgstr ""
+msgstr "Accesul membrilor se realizează utilizând metoda Subversion prin SSH."
 
 #: frontend/site-specific/gnu/svn/index.php:86
 msgid "Software repository (over SSH):"
-msgstr ""
+msgstr "Depozit software (prin SSH):"
 
 #: frontend/site-specific/gnu/svn/index.php:89
 msgid "Importing into Subversion on Savannah"
-msgstr ""
+msgstr "Importarea în Subversion pe Savannah"
 
 #: frontend/site-specific/gnu/svn/index.php:92
 #, php-format
@@ -9637,34 +9661,41 @@ msgid ""
 "documentation</a> and then submit a request for the\n"
 "migration in the <a href=\"%s\">Savannah Administration</a> project."
 msgstr ""
+"Dacă proiectul dvs. are deja un depozit sursă existent pe care doriți să îl\n"
+"mutați în Savannah, verificați <a href=\"%s\">documentația de conversie</a> și apoi\n"
+"trimiteți o cerere de migrare în proiectul <a href=\"%s\">Administrare Savannah</a>."
 
 #: frontend/site-specific/gnu/svn/index.php:102
 msgid "Exporting Subversion tree from Savannah"
-msgstr ""
+msgstr "Exportarea arborelui Subversion din Savannah"
 
 #: frontend/site-specific/gnu/svn/index.php:104
 msgid ""
 "You can access your subversion raw repository using read-only access via\n"
 "rsync, and then use that copy as a local SVN repository:"
 msgstr ""
+"Puteți accesa depozitul dvs. subversion brut folosind acces numai-pentru-citire\n"
+"prin rsync și apoi să utilizați acea copie ca depozit SVN local:"
 
 #: frontend/site-specific/gnu/svn/index.php:110
 msgid "If you want a dump you can also use svnadmin:"
-msgstr ""
+msgstr "Dacă doriți o descărcare(dump), puteți utiliza de asemenea svnadmin:"
 
 #: frontend/site-specific/gnu/people/editjob.php:47
 msgid "Select Required Skills"
-msgstr ""
+msgstr "Selectați competențele necesare"
 
 #: frontend/site-specific/gnu/people/editjob.php:50
 msgid ""
 "Here you can edit/change the list of skills attached to this posting,\n"
 "so that developers can match their skills against your requirements."
 msgstr ""
+"Aici puteți edita/modifica lista de competențe atașată acestei oferte,\n"
+"astfel încât dezvoltatorii să își poată corela competențele cu cerințele dvs."
 
 #: frontend/site-specific/gnu/people/index.php:45
 msgid "Browse through the category menu to find groups looking for your help."
-msgstr ""
+msgstr "Răsfoiți meniul de categorii pentru a găsi grupurile care au nevoie de ajutorul dumneavoastră."
 
 #: frontend/site-specific/gnu/people/index.php:47
 msgid ""
@@ -9673,6 +9704,10 @@ msgid ""
 "<i>Post Jobs</i> section where you can submit help wanted requests\n"
 "to appear in this list."
 msgstr ""
+"Dacă sunteți administrator de grup, conectați-vă, intrați pe pagina grupului dvs.,\n"
+"urmați legătura de administrare a grupului (în bara de navigare) și veți găsi\n"
+"o secțiune <i>Publicare sarcini</i> unde puteți trimite cereri de ajutor pentru\n"
+"a apărea în această listă."
 
 #: frontend/site-specific/gnu/people/index.php:52
 #, php-format
@@ -9680,10 +9715,12 @@ msgid ""
 "To suggest new job categories, visit the\n"
 "<a href=\"%s\"> support manager</a>."
 msgstr ""
+"Pentru a sugera noi categorii de sarcini, vizitați\n"
+"<a href=\"%s\"> Responsabil de asistență tehnică/a>."
 
 #: frontend/site-specific/gnu/people/editresume.php:45
 msgid "Edit Your Profile"
-msgstr ""
+msgstr "Editați profilul dvs."
 
 #: frontend/site-specific/gnu/people/editresume.php:48
 msgid ""
@@ -9691,32 +9728,40 @@ msgid ""
 "The list of skills can then be matched with the list of jobs in\n"
 "our system."
 msgstr ""
+"Acum vă puteți edita/modifica lista de competențe și CV-ul.\n"
+"Lista de competențe poate fi apoi comparată cu lista de oferte de lucru\n"
+"din sistemul nostru."
 
 #: frontend/site-specific/gnu/people/editresume.php:52
 msgid ""
 "Note that only members of Savannah groups can post their resumes;\n"
 "other users can only list their skills."
 msgstr ""
+"Rețineți că numai membrii grupurilor Savannah își pot publica CV-urile; \n"
+"ceilalți utilizatori își pot lista doar competențele."
 
 #. TRANSLATORS: the argument is project name (like "GNU coreutils").
 #: frontend/site-specific/gnu/people/index_group.php:46
 #, php-format
 msgid "Project Help Wanted for %s"
-msgstr ""
+msgstr "Se caută ajutor pentru proiectul %s"
 
 #: frontend/site-specific/gnu/people/index_group.php:50
 msgid "Here is a list of positions available for this project."
-msgstr ""
+msgstr "Aici este o listă a ofertelor disponibile pentru acest proiect."
 
 #: frontend/site-specific/gnu/people/createjob.php:46
 msgid "Create a New Job"
-msgstr ""
+msgstr "Creați o sarcină nouă"
 
 #: frontend/site-specific/gnu/people/createjob.php:49
 msgid ""
 "Start by filling in the fields below. When you push &ldquo;continue,&rdquo;\n"
 "you will be shown a list of skills and experience levels that this job requires."
 msgstr ""
+"Începeți prin a completa câmpurile de mai jos. Când apăsați „continuare”,\n"
+"vi se va afișa o listă de competențe și niveluri de experiență necesare\n"
+"pentru această ofertă."
 
 #: frontend/site-specific/gnu/hashes.php:55
 msgid "GNU General Public License v3 or later"
@@ -9756,36 +9801,35 @@ msgstr "Licența bibliotecii de funcții standard iMatix"
 
 #: frontend/site-specific/gnu/hashes.php:73
 msgid "The W3C Software Notice and License"
-msgstr ""
+msgstr "Notificarea și licența software W3C"
 
 #: frontend/site-specific/gnu/hashes.php:75
 msgid "The Berkeley Database License"
-msgstr ""
+msgstr "Licența bazei de date Berkeley"
 
 #: frontend/site-specific/gnu/hashes.php:77
 msgid "The License of Python 1.6a2 and earlier versions"
-msgstr ""
+msgstr "Licența Python 1.6a2 și versiunile anterioare"
 
 #: frontend/site-specific/gnu/hashes.php:79
 msgid "The License of Python 2.0.1, 2.1.1, and newer versions"
-msgstr ""
+msgstr "Licența Python 2.0.1, 2.1.1 și versiunile mai noi"
 
 #: frontend/site-specific/gnu/hashes.php:81
 msgid "The Clarified Artistic License"
-msgstr ""
+msgstr "Licența artistică clarificată"
 
 #: frontend/site-specific/gnu/hashes.php:85
 msgid "The license of Perl (disjunction of the Artistic License and the GNU GPL)"
-msgstr ""
+msgstr "Licența Perl (disjuncția dintre Licența artistică și GNU GPL)"
 
 #: frontend/site-specific/gnu/hashes.php:87
 msgid "Expat License (sometime referred to as MIT License)"
-msgstr ""
+msgstr "Licența Expat (uneori menționată ca Licența MIT)"
 
 #: frontend/site-specific/gnu/hashes.php:89
-#, fuzzy
 msgid "Affero General Public License v1 or later"
-msgstr "Affero General Public License v1.0 sau ulterioară"
+msgstr "Licența publică generală Affero v1 sau ulterioară"
 
 #: frontend/site-specific/gnu/hashes.php:93
 msgid "GNU General Public License v2 or later with GNU Classpath special exception"
@@ -9805,58 +9849,51 @@ msgstr "Altă licență"
 
 #: frontend/site-specific/gnu/hashes.php:103
 msgid "GNU General Public License v2 or later (+ dual licensing)"
-msgstr ""
+msgstr "Licența publică generală GNU v2 sau ulterioară (+ licență dublă)"
 
 #: frontend/site-specific/gnu/hashes.php:105
-#, fuzzy
 msgid "GNU Affero General Public License v3 or later"
-msgstr "Affero General Public License v3.0 sau ulterioară"
+msgstr "Licența publică generală GNU Affero v3 sau ulterioară"
 
 #: frontend/site-specific/gnu/hashes.php:107
-#, fuzzy
 msgid "Apache 2.0"
-msgstr "Apache"
+msgstr "Apache 2.0"
 
 #: frontend/site-specific/gnu/hashes.php:135
-#, fuzzy
 msgid "0 - Undefined"
-msgstr "nedefinit"
+msgstr "0 - Nedefinită"
 
 #: frontend/site-specific/gnu/hashes.php:136
-#, fuzzy
 msgid "1 - Planning"
-msgstr "计划"
+msgstr "1 - Planificare"
 
 #: frontend/site-specific/gnu/hashes.php:137
 msgid "2 - Pre-Alpha"
-msgstr ""
+msgstr "2 - Pre-Alfa"
 
 #: frontend/site-specific/gnu/hashes.php:138
-#, fuzzy
 msgid "3 - Alpha"
-msgstr "alpha"
+msgstr "3 - Alfa"
 
 #: frontend/site-specific/gnu/hashes.php:139
-#, fuzzy
 msgid "4 - Beta"
-msgstr "%1 beta"
+msgstr "4 - Beta"
 
 #: frontend/site-specific/gnu/hashes.php:140
 msgid "5 - Production/Stable"
-msgstr ""
+msgstr "5 - Producție/Stabilă"
 
 #: frontend/site-specific/gnu/hashes.php:141
-#, fuzzy
 msgid "6 - Mature"
-msgstr "Adulți"
+msgstr "6 - Matură"
 
 #: frontend/site-specific/gnu/hashes.php:145
 msgid "? - Orphaned/Unmaintained"
-msgstr ""
+msgstr "? - Orfan/neîntreținut"
 
 #: frontend/site-specific/gnu/hashes.php:146
 msgid "9 - Decommissioned"
-msgstr ""
+msgstr "9 - Declasat"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
 #: frontend/site-specific/gnu/account/index_ssh.php:48
@@ -9867,6 +9904,10 @@ msgid ""
 "git, hg, rsync, scp, sftp or other services.  Only SSH keys are\n"
 "used for those purposes."
 msgstr ""
+"Parola dvs. %s este utilizată numai pentru conectarea la\n"
+"interfața web Savannah. Nu este utilizată pentru bzr, cvs, git, hg,\n"
+"rsync, scp, sftp sau alte servicii. Doar cheile SSH sunt utilizate\n"
+"în aceste scopuri."
 
 #: frontend/site-specific/gnu/account/index_gpg.php:45
 msgid ""
@@ -9875,17 +9916,23 @@ msgid ""
 "password.  Keys for signing releases are registered\n"
 "in the \"Public Information\" area of your group."
 msgstr ""
+"Cheia dvs. GPG este utilizată pentru criptarea mesajelor sensibile care vă sunt trimise.\n"
+"De asemenea, administratorii Savannah o pot utiliza pentru a vă confirma identitatea\n"
+"atunci când vă pierdeți parola. Cheile pentru semnarea publicațiilor sunt înregistrate\n"
+"în zona «Informații publice» a grupului dumneavoastră."
 
 #: frontend/site-specific/gnu/account/editsshkeys.php:48
 msgid ""
 "Public keys should look like this (their typical\n"
 "length is hundreds of characters):"
 msgstr ""
+"Cheile publice ar trebui să arate astfel (lungimea lor tipică\n"
+"este de sute de caractere):"
 
 #: frontend/site-specific/gnu/account/editsshkeys.php:55
 #, php-format
 msgid "When unsure, check <a href=\"%s\">Savannah documentation on SSH access</a>."
-msgstr ""
+msgstr "Dacă nu sunteți sigur, verificați <a href=\"%s\">Documentația Savannah privind accesul SSH</a>."
 
 #: frontend/site-specific/gnu/account/first.php:50
 #, php-format
@@ -9893,6 +9940,8 @@ msgid ""
 "You should take some time to read the <a href=\"%1$s\">Savane User\n"
 "Guide</a> so that you may take full advantage of %2$s."
 msgstr ""
+"Ar trebui să acordați ceva timp pentru a citi <a href=\"%1$s\">Ghidul utilizatorului\n"
+"Savane</a>, astfel încât să puteți profita din plin de %2$s."
 
 #: frontend/site-specific/gnu/account/first.php:56
 #, php-format
@@ -9900,10 +9949,12 @@ msgid ""
 "Note that <a href=\"%s\">unused accounts</a>\n"
 "may be removed without notice."
 msgstr ""
+"Rețineți că <a href=\"%s\">conturile neutilizate</a>\n"
+"pot fi eliminate fără notificare prealabilă."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:46
 msgid "New mailing lists at Savannah"
-msgstr ""
+msgstr "Noi liste de corespondență la Savannah"
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:48
 #, php-format
@@ -9912,12 +9963,17 @@ msgid ""
 "features enabled by default, in addition to the usual\n"
 "<a href=\"%s\">GNU Mailman</a> defaults."
 msgstr ""
+"Listele de corespondență noi create prin Savannah au următoarele\n"
+"caracteristici activate implicit, în plus față de valorile implicite\n"
+"obișnuite ale <a href=\"%s\">GNU Mailman</a>."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:55
 msgid ""
 "No footer is added to messages (<tt>footer</tt>, under\n"
 "&lsquo;Non-digest options&rsquo;)."
 msgstr ""
+"Nu se adaugă nicio notă de subsol la mesaje (<tt>footer</tt>, sub\n"
+"«Opțiuni care nu sunt de prezentare generală»."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:58
 msgid ""
@@ -9929,6 +9985,13 @@ msgid ""
 "is legitimate (as it usually will be), we strongly recommend\n"
 "<i>accept</i>ing their address for future postings."
 msgstr ""
+"Când un nou membru se alătură listei, publicarea inițială a acestuia este\n"
+"reținută pentru revizuirea sa de către proprietarul listei (<tt>default_member_moderation</tt>,\n"
+"sub «Confidențialitate &gt; Filtre de expeditor»). Acest lucru este necesar\n"
+"deoarece sistemele inteligente de spam se pot abona acum automat la listele de\n"
+"corespondență și apoi pot începe să trimită mesaje nedorite. Cu toate acestea,\n"
+"cu condiția ca abonamentul să fie legitim (cum va fi de obicei), vă recomandăm\n"
+"insistent să <i>acceptați</i> adresa lor pentru publicări viitoare."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:68
 #, php-format
@@ -9936,6 +9999,8 @@ msgid ""
 "Automated (though asynchronous) spam deletion, through the <a\n"
 "href=\"%s\">listhelper system</a>.  More details about this:"
 msgstr ""
+"Ștergerea automată (deși asincronă) a mesajelor spam, prin intermediul <a\n"
+"href=\"%s\">sistemului listhelper</a>. Mai multe detalii despre asta:"
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:73
 msgid ""
@@ -9944,6 +10009,10 @@ msgid ""
 "owners, the listhelper automated system, and the listhelper\n"
 "human volunteers.  This is when spam is detected and deleted."
 msgstr ""
+"Prima dată când o persoană publică un mesaj pe o listă la o anumită adresă de\n"
+"e-mail, mesajul este reținut pentru revizuire, potențial de către proprietarii\n"
+"listei mailman, sistemul automat listhelper și voluntarii umani listhelper.\n"
+"Acesta este momentul în care spam-ul este detectat și șters."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:78
 msgid ""
@@ -9953,6 +10022,10 @@ msgid ""
 "field on the &lsquo;General Options&rsquo; page), and consequently deal\n"
 "with any incoming spam yourself."
 msgstr ""
+"Prin urmare, dacă sunteți îngrijorat de faptul că mesajele listei dvs. sunt\n"
+"văzute de micul grup de voluntari listhelper, ar trebui să dezactivați listhelper\n"
+"(eliminați listhelper@nongnu.org din câmpul <tt>moderator</tt> de pe pagina\n"
+"«Opțiuni generale») și, prin urmare, să vă ocupați singur de orice spam primit."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:84
 msgid ""
@@ -9961,6 +10034,10 @@ msgid ""
 "operation.  You will probably want to filter these from your inbox, with\n"
 "a pattern such as this:"
 msgstr ""
+"În mod implicit, Mailman trimite o notificare «cerere de aprobare» pentru\n"
+"fiecare mesaj, iar aceasta este esențială pentru funcționarea listhelper.\n"
+"Probabil veți dori să filtrați aceste mesaje din căsuța poștală de primire,\n"
+"cu un model precum acesta:"
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:89
 msgid ""
@@ -9969,11 +10046,15 @@ msgid ""
 "you may also want to turn off this option (<tt>admin_immed_notify</tt>\n"
 "on the &lsquo;General Options&rsquo; page)."
 msgstr ""
+"În ciuda aparențelor, acest lucru trebuie să se potrivească în corpul mesajului,\n"
+"nu în antet. Alternativ, dacă alegeți să dezactivați listhelper, este posibil să\n"
+"doriți să dezactivați și această opțiune (<tt>admin_immed_notify</tt> pe pagina\n"
+"«Opțiuni generale»)."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:96
 #, php-format
 msgid "For more information, see the <a href=\"%s\">listhelper home page</a>."
-msgstr ""
+msgstr "Pentru mai multe informații, consultați <a href=\"%s\">pagina listei de ajutor (listhelper)</a>."
 
 #: frontend/site-specific/gnu/mail/about_list_creation.php:101
 msgid ""
@@ -9982,10 +10063,15 @@ msgid ""
 "defaults are set to minimize spam, list administrator overhead, and the\n"
 "chance of our mail server being blacklisted."
 msgstr ""
+"Desigur, în calitate de proprietar al listei, puteți modifica oricând\n"
+"configurația, dar dacă aveți îndoieli, vă rugăm să întrebați. Valorile\n"
+"implicite sunt configurate pentru a minimiza spam-ul, eforturile\n"
+"administratorului listei și șansele ca serverul nostru de e-mail să fie\n"
+"pe lista neagră."
 
 #: frontend/site-specific/gnu/register/confirmation.php:45
 msgid "Registration Complete!"
-msgstr ""
+msgstr "Înregistrare completă!"
 
 #: frontend/site-specific/gnu/register/requirements.php:47
 msgid ""
@@ -9996,6 +10082,12 @@ msgid ""
 "Once your project is accepted, you are expected to continue following\n"
 "these terms."
 msgstr ""
+"Vă rugăm să citiți cu atenție acești termeni de utilizare. Dacă nu îi respectați,\n"
+"nu vă vom accepta proiectul; dacă nu avem suficiente informații pentru a determina\n"
+"dacă proiectul dumneavoastră respectă acești termeni, va trebui să vă solicităm\n"
+"mai multe detalii.\n"
+"Odată ce proiectul dvs. este acceptat, vă așteptăm să continuați să respectați\n"
+"acești termeni."
 
 #: frontend/site-specific/gnu/register/requirements.php:55
 #, php-format
@@ -10003,22 +10095,28 @@ msgid ""
 "All packages registered in savannah.gnu.org are GNU packages,\n"
 "  so they should follow the <a href=\"%s\">GNU Coding Standards</a>."
 msgstr ""
+"  Toate pachetele înregistrate pe savannah.gnu.org sunt pachete GNU,\n"
+"deci ar trebui să respecte <a href=\"%s\">Standardele de cod GNU</a>."
 
 #: frontend/site-specific/gnu/register/requirements.php:59
 msgid ""
 "Note that some parts of the GNU Coding standards are firm\n"
 "  requirements, while some are just preferences/suggestions."
 msgstr ""
+"  Rețineți că unele părți ale standardelor de cod GNU sunt\n"
+"cerințe ferme, în timp ce altele sunt doar preferințe/sugestii."
 
 #: frontend/site-specific/gnu/register/requirements.php:64
 msgid ""
 "Our intent is to provide a permanent home for all versions of your project.\n"
 "We do reserve the right, however, to discontinue hosting a project."
 msgstr ""
+"Intenția noastră este de a oferi o găzduire permanentă pentru toate versiunile proiectului dumneavoastră.\n"
+"Cu toate acestea, ne rezervăm dreptul de a întrerupe găzduirea unui proiect."
 
 #: frontend/site-specific/gnu/register/requirements.php:67
 msgid "Use of project account"
-msgstr ""
+msgstr "Utilizarea contului proiectului"
 
 #: frontend/site-specific/gnu/register/requirements.php:70
 #, php-format
@@ -10030,16 +10128,24 @@ msgid ""
 "free software.  For more information, please read the\n"
 "<a href=\"%s\">Philosophy of the GNU Project</a>."
 msgstr ""
+"Spațiul care vă este oferit pe acest server este oferit în scopul expres\n"
+"de a promova software-ul liber care poate rula în sisteme de operare libere,\n"
+"de a documenta un astfel de software sau de a crea manuale educaționale libere.\n"
+"Utilizarea acestuia pentru găzduirea sau publicitatea software-ului neliber este\n"
+"considerată dăunătoare pentru software-ul liber. Pentru mai multe informații,\n"
+"vă rugăm să citiți <a href=\"%s\">Filozofia proiectului GNU</a>."
 
 #: frontend/site-specific/gnu/register/requirements.php:80
 msgid ""
 "In order to preserve history and complete transparency, we will not\n"
 "remove projects with substantive content."
 msgstr ""
+"Pentru a păstra istoricul și transparența completă, nu vom\n"
+"elimina proiectele cu conținut substanțial."
 
 #: frontend/site-specific/gnu/register/requirements.php:83
 msgid "No dependencies on nonfree software"
-msgstr ""
+msgstr "Fără dependențe de software neliber"
 
 #: frontend/site-specific/gnu/register/requirements.php:86
 #, php-format
@@ -10053,6 +10159,14 @@ msgid ""
 "For more info, see <a href=\"%s\">References to Non-Free Software and\n"
 "Documentation</a> in the GNU Coding Standards."
 msgstr ""
+"Pentru a fi găzduit pe Savannah, proiectul dvs. trebuie să fie software liber,\n"
+"și trebuie să rămână independent de orice software care nu este liber. Pachetul\n"
+"nu trebuie să trimită utilizatorul la niciun software neliber; cu alte cuvinte,\n"
+"nu trebuie să spună nimic care, după părerea noastră, ar putea conduce sau\n"
+"orienta utilizatorii către niciun software neliber. În special, acesta nu\n"
+"trebuie să descarce sau să instaleze automat niciun software neliber.\n"
+"Pentru mai multe informații, consultați <a href=\"%s\">Referințe la software și\n"
+"documentație ce nu sunt libere</a> în «Standardele de cod GNU»."
 
 #: frontend/site-specific/gnu/register/requirements.php:97
 msgid ""
@@ -10062,6 +10176,11 @@ msgid ""
 "would be an inducement to install nonfree operating systems or other\n"
 "nonfree software."
 msgstr ""
+"Programul ar trebui să ofere întreaga sa funcționalitate și confort pe o\n"
+"platformă complet liberă bazată pe un sistem de operare liber, cum ar fi\n"
+"GNU/Linux, care funcționează în întregime cu alte programe libere. În caz\n"
+"contrar, ar fi un stimulent pentru instalarea sistemelor de operare nelibere\n"
+"sau a altor programe nelibere."
 
 #: frontend/site-specific/gnu/register/requirements.php:103
 msgid ""
@@ -10073,10 +10192,17 @@ msgid ""
 "program put free software users at a disadvantage compared to those\n"
 "willing to use proprietary software."
 msgstr ""
+"Este în regulă ca programul să ruleze pe platforme sau sisteme de operare\n"
+"nelibere și să funcționeze cu aplicații nelibere bine cunoscute, în plus\n"
+"față de software-ul liber, cu condiția să ofere pentru software-ul liber\n"
+"un suport cel puțin la fel de bun ca pentru omologii neliberi. Cu alte cuvinte,\n"
+"în niciun moment, în niciun fel, programul dvs. nu trebuie să dezavantajeze\n"
+"utilizatorii de software liber în comparație cu cei care doresc să utilizeze\n"
+"software proprietar."
 
 #: frontend/site-specific/gnu/register/requirements.php:111
 msgid "Regarding Android phones"
-msgstr ""
+msgstr "Referitor la telefoanele Android"
 
 #: frontend/site-specific/gnu/register/requirements.php:113
 msgid ""
@@ -10085,10 +10211,14 @@ msgid ""
 "nonfree software, such as proprietary software drivers or AndroidOS,\n"
 "are not permissible."
 msgstr ""
+"Proiectele care rulează pe\n"
+"Replicant pot fi găzduite pe Savannah. Proiectele care depind de\n"
+"software care nu este liber, cum ar fi controlorii software privați\n"
+"sau AndroidOS, nu sunt permise."
 
 #: frontend/site-specific/gnu/register/requirements.php:118
 msgid "No nonfree formats"
-msgstr ""
+msgstr "Fără formate nelibere"
 
 #: frontend/site-specific/gnu/register/requirements.php:120
 msgid ""
@@ -10100,10 +10230,18 @@ msgid ""
 "Therefore, your package shouldn't contain or recommend materials in\n"
 "these nonfree formats."
 msgstr ""
+"Utilizarea unui format precum Flash, RealPlayer și QuickTime, care în\n"
+"practică poate fi creat sau redat numai cu ajutorul unui software neliber,\n"
+"înseamnă, de fapt, recomandarea utilizării acelui software de redare neliber.\n"
+"Atunci când implementarea software-ului liber nu este la fel de bună din punct\n"
+"de vedere tehnic ca cea a software-ului proprietar, utilizarea unui astfel de\n"
+"format înseamnă, de asemenea, recomandarea implicită a versiunii ne-libere.\n"
+"Prin urmare, pachetul dvs. nu ar trebui să conțină sau să recomande materiale\n"
+"în aceste formate nelibere."
 
 #: frontend/site-specific/gnu/register/requirements.php:128
 msgid "Advertisements"
-msgstr ""
+msgstr "Anunțuri publicitare"
 
 #: frontend/site-specific/gnu/register/requirements.php:130
 msgid ""
@@ -10113,10 +10251,15 @@ msgid ""
 "fan items about your free software project that you sell directly to\n"
 "the users."
 msgstr ""
+"În general, nu puteți face reclamă la nimic comercial pe un sit găzduit\n"
+"aici. Cu toate acestea, ca excepție, puteți îndruma oamenii către ofertele\n"
+"de suport comercial pentru proiectul dvs. de software liber și puteți menționa\n"
+"articole de suporter(fan) pentru proiectul dvs. de software liber pe care le\n"
+"vindeți direct utilizatorilor."
 
 #: frontend/site-specific/gnu/register/requirements.php:136
 msgid "Speaking about free software"
-msgstr ""
+msgstr "Vorbind despre software-ul liber"
 
 #: frontend/site-specific/gnu/register/requirements.php:138
 msgid ""
@@ -10128,6 +10271,12 @@ msgid ""
 "label it as &ldquo;free software&rdquo; rather than as &ldquo;open\n"
 "source&rdquo;."
 msgstr ""
+"Savannah este un sit de găzduire de software liber: găzduim proiecte precum al dvs.\n"
+"de dragul idealurilor de libertate și comunitate pe care le reprezintă mișcarea de\n"
+"software liber. Oferim găzduire Savannah pentru pachete de software liber, ca pachete\n"
+"de software liber; prin urmare, vă rugăm să descrieți clar pachetul dvs. ca fiind un\n"
+"pachet de software liber. Vă rugăm să-l etichetați mai degrabă ca „software liber”\n"
+"(free software) decât ca „sursă deschisă” (open source)."
 
 #: frontend/site-specific/gnu/register/requirements.php:146
 msgid ""
@@ -10138,6 +10287,11 @@ msgid ""
 "just &ldquo;Linux,&rdquo; when you mention it in connection with this\n"
 "package."
 msgstr ""
+"Savannah face parte din Proiectul GNU, dezvoltator al sistemului de operare\n"
+"de software liber GNU. Sistemul GNU/Linux (GNU cu Linux ca nucleu) rulează\n"
+"Savannah în prezent. În timp ce utilizați serviciile noastre de găzduire, vă\n"
+"rugăm să recunoașteți munca noastră făcând referire la acest sistem ca „GNU/Linux”\n"
+"și nu doar „Linux” atunci când îl menționați în legătură cu acest pachet."
 
 #: frontend/site-specific/gnu/register/requirements.php:154
 #, php-format
@@ -10145,10 +10299,12 @@ msgid ""
 "If you'd like to help correct other confusions, you can find some\n"
 "suggestions in <a href=\"%s\">Words to Use with Care</a>."
 msgstr ""
+"Dacă doriți să ajutați la corectarea altor confuzii, puteți găsi câteva\n"
+"sugestii în <a href=\"%s\">Cuvinte de folosit cu grijă</a>."
 
 #: frontend/site-specific/gnu/register/requirements.php:159
 msgid "Project naming"
-msgstr ""
+msgstr "Denumirea proiectului"
 
 #: frontend/site-specific/gnu/register/requirements.php:161
 msgid ""
@@ -10156,10 +10312,13 @@ msgid ""
 "terse abbreviations or confusingly general.  If we believe this to be an\n"
 "issue, we will discuss it with you."
 msgstr ""
+"Identificatorii de proiect ar trebui să fie descriptivi în mod rezonabil,\n"
+"mai degrabă decât abrevieri laconice sau generalități derutante. Dacă\n"
+"considerăm că aceasta este o problemă, o vom discuta cu dumneavoastră."
 
 #: frontend/site-specific/gnu/register/requirements.php:165
 msgid "Free software licenses"
-msgstr ""
+msgstr "Licențe de software liber"
 
 #: frontend/site-specific/gnu/register/requirements.php:167
 msgid ""
@@ -10173,6 +10332,14 @@ msgid ""
 "for the GNU GPL, GNU AGPL, and GNU LGPL.  You will remain the copyright\n"
 "holder of whatever you create for your project."
 msgstr ""
+"Vi se va prezenta o gamă de licențe de software liber pentru proiectul dvs.\n"
+"Pentru găzduirea pe Savannah, trebuie să utilizați una dintre aceste licențe,\n"
+"care oferă libertatea oricărei persoane de a utiliza, studia, copia și distribui\n"
+"codul sursă și de a distribui versiuni modificate ale acestuia și care sunt\n"
+"compatibile cu GNU GPL versiunea 3 și orice versiune ulterioară.\n"
+"Recomandăm GPLv3-sau ulterioară; în orice caz, solicităm formularea „sau orice\n"
+"versiune ulterioară” pentru GNU GPL, GNU AGPL și GNU LGPL. Veți rămâne deținătorul\n"
+"drepturilor de autor pentru orice veți crea pentru proiectul dvs."
 
 #: frontend/site-specific/gnu/register/requirements.php:178
 #, php-format
@@ -10181,6 +10348,9 @@ msgid ""
 "latest released version of the <a href=\"%s\">FDL</a>; other\n"
 "licensing compatible with that is acceptable."
 msgstr ""
+"Pentru manuale, recomandăm GNU FDL versiunea X sau ulterioară, unde X este\n"
+"cea mai recentă versiune publicată a <a href=\"%s\">FDL</a>; alte licențe\n"
+"compatibile cu aceasta sunt acceptate."
 
 #: frontend/site-specific/gnu/register/requirements.php:184
 #, php-format
@@ -10194,6 +10364,14 @@ msgid ""
 "notices.  A copy of the full text of all applicable licenses should also\n"
 "be included in the project."
 msgstr ""
+"Notificările de licență corespunzătoare trebuie aplicate cel puțin fiecărui\n"
+"fișier sursă (nederivat) din proiectul dvs. De exemplu, pentru GPL, consultați\n"
+"pagina <a href=\"%s\">Cum să utilizați licențele GNU</a>.\n"
+"În cazul fișierelor sursă binare, cum ar fi imaginile,\n"
+"este în regulă ca licența să fie menționată într-un fișier însoțitor <tt>README</tt>\n"
+"sau similar. Este de dorit ca fișierele derivate să includă, de asemenea, notificări\n"
+"de licență. O copie a textului integral al tuturor licențelor aplicabile ar trebui,\n"
+"de asemenea, să fie inclusă în proiect."
 
 #: frontend/site-specific/gnu/register/requirements.php:195
 msgid ""
@@ -10202,6 +10380,10 @@ msgid ""
 "requests on a case-by-case basis.  Software licenses must be\n"
 "GPL-compatible."
 msgstr ""
+"Dacă aveți nevoie să utilizați o altă licență care nu este listată,\n"
+"anunțați-ne și noi, sau cel mai probabil grupul de licențiere FSF,\n"
+"vom analiza aceste cereri de la caz la caz. Licențele software trebuie\n"
+"să fie compatibile cu GPL."
 
 #: frontend/site-specific/gnu/page_footer.php:46
 #: frontend/site-specific/gnu/page_header.php:45
@@ -10209,6 +10391,8 @@ msgid ""
 "Verbatim copying and distribution of this entire article\n"
 "is permitted in any medium, provided this notice is preserved."
 msgstr ""
+"Copierea mot-a-mot (verbatim) și distribuirea integrală a acestui articol\n"
+"este permisă pe orice suport, cu condiția păstrării acestei notificări."
 
 #: frontend/site-specific/gnu/page_footer.php:50
 #, php-format
@@ -10217,16 +10401,21 @@ msgid ""
 "Meditating, Flute-playing Gnu</a> logo is a GNU GPL'ed image provided\n"
 "by the Nevrax Design Team."
 msgstr ""
+"Logo-ul <a href=\"%s\">Gnu levitând,\n"
+"meditând și cântând la flau</a>t este o imagine GNU GPL furnizată\n"
+"de echipa de design Nevrax."
 
 #: frontend/site-specific/gnu/contact.php:47
 msgid "Savannah contact"
-msgstr ""
+msgstr "Contact Savannah"
 
 #: frontend/site-specific/gnu/contact.php:48
 msgid ""
 "First and foremost: <strong>don't use the links here for contact about\n"
 "specific projects!</strong>"
 msgstr ""
+"În primul rând: <strong>nu folosiți legăturile de aici pentru\n"
+"a ne contacta în legătură cu proiecte specifice!</strong>"
 
 #: frontend/site-specific/gnu/contact.php:51
 msgid ""
@@ -10237,10 +10426,16 @@ msgid ""
 "no knowledge of specific projects and cannot help with questions about\n"
 "them, so it is a waste of everyone's time to write us."
 msgstr ""
+"Dacă aveți o întrebare despre utilizarea unui anumit program găzduit în\n"
+"Savannah, sau un raport de eroare, vă rugăm\n"
+"<b>să&nbsp;vizitați&nbsp;pagina&nbsp;proiectului&nbsp;specific</b>&nbsp;(adică,&nbsp;<code>/projects/nume-proiect</code>)\n"
+"pentru a găsi persoana de contact corespunzătoare. Administratorii Savannah nu au,\n"
+"în general, cunoștințe despre proiectele specifice și nu pot ajuta cu întrebări despre\n"
+"acestea, astfel încât este o pierdere de timp pentru toată lumea să ne scrie."
 
 #: frontend/site-specific/gnu/contact.php:59
 msgid "Contact points for Savannah itself:"
-msgstr ""
+msgstr "Puncte de contact pentru Savannah în sine:"
 
 #: frontend/site-specific/gnu/contact.php:62
 #, php-format
@@ -10249,6 +10444,9 @@ msgid ""
 "about a specific project hosted here), you can use the <a\n"
 "href=\"%s\">savannah-users mailing list</a>."
 msgstr ""
+"Pentru ajutor general și discuții despre utilizarea Savannah (<b>nu</b>\n"
+"despre un proiect specific găzduit aici), puteți utiliza <a\n"
+"href=\"%s\">lista de discuții savannah-users</a>."
 
 #: frontend/site-specific/gnu/contact.php:69
 msgid ""
@@ -10256,10 +10454,13 @@ msgid ""
 "infrastructure (once again: <b>not</b> for a specific project), the best\n"
 "way is to"
 msgstr ""
+"Pentru a raporta o problemă sau pentru a trimite o cerere referitoare la\n"
+"infrastructura Savannah (încă o dată: <b>nu</b> pentru un anumit proiect),\n"
+"cea mai bună modalitate este să"
 
 #: frontend/site-specific/gnu/contact.php:75
 msgid "submit a request to the Savannah administration tracker"
-msgstr ""
+msgstr "trimiteți o cerere la monitorul de administrare Savannah."
 
 #: frontend/site-specific/gnu/contact.php:79
 #, php-format
@@ -10268,6 +10469,9 @@ msgid ""
 "<a href=\"%s\">savannah-help-public</a> list, after <a href=\"%s\">searching\n"
 "the archives</a>."
 msgstr ""
+"Ca alternativă la trimiterea unui element de urmărire, puteți trimite un\n"
+"mesaj la <a href=\"%s\">lista savannah-help-public</a>, după <a href=\"%s\">\n"
+"căutarea în arhive</a>."
 
 #: frontend/site-specific/gnu/contact.php:87
 msgid ""
@@ -10275,14 +10479,17 @@ msgid ""
 "use the savannah-help-private list, which is not publicly archived\n"
 "(unlike all the others here)."
 msgstr ""
+"În cele din urmă, pentru a raporta probleme legate de securitate sau\n"
+"confidențiale, puteți utiliza lista savannah-help-private, care nu este\n"
+"arhivată public (spre deosebire de toate celelalte de aici)."
 
 #: frontend/site-specific/gnu/contact.php:96
 msgid "Tracker notifications are signed with the next key,"
-msgstr ""
+msgstr "Notificările sistemului de urmărire(monitorului) sunt semnate cu următoarea cheie,"
 
 #: frontend/site-specific/gnu/cvs/index.php:59
 msgid "Anonymous CVS Access"
-msgstr ""
+msgstr "Acces anonim la CVS"
 
 #: frontend/site-specific/gnu/cvs/index.php:61
 msgid ""
@@ -10290,21 +10497,24 @@ msgid ""
 "CVS with the following instruction set. The module you wish\n"
 "to check out must be specified as the &lt;<i>modulename</i>&gt;."
 msgstr ""
+"Depozitul CVS al acestui proiect poate fi verificat prin CVS anonim\n"
+"cu următorul set de instrucțiuni. Modulul pe care doriți să îl verificați\n"
+"trebuie să fie specificat ca &lt;<i>nume-de-modul</i>&gt;."
 
 #: frontend/site-specific/gnu/cvs/index.php:69
 #: frontend/site-specific/gnu/cvs/index.php:109
 msgid "Software repository:"
-msgstr ""
+msgstr "Depozit software:"
 
 #: frontend/site-specific/gnu/cvs/index.php:71
 #: frontend/site-specific/gnu/cvs/index.php:111
 msgid "With other project modules:"
-msgstr ""
+msgstr "Cu alte module ale proiectului:"
 
 #: frontend/site-specific/gnu/cvs/index.php:76
 #: frontend/site-specific/gnu/cvs/index.php:117
 msgid "Webpage repository:"
-msgstr ""
+msgstr "Depozitul paginii web:"
 
 #: frontend/site-specific/gnu/cvs/index.php:82
 msgid ""
@@ -10312,39 +10522,46 @@ msgid ""
 "module's directory (with <code>cvs update</code>) you do not need the\n"
 "<code>-d</code> option anymore.  Simply use"
 msgstr ""
+"<em>Sfat:</em> când actualizați copia de lucru din interiorul\n"
+"directorul modulului (cu <code>cvs update</code>) nu mai aveț\n"
+"nevoie de opțiunea <code>-d</code>. Utilizați pur și simplu"
 
 #: frontend/site-specific/gnu/cvs/index.php:88
 msgid "to preview and status check."
-msgstr ""
+msgstr "pentru previzualizare și verificarea stării."
 
 #: frontend/site-specific/gnu/cvs/index.php:90
 msgid "Group member CVS access via SSH"
-msgstr ""
+msgstr "Acces la CVS pentru membrii grupului prin SSH"
 
 #: frontend/site-specific/gnu/cvs/index.php:93
 msgid ""
 "Member access is performed using the CVS over SSH method. The\n"
 "pserver method can only be used for anonymous access."
 msgstr ""
+"Accesul membrilor se realizează utilizând metoda CVS prin SSH.\n"
+"Metoda pserver poate fi utilizată numai pentru accesul anonim."
 
 #: frontend/site-specific/gnu/cvs/index.php:96
 msgid ""
 "The SSHv2 public key fingerprints for the machine hosting the CVS\n"
 "trees are:"
 msgstr ""
+"Amprentele digitale ale cheii publice SSHv2 pentru mașina care\n"
+"găzduiește arborii CVS sunt:"
 
 #: frontend/site-specific/gnu/cvs/index.php:125
 msgid "Email Notifications"
-msgstr ""
+msgstr "Notificări prin e-mail"
 
 #: frontend/site-specific/gnu/cvs/index.php:128
 #, php-format
 msgid "You can <a href=\"%s\">configure commit notifications</a>."
-msgstr ""
+msgstr "Puteți <a href=\"%s\">configura notificările de comitere</a>."
 
 #: frontend/site-specific/gnu/cvs/index.php:134
 msgid "CVS Newbies"
-msgstr ""
+msgstr "Începători CVS"
 
 #: frontend/site-specific/gnu/cvs/index.php:136
 #, php-format
@@ -10354,6 +10571,10 @@ msgid ""
 "CVS is not complex but you have to understand what is going on. The\n"
 "best way to start is to ask a friend to show you the way."
 msgstr ""
+"Dacă nu ați folosit niciodată CVS, ar trebui să citiți documentația despre acesta;\n"
+"o adresă URL utilă este %s. Utilizarea\n"
+"CVS nu este complexă, dar trebuie să înțelegeți ce se întâmplă. Cel mai bun mod\n"
+"de a începe este să cereți unui prieten să vă arate cum să procedați."
 
 #: frontend/site-specific/gnu/cvs/index.php:147
 #, php-format
@@ -10361,10 +10582,12 @@ msgid ""
 "The basic information described further on this page is detailed in\n"
 "the <a href=\"%s\">Savannah user doc</a>."
 msgstr ""
+"Informațiile de bază descrise în continuare în această pagină sunt\n"
+"detaliate în <a href=\"%s\">Documentația utilizatorului Savannah</a>."
 
 #: frontend/site-specific/gnu/cvs/index.php:156
 msgid "What are CVS modules?"
-msgstr ""
+msgstr "Ce sunt modulele CVS?"
 
 #: frontend/site-specific/gnu/cvs/index.php:158
 #, php-format
@@ -10379,14 +10602,23 @@ msgid ""
 "projects have a module with the same name of the project, where the main\n"
 "software development takes place."
 msgstr ""
+"Depozitul CVS al fiecărui proiect este împărțit în module pe care le puteți\n"
+"descărca separat. Lista modulelor existente pentru acest proiect poate fi\n"
+"obținută consultând <a href=\"%s\">rădăcina depozitului CVS</a>; fiecare fișier\n"
+"<code>File</code> listat acolo este numele unui modul, care poate înlocui\n"
+"&lt;<i>numele generic al modulului</i>&gt; utilizat mai jos în exemplele comenzii\n"
+"<code>co</code> din CVS. Rețineți că <code>.</code> (punct) este întotdeauna și\n"
+"un nume de modul valid care reprezintă „toate modulele disponibile” dintr-un proiect. Cele mai\n"
+"multe proiecte au un modul cu același nume al proiectului, în care are loc\n"
+"dezvoltarea principală a software-ului."
 
 #: frontend/site-specific/gnu/cvs/index.php:174
 msgid "The same applies to the Webpage Repository."
-msgstr ""
+msgstr "Același lucru este valabil și pentru Depozitul de pagini web."
 
 #: frontend/site-specific/gnu/cvs/index.php:175
 msgid "Import your CVS tree"
-msgstr ""
+msgstr "Importați arborele CVS"
 
 #: frontend/site-specific/gnu/cvs/index.php:178
 msgid ""
@@ -10394,10 +10626,13 @@ msgid ""
 "want to move to Savannah, make an appointment with us for the\n"
 "migration."
 msgstr ""
+"Dacă proiectul dvs. are deja un depozit CVS existent pe care\n"
+"doriți să îl mutați în Savannah, faceți o programare cu noi\n"
+"pentru migrare."
 
 #: frontend/site-specific/gnu/cvs/index.php:184
 msgid "Symbolic Links in Webpage CVS"
-msgstr ""
+msgstr "Legături simbolice în pagina web CVS"
 
 #: frontend/site-specific/gnu/cvs/index.php:187
 #, php-format
@@ -10408,10 +10643,16 @@ msgid ""
 "symbolic link. The symbolic links are built twice an hour.  More information in\n"
 "<a href=\"%s\">GNU Webmastering Guidelines</a>."
 msgstr ""
+"Ca o caracteristică specială în depozitele web CVS (doar), un fișier numit\n"
+"<tt>.symlinks</tt> poate fi pus în orice director în care doriți să faceți\n"
+"legături simbolice. Fiecare linie a fișierului enumeră un nume de fișier real\n"
+"urmat de numele legăturii simbolice. Legăturile simbolice sunt construite de\n"
+"două ori pe oră. Mai multe informații\n"
+"în «Directive GNU pentru crearea de pagini web»<a href=\"%s\">GNU Webmastering Guidelines</a>."
 
 #: frontend/site-specific/gnu/cvs/index.php:199
 msgid "Web pages for GNU packages"
-msgstr ""
+msgstr "Pagini web pentru pachetele GNU"
 
 #: frontend/site-specific/gnu/cvs/index.php:201
 #, php-format
@@ -10419,16 +10660,18 @@ msgid ""
 "When writing web pages for official GNU packages, please keep the\n"
 "<a href=\"%s\"> guidelines</a> in mind."
 msgstr ""
+"Atunci când scrieți pagini web pentru pachetele oficiale GNU,\n"
+"vă rugăm să țineți cont de <a href=\"%s\">directivele GNU</a>."
 
 #: frontend/site-specific/gnu/hg/index.php:53
 #: frontend/site-specific/gnu/bzr/index.php:57
 msgid "Anonymous read-only access"
-msgstr ""
+msgstr "Acces anonim numai-pentru-citire"
 
 #: frontend/site-specific/gnu/hg/index.php:57
 #: frontend/site-specific/gnu/bzr/index.php:80
 msgid "Developer write access (SSH)"
-msgstr ""
+msgstr "Acces de scriere pentru dezvoltatori (SSH)"
 
 #: frontend/site-specific/gnu/my/groups.php:47
 #, php-format
@@ -10439,27 +10682,32 @@ msgid ""
 "available at other places&mdash;and\n"
 "optionally the reason why you leave."
 msgstr ""
+"Pentru a elimina un grup pe care îl administrați, vă rugăm să\n"
+"contactați <a href=\"%s\">Savannah hackers</a> indicând noua locație\n"
+"a grupului - în general păstrăm programele, cu excepția cazului în care\n"
+"acestea sunt disponibile în alt loc - și,\n"
+"opțional, motivul pentru care plecați."
 
 #: frontend/site-specific/gnu/project/admin/index_misc.php:48
-#, fuzzy
 msgid "Miscellaneous..."
-msgstr "Diverse"
+msgstr "Diverse..."
 
 #: frontend/site-specific/gnu/project/admin/index_misc.php:49
-#, fuzzy
 msgid "Backup"
-msgstr "de rezervă"
+msgstr "Copie de rezervă"
 
 #: frontend/site-specific/gnu/project/admin/index_misc.php:50
 msgid ""
 "You can get read-only access to your raw CVS files (the RCS\n"
 "<code>,v</code> ones) using rsync:"
 msgstr ""
+"Puteți obține acces numai pentru citire la fișierele CVS brute\n"
+"(fișierele RCS <code>,v</code>) utilizând rsync:"
 
 #. TRANSLATORS: this is a header (<h3>).
 #: frontend/site-specific/gnu/project/admin/index_misc.php:63
 msgid "ftp.gnu.org area"
-msgstr ""
+msgstr "Aria ftp.gnu.org"
 
 #: frontend/site-specific/gnu/project/admin/index_misc.php:66
 #, php-format
@@ -10467,6 +10715,8 @@ msgid ""
 "Each GNU project has a download area at ftp.gnu.org. This area is not\n"
 "managed via Savannah.  Write to %s to get access."
 msgstr ""
+"Fiecare proiect GNU are o arie de descărcare la ftp.gnu.org. Această arie\n"
+"nu este gestionată prin Savannah. Scrieți la %s pentru a obține acces."
 
 #: frontend/site-specific/gnu/menu.php:49
 msgid "GNU Project"
@@ -10474,100 +10724,102 @@ msgstr "Proiectul GNU"
 
 #: frontend/site-specific/gnu/menu.php:50
 msgid "Help GNU"
-msgstr ""
+msgstr "Ajutor GNU"
 
 #: frontend/site-specific/gnu/menu.php:51
 msgid "All GNU Packages"
-msgstr ""
+msgstr "Toate pachetele GNU"
 
 #: frontend/site-specific/gnu/menu.php:52
 msgid "Dev Resources"
-msgstr ""
+msgstr "Resurse pentru dezvoltare"
 
 #: frontend/site-specific/gnu/menu.php:53
 msgid "License List"
-msgstr ""
+msgstr "Lista de licențe"
 
 #: frontend/site-specific/gnu/menu.php:54
 msgid "GNU Mirrors"
-msgstr ""
+msgstr "Oglinzi GNU"
 
 #. TRANSLATORS: If Savane has a localized FSF logo in your language, fill its name
 #. as the "translation" of this string; if it hasn't, repeat the original string
 #. in your translation.
 #: frontend/site-specific/gnu/menu.php:64
 msgid "thin-image.png"
-msgstr ""
+msgstr "thin-image.png"
 
 #: frontend/site-specific/gnu/menu.php:65
 msgid "Support freedom"
-msgstr ""
+msgstr "Sprijiniți libertatea"
 
 #: frontend/site-specific/gnu/menu.php:67
 msgid ""
 "Help us protect your freedom and the rights of computer\n"
 "users everywhere by becoming a member of the FSF."
 msgstr ""
+"Ajutați-ne să vă protejăm libertatea și drepturile utilizatorilor de\n"
+"calculatoare de pretutindeni devenind membru al FSF."
 
 #: frontend/site-specific/gnu/menu.php:69
 msgid "Join Now!"
-msgstr ""
+msgstr "Înscrieți-vă acum!"
 
 #: frontend/site-specific/gnu/menu.php:73
 msgid "Free Software Foundation"
-msgstr ""
+msgstr "Free Software Foundation"
 
 #: frontend/site-specific/gnu/menu.php:74
 msgid "Coming Events"
-msgstr ""
+msgstr "Evenimente viitoare"
 
 #: frontend/site-specific/gnu/menu.php:76
 msgid "Free Software Directory"
-msgstr ""
+msgstr "Director de software liber"
 
 #: frontend/site-specific/gnu/menu.php:78
 msgid "Cryptographic software legal notice"
-msgstr ""
+msgstr "Notă juridică privind software-ul criptografic"
 
 #: frontend/site-specific/gnu/menu.php:80
 msgid "Copyright infringement notification"
-msgstr ""
+msgstr "Notificare privind încălcarea drepturilor de autor"
 
 #: frontend/site-specific/gnu/menu.php:83
 msgid "Related Forges"
-msgstr ""
+msgstr "Forje relaționate"
 
 #: frontend/site-specific/gnu/menu.php:87
 msgid "Savannah Non-GNU"
-msgstr ""
+msgstr "Savannah Non-GNU"
 
 #: frontend/site-specific/gnu/menu.php:90
 msgid "GNU Savannah"
-msgstr ""
+msgstr "Savannah GNU"
 
 #: frontend/site-specific/gnu/menu.php:92
 msgid "Puszcza"
-msgstr ""
+msgstr "Puszcza"
 
 #: frontend/site-specific/gnu/gpg-sample.php:48
 msgid "Sample GPG export"
-msgstr ""
+msgstr "Export GPG de exemplu"
 
 #: frontend/site-specific/gnu/gpg-sample.php:49
 msgid "The exported public GPG keys should look like this:"
-msgstr ""
+msgstr "Cheile GPG publice exportate ar trebui să arate astfel:"
 
 #: frontend/site-specific/gnu/gpg-sample.php:63
 msgid "Do not remove the begin and end markers when submitting your GPG keys."
-msgstr ""
+msgstr "Nu eliminați marcajele de început și de sfârșit atunci când trimiteți cheile GPG."
 
 #: frontend/site-specific/gnu/gpg-sample.php:65
 msgid "Update your keys in this input area"
-msgstr ""
+msgstr "Actualizați-vă cheile în această zonă de intrare"
 
 #: frontend/site-specific/gnu/gpg-sample.php:68
 msgid "Insert your (ASCII) public keys here (made with gpg --export --armor KEYID...):"
-msgstr ""
+msgstr "Introduceți aici cheile dvs. publice (ASCII) (realizate cu gpg --export --armor ID_CHEIE...):"
 
 #: frontend/site-specific/gnu/gpg-sample.php:71
 #, php-format
@@ -10579,18 +10831,28 @@ msgid ""
 "See the GNU Maintainer Information, node\n"
 "<a href=\"%s\">Automated Upload Registration</a>."
 msgstr ""
+"Pentru responsabilii GNU:\n"
+"Dacă aceste chei urmează să fie utilizate pentru încărcările GNU,\n"
+"trebuie să le trimiteți prin e-mail la ftp-upload@gnu.org.\n"
+"Nu se realizează o propagare automată.\n"
+"Consultați Informații pentru menținătorii/responsabilii GNU, nodul\n"
+"<a href=\"%s\">Înregistrare automată a încărcării</a>."
 
 #: frontend/site-specific/gnu/page_header.php:48
 msgid ""
 "Savannah is a central point for development, distribution\n"
 "and maintenance of free software, both GNU and non-GNU."
 msgstr ""
+"Savannah este un punct central pentru dezvoltarea, distribuirea\n"
+"și întreținerea software-ului liber, atât GNU cât și non-GNU."
 
 #: frontend/site-specific/gnu/arch/index.php:58
 msgid ""
 "The SSHv2 public key fingerprints for the machine hosting the Arch\n"
 "trees are:"
 msgstr ""
+"Amprentele digitale ale cheii publice SSHv2 pentru mașina care\n"
+"găzduiește arborii Arch sunt:"
 
 #: frontend/site-specific/gnu/homepage.php:50
 #, php-format
@@ -10598,21 +10860,25 @@ msgid ""
 "Welcome to <strong>Savannah</strong>, the software forge for people\n"
 "committed to <a href=\"%s\">free software</a>:"
 msgstr ""
+"Bine ați venit la <strong>Savannah</strong>, forja de software pentru\n"
+"oamenii dedicați <a href=\"%s\">software-ului liber</a>:"
 
 #: frontend/site-specific/gnu/homepage.php:57
 msgid ""
 "We host free projects that run on free operating systems and without\n"
 "    any proprietary software dependencies."
 msgstr ""
+"Noi găzduim proiecte libere care rulează pe sisteme de operare libere și fără\n"
+"    dependențe de software proprietar."
 
 #: frontend/site-specific/gnu/homepage.php:62
 #, php-format
 msgid "Our service runs with 100%% free software, including <a href=\"%s\">itself</a>."
-msgstr ""
+msgstr "Serviciul nostru rulează cu software 100%% liber, inclusiv <a href=\"%s\">însuși</a>."
 
 #: frontend/site-specific/gnu/homepage.php:67
 msgid "Why choose Savannah?"
-msgstr ""
+msgstr "De ce să alegeți Savannah?"
 
 #: frontend/site-specific/gnu/homepage.php:71
 #, php-format
@@ -10620,6 +10886,8 @@ msgid ""
 "<strong>Savannah.nongnu.org</strong> is a central point for\n"
 "development, maintenance and distribution of <a href=\"%s\">free software</a>."
 msgstr ""
+"<strong>Savannah.nongnu.org</strong> este un punct central pentru\n"
+"dezvoltarea, întreținerea și distribuirea de <a href=\"%s\">software liber</a>."
 
 #: frontend/site-specific/gnu/homepage.php:80
 #, php-format
@@ -10629,12 +10897,18 @@ msgid ""
 "for projects that support free software but are not part of GNU,\n"
 "we provide <a href=\"%s\">savannah.nongnu.org</a>."
 msgstr ""
+"Savannah își propune să fie un punct central pentru dezvoltarea, întreținerea și\n"
+"distribuția <a href=\"%s\">software-ului oficial GNU</a>. În plus, pentru proiectele\n"
+"care promovează software-ul liber, dar nu fac parte din GNU,\n"
+"oferim <a href=\"%s\">savannah.nongnu.org</a>."
 
 #: frontend/site-specific/gnu/homepage.php:88
 msgid ""
 "If you would like to use Savannah to host your project, then go to\n"
 "the <b>Register New Project</b> menu entry."
 msgstr ""
+"Dacă doriți să utilizați Savannah pentru a vă găzdui proiectul, accesați\n"
+"intrarea din meniu <b>Înregistrare proiect nou</b>."
 
 #: frontend/site-specific/gnu/homepage.php:96
 #, php-format
@@ -10644,12 +10918,18 @@ msgid ""
 "href=\"%s\">GNU Software Evaluation</a> web page.\n"
 "New packages are welcome in GNU."
 msgstr ""
+"Nu este necesar pentru a utiliza Savannah, dar dacă doriți ca proiectul\n"
+"dumneavoastră să facă parte din sistemul GNU, vă rugăm să consultați\n"
+"pagina web <a href=\"%s\">Evaluarea software-ului GNU</a>.\n"
+"Pachetele noi sunt binevenite în GNU."
 
 #: frontend/site-specific/gnu/homepage.php:106
 msgid ""
 "We strongly recommend all Savannah users subscribe to this\n"
 "mailing list:"
 msgstr ""
+"Recomandăm insistent tuturor utilizatorilor Savannah să se aboneze\n"
+"la această listă de discuții:"
 
 #: frontend/site-specific/gnu/homepage.php:112
 #, php-format
@@ -10657,12 +10937,16 @@ msgid ""
 "%s:\n"
 "    low-volume notifications of important issues and changes at Savannah."
 msgstr ""
+"%s:\n"
+"    notificări de volum redus cu privire la aspecte și schimbări importante din Savannah."
 
 #: frontend/site-specific/gnu/homepage.php:117
 msgid ""
 "And this mailing list is a place for Savannah users to communicate and\n"
 "ask questions:"
 msgstr ""
+"Iar această listă de discuții este un loc în care utilizatorii Savannah pot comunica și\n"
+"pune întrebări:"
 
 #: frontend/site-specific/gnu/homepage.php:124
 #, php-format
@@ -10670,11 +10954,12 @@ msgid ""
 "%s:\n"
 "    help with using Savannah in general (not with a specific project)."
 msgstr ""
+"%s:\n"
+"    ajutor cu utilizarea Savannah în general (nu cu un proiect specific)."
 
 #: frontend/site-specific/gnu/homepage.php:128
-#, fuzzy
 msgid "Happy hacking!"
-msgstr "Happy Hacking"
+msgstr "Programare placută!"
 
 #: frontend/site-specific/gnu/bzr/index.php:59
 msgid ""
@@ -10682,85 +10967,89 @@ msgid ""
 "each branch. You can see the branch names in the repository by pointing\n"
 "a web browser to:"
 msgstr ""
+"Depozitele Bazaar pentru proiecte utilizează directoare separate pentru\n"
+"fiecare ramură. Puteți vedea numele ramurilor din depozit prin direcționarea\n"
+"unui navigator web către:"
 
 #: frontend/site-specific/gnu/bzr/index.php:64
 msgid ""
 "For a repository with separate branch directories (<tt>trunk</tt>,\n"
 "<tt>devel</tt>, &hellip;), use:"
 msgstr ""
+"Pentru un depozit cu directoare de ramură separate (<tt>trunk</tt>,\n"
+"<tt>devel</tt>, &hellip;), utilizați:"
 
 #: frontend/site-specific/gnu/bzr/index.php:66
 #: frontend/site-specific/gnu/bzr/index.php:75
 #: frontend/site-specific/gnu/bzr/index.php:76
-#, fuzzy
 msgid "<i>branch</i>"
-msgstr "Ramura"
+msgstr "<i>ramura</i>"
 
 #: frontend/site-specific/gnu/bzr/index.php:68
 msgid "where <i>branch</i> is the name of the branch you want."
-msgstr ""
+msgstr "unde <i>ramura</i> este numele ramurii dorite."
 
 #: frontend/site-specific/gnu/bzr/index.php:70
 msgid "For a repository with only a top-level <tt>.bzr</tt> directory, use:"
-msgstr ""
+msgstr "Pentru un depozit cu doar un director <tt>.bzr</tt> de nivel superior, utilizați:"
 
 #: frontend/site-specific/gnu/bzr/index.php:73
 msgid "If you need the low-performance HTTP or HTTPS access, these are the URLs:"
-msgstr ""
+msgstr "Dacă aveți nevoie de acces HTTP sau HTTPS cu performanță redusă, acestea sunt adresele URL:"
 
 #: frontend/site-specific/gnu/bzr/index.php:87
 msgid "More introductory documentation"
-msgstr ""
+msgstr "Mai multă documentație introductivă"
 
 #: frontend/site-specific/gnu/bzr/index.php:91
 #, php-format
 msgid "Check the <a href=\"%s\">UsingBzr</a> page at the documentation wiki."
-msgstr ""
+msgstr "Consultați pagina <a href=\"%s\">Utilizând Bzr</a> din documentația wiki."
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:59
 msgid "Official GNU software"
-msgstr ""
+msgstr "Software GNU oficial"
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:60
 msgid "non-GNU software and documentation"
-msgstr ""
+msgstr "Software și documentație non-GNU"
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:61
 msgid "www.gnu.org portions"
-msgstr ""
+msgstr "Porțiuni www.gnu.org"
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:62
 msgid "GNU user groups"
-msgstr ""
+msgstr "Grupuri de utilizatori GNU"
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:63
 msgid "www.gnu.org translation teams"
-msgstr ""
+msgstr "Echipele de traducători www.gnu.org"
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:64
 msgid "Extras for official GNU software"
-msgstr ""
+msgstr "Extras pentru software-ul GNU oficial"
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:67
 msgid "This software is part of the GNU Project."
-msgstr ""
+msgstr "Acest software face parte din Proiectul GNU."
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:68
 msgid "This group is not part of the GNU Project."
-msgstr ""
+msgstr "Acest grup nu face parte din Proiectul GNU."
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:69
 msgid "This group is related to www.gnu.org webmastering. It's part of the GNU Project."
-msgstr ""
+msgstr "Acest grup este relaționat cu www.gnu.org webmastering. Face parte din Proiectul GNU."
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:71
 msgid "This is GNU user group. It is not part of the GNU Project."
-msgstr ""
+msgstr "Acesta este un grup de utilizatori GNU. Nu face parte din Proiectul GNU."
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:72
 msgid "This is a translation team of www.gnu.org."
-msgstr ""
+msgstr "Aceasta este o echipă de traducători de la www.gnu.org."
 
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:73
 msgid "This group contains extras for official GNU software."
-msgstr ""
+msgstr "Acest grup conține extra pentru software-ul GNU oficial."
