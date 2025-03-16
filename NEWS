@@ -19,6 +19,9 @@
 
 * Bug fixes:
 
+** Search in trackers when one of the criteria was text-type Release field
+   resulted in an invalid SQL query.
+
 ** Files with '#' in their names were undownloadable, Savannah sr #111167.
 
 ** When assigning uidNumber, user_group.cache_user_name wasn't updated.

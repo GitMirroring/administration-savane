@@ -1547,6 +1547,7 @@ function trackers_build_match_expression ($field, &$to_match)
 
   $expr = '';
   $params = [];
+  $field = "a.$field";
 
   if (preg_match ('/text|varchar|blob/i', $type))
     {
