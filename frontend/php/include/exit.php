@@ -51,6 +51,7 @@ function exit_error ($title = '', $text = null, $status = false)
   global $HTML;
 
   exit_header ($status);
+  init_ensure_constants ();
   $msg = $title;
   if ($msg === null)
     $msg = $text;

@@ -412,4 +412,13 @@ function init_check_group ()
 
 init_check_group ();
 unset ($group_row);
+function init_ensure_constants ()
+{
+  if (!defined ('SV_THEME'))
+    define ('SV_THEME', $GLOBALS['sys_themedefault']);
+  if (!defined ('CONTEXT'))
+    context_guess ();
+  if (!defined ('AUDIENCE'))
+    user_guess ();
+}
 ?>

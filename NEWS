@@ -19,6 +19,9 @@
 
 * Bug fixes:
 
+** Submitting a duplicate form in My Account Configuration resulted
+   in an Undefined constant error.
+
 ** Search in trackers when one of the criteria was text-type Release field
    resulted in an invalid SQL query.
 
