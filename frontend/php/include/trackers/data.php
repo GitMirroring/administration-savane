@@ -1689,7 +1689,7 @@ function trackers_data_reassign_check_identical ($new_group_id, $artifact)
 }
 
 function trackers_data_reassign_item (
-  $item_id, $reassign_change_group, $reassign_change_artifact
+  $item_id, $reassign_change_group, $new_artifact
 )
 {
   global $group_id;
@@ -1706,7 +1706,7 @@ function trackers_data_reassign_item (
   if (!$new_group_id)
     $new_group_id = $group_id;
 
-  if (trackers_data_reassign_check_identical ($new_group_id, $artifact))
+  if (trackers_data_reassign_check_identical ($new_group_id, $new_artifact))
     return false;
 
   $now = time ();
@@ -1727,12 +1727,12 @@ function trackers_data_reassign_item (
   if (!$reassign_change_group)
     $reassign_change_group = $group_id;
 
-  if (trackers_data_reassign_check_artifact ($reassign_change_artifact))
+  if (trackers_data_reassign_check_artifact ($new_artifact))
     return false;
 
   # Move item.
   $result = db_autoexecute (
-    $reassign_change_artifact,
+    $new_artifact,
     [
       'group_id' => $new_group_id, 'status_id' => 1, 'date' => $now,
       'severity' => $row_data['severity'],
@@ -1765,7 +1765,7 @@ function trackers_data_reassign_item (
   $grp_item = group_getname ($group_id) . ', '
     . utils_get_tracker_prefix (ARTIFACT) . " #$item_id";
   $new_grp_item = group_getname ($new_group_id) . ', '
-    . utils_get_tracker_prefix ($reassign_change_artifact) . " #$new_item_id";
+    . utils_get_tracker_prefix ($new_artifact) . " #$new_item_id";
 
   trackers_data_add_history (
     'Reassign Item', $grp_item, $new_grp_item, $item_id, false, ARTIFACT, 1
@@ -1773,7 +1773,7 @@ function trackers_data_reassign_item (
 
   trackers_data_add_history (
     'Reassign item', $grp_item, $new_grp_item,
-    $new_item_id, false, $reassign_change_artifact, 1
+    $new_item_id, false, $new_artifact, 1
   );
 
   # Duplicate the comments.
@@ -1784,7 +1784,7 @@ function trackers_data_reassign_item (
   while ($row_history = db_fetch_array ($res_history))
     {
       $result = db_autoexecute (
-        $reassign_change_artifact . "_history",
+        $new_artifact . "_history",
         [
           'bug_id' => $new_item_id, 'field_name' => $row_history['field_name'],
           'old_value' => $row_history['old_value'],
@@ -1830,7 +1830,7 @@ function trackers_data_reassign_item (
     }
 
   $result = db_autoexecute (
-    $reassign_change_artifact . "_history",
+    $new_artifact . "_history",
     [
       'bug_id' => $new_item_id, 'field_name' => 'details',
       'old_value' => $comment, 'mod_by' => user_getid (),
@@ -1854,7 +1854,7 @@ function trackers_data_reassign_item (
   # to be much bigger than CC list and alike.
   $result = db_autoexecute (
     "trackers_file",
-    ['item_id' => $new_item_id, 'artifact' => $reassign_change_artifact],
+    ['item_id' => $new_item_id, 'artifact' => $new_artifact],
     DB_AUTOQUERY_UPDATE, "item_id = ? AND artifact = ?", [$item_id, ARTIFACT]
   );
 
@@ -1876,7 +1876,7 @@ function trackers_data_reassign_item (
   while ($row_cc = db_fetch_array ($res_cc))
     {
       $result = db_autoexecute (
-       "{$reassign_change_artifact}_cc",
+       "{$new_artifact}_cc",
         [
           'bug_id' => $new_item_id, 'email' => $row_cc['email'],
           'added_by' => $row_cc['added_by'],
@@ -1905,7 +1905,7 @@ function trackers_data_reassign_item (
       'summary' =>
         "Reassigned to another tracker [was: {$row_data['summary']}]",
       'details' => 'THIS ITEM WAS REASSIGNED TO '
-        . strtoupper (utils_get_tracker_prefix ($reassign_change_artifact))
+        . strtoupper (utils_get_tracker_prefix ($new_artifact))
         . " #$new_item_id\n" . $row_data['details']
     ],
     DB_AUTOQUERY_UPDATE, "bug_id = ?", [$item_id]
@@ -1924,7 +1924,7 @@ function trackers_data_reassign_item (
     [
       'bug_id' => $item_id, 'field_name' => 'details',
       'old_value' => 'THIS ITEM WAS REASSIGNED TO '
-        . strtoupper (utils_get_tracker_prefix ($reassign_change_artifact))
+        . strtoupper (utils_get_tracker_prefix ($new_artifact))
         . " #$new_item_id</p>\n"
         . 'Please, do not post any new comments to this item.',
       'mod_by' => user_getid (), 'date' => $now, 'type' => 100
@@ -1933,10 +1933,10 @@ function trackers_data_reassign_item (
   );
   $address = '';
   trackers_append_followup_notif_addresses (
-    $address, $new_item_id, true, $reassign_change_artifact
+    $address, $new_item_id, true, $new_artifact
   );
   trackers_mail_followup (
-    $new_item_id, $address, false, false, $reassign_change_artifact
+    $new_item_id, $address, false, false, $new_artifact
   );
 
   # If we get here, assume everything went properly.
