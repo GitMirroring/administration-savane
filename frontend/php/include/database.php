@@ -433,12 +433,17 @@ function db_data_seek ($qhandle, $row = 0)
   return mysqli_data_seek ($qhandle, $row);
 }
 
-function db_fetch_array ($qhandle = 0)
+define ('DB_FETCH_BOTH', MYSQLI_BOTH);
+define ('DB_FETCH_ASSOC', MYSQLI_ASSOC);
+define ('DB_FETCH_NUM', MYSQLI_NUM);
+
+
+function db_fetch_array ($qhandle = 0, $mode = MYSQLI_BOTH)
 {
   if ($qhandle)
-    return mysqli_fetch_array ($qhandle);
+    return mysqli_fetch_array ($qhandle, $mode);
   if (isset ($GLOBALS['db_qhandle']))
-    return mysqli_fetch_array ($GLOBALS['db_qhandle']);
+    return mysqli_fetch_array ($GLOBALS['db_qhandle'], $mode);
   return [];
 }
 
