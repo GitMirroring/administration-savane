@@ -299,7 +299,7 @@ if ($words)
 
         while ($val = db_fetch_array ($result_search))
           {
-            if (user_check_ismember ($row_user['user_id'], $val['group_id']))
+            if (user_ismember ($row_user['user_id'], $val['group_id']))
               {
                 print "+ {$val['group_name']} ";
                 print _('(already a member)') . "<br />\n";

@@ -44,7 +44,7 @@
 
 require_once ('../../include/init.php');
 require_once ('../../include/sane.php');
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 $vcs = ['cvs', 'arch', 'svn', 'git', 'hg', 'bzr'];
 $use_url = [

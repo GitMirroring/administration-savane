@@ -48,11 +48,7 @@ extract (sane_import ('post',
   ['true' => 'update', 'digits' => 'from_group_id', 'artifact' => 'artifact']
 ));
 
-if (!$group_id)
-  exit_no_group ();
-
-if (!user_ismember ($group_id, 'A'))
-  exit_permission_denied ();
+user_check_group_admin ();
 
 if ($update && !in_array ($from_group_id, [0, 100]))
   {

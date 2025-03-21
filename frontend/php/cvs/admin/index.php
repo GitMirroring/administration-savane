@@ -64,7 +64,7 @@ $res_grp = group_get_result ($group_id);
 if (!db_numrows ($res_grp))
   exit_error (_("Invalid Group"));
 
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 $key_func = ['preg', '/^(([\d]+)|(new))$/'];
 $email_regex =
    '([a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+,)*'

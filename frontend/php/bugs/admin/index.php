@@ -45,12 +45,7 @@
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 
-if (!$group_id)
-  exit_no_group ();
-
-if (!user_ismember ($group_id, 'A'))
-  exit_permission_denied ();
-
+user_check_group_admin ();
 trackers_init ($group_id);
 trackers_header_admin ([]);
 

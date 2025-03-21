@@ -48,7 +48,7 @@
 
 require_once ('../include/init.php');
 require_once ('../include/account.php');
-session_require (['group' => '1','admin_flags' => 'A']);
+session_require (['group' => SESSION_ADMIN_GROUP]);
 
 extract (sane_import ('request', ['digits' => 'user_id']));
 extract (sane_import ('post',

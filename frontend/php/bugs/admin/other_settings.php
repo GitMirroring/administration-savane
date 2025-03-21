@@ -85,7 +85,10 @@ if (!$group_id)
   exit_no_group();
 
 # Must be at least tracker admin or group admin.
-if (!member_check (0, $group_id, 2) && !user_ismember ($group_id, 'A'))
+if (
+  !member_check (0, $group_id, MEMBER_ROLE_TECHNAGER)
+    && !member_check ($group_id, MEMBER_FLAGS_ADMIN)
+)
   exit_permission_denied ();
 
 function fetch_preamble ($group_id, $artifact)

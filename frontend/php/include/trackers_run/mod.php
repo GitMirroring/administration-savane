@@ -441,7 +441,7 @@ function print_comment_types ($group_id, $comment_type_id, $comment_types)
 function print_canned_box ($group_id, $canned, $size, $res_canned)
 {
   global $sys_home;
-  $group_admin = user_ismember ($group_id, 'A');
+  $group_admin = user_is_group_admin ($group_id);
   print "<span class='preinput'>";
   print html_label ('canned_response[]', _("Canned response:"))
     . "</span><br />\n";

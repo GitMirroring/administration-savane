@@ -922,7 +922,7 @@ function group_set_preference_args ($name, $val)
 # * $preference_name is a key-to-value array and $value is null.
 function group_set_preference ($group_id, $preference_name, $value = null)
 {
-  if (!user_ismember ($group_id, 'A'))
+  if (!user_is_group_admin ($group_id))
     return false;
 
   $prefs = group_set_preference_args ($preference_name, $value);

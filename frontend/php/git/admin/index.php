@@ -53,7 +53,7 @@ $res_grp = group_get_result ($group_id);
 if (!db_numrows ($res_grp))
   exit_error (_("Invalid Group"));
 
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 $repos = vcs_get_repos ($vcs, $group_id);
 $desc = $readme = [];
 $n = count ($repos);

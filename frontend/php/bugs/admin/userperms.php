@@ -47,7 +47,7 @@ require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 require_directory ("project");
 
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 $event_name_prefix = ARTIFACT . '_restrict_event';
 $event1_name = $event_name_prefix . TRACKER_EVENT_COMMENT;

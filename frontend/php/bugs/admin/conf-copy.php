@@ -49,13 +49,7 @@ extract (sane_import ('post',
   ['true' => 'update', 'digits' => 'from_group_id']
 ));
 form_check ('update');
-
-if (!$group_id)
-  exit_no_group ();
-
-if (!user_ismember ($group_id, 'A'))
-  exit_permission_denied ();
-
+user_check_group_admin ();
 trackers_init ($group_id);
 
 if ($update && !in_array ($from_group_id, [0, 100]))

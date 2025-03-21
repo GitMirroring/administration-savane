@@ -51,7 +51,7 @@ require_once ('../include/trackers/votes.php');
 if (!$group_id)
   exit_no_group ();
 
-$is_trackeradmin = member_check (0, $group_id, 2);
+$is_trackeradmin = member_check (0, $group_id, MEMBER_ROLE_TECHNAGER);
 
 function extract_reverse_order ()
 {
@@ -549,7 +549,7 @@ switch ($func)
     $spamscore = 1;
     if (member_check (0, $group_id))
       {
-        if (member_check (0, $group_id, 'A'))
+        if (member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
           $spamscore = 5;
         else
           $spamscore = 3;
@@ -563,7 +563,7 @@ switch ($func)
 
   case 'unflagspam':
     # Unflag an alleged spam: for group admins only.
-    if (!member_check (0, $group_id, 'A'))
+    if (!member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
       {
         # Do not use exit_not_logged_in(), because the user has no
         # valid reason to get here if he was not logged in in first place

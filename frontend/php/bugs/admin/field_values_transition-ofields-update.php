@@ -49,7 +49,7 @@ extract (sane_import ('request', ['digits' => 'transition_id']));
 
 if (!$group_id)
   exit_no_group ();
-if (!member_check (0, $group_id, 'A'))
+if (!member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   exit_permission_denied ();
 
 trackers_init ($group_id);

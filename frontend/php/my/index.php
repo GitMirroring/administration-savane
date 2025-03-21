@@ -103,9 +103,10 @@ reset ($usergroups);
 reset ($usergroups_groupid);
 unset ($rows);
 $gids = [];
+$member_flags = member_create_tracker_flag ('news') . MEMBER_ROLE_MANAGER;
 foreach ($usergroups as $group => $groupname)
   {
-    if (!member_check (0, $usergroups_groupid[$group], 'N3'))
+    if (!member_check (0, $usergroups_groupid[$group], $member_flags))
       continue;
     $gids[] = $usergroups_groupid[$group];
   }

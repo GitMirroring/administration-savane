@@ -46,12 +46,7 @@ require_once ('../../include/trackers/general.php');
 extract (sane_import ('post', ['name' => 'field', 'true' => ['confirm', 'cancel']]));
 # This page is only accessible with POST; check form_id unconditionally.
 form_check ();
-
-if (!$group_id)
-  exit_no_group ();
-if (!user_ismember ($group_id, 'A'))
-  exit_permission_denied ();
-
+user_check_group_admin ();
 trackers_init ($group_id);
 
 if (!$field)

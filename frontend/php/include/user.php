@@ -98,10 +98,21 @@ function user_ismember ($group_id, $type = 0)
   return member_check (0, $group_id, $type);
 }
 
-# Check the user role in a project  - deprecated.
-function user_check_ismember ($user_id, $group_id, $type = 0)
+function user_is_group_admin ($group = NULL)
 {
-  return member_check ($user_id, $group_id, $type);
+  global $group_id;
+  if ($group === NULL)
+    $group = $group_id;
+  return user_ismember ($group, MEMBER_FLAGS_ADMIN);
+}
+
+function user_check_group_admin ()
+{
+  global $group_id;
+  if (!$group_id)
+    exit_no_group ();
+  if (!user_is_group_admin ())
+    exit_permission_denied ();
 }
 
 # Get the ids of the groups the user belongs to.

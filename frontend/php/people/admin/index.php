@@ -44,6 +44,8 @@
 require_once('../../include/init.php');
 require_once('../../include/form.php');
 
+session_require (['group' => SESSION_ADMIN_GROUP]);
+
 extract (sane_import ('request', ['true' => ['people_cat', 'people_skills']]));
 extract (sane_import ('post',
   [
@@ -52,11 +54,6 @@ extract (sane_import ('post',
   ]
 ));
 form_check ('post_changes');
-
-# This page is for site admins only.
-if (!user_ismember (1, 'A'))
-  exit_permission_denied ();
-
 function report_db_result ($result, $success_msg)
 {
   if ($result)

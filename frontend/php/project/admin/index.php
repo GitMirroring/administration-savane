@@ -52,8 +52,8 @@ if (db_numrows ($res_grp) < 1)
   exit_error (_("Invalid Group"));
 
 # If the group isn't active, require being a member of the super-admin group.
-if (db_result ($res_grp, 0, 'status') != 'A')
-  session_require (['group' => 1]);
+if (db_result ($res_grp, 0, 'status') != GROUP_STATUS_ACTIVE)
+  session_require (['group' => SESSION_ADMIN_GROUP]);
 
 session_require (['group' => $group_id]);
 site_project_header (['group' => $group_id, 'context' => 'ahome']);

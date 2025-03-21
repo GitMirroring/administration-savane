@@ -112,7 +112,7 @@ trackers_header_admin (['title' => _("Set Notifications")]);
 
 print form_tag () . form_hidden (["group_id" => $group_id]);
 
-if (user_ismember ($group_id, 'A'))
+if (user_is_group_admin ())
   trackers_data_show_notification_settings ($group_id, ARTIFACT);
 
 print "\n<p align='center'><input type='submit' name='submit' class='bold' "

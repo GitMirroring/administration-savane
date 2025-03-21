@@ -44,7 +44,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once ('../../include/init.php');
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 # Internal function to determine if squad's permissions override user's
 # permissions.

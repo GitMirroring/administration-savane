@@ -43,7 +43,7 @@
 
 require_once ("../include/mailman.php");
 
-session_require (['group' => '1', 'admin_flags' => 'A']);
+session_require (['group' => SESSION_ADMIN_GROUP]);
 
 $submits = ['assign', 'confirm'];
 extract (sane_import ('request',

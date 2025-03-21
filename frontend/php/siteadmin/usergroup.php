@@ -51,7 +51,7 @@ $incs =
 foreach ($incs as $i)
   require_once ("../include/$i.php");
 
-session_require (['group' => '1','admin_flags' => MEMBER_FLAGS_ADMIN]);
+session_require (['group' => SESSION_ADMIN_GROUP]);
 
 $actions = ['remove_user_from_group', 'update_user_group',
   'update_user', 'add_user_to_group', 'rename', 'delete', 'activate'

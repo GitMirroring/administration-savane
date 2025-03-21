@@ -76,6 +76,8 @@
 # http://www.ietf.org/rfc/rfc2965.txt (status: proposed standard)
 # https://savannah.gnu.org/task/?6800 (don't use a leading dot)
 
+define ('SESSION_ADMIN_GROUP', 1); # Actually no such group exists.
+
 foreach (['sane', 'account', 'random-bytes'] as $h)
   require_once (dirname (__FILE__) . "/$h.php");
 

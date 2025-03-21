@@ -177,7 +177,7 @@ function trackers_data_show_notification_settings ($group_id, $tracker)
   $grtrsettings = trackers_data_get_notification_settings (
     $group_id, $tracker
   );
-  if (!(user_ismember ($group_id, MEMBER_FLAGS_ADMIN)))
+  if (!user_is_group_admin ($group_id))
     return;
   $cat_ck = $glob_ck = $both_ck = false;
   if ($grtrsettings['glnotif'] == 0)

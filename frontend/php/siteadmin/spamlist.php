@@ -43,7 +43,7 @@
 
 require_once ('../include/init.php');
 require_once ('../include/form.php');
-session_require (['group' => '1', 'admin_flags' => 'A']);
+session_require (['group' => SESSION_ADMIN_GROUP]);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.

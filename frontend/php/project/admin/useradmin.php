@@ -64,7 +64,7 @@ extract (sane_import ('post',
   ]
 ));
 form_check ('update');
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 if (!$update)
   $action = '';
 

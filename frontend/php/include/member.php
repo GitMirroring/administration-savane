@@ -47,7 +47,14 @@ define ('MEMBER_FLAGS_ADMIN', 'A');
 define ('MEMBER_FLAGS_PENDING', 'P');
 define ('MEMBER_FLAGS_SQUAD', 'SQD');
 
+define ('MEMBER_ROLE_TECHNICIAN', '1');
+define ('MEMBER_ROLE_TECHNAGER', '2');
+define ('MEMBER_ROLE_MANAGER', '3');
+
 $MEMBER_FLAGS_ACTIVE = [MEMBER_FLAGS_MEMBER => 1, MEMBER_FLAGS_ADMIN => 1];
+$member_roles = [
+  MEMBER_ROLE_TECHNICIAN, MEMBER_ROLE_TECHNAGER, MEMBER_ROLE_MANAGER
+];
 
 function member_history_label_on_add ($status)
 {
@@ -407,15 +414,11 @@ function member_check_single_perm ($value, $flag_level, $strict)
     return true; # If the value is equal to the flag, $u is obviously included.
   if ($strict)
     return false;
-  if (2 == $value && in_array ($flag_level, [1, 3]))
-    # The value is equal to 2 (manager and tech) if tech (1)
-    # or manager (3) is asked.
+  if (MEMBER_ROLE_TECHNAGER == $value
+      && in_array ($flag_level, [MEMBER_ROLE_TECHNICIAN, MEMBER_ROLE_MANAGER]))
     return true;
-  if (2 == $flag_level  && in_array ($value, [1, 3]))
-    # If the value is equal to 3 (manager) or 1 (techn) if tech
-    # and manager (2) is asked, it is "true".
-    return true;
-  return false;
+  return MEMBER_ROLE_TECHNAGER == $flag_level
+    && in_array ($value, [MEMBER_ROLE_TECHNICIAN, MEMBER_ROLE_MANAGER]);
 }
 
 function member_check_array_perms ($group_id, $flag, $uids, $strict)
@@ -469,25 +472,25 @@ function member_users_are_in_group ($group_id, $uids)
   return $ret;
 }
 
-# Check membership: by default, check only if someone is member of a project.
+# Check membership: by default, check only if someone is member of a group.
 #
 # With the flag option, you can check for specific right:
 #    - the first letter of the flag should designate the tracker
-#       (B = bugs, P = patch...
-#        please use member_create_tracker_flag(ARTIFACT))
+#       (B = bugs, P = patch...)
 #    - the second letter, if specified, designate a role
 #       1 = technician
 #       2 = technician AND manager
 #       3 = manager
 #
 # The strict variable permit to have a return "true" only if the flag
-# found is exactly equal to the flag asked. For instance, if you are
-# looking for someone who is only technician, and not techn. and manager,
+# found is exactly equal to the flag asked.  For instance, if you are
+# looking for someone who is only technician, and not techn and manager,
 # you can use that flag.
 function member_check_array ($user_id, $group_id, $flag = 0, $strict = 0)
 {
-  if (in_array ($flag, [1, 2, 3]))
-    $flag = member_create_tracker_flag (ARTIFACT) . "$flag";
+  global $member_roles;
+  if (in_array ($flag, $member_roles))
+    $flag = member_create_tracker_flag (ARTIFACT) . $flag;
   list ($uids, $ret) = member_check_propagate_uids ($user_id);
   if (empty ($uids))
     return $ret;

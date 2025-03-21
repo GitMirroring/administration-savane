@@ -979,7 +979,7 @@ function site_user_footer ($params)
 # Administrative page functions.
 function site_admin_header ($params)
 {
-  session_require (['group' => '1','admin_flags' => 'A']);
+  session_require (['group' => SESSION_ADMIN_GROUP]);
   html_header ($params);
 }
 

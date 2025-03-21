@@ -52,7 +52,7 @@ if (!$group_id)
 if (!user_isloggedin ())
   exit_permission_denied ();
 
-$is_admin = user_ismember ($group_id, MEMBER_FLAGS_ADMIN);
+$is_admin = user_is_group_admin ();
 $editable_reports = trackers_data_get_editable_reports ($group_id, $is_admin);
 $reports_updated = false;
 

@@ -46,7 +46,7 @@ require_once ('../../include/form.php');
 require_once ('../../include/vars.php');
 
 require_directory ("trackers");
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 extract (sane_import ('post',
   [

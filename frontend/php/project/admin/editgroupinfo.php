@@ -62,7 +62,7 @@ extract (sane_import ('post',
 ));
 form_check ($submit_buttons);
 
-session_require (['group' => $group_id, 'admin_flags' => 'A']);
+session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 # Update info for page.
 $res_grp = db_execute ("SELECT * FROM groups WHERE group_id = ?", [$group_id]);

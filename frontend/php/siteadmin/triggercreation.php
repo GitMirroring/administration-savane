@@ -49,7 +49,7 @@ require_once ('../include/proj_email.php');
 
 # Skip admin rights check if we are dealing with the sys group.
 if ($sys_group_id != $group_id)
-  session_require (['group' => '1','admin_flags' => 'A']);
+  session_require (['group' => SESSION_ADMIN_GROUP]);
 
 # Configure the group according to group type settings.
 # If a group can use a feature for its group type, assume he would

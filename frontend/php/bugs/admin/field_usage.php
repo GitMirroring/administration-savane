@@ -68,12 +68,7 @@ extract (sane_import ('post',
   ]
 ));
 form_check ($submits);
-
-if (!$group_id)
-  exit_no_group ();
-if (!user_ismember ($group_id, 'A'))
-  exit_permission_denied ();
-
+user_check_group_admin ();
 trackers_init ($group_id);
 function preinp ($x)
 {

@@ -45,7 +45,7 @@
 foreach (['init', 'vars', 'form', 'html', 'project/admin'] as $i)
   require_once ("../include/$i.php");
 
-session_require (['group' => $sys_group_id, 'admin_flags' => 'A']);
+session_require (['group' => SESSION_ADMIN_GROUP]);
 
 # We don't internationalize messages in this file because they are
 # for Savannah admins who use English.
