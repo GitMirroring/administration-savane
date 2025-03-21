@@ -1670,82 +1670,48 @@ function trackers_data_handle_update (
   );
 }
 
-function trackers_data_reassign_check_artifact ($change_artifact)
-{
-  if ($change_artifact)
-    return false;
-  fb (_("Unable to find out to which artifact the item is to be\n"
-        . "reassigned, exiting."), 1);
-  return true;
-}
-
-function trackers_data_reassign_check_identical ($new_group_id, $artifact)
-{
-  global $group_id;
-  if ($new_group_id != $group_id || ARTIFACT != $artifact)
-    return false;
-  fb (_("No reassignation required or possible."), 1);
-  return true;
-}
-
-function trackers_data_reassign_item (
-  $item_id, $reassign_change_group, $new_artifact
-)
+function trackers_data_reassign_get_new_group_id ($change_group, $new_artifact)
 {
   global $group_id;
 
-  # Can only be done by a tracker manager.
-  if (!member_check (0, $group_id, 2))
-    return false;
-  # If the new group_id is equal to the current one, nothing need
-  # to be done, unless the artifact changed.
-  # If the new group_id does not exists, nothing to be done either,
-  # unless the artifact changed: if no new valid group_id, let
-  # consider that it does not require a change.
-  $new_group_id = group_getid ($reassign_change_group);
+  $new_group_id = null;
+  if ($change_group)
+    $new_group_id = group_getid ($change_group);
   if (!$new_group_id)
     $new_group_id = $group_id;
+  if ($new_group_id == $group_id && ARTIFACT == $new_artifact)
+    {
+      fb (_("No reassignation required or possible."), 1);
+      return NULL;
+    }
+  if ($new_artifact)
+    return $new_group_id;
+  fb (_("Unable to find out to which artifact the item is to be\n"
+        . "reassigned, exiting."), 1);
+  return NULL;
+}
 
-  if (trackers_data_reassign_check_identical ($new_group_id, $new_artifact))
-    return false;
-
-  $now = time ();
-
-  # To reassign an item, we close the item and we reopen a new one
-  # at the appropriate place, copying information from the previous one
-  # We do this because trackers may have specific fields not compatible
-  # each others. Simply erase previous information could cause data loss.
-
-  # Fetch all the information.
+function trackers_data_fetch_item ($item_id)
+{
   $res_data = db_execute (
     "SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?",
     [$item_id]
   );
-  $row_data = db_fetch_array ($res_data);
+  return db_fetch_array ($res_data);
+}
 
-  # Duplicate the report.
-  if (!$reassign_change_group)
-    $reassign_change_group = $group_id;
+function trackers_data_copy_item (
+  $new_artifact, $new_group_id, $data, $now
+)
+{
+  $fields = ['group_id' => $new_group_id, 'status_id' => 1, 'date' => $now];
+  foreach (['severity', 'submitted_by', 'summary', 'details', 'priority',
+    'planned_starting_date', 'planned_close_date' , 'percent_complete' ,
+    'originator_email'] as $k
+  )
+    $fields[$k] = $data[$k];
 
-  if (trackers_data_reassign_check_artifact ($new_artifact))
-    return false;
-
-  # Move item.
-  $result = db_autoexecute (
-    $new_artifact,
-    [
-      'group_id' => $new_group_id, 'status_id' => 1, 'date' => $now,
-      'severity' => $row_data['severity'],
-      'submitted_by' => $row_data['submitted_by'],
-      'summary' => $row_data['summary'], 'details' => $row_data['details'],
-      'priority' => $row_data['priority'],
-      'planned_starting_date' => $row_data['planned_starting_date'],
-      'planned_close_date' => $row_data['planned_close_date'],
-      'percent_complete' => $row_data['percent_complete'],
-      'originator_email' => $row_data['originator_email']
-    ],
-    DB_AUTOQUERY_INSERT
-  );
+  $result = db_autoexecute ($new_artifact, $fields, DB_AUTOQUERY_INSERT);
 
   if (!$result)
     {
@@ -1753,14 +1719,39 @@ function trackers_data_reassign_item (
       return false;
     }
   fb (_("New item created."));
-
-  # Need to get the new item value.
   $new_item_id =  db_insertid ($result);
-  if (!$new_item_id)
+  if ($new_item_id)
+    return $new_item_id;
+  fb (_("Unable to find the ID of the new item."), 1);
+  return false;
+}
+
+function trackers_data_reassign_copy_comments (
+  $item_id, $new_item_id, $new_artifact
+)
+{
+  $res = db_execute (
+    "SELECT * FROM " . ARTIFACT . "_history WHERE bug_id = ? AND type = 100",
+    [$item_id]
+  );
+  $table = $new_artifact . "_history";
+  while ($row = db_fetch_array ($res, DB_FETCH_ASSOC))
     {
-      fb (_("Unable to find the ID of the new item."), 1);
-      return false;
+      foreach (['bug_history_id', 'new_value', 'spamscore', 'ip'] as $k)
+        unset ($row[$k]);
+      $row['bug_id'] = $new_item_id;
+      $result = db_autoexecute ($table, $row, DB_AUTOQUERY_INSERT);
+      if ($result)
+        continue;
+      fb (_("Unable to duplicate a comment from the original item."), 1);
     }
+}
+
+function trackers_data_reassign_add_history (
+  $item_id, $new_item_id, $new_group_id, $new_artifact
+)
+{
+  global $group_id;
 
   $grp_item = group_getname ($group_id) . ', '
     . utils_get_tracker_prefix (ARTIFACT) . " #$item_id";
@@ -1775,162 +1766,144 @@ function trackers_data_reassign_item (
     'Reassign item', $grp_item, $new_grp_item,
     $new_item_id, false, $new_artifact, 1
   );
+  trackers_data_reassign_copy_comments ($item_id, $new_item_id, $new_artifact);
+}
 
-  # Duplicate the comments.
-  $res_history = db_execute (
-    "SELECT * FROM " . ARTIFACT . "_history WHERE bug_id = ? AND type = 100",
-    [$item_id]
-  );
-  while ($row_history = db_fetch_array ($res_history))
-    {
-      $result = db_autoexecute (
-        $new_artifact . "_history",
-        [
-          'bug_id' => $new_item_id, 'field_name' => $row_history['field_name'],
-          'old_value' => $row_history['old_value'],
-          'mod_by' => $row_history['mod_by'], 'date' => $row_history['date'],
-          'type' => $row_history['type']
-        ],
-        DB_AUTOQUERY_INSERT
-      );
-      if (!$result)
-        {
-          fb (
-            _("Unable to duplicate a comment from the original item\n"
-              . "report information."),
-            1);
-        }
-    }
+function trackers_data_get_artifact_columns ()
+{
+  $res = db_execute ("SHOW COLUMNS FROM " . ARTIFACT);
+  $list = [];
+  while ($row = db_fetch_array ($res))
+    $list[] = $row['Field'];
+  return $list;
+}
 
-  # Add a comment giving every original information.
+function trackers_data_reassign_compose_comment ($item_id, $row_data)
+{
+  global $group_id;
   $comment = "This item has been reassigned from the group "
     . group_getname ($row_data['group_id']) . " " . ARTIFACT
     . " tracker to your tracker.\n\nThe original report is still available at "
     . ARTIFACT . " #$item_id\n\n"
     . "Following are the information included in the original report:\n\n";
 
-  $res_show = db_execute ("SHOW COLUMNS FROM " . ARTIFACT);
-  $list = array();
-  while ($row_show = db_fetch_array ($res_show))
+  foreach (trackers_data_get_artifact_columns () as $l => $v)
     {
-      # Build a list of any possible field.
-      $list[] = $row_show['Field'];
-    }
-
-  foreach ($list as $l => $v)
-    {
-      if ($row_data[$l])
-        {
-          $comment .= "[field #" . $l . "] ";
-          $comment .= trackers_field_display (
-            $v, $group_id, $row_data[$l], false, true, true, true
-          );
-          $comment .= "<br />\n";
-        }
-    }
-
-  $result = db_autoexecute (
-    $new_artifact . "_history",
-    [
-      'bug_id' => $new_item_id, 'field_name' => 'details',
-      'old_value' => $comment, 'mod_by' => user_getid (),
-      'date' => $now, 'type' => 100
-    ],
-    DB_AUTOQUERY_INSERT
-  );
-
-  if (!$result)
-    {
-      fb (
-        _("Unable to add a comment with the original item report\n"
-          . "information."),
-        1
+      if (!$row_data[$l])
+        continue;
+      $comment .= "[field #$l] ";
+      $comment .= trackers_field_display (
+        $v, $group_id, $row_data[$l], false, true, true, true
       );
+      $comment .= "<br />\n";
     }
+  return $comment;
+}
 
-  # Usually, reassigning means duplicating data.
-  # In case of attached files, we simply reassign the file to another
-  # item. This could avoid wasting too much disk space as file are expected
-  # to be much bigger than CC list and alike.
+function trackers_data_reassign_add_comment (
+  $new_item_id, $new_artifact, $comment, $now
+)
+{
+  $table = $new_artifact . "_history";
+  $fields = [
+    'bug_id' => $new_item_id, 'field_name' => 'details', 'date' => $now,
+    'old_value' => $comment, 'mod_by' => user_getid (), 'type' => 100
+  ];
+  if (db_autoexecute ($table, $fields, DB_AUTOQUERY_INSERT))
+    return;
+  fb (
+    _("Unable to add a comment with the original item report\ninformation."), 1
+  );
+}
+
+function trackers_data_reassign_files ($item_id, $new_item_id, $new_artifact)
+{
   $result = db_autoexecute (
-    "trackers_file",
-    ['item_id' => $new_item_id, 'artifact' => $new_artifact],
+    "trackers_file", ['item_id' => $new_item_id, 'artifact' => $new_artifact],
     DB_AUTOQUERY_UPDATE, "item_id = ? AND artifact = ?", [$item_id, ARTIFACT]
   );
+  if ($result)
+    return;
+  $msg = sprintf (
+    _("Unable to duplicate an attached file (%s) from the\noriginal item."),
+    $row_attachment['filename']
+  );
+  fb ($msg, 1);
+}
 
-  if (!$result)
+function trackers_data_copy_cc_list ($item_id, $new_item_id, $new_artifact)
+{
+  $res = db_execute (
+    "SELECT * FROM " . ARTIFACT . "_cc WHERE bug_id = ?", [$item_id]
+  );
+  $table = "{$new_artifact}_cc";
+  while ($row = db_fetch_array ($res, DB_FETCH_ASSOC))
     {
+      unset ($row['bug_cc_id']);
+      $row['bug_id'] = $new_item_id;
+      if (db_autoexecute ($table, $row, DB_AUTOQUERY_INSERT))
+        continue;
       $msg = sprintf (
-       _("Unable to duplicate an attached file (%s) from the\n"
-         . "original item report information."),
-       $row_attachment['filename']
+        _("Unable to duplicate a CC address (%s) from the\noriginal item."),
+        $row['email']
       );
       fb ($msg, 1);
     }
+}
 
-  # Duplicate CC List.
-  $res_cc = db_execute (
-    "SELECT * FROM " . ARTIFACT . "_cc WHERE bug_id = ?",
-    [$item_id]
-  );
-  while ($row_cc = db_fetch_array ($res_cc))
-    {
-      $result = db_autoexecute (
-       "{$new_artifact}_cc",
-        [
-          'bug_id' => $new_item_id, 'email' => $row_cc['email'],
-          'added_by' => $row_cc['added_by'],
-          'comment' => $row_cc['comment'], 'date' => $row_cc['date']
-        ],
-        DB_AUTOQUERY_INSERT
-      );
+function trackers_data_reassign_string (
+  $new_artifact, $new_item_id
+)
+{
+  return 'THIS ITEM WAS REASSIGNED TO '
+    . strtoupper (utils_get_tracker_prefix ($new_artifact))
+    . " #$new_item_id\n";
+}
 
-      if (!$result)
-        {
-          $msg = sprintf (
-            _("Unable to duplicate a CC address (%s) from the\n"
-              . "original item report information."),
-            $row_cc['email']
-          );
-          fb ($msg, 1);
-        }
-    }
-
-  # Update data of the original to make sure people dont get confused.
-  # Close the original item.
-  $result = db_autoexecute (
-    ARTIFACT,
-    [
-      'status_id' => 3, 'close_date' => $now,
-      'summary' =>
-        "Reassigned to another tracker [was: {$row_data['summary']}]",
-      'details' => 'THIS ITEM WAS REASSIGNED TO '
-        . strtoupper (utils_get_tracker_prefix ($new_artifact))
-        . " #$new_item_id\n" . $row_data['details']
-    ],
-    DB_AUTOQUERY_UPDATE, "bug_id = ?", [$item_id]
-  );
-  trackers_data_add_history ('close_date', $now, $now, $item_id);
-
-  if ($result)
-      fb (_("Original item is now closed."));
-  else
-      fb (_("Unable to close the original item report."), 1);
-
-  # Finally put an extra comment so people dont get confused
-  # (it is not important, so run the sql without checks).
+function  trackers_data_reassign_close_add_history (
+  $item_id, $new_item_id, $new_artifact, $now
+)
+{
   db_autoexecute (
     ARTIFACT . "_history",
     [
       'bug_id' => $item_id, 'field_name' => 'details',
-      'old_value' => 'THIS ITEM WAS REASSIGNED TO '
-        . strtoupper (utils_get_tracker_prefix ($new_artifact))
-        . " #$new_item_id</p>\n"
-        . 'Please, do not post any new comments to this item.',
+      'old_value' => trackers_data_reassign_string (
+          $new_artifact, $new_item_id
+        )
+        . "<br />Please, do not post any new comments to this item.",
       'mod_by' => user_getid (), 'date' => $now, 'type' => 100
     ],
     DB_AUTOQUERY_INSERT
   );
+}
+
+function trackers_data_reassign_close_item (
+  $new_item_id, $new_artifact, $now, $data
+)
+{ $item_id = $data['bug_id']; $fields = [
+    'status_id' => 3, 'close_date' => $now,
+    'summary' => "Reassigned to another tracker [was: {$data['summary']}]",
+    'details' => trackers_data_reassign_string (
+       $new_artifact, $new_item_id
+     ) . $data['details']
+  ];
+  $result = db_autoexecute (
+    ARTIFACT, $fields,
+    DB_AUTOQUERY_UPDATE, "bug_id = ?", [$item_id]
+  );
+  trackers_data_add_history ('close_date', $now, $now, $item_id);
+  if ($result)
+    fb (_("Original item is now closed."));
+  else
+    fb (_("Unable to close the original item report."), 1);
+  trackers_data_reassign_close_add_history (
+    $item_id, $new_item_id, $new_artifact, $now
+  );
+}
+
+function trackers_data_reassign_followup ($new_item_id, $new_artifact)
+{
   $address = '';
   trackers_append_followup_notif_addresses (
     $address, $new_item_id, true, $new_artifact
@@ -1938,8 +1911,43 @@ function trackers_data_reassign_item (
   trackers_mail_followup (
     $new_item_id, $address, false, false, $new_artifact
   );
+}
 
-  # If we get here, assume everything went properly.
+function trackers_data_pre_reassign ($item_id, $new_group, $new_artifact)
+{
+  $new_group_id =
+    trackers_data_reassign_get_new_group_id ($new_group, $new_artifact);
+  if ($new_group_id === null)
+    return false;
+
+  $now = time ();
+  $row_data = trackers_data_fetch_item ($item_id);
+
+  $new_item_id = trackers_data_copy_item (
+    $new_artifact, $new_group_id, $row_data, $now
+  );
+  return [$new_item_id, $new_group_id, $now, $row_data];
+}
+
+function trackers_data_reassign_item ($item_id, $new_group, $new_artifact)
+{
+  list ($new_item_id, $new_group_id, $now, $row_data) =
+    trackers_data_pre_reassign ($item_id, $new_group, $new_artifact);
+  if ($new_item_id === false)
+    return false;
+  trackers_data_reassign_add_history (
+    $item_id, $new_item_id, $new_group_id, $new_artifact
+  );
+  $comment = trackers_data_reassign_compose_comment ($item_id, $row_data);
+  trackers_data_reassign_add_comment (
+    $new_item_id, $new_artifact, $comment, $now
+  );
+  trackers_data_reassign_files ($item_id, $new_item_id, $new_artifact);
+  trackers_data_copy_cc_list ($item_id, $new_item_id, $new_artifact);
+  trackers_data_reassign_close_item (
+    $new_item_id, $new_artifact, $now, $row_data
+  );
+  trackers_data_reassign_followup ($new_item_id, $new_artifact);
   return true;
 }
 

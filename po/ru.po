@@ -5011,16 +5011,27 @@ msgid ""
 "report information."
 msgstr "Не удается скопировать комментарий из первоначальной заявки."
 
+msgid "Unable to duplicate a comment from the original item."
+msgstr "Не удается скопировать комментарий из первоначальной заявки."
+
 msgid ""
 "Unable to add a comment with the original item report\n"
 "information."
 msgstr "Не удается добавить комментарий со сведениями о первоначальной заявке."
 
 #, php-format
+msgid "Unable to duplicate an attached file (%s) from the\noriginal item."
+msgstr "Не удается скопировать приложенный файл (%s) из первоначальной заявки."
+
+#, php-format
 msgid ""
 "Unable to duplicate an attached file (%s) from the\n"
 "original item report information."
 msgstr "Не удается скопировать приложенный файл (%s) из первоначальной заявки."
+
+#, php-format
+msgid "Unable to duplicate a CC address (%s) from the\noriginal item."
+msgstr "Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
 
 #, php-format
 msgid ""
