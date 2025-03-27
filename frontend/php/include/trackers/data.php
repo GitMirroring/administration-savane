@@ -1561,20 +1561,13 @@ function update_close_date ($item_id, $vfl, $row, &$upd_list)
   trackers_data_add_history ('close_date', $row['close_date'], $now, $item_id);
 }
 
-function handle_update (
-  $group_id, $item_id, $dependent_on_task, $dependent_on_bugs,
-  $dependent_on_support, $dependent_on_patch, $canned_response, $vfl,
-  &$changes, &$extra_addresses
+function update_field_vals (
+  $row, $field_transition, $vfl, &$changes, &$extra_addr
 )
 {
-  list ($row, $field_transition) = fetch_data ($group_id, $item_id, $vfl);
-  if ($row === false)
-    return;
-  $change_exists = 0;
-
-  $field_transition_accepted = $upd_list = $extra_addr = [];
-  if (trim ($extra_addresses) != '')
-    $extra_addr[] = $extra_addresses;
+  $item_id = $row['bug_id'];
+  $group_id = $row['group_id'];
+  $field_transition_accepted = $upd_list = [];
   foreach ($vfl as $field => $value)
     {
       if (transition_not_needed ($field, $row))
@@ -1599,6 +1592,38 @@ function handle_update (
         $field, $group_id, $old_value, $value, $changes
       );
     } # foreach ($vfl as $field => $value)
+  return [$field_transition_accepted, $upd_list];
+}
+
+function update_comment ($row, $vfl, $canned_response, &$changes)
+{
+  $item_id = $row['bug_id'];
+  $group_id = $row['group_id'];
+  $details = '';
+  if (array_key_exists ('comment', $vfl))
+    $details = $vfl['comment'];
+
+  $details = trackers_data_append_canned_response ($details, $canned_response);
+  return update_details ($details, $item_id, $group_id, $vfl, $changes);
+}
+
+function handle_update (
+  $group_id, $item_id, $dependent_on_task, $dependent_on_bugs,
+  $dependent_on_support, $dependent_on_patch, $canned_response, $vfl,
+  &$changes, &$extra_addresses
+)
+{
+  list ($row, $field_transition) = fetch_data ($group_id, $item_id, $vfl);
+  if ($row === false)
+    return;
+
+  $extra_addr = [];
+  if (trim ($extra_addresses) != '')
+    $extra_addr[] = $extra_addresses;
+  list ($field_transition_accepted, $upd_list) =
+    update_field_vals (
+      $row, $field_transition, $vfl, $changes, $extra_addr
+    );
 
   # Now we run transitions other fields update. This function does check
   # what already changed and that we shan't automatically update.
@@ -1606,17 +1631,7 @@ function handle_update (
     $item_id, $field_transition_accepted, $changes
   );
 
-  # Comments field history is handled a little differently. Followup comments
-  # are added in the bug history along with the comment type.
-  # Comments are called 'details' here for historical reason.
-  $details = trackers_data_append_canned_response (
-    $vfl['comment'], $canned_response
-  );
-
-  $change_exists |= update_details (
-    $details, $item_id, $group_id, $vfl, $changes
-  );
-
+  $change_exists = update_comment ($row, $vfl, $canned_response, $changes);
   $change_exists |= update_cookbook (
     $item_id, $group_id, $row, $vfl, $changes, $upd_list
   );
