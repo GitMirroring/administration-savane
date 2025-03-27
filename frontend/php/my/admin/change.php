@@ -170,19 +170,6 @@ function update_gpgkey ()
   return $success;
 }
 
-function extract_email_newvalue ()
-{
-  $vals = sane_import ('request',
-    [
-      'preg' =>
-        [['newvalue', '/^[a-zA-Z0-9_.+-]+@(([a-zA-Z0-9-])+\.)+[a-zA-Z0-9]+$/']]
-    ]
-  );
-  if (empty ($vals['newvalue']))
-    return '';
-  return preg_replace ('/\s/', '', $vals['newvalue']);
-}
-
 function confirm_hash_url ($confirm_hash, $func = 'email')
 {
   global $sys_https_host, $sys_home, $sys_default_domain;
@@ -267,7 +254,9 @@ function report_step0_result ($fail, $newval)
 function update_email_step0 ()
 {
   global $item;
-  $val = extract_email_newvalue ();
+  $val = '';
+  if (array_key_exists ('newvalue', $_REQUEST))
+    $val = $_REQUEST['newvalue'];
   if (!account_emailvalid ($val))
     return;
   $confirm_hash = account_generate_confirm_hash ($item, ['email_new' => $val]);

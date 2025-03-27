@@ -4,6 +4,9 @@
 
 * More tests for localization are added in testconfig.php.
 
+* Restrictions on registered email addresses are relaxed.  In particular,
+  '~' is allowed, Savannah sr #111212.
+
 * Support for PHP 8.4 was added.
 
 * Support for encrypted comments via email was added.
@@ -18,6 +21,11 @@
 * New configuration variable, $sys_max_items_per_page, Savannah sr #111154.
 
 * Bug fixes:
+
+** When an account with an empty associated email existed, attempts to
+   change email address of any account to a queer value resulted in
+   a feedback 'An account associated with that email address has already
+   been created,' Savannah sr #111212.
 
 ** Submitting a duplicate form in My Account Configuration resulted
    in an Undefined constant error.

@@ -339,11 +339,34 @@ function account_namevalid (
   return 0;
 }
 
-# Just check if the email address domain is not from a forbidden domain
-# or if it is not already associated to an email account.
+function account_email_malformed ($email)
+{
+  if (empty ($email))
+    {
+      fb (_("You must supply a valid email address."), 1);
+      return 1;
+    }
+  $alnum = 'a-zA-Z0-9';
+  # Compared to RFC-5322, atext doesn't include & and single quote.
+  $atext = $alnum
+    . '!#$%*+/=?^_`{|}~-'; # NB '-' should be the last character in the class.
+  $dot_atom_text = "[$atext][.$atext]*";
+  $preg = ',^' . "$dot_atom_text@$dot_atom_text" . '$,';
+
+  if (preg_match ($preg, $email))
+    return 0;
+  $msg = sprintf (
+    _("Supplied string *%s* doesn't look like an email address."), $email
+  );
+  fb ($msg, 1);
+  return 1;
+}
+
 function account_emailvalid ($email)
 {
-  $res = db_execute ("SELECT user_id FROM user WHERE email LIKE ?", [$email]);
+  if (account_email_malformed ($email))
+    return 0;
+  $res = db_execute ("SELECT user_id FROM user WHERE email = ?", [$email]);
   if (db_numrows ($res) > 0)
     {
       fb (

@@ -126,14 +126,7 @@ if (!empty ($update))
     else
       $pw_is_valid = true;
 
-    if (!$form_email)
-      fb (_("You must supply a valid email address."), 1);
-    elseif (!account_emailvalid ($form_email))
-      {
-        # Feedback included by the check function.
-      }
-    else
-      $email_is_valid = true;
+    $email_is_valid = account_emailvalid ($form_email);
 
     $form_realname = account_sanitize_realname ($form_realname);
     if (account_realname_valid ($form_realname))
