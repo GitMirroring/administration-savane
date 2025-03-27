@@ -3,7 +3,7 @@
 # Copyright (C) 2004, 2005 Dmitri I GOULIAEV <dig@telkel.net>
 # Copyright (C) 2010 Roman Pominov <Roman.Pominov@ihep.ru>
 # Copyright (C) 2017, 2018, 2019, 2020, 2021, 2022, 2023,
-#   2024 Ineiev <ineiev@gnu.org>
+#   2024, 2025 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #
@@ -41,14 +41,14 @@
 #
 # Dmitri I GOULIAEV <dig@telkel.net>, 2004, 2005
 # Roman Pominov <Roman.Pominov@ihep.ru>, 2010
-# Ineiev <ineiev@gnu.org>, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024
+# Ineiev <ineiev@gnu.org>, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.14\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-03-08 10:48+0000\n"
-"PO-Revision-Date: 2025-03-08 15:44+0000\n"
+"POT-Creation-Date: 2025-04-15 07:57+0000\n"
+"PO-Revision-Date: 2025-04-15 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -1796,9 +1796,6 @@ msgstr "Вы должны ввести пароль"
 msgid "Passwords do not match."
 msgstr "Пароли не совпадают."
 
-msgid "You must supply a valid email address."
-msgstr "Сначала нужно ввести правильный email адрес."
-
 #, php-format
 msgid ""
 "Thank you for registering on the %s web site.\n"
@@ -2542,6 +2539,10 @@ msgstr ""
 "Система сообщила об ошибке при попытке отправить\n"
 "письмо с подтверждением. Повторите и сообщите о проблеме администраторам."
 
+#, php-format
+msgid "*%s* is already your registered email."
+msgstr "*%s* уже является адресом вашей учетной записи."
+
 msgid "Email address updated."
 msgstr "Адрес электронной почты обновлен."
 
@@ -3125,7 +3126,7 @@ msgid ""
 "By default, the top menu includes links to all relevant pages\n"
 "context (group area, personal area) in dropdown submenus. However,\n"
 "the dropdown submenus may not work with a few lightweight browsers,\n"
-"for instance, NetSurf (as of 3.10, released in 2020).\n"
+"for instance, NetSurf (as of 3.11, released in 2023).\n"
 "Selecting this option enables an old-fashioned submenu like the one\n"
 "shipped in older Savane releases (< 2.0)."
 msgstr ""
@@ -3134,7 +3135,7 @@ msgstr ""
 "Однако механизм выпадающих подменю может не работать с некоторыми\n"
 "нетребовательными к ресурсам браузерами, например NetSurf (на момент "
 "выпуска\n"
-"3.10, 2020 год). Выбор этой настройки включает старомодное подменю,\n"
+"3.11, 2023 год). Выбор этой настройки включает старомодное подменю,\n"
 "подобное тому, какое было в прежних выпусках Savane (< 2.0)."
 
 msgid "Show feedback in relative position"
@@ -3598,8 +3599,21 @@ msgstr "Имя может содержать только латинские б�
 msgid "That name is reserved."
 msgstr "Это имя недопустимо."
 
-msgid "An account associated with that email address has already been created."
-msgstr "Учетная запись с таким адресом электронной почты уже существует."
+msgid "You must supply a valid email address."
+msgstr "Сначала нужно ввести правильный адрес электронной почты."
+
+#, php-format
+msgid "Supplied string *%s* doesn't look like an email address."
+msgstr "Введенная строка *%s* не похожа на адрес электронной почты."
+
+#, php-format
+msgid "The email address *%s* is reserved for deleted accounts."
+msgstr ""
+"Адрес электронной почты *%s* зарезервирован для удаляемых учетных записей."
+
+#, php-format
+msgid "An account with the email *%s* has already been created."
+msgstr "Учетная запись с адресом электронной почты *%s* уже существует."
 
 msgid "It is not allowed to associate an account with this email address."
 msgstr "С этим адресом электронной почты связывать учетную запись нельзя."
@@ -4027,6 +4041,7 @@ msgstr "Просмотреть заявки"
 msgid "Query form #%s doesn't exist"
 msgstr "Форма запроса №%s не существует"
 
+#, php-format
 msgid "Wrong parameter"
 msgstr "Неверный параметр"
 
@@ -4119,19 +4134,11 @@ msgid "Spam level of items to hide"
 msgstr "Уровень спама скрытых заявок"
 
 #, php-format
-msgid ""
-"Warning: only %s item can be shown at once, unless using Printer Version."
-msgid_plural ""
-"Warning: only %s items can be shown at once, unless using Printer Version."
-msgstr[0] ""
-"Внимание: одновременно может быть показана только %s заявка, если не "
-"используется версия для печати."
-msgstr[1] ""
-"Внимание: одновременно могут быть показаны только %s заявки, если не "
-"используется версия для печати."
-msgstr[2] ""
-"Внимание: одновременно может быть показано только %s заявок, если не "
-"используется версия для печати."
+msgid "Warning: only %s item can be shown at once."
+msgid_plural "Warning: only %s items can be shown at once."
+msgstr[0] "Внимание: одновременно может быть показана только %s заявка."
+msgstr[1] "Внимание: одновременно могут быть показаны только %s заявки."
+msgstr[2] "Внимание: одновременно может быть показано только %s заявок."
 
 #, php-format
 msgid ""
@@ -4989,13 +4996,13 @@ msgstr "Не удается обновить заявку"
 msgid "Item successfully updated"
 msgstr "Заявка успешно обновлена"
 
+msgid "No reassignation required or possible."
+msgstr "Переприсвоение не требуется или невозможно."
+
 msgid ""
 "Unable to find out to which artifact the item is to be\n"
 "reassigned, exiting."
 msgstr "Не удается определить, какому журналу нужно переприсвоить заявку."
-
-msgid "No reassignation required or possible."
-msgstr "Переприсвоение не требуется или невозможно."
 
 msgid "Unable to create a new item."
 msgstr "Не удается создать новую заявку."
@@ -5006,11 +5013,6 @@ msgstr "Создана новая заявка."
 msgid "Unable to find the ID of the new item."
 msgstr "Не удается найти идентификатор новой заявки."
 
-msgid ""
-"Unable to duplicate a comment from the original item\n"
-"report information."
-msgstr "Не удается скопировать комментарий из первоначальной заявки."
-
 msgid "Unable to duplicate a comment from the original item."
 msgstr "Не удается скопировать комментарий из первоначальной заявки."
 
@@ -5020,23 +5022,15 @@ msgid ""
 msgstr "Не удается добавить комментарий со сведениями о первоначальной заявке."
 
 #, php-format
-msgid "Unable to duplicate an attached file (%s) from the\noriginal item."
-msgstr "Не удается скопировать приложенный файл (%s) из первоначальной заявки."
-
-#, php-format
 msgid ""
 "Unable to duplicate an attached file (%s) from the\n"
-"original item report information."
+"original item."
 msgstr "Не удается скопировать приложенный файл (%s) из первоначальной заявки."
-
-#, php-format
-msgid "Unable to duplicate a CC address (%s) from the\noriginal item."
-msgstr "Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
 
 #, php-format
 msgid ""
 "Unable to duplicate a CC address (%s) from the\n"
-"original item report information."
+"original item."
 msgstr "Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
 
 msgid "Original item is now closed."
@@ -8133,8 +8127,8 @@ msgid ""
 "em>gnu.org) are GNU packages,\n"
 "so they should follow the <a href=\"%s\">GNU Coding Standards</a>."
 msgstr ""
-"Все пакеты, регистрируемые на savannah.gnu.org (в отличие от "
-"savannah.<em>nongnu</em>.org, представляют\n"
+"Все пакеты, регистрируемые на savannah.gnu.org (в отличие от savannah."
+"<em>nongnu</em>.org, представляют\n"
 "пакеты GNU, так что они должны следовать <a href=\"%s\">Стандартам "
 "программирования GNU</a>."
 
@@ -8385,8 +8379,8 @@ msgid ""
 "notices.  A copy of the full text of all applicable licenses should also\n"
 "be included in the project."
 msgstr ""
-"Соответствующие юридические уведомления должны прилагаться по меньшей мере "
-"к каждому исходному (не сгенерированному) файлу вашего проекта. Например, для "
+"Соответствующие юридические уведомления должны прилагаться по меньшей мере к "
+"каждому исходному (не сгенерированному) файлу вашего проекта. Например, для "
 "GPL см. страницу <a href=\"%s\">Как пользоваться лицензиями GNU</a>. В "
 "случае двоичных исходных файлов, таких как изображения, допустимо указывать "
 "лицензию в сопровождающем файле <tt>README</tt> или подобном ему. "
@@ -8980,6 +8974,25 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid ""
+#~ "Unable to duplicate a comment from the original item\n"
+#~ "report information."
+#~ msgstr "Не удается скопировать комментарий из первоначальной заявки."
+
+#, php-format
+#~ msgid ""
+#~ "Unable to duplicate an attached file (%s) from the\n"
+#~ "original item report information."
+#~ msgstr ""
+#~ "Не удается скопировать приложенный файл (%s) из первоначальной заявки."
+
+#, php-format
+#~ msgid ""
+#~ "Unable to duplicate a CC address (%s) from the\n"
+#~ "original item report information."
+#~ msgstr ""
+#~ "Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
 
 #~ msgid "This user doesn't exist."
 #~ msgstr "Этот пользователь не существует."
