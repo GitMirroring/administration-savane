@@ -379,25 +379,21 @@ function user_set_preference ($preference_name, $value)
   global $user_pref;
   if (!user_isloggedin ())
     return false;
-  $preference_name = user_normalize_pref_name ($preference_name);
-  $res = db_execute ("
-    SELECT NULL FROM user_preferences
-    WHERE user_id = ? AND preference_name = ?",
-    [user_getid (), $preference_name]
-  );
-  if (db_numrows ($res) > 0)
-    $result = db_autoexecute ('user_preferences',
+  $pref_name = user_normalize_pref_name ($preference_name);
+  if (user_get_preference ($pref_name, user_getid ()) !== null)
+    db_autoexecute ('user_preferences',
       ['preference_value' => $value], DB_AUTOQUERY_UPDATE,
-      "user_id = ? AND preference_name = ?", [user_getid (), $preference_name]
+      "`user_id` = ? AND `preference_name` = ?", [user_getid (), $pref_name]
     );
   else
-    $result = db_autoexecute ('user_preferences',
-      [ 'user_id' => user_getid (), 'preference_name' => $preference_name,
-        'preference_value' => $value],
-      DB_AUTOQUERY_INSERT
+    db_autoexecute ('user_preferences',
+      [
+        'user_id' => user_getid (), 'preference_name' => $pref_name,
+        'preference_value' => $value
+      ]
     );
   if (isset ($user_pref))
-    $user_pref[$preference_name] = $value;
+    $user_pref[$pref_name] = $value;
   return true;
 }
 
