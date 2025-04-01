@@ -252,30 +252,43 @@ function test_gpg ()
   test_sys_gpg_key ();
 }
 
-function test_cgitrepos ()
+function test_cgitrepos_presence ()
 {
   if (!isset ($GLOBALS['sys_etc_dir']))
-    return '<strong>no $sys_etc_dir set</strong>';
+    return ['<strong>no $sys_etc_dir set</strong>', null];
   if (!file_exists ($GLOBALS['sys_etc_dir']))
-    return '<strong>no $sys_etc_dir directory exists</strong>';
+    return ['<strong>no $sys_etc_dir directory exists</strong>', null];
   $fname = $GLOBALS['sys_etc_dir'] . '/cgitrepos';
   if (!file_exists ($fname))
-    return '<strong>no cgitrepos file exists in $sys_etc_dir</strong>';
+    return ['<strong>no cgitrepos file exists in $sys_etc_dir</strong>', null];
   if (!is_readable ($fname))
-    return '<strong>cgitrepos in $sys_etc_dir is not readable</strong>';
+    return ['<strong>cgitrepos in $sys_etc_dir is not readable</strong>', null];
+  return [null, $fname];
+}
+
+function test_cgitrepos_time ($fname)
+{
   $mtime = time () - filemtime ($fname);
-  if ($mtime > 3600)
-    {
-      $ret = ('<strong>cgitrepos has not been updated for ');
-      if ($mtime < 100)
-        $ret .= sprintf ('%.0f minutes</strong>', $mtime / 60);
-      else if ($mtime < 24 * 3600)
-        $ret .= sprintf ('%.0f hours</strong>',  $mtime / 3600);
-      else
-        $ret .= sprintf ('%.1f days</strong>',  $mtime / 24. / 3600);
-      return $ret;
-    }
-  return 'OK';
+  if ($mtime <= 3600)
+    return null;
+  $ret = ('<strong>cgitrepos has not been updated for ');
+  if ($mtime < 100)
+    return $ret . sprintf ('%.0f minutes</strong>', $mtime / 60);
+  if ($mtime < 24 * 3600)
+    return $ret . sprintf ('%.0f hours</strong>',  $mtime / 3600);
+  return $ret . sprintf ('%.1f days</strong>',  $mtime / 24. / 3600);
+}
+
+function test_cgitrepos ()
+{
+  $disclaimer = 'Note that cgitrepos is an obsolete way to get git info.';
+  list ($ret, $path) = test_cgitrepos_presence ();
+  if ($ret !== null)
+    return "$ret<br />$disclaimer";
+  $ret = test_cgitrepos_time ($path);
+  if ($ret === null)
+    return 'OK';
+  return "$ret<br />$disclaimer";
 }
 
 function sys_vcs_dir_not_set ()
