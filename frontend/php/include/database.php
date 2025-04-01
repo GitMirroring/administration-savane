@@ -458,7 +458,7 @@ function db_error ()
   return mysqli_error ($mysql_conn);
 }
 
-# Return an sql insert command taking in input a qhandle:
+# Issue an SQL insert command taking in input a qhandle:
 # it is supposed to ease copy a a row into another, ignoring the autoincrement
 # field + replacing another field value (like group_id).
 function db_createinsertinto (
@@ -472,8 +472,6 @@ function db_createinsertinto (
       $fieldname = db_fieldname ($result, $i);
       # Create the SQL by ignoring the autoincremental id.
       if ($fieldname == $autoincrement_fieldname)
-        continue;
-      if (db_result ($result, $row, $fieldname) == NULL)
         continue;
       # Replace another field.
       if ($fieldname == $replace_fieldname)

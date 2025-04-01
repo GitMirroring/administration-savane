@@ -145,8 +145,7 @@ initialization is known to fail with older MySQL versions like 5.7.
 The database can be installed in the system area, but that means invoking
 the database client from the root account or at least using the root database
 account.  Also, the database daemon is likely to start when the OS boots,
-so you needn't run sv_launch_db.pl; however, sv_launch_db.pl passes the right
-sql_mode to the daemon, so some changes may be needed in /etc/.
+so you needn't run sv_launch_db.pl.
 
 First, add --disable-database and --enable-db-networking to Savane
 configure options; also, you may want to customize the database
@@ -178,10 +177,6 @@ $ mysql --user=sv --password sv_demo < ../savane/db/initial.sql
 Optionally install sample entries:
 
 $ mysql --user=sv --password sv_demo < ../savane/db/sample.sql
-
-Visit <http://127.0.0.85:4913/testconfig.php> and check the 'MySQL
-configuration' section; you may want to set sql_mode in some file from
-/etc/mysql/.
 
 Configuring GnuPG-signed tracker notifications
 ----------------------------------------------

@@ -157,7 +157,7 @@ function create_user ()
   $passwd = account_encryptpw ($form_pw);
   $vals = ['user_name' => $new_name, 'user_pw' => $passwd,
     'status' => USER_STATUS_PENDING, 'realname' => $form_realname,
-    'email' => $form_email, 'add_date' => time ()
+    'email' => $form_email, 'add_date' => time (), 'people_resume' => ''
   ];
   $result = db_autoexecute ('user', $vals);
   if (!$result)

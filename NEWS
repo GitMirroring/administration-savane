@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* The STRICT_TRANS_TABLE sql_mode flag is supported.
+
 * More tests for localization are added in testconfig.php.
 
 * Restrictions on registered email addresses are relaxed.  In particular,

@@ -833,17 +833,16 @@ function try_db_connect ()
 }
 function mysql_params_to_test ()
 {
-  $wrong_modes = ['STRICT_TRANS_TABLES'];
-  $mysql_params = [
+  $wrong_modes = []; # No unsupported modes these days.
+  $comment = null;
+  if (!empty ($wrong_modes))
+    $comment = "<em>This should</em> <strong>not</strong> <em>include</em> "
+      . "<code>" . join (',', $wrong_modes) . "</code><em>.</em>";
+  return [
     '@@GLOBAL.version' => [null],
     '@@GLOBAL.sql_mode' => [null, $wrong_modes],
-    '@@SESSION.sql_mode' => [
-      "<em>This should</em> <strong>not</strong> <em>include</em> "
-        . "<code>" . join(',', $wrong_modes) . "</code><em>.</em>",
-      $wrong_modes
-    ]
+    '@@SESSION.sql_mode' => [$comment, $wrong_modes]
   ];
-  return $mysql_params;
 }
 
 function test_mysql_params ()
@@ -855,11 +854,8 @@ function test_mysql_params ()
       $result = db_execute ("SELECT $param");
       $value = db_result ($result, 0, $param);
       if (isset ($comment[1]))
-        {
-          $vals = $comment[1];
-          foreach ($vals as $i => $v)
-            $value = str_replace ($v, "<strong>$v</strong>", $value);
-        }
+        foreach ($comment[1] as $flag)
+          $value = str_replace ($flag, "<strong>$flag</strong>", $value);
       $value = "'$value'";
       if ($comment[0] !== null)
         $value .= "<br />\n{$comment[0]}";
