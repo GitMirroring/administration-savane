@@ -63,7 +63,7 @@ extract (sane_import ('get',
     'strings' =>
       [
         ['func', ['default' => 'browse', 'digest']],
-        ['set', ['custom', 'my', 'open']],
+        ['set', ['custom', 'open']],
         ['history_event', ['modified', 'not modified']]
       ],
     'preg' =>
@@ -308,12 +308,10 @@ function apply_user_prefs ($cust_pref)
     apply_single_pref ($expr);
 }
 
-# See what type of bug set is requested (set is one of none,
-# 'my', 'open', 'custom').
+# See what type of bug set is requested (set is one of none, 'open', 'custom').
 # - if no set is passed in, see if a preference was set ('custom' set).
-# - if no preference and logged in, then use 'my' set
 # - if no preference and not logged in, the use 'open' set
-#  (Prefs is a string of the form
+#  (Preference is a string of the form
 #  &amp;field1[]=value_id1&amp;field2[]=value_id2&amp;.... )
 if (!$set)
   {
@@ -322,13 +320,7 @@ if (!$set)
   } # !$set
 
 $user_id = user_getid ();
-if ($set == 'my')
-  {
-    #  My bugs - backwards compat can be removed 9/10.
-    $url_params['status_id'][] = 1;
-    $url_params['assigned_to'][] = $user_id;
-  }
-elseif ($set == 'custom')
+if ($set == 'custom')
   {
     # Use the list of fields built from the arguments and used by the project
     # (the group_id parameter has been excluded).
@@ -354,7 +346,6 @@ elseif ($set == 'custom')
   }
 else
   {
-    # We want to reset to all open items?
     # Force the status_id to open, set nothing else, trash the prefs.
     $url_params['status_id'][] = 1;
     user_unset_preference ($cust_pref);
