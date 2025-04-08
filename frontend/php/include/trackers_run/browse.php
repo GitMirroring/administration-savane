@@ -1098,10 +1098,8 @@ if ($wanted_max_rows != $max_rows)
     # it would mean that Savane would be modified to never list more
     # than 10 items at once, which is almost nothing.
     $fmt = ngettext (
-      "Warning: only %s item can be shown at once, unless using "
-        . "Printer Version.",
-      "Warning: only %s items can be shown at once, unless using "
-        . "Printer Version.",
+      "Warning: only %s item can be shown at once.",
+      "Warning: only %s items can be shown at once.",
       $max_rows
     );
     $form .= ' <span class="warn">' . sprintf ($fmt, $max_rows) . '</span>';
