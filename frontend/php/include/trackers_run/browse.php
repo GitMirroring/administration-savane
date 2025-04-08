@@ -982,12 +982,10 @@ $form .= "</table>\n";
 if (($details_search == 1) && ($summary_search == 1))
   {
     $sum = rtrim (
-      trackers_field_label_display ("summary", $group_id, false, true),
-      ': '
+      trackers_field_label_display ("summary", $group_id, false, true), ': '
     );
     $det = rtrim (
-      trackers_field_label_display ("details", $group_id, false, true),
-       ': '
+      trackers_field_label_display ("details", $group_id, false, true), ': '
     );
     $conj =
       '<select title="' . _("logical operation to apply")
@@ -1099,15 +1097,14 @@ if ($wanted_max_rows != $max_rows)
     # No use of ngettext as $max_rows will never be below 10, otherwise
     # it would mean that Savane would be modified to never list more
     # than 10 items at once, which is almost nothing.
-    $form .= ' <span class="warn">'
-      . sprintf (ngettext (
-          "Warning: only %s item can be shown at once, unless using "
-            . "Printer Version.",
-          "Warning: only %s items can be shown at once, unless using "
-            . "Printer Version.",
-           $max_rows), $max_rows
-        )
-      . '</span>';
+    $fmt = ngettext (
+      "Warning: only %s item can be shown at once, unless using "
+        . "Printer Version.",
+      "Warning: only %s items can be shown at once, unless using "
+        . "Printer Version.",
+      $max_rows
+    );
+    $form .= ' <span class="warn">' . sprintf ($fmt, $max_rows) . '</span>';
   }
 
 $form .= "</p>\n";
