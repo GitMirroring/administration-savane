@@ -308,11 +308,35 @@ function apply_user_prefs ($cust_pref)
     apply_single_pref ($expr);
 }
 
+function compile_pref_string ($url_params)
+{
+  # Use the list of fields built from the arguments and used by the project
+  # (the group_id parameter has been excluded).
+  # NB: Note that trackers_extract_field_list function did build and
+  # return date arguments (using _dayfd|monthfd|yearfd boxes) whether
+  # or not they were used by the group.
+
+  $ret = '';
+  foreach ($url_params as $field => $arr_val)
+    {
+      if (!is_array ($arr_val))
+        $arr_val = [$arr_val];
+      foreach ($arr_val as $value_id)
+        if (is_scalar ($value_id))
+          $ret .= "&amp;{$field}[]=$value_id";
+    }
+  $vars =
+    ['advsrch', 'msort', 'max_rows', 'spamscore', 'report_id', 'sumORdet'];
+  foreach ($vars as $v)
+    $ret .= "&amp;$v={$GLOBALS[$v]}";
+  return $ret;
+}
+
 # See what type of bug set is requested (set is one of none, 'open', 'custom').
-# - if no set is passed in, see if a preference was set ('custom' set).
-# - if no preference and not logged in, the use 'open' set
-#  (Preference is a string of the form
-#  &amp;field1[]=value_id1&amp;field2[]=value_id2&amp;.... )
+# * If no set is passed in, see if a preference was set ('custom' set).
+# * If no preference and not logged in, the use 'open' set.
+#  Preference is a string of the form
+#  &amp;field1[]=value_id1&amp;field2[]=value_id2...
 if (!$set)
   {
     $set = 'open';
@@ -322,25 +346,7 @@ if (!$set)
 $user_id = user_getid ();
 if ($set == 'custom')
   {
-    # Use the list of fields built from the arguments and used by the project
-    # (the group_id parameter has been excluded).
-    # NB: Note that trackers_extract_field_list function did build and
-    # return date arguments (using _dayfd|monthfd|yearfd boxes) whether
-    # or not they were tracker fields used by the project.
-
-    $pref_stg = '';
-    foreach ($url_params as $field => $arr_val)
-      {
-        if (!is_array ($arr_val))
-          $arr_val = [$arr_val];
-        foreach ($arr_val as $value_id)
-          if (is_scalar ($value_id))
-            $pref_stg .= "&amp;{$field}[]=$value_id";
-      }
-    $pref_stg .= "&amp;advsrch=$advsrch&amp;msort=$msort&amp;max_rows=$max_rows";
-    $pref_stg .= "&amp;spamscore=$spamscore&amp;report_id=$report_id";
-    $pref_stg .= "&amp;sumORdet=$sumORdet";
-
+    $pref_stg = compile_pref_string ($url_params);
     if ($pref_stg != user_get_preference ($cust_pref))
       user_set_preference ($cust_pref, $pref_stg);
   }
@@ -386,8 +392,7 @@ $select = [
 $where = "WHERE\n    a.group_id = ?";
 $where_params = [$group_id];
 
-# Take into account the spamscore limit (always show
-# item posted by the logged-in user).
+# Take into account the spamscore, but show items posted by the logged-in user.
 $where .= " AND (a.spamscore < ?";
 $where_params[] = $spamscore;
 if ($user_id != 100)
