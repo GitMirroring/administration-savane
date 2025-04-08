@@ -266,6 +266,8 @@ function action_update_user_group ()
 function action_update_user ()
 {
   global $user_id, $email;
+  if (!isset ($email))
+    $email = '';
 
   $result = db_execute (
     "UPDATE user SET email = ? WHERE user_id = ?",
