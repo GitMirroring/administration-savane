@@ -1094,9 +1094,6 @@ if ($is_trackeradmin)
     );
 if ($wanted_max_rows != $max_rows)
   {
-    # No use of ngettext as $max_rows will never be below 10, otherwise
-    # it would mean that Savane would be modified to never list more
-    # than 10 items at once, which is almost nothing.
     $fmt = ngettext (
       "Warning: only %s item can be shown at once.",
       "Warning: only %s items can be shown at once.",
