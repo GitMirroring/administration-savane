@@ -426,7 +426,10 @@ foreach ($url_params as $field => $val)
       continue;
     foreach ($val as $v)
       if (is_array ($v))
-        exit_error (_('Wrong parameter') . " $field");
+        {
+          $msg = utils_specialchars ("$field = " . error_print_r ($v));
+          exit_error (sprintf (_('Wrong parameter', $msg)));
+        }
   }
 
 foreach ($url_params as $field => $value_id)
