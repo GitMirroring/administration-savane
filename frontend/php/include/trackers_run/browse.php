@@ -255,6 +255,59 @@ if (!trackers_report_init ($report_id))
     trackers_report_init ($report_id);
   }
 
+function parse_history_field ($val)
+{
+  global $history_search, $history_field, $history_event, $history_date;
+  global $url_params;
+  $pref = explode ('>', $val);
+  if (count ($pref) != 4)
+    return;
+  list ($history_search, $history_field, $history_event, $history_date) = $pref;
+
+  # If not args in URL (means not after post) ...
+  # set $url_params['history'] explicitly since 'history'
+  # is not a tracker field and thus won't be set.
+  $url_params['history'][] = $val;
+}
+
+function apply_single_pref ($expr)
+{
+  global $max_rows, $url_params;
+
+  $fld_val = explode ('=', $expr, 2);
+  if (count ($fld_val) < 2)
+    return;
+  list ($field, $value) = $fld_val;
+  $field = str_replace ('[]', '', $field);
+  $global_fields = ['advsrch', 'msort', 'spamscore', 'report_id', 'sumORdet'];
+  if (in_array ($field, $global_fields))
+    $GLOBALS[$field] = $value;
+  elseif (in_array ($field, ['chunksz', 'max_rows']))
+    {
+      $max_rows = intval ($value);
+      if ($max_rows <= 0)
+        $max_rows = 50;
+    }
+  elseif ($field == 'history')
+    parse_history_field ($value);
+  else
+    $url_params[$field][] = $value;
+}
+
+function apply_user_prefs ($cust_pref)
+{
+  global $set;
+  if (!user_isloggedin ())
+    return;
+  $custom_pref = user_get_preference ($cust_pref);
+  if (!$custom_pref)
+    return;
+  $set = 'custom';
+  $pref_arr = explode ('&amp;', substr ($custom_pref, 5));
+  foreach ($pref_arr as $expr)
+    apply_single_pref ($expr);
+}
+
 # See what type of bug set is requested (set is one of none,
 # 'my', 'open', 'custom').
 # - if no set is passed in, see if a preference was set ('custom' set).
@@ -265,50 +318,7 @@ if (!trackers_report_init ($report_id))
 if (!$set)
   {
     $set = 'open';
-    if (user_isloggedin ())
-      {
-        $custom_pref = user_get_preference ($cust_pref);
-        if ($custom_pref)
-          {
-            $set = 'custom';
-            $pref_arr = explode ('&amp;', substr ($custom_pref, 5));
-            foreach ($pref_arr as $expr)
-              {
-                # Extract left and right parts of the assignment
-                # and remove the '[]' array symbol from the left part.
-                list ($field, $value_id) = explode ('=', $expr);
-                $field = str_replace ('[]', '', $field);
-                if ($field == 'advsrch' || $field == 'msort'
-                    || $field == 'spamscore' || $field == 'report_id'
-                    || $field == 'sumORdet'
-                )
-                  $$field = $value_id;
-                elseif (in_array ($field, ['chunksz', 'max_rows']))
-                  {
-                    $max_rows = intval ($value_id);
-                    if ($max_rows <= 0)
-                      $max_rows = 50;
-                  }
-                elseif ($field == 'history')
-                  {
-                    $history = $value_id;
-                    $hist_pref = explode ('>', $history);
-                    $history_search = $hist_pref[0];
-                    $history_field = $hist_pref[1];
-                    $history_event = $hist_pref[2];
-                    $history_date = $hist_pref[3];
-
-                    # If not args in URL (means not after post) ...
-                    # set $url_params['history'] explicitly since 'history'
-                    # is not a tracker field and thus won't be set.
-                    $url_params['history'][] = "$history_search>"
-                      . "$history_field>$history_event>$history_date";
-                  }
-                else
-                  $url_params[$field][] = $value_id;
-              }
-          } # $custom_pref
-      } # user_isloggedin ()
+    apply_user_prefs ($cust_pref);
   } # !$set
 
 $user_id = user_getid ();
