@@ -362,30 +362,60 @@ function account_email_malformed ($email)
   return 1;
 }
 
+function acount_email_placeholder ($email)
+{
+  if ($email !== USER_EMAIL_PLACEHOLDER)
+    return 0;
+  $msg = sprintf (
+    _("The email address *%s* is reserved for deleted accounts."), $email
+  );
+  fb ($msg, 1);
+  return 1;
+}
+
+function account_email_registered ($email)
+{
+  # Never mind deleted accounts and squads;
+  # only look for active and pending accounts.
+  $status = [USER_STATUS_ACTIVE, USER_STATUS_PENDING];
+  $res = db_execute (
+    "SELECT user_id FROM user WHERE email = ? AND status "
+    . utils_in_placeholders ($status),
+    array_merge ([$email], $status)
+  );
+  if (!db_numrows ($res))
+    return 0;
+  $msg = sprintf (
+    _("An account with the email *%s* has already been created."), $email
+  );
+  fb ($msg, 1);
+  return 1;
+}
+
+function account_regexforbidden ($email)
+{
+  # Despite its name, $forbid_mail_domains_regexp is matched against
+  # the whole email rather than its domain.  The feature isn't used
+  # as of 2025-03, actually.
+  utils_get_content ("forbidden_mail_domains");
+  if (empty ($GLOBALS['forbid_mail_domains_regexp']))
+    return 0;
+  if (!preg_match ($GLOBALS['forbid_mail_domains_regexp'], $email))
+    return 0;
+  $m = _("It is not allowed to associate an account with this email address.");
+  fb ($m, 1);
+  return 1;
+}
+
 function account_emailvalid ($email)
 {
   if (account_email_malformed ($email))
     return 0;
-  $res = db_execute ("SELECT user_id FROM user WHERE email = ?", [$email]);
-  if (db_numrows ($res) > 0)
-    {
-      fb (
-        _("An account associated with that email address has already "
-          . "been created."),
-        1
-      );
-      return 0;
-    }
-  utils_get_content ("forbidden_mail_domains");
-  if (empty ($GLOBALS['forbid_mail_domains_regexp']))
-    return 1;
-  if (!preg_match ($GLOBALS['forbid_mail_domains_regexp'], $email))
-    return 1;
-  fb (
-    _("It is not allowed to associate an account with this email address."),
-    1
-  );
-  return 0;
+  if (acount_email_placeholder ($email))
+    return 0;
+  if (account_email_registered ($email))
+    return 0;
+  return !account_regexforbidden ($email);
 }
 
 function account_groupnamevalid ($name)

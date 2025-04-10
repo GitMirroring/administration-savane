@@ -47,6 +47,7 @@ define ('USER_STATUS_PENDING', 'P');
 define ('USER_STATUS_SQUAD', MEMBER_FLAGS_SQUAD);
 define ('USER_STATUS_SUSPENDED', 'S');
 define ('USER_STATUS_DELETED', 'D');
+define ('USER_EMAIL_PLACEHOLDER', 'idontexist@savane.test');
 
 # User records in this array can be accessed by user_id as well as by user_name.
 # the user_name keys are in the lower case, user names are case-insensitive.
@@ -708,7 +709,7 @@ function user_delete ($user_id = false)
     $new_realname = '-';
   $success = db_autoexecute ('user',
     [ 'user_pw' => '!', 'realname' => $new_realname, 'status' => 'S',
-      'email' => 'idontexist@savane.test', 'confirm_hash' => null,
+      'email' => USER_EMAIL_PLACEHOLDER, 'confirm_hash' => null,
       'authorized_keys' => '', 'people_view_skills' => '0',
       'people_resume' => '', 'timezone' => 'GMT', 'theme' => '',
       'gpg_key' => '', 'email_new' => ''],

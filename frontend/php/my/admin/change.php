@@ -251,12 +251,22 @@ function report_step0_result ($fail, $newval)
   fb ($msg, $fail);
 }
 
+function email_is_unchanged ($val)
+{
+  if ($val !== user_get_email (user_getid ()))
+    return 0;
+  fb (sprintf (_('*%s* is already your registered email.'), $val), 1);
+  return 1;
+}
+
 function update_email_step0 ()
 {
   global $item;
   $val = '';
   if (array_key_exists ('newvalue', $_REQUEST))
     $val = $_REQUEST['newvalue'];
+  if (email_is_unchanged ($val))
+    return;
   if (!account_emailvalid ($val))
     return;
   $confirm_hash = account_generate_confirm_hash ($item, ['email_new' => $val]);
