@@ -683,11 +683,26 @@ function user_rename ($user_id, $new_name)
   return '';
 }
 
-# Function that should always be used to remove an user account.
-# This function should always be used in a secure context, when user_id
-# is 100% sure.
-# Best is to not to pass the user_id argument unless necessary.
-function user_delete ($user_id = false)
+function user_clear_account_fields ($user_id)
+{
+  $new_realname = '-*-';
+  if ($user_id == user_getid ())
+    $new_realname = '-';
+  $arg = [
+    'user_pw' => '!', 'realname' => $new_realname, 'confirm_hash' => null,
+    'status' => USER_STATUS_SUSPENDED, 'email' => USER_EMAIL_PLACEHOLDER,
+    'authorized_keys' => '', 'gpg_key' => '', 'people_view_skills' => '0',
+    'people_resume' => '', 'timezone' => 'GMT', 'theme' => '', 'email_new' => ''
+  ];
+  $fail = !db_autoexecute (
+    'user', $arg, DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
+  );
+  if ($fail)
+    fb (_("Failed to update the database."), 1);
+  return $fail;
+}
+
+function user_check_user_id_for_deletion ($user_id)
 {
   if (!$user_id)
     $user_id = user_getid ();
@@ -696,7 +711,15 @@ function user_delete ($user_id = false)
   # and owner of the account.
   if (!user_is_super_user () && $user_id != user_getid ())
     exit_permission_denied ();
+  return $user_id;
+}
 
+# Remove an account.  This function should only be used when logged-in.
+function user_delete ($user_id = false)
+{
+  $user_id = user_check_user_id_for_deletion ($user_id);
+  if (!$user_id)
+    return false;
   if (!user_has_history ($user_id))
     {
       user_purge ($user_id);
@@ -704,22 +727,8 @@ function user_delete ($user_id = false)
       return true;
     }
 
-  $new_realname = '-*-';
-  if ($user_id == user_getid ())
-    $new_realname = '-';
-  $success = db_autoexecute ('user',
-    [ 'user_pw' => '!', 'realname' => $new_realname, 'status' => 'S',
-      'email' => USER_EMAIL_PLACEHOLDER, 'confirm_hash' => null,
-      'authorized_keys' => '', 'people_view_skills' => '0',
-      'people_resume' => '', 'timezone' => 'GMT', 'theme' => '',
-      'gpg_key' => '', 'email_new' => ''],
-    DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
-  );
-  if (!$success)
-    {
-      fb (_("Failed to update the database."), 1);
-      return false;
-    }
+  if (user_clear_account_fields ($user_id))
+    return false;
   user_delete_aux_data ($user_id);
   # Rename user; the name starts with '_' so it can't be registered manually,
   # and it shall be unique because it's derived from $user_id.
