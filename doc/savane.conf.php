@@ -157,4 +157,8 @@ $sys_passwd_user_shell = "$sys_pkgconfdir/user-shell";
 # The limiting value for the maximum item number shown at once when browsing
 # trackers.
 $sys_max_items_per_page = 1000;
+# Use strftime to render timestamps when that function exists; when this
+# variable is empty, a command line like 'date +$format -d $timestamp' is used.
+# As of PHP 8.1, strftime is deprecated and unreliable.
+$sys_use_strftime = true;
 ?>

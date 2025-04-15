@@ -244,7 +244,7 @@ function utils_utils_strftime ($timestamp, $format)
   return $output;
 }
 
-if (function_exists ("strftime"))
+if (!empty ($sys_use_strftime) && function_exists ("strftime"))
   {
     # Used until strftime is dropped from PHP.
     function utils_strftime ($timestamp, $format)
@@ -255,14 +255,14 @@ if (function_exists ("strftime"))
       return $ret;
     }
   }
-else # !function_exists ("strftime")
+else # !(!empty ($sys_use_strftime) && function_exists ("strftime"))
   {
-    # Fallback for the PHP versions (> 8.1) when no strftime is provided.
+    # Fallback for the PHP versions (> 8.1) when no usable strftime is provided.
     function utils_strftime ($timestamp, $format)
     {
       return utils_utils_strftime ($timestamp, $format);
     }
-  } # !function_exists ("strftime")
+  } # !(!empty ($sys_use_strftime) && function_exists ("strftime"))
 
 # Return a formatted date for a unix timestamp.
 #

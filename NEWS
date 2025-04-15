@@ -22,6 +22,8 @@
 
 * New configuration variable, $sys_max_items_per_page, Savannah sr #111154.
 
+* New configuration variable, $sys_use_strftime.
+
 * Bug fixes:
 
 ** When an account with an empty associated email existed, attempts to

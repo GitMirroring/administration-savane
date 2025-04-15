@@ -919,7 +919,7 @@ function output_sysvars ()
     'min_gidNumber', 'min_uidNumber', 'group_file', 'passwd_file',
     'passwd_common_gid', 'passwd_home_dir', 'passwd_user_shell',
     'pw_rounds', 'reply_to',
-    'themedefault', 'unix_group_name', 'upload_max',
+    'themedefault', 'unix_group_name', 'upload_max', 'use_strftime',
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_cgit', 'group_file', 'max_items_per_page',
     '!debug_footer'
