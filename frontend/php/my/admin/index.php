@@ -382,7 +382,7 @@ print '<p class="smaller">'
   . _("By default, the top menu includes links to all relevant pages\n"
       . "context (group area, personal area) in dropdown submenus. However,\n"
       . "the dropdown submenus may not work with a few lightweight browsers,\n"
-      . "for instance, NetSurf (as of 3.10, released in 2020).\n"
+      . "for instance, NetSurf (as of 3.11, released in 2023).\n"
       . "Selecting this option enables an old-fashioned submenu like the one\n"
       . "shipped in older Savane releases (< 2.0).")
   . "</p>\n";
