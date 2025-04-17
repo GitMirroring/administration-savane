@@ -355,6 +355,26 @@ function conf_copy ($group_id, $artifact, $from_group_id)
     cp_entity ($e, $artifact, $group_id, $from_group_id);
   fb (_("Configuration copy finished"));
 }
+function groups_with_cookbook ()
+{
+  return
+   "SELECT g.group_name, g.group_id FROM groups g, user_group u,
+     group_preferences gp
+    WHERE
+      g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
+      AND g.status = 'A' AND gp.preference_name = 'use_cookbook'
+      AND g.group_id = gp.group_id AND gp.preference_value = '1'";
+}
+function groups_with_artifact ($artifact)
+{
+  if ($artifact === 'cookbook')
+    return groups_with_cookbook ();
+  return "
+    SELECT g.group_name, g.group_id FROM groups g, user_group u
+    WHERE
+      g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
+      AND g.status = 'A' g.use_{$artifact} = '1'";
+}
 } # namespace trackers_conf
 
 namespace {
@@ -365,12 +385,8 @@ function trackers_conf_copy ($group_id, $artifact, $from_group_id)
 
 function trackers_conf_form ($group_id, $artifact)
 {
-  $result = db_execute ("
-    SELECT g.group_name,g.group_id FROM groups g, user_group u
-    WHERE
-      g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
-      AND g.status = 'A' AND g.use_{$artifact} = '1'",
-     [user_getid (), $group_id]
+  $result = db_execute (
+     trackers_conf\groups_with_artifact ($artifact), [user_getid (), $group_id]
   );
   if (!db_numrows ($result))
     {

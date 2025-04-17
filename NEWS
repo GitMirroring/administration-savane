@@ -26,6 +26,8 @@
 
 * Bug fixes:
 
+** Configuration copy didn't work for cookbooks.
+
 ** When an account with an empty associated email existed, attempts to
    change email address of any account to a queer value resulted in
    a feedback 'An account associated with that email address has already
