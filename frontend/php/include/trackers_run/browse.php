@@ -672,10 +672,10 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
 if ($labels)
   $html_select .= "$labels</tr>\n$boxes</tr>\n";
 
-# Fill the relevant sql bit to be used later.
+# Fill the relevant SQL bit to be used later.
 # Sensible default case: order by item_id from the recent to the older
-# (only if not in multiple column sort, otherwise dont mess with it because
-# the first thing to be set will matters a lot).
+# (only if not in multiple column sort, otherwise don't mess with it because
+# the first thing to be set will matter a lot).
 if ($morder == '' && !$msort)
   $morder = "bug_id<";
 $order_by = null;
