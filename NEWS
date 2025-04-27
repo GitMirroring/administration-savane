@@ -26,6 +26,10 @@
 
 * Bug fixes:
 
+** In tracker item listing, the submitted_by column wasn't formed correctly;
+   the issue could result in an SQL error or overly restricted access
+   to private items.
+
 ** Configuration copy didn't work for cookbooks.
 
 ** When an account with an empty associated email existed, attempts to

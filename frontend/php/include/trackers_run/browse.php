@@ -385,9 +385,7 @@ while ($field = trackers_list_all_fields ())
 # Force the selection of privacy, we always want to be sure that no private
 # item title is provided to everybody.
 $full_field_list = $col_list = $width_list = $lbl_list = [];
-$select = [
-  'a.group_id', 'a.priority', 'a.privacy', 'a.status_id', 'a.submitted_by'
-];
+$select = ['a.group_id', 'a.priority', 'a.privacy', 'a.status_id'];
 
 $where = "WHERE\n    a.group_id = ?";
 $where_params = [$group_id];
@@ -798,6 +796,17 @@ while ($field = trackers_list_all_fields ('cmp_place_result'))
     $froms[] = "user user_$field";
     $where .= "\n    AND user_$field.user_id = a.$field";
   } # while ($field = trackers_list_all_fields ('cmp_place_result'))
+
+# The submitted_by column may be compared against the user id
+# for access to private items, so make sure it's present.
+$field = 'submitted_by';
+$submitted_by_column = "user_$field.user_name AS $field";
+if (!in_array ($submitted_by_column, $select))
+  {
+    $select[] = $submitted_by_column;
+    $froms[] = "user user_$field";
+    $where .= "\n    AND user_$field.user_id = a.$field";
+  }
 
 $art_h = "{$art}_history";
 
