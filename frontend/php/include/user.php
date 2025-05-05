@@ -116,16 +116,6 @@ function user_check_group_admin ()
     exit_permission_denied ();
 }
 
-# Get the ids of the groups the user belongs to.
-function user_groups ($uid)
-{
-  $result = db_execute ("SELECT * FROM user_group WHERE user_id = ", [$uid]);
-  $arr = [];
-  while ($val = db_fetch_array ($result))
-    array_push ($arr, $val['group_id']);
-  return $arr;
-}
-
 # Return arrays of ids and names of the groups the user belogs to.
 function user_group_names ($uid)
 {
