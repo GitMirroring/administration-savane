@@ -54,6 +54,10 @@ extract (sane_import ('get',
     'name' => 'user_name_search'
   ]
 ));
+extract (sane_import ('post',
+  ['digits' => 'user_id_to_assign', 'true' => 'assign_uid']
+));
+form_check (['assign_uid']);
 extract (sane_import ('request', ['pass' => 'search']));
 html_nextprev_extract_params (100);
 
@@ -61,6 +65,9 @@ $abc_array = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1',
   '2', '3', '4', '5', '6', '7', '8', '9', '_'
 ];
+
+if (!empty ($assign_uid) && !empty ($user_id_to_assign))
+  member_assign_uidNumber ($user_id_to_assign);
 
 print html_h (2, no_i18n ("User search"))
   . no_i18n ("Display users beginning with:") . ' ';
@@ -78,10 +85,11 @@ print form_tag (['method' => 'get', 'name' => 'usersrch'])
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
 $offset = intval ($offset);
-$fields = [];
-foreach (['user_id', 'user_name', 'status', 'people_view_skills'] as $f)
-  $fields[] = "`u`.`$f`";
-$sql_fields = join (', ', $fields);
+$fields = ['user_id', 'user_name', 'status', 'people_view_skills', 'uidNumber'];
+$columns = [];
+foreach ($fields as $f)
+  $columns[] = "`u`.`$f`";
+$sql_fields = join (', ', $columns);
 $sql_order = "\nORDER BY `u`.`user_name` LIMIT ?, ?";
 $sql = "\nFROM `user` `u`";
 $sql_params = $where = [];
@@ -121,9 +129,10 @@ print html_h (2, sprintf (no_i18n ("User list for %s"), $group_listed));
 
 $rows = db_numrows ($result);
 
-print html_build_list_table_top (
-  [no_i18n ("Id"), no_i18n ("User"), no_i18n ("Status"), no_i18n ("Profile")]
-);
+print html_build_list_table_top ([
+  no_i18n ("Id"), no_i18n ("User"), no_i18n ("uidNumber"), no_i18n ("Status"),
+  no_i18n ("Profile")
+]);
 
 function finish_page ()
 {
@@ -138,6 +147,18 @@ function finish_page ()
   );
   $HTML->footer ([]);
   exit (0);
+}
+
+function uidNumber_label ($usr)
+{
+  if ($usr['uidNumber'] !== null)
+    return $usr['uidNumber'];
+  $ret = "<b>NULL</b>";
+  if ($usr['status'] != USER_STATUS_ACTIVE)
+    return $ret;
+  return "$ret<br />\n" . form_tag ()
+    . form_hidden (['user_id_to_assign' => $usr['user_id']])
+    . form_submit (no_i18n ("Assign"), 'assign_uid') . "</form>\n";
 }
 
 function status_label ($stat)
@@ -159,6 +180,7 @@ function output_user ($usr, $class)
   print "<tr class=\"$class\">\n<td>$usr_id</td>\n"
     . "<td><a href=\"usergroup.php?user_id=$usr_id\">"
     . "$usr[user_name]</a></td>\n";
+  print "<td>" . uidNumber_label ($usr) . "</td>\n";
   print "<td>" . status_label ($usr['status']) . "</td>\n";
   if ($usr['people_view_skills'] == 1)
     print '<td><a href="' . $GLOBALS['sys_home']
