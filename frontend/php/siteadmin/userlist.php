@@ -140,6 +140,35 @@ function finish_page ()
   exit (0);
 }
 
+function status_label ($stat)
+{
+  switch ($stat)
+    {
+    case USER_STATUS_ACTIVE: return no_i18n ("Active");
+    case USER_STATUS_DELETED: # Fall through.
+    case USER_STATUS_SUSPENDED: return no_i18n ("Deleted");
+    case USER_STATUS_SQUAD: return no_i18n ("Active (Squad)");
+    case USER_STATUS_PENDING: return no_i18n ("Pending");
+    }
+  return no_i18n ("Unknown status") . ": $stat";
+}
+
+function output_user ($usr, $class)
+{
+  $usr_id = $usr['user_id'];
+  print "<tr class=\"$class\">\n<td>$usr_id</td>\n"
+    . "<td><a href=\"usergroup.php?user_id=$usr_id\">"
+    . "$usr[user_name]</a></td>\n";
+  print "<td>" . status_label ($usr['status']) . "</td>\n";
+  if ($usr['people_view_skills'] == 1)
+    print '<td><a href="' . $GLOBALS['sys_home']
+      . "people/resume.php?user_id=$usr_id\">["
+      . no_i18n ("View") . "]</a></td>\n";
+  else
+    print '<td>(' . no_i18n ("Private") . ")</td>\n";
+  print "\n</tr>\n";
+}
+
 $inc = 0;
 if ($rows < 1)
 {
@@ -152,31 +181,6 @@ if ($rows > $max_rows)
   $rows = $max_rows;
 
 for ($i = 0; $i < $rows; $i++)
-  {
-    $usr = db_fetch_array ($result);
-    $stat = $usr['status'];
-    $usr_id = $usr['user_id'];
-    print '<tr class="' . utils_altrow ($inc++)
-      . "\">\n<td>$usr_id</td>\n"
-      . "<td><a href=\"usergroup.php?user_id=$usr_id\">"
-      . "$usr[user_name]</a></td>\n<td>\n";
-
-    switch ($stat)
-      {
-      case USER_STATUS_ACTIVE: print no_i18n ("Active"); break;
-      case USER_STATUS_DELETED: # Fall through.
-      case USER_STATUS_SUSPENDED: print no_i18n ("Deleted"); break;
-      case USER_STATUS_SQUAD: print no_i18n ("Active (Squad)"); break;
-      case USER_STATUS_PENDING: print no_i18n ("Pending"); break;
-      default: print no_i18n ("Unknown status") . ": $stat"; break;
-      }
-    if ($usr['people_view_skills'] == 1)
-      print '<td><a href="' . $GLOBALS['sys_home']
-        . "people/resume.php?user_id=$usr_id\">["
-        . no_i18n ("View") . "]</a></td>\n";
-    else
-      print '<td>(' . no_i18n ("Private") . ")</td>\n";
-    print "\n</tr>\n";
-  }
+  output_user (db_fetch_array ($result), utils_altrow ($inc++));
 finish_page ()
 ?>
