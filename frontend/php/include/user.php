@@ -620,6 +620,7 @@ function user_purge ($user_id)
 {
   db_execute ("DELETE FROM user where user_id = ?", [$user_id]);
   user_delete_aux_data ($user_id);
+  member_rename_in_files (user_getname ($user_id), '_');
 }
 
 function user_rename_in_group_history ($old_name, $new_name)
@@ -670,6 +671,8 @@ function user_rename ($user_id, $new_name)
     return $errormsg;
   user_rename_in_group_history ($old_name, $new_name);
   user_rename_in_user_group ($old_name, $new_name);
+  if (user_get_field ($user_id, 'uidNumber'))
+    member_rename_in_files ($old_name, $new_name);
   return '';
 }
 

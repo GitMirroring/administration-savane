@@ -74,9 +74,12 @@ function member_history_label_on_add ($status)
 # update numbers cached in user_group.
 function member_assign_uidNumber ($user_id)
 {
+  if (user_get_field ($user_id, 'uidNumber'))
+    return;
   $uid = utils_assign_idNumber ($user_id);
   if (empty ($uid))
     return;
+  user_refetch_data ([$user_id]);
   member_update_file ($user_id, 'passwd');
   db_execute ("
     UPDATE `user_group` u, `groups` g
@@ -169,18 +172,9 @@ function member_fetch_passwd_data ($user_id)
   return $data;
 }
 
-function member_file_unavailable ($var)
-{
-  if (!array_key_exists ($var, $GLOBALS))
-    return true;
-  if (!is_file ($GLOBALS[$var]))
-    return true;
-  return !is_readable ($GLOBALS[$var]);
-}
-
 function member_substitute_line (&$data, $line)
 {
-  if (empty ($data['line']))
+  if ($data['line'] === null)
     return $line;
   if (!preg_match ("/^{$data['name']}:/", $line))
     return $line;
@@ -207,21 +201,103 @@ function member_substitute_file ($arg)
   rename ($tmp_file, $GLOBALS[$file]);
 }
 
+function member_file_vars ()
+{
+  return ['group' => 'sys_group_file', 'passwd' => 'sys_passwd_file'];
+}
+
+function member_mktemp_file ($type)
+{
+  $vars = member_file_vars ();
+  if (empty ($vars[$type]))
+    return null;
+  $var = $vars[$type];
+  if (!array_key_exists ($var, $GLOBALS))
+    return null;
+  if (!is_file ($GLOBALS[$var]))
+    return null;
+  if (!is_readable ($GLOBALS[$var]))
+    return null;
+  return utils_mktemp ($type);
+}
+
 function member_update_file ($id, $type)
 {
-  $files = ['group' => 'sys_group_file', 'passwd' => 'sys_passwd_file'];
+  $files = member_file_vars ();
   $fetch = [
     'group' => 'member_fetch_group_data', 'passwd' => 'member_fetch_passwd_data'
   ];
-  if (member_file_unavailable ($files[$type]))
-    return;
-  $tmp = utils_mktemp ($type);
+  $tmp = member_mktemp_file ($type);
   if ($tmp === null)
     return;
   utils_run_lock (
     $GLOBALS[$files[$type]], 'member_substitute_file',
     [$tmp, $id, $files[$type], $fetch[$type]]
   );
+}
+
+function member_name_is_deleted ($name)
+{
+  # The new name starts with '_' when and only when the account is deleted.
+  # Remove the entry instead of substituting.
+  return '_' === substr ($name, 0, 1);
+}
+
+function member_substitute_in_passwd ($old_name, $new_name, $line)
+{
+  $len = strlen ($old_name);
+  if ("$old_name:" !== substr ($line, 0, $len + 1))
+    return $line;
+  if (member_name_is_deleted ($new_name))
+    return '';
+  return $new_name . substr ($line, $len);
+}
+
+function member_substitute_in_group ($old_name, $new_name, $line)
+{
+  $arr = preg_split ('/:/', $line);
+  if (empty ($arr))
+    return $line;
+  $last_idx = count ($arr) - 1;
+  $users = ',' . str_replace ("\n",  '', $arr[$last_idx]) . ',';
+  $new_str = ",$new_name,";
+  if (member_name_is_deleted ($new_name))
+    $new_str = ',';
+  $users = str_replace (",$old_name,", $new_str, $users);
+  $arr[$last_idx] = substr ($users, 1, -1) . "\n";
+  return join (':', $arr);
+}
+
+function member_rename_in_file ($arg)
+{
+  list ($tmp_file, $old_name, $new_name, $type) = $arg;
+  $funcs = [
+    'group' => 'member_substitute_in_group',
+    'passwd' => 'member_substitute_in_passwd'
+  ];
+  $file = $GLOBALS[member_file_vars ()[$type]];
+  $out = fopen ($tmp_file, 'w');
+  $in = fopen ($file, 'r');
+  while (false !== ($line = fgets ($in)))
+    fwrite ($out, $funcs[$type] ($old_name, $new_name, $line));
+  fclose ($in);
+  fclose ($out);
+  chmod ($tmp_file, 0644);
+  rename ($tmp_file, $file);
+}
+
+function member_rename_in_files ($old_name, $new_name)
+{
+  foreach (['group', 'passwd'] as $type)
+    {
+      $tmp = member_mktemp_file ($type);
+      if ($tmp === null)
+        continue;
+      utils_run_lock (
+        $GLOBALS[member_file_vars ()[$type]], 'member_rename_in_file',
+        [$tmp, $old_name, $new_name, $type]
+      );
+    }
 }
 
 # Approve a pending user for a group.
