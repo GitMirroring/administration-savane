@@ -78,19 +78,20 @@ print form_tag (['method' => 'get', 'name' => 'usersrch'])
   . form_submit (no_i18n ("Search")) . "\n</form>\n</p>\n";
 
 $offset = intval ($offset);
-
-$sql_fields =
-  "user.user_id, user.user_name, user.status, user.people_view_skills";
-$sql_order = 'ORDER BY user.user_name LIMIT ?, ?';
-$sql = 'FROM user';
+$fields = [];
+foreach (['user_id', 'user_name', 'status', 'people_view_skills'] as $f)
+  $fields[] = "`u`.`$f`";
+$sql_fields = join (', ', $fields);
+$sql_order = 'ORDER BY `u`.`user_name` LIMIT ?, ?';
+$sql = 'FROM `user` `u`';
 $sql_params = [];
 
 if ($group_id)
   {
     $group_listed = group_getname ($group_id);
     $sql_params = [$group_id];
-    $sql .= ', user_group
-      WHERE user.user_id = user_group.user_id AND user_group.group_id = ?';
+    $sql .= ' JOIN `user_group` `ug` ON `u`.`user_id` = `ug`.`user_id`
+      WHERE `ug`.`group_id` = ?';
   }
 else
   {
@@ -98,21 +99,21 @@ else
 
     if ($user_name_search)
       {
-        $sql .= ' WHERE user_name LIKE ?';
+        $sql .= ' WHERE `user_name` LIKE ?';
         $sql_params = [str_replace ('_', '\_', $user_name_search) . '%'];
       }
     elseif ($text_search)
       {
         $sql .= ' WHERE
-            user_name LIKE ? OR user_id LIKE ?
-            OR realname LIKE ? OR email LIKE ?';
+            `user_name` LIKE ? OR `u`.`user_id` LIKE ?
+            OR `realname` LIKE ? OR `email` LIKE ?';
         $term = utils_specialchars_decode ($text_search);
         $sql_params = [$term, $term, $term, $term];
       }
   }
 
 $result = db_execute (
-  "SELECT COUNT(DISTINCT(user_id)) AS cnt $sql", $sql_params
+  "SELECT COUNT(DISTINCT(`u`.`user_id`)) AS `cnt` $sql", $sql_params
 );
 $total_rows = db_fetch_array ($result)['cnt'];
 array_push ($sql_params, $offset, $max_rows + 1);
