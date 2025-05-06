@@ -1,5 +1,11 @@
 ????-??-?? 3.16
 
+[BACKEND]
+
+* Bug fixes:
+
+** sv_gen_passwd_group was incompatible with ONLY_FULL_GROUP_BY.
+
 2025-04-28 3.15
 
 [FRONTEND]

@@ -90,9 +90,9 @@ my $group_crit = "g.status = 'A' AND g.gidNumber IS NOT NULL";
 sub fetch_users
 {
   return GetDBLists (
-    "$user_tables JOIN groups g ON g.group_id = ug.group_id",
-    "$user_crit AND $group_crit GROUP BY uidNumber",
-    'uidNumber, user_name, realname'
+    "$user_tables JOIN `groups` `g` ON `g`.`group_id` = `ug`.`group_id`",
+    "$user_crit AND $group_crit GROUP BY `uidNumber`, `user_name`, `realname`",
+    '`uidNumber`, `user_name`, `realname`'
   );
 }
 
