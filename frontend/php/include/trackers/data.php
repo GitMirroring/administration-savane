@@ -1660,11 +1660,7 @@ function handle_update (
     }
   if (count ($extra_addr))
     $extra_addresses = join (', ', $extra_addr);
-
-  # If we are on the cookbook, store related links.
-  if (ARTIFACT == 'cookbook')
-    cookbook_handle_update ($item_id, $group_id);
-
+  cookbook_handle_update ($item_id, $group_id);
   return update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists);
 }
 } # namespace trackers_data\handle_update {
@@ -2004,101 +2000,42 @@ function trackers_data_update_dependent_items ($depends_on, $item_id, $artifact)
   );
 }
 
-function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
+# Find transitions from 'none'.
+function trackers_data_create_item_trans (
+  $field, $value, $field_transition, $trans_id, $changes
+)
 {
-  # We don't force them to be logged in to submit a bug.
-  unset ($ip);
-  if (!user_isloggedin ())
-    $user = 100;
-  else
-    $user = user_getid ();
-
-  # Make sure required fields are not empty.
-  if (!trackers_check_empty_fields ($vfl))
-    # In such circumstances, we reprint the form
-    # highligthing missing fields.
-    # (It is important that trackers_check_empty_fields set the global var
-    # previous_form_bad_fields.)
-    return false;
-
-  # Finally, create the bug itself.
-  # This SQL query only sets up the values for fields used by
-  # this group. For other unused fields we assume that the DB will set
-  # up an appropriate default value (see bug table definition).
-
-  # Extract field transition possibilities:
-  $field_transition = trackers_transition_get_update ($group_id);
-  # We shall store in an array the transition_id accepted, to check
-  # other field updates.
-  $field_transition_accepted = $changes = [];
-
-  # Build the variable list of fields and values.
-  # We must add open/closed by ourselves, as it is missing from the
-  # form for obvious reasons while automatic transitions may rely on its
-  # presence.
-  $vfl['status_id'] = '1';
-  reset ($vfl);
-  $insert_fields = [];
-  $field_transition_id = '';
-  foreach ($vfl as $field => $value)
+  $trans_cc = '';
+  $cc = $id = [];
+  foreach (['any', '100'] as $old_val)
     {
-      if (trackers_data_is_special ($field))
+      list ($cc, $id) =
+        trackers_data\handle_update\transition_id_cc (
+          $field, $old_val, $value, $field_transition, $changes
+        );
+      if (empty ($id))
         continue;
+      $trans_cc = array_shift ($cc);
+      $trans_id = array_shift ($id);
+      break;
+    }
+  return [$trans_cc, $trans_id];
+}
 
-      # If value is the special string default,*
-      # take the default from the database.
-      if ($value == "!unknown!")
-        continue;
+function trackers_data_create_user_id ()
+{
+  return user_isloggedin ()? user_getid (): 100;
+}
 
-      # COPIED from handle_update transition code, with one exception:
-      # old_value is equal to "none".
-      # Handle field transitions checks/changes.
-      $field_id = trackers_data_get_field_id ($field);
-      $field_transition_cc = '';
-      if (array_key_exists ($field_id, $field_transition)
-          # First check basic transition;
-          # check multiple transition, override other transition.
-          && (array_key_exists ("100", $field_transition[$field_id])
-              || array_key_exists ("any", $field_transition[$field_id])))
-        {
-           $ft = $field_transition[$field_id];
-           if (array_key_exists ("any", $ft)
-               && array_key_exists ($value, $ft["any"]))
-             {
-               $field_transition_cc = $ft["any"][$value]['notification_list'];
-               if (trackers_data\transition_new_change ($changes, $field))
-                 $field_transition_id = $ft["any"][$value]['transition_id'];
-             }
-           elseif (array_key_exists ("100", $ft)
-                    && array_key_exists ($value, $ft["100"]))
-             {
-               $field_transition_cc = $ft["100"][$value]['notification_list'];
-               if (trackers_data\transition_new_change ($changes, $field))
-                 $field_transition_id = $ft["100"][$value]['transition_id'];
-             }
-        }
-
-      if (trackers_data_is_text ($field))
-        $value = utils_specialchars ($value);
-      elseif (trackers_data_is_date_field ($field))
-        list ($value, $ok) = utils_date_to_unixtime ($value);
-
-      $insert_fields[$field] = $value;
-
-      trackers_data\update_changes ($field, $group_id, '', $value, $changes);
-      # Register transition id.
-      $field_transition_accepted[] = $field_transition_id;
-
-      if ($field_transition_cc)
-        $extra_addresses .= $field_transition_cc;
-    } # foreach ($vfl as $field => $value)
-
-  # Get the default spamscore.
+# Add all special fields that were not handled in the general
+# foreach ($vfl as $field => $value) cycle.
+function trackers_data_finalize_insert_fields ($vfl, $group_id, &$insert_fields)
+{
+  $user = trackers_data_create_user_id ();
   $spamscore = spam_get_user_score ($user);
-  if ($spamscore > 4)
+  if ($spamscore >= 5)
     $vfl['summary'] = "[SPAM] " . $vfl['summary'];
 
-  # Add all special fields that were not handled in the previous block.
   $insert_fields['close_date'] = 0;
   $insert_fields['group_id'] = $group_id;
   $insert_fields['submitted_by'] = $user;
@@ -2109,53 +2046,103 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   $insert_fields['ip'] = '127.0.0.1';
   for ($i = 1; $i <= 10; $i++)
     $insert_fields["custom_ta$i"] = '';
+  return $spamscore;
+}
 
-  # Actually insert the entry.
+function trackers_data_create_try_insert ($insert_fields)
+{
   $result = db_autoexecute (ARTIFACT, $insert_fields, DB_AUTOQUERY_INSERT);
   $item_id = db_insertid ($result);
-
-  if (!$item_id)
+  if ($item_id)
     {
-      fb (
-        _("New item insertion failed, please report this issue to the\n"
-          . "administrator"),
-        1
+      # TANSLATORS: the first argument is tracker type (like sr, bug or recipe);
+      # the second argument is item id (number).
+      $msg = sprintf (
+        _('New item posted (%1$s #%2$s)'),
+        utils_get_tracker_prefix (ARTIFACT), $item_id
       );
-      return false;
+      fb ($msg);
+      return $item_id;
     }
+  $msg = _("New item insertion failed, please report this issue to the\n"
+    . "administrator");
+  fb ($msg, 1);
+  return false;
+}
 
-  # TANSLATORS: the first argument is tracker type (like sr, bug or recipe)
-  # the second argument is item id (number).
-  $msg = sprintf (
-    _('New item posted (%1$s #%2$s)'),
-    utils_get_tracker_prefix (ARTIFACT), $item_id
+function trackers_data_create_process_field (
+  $field, $value, $field_transition, &$changes, &$insert_fields,
+  &$field_transition_accepted, &$extra_addresses, &$trans_id, $group_id
+)
+{
+  if (trackers_data_is_special ($field))
+    return;
+
+  # If value is the special string, take the default from the database.
+  if ($value == "!unknown!")
+    return;
+
+  list ($trans_cc, $trans_id) = trackers_data_create_item_trans (
+    $field, $value, $field_transition, $trans_id, $changes
   );
-  fb ($msg);
 
-  # Register the spam score.
+  if (trackers_data_is_text ($field))
+    $value = utils_specialchars ($value);
+  elseif (trackers_data_is_date_field ($field))
+    list ($value, $ok) = utils_date_to_unixtime ($value);
+
+  $insert_fields[$field] = $value;
+  trackers_data\update_changes ($field, $group_id, '', $value, $changes);
+  $field_transition_accepted[] = $trans_id;
+  if ($trans_cc)
+    $extra_addresses .= $trans_cc;
+}
+
+function trackers_data_create_process_spam ($item_id, $group_id, $spamscore)
+{
+  $user = trackers_data_create_user_id ();
   spam_set_item_default_score ($item_id, '0', ARTIFACT, $spamscore, $user);
-
-  # Add to spamcheck queue, if necessary (will temporary set the spamscore to
-  # 5, if necessary).
-  # Useless, if already considered to be spam.
   if ($spamscore < 5)
     spam_add_to_spamcheck_queue ($item_id, 0, ARTIFACT, $group_id, $spamscore);
+}
 
-  # If we are on the cookbook, store related links.
-  if (ARTIFACT == 'cookbook')
-   cookbook_handle_update ($item_id, $group_id);
+function trackers_data_create_user_specific ($item_id)
+{
+  if (!user_isloggedin ())
+    return;
+  trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_SUBMITTED);
+}
 
-  # Now we run transitions other fields update. This function does check
-  # what already changed and that we shan't automatically update.
+function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
+{
+  # Make sure required fields are not empty.
+  if (!trackers_check_empty_fields ($vfl))
+    return false;
+
+  $field_transition = trackers_transition_get_update ($group_id);
+  # Store the transition_id accepted in an array to check other field updates.
+  $field_transition_accepted = $changes = $insert_fields = [];
+
+  $vfl['status_id'] = '1';
+  reset ($vfl);
+  $trans_id = '';
+  foreach ($vfl as $field => $value)
+    trackers_data_create_process_field (
+      $field, $value, $field_transition, $changes, $insert_fields,
+      $field_transition_accepted, $extra_addresses, $trans_id, $group_id
+    );
+  $spamscore =
+    trackers_data_finalize_insert_fields ($vfl, $group_id, $insert_fields);
+  if (false === ($item_id = trackers_data_create_try_insert ($insert_fields)))
+    return false;
+
+  trackers_data_create_process_spam ($item_id, $group_id, $spamscore);
+  cookbook_handle_update ($item_id, $group_id);
   trackers_transition_update_item (
     $item_id, $field_transition_accepted, $changes
   );
 
-  # Add the submitter in CC
-  # (currently, no option to avoid this, but we could make this a notif
-  # configuration option, if wanted).
-  if (user_isloggedin ())
-    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_SUBMITTED);
+  trackers_data_create_user_specific ($item_id);
   return $item_id;
 }
 

@@ -317,6 +317,8 @@ function cookbook_add_context2recipe ($item_id, $group_id)
 function cookbook_handle_update ($item_id, $group_id)
 {
   global $change_exists;
+  if (ARTIFACT != 'cookbook')
+    return;
   $cookbook_upd_list = cookbook_get_update_list ();
   cookbook_add_context2recipe ($item_id, $group_id);
   $res = db_autoexecute ('cookbook_context2recipe',
