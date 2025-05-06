@@ -82,35 +82,33 @@ $fields = [];
 foreach (['user_id', 'user_name', 'status', 'people_view_skills'] as $f)
   $fields[] = "`u`.`$f`";
 $sql_fields = join (', ', $fields);
-$sql_order = 'ORDER BY `u`.`user_name` LIMIT ?, ?';
-$sql = 'FROM `user` `u`';
-$sql_params = [];
+$sql_order = "\nORDER BY `u`.`user_name` LIMIT ?, ?";
+$sql = "\nFROM `user` `u`";
+$sql_params = $where = [];
 
+$group_listed = no_i18n ("all groups");
 if ($group_id)
   {
-    $group_listed = group_getname ($group_id);
+    $group_listed = "<b>" . group_getname ($group_id) . "</b>";
     $sql_params = [$group_id];
-    $sql .= ' JOIN `user_group` `ug` ON `u`.`user_id` = `ug`.`user_id`
-      WHERE `ug`.`group_id` = ?';
+    $sql .= ' JOIN `user_group` `ug` ON `u`.`user_id` = `ug`.`user_id`';
+    $where[] = '`ug`.`group_id` = ?';
   }
-else
-  {
-    $group_listed = no_i18n ("All Groups");
 
-    if ($user_name_search)
-      {
-        $sql .= ' WHERE `user_name` LIKE ?';
-        $sql_params = [str_replace ('_', '\_', $user_name_search) . '%'];
-      }
-    elseif ($text_search)
-      {
-        $sql .= ' WHERE
-            `user_name` LIKE ? OR `u`.`user_id` LIKE ?
-            OR `realname` LIKE ? OR `email` LIKE ?';
-        $term = utils_specialchars_decode ($text_search);
-        $sql_params = [$term, $term, $term, $term];
-      }
+if ($user_name_search)
+  {
+    $where[] = ' `user_name` LIKE ?';
+    $sql_params[] = str_replace ('_', '\_', $user_name_search) . '%';
   }
+elseif ($text_search)
+  {
+    $where[] = '(`user_name` LIKE ? OR `u`.`user_id` LIKE ? '
+      . 'OR `realname` LIKE ? OR `email` LIKE ?)';
+    $term = utils_specialchars_decode ($text_search);
+    $sql_params = array_merge ($sql_params, [$term, $term, $term, $term]);
+  }
+if (!empty ($where))
+  $sql .= "\nWHERE " . join ("\n  AND ", $where);
 
 $result = db_execute (
   "SELECT COUNT(DISTINCT(`u`.`user_id`)) AS `cnt` $sql", $sql_params
@@ -119,9 +117,7 @@ $total_rows = db_fetch_array ($result)['cnt'];
 array_push ($sql_params, $offset, $max_rows + 1);
 $result = db_execute ("SELECT $sql_fields $sql $sql_order", $sql_params);
 
-print html_h (2,
-  sprintf (no_i18n ("User list for %s"), "<strong>$group_listed</strong>")
-);
+print html_h (2, sprintf (no_i18n ("User list for %s"), $group_listed));
 
 $rows = db_numrows ($result);
 
