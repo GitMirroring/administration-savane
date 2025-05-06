@@ -1467,8 +1467,7 @@ function update_details ($details, $item_id, $group_id, &$vfl, &$changes)
     trackers_data_get_value (
       'comment_type_id', $group_id, $vfl['comment_type_id']
     );
-  if (user_isloggedin () && !user_get_preference ("skipcc_postcomment"))
-    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_COMMENTED);
+  trackers_data_update_user_specific ($item_id, TRACKERS_CC_COMMENTED);
   return 1;
 }
 
@@ -1537,8 +1536,7 @@ function update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists)
   $res = db_autoexecute (ARTIFACT, $upd_list, DB_AUTOQUERY_UPDATE,
     "bug_id = ? AND group_id = ?", [$item_id, $group_id]
   );
-  if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
-    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_UPDATED);
+  trackers_data_update_user_specific ($item_id, TRACKERS_CC_UPDATED);
 
   if (!db_affected_rows ($res))
     exit_error (_("Item update failed"));
@@ -2106,11 +2104,13 @@ function trackers_data_create_process_spam ($item_id, $group_id, $spamscore)
     spam_add_to_spamcheck_queue ($item_id, 0, ARTIFACT, $group_id, $spamscore);
 }
 
-function trackers_data_create_user_specific ($item_id)
+function trackers_data_update_user_specific ($item_id, $mark)
 {
   if (!user_isloggedin ())
     return;
-  trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_SUBMITTED);
+  $user = user_getid ();
+  trackers_add_cc ($item_id, $user, $mark);
+  member_assign_uidNumber ($user);
 }
 
 function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
@@ -2142,7 +2142,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
     $item_id, $field_transition_accepted, $changes
   );
 
-  trackers_data_create_user_specific ($item_id);
+  trackers_data_update_user_specific ($item_id, TRACKERS_CC_SUBMITTED);
   return $item_id;
 }
 

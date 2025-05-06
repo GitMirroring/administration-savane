@@ -2,6 +2,10 @@
 
 [FRONTEND]
 
+* The 'uidNumber' field is assigned on user's activity like comment
+  or item submission.  Previously, it was only assigned for members
+  of active groups.
+
 * Bug fixes:
 
 ** User-supplied tracker CC comments like '-SUB-', '-COM-', '-UPD-' weren't
