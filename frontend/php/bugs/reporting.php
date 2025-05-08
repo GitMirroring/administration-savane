@@ -77,7 +77,7 @@ function reporting_build_graph (
 {
   $ret = '';
   if (!empty ($title))
-    $ret = "<h3>$title</h3>\n";
+    $ret = html_h (3, $title);
   $a = $field === null? 0: 1;
   $build = graphs_build ($data, $field, $a, 0, $graph_id);
   if ($graph_id != $build[0])
@@ -104,7 +104,7 @@ else
 function specific_reports_list ($thisfield, $group_id)
 {
   if ($thisfield)
-    print "<p>&nbsp;</p>\n<h2>" . _("Other statistics:") . "</h2>\n";
+    print "<p>&nbsp;</p>\n" . html_h (2, _("Other statistics:"));
   print "<ul>\n";
 
   if ($thisfield != 'aging')
@@ -157,7 +157,7 @@ if (!$field)
 if ($field == 'aging')
   {
     # TRANSLATORS: aging statistics is statistics by date.
-    $page .= '<h2>' . _("Aging statistics:") . "</h2>\n";
+    $page .= html_h (2, _("Aging statistics:"));
     $time_now = time ();
     $sql = "
       SELECT round(avg((close_date-date)/86400), 0)
@@ -202,7 +202,7 @@ $label = trackers_data_get_label ($field);
 
 # Title + field description.
 # TRANSLATORS: the argument is field label.
-$page .= '<h2>' . sprintf (_("Statistics by '%s':"), $label) . "</h2>\n"
+$page .= html_h (2, sprintf (_("Statistics by '%s':"), $label))
   . '<p><i>' . _('Field Description:') . '</i> '
   . trackers_data_get_description ($field) . "</p>\n";
 
@@ -222,7 +222,7 @@ if (trackers_data_is_special ($field) || !trackers_data_is_used ($field)
 # Meaningless in case of status field.
 if ($field != 'status_id')
   {
-    $page .= "\n<h3>" . _("Open Items") . "</h3>\n";
+    $page .= "\n" . html_h (3, _("Open Items"));
 
     if ($field == 'assigned_to')
       {
@@ -271,7 +271,7 @@ if ($field != 'status_id')
    }
 
 #Second  graph the bug distribution for all items.
-$page .= "\n<h3>" . _("All Items") . "</h3>\n";
+$page .= "\n" . html_h (3, _("All Items"));
 
 if ($field == 'assigned_to')
   {
