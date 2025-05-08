@@ -51,41 +51,50 @@ if (!$group_id)
 
 extract (sane_import ('get', ['name' => 'field']));
 
-function reporting_list_data ($group_id, $sql, $time_now, $use_end = null)
+define ('REPORT_ENTRY_NUM', 8);
+
+function reporting_list_key ($start, $end, $use_end)
 {
-  for ($counter = 1; $counter <= 8; $counter++)
+  if ($use_end)
+    return utils_format_date ($end);
+  # TRANSLATORS: the arguments are dates.
+  return sprintf (
+    _('%1$s to %2$s'), utils_format_date ($start), utils_format_date ($end)
+  );
+}
+
+function reporting_list_data ($group_id, $sql, $time_now, $use_end = false)
+{
+  $week = 604800;
+  for ($counter = 1; $counter <= REPORT_ENTRY_NUM; $counter++)
     {
-      $week = 604800;
-      $start = $end = $time_now - $counter * $week;
-      $end += $week;
+      $start = $time_now - $counter * $week;
+      $end = $start + $week;
+      $key = reporting_list_key ($start, $end, $use_end);
       if ($use_end)
         $start = $end;
-
       $result = db_execute ($sql, [$group_id, $start, $end]);
-      # TRANSLATORS: the arguments are dates.
-      $key = sprintf (
-        _('%1$s to %2$s'), utils_format_date ($start), utils_format_date ($end)
-      );
-      $data[$key] = db_result ($result, 0,0);
+      $data[$key] = db_result ($result, 0, 0);
     }
   return $data;
 }
 
 function reporting_build_graph (
-  $title, $data, &$widths, &$graph_id, $field = null
+  $title, $data, &$widths, &$graph_id, $field = null, $total = 0
 )
 {
   $ret = '';
   if (!empty ($title))
     $ret = html_h (3, $title);
-  $a = $field === null? 0: 1;
-  $build = graphs_build ($data, $field, $a, 0, $graph_id);
-  if ($graph_id != $build[0])
+  $db_direct = $field !== null;
+  list ($id, $wd, $output) =
+    graphs_build ($data, $field, $db_direct, $total, $graph_id);
+  if ($graph_id != $id)
     {
-      $widths = "$widths,{$build[1]}";
-      $graph_id = $build[0];
+      $widths = "$widths,$wd";
+      $graph_id = $id;
     }
-  return $ret . $build[2];
+  return "$ret$output";
 }
 
 # Give access to this page to anybody: people can already collect such
@@ -162,13 +171,15 @@ if ($field == 'aging')
     $page .= html_h (2, _("Aging statistics:"));
     $time_now = time ();
     $sql = "
-      SELECT round(avg((`close_date` - `date`) / 86400))
+      SELECT IFNULL(ROUND(AVG((`close_date` - `date`) / 86400)), -1)
       FROM `$artifact` WHERE `close_date` > 0 AND $cond";
-    $data = reporting_list_data ($group_id, $sql, $time_now);
+    $total = $data = reporting_list_data ($group_id, $sql, $time_now);
+    foreach (array_keys ($total) as $k)
+      $total[$k] = $data[$k] >= 0 ? null: -1;
 
     $page .= reporting_build_graph (
       _("Average Turnaround Time for Closed Items"),
-      $data, $widths, $graph_id
+      $data, $widths, $graph_id, null, $total
     );
 
     $page .= "<p>&nbsp;&nbsp;</p>\n";
@@ -183,10 +194,13 @@ if ($field == 'aging')
       SELECT count(*) FROM `$artifact`
       WHERE `group_id` = ? AND `date` <= ? AND `spamscore` < 5
         AND (`close_date` >= ? OR `close_date` < 1 OR `close_date` is NULL)";
-    $data = reporting_list_data ($group_id, $sql, $time_now, true);
+    $total = $data = reporting_list_data ($group_id, $sql, $time_now, true);
+    foreach (array_keys ($data) as $k)
+      $total[$k] = null;
 
     $page .= reporting_build_graph (
-      _("Number of Items Still Open"), $data, $widths, $graph_id
+      _("Number of Items Still Open"), $data, $widths, $graph_id,
+      null, $total
     );
     $page .= "<p>&nbsp;&nbsp;</p>\n";
     finish_page ();

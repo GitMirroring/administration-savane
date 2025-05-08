@@ -42,17 +42,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function graphs_get_percent ($k, $v, &$total)
+function graphs_get_percent ($k, &$v, &$total)
 {
   if ($total[$k] <= 0)
     {
-      $total[$k] = 0;
-      return [0, _("n/a")];
+      if ($total[$k] === 0)
+        $total[$k] = 0;
+      if ($total[$k] < 0)
+        $v = _("n/a");
+      return [0, _("n/a"), ''];
     }
   $width = round (($v / $total[$k]) * 100);
   # TRANSLATORS: printing percentage.
   $print = sprintf (_("%s%%"), $width);
-  return [$width, $print];
+  return [$width, $print, $width > 25? '': 'closed'];
 }
 
 function graphs_entry_title ($k, $user_field, $localize)
@@ -68,24 +71,76 @@ function graphs_build_entry (
   $k, $v, &$total, &$widths, $user_field, $localize_keys, $id
 )
 {
-  list ($percent_width, $percent_print) = graphs_get_percent ($k, $v, $total);
+  list ($percent_width, $percent_print, $class)
+    = graphs_get_percent ($k, $v, $total);
   $title = graphs_entry_title ($k, $user_field, $localize_keys);
-
-  if ($percent_width > 25)
-    $class = '';
-  else
-    $class = 'closed';
-
   $output = "<tr class='half-width'>\n<td class='first'>$title</td>\n"
     . "<td class='second'>";
-  # TRANSLATORS: the arguments mean "%1$s of (total) %2$s".
-  $output .= sprintf (_('%1$s/%2$s'), $v, $total[$k]);
-  $output .= "</td>\n<td class='second'>$percent_print</td>\n"
-    . "<td class='third'><div class='prioraclosed'>"
-    . "<div class='priori$class' id='graph-bar$id'>&nbsp;</div>"
-    . "</div></td>\n</tr>\n";
+  if ($total[$k] === null || $total[$k] < 0)
+    $output .= "$v</td>\n<td class='second'></td>\n<td class='third'>";
+  else
+    # TRANSLATORS: the arguments mean "%1$s of (total) %2$s".
+    $output .= sprintf (_('%1$s/%2$s'), $v, $total[$k])
+      . "</td>\n<td class='second'>$percent_print</td>\n"
+      . "<td class='third'><div class='prioraclosed'>"
+      . "<div class='priori$class' id='graph-bar$id'>&nbsp;</div>"
+      . "</div>";
+  $output .= "</td>\n</tr>\n";
   $widths = "$widths,$percent_width";
   return $output;
+}
+
+function graphs_build_make_data ($result, $dbdirect)
+{
+  if (!$dbdirect)
+    return $result;
+  $data = [];
+  for ($i = 0; $i < db_numrows ($result) ; $i++)
+    $data[db_result ($result, $i, 0)] = db_result ($result, $i, 1);
+  return $data;
+}
+
+# Get the total number of items for graphs_build.
+# Total should not be passed as argument, normally.
+function graphs_build_totalvar ($total, $data)
+{
+  if (is_array ($total))
+    return [1, $total];
+  $totalvar = 0;
+  foreach ($data as $k => $v)
+    if ($v > 0)
+      $totalvar += $v;
+
+  $total = [];
+  foreach ($data as $k => $v)
+    if ($v !== NULL)
+      $total[$k] = $totalvar;
+  return [$totalvar, $total];
+}
+
+function graphs_build_no_result ($id0)
+{
+  $output = '<p class="warn">';
+  $output .= _("The total number of results is zero.");
+  $output .= "</p>\n";
+  return [$id0, '', $output];
+}
+
+function graphs_build_result ($id0, $total, $field, $data, $localize_keys)
+{
+  $id = $id0;
+  $widths = "";
+  $output = "\n\n<table class='graphs'>\n";
+  $ass_to = $field === "assigned_to";
+  foreach ($data as $k => $v)
+    {
+      $output .=
+        graphs_build_entry (
+          $k, $v, $total, $widths, $ass_to, $localize_keys, $id);
+      $id++;
+    } # foreach ($data as $k => $v)
+  $output .= "\n</table>\n\n";
+  return [$id, substr ($widths, 1), $output];
 }
 
 # It can accept db result directly or an array.
@@ -99,54 +154,11 @@ function graphs_build (
       fb (_("No data to work on, no graph will be built"), 1);
       return [$id0, '', ''];
     }
+  $data = graphs_build_make_data ($result, $dbdirect);
+  list ($totalvar, $total) = graphs_build_totalvar ($total, $data);
 
-  if ($dbdirect)
-    {
-      $data = [];
-      for ($i = 0; $i < db_numrows ($result) ; $i++)
-        $data[db_result ($result, $i, 0)] = db_result ($result, $i, 1);
-    }
-  else
-    $data = $result;
-
-  # Get the total number of items.
-  # Total should not be passed as argument, normally.
-  if (!$total)
-    {
-      $totalvar = 0;
-      foreach ($data as $k => $v)
-        $totalvar += $v;
-
-      $total = [];
-      foreach ($data as $k => $v)
-        $total[$k] = $totalvar;
-    }
-  else
-    # If total was passed as argument, no crosscheck, assume it is accurate.
-    $totalvar = 1;
-
-  $id = $id0;
-  $widths = "";
-  $output = "";
-  # Print the stats, unless $total is nul.
-  # If total was passed as argument, strange result may be printed.
-  if (!$totalvar)
-    {
-      $output .= '<p class="warn">';
-      $output .= _("The total number of results is zero.");
-      $output .= '</p>';
-      return [$id, substr ($widths, 1), $output];
-    }
-  $output .= "\n\n<table class='graphs'>\n";
-  $ass_to = $field === "assigned_to";
-  foreach ($data as $k => $v)
-    {
-      $output .=
-        graphs_build_entry (
-          $k, $v, $total, $widths, $ass_to, $localize_keys, $id);
-      $id++;
-    } # foreach ($data as $k => $v)
-  $output .= "\n</table>\n\n";
-  return [$id, substr ($widths, 1), $output];
+  if ($totalvar <= 0)
+    return graphs_build_no_result ($id0);
+  return graphs_build_result ($id0, $total, $field, $data, $localize_keys);
 }
 ?>

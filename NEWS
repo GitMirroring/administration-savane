@@ -20,6 +20,8 @@
 ** The passwd and group files weren't updated when accounts were renamed
    or deleted.
 
+** Aging statistics in /bugs/reporting.php was broken.
+
 [BACKEND]
 
 * Bug fixes:
