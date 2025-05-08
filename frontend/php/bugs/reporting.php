@@ -61,7 +61,7 @@ function reporting_list_data ($group_id, $sql, $time_now, $use_end = null)
       if ($use_end)
         $start = $end;
 
-      $result = db_execute ($sql, [$start, $end, $group_id]);
+      $result = db_execute ($sql, [$group_id, $start, $end]);
       # TRANSLATORS: the arguments are dates.
       $key = sprintf (
         _('%1$s to %2$s'), utils_format_date ($start), utils_format_date ($end)
@@ -156,15 +156,14 @@ if (!$field)
 
 if ($field == 'aging')
   {
+    $cond =
+      "`group_id` = ? AND `date` >= ? AND `date` <= ? AND `spamscore` < 5";
     # TRANSLATORS: aging statistics is statistics by date.
     $page .= html_h (2, _("Aging statistics:"));
     $time_now = time ();
     $sql = "
-      SELECT round(avg((close_date-date)/86400), 0)
-      FROM $artifact
-      WHERE
-        close_date > 0 AND (date >= ? AND date <= ?)  AND group_id = ?
-        AND spamscore < 5 ";
+      SELECT round(avg((`close_date` - `date`) / 86400))
+      FROM `$artifact` WHERE `close_date` > 0 AND $cond";
     $data = reporting_list_data ($group_id, $sql, $time_now);
 
     $page .= reporting_build_graph (
@@ -173,9 +172,7 @@ if ($field == 'aging')
     );
 
     $page .= "<p>&nbsp;&nbsp;</p>\n";
-    $sql = "
-      SELECT count(*) FROM $artifact
-      WHERE date >= ? AND date <= ? AND group_id = ?  AND spamscore < 5";
+    $sql = "SELECT count(*) FROM `$artifact` WHERE $cond";
     $data = reporting_list_data ($group_id, $sql, $time_now);
     $page .= reporting_build_graph (
       _("Number of Items Opened"), $data, $widths, $graph_id
@@ -183,11 +180,9 @@ if ($field == 'aging')
 
     $page .= "<p>&nbsp;&nbsp;</p>\n";
     $sql = "
-      SELECT count(*) FROM $artifact
-      WHERE
-        date <= ?
-        AND (close_date >= ? OR close_date < 1 OR close_date is null)
-        AND group_id = ?  AND spamscore < 5";
+      SELECT count(*) FROM `$artifact`
+      WHERE `group_id` = ? AND `date` <= ? AND `spamscore` < 5
+        AND (`close_date` >= ? OR `close_date` < 1 OR `close_date` is NULL)";
     $data = reporting_list_data ($group_id, $sql, $time_now, true);
 
     $page .= reporting_build_graph (
@@ -227,23 +222,18 @@ if ($field != 'status_id')
     if ($field == 'assigned_to')
       {
         $sql = "
-          SELECT user.user_name, count(*) AS Count
-          FROM user, $artifact ar
-          WHERE
-            ar.group_id = ? AND user.user_id = ar.assigned_to
-            AND ar.status_id = '1' AND ar.spamscore < 5
-          GROUP BY user_name";
+          SELECT `user_name`, count(*) AS `cnt`
+          FROM `user` `u` JOIN `$artifact` `ar` ON `user_id` = `assigned_to`
+          WHERE `group_id` = ? AND `status_id` = '1' AND `ar`.`spamscore` < 5
+          GROUP BY `user_name`";
         $params = [$group_id];
       }
     else
       {
         # Check if the project has its own instance of the value set.
         $result = db_execute ("
-          SELECT {$artifact}_field_value.value
-          FROM {$artifact}_field_value
-          WHERE
-            {$artifact}_field_value.bug_field_id = ?
-            AND {$artifact}_field_value.group_id = ?",
+          SELECT `value` FROM `{$artifact}_field_value`
+          WHERE `bug_field_id` = ? AND `group_id` = ?",
           [trackers_data_get_field_id ($field), $group_id]
         );
         # When the group does not have its own instance, use the default one.
@@ -252,13 +242,14 @@ if ($field != 'status_id')
           $gid = $group_id;
 
         $sql = "
-          SELECT fv.value, count(*) AS Count
-          FROM {$artifact}_field_value fv, {$artifact} ar
-          WHERE
-            fv.value_id = ar.$field
-            AND fv.bug_field_id = ? AND fv.group_id = ?
-            AND ar.group_id = ? AND ar.status_id = '1' AND spamscore < 5
-          GROUP BY value_id ORDER BY order_id";
+          SELECT `value`, count(*) AS `cnt`
+          FROM
+            `{$artifact}_field_value` `fv` JOIN `{$artifact}` `ar`
+            ON `fv`.`value_id` = `ar`.`$field`
+          WHERE `spamscore` < 5
+            AND `fv`.`bug_field_id` = ? AND `fv`.`group_id` = ?
+            AND `ar`.`group_id` = ? AND `ar`.`status_id` = '1'
+          GROUP BY `value` ORDER BY `order_id`";
         $params = [trackers_data_get_field_id ($field), $gid, $group_id];
       }
 
@@ -276,18 +267,18 @@ $page .= "\n" . html_h (3, _("All Items"));
 if ($field == 'assigned_to')
   {
     $sql = "
-      SELECT user.user_name, count(*) AS Count
-      FROM user, $artifact ar
+      SELECT `user_name`, count(*) AS `cnt`
+      FROM `user`, `$artifact` `ar`
       WHERE
-        user.user_id = ar.assigned_to AND ar.group_id = ? AND ar.spamscore < 5
-      GROUP BY user_name";
+        `user_id` = `assigned_to` AND `group_id` = ? AND `ar`.`spamscore` < 5
+      GROUP BY `user_name`";
     $params = [$group_id];
   }
 else
   {
     $result = db_execute ("
-      SELECT fv.value FROM {$artifact}_field_value fv
-      WHERE fv.bug_field_id = ? AND fv.group_id = ?",
+      SELECT `value` FROM `{$artifact}_field_value`
+      WHERE `bug_field_id` = ? AND `group_id` = ?",
       [trackers_data_get_field_id ($field), $group_id]
     );
     $gid = GROUP_NONE;
@@ -295,12 +286,13 @@ else
       $gid = $group_id;
 
     $sql = "
-      SELECT fv.value, count(*) AS Count
-      FROM {$artifact}_field_value fv, $artifact ar
-      WHERE
-        fv.value_id = ar.$field AND spamscore < 5
-        AND fv.bug_field_id = ?  AND fv.group_id = ? AND ar.group_id = ?
-      GROUP BY value_id ORDER BY order_id";
+      SELECT `value`, count(*) AS `cnt`
+      FROM
+        `{$artifact}_field_value` `fv` JOIN $artifact `ar`
+        ON `fv`.`value_id` = `ar`.`$field`
+      WHERE `fv`.`bug_field_id` = ?  AND `fv`.`group_id` = ?
+        AND `ar`.`group_id` = ? AND `spamscore` < 5
+      GROUP BY `value` ORDER BY `order_id`";
     $params = [trackers_data_get_field_id ($field), $gid, $group_id];
   }
 $result = db_execute ($sql, $params);

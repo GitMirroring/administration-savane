@@ -14,6 +14,9 @@
 ** The set of addresses to notify on tracker comments wasn't compiled correctly
    since 2024-06 (940893361).
 
+** Statistics (/bugs/reporting.php) and Contributors Wanted (/people/index.php)
+   were incompatible with ONLY_FULL_GROUP_BY.
+
 ** The passwd and group files weren't updated when accounts were renamed
    or deleted.
 

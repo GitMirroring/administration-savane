@@ -103,13 +103,13 @@ function people_list_project_type ()
 
   $result = db_execute ("
     SELECT
-      group_type.type_id, group_type.name, COUNT(people_job.job_id) AS count
+      `gt`.`type_id`, `gt`.`name`, COUNT(`p`.`job_id`) AS `count`
     FROM
-      group_type
+      `group_type` `gt`
       JOIN
-      (groups JOIN people_job ON groups.group_id = people_job.group_id)
-      ON group_type.type_id = groups.type
-    WHERE status_id = 1 GROUP BY type_id ORDER BY type_id"
+      (`groups` `g` JOIN `people_job` `p` ON `g`.`group_id` = `p`.`group_id`)
+      ON `gt`.`type_id` = `g`.`type`
+    WHERE `status_id` = 1 GROUP BY `type_id`, `gt`.`name` ORDER BY `type_id`"
   );
   $rows = db_numrows ($result);
   if ($rows < 1)
