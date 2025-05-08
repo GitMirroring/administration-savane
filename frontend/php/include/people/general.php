@@ -149,7 +149,7 @@ function people_show_table ()
 
   $return .= html_h (2, _("Group type"));
   $return .= people_append_list (
-    $form_is_empty, people_list_project_type (), _("No types found")
+    $form_is_empty, people_list_project_type (), _("No jobs found")
   );
   if ($form_is_empty)
     return $return;
