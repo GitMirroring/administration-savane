@@ -13,6 +13,10 @@
 
 ** sv_gen_passwd_group was incompatible with ONLY_FULL_GROUP_BY.
 
+[I18N]
+
+* Update French, German, Romanian, Russian.
+
 2025-04-28 3.15
 
 [FRONTEND]
