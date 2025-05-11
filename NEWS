@@ -1,5 +1,12 @@
 ????-??-?? 3.16
 
+[FRONTEND]
+
+* Bug fixes:
+
+** The set of addresses to notify on tracker comments wasn't compiled correctly
+   since 2024-06 (940893361).
+
 [BACKEND]
 
 * Bug fixes:

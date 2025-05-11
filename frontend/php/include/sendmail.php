@@ -161,7 +161,7 @@ function sendmail_x_savane_server_header ()
 function sendmail_cc_addresses ($user_name, $context)
 {
   if (!sendmail_have_reply_to ($context))
-    return '';
+    return [];
   $emails = [];
   foreach ($user_name as $n)
     foreach ($n as $e)
@@ -708,7 +708,7 @@ function sendmail_mail ($addresses, $message, $context = [])
   $to = sendmail_make_to_list ($addresses);
   sendmail_build_headers ($addresses['from'], $context, $message);
   list ($subj, $emails) = sendmail_make_subjects ($to, $message, $context);
-  foreach (array_keys ($subj) as $k)
+  foreach (array_keys ($emails) as $k)
     if (!is_array ($emails[$k]))
       $emails[$k] = [$emails[$k]];
   return sendmail_send_to_list ($emails, $subj, $message, $context);
