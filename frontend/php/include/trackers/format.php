@@ -698,14 +698,19 @@ function format_item_cc_list_comment ($row)
 {
   $vot = _('Voted in favor of this item');
   $com_arr = [
-    '-SUB-' => _('Submitted the item'), '-COM-' => _('Posted a comment'),
-    '-UPD-' => _('Updated the item'), '-VOT-' => $vot,
-    'Voted in favor of this item' => $vot
+    TRACKERS_CC_SUBMITTED => _('Submitted the item'),
+    TRACKERS_CC_COMMENTED => _('Posted a comment'),
+    TRACKERS_CC_UPDATED => _('Updated the item'),
+    TRACKERS_CC_VOTED => $vot, 'Voted in favor of this item' => $vot
   ];
 
   $comment = $row['comment'];
   if (array_key_exists ($comment, $com_arr))
     return $com_arr[$comment];
+  # Remove the space that trackers_extract_cc_comment() may have added.
+  $regex = '/^' . TRACKERS_CC_AFFIX . TRACKERS_CC_REGEX . '$/';
+  if (preg_match ($regex, $comment))
+    return substr ($comment, strlen (TRACKERS_CC_AFFIX));
   return $comment;
 }
 

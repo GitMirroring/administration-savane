@@ -49,6 +49,13 @@ foreach (
 )
   require_once ("$dir_name/$i.php");
 
+define ('TRACKERS_CC_SUBMITTED', '-SUB-');
+define ('TRACKERS_CC_COMMENTED', '-COM-');
+define ('TRACKERS_CC_UPDATED', '-UPD-');
+define ('TRACKERS_CC_VOTED', '-VOT-');
+define ('TRACKERS_CC_REGEX', '-...-');
+define ('TRACKERS_CC_AFFIX', ' ');
+
 # Generate URL arguments from a variable whether scalar or array.
 function trackers_convert_to_url_arg ($varname, $var)
 {
@@ -1202,7 +1209,7 @@ function trackers_post_attach ($item_id, $file_id, $file_name)
     "Attached File", "-", "Added $file_name, #$file_id", $item_id, 0, 0, 1
   );
   if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
-    trackers_add_cc ($item_id, user_getid (), "-UPD-");
+    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_UPDATED);
 }
 
 function trackers_attach_file ($item_id, $file, $description, &$changes)
@@ -1234,8 +1241,21 @@ function trackers_exist_cc ($item_id, $cc)
   return db_numrows ($res) >= 1;
 }
 
+function trackers_extract_cc_comment ($comment)
+{
+  if (!is_array ($comment))
+    # The string wasn't directly supplied by the user; pass as is.
+    return [$comment, false];
+  $comment = join ('', $comment);
+  if (preg_match ('/^' . TRACKERS_CC_REGEX . '$/', $comment))
+    # Make sure the comment differs from special values.
+    return [TRACKERS_CC_AFFIX . $comment, true];
+  return [$comment, true];
+}
+
 function trackers_insert_cc ($item_id, $cc, $added_by, $comment, $date)
 {
+  list ($comment, $manual) = trackers_extract_cc_comment ($comment);
   $res = db_autoexecute (
     ARTIFACT . "_cc",
     [
@@ -1247,16 +1267,44 @@ function trackers_insert_cc ($item_id, $cc, $added_by, $comment, $date)
 
   # Store the change in history only if the CC was a manual add, not a direct
   # effect of another action.
-  if ($comment != "-SUB-" && $comment != "-UPD-" && $comment != "-COM-")
+  if ($manual)
     trackers_data_add_history (
       "Carbon-Copy", "-", "Added $cc", $item_id, 0, 0, 1
     );
   return $res;
 }
 
+function trackers_add_cc_fb ($ok, $changed)
+{
+  if ($ok)
+    {
+      if ($changed)
+        fb (_("CC added."));
+      return;
+    }
+  fb (_("CC addition failed."), 1);
+}
+
+function trackers_add_cc_pref ($comment)
+{
+  if (is_array ($comment))
+    return false;
+  if (!user_isloggedin ())
+    return false;
+  $prefs = [
+    TRACKERS_CC_COMMENTED => 'skip_postcomment',
+    TRACKERS_CC_UPDATED => 'skip_updateitem'
+  ];
+  if (empty ($prefs[$comment]))
+    return false;
+  return user_get_preference ($prefs[$comment]);
+}
+
 function trackers_add_cc ($item_id, $email, $comment)
 {
   $user_id = (user_isloggedin ()? user_getid (): 100);
+  if (trackers_add_cc_pref ($comment))
+    return;
 
   $arr_email = utils_split_emails ($email);
   $date = time();
@@ -1271,14 +1319,7 @@ function trackers_add_cc ($item_id, $email, $comment)
       if (!trackers_insert_cc ($item_id, $cc, $user_id, $comment, $date))
         $ok = false;
     }
-
-  if ($ok)
-    {
-      if ($changed)
-        fb (_("CC added."));
-    }
-  else
-    fb (_("CC addition failed."), 1);
+  trackers_add_cc_fb ($ok, $changed);
   return $ok;
 }
 

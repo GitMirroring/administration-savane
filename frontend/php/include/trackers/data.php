@@ -1468,7 +1468,7 @@ function update_details ($details, $item_id, $group_id, &$vfl, &$changes)
       'comment_type_id', $group_id, $vfl['comment_type_id']
     );
   if (user_isloggedin () && !user_get_preference ("skipcc_postcomment"))
-    trackers_add_cc ($item_id, user_getid (), "-COM-", $changes);
+    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_COMMENTED);
   return 1;
 }
 
@@ -1538,7 +1538,7 @@ function update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists)
     "bug_id = ? AND group_id = ?", [$item_id, $group_id]
   );
   if (user_isloggedin () && !user_get_preference ("skipcc_updateitem"))
-    trackers_add_cc ($item_id, user_getid (), "-UPD-");
+    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_UPDATED);
 
   if (!db_affected_rows ($res))
     exit_error (_("Item update failed"));
@@ -2155,7 +2155,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   # (currently, no option to avoid this, but we could make this a notif
   # configuration option, if wanted).
   if (user_isloggedin ())
-    trackers_add_cc ($item_id, user_getid (), "-SUB-");
+    trackers_add_cc ($item_id, user_getid (), TRACKERS_CC_SUBMITTED);
   return $item_id;
 }
 

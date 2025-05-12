@@ -268,7 +268,7 @@ switch ($func)
           trackers_attach_several_files ($item_id, $group_id, $changes);
         # Add new cc if any.
         if ($add_cc)
-          trackers_add_cc ($item_id, $add_cc, $cc_comment, $changes);
+          trackers_add_cc ($item_id, $add_cc, [$cc_comment]);
 
         # Originator Email:
         # "Email address of the person who submitted the item
@@ -284,7 +284,7 @@ switch ($func)
               {
                 if (validate_email ($originator_email))
                   trackers_add_cc (
-                    $item_id, $originator_email, "-SUB-", $changes
+                    $item_id, $originator_email, TRACKERS_CC_SUBMITTED
                   );
                 elseif (!empty ($originator_email))
                   fb (_("Originator E-mail is not valid, thus was not added\n"
@@ -429,7 +429,7 @@ switch ($func)
         if ($add_cc)
           # No notification needs to be sent when a CC is added,
           # it is irrelevant to the item itself.
-          trackers_add_cc ($item_id, $add_cc, $cc_comment, $changes);
+          trackers_add_cc ($item_id, $add_cc, [$cc_comment]);
         if (trackers_data_is_used ("vote"))
           trackers_votes_update ($item_id, $new_vote);
       } # !$process_comment

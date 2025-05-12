@@ -130,7 +130,7 @@ function trackers_votes_insert_vote ($old_vote, $new_vote, $tracker, $item_id)
           'item_id' => $item_id, 'howmuch' => $new_vote
         ], DB_AUTOQUERY_INSERT
       );
-      trackers_add_cc ($item_id, user_getname (), "-VOT-");
+      trackers_add_cc ($item_id, user_getname (), TRACKERS_CC_VOTED);
     }
   return db_affected_rows ($res) < 1;
 }

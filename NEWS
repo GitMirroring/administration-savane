@@ -4,6 +4,9 @@
 
 * Bug fixes:
 
+** User-supplied tracker CC comments like '-SUB-', '-COM-', '-UPD-' weren't
+   handled correctly.
+
 ** The set of addresses to notify on tracker comments wasn't compiled correctly
    since 2024-06 (940893361).
 
