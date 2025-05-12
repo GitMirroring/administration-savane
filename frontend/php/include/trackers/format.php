@@ -696,12 +696,11 @@ function format_item_cc_list_email ($row)
 
 function format_item_cc_list_comment ($row)
 {
-  $vot = _('Voted in favor of this item');
   $com_arr = [
     TRACKERS_CC_SUBMITTED => _('Submitted the item'),
     TRACKERS_CC_COMMENTED => _('Posted a comment'),
     TRACKERS_CC_UPDATED => _('Updated the item'),
-    TRACKERS_CC_VOTED => $vot, 'Voted in favor of this item' => $vot
+    TRACKERS_CC_VOTED => _('Voted in favor of this item'),
   ];
 
   $comment = $row['comment'];
