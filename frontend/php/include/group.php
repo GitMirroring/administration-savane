@@ -753,7 +753,7 @@ function group_get_gidNumber ($group_id)
 function group_update_member_uidNumbers ($group_id)
 {
   foreach (member_get_group_members ($group_id) as $m)
-    if (!empty ($GLOBALS['MEMBER_FLAGS_ACTIVE'][$m['admin_flags']]))
+    if (member_status_is_active ($m['admin_flags']))
       member_assign_uidNumber ($m['user_id']);
 }
 

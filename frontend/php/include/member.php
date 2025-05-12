@@ -56,6 +56,11 @@ $member_roles = [
   MEMBER_ROLE_TECHNICIAN, MEMBER_ROLE_TECHNAGER, MEMBER_ROLE_MANAGER
 ];
 
+function member_status_is_active ($status)
+{
+  return !empty ($GLOBALS['MEMBER_FLAGS_ACTIVE'][$status]);
+}
+
 function member_history_label_on_add ($status)
 {
   if ($status === MEMBER_FLAGS_PENDING)
@@ -102,7 +107,7 @@ function member_add ($user_id, $group_id, $status = MEMBER_FLAGS_MEMBER)
       fb (_("This user is already member of the group."), 1);
       return 0;
     }
-  if ($status === MEMBER_FLAGS_MEMBER)
+  if (member_status_is_active ($status))
     # Assign uidNumber before backend scripts have a chance to
     # do that concurrently.
     member_assign_uidNumber ($user_id);
@@ -110,7 +115,7 @@ function member_add ($user_id, $group_id, $status = MEMBER_FLAGS_MEMBER)
   $result = db_autoexecute ('user_group', array_merge ($cols, $cond));
   if (!$result)
     return $result;
-  if ($status === MEMBER_FLAGS_MEMBER)
+  if (member_status_is_active ($status))
     member_update_file ($group_id, 'group');
   $comment = member_history_label_on_add ($status);
   group_add_history ($comment, user_getname ($user_id), $group_id);
