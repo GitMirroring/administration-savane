@@ -248,7 +248,7 @@ if (db_affected_rows ($result) < 1)
 $user_id = user_getid ();
 
 # Make the current user an admin.
-$result = member_add ($user_id, $group_id, "A");
+$result = member_add ($user_id, $group_id, MEMBER_FLAGS_ADMIN);
 
 if (!$result)
   exit_error (no_i18n ("Setting you as group admin failed"));

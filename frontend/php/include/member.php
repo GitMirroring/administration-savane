@@ -95,7 +95,7 @@ function member_user_group_fields ($user_id, $group_id, $status)
 }
 
 # Add or update a user to a group; $status is the 'admin_flags'.
-function member_add ($user_id, $group_id, $status = '')
+function member_add ($user_id, $group_id, $status = MEMBER_FLAGS_MEMBER)
 {
   if (member_check ($user_id, $group_id))
     {
