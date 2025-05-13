@@ -326,9 +326,22 @@ h4 a { display: block; }
 .splitleft { margin-left: 1%; margin-right: 51%; }
 .splitright
 {
-  display:block;
+  display: block;
   float: right;
   margin-right: 1%;
+  width: 49%;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+/* The next two classes are .splitleft and .splitright used
+  in the reverse sequence, from left to right. */
+.splitsecond { margin-right: 1%; margin-left: 51%; }
+.splitfirst
+{
+  display: block;
+  float: left;
+  margin-left: 1%;
   width: 49%;
   overflow: hidden;
   vertical-align: top;
@@ -588,6 +601,7 @@ not change anything for other browsers.  */
   width: 96%;
   margin-left: 2%;
   margin-right: 2%;
+  margin-bottom: .5em;
   vertical-align: top;
   border-spacing: 1px;
   border: 0;
@@ -605,6 +619,13 @@ not change anything for other browsers.  */
 {
   font-weight: bold;
   text-align: center;
+}
+
+.boxtitle h2
+{
+  font-size: 1em;
+  margin: 0;
+  font-weight: bold;
 }
 
 .boxtitle a { display: block; }

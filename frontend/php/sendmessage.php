@@ -70,7 +70,10 @@ if (db_numrows ($result) < 1)
 
 if (!$send_mail)
   {
-    $HTML->header (['title' => _('Send a message')]);
+    # TRANSLATORS: the argument is user's name.
+    $title = sprintf (_("Send a message to %s"), user_getrealname ($touser));
+    $HTML->header (['title' => $title]);
+    print "<br />\n";
     sendmail_form_message ($php_self, $touser, $cc_me);
     $HTML->footer ([]);
     exit;

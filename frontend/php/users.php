@@ -64,19 +64,7 @@ $account_status = $user_arr['status'];
 # account id, login + description as deleted account.
 $is_suspended = user_status_is_removed ($account_status);
 
-site_header (
-  # TRANSLATORS: the argument is user's name (like J. Random Hacker).
-  ['title' => sprintf (_("%s profile"), $realname), 'context' => 'people']
-);
-
 $is_squad = $user_arr['status'] == USER_STATUS_SQUAD;
-
-if ($is_squad)
-  print '<p>'
-    . _("It is not a normal user account but a squad: it unites several\n"
-        . "users as if they were one (notifications, privileges, etc).")
-    . "</p>\n";
-print html_splitpage ("start");
 
 function print_account_items ($user_id, $realname, $is_squad)
 {
@@ -85,7 +73,7 @@ function print_account_items ($user_id, $realname, $is_squad)
   list ($usergroups_groupid, $usergroups) = user_group_names ($user_id);
   # TRANSLATORS: the argument is user's name (like Assaf Gordon).
   print $HTML->box_top (
-    sprintf (_("Open items assigned to %s"), $realname), '', 1
+    html_h (2, sprintf (_("Open items assigned to %s"), $realname)), '', 1
   );
   my_item_list ("assignee", "0", "open", $user_id, true);
   print $HTML->box_bottom (1);
@@ -95,7 +83,7 @@ function print_account_items ($user_id, $realname, $is_squad)
   # Meaningless for squads.
   # TRANSLATORS: the argument is user's name (like Assaf Gordon).
   print $HTML->box_top (
-    sprintf (_("Open items submitted by %s"), $realname), '', 1
+    html_h (2, sprintf (_("Open items submitted by %s"), $realname)), '', 1
   );
   my_item_list ("submitter", "0", "open", $user_id, true);
   print $HTML->box_bottom (1);
@@ -147,10 +135,75 @@ function print_edit_user_link ($user_id)
   print "<a href=\"$admin_url\">[Edit user]</a>";
 }
 
-if (!$is_suspended)
-  print_account_items ($user_id, $realname, $is_squad);
-print html_splitpage (2);
-print $HTML->box_top (_("General information"));
+function output_group_info ($user_id)
+{
+  global $HTML;
+  $group_list = user_list_groups ($user_id, true);
+  if (empty ($group_list))
+    return;
+  print "<br />\n";
+  print $HTML->box_top (html_h (2, _("Group membership")), '', 1);
+  print "<ul class='boxli'>";
+  $j = 1;
+  foreach ($group_list as $gid => $v)
+    {
+      if ($v['admin_flags'] == MEMBER_FLAGS_ADMIN)
+        $color = "boxhighlight";
+      else
+        $color = utils_altrow ($j++);
+      print '<li class="' . $color . '">';
+      print "<a href=\"{$GLOBALS['sys_home']}projects/"
+        . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n";
+      print user_format_member_since ($v['date']);
+      print "</li>\n";
+    }
+  print "</ul>\n";
+  print $HTML->box_bottom (1);
+}
+
+function output_squad_info ($user_id)
+{
+  global $HTML;
+  print "<br />\n" . $HTML->box_top (html_h (2, _("Members")), '', 1);
+  $result = db_execute ("
+    SELECT user_name, realname, user_id FROM user
+    WHERE user_id IN (SELECT user_id FROM user_squad WHERE squad_id = ?)",
+    [$user_id]
+  );
+  $j = 1;
+  $items = '';
+  while ($row = db_fetch_array ($result))
+    {
+      $items .= '<li class="' . utils_altrow ($j++) . '">';
+      $items .= utils_user_link ($row['user_name'], $row['realname']);
+      $items .= "</li>\n";
+    }
+
+  if ($items === '')
+    print _("No member found");
+  else
+    print "<ul class='boxli'>$items</ul>\n";
+  print $HTML->box_bottom (1);
+}
+
+function split_page ($how)
+{
+  return html_splitpage ($how, true);
+}
+
+site_header (
+  # TRANSLATORS: the argument is user's name (like J. Random Hacker).
+  ['title' => sprintf (_("%s profile"), $realname), 'context' => 'people']
+);
+if ($is_squad)
+  print '<p>'
+    . _("It is not a normal user account but a squad: it unites several\n"
+        . "users as if they were one (notifications, privileges, etc).")
+    . "</p>\n";
+else
+  print "<br />\n";
+print split_page ('start');
+print $HTML->box_top (html_h (2, _("General information")));
 
 print
   "<br />\n<table width='100%' cellpadding='0' cellspacing='0' border='0'>\n";
@@ -187,72 +240,25 @@ if ($active)
   } # if ($active)
 print "</table>\n";
 print $HTML->box_bottom ();
+output_group_info ($user_id);
+if ($is_squad)
+  output_squad_info ($user_id);
+
+print split_page ('middle');
+if (!$is_suspended)
+  print_account_items ($user_id, $realname, $is_squad);
 if ($is_suspended)
   {
     $HTML->footer ([]);
     exit (0);
   }
-
-function output_group_info ($user_id)
-{
-  global $HTML;
-  $group_list = user_list_groups ($user_id, true);
-  if (empty ($group_list))
-    return;
-  print "<br />\n";
-  print $HTML->box_top (_("Group membership"), '', 1);
-  print "<ul class='boxli'>";
-  $j = 1;
-  foreach ($group_list as $gid => $v)
-    {
-      if ($v['admin_flags'] == MEMBER_FLAGS_ADMIN)
-        $color = "boxhighlight";
-      else
-        $color = utils_altrow ($j++);
-      print '<li class="' . $color . '">';
-      print "<a href=\"{$GLOBALS['sys_home']}projects/"
-        . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n";
-      print user_format_member_since ($v['date']);
-      print "</li>\n";
-    }
-  print "</ul>\n";
-  print $HTML->box_bottom (1);
-}
-
-function output_squad_info ($user_id)
-{
-  global $HTML;
-  print "<br />\n" . $HTML->box_top (_("Members"), '', 1);
-  $result = db_execute ("
-    SELECT user_name, realname, user_id FROM user
-    WHERE user_id IN (SELECT user_id FROM user_squad WHERE squad_id = ?)",
-    [$user_id]
-  );
-  $j = 1;
-  $items = '';
-  while ($row = db_fetch_array ($result))
-    {
-      $items .= '<li class="' . utils_altrow ($j++) . '">';
-      $items .= utils_user_link ($row['user_name'], $row['realname']);
-      $items .= "</li>\n";
-    }
-
-  if ($items === '')
-    print _("No member found");
-  else
-    print "<ul class='boxli'>$items</ul>\n";
-  print $HTML->box_bottom (1);
-}
-
-output_group_info ($user_id);
-if ($is_squad)
-  output_squad_info ($user_id);
-
-print html_splitpage (3) . "<p class='clearr'>&nbsp;</p>\n";
+print split_page ('end');
 if (user_isloggedin ())
-  sendmail_form_message ($sys_home . 'sendmessage.php', $user_id);
+  sendmail_form_message (
+    $sys_home . 'sendmessage.php', $user_id, true, 'floatleft'
+  );
 else
-  print '<p class="warn">'
+  print '<p class="warn floatleft">'
     . _("You could send a message if you were logged in.") . "</p>\n";
 $HTML->footer ([]);
 ?>

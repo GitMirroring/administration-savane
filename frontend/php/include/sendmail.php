@@ -757,14 +757,32 @@ function sendmail_encode_header ($header, $charset = "UTF-8")
   return join ($separator, $words);
 }
 
-# A form for logged in users to send mails to others users.
-function sendmail_form_message ($form_action, $user_id, $cc_me = true)
+function sendmail_form_message_title ($user_id, $class)
 {
   global $HTML;
-  print $HTML->box_top (
-    # TRANSLATORS: the argument is user's name.
-    sprintf (_("Send a message to %s"), user_getrealname ($user_id))
-  );
+  if ($class === '')
+    return;
+  # TRANSLATORS: the argument is user's name.
+  $msg = sprintf (_("Send a message to %s"), user_getrealname ($user_id));
+  if ($class !== '')
+    $class = " $class";
+  print $HTML->box_top (html_h (2, $msg), $class);
+}
+
+function sendmail_form_message_bottom ($class)
+{
+  global $HTML;
+  if ($class === '')
+    return;
+  print $HTML->box_bottom ();
+}
+
+# A form for logged in users to send mails to others users.
+function sendmail_form_message (
+  $form_action, $user_id, $cc_me = true, $class = ''
+)
+{
+  sendmail_form_message_title ($user_id, $class);
   $pre = '<span class="preinput">';
   $post = "</span><br />\n&nbsp;&nbsp;&nbsp;";
   # We do not really bother finding out the realname + email, sendmail_mail ()
@@ -787,7 +805,7 @@ function sendmail_form_message ($form_action, $user_id, $cc_me = true)
     . $post . $pre . html_label ('body', _("Message:")) . $post
     . form_textarea ('body', '', "rows='20' cols='60'") . "\n\n"
     . form_footer (_('Send Message'), "send_mail");
-  print $HTML->box_bottom ();
+  sendmail_form_message_bottom ($class);
 }
 
 function sendmail_expand_template ($template, $context)

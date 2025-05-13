@@ -145,13 +145,20 @@ function html_hidsubpart_footer ()
   return "\n</div><!-- closing hidsubpart -->\n";
 }
 
-function html_splitpage ($how)
+function html_splitpage ($how, $swap = false)
 {
-  if ($how == 'start' || $how == '1')
-    return "\n<div class='splitright'>\n";
-  if ($how == 'middle' || $how == '2')
-    return  "\n</div><!-- end  splitright -->\n<div class='splitleft'>\n";
-  return "\n</div><!-- end  splitleft -->\n";
+  $formats = [
+    'start' => "\n<div class='%s'>\n",
+    'middle' => "\n</div><!-- end %s -->\n<div class='%s'>\n"
+  ];
+  $formats['1'] = $formats['start'];
+  $formats['2'] = $formats['middle'];
+  $classes = ['splitright', 'splitleft'];
+  if ($swap)
+    $classes = ['splitfirst', 'splitsecond'];
+  if (empty ($formats[$how]))
+    return "\n</div><!-- end {$classes[1]} -->\n";
+  return sprintf ($formats[$how], $classes[0], $classes[1]);
 }
 
 function html_image_dir ($theme, $suffix = null)
