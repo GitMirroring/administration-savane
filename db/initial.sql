@@ -4324,7 +4324,6 @@ CREATE TABLE `user` (
   `add_date` int(11) NOT NULL DEFAULT 0,
   `confirm_hash` varchar(153) DEFAULT NULL,
   `authorized_keys` text DEFAULT NULL,
-  `authorized_keys_count` int(11) DEFAULT NULL,
   `email_new` text DEFAULT NULL,
   `people_view_skills` int(11) NOT NULL DEFAULT 0,
   `people_resume` text NOT NULL,
