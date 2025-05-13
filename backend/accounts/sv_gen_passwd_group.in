@@ -83,15 +83,10 @@ $group_list_max_len = $group_list_def_max_len
 
 -d $output_dir or die "Directory $output_dir doesn't exist";
 
-my $user_tables = 'user u JOIN user_group ug ON u.user_id = ug.user_id';
-my $user_crit = "ug.admin_flags IN ('', 'A') AND uidNumber IS NOT NULL";
-my $group_crit = "g.status = 'A' AND g.gidNumber IS NOT NULL";
-
 sub fetch_users
 {
   return GetDBLists (
-    "$user_tables JOIN `groups` `g` ON `g`.`group_id` = `ug`.`group_id`",
-    "$user_crit AND $group_crit GROUP BY `uidNumber`, `user_name`, `realname`",
+    '`user`', "`status` = 'A' AND `uidNumber` IS NOT NULL ORDER BY `user_id`",
     '`uidNumber`, `user_name`, `realname`'
   );
 }
@@ -99,11 +94,15 @@ sub fetch_users
 sub fetch_groups
 {
   my $subquery = "
-    SELECT ug.group_id, group_concat(user_name ORDER BY user_name) AS members
-    FROM $user_tables WHERE $user_crit GROUP BY ug.group_id";
+    SELECT `ug`.`group_id`,
+      group_concat(`user_name` ORDER BY `user_name`) AS `members`
+    FROM `user` `u` JOIN `user_group` `ug` ON `u`.`user_id` = `ug`.`user_id`
+    WHERE `ug`.`admin_flags` IN ('', 'A') AND `uidNumber` IS NOT NULL
+    GROUP BY `ug`.`group_id`";
   return GetDBLists (
     "groups g LEFT JOIN ($subquery) sq ON sq.group_id = g.group_id",
-    $group_crit, "gidNumber, unix_group_name, IFNULL(members, '')"
+    "`g`.`status` = 'A' AND `g`.`gidNumber` IS NOT NULL",
+    "gidNumber, unix_group_name, IFNULL(members, '')"
   );
 }
 
