@@ -64,12 +64,6 @@ $account_status = $user_arr['status'];
 # account id, login + description as deleted account.
 $is_suspended = user_status_is_removed ($account_status);
 
-if ($is_suspended && !user_is_super_user ())
-  {
-    $realname = _('-deleted account-');
-    $email_address = _('-deleted account-');
-  }
-
 site_header (
   # TRANSLATORS: the argument is user's name (like J. Random Hacker).
   ['title' => sprintf (_("%s profile"), $realname), 'context' => 'people']
@@ -117,11 +111,10 @@ print
 
 $tr_head = "<tr valign='top'>\n";
 $active = user_is_super_user () || !$is_suspended;
-$suspended = $is_suspended && user_is_super_user ();
 
-if ($suspended)
+if ($is_suspended)
   print "$tr_head<td>" . _("Note:") . " </td>\n<td><b>"
-    . _("The account was deleted") . "</b></td>\n</tr>\n";
+    . user_suspended_note ($realname) . "</b></td>\n</tr>\n";
 if ($active)
   # TRANSLATORS: user's id (a number) shall follow this message.
   print "$tr_head<td>" . _("Id:") . " </td>\n<td><b>#"
@@ -132,38 +125,42 @@ print "$tr_head<td>" . _("Display name:")
   . "$tr_head<td>" . _("Login name:") . " </td>\n<td><b>"
   . $user_arr['user_name'] . "</b></td>\n</tr>\n";
 
+function print_resume_cell ($user_arr, $is_squad)
+{
+  if ($is_squad)
+    return;
+  if ($user_arr['people_view_skills'] != 1)
+    {
+      print _("This user did not enable Resume & Skills.");
+      return;
+    }
+  print '<a href="' . $GLOBALS['sys_home']
+    . 'people/resume.php?user_id=' . $user_arr['user_id'] . '">'
+    . _("View Resume & Skills") . "</a>";
+}
+
 if ($active)
   {
     print "$tr_head<td>" . _("Email address:") . " </td>\n<td>"
       . "<a href=\"{$GLOBALS['sys_home']}sendmessage.php?touser="
       . $user_arr['user_id'] . '&cc_me=cc_me">';
-    # Do not show email address to anonymous users.
     if ($user_arr['email_hide'] == "1" && !user_is_super_user ())
       print _("Send this user a mail");
     else
       print utils_email_basic ($user_arr['email'], 1);
     print "</a></td>\n</tr>\n";
-  }
-
-if (!$is_squad && $active)
-  {
     print "$tr_head<td>" . _("Site member since:") . "</td>\n<td><b>"
       . utils_format_date ($user_arr['add_date'])
       . "</b>\n</td>\n</tr>\n$tr_head<td>";
     if (user_is_super_user ())
       {
-        # We don't translate the text of this links because it's for
+        # We don't translate the text of this link because it's for
         # sysadmins only.
         $admin_url = "/siteadmin/usergroup.php?user_id=$user_id";
         print "<a href=\"$admin_url\">[Edit user]</a>";
       }
     print "</td>\n<td>";
-
-    if ($user_arr['people_view_skills'] != 1)
-      print _("This user did not enable Resume & Skills.");
-    else
-      print '<a href="' . $GLOBALS['sys_home'] . 'people/resume.php?user_id='
-        . $user_arr['user_id'] . '">' . _("View Resume & Skills") . '</a>';
+    print_resume_cell ($user_arr, $is_squad);
     print "</td>\n</tr>\n";
     if (!empty (user_get_gpg_key ($user_id)))
       {
@@ -172,7 +169,7 @@ if (!$is_squad && $active)
           . $user_arr['user_id'] . '">' . _("Download GPG Key") . '</a>';
         print "</td>\n</tr>\n";
       }
-  } # if (!$is_squad && (!$is_suspended || user_is_super_user ()))
+  } # if ($active)
 print "</table>\n";
 print $HTML->box_bottom ();
 if ($is_suspended)
@@ -199,7 +196,7 @@ function output_group_info ($user_id)
         $color = utils_altrow ($j++);
       print '<li class="' . $color . '">';
       print "<a href=\"{$GLOBALS['sys_home']}projects/"
-         . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n";
+        . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n";
       print user_format_member_since ($v['date']);
       print "</li>\n";
     }

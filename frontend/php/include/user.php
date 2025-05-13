@@ -48,6 +48,9 @@ define ('USER_STATUS_SQUAD', MEMBER_FLAGS_SQUAD);
 define ('USER_STATUS_SUSPENDED', 'S');
 define ('USER_STATUS_DELETED', 'D');
 define ('USER_EMAIL_PLACEHOLDER', 'idontexist@savane.test');
+define ('USER_NAME_SELF_REMOVED', '-');
+define ('USER_NAME_REMOVED_BY_ADMIN', '-*-');
+define ('USER_NAME_AUTOREMOVED', '-#-');
 
 # User records in this array can be accessed by user_id as well as by user_name.
 # the user_name keys are in the lower case, user names are case-insensitive.
@@ -56,6 +59,18 @@ $USER_ARR = [];
 function user_status_is_removed ($status)
 {
   return $status == USER_STATUS_SUSPENDED || $status == USER_STATUS_DELETED;
+}
+
+function user_suspended_note ($realname)
+{
+  $msg = [
+    USER_NAME_REMOVED_BY_ADMIN => _('The account was removed by an admin.'),
+    USER_NAME_AUTOREMOVED => _('The account was removed automatically.'),
+    USER_NAME_SELF_REMOVED => _('The account was removed by its user.'),
+  ];
+  if (empty ($msg[$realname]))
+    return $realname;
+  return $msg[$realname];
 }
 
 function user_isloggedin ()
@@ -680,9 +695,9 @@ function user_rename ($user_id, $new_name)
 
 function user_clear_account_fields ($user_id)
 {
-  $new_realname = '-*-';
+  $new_realname = USER_NAME_REMOVED_BY_ADMIN;
   if ($user_id == user_getid ())
-    $new_realname = '-';
+    $new_realname = USER_NAME_SELF_REMOVED;
   $arg = [
     'user_pw' => '!', 'realname' => $new_realname, 'confirm_hash' => null,
     'status' => USER_STATUS_SUSPENDED, 'email' => USER_EMAIL_PLACEHOLDER,

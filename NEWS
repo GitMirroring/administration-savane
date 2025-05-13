@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* In /users.php, info is provided on how the account was removed.
+
 * Commas in 'realname' are replaced with spaces when writing the 'passwd'
   file.
 
