@@ -69,9 +69,7 @@ site_header (
   ['title' => sprintf (_("%s profile"), $realname), 'context' => 'people']
 );
 
-$is_squad = false;
-if ($user_arr['status'] == USER_STATUS_SQUAD)
-  $is_squad = true;
+$is_squad = $user_arr['status'] == USER_STATUS_SQUAD;
 
 if ($is_squad)
   print '<p>'
@@ -80,50 +78,28 @@ if ($is_squad)
     . "</p>\n";
 print html_splitpage ("start");
 
-if (!$is_suspended)
-  {
-    $usersquads = $group_data = [];
-    list ($usergroups_groupid, $usergroups) = user_group_names (user_getid ());
-    if (!$is_squad)
-      {
-        # Meaningless for squads.
-        # TRANSLATORS: the argument is user's name (like Assaf Gordon).
-        print $HTML->box_top (
-          sprintf (_("Open items submitted by %s"), $realname), '', 1
-        );
-        my_item_list ("submitter", "0", "open", $user_id, true);
-        print $HTML->box_bottom (1);
-        print "<br />\n";
-      }
-
-    # TRANSLATORS: the argument is user's name (like Assaf Gordon).
-    print $HTML->box_top (
-      sprintf (_("Open items assigned to %s"), $realname), '', 1
-    );
-    my_item_list ("assignee", "0", "open", $user_id, true);
-    print $HTML->box_bottom (1);
-  } # if (!$is_suspended)
-print html_splitpage (2);
-print $HTML->box_top (_("General information"));
-
-print
-  "<br />\n<table width='100%' cellpadding='0' cellspacing='0' border='0'>\n";
-
-$tr_head = "<tr valign='top'>\n";
-$active = user_is_super_user () || !$is_suspended;
-
-if ($is_suspended)
-  print "$tr_head<td>" . _("Note:") . " </td>\n<td><b>"
-    . user_suspended_note ($realname) . "</b></td>\n</tr>\n";
-if ($active)
-  # TRANSLATORS: user's id (a number) shall follow this message.
-  print "$tr_head<td>" . _("Id:") . " </td>\n<td><b>#"
-    . $user_arr['user_id'] . "</b></td>\n</tr>\n";
-
-print "$tr_head<td>" . _("Display name:")
-  . " </td>\n<td><b>$realname</b></td>\n</tr>\n"
-  . "$tr_head<td>" . _("Login name:") . " </td>\n<td><b>"
-  . $user_arr['user_name'] . "</b></td>\n</tr>\n";
+function print_account_items ($user_id, $realname, $is_squad)
+{
+  global $usersquads, $group_data, $usergroups_groupid, $usergroups, $HTML;
+  $usersquads = $group_data = [];
+  list ($usergroups_groupid, $usergroups) = user_group_names ($user_id);
+  # TRANSLATORS: the argument is user's name (like Assaf Gordon).
+  print $HTML->box_top (
+    sprintf (_("Open items assigned to %s"), $realname), '', 1
+  );
+  my_item_list ("assignee", "0", "open", $user_id, true);
+  print $HTML->box_bottom (1);
+  if ($is_squad)
+    return;
+  print "<br />\n";
+  # Meaningless for squads.
+  # TRANSLATORS: the argument is user's name (like Assaf Gordon).
+  print $HTML->box_top (
+    sprintf (_("Open items submitted by %s"), $realname), '', 1
+  );
+  my_item_list ("submitter", "0", "open", $user_id, true);
+  print $HTML->box_bottom (1);
+}
 
 function print_resume_cell ($user_arr, $is_squad)
 {
@@ -150,6 +126,51 @@ function print_email_cell ($user_arr, $is_squad)
   print '</a>';
 }
 
+function print_gpg_row ($user_arr, $user_id)
+{
+  global $tr_head;
+  if (empty (user_get_gpg_key ($user_id)))
+    return;
+  print "$tr_head<td></td><td>";
+  print "<a href=\"{$GLOBALS['sys_home']}people/viewgpg.php?user_id="
+    . $user_arr['user_id'] . '">' . _("Download GPG Key") . '</a>';
+  print "</td>\n</tr>\n";
+}
+
+function print_edit_user_link ($user_id)
+{
+  if (!user_is_super_user ())
+    return;
+  # We don't translate the text of this link because it's for
+  # sysadmins only.
+  $admin_url = "/siteadmin/usergroup.php?user_id=$user_id";
+  print "<a href=\"$admin_url\">[Edit user]</a>";
+}
+
+if (!$is_suspended)
+  print_account_items ($user_id, $realname, $is_squad);
+print html_splitpage (2);
+print $HTML->box_top (_("General information"));
+
+print
+  "<br />\n<table width='100%' cellpadding='0' cellspacing='0' border='0'>\n";
+
+$tr_head = "<tr valign='top'>\n";
+$active = user_is_super_user () || !$is_suspended;
+
+if ($is_suspended)
+  print "$tr_head<td>" . _("Note:") . " </td>\n<td><b>"
+    . user_suspended_note ($realname) . "</b></td>\n</tr>\n";
+if ($active)
+  # TRANSLATORS: user's id (a number) shall follow this message.
+  print "$tr_head<td>" . _("Id:") . " </td>\n<td><b>#"
+    . $user_arr['user_id'] . "</b></td>\n</tr>\n";
+
+print "$tr_head<td>" . _("Display name:")
+  . " </td>\n<td><b>$realname</b></td>\n</tr>\n"
+  . "$tr_head<td>" . _("Login name:") . " </td>\n<td><b>"
+  . $user_arr['user_name'] . "</b></td>\n</tr>\n";
+
 if ($active)
   {
     print "$tr_head<td>" . _("Email address:") . " </td>\n<td>";
@@ -158,23 +179,11 @@ if ($active)
     print "$tr_head<td>" . _("Site member since:") . "</td>\n<td><b>"
       . utils_format_date ($user_arr['add_date'])
       . "</b>\n</td>\n</tr>\n$tr_head<td>";
-    if (user_is_super_user ())
-      {
-        # We don't translate the text of this link because it's for
-        # sysadmins only.
-        $admin_url = "/siteadmin/usergroup.php?user_id=$user_id";
-        print "<a href=\"$admin_url\">[Edit user]</a>";
-      }
+    print_edit_user_link ($user_id);
     print "</td>\n<td>";
     print_resume_cell ($user_arr, $is_squad);
     print "</td>\n</tr>\n";
-    if (!empty (user_get_gpg_key ($user_id)))
-      {
-        print '<tr valign="top"><td></td><td>';
-        print "<a href=\"{$GLOBALS['sys_home']}people/viewgpg.php?user_id="
-          . $user_arr['user_id'] . '">' . _("Download GPG Key") . '</a>';
-        print "</td>\n</tr>\n";
-      }
+    print_gpg_row ($user_arr, $user_id);
   } # if ($active)
 print "</table>\n";
 print $HTML->box_bottom ();
