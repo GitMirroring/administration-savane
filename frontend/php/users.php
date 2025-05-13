@@ -139,16 +139,22 @@ function print_resume_cell ($user_arr, $is_squad)
     . _("View Resume & Skills") . "</a>";
 }
 
+function print_email_cell ($user_arr, $is_squad)
+{
+  print "<a href=\"{$GLOBALS['sys_home']}sendmessage.php?touser="
+    . $user_arr['user_id'] . '&cc_me=cc_me">';
+  if ($is_squad || ($user_arr['email_hide'] == "1" && !user_is_super_user ()))
+    print _("Send this user a mail");
+  else
+    print utils_email_basic ($user_arr['email'], 1);
+  print '</a>';
+}
+
 if ($active)
   {
-    print "$tr_head<td>" . _("Email address:") . " </td>\n<td>"
-      . "<a href=\"{$GLOBALS['sys_home']}sendmessage.php?touser="
-      . $user_arr['user_id'] . '&cc_me=cc_me">';
-    if ($user_arr['email_hide'] == "1" && !user_is_super_user ())
-      print _("Send this user a mail");
-    else
-      print utils_email_basic ($user_arr['email'], 1);
-    print "</a></td>\n</tr>\n";
+    print "$tr_head<td>" . _("Email address:") . " </td>\n<td>";
+    print_email_cell ($user_arr, $is_squad);
+    print "</td>\n</tr>\n";
     print "$tr_head<td>" . _("Site member since:") . "</td>\n<td><b>"
       . utils_format_date ($user_arr['add_date'])
       . "</b>\n</td>\n</tr>\n$tr_head<td>";
