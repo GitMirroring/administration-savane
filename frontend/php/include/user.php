@@ -321,7 +321,9 @@ function user_refetch_data ($users = null)
 {
   global $USER_ARR;
   if ($users === null)
-    $users = [user_getid ()];
+    $users = user_getid ();
+  if (!is_array ($users))
+    $users = [$users];
   foreach ($users as $u)
     if (array_key_exists ($u, $USER_ARR))
       unset ($USER_ARR[$u]);

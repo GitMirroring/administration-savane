@@ -77,6 +77,15 @@ $row_user = user_get_fields ([
   'user_name', 'realname', 'user_pw', 'email', 'email_new', 'confirm_hash'
 ]);
 
+function update_passwd_file ()
+{
+  $uid = user_getid ();
+  if (!user_get_field ($uid, 'uidNumber'))
+    return;
+  user_refetch_data ($uid);
+  member_update_file ($uid, 'passwd');
+}
+
 function update_realname ()
 {
   global $row_user;
@@ -98,6 +107,7 @@ function update_realname ()
     }
   fb (_("Display name updated."));
   $row_user['realname'] = $newvalue;
+  update_passwd_file ();
   return true;
 }
 
