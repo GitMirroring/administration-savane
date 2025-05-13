@@ -114,7 +114,7 @@ sub output_files
   foreach my $line (@users)
     {
       my ($uid, $uname, $rname) = @{$line};
-      $rname =~ s/:/ /g;
+      $rname =~ tr/:,/  /;
       print { $fh } "$uname:x:$uid:$common_gid:$rname:$home_dir:$user_shell\n";
     }
   close_and_move ($fh, $fn, "$output_dir/passwd");

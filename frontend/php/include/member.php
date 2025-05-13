@@ -165,7 +165,7 @@ function member_fetch_passwd_data ($user_id)
     return null;
   $data['name'] = $data['user_name'];
   $line = [$data['user_name'], 'x', $data['uidNumber'], $sys_passwd_common_gid];
-  $line[] = str_replace (':', ' ', $data['realname']);
+  $line[] = strtr ($data['realname'], ':,', '  ');
   $line[] = $sys_passwd_home_dir;
   $line[] = $sys_passwd_user_shell;
   $data['line'] = join (':', $line) . "\n";
