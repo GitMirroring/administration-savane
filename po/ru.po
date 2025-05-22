@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-04-15 07:57+0000\n"
-"PO-Revision-Date: 2025-05-13 15:44+0000\n"
+"POT-Creation-Date: 2025-05-22 15:46+0000\n"
+"PO-Revision-Date: 2025-05-22 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -4466,11 +4466,11 @@ msgstr "%s%%"
 msgid "%1$s/%2$s"
 msgstr "%1$s/%2$s"
 
-msgid "No data to work on, no graph will be built"
-msgstr "Данных нет, график построен не будет"
-
 msgid "The total number of results is zero."
 msgstr "Общее число результатов равно нулю."
+
+msgid "No data to work on, no graph will be built"
+msgstr "Данных нет, график построен не будет"
 
 msgid "In charge of this item."
 msgstr "Отвечает за эту заявку."
@@ -4540,9 +4540,6 @@ msgstr "%1$s добавлен пользователем %2$s"
 msgid "CC list is empty"
 msgstr "Список оповещений пуст"
 
-msgid "Voted in favor of this item"
-msgstr "Голосует за эту заявку"
-
 msgid "Submitted the item"
 msgstr "Автор заявки"
 
@@ -4551,6 +4548,9 @@ msgstr "Автор комментария"
 
 msgid "Updated the item"
 msgstr "Редактор заявки"
+
+msgid "Voted in favor of this item"
+msgstr "Голосует за эту заявку"
 
 #. TRANSLATORS: the first argument is email, the second is user's name.
 #, php-format
@@ -5045,14 +5045,14 @@ msgstr "Ошибка при вставке зависимости"
 msgid "Dependency added"
 msgstr "Зависимость удалена"
 
+#, php-format
+msgid "New item posted (%1$s #%2$s)"
+msgstr "Опубликована новая заявка (%1$s #%2$s)"
+
 msgid ""
 "New item insertion failed, please report this issue to the\n"
 "administrator"
 msgstr "Не удается вставить новую заявку, сообщите о проблеме администратору"
-
-#, php-format
-msgid "New item posted (%1$s #%2$s)"
-msgstr "Опубликована новая заявка (%1$s #%2$s)"
 
 msgid "(Error - Not Found)"
 msgstr "(Ошибка - не найдено)"
@@ -5949,6 +5949,15 @@ msgstr "Сообщение:"
 
 msgid "Send Message"
 msgstr "Послать сообщение"
+
+msgid "The account was removed by an admin."
+msgstr "Учетная запись удалена администратором."
+
+msgid "The account was removed automatically."
+msgstr "Учетная запись удалена автоматически."
+
+msgid "The account was removed by its user."
+msgstr "Учетная запись удалена ее пользователем."
 
 msgid "Invalid User ID"
 msgstr "Неправильный идентификатор пользователя"
@@ -7584,8 +7593,31 @@ msgstr ""
 "Действие недоступно: подтверждать новости могут только уполномоченные "
 "участники проекта."
 
-msgid "-deleted account-"
-msgstr "-удаленная учетная запись-"
+#, php-format
+msgid "Open items assigned to %s"
+msgstr "Открытые заявки, порученные пользователю %s"
+
+#, php-format
+msgid "Open items submitted by %s"
+msgstr "Открытые заявки, присланные пользователем %s"
+
+msgid "This user did not enable Resume & Skills."
+msgstr "Этот пользователь не включил свою страницу навыков."
+
+msgid "View Resume & Skills"
+msgstr "Редактировать страницу навыков"
+
+msgid "Send this user a mail"
+msgstr "Отправить сообщение этому пользователю"
+
+msgid "Download GPG Key"
+msgstr "Ключ GPG"
+
+msgid "Group membership"
+msgstr "Принадлежность к группам"
+
+msgid "No member found"
+msgstr "Участников не найдено"
 
 #. TRANSLATORS: the argument is user's name (like J. Random Hacker).
 #, php-format
@@ -7599,49 +7631,14 @@ msgstr ""
 "Это не простая учетная запись, а звено: оно объединяет нескольких "
 "пользователей, как если бы они были одним (уведомления, доступ и т.д.)."
 
-#, php-format
-msgid "Open items submitted by %s"
-msgstr "Открытые заявки, присланные пользователем %s"
-
-#, php-format
-msgid "Open items assigned to %s"
-msgstr "Открытые заявки, порученные пользователю %s"
-
 msgid "General information"
 msgstr "Общая информация"
 
 msgid "Note:"
 msgstr "Замечание:"
 
-msgid "The account was removed by an admin."
-msgstr "Учетная запись удалена администратором."
-
-msgid "The account was removed automatically."
-msgstr "Учетная запись удалена автоматически."
-
-msgid "The account was removed by its user."
-msgstr "Учетная запись удалена ее пользователем."
-
-msgid "Send this user a mail"
-msgstr "Отправить сообщение этому пользователю"
-
 msgid "Site member since:"
 msgstr "Дата регистрации:"
-
-msgid "This user did not enable Resume & Skills."
-msgstr "Этот пользователь не включил свою страницу навыков."
-
-msgid "View Resume & Skills"
-msgstr "Редактировать страницу навыков"
-
-msgid "Download GPG Key"
-msgstr "Ключ GPG"
-
-msgid "Group membership"
-msgstr "Принадлежность к группам"
-
-msgid "No member found"
-msgstr "Участников не найдено"
 
 msgid "You could send a message if you were logged in."
 msgstr "Посылать сообщения можно после того, как вы представитесь системе."
@@ -7662,9 +7659,6 @@ msgstr ""
 
 msgid "Text to test"
 msgstr "Текст для теста"
-
-msgid "Send a message"
-msgstr "Послать сообщение"
 
 msgid "Message Sent"
 msgstr "Сообщение отправлено"
@@ -7689,36 +7683,14 @@ msgstr ""
 msgid "Note: this group has multiple Git repositories."
 msgstr "Замечание: в этой группе несколько репозиториев Git."
 
-msgid "Anonymous clone:"
-msgstr "Анонимный клон:"
-
-msgid "Member clone:"
-msgstr "Клон для участника:"
-
-msgid "membername"
-msgstr "имя_участника"
-
 msgid ""
-"The SSHv2 public key fingerprints for the machine hosting the source\n"
-"trees are:"
-msgstr ""
-"Отпечатки открытых ключей SSHv2 для машины, на которой хранятся каталоги с "
-"исходными текстами, суть:"
-
-msgid "More information"
-msgstr "Подробности"
-
-msgid "Anonymous / read-only Subversion access"
-msgstr "Анонимный доступ Subversion (только чтение)"
-
-msgid ""
-"This project's Subversion repository can be checked out anonymously\n"
-"as follows.  The module you wish to check out must be specified as the\n"
-"&lt;<i>modulename</i>&gt;."
+"The Subversion repository of this group can be checked out anonymously as "
+"follows.  The module you wish to check out must be specified as the &lt;"
+"<var>modulename</var>&gt;."
 msgstr ""
 "Рабочую копию репозитория Subversion этого проекта можно получить следующим "
 "образом. Модуль, рабочую копию которого вы хотите получить, нужно указывать "
-"как &lt;<i>имя_модуля</i>&gt;."
+"как &lt;<var>имя_модуля</var>&gt;."
 
 msgid "Access using the SVN protocol:"
 msgstr "Доступ по протоколу SVN:"
@@ -7730,37 +7702,27 @@ msgid "Access using HTTP (slower):"
 msgstr "Доступ по протоколу HTTP (медленнее):"
 
 msgid ""
-"Typically, you'll want to use <tt>trunk</tt> for\n"
-"<i>modulename</i>. Refer to a project's specific instructions if\n"
-"you're unsure, or browse the repository with ViewVC."
+"Typically, you'll want to use <tt>trunk</tt> for <var>modulename</var>. "
+"Refer to group-specific instructions if you're unsure, or browse the "
+"repository with ViewVC."
 msgstr ""
-"Как правило, вам в качестве строки <i>имя_модуля</i> нужно подставлять "
+"Как правило, вам в качестве строки <var>имя_модуля</var> нужно подставлять "
 "<tt>trunk</tt>. Если сомневаетесь, обратитесь к указаниям конкретного "
 "проекта или просмотрите репозиторий с помощью ViewVC."
-
-msgid "Group member Subversion access via SSH"
-msgstr "Доступ к Subversion по SSH для участников группы"
-
-msgid "Member access is performed using the Subversion over SSH method."
-msgstr ""
-"Доступ для участников осуществляется методом &ldquo;Subversion по SSH&rdquo;."
-
-msgid "Software repository (over SSH):"
-msgstr "Репозиторий программ (по SSH):"
 
 msgid "Importing into Subversion on Savannah"
 msgstr "Импорт Subversion на Саванну"
 
 #, php-format
 msgid ""
-"If your project already has an existing source repository that you\n"
+"If your group already has an existing source repository that you\n"
 "want to move to Savannah, check the <a href=\"%s\">conversion\n"
 "documentation</a> and then submit a request for the\n"
-"migration in the <a href=\"%s\">Savannah Administration</a> project."
+"migration in the <a href=\"%s\">Savannah Administration</a> group."
 msgstr ""
-"Если в вашем проекте уже есть репозиторий исходных текстов, который вы "
-"хотите перенести в Саванну, обратитесь к <a href=\"%s\">документации по "
-"переводу</a>, а затем оставьте заявку на перенос в проекте <a href=\"%s\"> "
+"Если в вашей группе уже есть репозиторий исходных текстов, который вы хотите "
+"перенести в Саванну, обратитесь к <a href=\"%s\">документации по переводу</"
+"a>, а затем оставьте заявку на перенос в группе <a href=\"%s\"> "
 "администрации Саванны</a>."
 
 msgid "Exporting Subversion tree from Savannah"
@@ -8496,23 +8458,20 @@ msgstr ""
 msgid "Tracker notifications are signed with the next key,"
 msgstr "Уведомления из журналов подписываются следующим ключом:"
 
-msgid "Anonymous CVS Access"
-msgstr "Анонимный доступ к CVS"
-
 msgid ""
-"This project's CVS repository can be checked out through anonymous\n"
-"CVS with the following instruction set. The module you wish\n"
-"to check out must be specified as the &lt;<i>modulename</i>&gt;."
+"The CVS repository of this group can be checked out through anonymous CVS "
+"with the following instruction set.  The module you wish to check out must "
+"be specified as the &lt;<var>modulename</var>&gt;."
 msgstr ""
-"Рабочие копии из репозитория CVS этого проекта можно получить анонимно "
+"Рабочие копии из репозитория CVS этой группы можно получить анонимно "
 "следующим набором команд. Модуль, рабочую копию которого вы хотите получить, "
-"указан как &lt;<i>имя_модуля</i>&gt;."
+"указан как &lt;<var>имя_модуля</var>&gt;."
 
 msgid "Software repository:"
 msgstr "Репозиторий исходных текстов:"
 
-msgid "With other project modules:"
-msgstr "Другие модули проекта:"
+msgid "With other CVS modules:"
+msgstr "Другие модули CVS:"
 
 msgid "Webpage repository:"
 msgstr "Репозиторий сайта:"
@@ -8528,23 +8487,6 @@ msgstr ""
 
 msgid "to preview and status check."
 msgstr "для предварительного просмотра и проверки состояния."
-
-msgid "Group member CVS access via SSH"
-msgstr "Доступ участников проекта к CVS через SSH"
-
-msgid ""
-"Member access is performed using the CVS over SSH method. The\n"
-"pserver method can only be used for anonymous access."
-msgstr ""
-"Доступ участников осуществляется методом &ldquo;CVS по SSH&rdquo;. Метод "
-"&ldquo;pserver&rdquo; можно применять только для анонимного доступа."
-
-msgid ""
-"The SSHv2 public key fingerprints for the machine hosting the CVS\n"
-"trees are:"
-msgstr ""
-"Отпечатки открытых ключей SSHv2 для машины, на которой хранятся каталоги "
-"CVS, суть:"
 
 msgid "Email Notifications"
 msgstr "Уведомление почтой"
@@ -8581,29 +8523,25 @@ msgstr "Что такое модули CVS?"
 
 #, php-format
 msgid ""
-"The CVS repository of each project is divided into modules which you can\n"
-"download separately.  The list of existing modules for this project can be\n"
+"The CVS repository of each group is divided into modules which you can "
+"download separately.  The list of existing modules for this group can be "
 "obtained by looking at <a href=\"%s\">the root of the CVS repository</a>; "
-"each\n"
-"<code>File</code> listed there is the name of a module, which can "
-"substitute\n"
-"the generic &lt;<i>modulename</i>&gt; used below in the examples of the\n"
+"each directory listed there is the name of a module, which can substitute "
+"the generic &lt;<var>modulename</var>&gt; used below in the examples of the "
 "<code>co</code> command of CVS.  Note that <code>.</code> (dot) is always "
-"also\n"
-"a valid module name which stands for &ldquo;all available modules&rdquo; in "
-"a project.  Most\n"
-"projects have a module with the same name of the project, where the main\n"
-"software development takes place."
+"also a valid module name which stands for &ldquo;all available "
+"modules&rdquo; in a group.  Most groups have a module with the same name of "
+"the group, where the main software development takes place."
 msgstr ""
-"Репозиторий CVS каждого проекта разделен на модули, которые можно получать "
-"раздельно. Список существующих в проекте модулей можно получить, заглянув в "
-"<a href=\"%s\">корень репозитория CVS</a>; каждый <code>File</code>, "
-"перечисленный там, представляет имя модуля, которым можно заменить "
-"обобщенное &lt;<em>имя_модуля</em>&gt;, используемое в нижеприведенных "
-"примерах команды CVS <code>co</code>. Обратите внимание, что <code>.</code> "
-"(точка) всегда является допустимым именем модуля, которое означает в проекте "
-"&ldquo;все доступные модули&rdquo;. В большинстве проектов есть модуль с тем "
-"же именем, что и проект, в котором ведется главная разработка."
+"Репозиторий CVS каждой группы разделен на модули, которые можно получать "
+"раздельно. Список существующих в группе модулей можно получить, заглянув в "
+"<a href=\"%s\">корень репозитория CVS</a>; каждый каталог, перечисленный "
+"там, представляет имя модуля, которым можно заменить обобщенное &lt;"
+"<var>имя_модуля</var>&gt;, используемое в нижеприведенных примерах команды "
+"CVS <code>co</code>. Обратите внимание, что <code>.</code> (точка) всегда "
+"является допустимым именем модуля, которое означает в проекте &ldquo;все "
+"доступные модули&rdquo;. В большинстве проектов есть модуль с тем же именем, "
+"что и проект, в котором ведется главная разработка."
 
 msgid "The same applies to the Webpage Repository."
 msgstr "То же самое относится к репозиторию страний сайта."
@@ -8612,11 +8550,10 @@ msgid "Import your CVS tree"
 msgstr "Импорт дерева CVS"
 
 msgid ""
-"If your project already has an existing CVS repository that you\n"
-"want to move to Savannah, make an appointment with us for the\n"
-"migration."
+"If your group already has an existing CVS repository that you want to move "
+"to Savannah, make an appointment with us for the migration."
 msgstr ""
-"Если в вашем проекте уже есть репозиторий CVS, который вы хотите перенести в "
+"Если в вашей группе уже есть репозиторий CVS, который вы хотите перенести в "
 "Саванну, договоритесь о переносе с нами."
 
 msgid "Symbolic Links in Webpage CVS"
@@ -8649,12 +8586,6 @@ msgid ""
 msgstr ""
 "Когда вы пишете страницы сайта официальных пакетов GNU, имейте в виду, "
 "пожалуйста, <a href=\"%s\"> указания</a>."
-
-msgid "Anonymous read-only access"
-msgstr "Анонимный доступ на чтение"
-
-msgid "Developer write access (SSH)"
-msgstr "Доступ на запись для разработчика (SSH)"
 
 #, php-format
 msgid ""
@@ -8800,12 +8731,8 @@ msgstr ""
 "Саванна — центр разработки, поддержки и распространения свободных программ, "
 "как GNU, так и не GNU."
 
-msgid ""
-"The SSHv2 public key fingerprints for the machine hosting the Arch\n"
-"trees are:"
-msgstr ""
-"Вот отпечатки открытых ключей SSHv2 машины, на которой хранятся каталоги "
-"Arch:"
+msgid "GNU Arch is obsolete.  You can download the repository through rsync:"
+msgstr "GNU Arch устарел. Загрузить репозиторий можно по rsync:"
 
 #, php-format
 msgid ""
@@ -8904,13 +8831,14 @@ msgstr ""
 msgid "Happy hacking!"
 msgstr "Желаем успехов!"
 
+#, php-format
 msgid ""
-"The Bazaar repositories for projects use separate directories for\n"
-"each branch. You can see the branch names in the repository by pointing\n"
-"a web browser to:"
+"The Bazaar repositories for groups use separate directories for each branch. "
+"You can see the branch names in the repository by pointing a web browser to "
+"%s."
 msgstr ""
-"Репозитории Bazaar для проектов пользуются раздельными каталогами для каждой "
-"ветви. Список ветвей можно получить, набрав в браузере"
+"Репозитории Bazaar для групп пользуются раздельными каталогами для каждой "
+"ветви. Список ветвей можно получить, направив браузер по адресу %s."
 
 msgid ""
 "For a repository with separate branch directories (<tt>trunk</tt>,\n"
@@ -8919,11 +8847,11 @@ msgstr ""
 "Для репозирория с раздельными каталогами ветвей (<tt>trunk</tt>, <tt>devel</"
 "tt>...) воспользуйтесь командой:"
 
-msgid "<i>branch</i>"
-msgstr "<i>ветвь</i>"
+msgid "<var>branch</var>"
+msgstr "<var>ветвь</var>"
 
-msgid "where <i>branch</i> is the name of the branch you want."
-msgstr "где <i>ветвь</i>&nbsp;&mdash; название ветви, которая вам нужна."
+msgid "where <var>branch</var> is the name of the branch you want."
+msgstr "где <var>ветвь</var>&nbsp;&mdash; название ветви, которая вам нужна."
 
 msgid "For a repository with only a top-level <tt>.bzr</tt> directory, use:"
 msgstr ""
@@ -8935,12 +8863,36 @@ msgid ""
 msgstr ""
 "Если вам нужен низкопроизводительный доступ по HTTP или HTTPS, вот URL:"
 
-msgid "More introductory documentation"
-msgstr "Другая вводная документация"
-
 #, php-format
 msgid "Check the <a href=\"%s\">UsingBzr</a> page at the documentation wiki."
 msgstr "Обратитесь к странице <a href=\"%s\">UsingBzr</a> в вики документации."
+
+msgid "username"
+msgstr "имя_пользователя"
+
+msgid "Anonymous access"
+msgstr "Анонимный доступ"
+
+msgid "Authenticated SSH access"
+msgstr "Доступ по SSH с удостоверением личности"
+
+#, php-format
+msgid ""
+"The remote repository will be writable for %1$s group members and read-only "
+"for other %2$s users."
+msgstr ""
+"Удаленный репозиторий будет доступен на запись членам группы %1$s и только "
+"на чтение другим пользователям сайта %2$s."
+
+msgid ""
+"The SSHv2 public key fingerprints for the machine hosting the source\n"
+"trees are:"
+msgstr ""
+"Отпечатки открытых ключей SSHv2 для машины, на которой хранятся каталоги с "
+"исходными текстами, суть:"
+
+msgid "More information"
+msgstr "Подробности"
 
 msgid "Official GNU software"
 msgstr "официальные пакеты GNU"
@@ -8980,1447 +8932,3 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
-
-#~ msgid ""
-#~ "Unable to duplicate a comment from the original item\n"
-#~ "report information."
-#~ msgstr "Не удается скопировать комментарий из первоначальной заявки."
-
-#, php-format
-#~ msgid ""
-#~ "Unable to duplicate an attached file (%s) from the\n"
-#~ "original item report information."
-#~ msgstr ""
-#~ "Не удается скопировать приложенный файл (%s) из первоначальной заявки."
-
-#, php-format
-#~ msgid ""
-#~ "Unable to duplicate a CC address (%s) from the\n"
-#~ "original item report information."
-#~ msgstr ""
-#~ "Не удается скопировать адрес оповещения (%s) из первоначальной заявки."
-
-#~ msgid "This user doesn't exist."
-#~ msgstr "Этот пользователь не существует."
-
-#~ msgid "No such user"
-#~ msgstr "Такого пользователя нет"
-
-#~ msgid "Previous Results"
-#~ msgstr "Предыдущие"
-
-#~ msgid "Next Results"
-#~ msgstr "Следующие"
-
-#, php-format
-#~ msgid "Items %1$s to %2$s"
-#~ msgstr "Заявки с %1$s по %2$s"
-
-#, php-format
-#~ msgid "(new items: %1$s, total: %2$s)"
-#~ msgstr "(новых заявок: %1$s, всего: %2$s)"
-
-#, php-format
-#~ msgid "User %s does not exist"
-#~ msgstr "Пользователь %s не существует"
-
-#~ msgid "Invalid confirmation hash"
-#~ msgstr "Неправильный код подтверждения"
-
-#~ msgid "Password"
-#~ msgstr "Пароль"
-
-#~ msgid "Comments via email"
-#~ msgstr "Комментарии по электронной почте"
-
-#~ msgid "Include data for commenting via email"
-#~ msgstr "Добавлять данные для комментариев по электронной почте"
-
-#~ msgid ""
-#~ "Savane supports commenting on trackers through email.  In order to\n"
-#~ "facilitate that, it adds specific information in the footer\n"
-#~ "of the message and in email headers.  Clear this checkbox if you\n"
-#~ "want emails without that data."
-#~ msgstr ""
-#~ "Savane поддерживает комментирование по электрнной почте. Для этого\n"
-#~ "программа вписывает специальные данные в нижнюю часть сообщения\n"
-#~ "и в заголовки электронной почты. Сбростье этот флажок, чтобы\n"
-#~ "получать уведомления без этих данных."
-
-#~ msgid "tracker"
-#~ msgstr "журнал"
-
-#~ msgid "item_id"
-#~ msgstr "номер_заявки"
-
-#, php-format
-#~ msgid "Note that %s admins have not configured this feature."
-#~ msgstr "Замечание. Администраторы сайта %s не сконфигурировали эту функцию."
-
-#, php-format
-#~ msgid ""
-#~ "Note that your email will be posted on the tracker *only if*\n"
-#~ "* it is sent to %s, *and*\n"
-#~ "* it is signed with [//%s your GPG key] registered in your %s account, "
-#~ "*and*\n"
-#~ "* the specific information isn't removed from the footer."
-#~ msgstr ""
-#~ "Замечание. Ваше сообщение будет добавлено в журнал, *только если*\n"
-#~ "выполнены все следующие условия:\n"
-#~ "* оно отправлено по адресу %s;\n"
-#~ "* оно подписано [//%s вашим ключом GPG], зарегистрированным в вашей "
-#~ "учетной записи %s;\n"
-#~ "* специальные данные не удалены из нижней части сообщения."
-
-#~ msgid "This confirmation hash is included in DB more than once."
-#~ msgstr "Этот код подтверждения содержится в базе данных более одного раза."
-
-#~ msgid "Account deletion process discarded."
-#~ msgstr "Процесс удаления учетной записи прерван."
-
-#~ msgid "New password / passphrase:"
-#~ msgstr "Новая фраза-пароль:"
-
-#~ msgid "Re-type new password:"
-#~ msgstr "Повторите новую фразу-пароль:"
-
-#, php-format
-#~ msgid "Unknown user settings item (%s)"
-#~ msgstr "Неизвестный элемент настроек пользователя (%s)"
-
-#~ msgid "Login Name"
-#~ msgstr "Имя учетной записи"
-
-#~ msgid "Password / passphrase:"
-#~ msgstr "Фраза-пароль:"
-
-#~ msgid "Re-type Password:"
-#~ msgstr "Пароль (повтор):"
-
-#~ msgid "Real Name:"
-#~ msgstr "Полное имя:"
-
-#~ msgid "Real Name updated."
-#~ msgstr "Полное имя обновлено."
-
-#~ msgid "Unable to understand what to do, parameters are probably missing"
-#~ msgstr "Неясно, что делать, возможно, не хватает параметров"
-
-#~ msgid "New Real Name:"
-#~ msgstr "Новое полное имя:"
-
-#, php-format
-#~ msgid "Follows the Profile of %s."
-#~ msgstr "Далее представлены данные пользователя %s."
-
-#~ msgid "Group Information"
-#~ msgstr "Сведения о группах"
-
-#~ msgid "Posting ID not found"
-#~ msgstr "Идентификатор публикации не найден"
-
-#~ msgid "No Such Posting For This Project"
-#~ msgstr "Такого сообщения для данного проекта нет"
-
-#~ msgid "This account does not exist"
-#~ msgstr "Такой учетной записи нет"
-
-#~ msgid "This confirmation hash exists more than once."
-#~ msgstr "Этот код подтверждения продублирован."
-
-#~ msgid "Failed to update the database"
-#~ msgstr "Не удалось обновить базу данных"
-
-#~ msgid "Include the next line when replying by email."
-#~ msgstr ""
-#~ "При ответе по электронной почте включите следующую строку в сообщение."
-
-#~ msgid "Name of the Query Form:"
-#~ msgstr "Название формы запроса:"
-
-#, php-format
-#~ msgid "Project Main Page at %s"
-#~ msgstr "Главная страница проекта на сайте %s"
-
-#~ msgid "Savane In Depth Guide"
-#~ msgstr "Руководство по Саванне"
-
-#~ msgid "You must supply a real name."
-#~ msgstr "Нужно ввести полное имя."
-
-#~ msgid "Suppress the message that offers Savane source code when using SSH."
-#~ msgstr ""
-#~ "Подавлять сообщение, предлагающее исходный текст Savane при пользовании "
-#~ "SSH."
-
-#~ msgid "Item not found."
-#~ msgstr "Заявка не найдена."
-
-#~ msgid "User not found."
-#~ msgstr "Пользователь не найден."
-
-#~ msgid "User not found"
-#~ msgstr "Пользователь не найден"
-
-#~ msgid "No key for encryption found."
-#~ msgstr "Не найден ключ для шифрования."
-
-#~ msgid "File has a null size"
-#~ msgstr "Размер файла равен нулю"
-
-#~ msgid "Delete this canned response"
-#~ msgstr "Удалить этот шаблон ответа"
-
-#~ msgid ""
-#~ "If you are writing for help, did you read the\n"
-#~ "project documentation first? Try to provide any potentially useful "
-#~ "information\n"
-#~ "you can think of."
-#~ msgstr ""
-#~ "Если вы просите о попощи, читали ли вы сначала документацию? Постарайтесь "
-#~ "предоставить всю потенциально полезную информацию."
-
-#~ msgid "Exiting"
-#~ msgstr "Завершение"
-
-#~ msgid ""
-#~ "For instructions on how to get the corresponding source code\n"
-#~ "of Savane scripts running at particular <var>host</var>, run this:"
-#~ msgstr ""
-#~ "Инструкции по получению соответствующего исходного текста программ "
-#~ "Savane, работающих на конкретной машине <var>host</var>, выводятся по "
-#~ "команде:"
-
-#~ msgid ""
-#~ "Savannah is a hosting facility for the free software movement.  Our\n"
-#~ "mission is to spread the freedom to copy and modify software."
-#~ msgstr ""
-#~ "Саванна&nbsp;&mdash; служба размещения проектов для движения за свободные "
-#~ "программы. Наша задача&nbsp;&mdash; содействовать свободе копирования и "
-#~ "изменения программ."
-
-#, php-format
-#~ msgid ""
-#~ "<strong>Important</strong>: check <a href=\"%s\">\n"
-#~ "Group - How to get it approved quickly</a>."
-#~ msgstr ""
-#~ "<strong>Важно</strong>: прочтите <a href=\"%s\">\n"
-#~ "Группа - Как ускорить регистрацию</a>."
-
-#~ msgid ""
-#~ "It contains a few advices to get your package compliant with\n"
-#~ "our hosting policies. Following them will considerably speed up the\n"
-#~ "registration process."
-#~ msgstr ""
-#~ "Статья содержит несколько советов, помогающих привести ваш пакет в "
-#~ "соответствие с нашими правилами. Следуя им, вы значительно ускорите "
-#~ "процесс регистрации."
-
-#~ msgid ""
-#~ "You are welcome to host your project in Savannah if it falls within one\n"
-#~ "of these groups:"
-#~ msgstr ""
-#~ "Мы с радостью разместим ваш проект в Саванне, если он попадает в одну из "
-#~ "групп:"
-
-#~ msgid "Free software"
-#~ msgstr "Свободные программы"
-
-#~ msgid ""
-#~ "A free software package that can run on a completely free operating\n"
-#~ "system, without depending on any nonfree software. You can only provide\n"
-#~ "versions for nonfree operating systems if you also provide free\n"
-#~ "operating systems versions with the same or more functionalities. Large\n"
-#~ "software distributions are not allowed; they should be split into "
-#~ "separate\n"
-#~ "projects."
-#~ msgstr ""
-#~ "Пакет свободных программ, который может работать на полностью свободной "
-#~ "операционной системе, не нуждаясь ни в каких несвободных программах. "
-#~ "Версии для несвободных операционных систем можно предоставлять, только "
-#~ "если вы выпускаете также версии для свободных операционных систем с теми "
-#~ "же или более богатыми функциями. Большие дистрибутивы недопустимы; их "
-#~ "следует разбивать на отдельные проекты."
-
-#~ msgid "Free documentation"
-#~ msgstr "Свободная документация"
-
-#~ msgid ""
-#~ "Documentation for free software, released under a free\n"
-#~ "documentation license."
-#~ msgstr ""
-#~ "Документация по свободным программам, выпускаемая по лицензии свободной "
-#~ "документации."
-
-#~ msgid "Free Educational Textbook Projects"
-#~ msgstr "Проекты свободных учебников"
-
-#~ msgid ""
-#~ "Projects aimed to create educational textbooks, released under a free\n"
-#~ "documentation license."
-#~ msgstr ""
-#~ "Проекты, предназначенные для создания учебников, выпускаемых по лицензии "
-#~ "свободной документации."
-
-#~ msgid "GNU and FSF groups"
-#~ msgstr "Группы GNU и ФСПО"
-
-#~ msgid "Specific groups requested by the FSF or the GNU Project."
-#~ msgstr "Специальные группы по запросу ФСПО и проекта GNU"
-
-#~ msgid "GNU/Linux User Groups (GUG)"
-#~ msgstr "Группы пользователей GNU/Linux (GUG)"
-
-#, php-format
-#~ msgid ""
-#~ "Your group should be listed at <a href=\"%1$s\">GNU user group page</"
-#~ "a>&mdash;contact %2$s for details."
-#~ msgstr ""
-#~ "Вашу группу нужно нужно занести на <a href=\"%1$s\">страницу групп "
-#~ "пользователей GNU<a>&nbsp;&mdash; за подробностями обращайтесь по адресу "
-#~ "%2$s."
-
-#~ msgid ""
-#~ "In the following registration steps you will be asked\n"
-#~ "to describe your package and choose a free license for it."
-#~ msgstr ""
-#~ "На следующих шагах регистрации вам нужно описать свой пакет и указать для "
-#~ "него свободную лицензию."
-
-#, php-format
-#~ msgid ""
-#~ "To keep compatibility among Savannah packages, we only accept\n"
-#~ "free software licenses that are <a href=\"%s\">compatible\n"
-#~ "with the GPL</a>."
-#~ msgstr ""
-#~ "Для сохранения совместимости между пакетами в Саванне мы принимаем "
-#~ "только\n"
-#~ "лицензии свободных программ, которые <a href=\"%s\">совместимы с\n"
-#~ "GPL</a>."
-
-#~ msgid ""
-#~ "Keep in mind that your group is not approved automatically\n"
-#~ "after you follow the registration steps; it will be evaluated\n"
-#~ "by Savannah administrators first."
-#~ msgstr ""
-#~ "Имейте в виду, что ваша группа не принимается автоматически после того, "
-#~ "как вы пройдете эти шаги регистрации, а будет оцениваться администрацией "
-#~ "Саванны."
-
-#~ msgid ""
-#~ "Please fill in this submission form. Savannah administrators\n"
-#~ "will then review it for hosting compliance."
-#~ msgstr ""
-#~ "Заполните эту форму. Администраторы Саванны проверят соблюдение "
-#~ "требований по размещению."
-
-#, php-format
-#~ msgid ""
-#~ "If you wish to submit your package for GNU evaluation,\n"
-#~ "please check the <a href='%s'>GNU software evaluation</a> webpage\n"
-#~ "instead."
-#~ msgstr ""
-#~ "Если вы желаете предложить свой пакет для GNU, пожалуйста, обратитесь "
-#~ "вместо этого к странице <a href='%s'>Оценка программ для GNU</a>."
-
-#~ msgid ""
-#~ "Your project has been submitted and is waiting to be reviewed by a\n"
-#~ "Savannah administrator. You will shortly receive a mail message telling "
-#~ "you whether\n"
-#~ "your project has been approved, or you have to do some changes before it "
-#~ "is\n"
-#~ "approved."
-#~ msgstr ""
-#~ "Ваш проект отправлен и ждет рассмотрения администратором Саванны. Вскоре "
-#~ "вы получите сообщение, в котором говорится, принят ли ваш проект или вам "
-#~ "нужно внести какие-то изменения перед тем, как он будет принят."
-
-#~ msgid ""
-#~ "You selected Multiple Canned Responses: you are free now\n"
-#~ "to select the one you want to use to compose your answer."
-#~ msgstr ""
-#~ "Вы выбрали несколько шаблонных ответов; сейчас вы можете выбрать шаблон, "
-#~ "по которому будете составлять свой ответ."
-
-#, php-format
-#~ msgid ""
-#~ "The Bug field you requested '%s' is not used by your project or you are "
-#~ "not\n"
-#~ "allowed to customize it"
-#~ msgstr ""
-#~ "Поле ошибки \"%s\", нужное вам, в вашем проекте не используется. или вам "
-#~ "не разрешено настраивать его"
-
-#~ msgid "Rank (useful in multiple canned responses):"
-#~ msgstr "Ранг (полезен, когда шаблонов много):"
-
-#~ msgid "Project"
-#~ msgstr "Проект"
-
-#~ msgid "SUCCESSFUL UPDATE"
-#~ msgstr "Успешное обновление"
-
-#~ msgid "Missing info: fill in all required fields"
-#~ msgstr "Не хватает сведений: заполните все обязательные поля"
-
-#~ msgid "Strangely enough, there is no canned response available."
-#~ msgstr "Странно, шаблонов ответа нет."
-
-#~ msgid "Error, no group_id"
-#~ msgstr "Ошибка, нет group_id"
-
-#~ msgid "No canned response available"
-#~ msgstr "Шаблоны ответов недоступны"
-
-#~ msgid "Multiple Canned Responses"
-#~ msgstr "Несколько шаблонов ответов"
-
-#~ msgid "This group is in maintenance mode"
-#~ msgstr "Группа на регламентных работах"
-
-#~ msgid "Note: this group is in maintenance mode"
-#~ msgstr "Замечание: эта группа находится на регламентных работах"
-
-#~ msgid "This group is not in active state"
-#~ msgstr "Эта группа не в активном состоянии"
-
-#~ msgid "You can change all of this tracker configuration from this page."
-#~ msgstr "Здесь можно править всю конфигурацию этого журнала."
-
-#~ msgid ""
-#~ "Two people had the same session hash - re-login.\n"
-#~ "It should never happen again."
-#~ msgstr ""
-#~ "У двоих пользователей оказался один и тот же код сеанса. Войдите в "
-#~ "систему еще раз. Такое не должно повторяться."
-
-#~ msgid "No Changes Have Been Made to This Group"
-#~ msgstr "Эта группа не была изменена"
-
-#~ msgid "Group Admins"
-#~ msgstr "Администраторы группы"
-
-#~ msgid "Registration Date"
-#~ msgstr "Дата регистрации"
-
-#~ msgid "System Group Name:"
-#~ msgstr "Системное имя группы:"
-
-#~ msgid "Submitted Description:"
-#~ msgstr "Описание:"
-
-#~ msgid "Required software:"
-#~ msgstr "Требования по программам:"
-
-#~ msgid "Other comments:"
-#~ msgstr "Другие комментарии:"
-
-#~ msgid "Unrecognized unique form_id"
-#~ msgstr "Неопознанный уникальный form_id"
-
-#~ msgid "Missing parameters"
-#~ msgstr "Недостающие параметры"
-
-#~ msgid "Projects:"
-#~ msgstr "Проекты:"
-
-#~ msgid "%s hosting request"
-#~ msgstr "Запрос на размещение на сайте %s"
-
-#~ msgid ""
-#~ "No group type has been set. Admins need to create at least one\n"
-#~ "group type. They can make it so visiting the link &ldquo;Group Type\n"
-#~ "Admin&rdquo; on the Administration section of the left side menu, while "
-#~ "logged\n"
-#~ "in as admin."
-#~ msgstr ""
-#~ "Тип группы не задан. Администраторам нужно создать хотя бы один тип "
-#~ "группы. Они могут сделать это, перейдя по ссылке &ldquo;Администрирование "
-#~ "типов групп&rdquo; в разделе администрирования меню с левой стороны, "
-#~ "зайдя на сайт как администратор."
-
-#~ msgid "Group name"
-#~ msgstr "Название группы"
-
-#~ msgid "Full name"
-#~ msgstr "Полное название"
-
-#~ msgid "System name"
-#~ msgstr "Системное имя"
-
-#~ msgid ""
-#~ "Used in URLs, mailing list names, etc&mdash;4&ndash;16 characters,\n"
-#~ "starting with a letter and only containing ASCII letters, digits and "
-#~ "dashes.  System names should be reasonably descriptive, rather than terse "
-#~ "abbreviations\n"
-#~ "or confusingly general."
-#~ msgstr ""
-#~ "Используется в URL, названиях списков рассылки и т.д.&nbsp;&mdash;\n"
-#~ "4&ndash;16 букв ASCII, цифр и дефисов, первый&nbsp;&mdash; буква;\n"
-#~ "системные имена должны быть достаточно описательными, они не должны\n"
-#~ "быть непонятными сокращениями или слишком общими."
-
-#~ msgid "Package information"
-#~ msgstr "Информация о пакете"
-
-#~ msgid "~20-line technical description"
-#~ msgstr "Техническое описание строк на 20"
-
-#~ msgid ""
-#~ "What is your package? (Purpose, topic, programming language...)\n"
-#~ "What is special about it?"
-#~ msgstr ""
-#~ "Опишите свой пакет (назначение, тема, язык программирования...).\n"
-#~ "Каковы его особенности?"
-
-#~ msgid "Package license"
-#~ msgstr "Лицензия пакета"
-
-#~ msgid "Other license, details"
-#~ msgstr "Другая лицензия, подробности"
-
-#~ msgid "Checklist"
-#~ msgstr "Список для сверки"
-
-#~ msgid "My software runs primarily on a completely free OS"
-#~ msgstr ""
-#~ "Мои программы работают прежде всего на полностью свободной операционной "
-#~ "системе"
-
-#~ msgid ""
-#~ "My license is compatible with GNU GPLv3 and later or GFDLv1.3 and later"
-#~ msgstr ""
-#~ "Моя лицензия совместима с GNU GPLv3 и более поздними или GFDLv1.3 и более "
-#~ "поздними"
-
-#~ msgid "My dependencies are compatible with my package license"
-#~ msgstr "Мои зависимости совместимы с лицензией моего пакета"
-
-#~ msgid "All my files include <a href=\"%s\">valid copyright notices</a>"
-#~ msgstr ""
-#~ "Все мои файлы содержат <a href=\"%s\">верные уведомления об авторских "
-#~ "правах</a>"
-
-#~ msgid "All my files include a <a href=\"%s\">license notice</a>\n"
-#~ msgstr "Все мои файлы содержат <a href=\"%s\">уведомления о лицензии</a>\n"
-
-#~ msgid "Origin and license of media files is specified"
-#~ msgstr "Происхождение и лицензия файлов изображений, звуков и т.п. указаны"
-
-#~ msgid "My tar file includes a copy of the license"
-#~ msgstr "Мой архивный файл содержит копию лицензии"
-
-#~ msgid "I read carefully and don't check this one"
-#~ msgstr "Я читаю внимательно и не отмечаю этот пункт"
-
-#~ msgid "I agree with the <a href=\"%s\">hosting requirements</a>"
-#~ msgstr "Я буду соблюдать <a href=\"%s\">требования по размещению</a>"
-
-#~ msgid "name + license + website for each dependency"
-#~ msgstr "название + лицензия + сайт каждой зависимости"
-
-#~ msgid "Other Comments"
-#~ msgstr "Другие замечания"
-
-#~ msgid "Tarball (.tar.gz) URL"
-#~ msgstr "URL архива (.tar.gz)"
-
-#~ msgid "(or <a href=\"%s\" target=\"_blank\">upload file</a> to Savannah.)"
-#~ msgstr "(или <a href=\"%s\" target=\"_blank\">отправьте файл</a> в Саванну)"
-
-#~ msgid "Register group"
-#~ msgstr "Зарегистрировать группу"
-
-#~ msgid "Invalid full name"
-#~ msgstr "Недопустимое полное название"
-
-#~ msgid "Invalid system name"
-#~ msgstr "Неправильное системоне имя"
-
-#~ msgid "A group with that name already exists."
-#~ msgstr "Группа с таким именем уже существует."
-
-#~ msgid "Invalid license"
-#~ msgstr "Неправильная лицензия"
-
-#~ msgid "Invalid group type"
-#~ msgstr "Неверный тип группы"
-
-#~ msgid "Please recheck your submission"
-#~ msgstr "Проверьте свой запрос еще раз"
-
-#~ msgid ":)"
-#~ msgstr ":)"
-
-#~ msgid "Please accept the hosting requirements"
-#~ msgstr "Нужно согласие с требованиями по размещению"
-
-#~ msgid "This is too short!"
-#~ msgstr "Это слишком коротко!"
-
-#~ msgid "Please give us a link to your package latest release"
-#~ msgstr "Введите ссылку на последний выпуск вашего пакета"
-
-#~ msgid "Unable to update database, please contact administrators"
-#~ msgstr "Не удается обновить базу данных, свяжитесь с администраторами"
-
-#~ msgid "Setting you as group admin failed"
-#~ msgstr "Не удалось сделать вас администратором группы"
-
-#~ msgid "High"
-#~ msgstr "высокого"
-
-#~ msgid "Any Project"
-#~ msgstr "любого проекта"
-
-#~ msgid "This Project Only"
-#~ msgstr "только этого проекта"
-
-#~ msgid "Number of items to show at once"
-#~ msgstr "Число заявок на страницу"
-
-#~ msgid "Digest recipes"
-#~ msgstr "Сводка рецептов"
-
-#~ msgid "Source Code"
-#~ msgstr "Исходный текст"
-
-#~ msgid "Invalid User Name"
-#~ msgstr "Неправильное имя пользователя"
-
-#~ msgid "Account Deleted"
-#~ msgstr "Учетная запись удалена"
-
-#~ msgid "Usage status"
-#~ msgstr "Используется ли"
-
-#~ msgid "<!-- present this field to --> Group Members"
-#~ msgstr "участники группы"
-
-#~ msgid "<!-- present this field to --> Logged-in Users"
-#~ msgstr "неанонимным пользователям"
-
-#~ msgid "<!-- present this field to --> Anonymous Users"
-#~ msgstr "анонимным пользователям"
-
-#~ msgid "phpkrb5 module failure"
-#~ msgstr "сбой модуля phpkrb5"
-
-#~ msgid ""
-#~ "User is a kerberos principal but password do not\n"
-#~ "match. Please use your kerberos password for the first login and then "
-#~ "change\n"
-#~ "your %s password. This is necessary to prevent someone from stealing "
-#~ "your\n"
-#~ "account name."
-#~ msgstr ""
-#~ "Пользователь является принципалом kerberos, но пароль не подходит.\n"
-#~ "Войдите с помощью своего пароля kerberos и поменяйте свой пароль\n"
-#~ "в системе %s. Это нужно, чтобы предотвратить хищение имени вашей\n"
-#~ "учетной записи."
-
-#~ msgid ""
-#~ "P.S. Your password is now stored in hashed form\n"
-#~ "in the %s database."
-#~ msgstr ""
-#~ "Ваш пароль теперь хранится в виде контрольной суммы\n"
-#~ "в базе данных %s."
-
-#~ msgid ""
-#~ "For better security we advise you to register\n"
-#~ "an encryption-capable GPG key and enable encryption when sending password "
-#~ "reset\n"
-#~ "messages (if you do, please request password reset and make sure that "
-#~ "you\n"
-#~ "actually can read those messages)."
-#~ msgstr ""
-#~ "Для повышения защиты мы рекомендуем зарегистрировать ключ GPG,\n"
-#~ "с помощью которого можно шифровать, и включить шифрование при посылке\n"
-#~ "сообщений о сбросе пароля (если вы это сделаете, запросите сброс пароля,\n"
-#~ "чтобы убедиться, что вы действительно можете прочесть зашифрованные\n"
-#~ "сообщения)."
-
-#~ msgid ""
-#~ "You appear to have less than 0 votes remaining. There's a bug\n"
-#~ "somewhere, please contact the administrators"
-#~ msgstr ""
-#~ "У вас осталось меньше 0 голосов. Где-то ошибка, свяжитесь с "
-#~ "администраторами"
-
-#~ msgid "user is not a kerberos principal"
-#~ msgstr "пользователь не является принципалом kerberos"
-
-#~ msgid "user is a kerberos principal but passwords do not match"
-#~ msgstr "пользователь является принципалом kerberos, но пароль не верен"
-
-#~ msgid ""
-#~ "This user is known, but cannot be authenticated.\n"
-#~ "Please ask site administrators for a password."
-#~ msgstr ""
-#~ "Пользователь известен, но вход невозможен. Обратитесь за паролем к "
-#~ "администраторам сайта."
-
-#~ msgid "Anonymous Arch Access"
-#~ msgstr "Анонимный доступ к Arch"
-
-#~ msgid "This project's Arch repository can be accessed through HTTP."
-#~ msgstr "С репозиторием Arch этого проекта можно работать по HTTP."
-
-#~ msgid "Group member Arch access"
-#~ msgstr "Доступ Arch для участников проекта"
-
-#~ msgid ""
-#~ "This project's Arch repository can be accessed throgh SFTP for project "
-#~ "members."
-#~ msgstr "Доступ к репозиторию Arch для этого проекта осуществляется по SFTP."
-
-#~ msgid "More Information"
-#~ msgstr "Подробнее"
-
-#~ msgid "For more information, see %s."
-#~ msgstr "Дополнительные сведения см. в %s."
-
-#~ msgid "List %s is already in the database. We will create an alias."
-#~ msgstr "Рассылка %s в базе данных уже есть. Будет создан синоним."
-
-#~ msgid "every Monday"
-#~ msgstr "каждый понедельник"
-
-#~ msgid "every Tuesday"
-#~ msgstr "каждый вторник"
-
-#~ msgid "every Wednesday"
-#~ msgstr "каждую среду"
-
-#~ msgid "every Thursday"
-#~ msgstr "каждый четверг"
-
-#~ msgid "every Friday"
-#~ msgstr "каждую пятницу"
-
-#~ msgid "every Saturday"
-#~ msgstr "каждую субботу"
-
-#~ msgid "every Sunday"
-#~ msgstr "каждое воскресенье"
-
-#~ msgid ""
-#~ "Configuration for user #%s (you!) ignored to avoid\n"
-#~ "incoherent flags status. End the superuser session to change your "
-#~ "settings in\n"
-#~ "this group or use the admin user interface."
-#~ msgstr ""
-#~ "Конфигурация пользователя №%s (ваша!) не учтена, чтобы избежать "
-#~ "противоречивого состояния. Завершите сеанс суперпользователя, чтобы "
-#~ "изменить свои настройки в этой группе, или воспользуйтесь страницей "
-#~ "пользователей администраторов сайта."
-
-#~ msgid "List Added"
-#~ msgstr "Рассылка добавлена"
-
-#~ msgid "Error Adding List"
-#~ msgstr "Ошибка при добавлении списка рассылки"
-
-#~ msgid ""
-#~ "Error: ssh-vulnkey detected key #%s as compromised.\n"
-#~ "Please upgrade your system and regenerate it\n"
-#~ "(see %s for more information)."
-#~ msgstr ""
-#~ "Ошибка: ssh-vulnkey обнаружил, что ключ №%s раскрыт. Обновите свою "
-#~ "систему и сгенерируйте новый ключ (подробности см. в %s)."
-
-#~ msgid "Nothing in here, file is empty"
-#~ msgstr "Файл пуст"
-
-#~ msgid ""
-#~ "This email address will be verified before account activation. Check "
-#~ "your\n"
-#~ "spam filters. Do not use a hotmail or comcast address here."
-#~ msgstr ""
-#~ "Перед активацией учетной записи этот адрес электронной почты будет "
-#~ "проверяться.\n"
-#~ "Проверьте свои фильтры спама. Не пользуйтесь здесь адресами hotmail и "
-#~ "comcast."
-
-#~ msgid "Did you check to see if this item has already been submitted?"
-#~ msgstr "Вы проверяли, не была ли уже эта заявка отправлена?"
-
-#~ msgid "Private items exclude list"
-#~ msgstr "Список исключений для скрытых заявок"
-
-#~ msgid "in %s"
-#~ msgstr "в разделе %s"
-
-#~ msgid "%s result per page"
-#~ msgid_plural "%s results per page"
-#~ msgstr[0] "%s результат на страницу"
-#~ msgstr[1] "%s результата на страницу"
-#~ msgstr[2] "%s результатов на страницу"
-
-#~ msgid "Group type to search in"
-#~ msgstr "Тип групп для поиска"
-
-#~ msgid "Public List"
-#~ msgstr "Открытый список"
-
-#~ msgid "Private List (not advertised, subscribing requires approval)"
-#~ msgstr ""
-#~ "Закрытый список (не показывается, подписка с разрешения администратора)"
-
-#~ msgid ""
-#~ "Requested - <em> this will have no effect if this list is not managed by\n"
-#~ "Mailman via Savane</em>"
-#~ msgstr ""
-#~ "Сброс запрошен&nbsp;&mdash; <em>это не сработает, если список не "
-#~ "управляется системой Mailman через Savane</em>"
-
-#~ msgid "Public (visible to non-members)"
-#~ msgstr "Открытый (видный для неучастников)"
-
-#~ msgid "Successfully Updated Reminder Settings"
-#~ msgstr "Настройки напоминаний успешно обновлены"
-
-#~ msgid "Failed to Update Reminder Setting"
-#~ msgstr "Не удалось обновить настройки напоминаний"
-
-#~ msgid "Successfully set Timestamp of the Latest Reminder"
-#~ msgstr "Временная метка последнего напоминания установлена"
-
-#~ msgid "Failed to Reset Timestamp of the Latest Reminder"
-#~ msgstr "Установить временную метку последнего напоминания не удалось"
-
-#~ msgid "Reminders"
-#~ msgstr "Напоминания"
-
-#~ msgid ""
-#~ "You can configure the project so that reminder emails get sent\n"
-#~ "to project members who have opened items with priority higher than 5 "
-#~ "assigned\n"
-#~ "to them."
-#~ msgstr ""
-#~ "Можно настроить проект, чтобы его участникам, которым поручены открытые "
-#~ "заявки с приоритетом выше 5, высылались напоминания."
-
-#~ msgid ""
-#~ "This will be done regardless of the\n"
-#~ "fact project members have or have not requested to receive such reminders "
-#~ "via\n"
-#~ "their personal notification settings!"
-#~ msgstr ""
-#~ "Это будет проводиться независимо от того, запрашивали ли эти участники "
-#~ "напоминания в своих личных настройках!"
-
-#~ msgid ""
-#~ "Groups history appears to be flawed.\n"
-#~ "Please report the incident to administrators."
-#~ msgstr ""
-#~ "История группы, по-видимому, повреждена. Сообщите об этом администраторам."
-
-#~ msgid "Id: <strong>#%s</strong>"
-#~ msgstr "Ид: <strong>№%s</strong>"
-
-#~ msgid "This user is not a member of any group."
-#~ msgstr "Этот пользователь не входит ни в одну группу."
-
-#~ msgid "No pending news"
-#~ msgstr "Новостей на очереди нет"
-
-#~ msgid "Approve for %s front page"
-#~ msgstr "Утвердить для начальной страницы сайта %s"
-
-#~ msgid "Do Nothing"
-#~ msgstr "Ничего не делать"
-
-#~ msgid "Refuse"
-#~ msgstr "Отменить"
-
-#~ msgid ""
-#~ "Note: If this item is on the %s home page and you edit it, it will be\n"
-#~ "removed from the home page."
-#~ msgstr ""
-#~ "Замечание: если новость показана на домашней странице сайта %s, а вы ее "
-#~ "редактируете, то она удаляется с домашней страницы."
-
-#~ msgid "Preview:"
-#~ msgstr "Предпросмотр:"
-
-#~ msgid "No queued items found"
-#~ msgstr "Очередь пуста"
-
-#~ msgid "These news items were submitted and need approval"
-#~ msgstr "Эти новости ждут подтверждения"
-
-#~ msgid "No deleted items during these past two weeks"
-#~ msgstr "За последние две недели удаленных новостей не было"
-
-#~ msgid "These items were refused these past two weeks:"
-#~ msgstr "Отменены за последние две недели:"
-
-#~ msgid "These items were deleted these past two weeks:"
-#~ msgstr "Удалены за последние две недели:"
-
-#~ msgid "No news items approved"
-#~ msgstr "Ни одна новость не подтверждена"
-
-#~ msgid "These items were approved:"
-#~ msgstr "Подтверждены за последние две недели:"
-
-#~ msgid "This project doesn't use this tool."
-#~ msgstr "Этот проект не пользуется этим средством."
-
-#~ msgid "Latest News Approved - With Summaries"
-#~ msgstr "Последние подтвержденные новости, с заголовками"
-
-#~ msgid "Read more"
-#~ msgstr "Читать дальше"
-
-#~ msgid "In Depth Guide"
-#~ msgstr "Подробное руководство"
-
-#~ msgid "Main page"
-#~ msgstr "Главная страница"
-
-#~ msgid "Pending projects"
-#~ msgstr "Проекты на рассмотрении"
-
-#~ msgid "Site news approval"
-#~ msgstr "Подтвердить новости"
-
-#~ msgid "You may include URLs, emails, that will be made links, but not HTML."
-#~ msgstr "Можно включать URL, и адреса (они станут ссылками), но не HTML."
-
-#~ msgid "This Project Has Turned Off News Tracker"
-#~ msgstr "В этом проекте новости отключены"
-
-#~ msgid ""
-#~ "If you want to approve/edit site news (shown on the front page), you "
-#~ "must\n"
-#~ "be logged as superuser."
-#~ msgstr ""
-#~ "Чтобы редактировать и подтверждать новости сайта (показанные на передней "
-#~ "странице), нужно получить доступ суперпользователя."
-
-#~ msgid ""
-#~ "If you want to approve/edit news for the local administration project "
-#~ "(not\n"
-#~ "shown on the front page), you must end the superuser session."
-#~ msgstr ""
-#~ "Чтобы редактировать и подтверждать новости местного проекта администрации "
-#~ "(не показанные на передней странице), ножно выйти из сеанса "
-#~ "суперпользователя."
-
-#~ msgid "No Such User"
-#~ msgstr "Нет такого пользователя"
-
-#~ msgid "Comment Type & Canned Response:"
-#~ msgstr "Тип комментария и шаблон ответа:"
-
-#~ msgid "This user deactivated his/her Resume & Skills page"
-#~ msgstr "Этот пользователь отключил свою страницу навыков"
-
-#~ msgid ""
-#~ "Watching a partner (receiving a copy of all notifications sent\n"
-#~ "to them) permits you to be their backup when they are away from\n"
-#~ "the office, or to review all their activities in the group."
-#~ msgstr ""
-#~ "Наблюдение за участниками (получение копии всех оповещений, посылаемых "
-#~ "им) позволяет вам подменять их, когда они отсутствуют, или просматривать "
-#~ "всю их работу в группе."
-
-#~ msgid "The only exception is the verbatim blocks of text."
-#~ msgstr "Единственное исключение ― буквальные блоки текста."
-
-#~ msgid "%s new project"
-#~ msgid_plural "%s new projects"
-#~ msgstr[0] "%s новый проект"
-#~ msgstr[1] "%s новых проекта"
-#~ msgstr[2] "%s новых проектов"
-
-#~ msgid "%s project,"
-#~ msgid_plural "%s projects,"
-#~ msgstr[0] "%s проект"
-#~ msgstr[1] "%s проекта"
-#~ msgstr[2] "%s проектов"
-
-#~ msgid "Software Project"
-#~ msgstr "Проект по разработке программ"
-
-#~ msgid "Free Documentation Projects"
-#~ msgstr "Проекты свободной документации"
-
-#~ msgid "FSF/GNU projects"
-#~ msgstr "Проекты GNU и ФСПО"
-
-#~ msgid ""
-#~ "Internal projects of the FSF and projects that have been approved\n"
-#~ "by the GNU Project management."
-#~ msgstr ""
-#~ "Внутренние проекты ФСПО и проекты по требованию руководства проекта GNU."
-
-#~ msgid ""
-#~ "In the following 5 registration steps you will be asked to describe your\n"
-#~ "project and choose a free license for it. Your project does not have to "
-#~ "be\n"
-#~ "part of the GNU project or be released under the GPL to be hosted here, "
-#~ "but if\n"
-#~ "you want to take the opportunity to make your project part of GNU, you "
-#~ "can\n"
-#~ "request that later on in the registration process."
-#~ msgstr ""
-#~ "На следующих 5 шагах регистрации вас попросят описать свой проект и "
-#~ "выбрать для него свободную лицензию. Для размещения здесь ваш проект не "
-#~ "обязательно должен быть частью проекта GNU или выпускаться под GPL, но "
-#~ "если вы хотите попробовать сделать его частью GNU, вы можете попросить об "
-#~ "этом далее в процессе регистрации."
-
-#~ msgid ""
-#~ "To keep compatibility among Savannah projects, we only accept free "
-#~ "software\n"
-#~ "licenses that are compatible with the GPL. The list of GPL-compatible "
-#~ "licenses\n"
-#~ "covers several of the most commonly used licenses; if you are not "
-#~ "familiar\n"
-#~ "with that list, please take some time to read <a href=\"%s\">GPL-"
-#~ "compatible,\n"
-#~ "free software licenses</a>."
-#~ msgstr ""
-#~ "Чтобы поддерживать совместимость между проектами Саванны, мы принимаем "
-#~ "только лицензии свободных программ, совместимые с GPL. Список совместимых "
-#~ "с GPL лицензий содержит несколько самых популярных лицензий; если вы "
-#~ "незнакомы с этими лицензиями, найдите, пожалуйста, время прочесть раздел "
-#~ "<a href=\"%s\"> Совместимые с GPL лицензии свободных программ</a>."
-
-#~ msgid ""
-#~ "This account uses an AFS password. <strong>You cannot change your\n"
-#~ "AFS password via Savane</strong>. Contact the AFS managers."
-#~ msgstr ""
-#~ "В этой учетной записи применяется пароль AFS. <strong>Пароль AFS через "
-#~ "Savane не изменяется</strong>. Обратитесь в администрацию AFS."
-
-#~ msgid ""
-#~ "The request came from %s\n"
-#~ "(IP: %s; port: %s; user agent: %s)"
-#~ msgstr ""
-#~ "Запрос пришел из %s\n"
-#~ "(IP: %s; порт: %s; пользовательский агент: %s)"
-
-#~ msgid ""
-#~ "Instead of providing a new password you\n"
-#~ "        may choose to authenticate via an <strong>AFS</strong> account "
-#~ "you own\n"
-#~ "        at this site (this requires your new login name to be the\n"
-#~ "        same as the AFS account name):"
-#~ msgstr ""
-#~ "Вместо нового пароля для вас может иметь смысл удостоверять личность с "
-#~ "помощью учетной записи <strong>AFS</strong>, которая у вас есть на этом "
-#~ "сайте (имя вашей новой учетной записи должно совпадать с именем учетной "
-#~ "записи AFS):"
-
-#~ msgid "use AFS based authentication"
-#~ msgstr "удостоверять личность по AFS"
-
-#~ msgid "Project name"
-#~ msgstr "Название проекта"
-
-#~ msgid "Short/system name"
-#~ msgstr "Краткое/системное имя:"
-
-#~ msgid "Project information"
-#~ msgstr "Сведения о проекте"
-
-#~ msgid "What is your project?"
-#~ msgstr "Что у вас за проект?"
-
-#~ msgid "What is special about it?"
-#~ msgstr "Что в нем особенного?"
-
-#~ msgid ""
-#~ "Checklist - see <a href=\"%s\">How To Get Your Project Approved Quickly</"
-#~ "a>"
-#~ msgstr ""
-#~ "Список для проверки: см. <a href=\"%s\">Как быстро пройти проверку "
-#~ "проекта</a>"
-
-#~ msgid ""
-#~ "All my files include a license header [<a href=\"%s\">1</a>]\n"
-#~ "[<a href=\"%s\">2</a>]"
-#~ msgstr ""
-#~ "Все мои файлы содержат лицензионный заголовок [<a href=\"%s\">1</a>]\n"
-#~ "[<a href=\"%s\">2</a>]"
-
-#~ msgid "Invalid Unix name"
-#~ msgstr "Недопустимое системное имя"
-
-#~ msgid ""
-#~ "The request came from %s\n"
-#~ "(IP: %s, port: %s, user agent: %s)"
-#~ msgstr ""
-#~ "Запрос пришел из %s\n"
-#~ "(IP: %s, порт: %s, агент пользователя: %s)"
-
-#~ msgid "Printer Version"
-#~ msgstr "Версия для печати"
-
-#~ msgid "Show this page with a style adapted to printers"
-#~ msgstr "Показать эту страницу в виде, пригодном для печати"
-
-#~ msgid "Project not found"
-#~ msgstr "Проект не найден"
-
-#~ msgid "Your IP address is blacklisted: %s"
-#~ msgstr "Ваш адрес IP в черном списке: %s"
-
-#~ msgid "Your IP address is blacklisted"
-#~ msgstr "Ваш адрес IP в черном списке"
-
-#~ msgid "required field"
-#~ msgstr "обязательное поле"
-
-#~ msgid "Any field"
-#~ msgstr "Любое поле"
-
-#~ msgid "Show %1$s item at once with a spam score lower than %2$s."
-#~ msgid_plural "Show %1$s items at once with a spam score lower than %2$s."
-#~ msgstr[0] "Показывать %1$s заявку на странице со счетчиком спама ниже %2$s."
-#~ msgstr[1] "Показывать %1$s заявки на странице со счетчиком спама ниже %2$s."
-#~ msgstr[2] "Показывать %1$s заявок на странице со счетчиком спама ниже %2$s."
-
-#~ msgid "Repository"
-#~ msgstr "Репозиторий"
-
-#~ msgid "Match type"
-#~ msgstr "Вид выбора"
-
-#~ msgid "Notification to"
-#~ msgstr "Оповещение в"
-
-#~ msgid "Separate diffs to"
-#~ msgstr "Отдельные разности в"
-
-#~ msgid "Copyright &copy; 2022 &nbsp;Free Software Foundation, Inc."
-#~ msgstr "Copyright &copy; 2022 &nbsp;Free Software Foundation, Inc."
-
-#~ msgid "Configuration"
-#~ msgstr "Конфигурация"
-
-#~ msgid "Test System Configuration"
-#~ msgstr "Проверить конфигурацию системы"
-
-#~ msgid "Configure Group Types"
-#~ msgstr "Настройка типов групп"
-
-#~ msgid "Configure People Area"
-#~ msgstr "Настройка сообщества"
-
-#~ msgid "Management"
-#~ msgstr "Управление"
-
-#~ msgid "Currently Shown Project:"
-#~ msgstr "Текущий проект:"
-
-#~ msgid "Edit Public Info"
-#~ msgstr "Править общедоступные сведения"
-
-#~ msgid "Browse Pending Project Registrations"
-#~ msgstr "Список незавершенных регистраций проектов"
-
-#~ msgid "Browse Groups List"
-#~ msgstr "Просмотреть список групп"
-
-#~ msgid "Browse Users List"
-#~ msgstr "Список пользователей"
-
-#~ msgid "Monitoring"
-#~ msgstr "Наблюдение"
-
-#~ msgid "Monitor Spams"
-#~ msgstr "Спам"
-
-#~ msgid "Check Last Logins"
-#~ msgstr "Проверить последние входы"
-
-#~ msgid "Invalid Password (AFS)"
-#~ msgstr "Неверный пароль (AFS)"
-
-#~ msgid "Submitted By"
-#~ msgstr "Автор"
-
-#~ msgid "Submitted by:"
-#~ msgstr "Автор:"
-
-#~ msgid "Submitted on:"
-#~ msgstr "Дата размещения:"
-
-#~ msgid "This item was not approved"
-#~ msgstr "Эта заявка не была подтверждена"
-
-#~ msgid ""
-#~ "If you want to edit or comment this recipe, go to [%s this item's edit "
-#~ "page]"
-#~ msgstr ""
-#~ "Для редактирования этого рецепта перейдите на [%s страницу редактирования "
-#~ "этой заявки]"
-
-#~ msgid "This item is private."
-#~ msgstr "Это скрытая заявка."
-
-#~ msgid "Last update: %s"
-#~ msgstr "Последнее обновление: %s"
-
-#~ msgid "This recipe comes from %s User Docs"
-#~ msgstr "Этот рецепт размещен в Документации пользователя %s"
-
-#~ msgid "Audience and Context"
-#~ msgstr "Аудитория и контекст"
-
-#~ msgid ""
-#~ "(As there is at least one of the Audience/Feature/Action\n"
-#~ "context information not set, this recipe will not show up in related "
-#~ "recipes\n"
-#~ "links)"
-#~ msgstr ""
-#~ "Поскольку аудитория, функция или действие не были указаны, этот рецепт не "
-#~ "будет показан в соответствующих списках рецептов."
-
-#~ msgid "Item Edition"
-#~ msgstr "Редакция заявки"
-
-#~ msgid "Edit this page"
-#~ msgstr "Править эту страницу"
-
-#~ msgid "Spam content:"
-#~ msgstr "Содержимое спама:"
-
-#~ msgid "For Everybody"
-#~ msgstr "Для всех"
-
-#~ msgid "For Project Members Only"
-#~ msgstr "Только для участников проекта"
-
-#~ msgid "Other audience"
-#~ msgstr "Другая аудитория"
-
-#~ msgid "Undefined audience"
-#~ msgstr "Неопределенная аудитория"
-
-#~ msgid "From %s User Docs"
-#~ msgstr "Из документации пользователя сайта %s"
-
-#~ msgid "rpm package"
-#~ msgstr "пакет rpm"
-
-#~ msgid "debian package"
-#~ msgstr "пакет Debian"
-
-#~ msgid "source %s"
-#~ msgstr "%s с исходным текстом"
-
-#~ msgid "arch independent %s"
-#~ msgstr "архитектурно-независимый %s"
-
-#~ msgid "%s for i386 (ix86)"
-#~ msgstr "%s для i386 (ix86)"
-
-#~ msgid "%s for i586"
-#~ msgstr "%s для i586"
-
-#~ msgid "%s for i686"
-#~ msgstr "%s для i686"
-
-#~ msgid "%s for Itanium 64"
-#~ msgstr "%s для Itanium 64"
-
-#~ msgid "%s for Sparc"
-#~ msgstr "%s для Sparc"
-
-#~ msgid "%s for Alpha"
-#~ msgstr "%s для Alpha"
-
-#~ msgid "%s for PowerPC"
-#~ msgstr "%s для PowerPC"
-
-#~ msgid "%s for s390"
-#~ msgstr "%s для s390"
-
-#~ msgid "No followups have been posted"
-#~ msgstr "Комментариев пока не было"
-
-#~ msgid "No item found with that id."
-#~ msgstr "Заявка с таким идентификатором не найдена."
-
-#~ msgid "You are not logged in"
-#~ msgstr "Вы не представлены системе"
-
-#~ msgid ""
-#~ "Please <a href=\"%s\">log in</a>, so followups can be emailed to you."
-#~ msgstr ""
-#~ "Пожалуйста, <a href=\"%s\">представьтесь системе</a>, чтобы получать "
-#~ "ответы по электронной почте."
-
-#~ msgid ""
-#~ "(Note: upload size limit is set to %s kB, after insertion of the "
-#~ "required\n"
-#~ "escape characters.)"
-#~ msgstr ""
-#~ "(Замечание: размер приложений ограничен величиной %s кБ с учетом вставки "
-#~ "экранирующих символов.)"
-
-#~ msgid "Do you think this task is very important?"
-#~ msgstr "Эта задача очень важна?"
-
-#~ msgid "If so, you can add your encouragement to it."
-#~ msgstr "Тогда вы можете добавить к ней поощрение."
-
-#~ msgid "This task has %s encouragement so far."
-#~ msgid_plural "This task has %s encouragements so far."
-#~ msgstr[0] "Этой задаче присвоено %s поощрение."
-#~ msgstr[1] "Этой задаче присвоено %s поощрения."
-#~ msgstr[2] "Этой задаче присвоено %s поощрений."
-
-#~ msgid "No extension field in use."
-#~ msgstr "Ни одно дополнительное поле не используется."
-
-#~ msgid "Choose one below."
-#~ msgstr "Выберите ниже"
-
-#~ msgid ""
-#~ "Caution: your current web browser identifies itself as Microsoft "
-#~ "Internet\n"
-#~ "Explorer. Unexpected behavior of this software in several regards may "
-#~ "cause\n"
-#~ "rendering problems, most notably break the interface layout."
-#~ msgstr ""
-#~ "Осторожно: ваш браузер идентифицирует себя как Microsoft Internet "
-#~ "Explorer. Неожиданное в некоторых отношениях поведение этой программы "
-#~ "может приводить к проблемам отображения, в первую очередь к нарушениям "
-#~ "верстки страницы."
-
-#~ msgid ""
-#~ "You are strongly advised to use a browser like Mozilla or Konqueror if "
-#~ "you\n"
-#~ "encounter such troubles."
-#~ msgstr ""
-#~ "Если вы столкнулись с такого рода проблемами, мы настоятельно советуем "
-#~ "вам пользоваться такими браузерами, как Mozilla или Konqueror."
-
-#~ msgid "Edit the Item Post Form Preamble"
-#~ msgstr "Править преамбулу публикации заявок"
-
-#~ msgid "NO DATA CHANGED!"
-#~ msgstr "Данные не были изменены!"
-
-#~ msgid "Public Forum"
-#~ msgstr "Открытый форум"
-
-#~ msgid "(messages: %1$s, forums: %2$s)"
-#~ msgstr "(сообщений: %1$s, форумов: %2$s)"
-
-#~ msgid ""
-#~ "If you would like to use Savannah to host your\n"
-#~ "project, then go to the <b>Register New Project</b> menu entry."
-#~ msgstr ""
-#~ "Если вы хотели бы воспользоваться Саванной для размещения своего проекта, "
-#~ "выберите пункт меню <b>Зарегистрировать проект</b>."
-
-#~ msgid "FAQ moved to %s"
-#~ msgstr "Документ перемещен на %s"
-
-#~ msgid "Stay in secure (https) mode after login"
-#~ msgstr "Оставаться в безопасном режиме (HTTPS) после входа"
-
-#~ msgid "%1$s looking for %2$s"
-#~ msgstr "%1$s ищет работника из категории %2$s"
-
-#~ msgid "Non-numeric hook_id:"
-#~ msgstr "Нечисленный hook_id:"
-
-#~ msgid "Invalid repository name:"
-#~ msgstr "Неверное имя репозитория:"
-
-#~ msgid "Invalid matching type"
-#~ msgstr "Неверный выбора выбора"
-
-#~ msgid "Invalid list of directories"
-#~ msgstr "Неправильный список каталогов"
-
-#~ msgid "Invalid value for enable_diff"
-#~ msgstr "Неправильное значение enable_diff"
-
-#~ msgid "Invalid list of notification emails"
-#~ msgstr "Неправильный список адресов для оповещений"
-
-#~ msgid "Invalid list of diff notification emails"
-#~ msgstr "Неправильный список адресов для оповещения об изменениях"
-
-#~ msgid "Browse Items By %s: "
-#~ msgstr "Сортировать заявки по полю %s: "
-
-#~ msgid "Invalid tracker name %s"
-#~ msgstr "Неправильное название журнала %s"
-
-#~ msgid "Show all jobs for all project types"
-#~ msgstr "Показать все вакансии для проектов всех типов"
-
-#~ msgid "Vote provided is not a simple integer, it has been ignored"
-#~ msgstr "Количество голосов не цело, игнорируется"
-
-#~ msgid ""
-#~ "Warning: Savane was not able to read site-specific\n"
-#~ "information from file '%s', please contact administrators"
-#~ msgstr ""
-#~ "Внимание: Savane не удалось прочесть текст сайта из файла\n"
-#~ "'%s', обратитесь к администраторам"
-
-#~ msgid ""
-#~ "This action cannot be undone, the squad login name will no longer be\n"
-#~ "available."
-#~ msgstr "Это действие необратимо, название звена больше не будет доступно."
-
-#~ msgid "General Rights"
-#~ msgstr "Общие установки"
-
-#~ msgid "<!-- Search... in -->Cookbook"
-#~ msgstr "рецепты"
-
-#~ msgid "%s Cookbook"
-#~ msgstr "рецепты %s"
-
-#~ msgid "User Docs: Cookbook"
-#~ msgstr "Документация: рецепты"
-
-#~ msgid "(used in URLs, mailing lists names, etc.)"
-#~ msgstr "(используется в URL, названиях списков рассылки и т.д.)"
-
-#~ msgid ""
-#~ "Your GPG key is used for signing your releases and\n"
-#~ "optionally encrypting sensitive messages sent to you. It also\n"
-#~ "can be used to check your identity when you lose your password."
-#~ msgstr ""
-#~ "Ваш ключ GPG используется для подписи ваших выпусков и (по желанию) для "
-#~ "шифрования посылаемых вам конфиденциальных сообщений. Его можно также "
-#~ "использовать для удостоверения вашей личности, когда вы потеряли пароль "
-#~ "от учетной записи Саванны."
-
-#~ msgid "SVN revision %s:"
-#~ msgstr "Редакция SVN %s:"
-
-#~ msgid "Browse SVN revision %s"
-#~ msgstr "Просмотр редакции SVN %s"
-
-#~ msgid ""
-#~ "The piece of code\n"
-#~ "The piece of code, line 2"
-#~ msgstr ""
-#~ "Участок программы\n"
-#~ "Участок программы, строка 2"
-
-#~ msgid "Piece of text that will be printed unformatted."
-#~ msgstr "Участок текста, который будет выведен без форматирования."
-
-#~ msgid "Help protect your freedom, join the Free Software Foundation"
-#~ msgstr ""
-#~ "Помоги защищать свою свободу, присоединяйся к Фонду свободного "
-#~ "программного обеспечения"
-
-#~ msgid "Anonymous checkout:"
-#~ msgstr "Анонимная рабочая копия:"
