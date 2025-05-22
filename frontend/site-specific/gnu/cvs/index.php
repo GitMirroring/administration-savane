@@ -1,5 +1,4 @@
 <?php
-
 # Instructions about CVS usage.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
@@ -44,38 +43,33 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+include dirname (__FILE__) . '/../vcs.php';
 
-include dirname (__FILE__) . '/../fingerprints.php';
-
-global $project, $sys_home, $sys_unix_group_name;
-
-$proj_unix_name = $project->getUnixName ();
-$cvs_cmd_base = "cvs -z3 -d:pserver:anonymous@cvs."
-  . $project->getTypeBaseHost () . ":";
-
+$cvs_cmd_base = "cvs -z3 -d:pserver:anonymous@cvs.$base_host:";
 
 if ($project->isPublic ())
   {
-    print '<h3>' . _('Anonymous CVS Access') . "</h3>\n";
+    vcs_print_anon_access ();
     print '<p>'
-     . _("This project's CVS repository can be checked out through anonymous\n"
-          . "CVS with the following instruction set. The module you wish\n"
-          . "to check out must be specified as the &lt;<i>modulename</i>&gt;.")
+     . _("The CVS repository of this group can be checked out through anonymous "
+          . "CVS with the following instruction set.  The module you wish "
+          . "to check out must be specified as the "
+          . "&lt;<var>modulename</var>&gt;.")
      . "</p>\n";
 
     if ($project->Uses ("cvs"))
       {
         $cvs_cmd = $cvs_cmd_base . $project->getTypeDir ('cvs') . " co ";
-        print "<h4>" . _('Software repository:') . "</h4>\n";
-        print "<pre>$cvs_cmd$proj_unix_name</pre>\n";
-        print "<p>" . _('With other project modules:') . "</p>\n";
-        print "<pre>$cvs_cmd&lt;<i>" . _('modulename') . "</i>&gt;</pre>\n";
+        print html_h (4, _('Software repository:'));
+        print "<pre>$cvs_cmd$unix_name</pre>\n";
+        print "<p>" . _('With other CVS modules:') . "</p>\n";
+        print "<pre>$cvs_cmd&lt;<var>" . _('modulename') . "</var>&gt;</pre>\n";
       }
-    if ($project->CanUse("homepage") || $project->UsesForHomepage("cvs"))
+    if ($project->CanUse ("homepage") || $project->UsesForHomepage ("cvs"))
       {
-        print "<h4>" . _('Webpage repository:') . "</h4>\n";
-        print "<pre>$cvs_cmd_base" . $project->getTypeDir('homepage')
-          . " co $proj_unix_name</pre>\n";
+        print html_h (4, _('Webpage repository:'));
+        print "<pre>$cvs_cmd_base" . $project->getTypeDir ('homepage')
+          . " co $unix_name</pre>\n";
       }
 
     print '<p>';
@@ -87,51 +81,38 @@ if ($project->isPublic ())
     print "</pre>\n\n";
     print "<p>" . _('to preview and status check.') . "</p>\n";
   }
-print '<h3>' . _('Group member CVS access via SSH') . "</h3>\n";
-
-print "<p>"
-  . _("Member access is performed using the CVS over SSH method. The\n"
-      . "pserver method can only be used for anonymous access.")
-  . "</p>\n\n<p>"
-  . _("The SSHv2 public key fingerprints for the machine hosting the CVS\n"
-      . "trees are:")
-  . "</p>\n" . $vcs_fingerprints;
-
-$username = user_getname ();
-if ($username == "NA")
-  # For anonymous user.
-  $username = '&lt;<i>' . _('membername') . '</i>&gt;';
-$cvs_cmd_base = "cvs -z3 -d:ext:$username@cvs." . $project->getTypeBaseHost()
-  . ":";
-if ($project->Uses("cvs"))
+vcs_print_auth_access ();
+$cvs_cmd_base = "cvs -z3 -d:ext:$username@cvs.$base_host:";
+if ($project->Uses ("cvs"))
   {
-    $cvs_cmd = "$cvs_cmd_base" . $project->getTypeDir("cvs") . " co ";
-    print "<h4>" . _('Software repository:') . '</h4>' . "\n";
-    print "<pre>$cvs_cmd$proj_unix_name</pre></p>\n";
-    print "<p>" . _('With other project modules:') . "</p>\n";
-    print "<pre>$cvs_cmd&lt;<i>" . _('modulename') . '</i>&gt;'
+    $cvs_cmd = "$cvs_cmd_base" . $project->getTypeDir ("cvs") . " co ";
+    print html_h (4, _('Software repository:'));
+    print "<pre>$cvs_cmd$unix_name</pre></p>\n";
+    print "<p>" . _('With other CVS modules:') . "</p>\n";
+    print "<pre>$cvs_cmd&lt;<var>" . _('modulename') . '</var>&gt;'
       . "</pre></p>\n";
   }
 if ($project->CanUse ("homepage") || $project->UsesForHomepage ("cvs"))
   {
-    print "<h4>" . _('Webpage repository:') . "</h4>\n";
+    print html_h (4, _('Webpage repository:'));
     print "<pre>$cvs_cmd_base"
       . preg_replace ('#/$#', "", $project->getTypeDir ("homepage"))
-      . " co $proj_unix_name</pre></p>\n";
+      . " co $unix_name</pre></p>\n";
   }
+vcs_print_auth_description ();
 
 if (member_check (0, $project->getGroupId (), 'A'))
   {
-    print "<h2>" . _('Email Notifications') . "</h2>\n";
+    print html_h (2, _('Email Notifications'));
     print "<p>";
     printf (
       _('You can <a href="%s">configure commit notifications</a>.'),
-      "/cvs/admin/?group=$proj_unix_name"
+      "/cvs/admin/?group=$unix_name"
     );
     print "</p>\n";
   }
 
-print '<h2>' . _('CVS Newbies') . "</h2>\n\n<p>";
+print html_h (2, _('CVS Newbies')) . "<p>";
 printf (
   _("If you've never used CVS, you should read some documentation about\n"
     . "it; a useful URL is %s. Using\nCVS is not complex but you have "
@@ -153,18 +134,18 @@ print "</p>\n";
 
 if ($project->CanUse ("cvs"))
   {
-    print '<h2>' . _('What are CVS modules?') . "</h2>\n<p>";
+    print html_h (2, _('What are CVS modules?')) . "<p>";
     printf (
-      _("The CVS repository of each project is divided into modules which you "
-        . "can\ndownload separately.  The list of existing modules for this "
-        . "project can be\nobtained by looking at <a href=\"%s\">the root of "
-        . "the CVS repository</a>; each\n<code>File</code> listed there is "
-        . "the name of a module, which can substitute\nthe generic "
-        . "&lt;<i>modulename</i>&gt; used below in the examples of the\n"
+      _("The CVS repository of each group is divided into modules which you "
+        . "can download separately.  The list of existing modules for this "
+        . "group can be obtained by looking at <a href=\"%s\">the root of "
+        . "the CVS repository</a>; each directory listed there is "
+        . "the name of a module, which can substitute the generic "
+        . "&lt;<var>modulename</var>&gt; used below in the examples of the "
         . "<code>co</code> command of CVS.  Note that <code>.</code> (dot) "
-        . "is always also\na valid module name which stands for &ldquo;all "
-        . "available modules&rdquo; in a project.  Most\nprojects have "
-        . "a module with the same name of the project, where the main\n"
+        . "is always also a valid module name which stands for &ldquo;all "
+        . "available modules&rdquo; in a group.  Most groups have "
+        . "a module with the same name of the group, where the main "
         . "software development takes place."),
       $project->getTypeUrl ("cvs_viewcvs")
     );
@@ -172,16 +153,16 @@ if ($project->CanUse ("cvs"))
   }
 
 print '<p>' . _('The same applies to the Webpage Repository.') . "</p>\n\n";
-print '<h2>' . _('Import your CVS tree') . "</h2>\n<p>";
+print html_h (2, _('Import your CVS tree')) . "<p>";
 
 print
-  _("If your project already has an existing CVS repository that you\n"
-    . "want to move to Savannah, make an appointment with us for the\n"
+  _("If your group already has an existing CVS repository that you "
+    . "want to move to Savannah, make an appointment with us for the "
     . "migration.");
 
 print "</p>\n\n";
 
-print '<h2>' . _('Symbolic Links in Webpage CVS') . "</h2>\n\n<p>";
+print html_h (2, _('Symbolic Links in Webpage CVS')) . "<p>";
 
 printf (
   _("As a special feature in CVS web repositories (only), a file named\n"
@@ -194,9 +175,9 @@ printf (
 );
 
 print "</p>\n";
-if ($project->getTypeBaseHost () == "savannah.gnu.org")
+if ($base_host == "savannah.gnu.org")
   {
-    print '<h2>' . _('Web pages for GNU packages') . "</h2>\n\n<p>";
+    print html_h (2, _('Web pages for GNU packages')) . "<p>";
     printf (
       _("When writing web pages for official GNU packages, please keep the\n"
         . "<a href=\"%s\"> guidelines</a> in mind."),

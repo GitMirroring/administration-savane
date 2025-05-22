@@ -40,33 +40,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+include dirname (__FILE__) . '/../vcs.php';
 
-include dirname (__FILE__) . '/../fingerprints.php';
-
-global $project;
-$base_host = $project->getTypeBaseHost ();
-$unix_name = $project->getUnixName ();
 $type_dir = preg_replace (':/srv/hg:', '', $project->getTypeDir ('hg'));
 
 if ($project->isPublic ())
   {
-    print '<h3>' . _('Anonymous read-only access') . "</h3>\n";
+    vcs_print_anon_access ();
     print "<pre>hg clone https://hg.$base_host/hgweb$type_dir\n</pre>\n";
   }
 
-print '<h3>' . _('Developer write access (SSH)') . "</h3>\n";
-
-$username = user_getname ();
-if ($username == "NA")
-  $username = '&lt;<i>' . _('membername') . "</i>&gt;\n";
-
+vcs_print_auth_access ();
 print "<pre>hg clone ssh://$username@hg.$base_host/$unix_name</pre>\n<p>";
-print
-  _("The SSHv2 public key fingerprints for the machine hosting the source\n"
-    . "trees are:")
-  . "</p>\n$vcs_fingerprints\n";
+vcs_print_auth_description ();
 
-print '<h3>' . _('More information') . "</h3>\n";
+vcs_print_more_info ();
 print "<p><a href=\"//savannah.gnu.org/maintenance/UsingHg\">\n"
  . "https://savannah.gnu.org/maintenance/UsingHg</a></p>\n";
 ?>

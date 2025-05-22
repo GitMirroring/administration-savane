@@ -1,5 +1,4 @@
 <?php
-
 # Instructions about Subversion usage.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
@@ -42,64 +41,48 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-include dirname (__FILE__) . '/../fingerprints.php';
-
-global $project;
-$base_host = $project->getTypeBaseHost ();
-$unix_name = $project->getUnixName ();
+include dirname (__FILE__) . '/../vcs.php';
 
 if ($project->isPublic ())
   {
-    print '<h3>' . _('Anonymous / read-only Subversion access') . "</h3>\n";
+    vcs_print_anon_access ();
     print '<p>'
-      . _("This project's Subversion repository can be checked out "
-        . "anonymously\nas follows.  The module you wish to check out must be "
-        . "specified as the\n&lt;<i>modulename</i>&gt;.")
+      . _("The Subversion repository of this group can be checked out "
+        . "anonymously as follows.  The module you wish to check out must be "
+        . "specified as the &lt;<var>modulename</var>&gt;.")
       . "</p>\n";
 
-    print '<h3>' . _('Access using the SVN protocol:') . "</h3>\n";
-    print "<code>svn co svn://svn.$base_host/$unix_name/&lt;<i>"
-      . _('modulename') . "</i>&gt;</code><br />\n";
-    print '<h3>' . _('Access using HTTP (slower):') . "</h3>\n";
-    print "<code>svn co http://svn.$base_host/svn/$unix_name/&lt;<i>"
-      . _('modulename') . "</i>&gt;</code>";
+    print html_h (4, _('Access using the SVN protocol:'));
+    print "<code>svn co svn://svn.$base_host/$unix_name/&lt;<var>"
+      . _('modulename') . "</var>&gt;</code><br />\n";
+    print html_h (4, _('Access using HTTP (slower):'));
+    print "<code>svn co http://svn.$base_host/svn/$unix_name/&lt;<var>"
+      . _('modulename') . "</var>&gt;</code>";
 
-    print '<p>' . _("Typically, you'll want to use <tt>trunk</tt> for\n"
-      . "<i>modulename</i>. Refer to a project's specific instructions if\n"
+    print '<p>' . _("Typically, you'll want to use <tt>trunk</tt> for "
+      . "<var>modulename</var>. Refer to group-specific instructions if "
       . "you're unsure, or browse the repository with ViewVC.")
       . "</p>\n";
   }
 
-print '<h3>' . _('Group member Subversion access via SSH') . "</h3>\n";
-print '<p>'
-  . _('Member access is performed using the Subversion over SSH method.')
-  . "</p>\n<p>"
-  . _("The SSHv2 public key fingerprints for the machine hosting the "
-    . "source\ntrees are:")
-  . "</p>\n$vcs_fingerprints";
-
-$username = user_getname ();
-if ($username == "NA")
-  $username = '&lt;<i>' . _('membername') . '</i>&gt;';
-
-print '<h3>' . _('Software repository (over SSH):') . "</h3>\n";
+vcs_print_auth_access ();
 print "<code>svn co svn+ssh://$username@svn.$base_host/$unix_name"
-  . "/&lt;<i>"._('modulename')."</i>&gt;</code>\n\n";
-print '<h3>' . _('Importing into Subversion on Savannah') . "</h3>\n";
+  . "/&lt;<var>" . _('modulename') . "</var>&gt;</code>\n\n";
+vcs_print_auth_description ();
+print html_h (2, _('Importing into Subversion on Savannah'));
 print '<p>';
 
-printf (_("If your project already has an existing source repository that "
+printf (_("If your group already has an existing source repository that "
   . "you\nwant to move to Savannah, check the <a href=\"%s\">conversion\n"
   . "documentation</a> and then submit a request for the\n"
-  . "migration in the <a href=\"%s\">Savannah Administration</a> project."),
+  . "migration in the <a href=\"%s\">Savannah Administration</a> group."),
   '//savannah.gnu.org/maintenance/CvSToSvN',
   '//savannah.gnu.org/projects/administration'
 );
 print "</p>\n\n";
 
 
-print '<h3>' . _('Exporting Subversion tree from Savannah') . "</h3>\n";
+print html_h (2, _('Exporting Subversion tree from Savannah'));
 print '<p>'
   . _("You can access your subversion raw repository using read-only access "
     . "via\nrsync, and then use that copy as a local SVN repository:")
@@ -108,5 +91,5 @@ print "rsync -avHS rsync://svn.$base_host/svn/$unix_name/ /tmp/$unix_name"
   . ".repo/\nsvn co file:///tmp/$unix_name.repo/ trunk\n"
   . "# ...\n</pre>\n\n<p>"
   . _('If you want a dump you can also use svnadmin:') . "</p>\n\n<pre>\n"
-  . "svnadmin dump /tmp/$unix_name.repo/\n\n</pre>\n";
+  . "svnadmin dump /tmp/$unix_name.repo/\n</pre>\n";
 ?>

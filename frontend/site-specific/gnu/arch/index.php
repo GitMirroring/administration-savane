@@ -41,21 +41,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-include dirname (__FILE__) . '/../fingerprints.php';
-global $project;
+include dirname (__FILE__) . '/../vcs.php';
 
 print "<p>"
-  . "GNU Arch is obsolete.  You can download the repository through rsync:"
+  . _("GNU Arch is obsolete.  You can download the repository through rsync:")
   . "</p>\n";
 
-print "<pre>"
-  . "rsync -avz user_name@arch.savannah.gnu.org/srv/arch/"
-  . $project->getUnixName () . " ."
-  . "</pre>\n";
-
-print "<p>"
-  . _("The SSHv2 public key fingerprints for the machine hosting the Arch\n"
-      . "trees are:")
-  . "</p>\n" . $vcs_fingerprints;
+print "<pre>rsync -avz rsync://arch.$base_host/arch/$unix_name .</pre>\n";
 ?>

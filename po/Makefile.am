@@ -233,6 +233,7 @@ POTFILES = \
 	frontend/site-specific/gnu/arch/index.php \
 	frontend/site-specific/gnu/homepage.php \
 	frontend/site-specific/gnu/bzr/index.php \
+	frontend/site-specific/gnu/vcs.php \
 	frontend/site-specific/gnu/admin/groupedit_grouptype.php \
 	frontend/site-specific/gnu/admin/groupedit_intro.php \
 	frontend/site-specific/gnu/admin/proj_email.php \

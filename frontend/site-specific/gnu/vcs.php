@@ -1,11 +1,13 @@
 <?php
-# Instructions about Bzr usage.
+# Common strings and variables used on VCS pages.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2005, 2006, 2010-2012 Michael J. Flickinger
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2008-2017, 2020 Karl Berry
+# Copyright (C) 2015-2020, 2022, 2024 Bob Proulx
 # Copyright (C) 2013, 2014, 2017-2025 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
@@ -41,50 +43,48 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-include dirname (__FILE__) . '/../vcs.php';
+global $project;
+$base_host = $project->getTypeBaseHost ();
+$unix_name = $project->getUnixName ();
+if (user_isloggedin ())
+  $username = user_getname ();
+else
+  $username = '&lt;<var>' . _('username') . "</var>&gt;";
 
-$http_base_url = "bzr.$base_host/r/$unix_name";
-$bzr_base_url = "bzr://bzr.$base_host/$unix_name";
-
-if ($project->isPublic ())
-  {
-    vcs_print_anon_access ();
-    print '<p>';
-    # TRANSLATORS: The argument is an URL.
-    printf (
-      _("The Bazaar repositories for groups use separate directories for "
-        . "each branch. You can see the branch names in the repository by "
-        . "pointing a web browser to %s."),
-      "<br />\n<code>http://$http_base_url</code>"
-    );
-    print "</p>\n\n<ul>\n<li><p>"
-      . _("For a repository with separate branch directories (<tt>trunk</tt>,\n"
-      . "<tt>devel</tt>, &hellip;), use:")
-      . "</p>\n<pre>bzr branch $bzr_base_url/" . _('<var>branch</var>')
-      . "</pre>\n<p>"
-      . _('where <var>branch</var> is the name of the branch you want.')
-      . "</p>\n</li>\n\n<li><p>"
-      . _('For a repository with only a top-level <tt>.bzr</tt> directory, '
-         . 'use:')
-      . "</p>\n\n<pre>bzr branch $bzr_base_url</pre>\n</li>\n\n<li><p>"
-      . _("If you need the low-performance HTTP or HTTPS access, these are "
-      . "the URLs:")
-      . "</p>\n<pre>http://$http_base_url/" . _('<var>branch</var>')
-      . "\nhttps://$http_base_url/" . _('<var>branch</var>')
-      . "\n</pre>\n</li>\n</ul>\n\n";
-  }
-
-vcs_print_auth_access ();
-print "<pre>bzr branch bzr+ssh://$username@bzr.$base_host/$unix_name/"
-  . "<var>branch</var></pre>\n\n";
-vcs_print_auth_description ();
-
-vcs_print_more_info ();
-print '<p>';
-printf (
-  _('Check the <a href="%s">UsingBzr</a> page at the documentation wiki.'),
-  "//savannah.gnu.org/maintenance/UsingBzr"
-);
-print "</p>\n";
-
+function vcs_print_anon_access ()
+{
+  print html_h (3, _('Anonymous access'));
+}
+function vcs_print_auth_access ()
+{
+  print html_h (3, _('Authenticated SSH access'));
+}
+function vcs_print_auth_access_note ()
+{
+  global $project, $sys_name;
+  if (!$project->isPublic ())
+    return;
+  print '<p>';
+  # TRANSLATORS: the first argument is Unix group name, the second argument
+  #   is website name (like Savannah).
+  printf (
+    _('The remote repository will be writable for %1$s group members '
+      . 'and read-only for other %2$s users.'),
+    '<code>&lt;' . $project->getUnixName () . '&gt;</code>', $sys_name
+  );
+  print "</p>\n";
+}
+function vcs_print_auth_description ()
+{
+  include dirname (__FILE__) . '/fingerprints.php';
+  vcs_print_auth_access_note ();
+  print "<p>"
+    . _("The SSHv2 public key fingerprints for the machine hosting the source\n"
+        . "trees are:")
+    . "</p>\n$vcs_fingerprints";
+}
+function vcs_print_more_info ()
+{
+  print html_h (2, _('More information'));
+}
 ?>

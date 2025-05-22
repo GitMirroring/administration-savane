@@ -607,6 +607,7 @@ ordinary_files = \
   site-specific/gnu/register/index.php \
   site-specific/gnu/register/requirements.php \
   site-specific/gnu/svn/index.php \
+  site-specific/gnu/vcs.php \
   site-specific/nongnu/admin/groupedit_grouptype.php \
   site-specific/nongnu/admin/groupedit_intro.php \
   site-specific/nongnu/admin/proj_email.php \
@@ -621,6 +622,7 @@ ordinary_files = \
   site-specific/nongnu/menu.php \
   site-specific/nongnu/page_footer.php \
   site-specific/nongnu/page_header.php \
+  site-specific/nongnu/vcs.php \
   site-specific/nongnu/project/admin/index_misc.php
 
 dir_links = \

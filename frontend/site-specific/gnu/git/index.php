@@ -41,10 +41,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+include dirname (__FILE__) . '/../vcs.php';
 
-include dirname (__FILE__) . '/../fingerprints.php';
-
-global $project, $repo_list;
+global $repo_list;
 
 $n = count ($repo_list);
 if ($n > 1)
@@ -52,41 +51,37 @@ if ($n > 1)
     . "</p>\n";
 if ($project->isPublic ())
   {
-    print "<h3>" . _('Anonymous clone:') . "</h3>\n<pre>";
+    vcs_print_anon_access ();
+    print '<pre>';
 
     for ($i = 0; $i < $n; $i++)
       {
         if ($n > 1)
           print $repo_list[$i]['desc'] . "\n";
-        print "git clone https://git." . $project->getTypeBaseHost ()
+        print "git clone https://git.$base_host"
           . "/git/" . $repo_list[$i]['url'] . "\n";
         if ($i < $n - 1)
           print "\n";
       }
   }
 
-print "</pre>\n\n<h3>" . _('Member clone:') . "</h3>\n\n<pre>";
-
-$username = user_getname ();
-if ($username == "NA")
-  # For anonymous user.
-  $username = '&lt;<i>' . _('membername') . '</i>&gt;';
+print "</pre>\n\n";
+vcs_print_auth_access ();
+print "<pre>";
 
 for ($i = 0; $i < $n; $i++)
   {
     if ($n > 1)
       print $repo_list[$i]['desc'] . "\n";
-    print "git clone $username@git." . $project->getTypeBaseHost () . ":"
+    print "git clone $username@git.$base_host:"
       . $repo_list[$i]['path'] . "\n";
     if ($i < $n - 1)
       print "\n";
   }
-print "</pre>\n\n<p>"
-  . _("The SSHv2 public key fingerprints for the machine hosting the source\n"
-      . "trees are:")
-   . "</p>\n$vcs_fingerprints";
+print "</pre>\n\n";
+vcs_print_auth_description ();
 
-print '<h3>' . _('More information') . "</h3>\n";
+vcs_print_more_info ();
 print "<a href=\"//savannah.gnu.org/maintenance/UsingGit\">\n";
 print 'https://savannah.gnu.org/maintenance/UsingGit</a>';
 ?>
