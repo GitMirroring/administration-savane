@@ -135,8 +135,15 @@ $sys_debug_footer = true;
 # initialization settings may call for specific character sets when connecting
 # to the database.  In testconfig.php, a few values are tested if needed.
 $sys_dbcharset = 'utf8';
-# Number of rounds used to hash passwords.
-$sys_pw_rounds = 500000;
+# The prefix of the hash algorithm as in crypt(5); supported values
+# are '$y$' and '$6$'; the default is '$y$'.
+$sys_pw_prefix = '$y$';
+# Cost parameter used to hash passphrases; depends on the hash algorithm.
+$sys_pw_rounds = 'DT';
+# Whether to use the built-in PHP crypt() function instead of the sv_crypt
+# script; default is the false because PHP in its default configuration
+# doesn't support yescrypt, and we want to use it.
+$sys_use_php_crypt = false;
 
 # Minimum user ID and group ID numbers used for Savane users and groups
 # for SSH access.

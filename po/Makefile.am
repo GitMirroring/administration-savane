@@ -110,6 +110,7 @@ POTFILES = \
 	frontend/php/include/features_boxes.php \
 	frontend/php/include/theme.php \
 	frontend/php/include/account.php \
+	frontend/php/include/hash.php \
 	frontend/php/include/mailman.php \
 	frontend/php/include/parsemail.php \
 	frontend/php/include/trackers_run/mod.php \

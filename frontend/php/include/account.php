@@ -1,5 +1,5 @@
 <?php
-# Forms and functions to manage accounts (including groups).
+# Functions to manage accounts (including groups).
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
@@ -41,9 +41,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once (dirname (__FILE__) . '/utils.php');
-require_once (dirname (__FILE__) . '/pwqcheck.php');
-require_once (dirname (__FILE__) . '/random-bytes.php');
+foreach (['utils', 'pwqcheck', 'random-bytes', 'hash'] as $inc)
+  require_once (dirname (__FILE__) . "/$inc.php");
 
 define ('HASH_NEW_ACCOUNT', 'new');
 define ('HASH_LOSTPW', 'lostpw');
@@ -435,47 +434,10 @@ function account_groupnamevalid ($name)
   return 0;
 }
 
-function account_gensalt ($salt_base64_length = 16)
-{
-  # Note: $salt_base64_length = 16 for SHA-512, cf. crypt(3)
-  $salt_byte_length = $salt_base64_length * 6 / 8;
-  $rand_bytes = phpass_get_random_bytes ($salt_byte_length);
-  return phpass_encode64 ($rand_bytes, $salt_byte_length);
-}
-
-# Generate unix pw.
-function account_genunixpw ($plainpw)
-{
-  return account_encryptpw ($plainpw);
-}
-
-function account_get_pw_rounds ($use_few_rounds = false)
-{
-  global $sys_pw_rounds;
-  if ($use_few_rounds)
-    # When storing a random hash as opposed to a passphrase, the number
-    # of rounds doesn't matter because the search space is guaranteed to be
-    # large.  Use the minimum round number in such cases.
-    return 1000;
-  if (empty ($sys_pw_rounds))
-    return 5000;
-  return $sys_pw_rounds;
-}
-
-function account_encryptpw ($plainpw, $use_few_rounds = false)
-{
-  $salt = account_gensalt (16);
-  # rounds=5000 is the 2010 glibc default, possibly we'll upgrade in
-  # the future, better have this explicit.
-  # Cf. http://www.akkadia.org/drepper/sha-crypt.html
-  $pfx = '$6$rounds=' . account_get_pw_rounds ($use_few_rounds) . '$';
-  return crypt ($plainpw, "$pfx$salt");
-}
-
 function account_set_pw ($user_id, $plainpw, $more_fields = [])
 {
   $params = $more_fields;
-  $params['user_pw'] = account_encryptpw ($plainpw);
+  $params['user_pw'] = hash_encryptpw ($plainpw);
   return db_autoexecute (
     'user', $params, DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]
   );
@@ -483,63 +445,8 @@ function account_set_pw ($user_id, $plainpw, $more_fields = [])
 
 function account_upgrade_pw ($stored_pw, $plainpw, $user_id)
 {
-  if (!preg_match ('/[$]rounds=(\d+)[$]/', $stored_pw, $matches))
-    return;
-  if (account_get_pw_rounds () <= $matches[1])
-    return;
-  account_set_pw ($user_id, $plainpw);
-}
-
-function account_get_random_byte ()
-{
-  if (!defined ('TESTING_ACCOUNT'))
-    return ord (random_bytes (1));
-  # Return deterministic numbers when testing.
-  static $init_needed = true;
-  if ($init_needed)
-    mt_srand (0);
-  $init_needed = false;
-  return mt_rand (0, 255);
-}
-
-function account_gen_random_order ($len)
-{
-  $ret = [];
-  for ($i = 0; $i < $len; $i++)
-    $ret[] = $i;
-  for ($i = $j = 0; $i < $len - 1; $i++)
-    {
-      if (!$j)
-        {
-          for ($s = $k = 0; $k < 4; $k++)
-            $s = $s * 256 + account_get_random_byte ();
-          mt_srand ((int)$s);
-          $j = 63;
-        }
-      $r = mt_rand ($i, $len - 1);
-      $t = $ret[$i];
-      $ret[$i] = $ret[$r];
-      $ret[$r] = $t;
-      $j--;
-    }
-  return $ret;
-}
-
-function account_compare_hash ($h0, $h)
-{
-  # Try to run in input-independent time; randomize the order
-  # the characters are compared in (hopefully PHP optimizing procedures
-  # won't be able to figure out that the result is just string comparison).
-  $n = strlen ($h0);
-  $order = account_gen_random_order ($n);
-  $weights = [false => 2, true => 1];
-  $ret = $n * 2;
-  for ($i = 0; $i < $n; $i++)
-    {
-      $j = $order[$i];
-      $ret -= $weights[substr ($h0, $j, 1) === substr ($h, $j, 1)];
-    }
-  return $ret == $n;
+  if (hash_needs_upgrading ($stored_pw))
+    account_set_pw ($user_id, $plainpw);
 }
 
 function account_validpw ($stored_pw, $plain_pw)
@@ -548,7 +455,7 @@ function account_validpw ($stored_pw, $plain_pw)
     return false;
   if (strlen ($stored_pw) < 2) # Disabled account, for sure.
     return false;
-  return account_compare_hash (crypt ($plain_pw, $stored_pw), $stored_pw);
+  return hash_compare_hash (hash_crypt ($plain_pw, $stored_pw), $stored_pw);
 }
 
 function account_key_separator ()
@@ -656,7 +563,7 @@ function account_generate_confirm_hash ($item, $params = [], $user_id = 0)
     $user_id = user_getid ();
   $s = CONFIRM_HASH_SEPARATOR;
   $confirm_hash = random_hash ();
-  $hash_enc = account_encryptpw ($confirm_hash, true);
+  $hash_enc = hash_encryptpw ($confirm_hash, true);
   $params['confirm_hash'] = time () . "$s$item$s$hash_enc";
   $success = db_autoexecute ('user', $params,
     DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]

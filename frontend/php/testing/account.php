@@ -1,5 +1,5 @@
 <?php
-# Test account_validpw () and auxiliary functions.
+# Test account_validpw () and auxiliary functions related to passphrase hashing.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -47,22 +47,26 @@
 #
 # In case of fail, diagnostic text is output to stdout.
 
-define ('TESTING_ACCOUNT', true); # Use deterministic pseudo-random numbers.
+define ('TESTING_HASH', true); # Use deterministic pseudo-random numbers.
 require_once ('include/account.php');
 # '0' will not do as a passphrase because account_validpw checks for emptiness.
-$plain_pw = ['10', '11'];
+# Running checks against non-ASCII strings is essential because Perl may have
+# issues with them.
+$plain_pw = ['10', '11', '\xff\xaa\xff', '\x9f\x98\x85'];
 foreach ($plain_pw as $p)
-  $stored_pw[$p] = account_encryptpw ($p);
+  $stored_pw[$p] = hash_encryptpw ($p);
 
 foreach ($plain_pw as $p)
   if (!account_validpw ($stored_pw[$p], $p))
-    print "False negative for >$p<\n";
-foreach ($plain_pw as $k => $p)
-  {
-    $pw = $plain_pw[1 - $k];
-    if (account_validpw ($stored_pw[$p], $pw))
-      print "False positive for >$pw< against hash generated for >$pw<\n";
-  }
+    print "False negative for >$p< ({$stored_pw[$p]})\n";
+foreach ($plain_pw as $k0 => $p0)
+  foreach ($plain_pw as $k => $p)
+    {
+      if ($k0 == $k)
+        continue;
+      if (account_validpw ($stored_pw[$p0], $p))
+        print "False positive for >$p< against hash generated for >$p0<\n";
+    }
 function validate_order ($round, $set, $len)
 {
   for ($i = 0; $i < $len; $i++)
@@ -95,7 +99,7 @@ function test_gen_random_order ($len)
 {
   for ($i = 0; $i < 0x121; $i++)
     {
-      $order = account_gen_random_order ($len);
+      $order = hash_gen_random_order ($len);
       $set = [];
       foreach ($order as $o)
         if (array_key_exists ($o, $set))

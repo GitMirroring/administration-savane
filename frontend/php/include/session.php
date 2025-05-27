@@ -315,7 +315,7 @@ function session_generate_hash ($user_id)
     {
       $hash = random_hash ();
       $ticket = session_generate_ticket ();
-      $hhash = "$ticket;" . account_encryptpw ($hash, true);
+      $hhash = "$ticket;" . hash_encryptpw ($hash, true);
       $vals = session_try_insert_hash ($user_id, $hhash, $tries);
       if (empty ($vals))
         {

@@ -445,6 +445,78 @@ function test_mailman ()
       . "in \$sys_mailman_wrapper.</strong></p>\n";
 }
 
+function test_hash_pfx ()
+{
+  global $sys_pw_prefix;
+  $real_pfx = hash_get_pw_prefix ();
+  if (empty ($sys_pw_prefix))
+    return "<b>unset</b><br />\nThe effective value is <b>$real_pfx</b>.";
+  $pfx = $sys_pw_prefix;
+  if ($pfx != $real_pfx)
+    $pfx .= "<br />\n"
+      . "<i>Overridden; the effective value is</i> <b>$real_pfx</b>.";
+  return $pfx;
+}
+function test_hash_cost ()
+{
+  global $sys_pw_rounds;
+  $real_cost = hash_get_pw_cost ();
+  if (empty ($sys_pw_rounds))
+    return "<b>unset</b><br />\nThe effective value is <b>$real_cost</b>.";
+  $cost = $sys_pw_rounds;
+  if ($real_cost != $cost)
+    $cost .= "<br />\n"
+      . "<i>Overridden; the effective value is</i> <b>$real_cost</b>.";
+  return $cost;
+}
+
+function test_hash_algos ()
+{
+  global $sys_pw_rounds, $sys_pw_prefix;
+  list ($saved_prefix, $saved_rounds) = [$sys_pw_prefix, $sys_pw_rounds];
+  $defs = [];
+  $plain = 'foo \xff\xaa\xff \x9f\x98\x85';
+  foreach (hash_supported_pw_prefices () as $pfx)
+    {
+      $sys_pw_prefix = $pfx;
+      if ($pfx === $saved_prefix)
+        $sys_pw_rounds = $saved_rounds;
+      else
+        unset ($sys_pw_rounds);
+      $stored = hash_encryptpw ($plain);
+      $ret = "<b>fail</b>";
+      if ($stored === '*0')
+        $ret .= ': algorithm is unsupported';
+      elseif (account_validpw ($stored, $plain))
+        $ret = 'OK';
+      $defs[$pfx] = $ret;
+    }
+  print html_dl ($defs);
+  list ($sys_pw_prefix, $sys_pw_rounds) = [$saved_prefix, $saved_rounds];
+}
+
+function test_hash ()
+{
+  global $sys_use_php_crypt;
+  print html_h (2, 'Stored passwords');
+  $defs = [
+    'Supported algorithms for new hashes' =>
+      join (', ', hash_supported_pw_prefices ()),
+    'Implementation used' => empty ($sys_use_php_crypt)?
+      'libc via the sv_crypt script': 'PHP crypt() function',
+    'sys_pw_prefix' => test_hash_pfx (), 'sys_pw_rounds' => test_hash_cost ()
+  ];
+  print html_dl ($defs);
+  $saved_use = $sys_use_php_crypt;
+  print html_h (3, 'Testing sv_crypt');
+  $sys_use_php_crypt = false;
+  test_hash_algos ();
+  print html_h (3, 'Testing PHP crypt() function');
+  $sys_use_php_crypt = true;
+  test_hash_algos ();
+  $sys_use_php_crypt = $saved_use;
+}
+
 $page = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n"
       . "  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
 $page .=
@@ -919,7 +991,7 @@ function output_sysvars ()
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
     'min_gidNumber', 'min_uidNumber', 'group_file', 'passwd_file',
     'passwd_common_gid', 'passwd_home_dir', 'passwd_user_shell',
-    'pw_rounds', 'reply_to',
+    'use_php_crypt', 'pw_prefix', 'pw_rounds', 'reply_to',
     'themedefault', 'unix_group_name', 'upload_max', 'use_strftime',
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_cgit', 'group_file', 'max_items_per_page',
@@ -1000,6 +1072,7 @@ function test_sysconfigs ()
   print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
   test_captcha ();
   test_mailman ();
+  test_hash ();
   test_mysql ();
 
   test_gpg ();

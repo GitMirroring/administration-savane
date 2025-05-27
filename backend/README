@@ -29,6 +29,14 @@ for the newly approved groups and the users joining active groups are assigned
 synchronously in Web UI; this script may be needed to generate those numbers
 in the fresh installation, for example, from ../db/initial.sql.
 
+accounts/sv_crypt
+=================
+
+Invokes crypt(3) with the parameters read from stdin and passes the result
+to stdout.  This script is used to handle hashed passwords since the set
+of algorithms supported by PHP as of 2025-05 lags behind GNU libc;
+in particular, we'd like to use yescrypt by default.
+
 accounts/sv_gen_passwd_group
 ============================
 

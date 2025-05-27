@@ -48,10 +48,11 @@
 # Author: Solar Designer
 function phpass_encode64 ($input, $count)
 {
+  if (!is_int ($count))
+    trigger_error ("Count $count isn't integer.");
   $itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   $output = '';
-  $i = 0;
-  do
+  for ($i = 0; $i < $count; $i++)
     {
       $value = ord ($input[$i++]);
       $output .= $itoa64[$value & 0x3f];
@@ -63,11 +64,10 @@ function phpass_encode64 ($input, $count)
       if ($i < $count)
         $value |= ord ($input[$i]) << 16;
       $output .= $itoa64[($value >> 12) & 0x3f];
-      if ($i++ >= $count)
+      if ($i >= $count)
         break;
       $output .= $itoa64[($value >> 18) & 0x3f];
     }
-  while ($i < $count);
   return $output;
 }
 

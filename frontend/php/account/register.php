@@ -154,7 +154,7 @@ function create_user ()
 {
   global $form_loginname, $form_pw, $form_realname, $form_email;
   $new_name = strtolower ($form_loginname);
-  $passwd = account_encryptpw ($form_pw);
+  $passwd = hash_encryptpw ($form_pw);
   $vals = ['user_name' => $new_name, 'user_pw' => $passwd,
     'status' => USER_STATUS_PENDING, 'realname' => $form_realname,
     'email' => $form_email, 'add_date' => time (), 'people_resume' => ''

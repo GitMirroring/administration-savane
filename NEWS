@@ -2,6 +2,10 @@
 
 [FRONTEND]
 
+* New passphrase hashes are made using yescrypt by default, and
+  old hashes are updated when the user logs in.  New config variables,
+  $sys_use_php_crypt and $sys_pw_prefix.
+
 * In /users.php, info is provided on how the account was removed.
 
 * Commas in 'realname' are replaced with spaces when writing the 'passwd'
@@ -30,6 +34,8 @@
 ** Aging statistics in /bugs/reporting.php was broken.
 
 [BACKEND]
+
+* New script, sv_crypt.
 
 * In sv_gen_passwd_group, commas in 'realname' are replaced with spaces when
   writing the 'passwd' file.
