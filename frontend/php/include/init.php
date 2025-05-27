@@ -110,14 +110,14 @@ $sys_upload_dir = "/var/www/submissions_uploads" ;
 
 $sys_mailman_wrapper = "$bindir/sv_mailman-wrapper.pl";
 
+if (!empty ($sys_conf_file))
+  include ("$sys_conf_file");
+
 if (empty ($sys_linguas))
   $sys_linguas = "en:ru";
 
 if (false === strpos (":$sys_linguas:", ":en:"))
   $sys_linguas .= ":en";
-
-if (!empty ($sys_conf_file))
-  include ("$sys_conf_file");
 
 if (empty ($sys_file_domain))
   $sys_file_domain = $sys_default_domain;
