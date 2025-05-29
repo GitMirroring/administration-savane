@@ -655,7 +655,7 @@ function test_disabled_languages ($loc_list)
 {
   global $sys_linguas;
   $linguas = $sys_linguas;
-  $ret = "<p>Other defined languages: ";
+  $ret = html_h (3, "Other defined languages") . "<p>";
   if (empty ($loc_list))
     return "{$ret}none.</p>\n";
   $ret .= join (", ", array_keys ($loc_list)) . ".</p>\n";
@@ -676,14 +676,15 @@ function get_locales ()
   if ($res)
     return "<p>Can't get locales defined: </p>\n<pre>$err</pre>\n";
   $out = str_replace ("\n", ', ', substr ($out, 0, -1));
-  return "<p>Locales defined: $out.</p>\n";
+  return html_h (3, "Locales defined") . "<p>$out.</p>\n";
 }
 
 function test_i18n ()
 {
   global $sys_linguas, $languages_available;
+  print html_h (2, "I18n");
   $loc_list = $languages_available;
-  $ret = get_locales () . "<p>sys_linguas: $sys_linguas</p>\n";
+  $ret = get_locales () . html_h (3, "sys_linguas") . "<p>$sys_linguas</p>\n";
   $defs = [];
   foreach (explode (':', $sys_linguas) as $lang)
     {
@@ -693,7 +694,7 @@ function test_i18n ()
     }
   $ret .= html_dl ($defs) . test_disabled_languages ($loc_list);
   i18n_setup ("en_US.UTF-8");
-  return $ret;
+  print $ret;
 }
 
 $page .= html_h (2, "Apache environment variables");
@@ -1002,12 +1003,12 @@ function test_sysconfigs ()
   test_mysql ();
 
   test_gpg ();
+  test_i18n ();
   print html_h (2, "Other tests");
   $defs = [];
   test_repos ($defs);
   $defs['sys_upload_dir writability'] =
     ['sys-upload-dir', test_sys_upload_dir ()];
-  $defs['i18n'] = ['i18n', test_i18n ()];
   print html_dl ($defs);
   print html_h (3, 'Limiting email error report rate', 'error-cc-limit');
   print error_test_cc_limit ();
