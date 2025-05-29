@@ -141,4 +141,105 @@ function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = '')
     return 0;
   return gettext ($retval);
 }
+
+function pwqcheck_match_min_numbers ($args)
+{
+  $single_field = "([[:digit:]]*|disabled)";
+  $fields = $single_field . str_repeat (",$single_field", 4);
+  if (preg_match ("/min=$fields /", $args, $matches))
+    return $matches;
+  return null;
+}
+
+function pwqcheck_min_number_messages ()
+{
+  return [
+    [
+      _("Passwords consisting of characters from one class only "
+          . "are not allowed."),
+      _("Passwords consisting of characters from two classes that don't "
+        . "meet\nrequirements for passphrases are not allowed."),
+      _("Check for passphrases is disabled."),
+      _("Passwords consisting of characters from three classes "
+        . "are not allowed."),
+      _("Passwords consisting of characters from four classes "
+        . "are not allowed."),
+    ],
+    [
+      _("The minimum length for passwords consisting of characters "
+        . "from one class: %s."),
+      _("\nThe minimum length for passwords consisting of characters "
+        . "from two classes\nthat don't meet requirements "
+        . "for passphrases: %s."),
+      _("The minimum length for passphrases: %s."),
+      _("The minimum length for passwords consisting of characters\n"
+        . "from three classes: %s."),
+      _("The minimum length for passwords consisting of characters\n"
+        . "from four classes: %s."),
+    ]
+  ];
+}
+
+function pwqcheck_explain_min_numbers ($args, &$help)
+{
+  $matches = pwqcheck_match_min_numbers ($args);
+  if ($matches === null)
+    return;
+  list ($msg_disabled, $msg_number) = pwqcheck_min_number_messages ();
+  for ($i = 0; $i < 4; $i++)
+    {
+      if ($matches[$i + 1] == 'disabled')
+        $help[] = $msg_disabled[$i];
+      else
+        $help[] = sprintf ($msg_number[$i], $matches[$i + 1]);
+    }
+}
+
+function pwqcheck_explain_max ($args, &$help)
+{
+  if (!preg_match ("/max=([[:digit:]]*) /", $args, $matches))
+    return;
+  $help[] =
+    sprintf (_("The maximum allowed password length: %s."), $matches[1]);
+}
+
+function pwqcheck_explain_passphrase ($args, &$help)
+{
+  if (!preg_match ("/passphrase=([[:digit:]]*) /", $args, $matches))
+    return;
+  $help[] = sprintf (
+    _("The number of words required for a passphrase: %s."), $matches[1]
+  );
+}
+
+function pwqcheck_explain_match ($args, &$help)
+{
+  if (!preg_match ("/match=([[:digit:]]*) /", $args, $matches))
+    return;
+  if (!$matches[1])
+    {
+      $help[] = _("Checks for common substrings are disabled.");
+      return;
+    }
+  $help[] = sprintf (
+    _("The length of common substring required to conclude "
+      . "that a password\nis at least partially based on information "
+      . "found in a character string: %s."),
+    $matches[1]
+  );
+}
+
+# Return a string explaining current pwcheck requirements.
+function pwqcheck_explain_options ($pwqcheck_args)
+{
+  $args = "$pwqcheck_args ";
+  $help = [];
+  $sep = "<br />\n";
+
+  pwqcheck_explain_max ($args, $help);
+  pwqcheck_explain_passphrase ($args, $help);
+  pwqcheck_explain_match ($args, $help);
+  pwqcheck_explain_min_numbers ($args, $help);
+  return $sep . join ($help);
+}
 ?>

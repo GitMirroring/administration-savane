@@ -48,79 +48,6 @@ require_once (dirname (__FILE__) . '/random-bytes.php');
 define ('HASH_NEW_ACCOUNT', 'new');
 define ('HASH_LOSTPW', 'lostpw');
 
-# Return a string explaining current pwcheck requirements.
-function expand_pwqcheck_options ()
-{
-  global $pwqcheck_args;
-
-  $args = "$pwqcheck_args ";
-  $help = "";
-
-  if (preg_match ("/max=([[:digit:]]*) /", $args, $matches))
-    {
-      $help .= "<br />\n"
-        . sprintf (_("The maximum allowed password length: %s."), $matches[1]);
-    }
-  if (preg_match ("/passphrase=([[:digit:]]*) /", $args, $matches))
-    {
-      $help .= "<br />\n"
-        . sprintf (
-            _("The number of words required for a passphrase: %s."),
-            $matches[1]
-          );
-    }
-  if (preg_match ("/match=([[:digit:]]*) /", $args, $matches))
-    {
-      $help .= "<br />\n";
-      if ($matches[1])
-        $help .= sprintf (
-          _("The length of common substring required to conclude "
-            . "that a password\nis at least partially based on information "
-            . "found in a character string: %s."),
-          $matches[1]
-        );
-      else
-        $help .= _("Checks for common substrings are disabled.");
-    } # preg_match ($args, "/match=([^ ]*)/ ", $matches)
-
-  $single_field = "([[:digit:]]*|disabled)";
-  $fields = $single_field . str_repeat (",$single_field", 4);
-  if (!preg_match ("/min=$fields /", $args, $matches))
-    return $help;
-  $msg_disabled = [
-    _("Passwords consisting of characters from one class only "
-        . "are not allowed."),
-    _("Passwords consisting of characters from two classes that don't "
-      . "meet\nrequirements for passphrases are not allowed."),
-    _("Check for passphrases is disabled."),
-    _("Passwords consisting of characters from three classes "
-      . "are not allowed."),
-    _("Passwords consisting of characters from four classes "
-      . "are not allowed."),
-  ];
-  $msg_number = [
-    _("The minimum length for passwords consisting of characters "
-      . "from one class: %s."),
-    _("\nThe minimum length for passwords consisting of characters "
-      . "from two classes\nthat don't meet requirements "
-      . "for passphrases: %s."),
-    _("The minimum length for passphrases: %s."),
-    _("The minimum length for passwords consisting of characters\n"
-      . "from three classes: %s."),
-    _("The minimum length for passwords consisting of characters\n"
-      . "from four classes: %s."),
-  ];
-  for ($i = 0; $i < 4; $i++)
-    {
-      $help .= "<br />\n";
-      if ($matches[$i + 1] == 'disabled')
-        $help .= $msg_disabled[$i];
-      else
-        $help .= sprintf ($msg_number[$i], $matches[$i + 1]);
-    }
-  return $help;
-}
-
 function account_password_help ()
 {
   global $use_pwqcheck, $pwqcheck_args;
@@ -137,7 +64,7 @@ function account_password_help ()
     . sprintf (
         _("pwqcheck options are '%s':"), utils_specialchars ($pwqcheck_args)
       );
-  $help .= expand_pwqcheck_options ();
+  $help .= pwqcheck_explain_options ($pwqcheck_args);
   return $help;
 }
 
