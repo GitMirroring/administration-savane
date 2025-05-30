@@ -145,9 +145,6 @@ die "Destination file is unspecified.\n" if $#ARGV < 0;
 die ("Specify --all or --http-only.\n") unless ($all || $http_only);
 # $all is mutually exclusive with $http_only and is ignored further.
 
-my $dest = $ARGV[0];
-open (DEST, ">$dest") || die ("open(>$dest) failed: $!");
-
 my $origlist = LWP::Simple::get ($origin);
 die 'GNU mirror list unavailable' unless $origlist;
 my @ret = ();
@@ -187,6 +184,11 @@ for my $line (split ("\n", $srclist))
   } # for my $line (split ("\n", $srclist))
 die "found no mirmon entries?! (from $srclist)" unless @ret;
 
+# Only open the output file when we have anything to write,
+# so that the mirror list isn't lost e.g. when we fail to download
+# the mirror list from www.gnu.org.
+my $dest = $ARGV[0];
+open (DEST, ">$dest") || die ("open(>$dest) failed: $!");
 # Order doesn't matter to mirmon, so write it as we read it.
 print DEST @ret;
 close (DEST) || die ("close(>$dest) failed $!");
