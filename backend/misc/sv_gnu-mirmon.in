@@ -57,6 +57,7 @@ use LWP::Simple;
 use Locale::Country;
 use Getopt::Long;
 use Savane::Version;
+use Savane::Util;
 
 sub get_loc_and_urls
 {
@@ -184,13 +185,9 @@ for my $line (split ("\n", $srclist))
   } # for my $line (split ("\n", $srclist))
 die "found no mirmon entries?! (from $srclist)" unless @ret;
 
-# Only open the output file when we have anything to write,
-# so that the mirror list isn't lost e.g. when we fail to download
-# the mirror list from www.gnu.org.
-my $dest = $ARGV[0];
-open (DEST, ">$dest") || die ("open(>$dest) failed: $!");
+my ($fh, $fn) = open_tmp ('gnu-mirmon');
 # Order doesn't matter to mirmon, so write it as we read it.
-print DEST @ret;
-close (DEST) || die ("close(>$dest) failed $!");
+print { $fh } @ret;
+close_and_move ($fh, $fn, $ARGV[0]);
 
 exit (0);
