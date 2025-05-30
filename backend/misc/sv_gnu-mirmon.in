@@ -53,6 +53,7 @@
 # Output is to the second cmdline argument.  stdout isn't good because
 # we don't want to blindly overwrite a good file if something goes wrong.
 
+use strict;
 use LWP::Simple;
 use Locale::Country;
 use Getopt::Long;
@@ -62,13 +63,12 @@ use Savane::Util;
 sub get_loc_and_urls
 {
   my ($line, $http_only) = @_;
-  my ($loc, $url);
   # The lines we care about look like:
   #   LOCATION - URL[, URL]...
   return ('', '')
     unless $line =~ m,^(.*?) - (.*://.*)$,;  # Non-greedy just in case.
 
-  ($loc, $urls) = ($1, $2);
+  my ($loc, $urls) = ($1, $2);
   # Additional marks at the end of location like [cn, js]:
   # when using for redirections, such mirrors are skipped,
   # in the --all mode, the marks are ignored.
@@ -114,7 +114,7 @@ sub split_urls
       warn "URL contains whitespace character: $u";
       return '';
     }
-  # Need trailing / (mirmon adds it anyway).
+  # Need trailing "/" (mirmon adds it anyway).
   $u .= "/" unless $u =~ m,/$,;
   return '' unless ($u =~ /^http/ || !$http_only);;
   return "$country_code $u\n";
