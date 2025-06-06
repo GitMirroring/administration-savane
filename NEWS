@@ -17,6 +17,8 @@
 
 * Bug fixes:
 
+** Failures to run external processes were handled incorrectly.
+
 ** $sys_linguas was 'fixed up' before reading $sys_conf_file.
 
 ** User-supplied tracker CC comments like '-SUB-', '-COM-', '-UPD-' weren't

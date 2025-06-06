@@ -769,7 +769,7 @@ function utils_set_csp_headers ()
 } # namespace {
 
 namespace utils_run_proc_ns {
-function dispatch_error ($cmd, $code, $err, $log_error, $in)
+function dispatch_error ($cmd, $code, $err, $log_error, $in = null)
 {
   if (!$code || !$log_error)
     return;
@@ -807,7 +807,7 @@ function p_open ($cmd, $env, $log_error)
   if ($proc !== false)
     return [null, '', $pipes, $proc];
   $err = "can't run $cmd\n";
-  utils_run_proc_ns\dispatch_error ($cmd, -1, $err, $log_error);
+  dispatch_error ($cmd, -1, $err, $log_error);
   return ['fail', $err, null, null];
 }
 
