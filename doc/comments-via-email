@@ -40,6 +40,11 @@ for example,
 
   83521-task-savannah <savannah-trackers@gnu.org>
 
+The procmail script used to pass the message to the Web UI doesn't parse
+its body (in fact, it may not be able to do that when it's encrypted),
+so this data should be preserved in the 'To:' header.  Without it,
+the message is silently ignored.
+
 Also, the quoted body of the message contains a line with the same data plus
 the number of the item, like
 
