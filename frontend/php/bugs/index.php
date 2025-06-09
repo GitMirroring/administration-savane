@@ -554,6 +554,8 @@ switch ($func)
         else
           $spamscore = 3;
       }
+    if (!isset ($comment_internal_id))
+      exit_missing_param (['comment_internal_id']);
     spam_flag ($item_id, $comment_internal_id, $spamscore, $group_id);
 
     # Return to the item page if it was not the item itself that was
@@ -570,7 +572,8 @@ switch ($func)
         # (the link was not provided).
         exit_permission_denied ();
       }
-
+    if (!isset ($comment_internal_id))
+      exit_missing_param (['comment_internal_id']);
     spam_unflag ($item_id, $comment_internal_id, ARTIFACT, $group_id);
     include '../include/trackers_run/mod.php';
     break;
