@@ -343,26 +343,38 @@ function sendmail_spamcheck_queue ($context, $u_name, $u_subj, $message)
   );
 }
 
-function tracker_instructions_on_replying ($bug_ref, $have_reply_to)
+function tracker_note_on_replying_by_email ($bug_ref, $context)
+{
+  global $sys_reply_to;
+  $reply_to = sendmail_expand_template ($sys_reply_to, $context);
+  $note = sprintf (
+    no_i18n (
+     "To reply to this notification, you have two options:
+      * In the Web UI at <%s>.
+      * By email to $reply_to, ONLY IF you preserve both
+        the 'display name' and the 'address specification' in the To: header
+        AND you sign your email with a GPG key registered in your %s account
+        AND you include the following line in the reply:"),
+    $bug_ref, $GLOBALS['sys_name']
+  );
+  return preg_replace ('/^ {6}/m', '', $note);
+}
+
+function tracker_instructions_on_replying ($bug_ref, $uid, $context)
 {
   $head = "\n    _______________________________________________________\n\n";
   # Sender's language preferences may differ from recipient's,
   # so we would have to translate to a language different from
   # currently selected; meanwhile, we leave the message untranslated.
-  if ($have_reply_to)
-    $note = sprintf (
-      no_i18n (
-       "To reply to this notification, you have two options:
-        * In the Web UI at <%s>.
-        * By email, ONLY IF you sign your email with a GPG key registered
-          in your %s account AND you include the following line
-          in the reply:"),
-      $bug_ref, $GLOBALS['sys_name']
-    );
-  else
+  if ($uid === NULL)
     # Old footer, without the parameter line and long explanation.
     $note = sprintf (no_i18n ("Reply to this item at:\n\n  <%s>"), $bug_ref);
-  return $head . preg_replace ('/^ {8}/m', '', $note);
+  else
+    {
+      $context['uid'] = $uid;
+      $note = tracker_note_on_replying_by_email ($bug_ref, $context);
+    }
+  return "$head$note";
 }
 
 # Return the parameter line for bugs/comment.php with comments for the users
@@ -370,9 +382,10 @@ function tracker_instructions_on_replying ($bug_ref, $have_reply_to)
 # than a number.
 function sendmail_tracker_lines ($uid, $context, $bug_ref)
 {
-  $have_reply_to = sendmail_have_reply_to ($context, $uid);
-  $note = tracker_instructions_on_replying ($bug_ref, $have_reply_to);
-  if ($have_reply_to)
+  if (!sendmail_have_reply_to ($context, $uid))
+    $uid = NULL;
+  $note = tracker_instructions_on_replying ($bug_ref, $uid, $context);
+  if ($uid !== NULL)
     $note .= "\n\n  {savane: user = $uid; tracker = {$context['tracker']}; "
       . "item = {$context['item']}}";
   return $note;
