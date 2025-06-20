@@ -234,8 +234,15 @@ function utils_cutstring ($string, $length = 35)
   return $string;
 }
 
-function utils_utils_strftime ($timestamp, $format)
+function utils_strftime ($timestamp, $format)
 {
+  if (!empty ($sys_use_strftime) && function_exists ("strftime"))
+    {
+      $state = utils_disable_warnings (E_DEPRECATED);
+      $ret = strftime ($format, $timestamp);
+      utils_restore_warnings ($state);
+      return $ret;
+    }
   $env['LC_ALL'] = setlocale (LC_TIME, 0);
   $env['TZ'] = getenv ('TZ');
   $cmd = "date +$format -d @$timestamp";
@@ -243,26 +250,6 @@ function utils_utils_strftime ($timestamp, $format)
   $output = substr ($output, 0, -1); # Drop trailing "\n".
   return $output;
 }
-
-if (!empty ($sys_use_strftime) && function_exists ("strftime"))
-  {
-    # Used until strftime is dropped from PHP.
-    function utils_strftime ($timestamp, $format)
-    {
-      $state = utils_disable_warnings (E_DEPRECATED);
-      $ret = strftime ($format, $timestamp);
-      utils_restore_warnings ($state);
-      return $ret;
-    }
-  }
-else # !(!empty ($sys_use_strftime) && function_exists ("strftime"))
-  {
-    # Fallback for the PHP versions (> 8.1) when no usable strftime is provided.
-    function utils_strftime ($timestamp, $format)
-    {
-      return utils_utils_strftime ($timestamp, $format);
-    }
-  } # !(!empty ($sys_use_strftime) && function_exists ("strftime"))
 
 # Return a formatted date for a unix timestamp.
 #

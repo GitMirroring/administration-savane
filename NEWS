@@ -17,6 +17,8 @@
 
 * Bug fixes:
 
+** The implementation of strftime wasn't selected correctly.
+
 ** Failures to run external processes were handled incorrectly.
 
 ** $sys_linguas was 'fixed up' before reading $sys_conf_file.
