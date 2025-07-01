@@ -70,7 +70,8 @@ print "<p>"
       . "project.\nWe do reserve the right, however, to discontinue hosting "
       . "a project.")
 
-  . "</p>\n\n<h3>" . _('Use of project account') . "</h3>\n\n<p>";
+  . "</p>\n\n" . html_h (3, _('Use of project account'), 'usage')
+  . "<p id='purpose'>";
 
 printf (
   _("The space given to you on this server is given for the expressed\n"
@@ -82,11 +83,11 @@ printf (
   "//www.gnu.org/philosophy/philosophy.html"
 );
 
-print "</p>\n<p>"
+print "</p>\n<p id='no-removal'>"
   . _("In order to preserve history and complete transparency, we will not\n"
       . "remove projects that contain anything substantive.")
-
-  . "</p>\n\n<h3>" . _('No dependencies on nonfree software') . "</h3>\n\n<p>"
+  . "</p>\n\n"
+  . html_h (3, _('No dependencies on nonfree software'), 'nonfree-deps') . "<p>"
   . sprintf (
       _("To be hosted on Savannah, your project must be free software, and it\n"
         . "must be kept independent of any nonfree software.  The package "
@@ -99,13 +100,13 @@ print "</p>\n<p>"
         . "Standards."),
       "//www.gnu.org/prep/standards/html_node/References.html"
     )
-  . "</p>\n<p>"
+  . "</p>\n<p id='best-on-free'>"
   . _("The program should deliver its full functionality and convenience on a\n"
       . "completely free platform based on a free operating system, such as\n"
       . "GNU/Linux, working entirely with other free software.  Otherwise, it\n"
       . "would be an inducement to install nonfree operating systems or other\n"
       . "nonfree software.")
-  . "</p>\n<p>"
+  . "</p>\n<p id='support-for-nonfree'>"
   . _("It is ok for the program to run on nonfree platforms or nonfree\n"
       . "operating systems, and to work with well-known nonfree applications,\n"
       . "in addition to working with free software, provided it gives the "
@@ -114,12 +115,13 @@ print "</p>\n<p>"
       . "program put free software users at a disadvantage compared to those\n"
       . "willing to use proprietary software.")
 
-  . "</p>\n\n<h3>" . _('Regarding Android phones') . "</h3>\n\n<p>"
+  . "</p>\n\n" . html_h (3, _('Regarding Android phones'), 'android') . "<p>"
   . _("Projects running on\n"
       . "Replicant may be hosted on Savannah.  Projects having dependencies "
       . "on\nnonfree software, such as proprietary software drivers or "
       . "AndroidOS,\nare not permissible.")
-  . "</p>\n\n<h3>" . _('No nonfree formats') . "</h3>\n\n<p>"
+  . "</p>\n\n" . html_h (3, _('No nonfree formats'), 'proprietary-formats')
+  . "<p>"
   . _("Using a format such as Flash, RealPlayer and QuickTime, that can in\n"
       . "practice only be created or played using nonfree software is, in\n"
       . "effect, to recommend use of that nonfree player software.  When the\n"
@@ -128,14 +130,15 @@ print "</p>\n<p>"
       . "recommending the nonfree version.\nTherefore, your package shouldn't "
       . "contain or recommend materials in\nthese nonfree formats.")
 
-  . "</p>\n\n<h3>" . _('Advertisements') . "</h3>\n\n<p>"
+  . "</p>\n\n" . html_h (3, _('Advertisements'), 'ads') . "<p>"
   . _("In general, you may not advertise anything commercial on a site hosted\n"
       . "here.  However, as exceptions, you can point people to commercial\n"
       . "support offerings for your free software project, and you can "
       . "mention\nfan items about your free software project that you sell "
       . "directly to\nthe users.")
 
-  . "</p>\n\n<h3>" . _('Speaking about free software') . "</h3>\n\n<p>"
+  . "</p>\n\n" . html_h (3, _('Speaking about free software'), 'speaking')
+  . "<p id='free-sw'>"
   . _("Savannah is a free software hosting site: we host projects such as\n"
       . "yours for the sake of the ideals of freedom and community that the\n"
       . "free software movement stands for.  We offer Savannah hosting to "
@@ -143,26 +146,26 @@ print "</p>\n<p>"
       . "please\ndescribe your package clearly as a free software package.  "
       . "Please\nlabel it as &ldquo;free software&rdquo; rather than as "
       . "&ldquo;open\nsource&rdquo;.")
-  . "</p>\n<p>"
+  . "</p>\n<p id='gnu-linux'>"
   . _("Savannah is part of the GNU Project, developer of the free software\n"
       . "operating system GNU.  The GNU/Linux system (GNU with Linux as the\n"
       . "kernel) runs Savannah now.  While using our hosting services, please\n"
       . "acknowledge our work by referring to this system as "
       . "&ldquo;GNU/Linux,&rdquo; not\njust &ldquo;Linux,&rdquo; when you "
       . "mention it in connection with this\npackage.")
-   . "</p>\n<p>";
+   . "</p>\n<p id='words-to-avoid'>";
 printf (
   _("If you'd like to help correct other confusions, you can find some\n"
     . "suggestions in <a href=\"%s\">Words to Use with Care</a>."),
   '//www.gnu.org/philosophy/words-to-avoid.html'
 );
 
-print "</p>\n\n<h3>" . _('Project naming') . "</h3>\n\n<p>"
+print "</p>\n\n" . html_h (3, _('Project naming'), 'naming') . "<p>"
   . _("Project identifiers should be reasonably descriptive, rather than\n"
       . "terse abbreviations or confusingly general.  If we believe this to be "
       . "an\nissue, we will discuss it with you.")
 
-  . "</p>\n\n<h3>" . _('Free software licenses') . "</h3>\n\n<p>"
+  . "</p>\n\n" . html_h (3, _('Free software licenses'), 'licenses') . "<p>"
 
   . _("You will be presented with a choice of free software licenses for\n"
       . "your project.  For hosting on Savannah, you must use one of these\n"
@@ -174,14 +177,14 @@ print "</p>\n\n<h3>" . _('Project naming') . "</h3>\n\n<p>"
       . "formulation\nfor the GNU GPL, GNU AGPL, and GNU LGPL.  You will "
       . "remain the copyright\nholder of whatever you create for your "
       . "project.");
-print "</p>\n<p>";
+print "</p>\n<p id='manuals'>";
 printf (
   _("For manuals, we recommend GNU FDL version X-or-later, where X is the\n"
       . "latest released version of the <a href=\"%s\">FDL</a>; other\n"
       . "licensing compatible with that is acceptable."),
    '//www.gnu.org/licenses/fdl.html'
 );
-print "</p>\n<p>";
+print "</p>\n<p id='legal-notices'>";
 
 printf (
   _("Proper legal notices should be applied to, at least, each source\n"
@@ -195,7 +198,7 @@ printf (
    "//www.gnu.org/licenses/gpl-howto.html"
 );
 
-print "</p>\n<p>"
+print "</p>\n<p id='other-licenses'>"
   . _("If you need to use another license that is not listed, let us know\n"
       . "and we, or most likely the FSF licensing group, will review these\n"
       . "requests on a case-by-case basis.  Software licenses must be\n"
