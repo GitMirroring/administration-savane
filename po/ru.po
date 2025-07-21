@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-05-22 15:46+0000\n"
-"PO-Revision-Date: 2025-05-22 15:44+0000\n"
+"POT-Creation-Date: 2025-08-17 13:48+0000\n"
+"PO-Revision-Date: 2025-08-17 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -2618,8 +2618,8 @@ msgstr "Текущая фраза-пароль:"
 msgid "Re-type new passphrase:"
 msgstr "Повторите фразу-пароль:"
 
-msgid "New GPG key"
-msgstr "Новый ключ GPG"
+msgid "New GPG keys"
+msgstr "Новые ключи GPG"
 
 msgid "Test GPG keys"
 msgstr "Проверить ключи GPG"
@@ -3457,75 +3457,6 @@ msgid_plural "+ %s registrations pending"
 msgstr[0] "+ %s регистрация на рассмотрении"
 msgstr[1] "+ %s регистрации на рассмотрении"
 msgstr[2] "+ %s регистраций на рассмотрении"
-
-#, php-format
-msgid "The maximum allowed password length: %s."
-msgstr "Максимальная допустимая длина пароля: %s."
-
-#, php-format
-msgid "The number of words required for a passphrase: %s."
-msgstr "Необходимое число слов в фразе-пароле %s."
-
-#, php-format
-msgid ""
-"The length of common substring required to conclude that a password\n"
-"is at least partially based on information found in a character string: %s."
-msgstr ""
-"Длина общей подстроки, при которой считается, что пароль хотя бы частично "
-"основан на информации, найденной в строке: %s."
-
-msgid "Checks for common substrings are disabled."
-msgstr "Проверка общих подстрок выключена."
-
-msgid "Passwords consisting of characters from one class only are not allowed."
-msgstr "Пароли, состоящие из символов одного класса, не разрешены."
-
-msgid ""
-"Passwords consisting of characters from two classes that don't meet\n"
-"requirements for passphrases are not allowed."
-msgstr ""
-"Пароли, состоящие из символов двух классов, которые не отвечают требованиям "
-"фраз-паролей, недопустимы."
-
-msgid "Check for passphrases is disabled."
-msgstr "Проверка фраз-паролей выключена."
-
-msgid "Passwords consisting of characters from three classes are not allowed."
-msgstr "Пароли, состоящие из символов трех классов, не разрешены."
-
-msgid "Passwords consisting of characters from four classes are not allowed."
-msgstr "Пароли, состоящие из символов четырех классов, не разрешены."
-
-#, php-format
-msgid ""
-"The minimum length for passwords consisting of characters from one class: %s."
-msgstr "Минимальная длина паролей, состоящих из символов одного класса: %s."
-
-#, php-format
-msgid ""
-"\n"
-"The minimum length for passwords consisting of characters from two classes\n"
-"that don't meet requirements for passphrases: %s."
-msgstr ""
-"\n"
-"Минимальная длина паролей, состоящих из символов двух классов, которые не "
-"отвечают требованиям фраз-паролей: %s."
-
-#, php-format
-msgid "The minimum length for passphrases: %s."
-msgstr "Минимальная длина фраз-паролей: %s."
-
-#, php-format
-msgid ""
-"The minimum length for passwords consisting of characters\n"
-"from three classes: %s."
-msgstr "Минимальная длина паролей, состоящих из символов трех классов: %s."
-
-#, php-format
-msgid ""
-"The minimum length for passwords consisting of characters\n"
-"from four classes: %s."
-msgstr "Минимальная длина паролей, состоящих из символов четырех классов: %s."
 
 msgid ""
 "Note: The password should be long enough\n"
@@ -5557,6 +5488,15 @@ msgstr "Неправильный идентификатор форума."
 msgid "Group #%s not found"
 msgstr "Группа №%s не найдена"
 
+#, php-format
+msgid ""
+"Your account has no records of activity yet.  It will be removed unless you "
+"use it constructively.  For more details, see [%s Account lifecycle]."
+msgstr ""
+"Ваша учетная запись пока не проявляла активности. Она будет удалена, если "
+"вы не используете ее. Подробности см. на странице "
+"[%s Жизненный цикл учетной записи]."
+
 #. TRANSLATORS: the argument is file path.
 #, php-format
 msgid "Malformed file path %s"
@@ -5708,6 +5648,75 @@ msgstr "Плохая фраза-пароль (из списка запрещен
 msgid "Bad passphrase (appears to be in a database)"
 msgstr "Плохая фраза-пароль (основана на прежней)"
 
+msgid "Passwords consisting of characters from one class only are not allowed."
+msgstr "Пароли, состоящие из символов одного класса, не разрешены."
+
+msgid ""
+"Passwords consisting of characters from two classes that don't meet\n"
+"requirements for passphrases are not allowed."
+msgstr ""
+"Пароли, состоящие из символов двух классов, которые не отвечают требованиям "
+"фраз-паролей, недопустимы."
+
+msgid "Check for passphrases is disabled."
+msgstr "Проверка фраз-паролей выключена."
+
+msgid "Passwords consisting of characters from three classes are not allowed."
+msgstr "Пароли, состоящие из символов трех классов, не разрешены."
+
+msgid "Passwords consisting of characters from four classes are not allowed."
+msgstr "Пароли, состоящие из символов четырех классов, не разрешены."
+
+#, php-format
+msgid ""
+"The minimum length for passwords consisting of characters from one class: %s."
+msgstr "Минимальная длина паролей, состоящих из символов одного класса: %s."
+
+#, php-format
+msgid ""
+"\n"
+"The minimum length for passwords consisting of characters from two classes\n"
+"that don't meet requirements for passphrases: %s."
+msgstr ""
+"\n"
+"Минимальная длина паролей, состоящих из символов двух классов, которые не "
+"отвечают требованиям фраз-паролей: %s."
+
+#, php-format
+msgid "The minimum length for passphrases: %s."
+msgstr "Минимальная длина фраз-паролей: %s."
+
+#, php-format
+msgid ""
+"The minimum length for passwords consisting of characters\n"
+"from three classes: %s."
+msgstr "Минимальная длина паролей, состоящих из символов трех классов: %s."
+
+#, php-format
+msgid ""
+"The minimum length for passwords consisting of characters\n"
+"from four classes: %s."
+msgstr "Минимальная длина паролей, состоящих из символов четырех классов: %s."
+
+#, php-format
+msgid "The maximum allowed password length: %s."
+msgstr "Максимальная допустимая длина пароля: %s."
+
+#, php-format
+msgid "The number of words required for a passphrase: %s."
+msgstr "Необходимое число слов в фразе-пароле %s."
+
+msgid "Checks for common substrings are disabled."
+msgstr "Проверка общих подстрок выключена."
+
+#, php-format
+msgid ""
+"The length of common substring required to conclude that a password\n"
+"is at least partially based on information found in a character string: %s."
+msgstr ""
+"Длина общей подстроки, при которой считается, что пароль хотя бы частично "
+"основан на информации, найденной в строке: %s."
+
 #. TRANSLATORS: this string separates error title from further description,
 #. like _("Invalid User") . _(': ') . _("That user does not exist.")
 #. TRANSLATORS: this string is used to separate context from
@@ -5816,9 +5825,6 @@ msgid_plural "%d matching items"
 msgstr[0] "найден %d объект"
 msgstr[1] "найдено %d объекта"
 msgstr[2] "найдено %d объектов"
-
-msgid "Show feedback again"
-msgstr "Повторить ответное сообщение"
 
 msgid "Success:"
 msgstr "Успешно:"
@@ -7660,6 +7666,9 @@ msgstr ""
 msgid "Text to test"
 msgstr "Текст для теста"
 
+msgid "Show feedback again"
+msgstr "Повторить ответное сообщение"
+
 msgid "Message Sent"
 msgstr "Сообщение отправлено"
 
@@ -8691,29 +8700,31 @@ msgstr "Саванна GNU"
 msgid "Puszcza"
 msgstr "Пуща"
 
-msgid "Sample GPG export"
-msgstr "Образец экспорта GPG"
-
 msgid "The exported public GPG keys should look like this:"
 msgstr "Открытые ключи GPG должны выглядеть так:"
 
-msgid "Do not remove the begin and end markers when submitting your GPG keys."
+msgid "... many lines of ASCII data ..."
+msgstr "... много строк символов ASCII ..."
+
+msgid "Do not remove the begin and end markers when submitting the keys."
 msgstr "При вставке не удаляйте метки начала и конца ключей."
 
-msgid "Update your keys in this input area"
-msgstr "Ниже в поле ввода вы можете обновить свои ключи"
-
+#, php-format
 msgid ""
-"Insert your (ASCII) public keys here (made with gpg --export --armor "
-"KEYID...):"
+"Insert the new set of public GPG keys\n"
+"(made with gpg --export --armor KEYID...) in this input area.\n"
+"This text will be offered to Savannah visitors for download.\n"
+"For more info, see <a href='%s'>hints on editing keyrings</a>."
 msgstr ""
-"Вставьте свои открытые ключи в виде ASCII (выведенные командой gpg --export "
-"--armor ид_ключа...):"
+"Вставьте новый набор открытых ключей GPG\n"
+"(выведенных командой gpg --export --armor KEYID...) в это поле ввода.\n"
+"Этот текст будет передаваться посетителям Саванны в качестве файла ключей.\n"
+"Подробности см. в <a href='%s'>памятке по редактированию наборов ключей</a>."
 
 #, php-format
 msgid ""
 "For GNU maintainers:\n"
-"If these keys are to be used for GNU uploads,\n"
+"if these keys are to be used for GNU uploads,\n"
 "you must also email them to ftp-upload@gnu.org.\n"
 "There is no automatic propagation.\n"
 "See the GNU Maintainer Information, node\n"
@@ -8723,6 +8734,12 @@ msgstr ""
 "размещения выпусков на ftp.gnu.org, их нужно также выслать по адресу ftp-"
 "uploads@gnu.org. Автоматически пересылка не происходит. См. страницу <a "
 "href=\"%s\">Регистрация в автомате размещения</a>."
+
+msgid "Sample GPG export"
+msgstr "Образец экспорта GPG"
+
+msgid "Update GPG keys"
+msgstr "Обновить ключи GPG"
 
 msgid ""
 "Savannah is a central point for development, distribution\n"
