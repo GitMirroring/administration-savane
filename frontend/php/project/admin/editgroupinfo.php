@@ -45,7 +45,6 @@
 require_once ('../../include/init.php');
 require_once ('../../include/vars.php');
 require_once ('../../include/gpg.php');
-$gpg_heading_level = 3;
 require (utils_get_content_filename ("gpg-sample"));
 
 $submit_buttons = [

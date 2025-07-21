@@ -41,48 +41,56 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-if (!isset($gpg_heading_level))
-  $gpg_heading_level = 2;
+$gpg_sample_text = "<p>"
+  . _('The exported public GPG keys should look like this:')
+  . "</p>\n\n<pre>\n"
+  . "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n"
+  . "mQENBFr1PisBCAC9xQcWyOZRLa6K2g7NJbvQmm7p89/xifFYXPpMTQAnlSoCtUdZ\n"
+  . "oznXNR4oFYIqTasaXCFpG5uFCTDObPOSg1JqRDZYckijkAvbYlieBY6/ItrQxjyS\n"
+  . _("... many lines of ASCII data ...") . "\n"
+  . "1rMbVMNua84/W98JMFHvu/RNNpmnHvIQoEw7yjVZYt2aTJN/uuGtugNCZ+wri+xh\n"
+  . "yl1VWoHhHrHs1zAWDiJSmB4k0zV9Yyw/OMMlPrmMX3SfFEjMDqnC1SNi\n"
+  . "=hZua\n"
+  . "-----END PGP PUBLIC KEY BLOCK-----\n"
+  . "</pre>\n"
+  . "<p>"
+  . _("Do not remove the begin and end markers when submitting the keys.")
+  . "</p>\n";
 
-$gpg_sample_text =
-"<h$gpg_heading_level>" . _("Sample GPG export") . "</h$gpg_heading_level>
-<p>" . _('The exported public GPG keys should look like this:')
-. '</p>
-<pre>
------BEGIN PGP PUBLIC KEY BLOCK-----
+$gpg_insert_note = '<p>'
+  . sprintf (
+      _("Insert the new set of public GPG keys\n"
+        . "(made with gpg --export --armor KEYID...) in this input area.\n"
+        . "This text will be offered to Savannah visitors for download.\n"
+        . "For more info, see <a href='%s'>hints on editing keyrings</a>."),
+      '/maintenance/GpgKeyrings'
+    )
+  . "</p>\n";
 
-mQENBFr1PisBCAC9xQcWyOZRLa6K2g7NJbvQmm7p89/xifFYXPpMTQAnlSoCtUdZ
-oznXNR4oFYIqTasaXCFpG5uFCTDObPOSg1JqRDZYckijkAvbYlieBY6/ItrQxjyS
-... many lines of ASCII data ...
-1rMbVMNua84/W98JMFHvu/RNNpmnHvIQoEw7yjVZYt2aTJN/uuGtugNCZ+wri+xh
-yl1VWoHhHrHs1zAWDiJSmB4k0zV9Yyw/OMMlPrmMX3SfFEjMDqnC1SNi
-=hZua
------END PGP PUBLIC KEY BLOCK-----
-</pre>
-<p>'
-. _("Do not remove the begin and end markers when submitting your GPG keys.")
-. "</p>\n"
-. "<h$gpg_heading_level>" . _("Update your keys in this input area")
-. "</h$gpg_heading_level>\n"
-. '<p>'
-. _("Insert your (ASCII) public keys here (made with gpg --export --armor KEYID...):")
-. "</p>\n";
+$gpg_gnu_maintainers_note = '<p>'
+  . sprintf (
+      _("For GNU maintainers:\nif these keys are to be used for GNU uploads,\n"
+        . "you must also email them to ftp-upload@gnu.org.\n"
+        . "There is no automatic propagation.\n"
+        . "See the GNU Maintainer Information, node\n"
+        . "<a href=\"%s\">Automated Upload Registration</a>."),
+      "//www.gnu.org/prep/maintain/maintain.html#Automated-Upload-Registration"
+    )
+  . "</p>\n";
 
-$gpg_gnu_maintainers_note = '<p>' . sprintf (_('For GNU maintainers:
-If these keys are to be used for GNU uploads,
-you must also email them to ftp-upload@gnu.org.
-There is no automatic propagation.
-See the GNU Maintainer Information, node
-<a href="%s">Automated Upload Registration</a>.'),
-"//www.gnu.org/prep/maintain/maintain.html#Automated-Upload-Registration")
-. "</p>\n";
-
-function gpg_sample_output ()
+function gpg_sample_output ($personal_keys = false)
 {
-  global $project, $gpg_sample_text, $gpg_gnu_maintainers_note;
-  print $gpg_sample_text;
+  global $project;
+  global $gpg_sample_text, $gpg_insert_note, $gpg_gnu_maintainers_note;
+  $level = $personal_keys? 2: 3;
 
-  if ($project->getTypeBaseHost () == "savannah.gnu.org")
+  print html_h ($level, _("Sample GPG export")) . $gpg_sample_text;
+  print html_h ($level, _("Update GPG keys")) . $gpg_insert_note;
+
+  $host_is_gnu =
+    isset ($project) && $project->getTypeBaseHost () == "savannah.gnu.org";
+
+  if ($personal_keys || $host_is_gnu)
     print $gpg_gnu_maintainers_note;
 }
 ?>

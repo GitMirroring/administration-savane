@@ -500,13 +500,13 @@ function input_password ()
 
 function input_gpgkey ()
 {
-  global $gpg_sample_text, $gpg_gnu_maintainers_note, $test_gpg_key;
+  global $test_gpg_key;
   $old_key = user_get_gpg_key ();
   extract (sane_import ('request', ['pass' => ['newvalue']]));
   if (!$newvalue)
     $newvalue = $old_key;
-  print $gpg_sample_text;
-  print preinp_label (_("New GPG key")) . "<br />\n"
+  gpg_sample_output (true);
+  print preinp_label (_("New GPG keys")) . "<br />\n"
     . form_textarea ('newvalue', utils_specialchars ($newvalue),
         'cols="70" rows="20" wrap="virtual"'
       );
@@ -514,7 +514,6 @@ function input_gpgkey ()
   print '<p>' . form_submit (_("Test GPG keys"), 'test_gpg_key')
     . ' ' . _("(Testing is recommended before updating.)") . "</p>\n"
     . "\n<hr />\n";
-  print $gpg_gnu_maintainers_note;
   if ($test_gpg_key)
     print gpg_run_checks ($newvalue);
 }
