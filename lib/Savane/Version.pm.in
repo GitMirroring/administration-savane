@@ -133,7 +133,6 @@ sub die_on_init_errors
 {
   if (defined $INC{'Savane/DB.pm'})
     {
-      require Savane::DB;
       Savane::DB->import ('db_die_if_unconnected');
       db_die_if_unconnected ();
     }
