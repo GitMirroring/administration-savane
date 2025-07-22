@@ -114,7 +114,9 @@ sub substitute_help_string
   ($prog_escaped = $0) =~ s,.,[$&],g;
   $prog_escaped =~ s/,/\\,/g;
   $help_string =~ s,(^|\W)$prog_escaped(\W|$),\1$prog_name\2,g;
-  return $help_string;
+  return $help_string
+    . "\n\nReport bugs to: savannah-hackers-public\@gnu.org\n"
+    . "Savane home page: https://savannah.nongnu.org/p/administration";
 }
 
 sub print_intro
@@ -154,7 +156,7 @@ sub PrintVersionOrHelp
       return;
     }
   $help_string = substitute_help_string ($help_string);
-  print "$help_string\n\n" if $help;
+  print "$help_string\n" if $help;
   print_intro ($version, $external);
   exit (0);
 }
