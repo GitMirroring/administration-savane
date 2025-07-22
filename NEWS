@@ -39,6 +39,10 @@
 
 [BACKEND]
 
+* In sv_aliases, fallback defaults are provided for email list and
+  aliases file when they are unconfigured in savane.conf.pl; new options,
+  --aliases and --emails, to override the configuration.
+
 * New script, sv_crypt.
 
 * In sv_gen_passwd_group, commas in 'realname' are replaced with spaces when

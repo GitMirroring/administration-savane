@@ -55,40 +55,41 @@ our $sys_mail_list;
 our $sys_mail_aliases;
 
 # Preconfigure.
-my $sysemails =  "$sys_mail_list"; # /etc/email-addresses
-my $sysaliases = "$sys_mail_aliases"; # /etc/aliases
+my $sysemails = '/etc/email-addresses';
+my $sysaliases = '/etc/aliases';
 my $dry_run;
 my $verbose;
 my $suffix = '';
 my $cron;
 my $logfile = "/var/log/sv_aliases.log";
 
-my $help_email = $sysemails;
-my $help_aliases = $sysaliases;
-my $unconf = "<unconfigured>";
-
 our $script = "sv_aliases";
-$help_email = $unconf if $help_email eq '';
-$help_aliases = $unconf if $help_aliases eq '';
+$sysemails = "$sys_mail_list" unless "$sys_mail_list" eq '';
+$sysaliases = "$sys_mail_aliases" unless "$sys_mail_aliases" eq '';
 
-my $help =
-"Usage: $0 [OPTIONS]
+my $help = <<"EOF";
+  Usage: $0 [OPTIONS]
 
-Include a list of Savannah users in $help_email (emails) and
-$help_aliases (aliases).
+  Update the list of Savannah users in email and alias files.
 
-  -h, --help      show this help and exit
-  -v, --version   show Savane version and exit
-      --dry-run   don't apply changes
-      --suffix    output to files with this suffix instead of overwriting
-                  the original files
-      --verbose   log additional info
-      --logfile   file for reports [$logfile]
-      --cron      ignored";
+    -h, --help      show this help and exit
+    -v, --version   show Savane version and exit
+        --aliases   alias file [$sysaliases]
+        --emails    email file [$sysemails]
+        --dry-run   don't apply changes
+        --suffix    output to files with this suffix instead of overwriting
+                    the original files
+        --verbose   log additional info
+        --logfile   file for reports [$logfile]
+        --cron      ignored
+EOF
+$help =~ s/^  //gm;
+chop $help;
 PrintVersionOrHelp ($help);
 GetOptions (
   "dry-run" => \$dry_run, "logfile=s" => \$logfile, "cron" => \$cron,
-  "verbose" => \$verbose, "suffix=s" => \$suffix
+  "verbose" => \$verbose, "suffix=s" => \$suffix,
+  "aliases=s" => \$sysaliases, "emails=s" => \$sysemails,
 ) or die "Wrong command line";
 
 # Avoid concurrent runs.
