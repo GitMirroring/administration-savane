@@ -115,6 +115,7 @@ Run Time
 --------
 
 * GNU Coreutils
+* Curl (Savannah-specific: triggering web page updates on changes in CVS)
 * Grep
 * GnuPG
 * PHP 5.{4,5,6}, 7.{0,1,2,3,4}, 8.{0,1,2,3,4} - frontend
