@@ -117,6 +117,16 @@ AC_MSG_RESULT([$enable_sample_db])
 AS_CASE(["$enable_database.$MYSQL_BIN"], [yes.],
   [AC_MSG_ERROR([Database client not found])]
 )
+AC_MSG_CHECKING([whether to mark sample database for tests])
+AC_ARG_ENABLE([db-test-marker],
+  [AS_HELP_STRING([--enable-db-test-marker], [mark sample database for tests])],
+  [], [enable_db_test_marker=no]
+)
+AS_CASE(["x$enable_db_test_marker"], [xyes], [], [enable_db_test_marker=no])
+AC_MSG_RESULT([$enable_db_test_marker])
+AS_CASE(["$enable_database.$MYSQL_BIN"], [yes.],
+  [AC_MSG_ERROR([Database client not found])]
+)
 AS_CASE(["$enable_database.$MYSQL_INSTALLDB_BIN$MYSQLD_BIN"], [yes.],
   [AC_MSG_ERROR([Neither mysql_install_db nor mysqld found.])]
 )
@@ -131,7 +141,16 @@ AS_CASE(["$enable_database.$enable_sample_db"], [no.yes],
     AC_MSG_ERROR([Sample entries are requested without database initialization])
   ]
 )
+AC_MSG_CHECKING([whether to detect web server port])
+AC_ARG_ENABLE([detect-www-port],
+  [AS_HELP_STRING([--enable-detect-www-port], [use detected server port])],
+  [], [enable_detect_www_port=no]
+)
+AS_CASE(["x$enable_detect_www_port"], [xyes], [], [enable_detect_www_port=no])
+AC_MSG_RESULT([$enable_detect_www_port])
 AC_SUBST([ADD_SAMPLE_DB], [$enable_sample_db])
+AM_CONDITIONAL([MARK_DB_FOR_TEST], [test "x$enable_db_test_marker" = xyes])
+AM_CONDITIONAL([DETECT_WWW_PORT], [test "x$enable_detect_www_port" = xyes])
 
 AC_MSG_CHECKING([whether to install frontend part])
 AC_ARG_ENABLE([frontend],

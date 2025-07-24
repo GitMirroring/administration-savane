@@ -804,9 +804,21 @@ function test_db_fields ($t, $field_func, &$defs)
       $defs["$t.$f"] = $func ($tstruct, $t, $f);
 }
 
+function check_for_db_test_marker ()
+{
+  $table = 'test_marker';
+  $res = db_execute ("SHOW TABLES LIKE '$table'");
+  if (!db_numrows ($res))
+    return;
+  print "<p><strong>Note:</strong> table '$table' exists. "
+    . "<i>This table should only be present in temporary databases "
+    . "created for testing.</i></p>\n";
+}
+
 function test_db_structure ()
 {
   print html_h (2, 'Database structure');
+  check_for_db_test_marker ();
   $defs = [];
   $table_fields = [
     'user' =>

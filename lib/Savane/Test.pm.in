@@ -1,0 +1,223 @@
+# Facilities for regression checks in Savane.
+
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use Savane::DB;
+use WWW::Mechanize;
+require Exporter;
+
+our @ISA = qw (Exporter);
+our @EXPORT = qw (
+  clear_mbox get_mbox make_url print_test_log make_agent log_in log_in_su
+  log_out check_inaccessibility get_user_id save_page
+);
+sub save_page
+{
+  my $agent = shift;
+  my $file = @_? shift: 'test.html';
+  my $fd;
+  open ($fd, '>:encoding(UTF-8)', $file);
+  print {$fd} $agent->content (raw => 1);
+  close ($fd);
+}
+
+sub check_for_test_marker
+{
+  my @test = GetDBAsIs ("SHOW TABLES LIKE 'test_marker'");
+  die "Cowardly refusing to run tests: the database isn't intended for that.\n"
+    unless $test[0] eq 'test_marker';
+}
+
+check_for_test_marker ();
+
+my $root_url;
+
+sub init_root_url
+{
+  my $host = "@WWW_SERVER_HOST@";
+  my $port = <>;
+  chomp $port;
+  $root_url = "http://$host:$port/";
+}
+
+sub log_in_for_accessibility
+{
+  my ($agent, $user) = @_;
+  return unless defined $user;
+  if ($user eq '*')
+    {
+      log_in_su ($agent);
+      return;
+    }
+  log_in ($agent, $user);
+}
+
+sub check_inaccessibility
+{
+  my $url = shift;
+  my $user = @_? shift: undef;
+  my $agent = make_agent (0);
+  log_in_for_accessibility ($agent, $user);
+  $agent->get (make_url ($url));
+  my $status = $agent->status ();
+  unless ($status =~ /^40\d$/)
+    {
+      print_test_log ("Wrong $url status: $status.");
+      exit (1);
+    }
+  print_test_log ("$url confirmed to be absent (status $status).");
+}
+
+sub make_agent
+{
+  return WWW::Mechanize->new (autocheck => @_? shift: 1);
+}
+
+sub get_user_id
+{
+  my $user_name = shift;
+  my $agent = make_agent (0);
+  print_test_log ("Getting user Id for <$user_name>.");
+  $agent->get (make_url ("users/$user_name"));
+  return 0 if $agent->status () =~ /40\d/;
+  my $html = $agent->content (raw => 1);
+  unless ($html =~ /<td>Id: <\/td>\n<td><b>#(\d+)<\/b><\/td>/)
+    {
+      print_text_log ("Can't find user id; the page follows:\n$html\n");
+      exit (1);
+    }
+  print_test_log ("User Id is $1.");
+  return $1;
+}
+
+sub make_url
+{
+  return "$root_url$_[0]";
+}
+
+my $log_fd;
+
+sub print_test_log
+{
+  print { $log_fd } "$_[0]\n";
+}
+
+sub script_name
+{
+  my $name = $0;
+  $name =~ s,^[.]/,,;
+  return $name;
+}
+
+sub init_log
+{
+  my $file = "test.log";
+  my $name = script_name ();
+  open ($log_fd, ">>:encoding(UTF-8)", $file)
+    or die "$name: Can't open log file $file: $!";
+  print_test_log ("== Test $name start.");
+}
+sub mbox_path
+{
+  return "@logdir@/sendmail.mbox";
+}
+
+sub clear_mbox
+{
+  my $path = mbox_path ();
+  unlink ($path) if -f $path;
+}
+
+sub get_mbox
+{
+  my $clear = shift;
+  my $fd;
+  my @ret;
+  open ($fd, '<', mbox_path ()) or return '';
+  while (<$fd>)
+    {
+      push @ret, $_;
+    }
+  clear_mbox () if $clear;
+  return join '', @ret;
+}
+
+sub log_in
+{
+  my $agent = shift;
+  my $login = shift;
+  my $passwd = @_? shift: '-';
+  print_test_log ("Logging in as <$login>, passphrase >$passwd<.");
+  $agent->get (make_url ('account/login.php'));
+  $agent->form_with_fields (qw (form_id));
+  $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
+  $agent->click ('login');
+  print_test_log ("Logged in as <$login>.");
+}
+
+sub log_in_su
+{
+  my $agent = shift;
+  log_in ($agent, '-');
+  $agent->follow_link (url_regex => qr,^/account/su\.php[?],);
+  print_test_log ('Acquired superuser privileges.');
+}
+
+sub log_out
+{
+  my $agent = shift;
+  print_test_log ("Logging out.");
+  $agent->get (make_url ("account/logout.php"));
+  print_test_log ("Logged out.");
+}
+
+END
+{
+  my $name = script_name ();
+  print_test_log ("== Test $name end.");
+}
+
+init_log ();
+init_root_url ();
+clear_mbox ();
+
+return "true";

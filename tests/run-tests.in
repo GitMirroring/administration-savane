@@ -1,0 +1,148 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Run regression tests.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+
+my $sbindir = "@sbindir@";
+my $pidfile = "@mysql_pid@";
+my $port;
+my $php_pid;
+my $exit_code = 0;
+
+PrintVersionOrHelp ("Run regression tests.");
+my $kill_servers = 1;
+
+sub launch_db
+{
+  system ("$sbindir/sv_launch_db.pl") && die "Can't launch the database.\n";
+}
+sub kill_db
+{
+  system ("$sbindir/sv_kill_db.pl")
+    && print STDERR "Can't kill the database server.\n";
+}
+sub wait_for_db
+{
+  for (my $i = 0; $i < 0x11 && ! -f $pidfile; $i++)
+    {
+      sleep 1;
+    }
+  -f ($pidfile) || die "Database isn't running.\n";
+}
+sub launch_php_server
+{
+  my $port = shift;
+  my $pid = fork ();
+  system ("echo Trying port $port... >> test-php.log");
+  die "Can't fork: $!" unless defined $pid;
+  unless ($pid)
+    {
+      $kill_servers = undef;
+      setpgrp ();
+      system ("$sbindir/sv_php_server.pl --port=$port >> test-php.log 2>&1");
+      exit (0);
+    }
+  return -1 unless kill 0, $pid;
+  system ("echo Using port $port. >> test-php.log");
+  return $pid;
+}
+sub look_for_port
+{
+  my $port = "@WWW_SERVER_PORT@";
+  # Select port different from the configured by default
+  # to hopefully avoid collisions at once.
+  $port = ($port < 1024 || $port > 9826)? 4913: $port + 1;
+
+  for (my $i = 0; $i < 289; $i++)
+    {
+      my $php = launch_php_server ($port);
+      return ($php, $port) unless $php < 0;
+      $port++;
+    }
+  die "Can't start PHP server.";
+}
+
+END
+{
+  return unless defined $kill_servers;
+  kill_db ();
+  return unless defined $php_pid;
+  return if kill ('-TERM', $php_pid);
+  $? = 1;
+  print STDERR "Can't kill PHP server.\n";
+}
+
+launch_db ();
+($php_pid, $port) = look_for_port ();
+wait_for_db ();
+my @scripts;
+my @all_scripts = qw (@test_scripts@);
+for (@all_scripts)
+  {
+    s,^tests/,,;
+    push @scripts, $_;
+  }
+
+@scripts = @ARGV if ($#ARGV >= 0);
+my %results = ('PASS' => 0, 'FAIL' => 0);
+for (@scripts)
+  {
+    my $str = 'PASS';
+    if (system ("echo $port | ./$_"))
+      {
+        $exit_code = 1;
+        $str = 'FAIL';
+      }
+     $results{$str}++;
+     print "$str: $_\n";
+  }
+print "\nNumber of tests:\n";
+my $total = 0;
+for (keys %results)
+  {
+    print "$_: $results{$_}\n";
+    $total += $results{$_};
+  }
+print "\nTotal: $total\n";
+exit ($exit_code);

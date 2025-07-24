@@ -1,0 +1,175 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test group registration and removal.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test group registration and removal.");
+
+my $unix_group_name = 'proba';
+my $agent = make_agent ();
+my $bindir = '@bindir@';
+
+sub check_request_result
+{
+  my $res = shift;
+  return if ($res->as_string () =~ /<h2>Registration Complete!<\/h2>/);
+  print_test_log ("Can't pass submission.  The response was,\n-----");
+  print_test_log ($res->as_string () . "\n-----");
+  exit (1);
+}
+
+sub request_new_group
+{
+  log_in ($agent, 'alice');
+  print_test_log ('Requesting new group.');
+  $agent->get (make_url ('register/'));
+
+  $agent->form_with_fields (qw (full_name unix_name));
+  $agent->set_fields (
+    'full_name' => 'Test group', 'unix_name' => $unix_group_name,
+    'purpose' => 'Testing group registration. ' x 0x11,
+    'license' => 'gplv3orlater',
+    'required_sw' => 'Savane and its dependencies.',
+    'tarball_url' => make_url ('images/Savannah.theme/arrows/top.orig.png')
+  );
+
+  for (my $i = 1; $i < 8; $i++)
+    {
+      $agent->tick ("cl$i", '1');
+    }
+  $agent->tick ('cl_requirements', '1');
+  check_request_result ($agent->click ());
+  print_test_log ('New group requested.');
+  log_out ($agent);
+}
+
+sub check_group_status
+{
+  my $correct_status = shift;
+  print_test_log ('Selecting form with group status.');
+  $agent->form_with_fields (qw (group_type form_name form_status));
+  my $form = $agent->current_form ();
+  my $status = $form->param ('form_status');
+  print_test_log ("Current group status: '$status'.");
+  return if $status eq $correct_status;
+  print_test_log ("The status is wrong, should be '$correct_status'.");
+  exit (1);
+}
+
+sub extract_group_id
+{
+  my $link = $agent->find_link (
+    url_regex => qr/\/siteadmin\/groupedit.php[?]group_id=\d+$/
+  );
+  my $id = $link->url;
+  $id =~ s/.*=//;
+  return $id;
+}
+
+sub approve_group
+{
+  log_in_su ($agent);
+  print_test_log ('Visiting administration task tracker.');
+  $agent->get (make_url ('task/?group=administration'));
+  print_test_log ('Looking for the task.');
+  $agent->follow_link (url_regex => qr/^[?]\d+$/);
+  print_test_log ('Visiting approval page.');
+  my $id = extract_group_id ();
+  $agent->get (make_url ("siteadmin/groupedit.php?group_id=$id"));
+  print_test_log ('Looking for approval form.');
+  $agent->form_with_fields (qw (fastok));
+  print_test_log ('Approving group.');
+  $agent->click ();
+  check_group_status ('A');
+  print_test_log ("New group has been approved, group_id = $id.");
+  return $id;
+}
+
+sub check_group_visibility
+{
+  my $url = "projects/$unix_group_name";
+  log_out ($agent);
+  print_test_log ("Visiting main page of new group, $url.");
+  $agent->get (make_url ($url));
+  print_test_log ('Group is visible.');
+}
+
+sub mark_for_removal
+{
+  my $group_id = shift;
+  $agent = make_agent ();
+  log_in_su ($agent);
+  print_test_log ('Visiting group administration page.');
+  $agent->get (make_url ("siteadmin/groupedit.php?group_id=$group_id"));
+  print_test_log ('Looking for deletion form.');
+  $agent->form_with_fields (qw (fastdel));
+  print_test_log ('Marking group for deletion.');
+  $agent->click ();
+  check_group_status ('D');
+  log_out ($agent);
+}
+
+sub run_cleanup
+{
+  print_test_log ('Deleting group with sv_cleaner.');
+  return
+    unless system (
+      "$bindir/sv_cleaner --big-cleanup --logfile=cleaner.log"
+    );
+  print_test_log ('Failed to run sv_cleaner.');
+  exit (1);
+}
+
+request_new_group ();
+my $group_id = approve_group ();
+check_group_visibility ();
+mark_for_removal ($group_id);
+check_inaccessibility ("projects/$unix_group_name");
+run_cleanup ();
+check_inaccessibility ("siteadmin/groupedit.php?group_id=$group_id", '*');
+
+print_test_log ("Test done.");
+exit (0);

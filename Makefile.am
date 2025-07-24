@@ -71,6 +71,8 @@ backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
 all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 
 build_time_scripts = db/init-database.pl
+test_scripts = tests/register-user tests/register-group tests/membership
+all_test_scripts = ${test_scripts} tests/run-tests
 
 common_conf = savane.conf.pl membersh-conf.pl
 conf_files += $(common_conf)
@@ -78,7 +80,7 @@ conf_all += $(common_conf)
 
 directories = backend/accounts backend/sbin backend/external \
   backend/extra/git backend/mail backend/misc db lib/Savane \
-  frontend/php/include sysconf
+  frontend/php/include sysconf tests
 
 modules = \
   lib/Savane.pm \
@@ -94,12 +96,13 @@ modules = \
   lib/Savane/Mail.pm \
   lib/Savane/Mirror.pm \
   lib/Savane/Svn.pm \
+  lib/Savane/Test.pm \
   lib/Savane/User.pm \
   lib/Savane/Util.pm \
   lib/Savane/Version.pm
 
 sbin_SCRIPTS = $(backend_sbin_scripts)
-noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built)
+noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built) $(all_test_scripts)
 nobase_pkgdata_DATA += $(modules)
 confdir = $(sysconfdir)/$(PACKAGE)
 pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
@@ -128,12 +131,6 @@ else
   WWW_SENDMAIL_LINE = php_admin_value sendmail_path "$(bindir)/sv_sendmail.pl"
   PHP_SENDMAIL_LINE = sendmail_path = "$(bindir)/sv_sendmail.pl"
   HAVE_SENDMAIL_VAR = 0
-endif
-
-if USE_CAPTCHA
-  use_captcha = 1
-else
-  use_captcha = 0
 endif
 
 subst_in_files = \
@@ -198,12 +195,15 @@ subst_in_files = \
     -e 's,[@]mysql_lock[@],$(mysql_lock),g' \
     -e 's,[@]mysql_tmpdir[@],$(mysql_tmpdir),g' \
     -e 's,[@]localedir[@],$(localedir),g' \
+    -e 's,[@]sbindir[@],$(sbindir),g' \
     -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
     -e 's,[@]USE_CAPTCHA[@],$(use_captcha),g' \
+    -e 's,[@]DETECT_WWW_PORT[@],$(detect_www_port),g' \
+    -e 's,[@]test_scripts[@],$(test_scripts),g'
 
 substituted = \
   $(all_scripts) $(build_time_scripts) $(conf_all:%=sysconf/%) $(modules) \
-  $(frontend_php_built)
+  $(frontend_php_built) $(all_test_scripts)
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
 
@@ -214,7 +214,7 @@ cgirepos: ; echo -n > $@
 
 EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
   AUTHORS.SourceForge db/initial.sql db/mk-db.sql.in db/sample.sql \
-  tests $(substituted:%=%.in) $(mirmon_pkgdata) backend/README \
+  $(substituted:%=%.in) $(mirmon_pkgdata) backend/README \
   autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
   caboose/parse-files.awk doc/comments-via-email doc/git-repos \
@@ -283,20 +283,48 @@ if HAVE_FRONTEND
 endif
 
 init-database: make-var-subdirs install-conf-link install-conf-files
-	$(skip_init_db) $(PERL) db/init-database.pl "$(DESTDIR)"
+	$(skip_init_db) $(PERL) db/init-database.pl "$(DESTDIR)" \
+	  $(add_test_marker)
 	$(skip_init_db) test -e db/init.stamp || exit 1
 
-.PHONY: install-conf-link install-conf-files make-var-subdirs init-database
+.PHONY: install-conf-link install-conf-files make-var-subdirs init-database test
 
 uninstall-local: ; \
   for i in $(conf_files) launch-db.pl; do \
     $(RM) "$(DESTDIR)$(confdir)/$$i"; \
   done
 
-distcheck-hook:
+distcheck-hook: test
 	if grep -q '^This is a stub' $(distdir)/ChangeLog; then \
 	  echo; echo; \
 	  echo "ChangeLog hasn't been generated.  " \
 	    "Configure with --enable-changelog."; \
 	  echo; echo; false; \
 	fi
+
+if USE_CAPTCHA
+  use_captcha = 1
+else
+  use_captcha = 0
+endif
+if MARK_DB_FOR_TEST
+  add_test_marker = 1
+endif
+if DETECT_WWW_PORT
+  detect_www_port = true
+else
+  detect_www_port = false
+endif
+
+test:
+	${RM} -r test
+	${MKDIR_P} test
+	abs_src_dir=`cd ${srcdir}; pwd`; \
+	cd test; $$abs_src_dir/configure --prefix=`pwd`/install \
+	  --disable-sendmail --enable-mirror --disable-captcha \
+	  --disable-db-networking --enable-sample-db --enable-db-test-marker \
+	  --enable-detect-www-port
+	${MAKE} -C test all install
+	for script in ${all_test_scripts}; do chmod +x test/$$script; done
+	cd ./test/tests && ./run-tests
+	test 'x${KEEP_TEST}' = xyes || ${RM} -r test

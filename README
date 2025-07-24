@@ -130,6 +130,7 @@ Run Time
 ** Mail::Send (libmailtools-perl in Trisquel)
 ** Geo::IP (libgeo-ip-perl, geoip-database in Trisquel) - mirror-redirect
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
+** WWW::Mechanize (libwww-mechanize-perl in Trisquel) - regression tests
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
 * MariaDB (MySQL may also work)
 * Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel) - frontend

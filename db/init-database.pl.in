@@ -128,6 +128,17 @@ sub make_db
   die "Failed to create database.\n";
 }
 
+sub make_test_marker
+{
+  my $query = <<'  EOF';
+    CREATE TABLE `test_marker` (
+      `name` varchar(255), `value` TEXT, PRIMARY KEY (`name`)
+    ) CHARSET=utf8 COLLATE=utf8_general_ci
+  EOF
+  my $res = system ("echo '$query' | " . mysql_cmd ());
+  die "Failed to add test_marker table.\n" if $res;
+}
+
 sub fill_db
 {
   my $res = system (mysql_cmd () . " < @srcdir@/db/initial.sql");
@@ -135,6 +146,8 @@ sub fill_db
   return 0 unless "@ADD_SAMPLE_DB@" eq "yes";
   $res = system (mysql_cmd () . " < @srcdir@/db/sample.sql");
   die "Failed to add sample database entries.\n" if $res;
+  return 0 unless $#ARGV < 2;
+  make_test_marker ();
 }
 
 sub make_launch_db_conf

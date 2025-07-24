@@ -1,0 +1,309 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test membership operations.");
+
+my $group_name = 'administration';
+my $admin_url = make_url ("project/admin/useradmin.php?group=$group_name");
+my $agent = make_agent ();
+
+sub find_input_or_exit
+{
+  my $form = shift;
+  my $name = shift;
+  my $exit_on_fail = @_? shift: 1;
+  my $input = $form->find_input ($name);
+  return $input if defined $input;
+  print_test_log ("Can't find $name.");
+  exit (1) if $exit_on_fail;
+  return undef;
+}
+sub find_list
+{
+  my $action = shift;
+  my $exit_on_fail = @_? shift: 1;
+  my @forms = $agent->all_forms_with_fields ('action', 'user_ids[]');
+
+  for (@forms)
+    {
+      my @vals = $_->param ('action');
+      next unless @vals;
+      return $_ if $vals[0] eq $action;
+    }
+  print_test_log ("Can't find list $action.");
+  return undef unless $exit_on_fail;
+  save_page ($agent);
+  exit (1);
+}
+
+sub id_is_removable
+{
+  my $id = shift;
+  my $exit_on_fail = @_? shift: 1;
+  print_test_log ("Check if #$id is removable.");
+  my $form = find_list ('remove_from_group', $exit_on_fail);
+  return 0 unless defined $form;
+  my $input = find_input_or_exit ($form, 'user_ids[]', $exit_on_fail);
+  return 0 unless defined $input;
+  return 0 unless option_is_possible ($input, $id, $exit_on_fail);
+  print_test_log ("User Id $id is offered for removal from group.");
+  return 1;
+}
+sub option_is_possible
+{
+  my $input = shift;
+  my $val = shift;
+  my $exit_on_fail = @_? shift: 1;
+  my @list = map {defined $_? $_: -1} $input->possible_values ();
+  for (@list)
+    {
+      return 1 if "$val" eq "$_";
+    }
+  print_test_log ("Value $val isn't found in (" .  join (', ', @list) . ").");
+  return 0 unless $exit_on_fail;
+  save_page ($agent);
+  exit (1);
+}
+sub remove_user
+{
+  my ($user, $id) = @_;
+  print_test_log ("Removing <$user> from group.");
+  my $form = find_list ('remove_from_group');
+  $form->param ('user_ids[]', $id);
+  $agent->request ($form->click ());
+  if (id_is_removable ($id, 0))
+    {
+      print_test_log ("Cant remove: <$user> is still removable.");
+      exit (1);
+    }
+  print_test_log ("Removed <$user> from group.");
+}
+sub check_request_subject
+{
+  my $headers = shift;
+  return 0 if $headers =~ /\nSubject: Membership request/s;
+  print_test_log ("Subject not found.");
+  return 1;
+}
+sub check_apparently_from
+{
+  return 0 if $_[0] =~ /\nX-Apparently-From: Savane authenticated user $_[1]/s;
+  print_test_log ("X-Apparently-From is missing.");
+  return 1;
+}
+sub check_user_details
+{
+  my ($body, $user) = @_;
+  return 0
+    if $body =~ /\nUser Details:\n-+\nName: [^\n]*\nLogin:\s*$user\nEmail:/s;
+  print_test_log ("User details not found in message body.");
+}
+sub run_request_email_checks
+{
+  my ($user, $headers, $body) = @_;
+  my $result = 0;
+  print_test_log ("Checking request message.");
+  $result = 1 if check_request_subject ($headers);
+  $result = 1 if check_apparently_from ($headers, $user);
+  $result = 1 if check_user_details ($body, $user);
+  return $result;
+}
+sub get_message
+{
+  my $mbox = get_mbox (1);
+  if ($mbox !~ /(.*?)\n\n(.*)/s)
+    {
+      print_test_log ("No empty line is found in mbox:\n$mbox\n.");
+      exit (1);
+    }
+  return ($1, $2, $mbox);
+}
+sub check_request_email
+{
+  my $user = shift;
+  my ($headers, $body, $mbox) = get_message ();
+  if (run_request_email_checks ($user, $headers, $body))
+    {
+      print_test_log ("The message found is:\n$mbox\n");
+      exit (1);
+    }
+  print_test_log ("Request message looks sane.");
+}
+sub request_inclusion
+{
+  my $user = shift;
+  log_in ($agent, $user);
+  print_test_log ("Visiting account membership page.");
+  $agent->get (make_url ('my/groups.php'));
+  print_test_log ("Looking for a group.");
+  $agent->form_with_fields (qw (form_id searchgroup));
+  $agent->set_fields ('words' => $group_name);
+  $agent->click ();
+  print_test_log ("Requesting inclusion.");
+  $agent->form_with_fields (qw (form_message));
+  $agent->set_fields ('form_message' => 'Accept me please.');
+  my $form = $agent->current_form ();
+  $form->find_input (undef, 'checkbox')->check ();
+  $agent->click ();
+  check_request_email ($user);
+  log_out ($agent);
+}
+sub check_approval_subject
+{
+  return 0 if $_[0] =~ /\nSubject: Group membership approved\n/s;
+  print_test_log ("Subject not found.");
+  return 1;
+}
+sub check_approval_body
+{
+  return 0 if $_[0] =~ /^You've been approved/;
+  print_test_log ("Expected string in body not found.");
+  return 1;
+}
+sub check_approval_email
+{
+  my $user = shift;
+  my ($headers, $body, $mbox) = get_message ();
+  my $result = 0;
+  print_test_log ("Checking approval message.");
+  $result = 1 if check_approval_subject ($headers);
+  $result = 1 if check_apparently_from ($headers, '-');
+  $result = 1 if check_approval_body ($body);
+  if ($result)
+    {
+      print_test_log ("The message found is:\n$mbox\n");
+      exit (1);
+    }
+  print_test_log ("Approval message looks sane.");
+}
+sub add_user
+{
+  my $user = shift;
+  my $id = get_user_id ($user);
+  remove_user ($user, $id) if id_is_removable ($id, 0);
+
+  print_test_log ("Looking for user <$user>.");
+  $agent->form_with_fields (qw (action form_id words));
+  $agent->set_fields ('words' => $user);
+  $agent->click ();
+
+  print_test_log ("Adding <$user> to group.");
+  my $form = find_list ('add_to_group');
+  my $input = find_input_or_exit ($form, 'user_ids[]');
+  option_is_possible ($input, $id);
+  $form->param ('user_ids[]', $id);
+  $agent->request ($form->click ('update'));
+  id_is_removable ($id);
+  print_test_log ("User <$user> was successfully added.");
+  return $id;
+}
+sub approve_user
+{
+  my $user = shift;
+  my $id = get_user_id ($user);
+  print_test_log ("Approving <$user> for group.");
+  my $form = find_list ('approve_for_group');
+  my $input = find_input_or_exit ($form, 'user_ids[]');
+  $form->param ('user_ids[]', $id);
+  $agent->request ($form->click ('update'));
+  id_is_removable ($id);
+  print_test_log ("User <$user> was successfully approved.");
+  check_approval_email ($user);
+  return $id;
+}
+sub quit_group
+{
+  my $user = shift;
+  log_in ($agent, $user);
+  print_test_log ('Visiting my group page.');
+  $agent->get (make_url ('my/groups.php'));
+  print_test_log ('Following a quit link.');
+  my $link_re = qr,my/quitproject[.]php\b,;
+  $agent->follow_link (url_regex => $link_re);
+  $agent->form_with_fields (qw (form_id quitting_group_id));
+  print_test_log ("Cancelling quit.");
+  $agent->click ('cancel');
+  print_test_log ('Following a quit link again.');
+  $agent->follow_link (url_regex => $link_re);
+  $agent->form_with_fields (qw (form_id quitting_group_id));
+  print_test_log ("Confirming quit.");
+  $agent->click ('confirm');
+  if (defined $agent->find_link (url_regex => $link_re))
+    {
+      print_test_log ('Failed to quit.');
+      exit (1);
+    }
+  print_test_log ('Successfully quit.');
+}
+
+my $user = 'eve';
+my $id = get_user_id ($user);
+log_in ($agent, '-');
+$agent->get ($admin_url);
+remove_user ($user, $id) if id_is_removable ($id, 0);
+log_out ($agent);
+request_inclusion ($user);
+
+log_in ($agent, '-');
+$agent->get ($admin_url);
+
+$user = 'dave';
+$id = add_user ($user);
+remove_user ($user, $id);
+
+$user = 'eve';
+$id = approve_user ($user);
+remove_user ($user, $id);
+
+$user = 'dave';
+print_test_log ("Testing self-removal.");
+add_user ($user);
+log_out ($agent);
+quit_group ('dave');
+
+print_test_log ('Test done.');
+
+exit (0);
