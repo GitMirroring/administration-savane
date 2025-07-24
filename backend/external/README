@@ -16,7 +16,7 @@ All other files in this directory are not part of Savane.
 * mirror-redirect is exempt from Savane because of technical reasons:
   the protocol it uses has no reasonable option to prominently offer
   the interacting user its source code, so it's released under the GPL
-   rather than the AGPL.
+  rather than the AGPL.
 
 * cities15000 and its source file cities15000.txt come from GeoNames
   and are distributed under the CC BY-4.0; it's used as the input
