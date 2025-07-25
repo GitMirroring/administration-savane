@@ -90,9 +90,10 @@ sub print_legal_notices
 
 sub parse_argv
 {
+  my $help_is_short = shift;
   my ($help, $version);
   my @my_argv = @ARGV;
-  Getopt::Long::Configure ("pass_through");
+  Getopt::Long::Configure ("pass_through") unless $help_is_short;
   GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
   Getopt::Long::Configure ("no_pass_through");
   $version = 0 if $help;
@@ -106,10 +107,32 @@ sub get_prog_name
   return basename ($name);
 }
 
+sub help_is_short
+{
+  return $_[0] =~ /\.$/;
+}
+
+sub expand_short_help
+{
+  my $help = shift;
+  return $help unless (help_is_short ($help));
+  $help = <<"  EOF";
+    Usage: $0 [OPTIONS]
+
+    $help
+
+    -h, --help           show this help and exit
+    -v, --version        show Savane version and exit
+  EOF
+  $help =~ s,^ {4},,gm;
+  return $help;
+}
+
 sub substitute_help_string
 {
-  my $help_string = shift;
+  my $help = shift;
   my ($prog_escaped, $prog_name);
+  my $help_string = expand_short_help ($help);
   $prog_name = get_prog_name ();
   ($prog_escaped = $0) =~ s,.,[$&],g;
   $prog_escaped =~ s/,/\\,/g;
@@ -149,7 +172,7 @@ sub die_on_init_errors
 sub PrintVersionOrHelp
 {
   my ($help_string, $external) = @_;
-  my ($help, $version) = parse_argv ();
+  my ($help, $version) = parse_argv (help_is_short ($help_string));
   unless ($help || $version)
     {
       die_on_init_errors ();
