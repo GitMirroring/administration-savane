@@ -62,18 +62,19 @@ Run frontend in PHP built-in server.
   -v, --version        show Savane version and exit
       --php-bin        PHP executable [$php_bin]
   -d directive[=value] pass additional INI directive to PHP
-
-Configuration:
-
-Host: $host
-Port: $port";
+      --host           set host [$host]
+      --file-host      set host for files [$file_host]
+      --port           set port [$port]";
 
 $help .= "\n\nNote: Port is less than 1024; this script needs root privileges."
   if $port < 1024;
 
 PrintVersionOrHelp ($help);
 
-GetOptions ("php-bin=s" => \$php_bin, 'd=s', \@ini_directives)
+GetOptions (
+  "php-bin=s" => \$php_bin, 'd=s', \@ini_directives,
+  'host=s' => \$host, 'file-host=s' => \$file_host, 'port=s' => \$port
+)
   or die ("Wrong command line.");
 
 $php_bin = abs_path ($php_bin);
