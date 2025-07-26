@@ -82,7 +82,7 @@ $sys_mail_admin = "savannah-reports-private";
 $sys_mail_replyto = "INVALID.NOREPLY";
 $sys_enable_forum_comments = 0;
 $sys_registration_text_spam_test = 0;
-$sys_registration_captcha = 1;
+$sys_registration_captcha = @USE_CAPTCHA@;
 $sys_upload_max = 16384;
 
 $sys_etc_dir = "@confdir@";

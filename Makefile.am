@@ -77,8 +77,8 @@ conf_files += $(common_conf)
 conf_all += $(common_conf)
 
 directories = backend/accounts backend/sbin backend/external \
-  backend/extra/git backend/mail backend/misc db sysconf lib/Savane \
-  frontend/php/include
+  backend/extra/git backend/mail backend/misc db lib/Savane \
+  frontend/php/include sysconf
 
 modules = \
   lib/Savane.pm \
@@ -128,6 +128,12 @@ else
   WWW_SENDMAIL_LINE = php_admin_value sendmail_path "$(bindir)/sv_sendmail.pl"
   PHP_SENDMAIL_LINE = sendmail_path = "$(bindir)/sv_sendmail.pl"
   HAVE_SENDMAIL_VAR = 0
+endif
+
+if USE_CAPTCHA
+  use_captcha = 1
+else
+  use_captcha = 0
 endif
 
 subst_in_files = \
@@ -192,7 +198,8 @@ subst_in_files = \
     -e 's,[@]mysql_lock[@],$(mysql_lock),g' \
     -e 's,[@]mysql_tmpdir[@],$(mysql_tmpdir),g' \
     -e 's,[@]localedir[@],$(localedir),g' \
-    -e 's,[@]sysconfdir[@],$(sysconfdir),g'
+    -e 's,[@]sysconfdir[@],$(sysconfdir),g' \
+    -e 's,[@]USE_CAPTCHA[@],$(use_captcha),g' \
 
 substituted = \
   $(all_scripts) $(build_time_scripts) $(conf_all:%=sysconf/%) $(modules) \

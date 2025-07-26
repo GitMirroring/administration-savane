@@ -92,6 +92,13 @@ AC_ARG_VAR([GIT], [Git executable])
 
 AX_GEN_CHANGELOG
 
+AC_MSG_CHECKING([whether to disable captcha])
+AC_ARG_ENABLE([captcha],
+  [AS_HELP_STRING([--disable-captcha], [do not use captcha])],
+  [], [enable_captcha=yes]
+)
+AM_CONDITIONAL([USE_CAPTCHA], [test "x$enable_captcha" = xyes])
+
 AC_MSG_CHECKING([whether to initialize database])
 AC_ARG_ENABLE([database],
   [AS_HELP_STRING([--disable-database], [do not initialize database])],
@@ -318,6 +325,7 @@ AS_ECHO(["Database host: $SV_DB_HOST"])
 AS_ECHO(["Database port: $db_port"])
 AS_ECHO(["Run database over network: $enable_db_networking"])
 AS_ECHO(["Install frontend (PHP) part: $enable_frontend"])
+AS_ECHO(["Use captcha: $enable_captcha"])
 AS_ECHO(["Install database: $enable_database"])
 AS_ECHO(["Install mirror scripts: $enable_mirror"])
 AS_ECHO(["Update ChangeLog from git: $enable_changelog"])

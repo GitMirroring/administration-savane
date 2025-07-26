@@ -168,4 +168,9 @@ $sys_max_items_per_page = 1000;
 # variable is empty, a command line like 'date +$format -d $timestamp' is used.
 # As of PHP 8.1, strftime is deprecated and unreliable.
 $sys_use_strftime = true;
+
+# Use captcha when registering user accounts.
+$sys_registration_captcha = 1;
+# Use simple anti-spam trap when registering user accounts.
+$sys_registration_text_spam_test = 0;
 ?>
