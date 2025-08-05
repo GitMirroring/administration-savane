@@ -64,6 +64,8 @@
 
 * New script, sv_crypt.
 
+* New external scripts, log_accum.pl, commit_prep.pl.
+
 * In sv_gen_passwd_group, commas in 'realname' are replaced with spaces when
   writing the 'passwd' file.
 

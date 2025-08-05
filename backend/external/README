@@ -13,6 +13,9 @@ without any warranty.
 
 All other files in this directory are not part of Savane.
 
+* commit_prep.pl and log_accum.pl are released under the GPL rather than
+  the AGPL for historical reasons.
+
 * mirror-redirect is exempt from Savane because of technical reasons:
   the protocol it uses has no reasonable option to prominently offer
   the interacting user its source code, so it's released under the GPL

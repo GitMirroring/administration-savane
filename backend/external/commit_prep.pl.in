@@ -1,0 +1,100 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Copyright (C) 1994-2006 The Free Software Foundation, Inc.
+# Copyright (C) 2025 Ineiev
+#
+# This file isn't part of Savane, but is used with it.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Perl filter to handle pre-commit checking of files.
+#
+# Contributed by David Hampton <hampton@cisco.com>
+# Stripped to minimum by Roy Fielding
+# Changes by Sylvain Beucler <beuc@beuc.net> (2006-05-08):
+# - option -T added again to support multiple log_accum hooks
+# - deprecated misleading option -u
+# - used 'use strict' and added compatibility for 'perl -T' switch
+# - documented some more
+# - removed $cvs_user in the temporary filename - its value is not
+#   compatible with log_accum's and it's safer to use -T
+
+use strict;
+use Savane::Version;
+use Getopt::Long;
+
+my $TMPDIR = '/tmp';
+my $temp_name = 'cvs';
+my $full_directory_path = '';
+
+my $help_string = <<"EOF";
+  Usage: $0 [OPTIONS] current_commit_path
+
+  Perl filter to handle pre-commit checking of files.
+
+  The CVS workflow is:
+  - process all commitinfo hooks
+  - actually commit
+  - process all loginfo hooks
+
+  This program records the last directory where commits will be taking
+  place for use by the log_accum.pl script.
+
+  IMPORTANT: commit_prep.pl and log_accum have to agree on the tmpfile
+  name to use.
+
+  Sample CVSROOT/commitinfo:
+  ALL @bindir@/commit_prep.pl -T ccvs_1 %p \\
+    ^prog1\(/\|\$\) @bindir@/commit_prep.pl -T ccvs_2 %p
+
+  Options:
+
+    -T                 specify hook [$temp_name]
+    -u                 deprecated alias of -T
+
+    -h, --help         show this help and exit
+    -v, --version      show Savane version and exit
+EOF
+$help_string =~ s/^  //gm;
+
+PrintVersionOrHelp ($help_string, 1);
+GetOptions ('T|u=s' => \$temp_name) or die ("Wrong command line\n");
+
+die "Commit path is unspecified.\n" if $#ARGV < 0;
+$temp_name =~ /^([a-zA-Z0-9_.-]+)$/
+  or die "Invalid hook identifier requested: $temp_name";
+
+# The non-option argument is a relative path to the current commit directory.
+# It is written in a file and read by log_accum after being character-escaped.
+# No security issues here.  We still check for '..' and ensure this is not
+# a full path.
+die "Commit path should be relative to CVSROOT: $ARGV[0]"
+  unless ($ARGV[0] !~ m#(^|/)\.\.(/|\$)# and $ARGV[0] =~ m#^([^/].*)$#);
+$full_directory_path = $1;
+
+die "Requested commit path is empty" if $full_directory_path eq '';
+
+# This needs to match the corresponding var in log_accum.pl, including
+# the appending of the pgrp and hook identifier suffixes (see uses of
+# this var farther down).
+my $id = getpgrp ();
+my $last_file = "$TMPDIR/#$temp_name.$id.lastdir";
+
+# Record this directory as the last one checked.  This will be used
+# by the log_accumulate script to determine when it is processing
+# the final directory of a multi-directory commit.
+open FILE, "> $last_file" or die "Cannot open $last_file: $!\n";
+print FILE $full_directory_path, "\n";
+close FILE;
+
+exit 0;

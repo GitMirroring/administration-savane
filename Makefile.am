@@ -47,6 +47,8 @@ backend_bin_common = \
   backend/accounts/sv_get_authorized_keys \
   backend/accounts/sv_groups \
   backend/accounts/sv_membersh \
+  backend/external/commit_prep.pl \
+  backend/external/log_accum.pl \
   backend/extra/git/sv_cgit.pl \
   backend/extra/git/sv_cgit_about_filter.pl \
   backend/extra/git/sv_git_gc_repos.pl \

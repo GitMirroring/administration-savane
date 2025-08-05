@@ -65,6 +65,16 @@ accounts/sv_membersh
 Restricted shell provided to Savane users who connect through SSH.
 Used on download0.
 
+external/commit_prep.pl
+=======================
+
+Prepares data for external/log_accum.pl.  Used on vcs1.
+
+external/log_accum.pl
+=====================
+
+Processes CVS commit data and sends commit notifications.  Used on vcs1.
+
 external/mirror-redirect
 ========================
 
