@@ -15,6 +15,9 @@
   or item submission.  Previously, it was only assigned for members
   of active groups.
 
+* When a description is provided for tracker attachments, it's included
+  in the notifications.
+
 * Bug fixes:
 
 ** The implementation of strftime wasn't selected correctly.

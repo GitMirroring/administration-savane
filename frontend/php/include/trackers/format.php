@@ -494,25 +494,48 @@ function format_item_change_separator ()
   return "\n    _______________________________________________________\n\n";
 }
 
+function format_attachment ($file, $public)
+{
+  foreach (['size', 'name', '_id'] as $k)
+    if (array_key_exists ("file$k", $file))
+     {
+        $k1 = str_replace ('_', '', $k);
+        $file[$k1] = $file["file$k"];
+     }
+  $ret = sprintf ("Name: %-30s Size: %s\n",
+    $file['name'], utils_filesize (null, intval ($file['size']))
+  );
+  $description = '';
+  if (!empty ($file['description']))
+    $description = $file['description'];
+  return [$ret . format_attachment_link ($file, $public), $description];
+}
+
+function format_file_list ($changes, $public)
+{
+  $description = $ret = '';
+  foreach ($changes['attach'] as $file)
+    {
+      list ($entry, $description) = format_attachment ($file, $public);
+      $ret .= $entry;
+    }
+  return [$ret, $description];
+}
+
 function format_change_files ($out, $changes, $item_group, $public)
 {
   if (empty ($changes['attach']))
     return $out;
-  $out_att = "Additional Item Attachment";
+  list ($attachments, $description) = format_file_list ($changes, $public);
+  $out_att = 'Additional Item Attachment';
   if ($out)
     $out .= format_item_change_separator ();
   else
     $out_att .= ", $item_group";
   $out_att .= ":\n\n";
-
-  foreach ($changes['attach'] as $file)
-    {
-      $out_att .= sprintf ("File name: %-30s Size: %s\n",
-        $file['name'], utils_filesize (null, intval ($file['size']))
-      );
-      $out_att .= format_attachment_link ($file, $public);
-    }
-  $out .= $out_att;
+  if (!empty ($description))
+    $out_att = "$out_att$description\n\n";
+  $out .= "$out_att$attachments";
   if ($public)
     $out .= format_file_agpl_notice ();
   return $out;
@@ -598,16 +621,6 @@ function format_item_file_header ($list_is_empty, $ascii)
   return $HTML->box_top (_("Attached Files"), '', 1);
 }
 
-function format_item_attachment_ascii ($row, $href, $public)
-{
-  $ret = "\n-------------------------------------------------------\n";
-  $ret .= sprintf ("Name: %s  Size: %s",
-    $row['filename'], utils_filesize (null, intval ($row['filesize']))
-  );
-  if ($public)
-    $ret .= "\n<$href>";
-  return $ret;
-}
 function format_item_file_details ($row, $href)
 {
   $lnk = "<a href=\"$href\">file #{$row['file_id']}: &nbsp;";
@@ -642,19 +655,23 @@ function format_list_item_files ($result, $may_delete, $ascii, $public)
   $out = '';
   for ($i = 0; $row = db_fetch_array ($result); $i++)
     {
+      $r = $row;
       $url = format_file_url (
         ['id' => $row['file_id'], 'name' => $row['filename']], $public
       );
       if ($ascii)
-        $out .= format_item_attachment_ascii ($row, $url, $public);
+        {
+          list ($entry, $description) = format_attachment ($row, $public);
+          $out .= $entry;
+        }
       else
         $out .= '<div class="' . utils_altrow ($i) . '">'
           . format_item_attachment_html ($row, $may_delete, $url) . "</div>\n";
     }
-  if ($ascii && !empty ($row['description']))
+  if ($ascii && !empty ($description))
     # The description is common for all files in the original submission,
     # so only write it once.
-    $out = $row['description'] . $out;
+    $out = "$description\n\n$out";
   if ($ascii && $public)
     $out .= "\n" . format_file_agpl_notice ();
   return $out;

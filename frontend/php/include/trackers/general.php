@@ -1042,7 +1042,8 @@ function trackers_add_file ($item_id, $file, $file_description, &$changes)
       return null;
     }
   $changes['attach'][] = [
-    'name' => $file['name'], 'size' => $file['size'], 'id' => $id
+    'name' => $file['name'], 'size' => $file['size'], 'id' => $id,
+    'description' => $file_description
   ];
   return "file #$id";
 }
