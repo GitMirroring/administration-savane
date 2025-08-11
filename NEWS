@@ -62,6 +62,8 @@
 ** sv_gnu-mirmon left the output file empty when failing to download
    the mirror list; now it exits without changing the output file.
 
+** Options -h and -v weren't recognized, only the long --help and --version.
+
 [I18N]
 
 * Update French, German, Hebrew, Romanian, Russian.

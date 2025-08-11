@@ -94,7 +94,7 @@ sub parse_argv
   my ($help, $version);
   my @my_argv = @ARGV;
   Getopt::Long::Configure ("pass_through") unless $help_is_short;
-  GetOptionsFromArray (\@my_argv, "help" => \$help, "version" => \$version);
+  GetOptionsFromArray (\@my_argv, "help|h" => \$help, "version|v" => \$version);
   Getopt::Long::Configure ("no_pass_through");
   $version = 0 if $help;
   return ($help, $version);
