@@ -547,8 +547,26 @@ sub build_header
   return @header;
 }
 
-# Return username, fullname, and email for the change's author
-# when available.
+sub parse_pwent
+{
+  my @pwent = getpwuid $<;
+  my @ret;
+  my $name;
+  return [] unless @pwent;
+  push @ret, $pwent[0];
+  $name = $pwent[6];
+  $name =~ s/,.*$//;
+
+  if ($pwent[6] =~ /^([^<]*)\s+<(\S+@\S+)>/)
+    {
+      push @ret, $1, $2;
+      return @ret;
+    }
+  push @ret, $name;
+  return @ret;
+}
+
+# Return username, fullname, and email for the change's author when available.
 sub getuserdata
 {
   my ($username, $fullname, $mailname);
@@ -563,19 +581,12 @@ sub getuserdata
       # used by `cvs watch'.  For now, let the mailer determine an address
       # itself.
     }
-  elsif (my @pwent = getpwuid $<)
+  elsif (my @ent = parse_pwent ())
     {
-      $username = $pwent[0];
-      $fullname = $pwent[6];
-      $fullname =~ s/,.*$//;
-
-      if ($pwent[6] =~ /^([^<]*)\s+<(\S+@\S+)>/)
-        {
-          $fullname = $1;
-          $mailname = $2;
-        }
+      $username = shift @ent;
+      $fullname = shift @ent if @ent;
+      $mailname = shift @ent if @ent;
     }
-
   return $username, $fullname, $mailname;
 }
 
