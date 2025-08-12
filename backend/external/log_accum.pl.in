@@ -128,14 +128,6 @@ PrintVersionOrHelp ($help_string, 1);
 use Getopt::Long qw(:config gnu_getopt require_order);
 
 # Configurable options.
-#
-# The newest versions of CVS have UseNewInfoFmtStrings=yes
-# to change the arguments being passed on the command line.
-# If you are using %1s on the command line, then set this
-# value to 0.
-# 0 = old-style %1s format. use split(' ') to separate ARGV into filesnames.
-# 1 = new-style %s format. Note: allows spaces in filenames.
-my $UseNewInfoFmtStrings = 1;
 
 # Paths.
 my $CVSBIN        = "/usr/bin";
@@ -376,52 +368,30 @@ sub process_argv
 
   # Get the path and the file list.
   $module = shift @ARGV;
-  if ($UseNewInfoFmtStrings)
+  while (@ARGV)
     {
-      while (@ARGV)
-        {
-          my $filename = shift @ARGV;
-          die "path in file name `$filename'"
-            unless $filename =~ m#^([^/]+)$#;
-          $filename = $1;
-          push @files, $filename;
+      my $filename = shift @ARGV;
+      die "path in file name `$filename'"
+        unless $filename =~ m#^([^/]+)$#;
+      $filename = $1;
+      push @files, $filename;
 
-          $oldrev{$filename} = shift @ARGV
-            or die "No previous revision given for $filename";
-          $newrev{$filename} = shift @ARGV
-            or die "No new revision given for $filename";
+      $oldrev{$filename} = shift @ARGV
+        or die "No previous revision given for $filename";
+      $newrev{$filename} = shift @ARGV
+        or die "No new revision given for $filename";
 
-          # Simplify diffs.
-          $oldrev{$filename} = 0 if $oldrev{$filename} eq "NONE";
-          $newrev{$filename} = 0 if $newrev{$filename} eq "NONE";
+      # Simplify diffs.
+      $oldrev{$filename} = 0 if $oldrev{$filename} eq "NONE";
+      $newrev{$filename} = 0 if $newrev{$filename} eq "NONE";
 
-          # Untaint.
-          die "invalid old revision $oldrev{$filename}"
-            unless $oldrev{$filename} =~ /^([0-9.]+)$/;
-          $oldrev{$filename} = $1;
-          die "invalid new revision $newrev{$filename}"
-            unless $newrev{$filename} =~ /^([0-9.]+)$/;
-          $newrev{$filename} = $1;
-        }
-    }
-  else
-    {
-      # Old-style info strings prefaced the module path with $CVSROOT.
-      my $module =~ s/^\Q$ENV{'CVSROOT'}\E//;
-
-      my @files;
-      push @files, split ' ', shift @ARGV;
-      for (@files)
-        {
-          s/,([^,]+),([^,]+)$//
-            or die "Not enough modifiers for $_";
-          $oldrev{$_} = $1;
-          $newrev{$_} = $2;
-          $oldrev{$_} = 0 if $oldrev{$_} eq "NONE";
-          $newrev{$_} = 0 if $newrev{$_} eq "NONE";
-        }
-
-      die "Too many arguments." if @ARGV;
+      # Untaint.
+      die "invalid old revision $oldrev{$filename}"
+        unless $oldrev{$filename} =~ /^([0-9.]+)$/;
+      $oldrev{$filename} = $1;
+      die "invalid new revision $newrev{$filename}"
+        unless $newrev{$filename} =~ /^([0-9.]+)$/;
+      $newrev{$filename} = $1;
     }
 
   set_defaults ($config, \@configs);
@@ -1175,8 +1145,7 @@ sub main
 
   # Check for a new directory first.  This will always appear as a
   # single item in the argument list, and an empty log message.
-  if (($UseNewInfoFmtStrings ? $files->[0] : join " ", @$files)
-      eq "- New directory")
+  if ($files->[0] eq "- New directory")
     {
       my @header = build_header (
         $toplevel, "", $username, $fullname, $mailname
@@ -1224,10 +1193,7 @@ sub main
       && !grep /^\Q$branch_lines->[0]\E$/, @{$config->{'tag'}};
 
   # Check for imported sources.
-  if (
-    ($UseNewInfoFmtStrings? $files->[0]: join " ", @$files)
-    eq "- Imported sources"
-  )
+  if ($files->[0] eq "- Imported sources")
     {
       my @header = build_header (
         $toplevel, "", $username, $fullname, $mailname
