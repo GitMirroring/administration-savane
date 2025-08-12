@@ -48,9 +48,16 @@ my $help =
 
 A stub to use instead of sendmail: redirect email to a log file.
 
+  -i              ignore for compatibility with sendmail
+  -t              ignore for compatibility with sendmail
+  -f [EMAIL]      ignore for compatibility with sendmail
+
   -h, --help      show this help and exit
   -v, --version   show Savane version and exit";
 PrintVersionOrHelp ($help);
+my $dummy;
+GetOptions ('i' => \$dummy, 't' => \$dummy, 'f=s' => \$dummy)
+  or die "Wrong command line";
 
 my $logdir = "@logdir@";
 my $log = "$logdir/sendmail.mbox";

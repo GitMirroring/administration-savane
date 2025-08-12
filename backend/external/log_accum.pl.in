@@ -22,6 +22,7 @@
 # a directory.
 
 use strict;
+require Mail::Send;
 use Savane::Version;
 
 # Configurable options.
@@ -31,8 +32,6 @@ my $TMPDIR        = "/tmp";
 
 # Set this to a domain to have CVS pretend that all users who make
 # commits have mail accounts within that domain.
-my @MAIL_CMD      = ("/usr/lib/sendmail", "-i", "-t");
-my $MAIL_CMD_NEEDS_ADDRS;
 
 my $help_string = <<"EOF";
   Usage: $0 [OPTIONS]
@@ -187,8 +186,8 @@ sub debug_output_config
   # Print some debugging info about the config when requested.
   if (@debug)
     {
-      for ("debug", "tag", "url", "cvsroot", "send-diff",
-           "empty-diffs", "file-text", 'cvs-bin', 'tmp-dir')
+      for ("debug", "tag", "url", "cvsroot", "send-diff", "empty-diffs",
+        "file-text", 'cvs-bin', 'tmp-dir')
         {
           debug ("config{$_} => ", $config->{$_}, "\n");
         }
@@ -585,7 +584,7 @@ sub send_mail
   my ($addr_list, $module, $username, $fullname, $mailfrom, $subject, @text)
     = @_;
   my $mail_to = join ", ", @$addr_list;
-  my @mailcmd;
+  my $msg = new Mail::Send;
 
   debug ("Mailing the commit message to $mail_to (from "
     . ($mailfrom? $mailfrom: $username) . ")\n"
@@ -594,26 +593,13 @@ sub send_mail
 
   $ENV{'MAILUSER'} = $mailfrom if $mailfrom;
 
-  push @mailcmd, @MAIL_CMD;
-  push @mailcmd, @$addr_list if $MAIL_CMD_NEEDS_ADDRS;
-  push @mailcmd, "-f$mailfrom" if $mailfrom;
-  # Else let the system determine how to send mail.
-
-  open MAIL, "|-" or exec @mailcmd;
-
-  # Parent.
-  $SIG{'PIPE'} = sub {die "whoops, pipe broke."};
-
-  print MAIL "To: $mail_to\n";
-  # $fullname may be empty, but the extra spaces won't hurt.
-  print MAIL "From: $fullname <$mailfrom>\n" if $mailfrom;
-  print MAIL "Subject: $subject\n";
-  print MAIL "\n";
-  print MAIL join "\n", @text;
-
-  my $status = close MAIL;
-  warn "child exited $?" unless $status;
-  return $status;
+  $msg->to ($mail_to);
+  $msg->subject ($subject);
+  $msg->add ('From', "$fullname <$mailfrom>") if $mailfrom;
+  my $fh = $msg->open;
+  print { $fh } join ("\n", @text);
+  $fh->close;
+  return 1;
 }
 
 # Wrapper for send_mail that prints a warm fuzzy message.
