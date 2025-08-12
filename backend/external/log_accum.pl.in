@@ -31,8 +31,6 @@ my $TMPDIR        = "/tmp";
 
 # Set this to a domain to have CVS pretend that all users who make
 # commits have mail accounts within that domain.
-# my $EMULATE_LOCAL_MAIL_USER="nongnu.org";
-my $EMULATE_LOCAL_MAIL_USER='';
 my @MAIL_CMD      = ("/usr/lib/sendmail", "-i", "-t");
 my $MAIL_CMD_NEEDS_ADDRS;
 
@@ -578,10 +576,6 @@ sub getuserdata
           $mailname = $2;
         }
     }
-
-  # Replace the mail name when requested.
-  $mailname = "$username\@$EMULATE_LOCAL_MAIL_USER"
-    if $EMULATE_LOCAL_MAIL_USER;
 
   return $username, $fullname, $mailname;
 }
