@@ -24,6 +24,18 @@
 use strict;
 use Savane::Version;
 
+# Configurable options.
+
+my $CVSBIN        = "/usr/bin/cvs";
+my $TMPDIR        = "/tmp";
+
+# Set this to a domain to have CVS pretend that all users who make
+# commits have mail accounts within that domain.
+# my $EMULATE_LOCAL_MAIL_USER="nongnu.org";
+my $EMULATE_LOCAL_MAIL_USER='';
+my @MAIL_CMD      = ("/usr/lib/sendmail", "-i", "-t");
+my $MAIL_CMD_NEEDS_ADDRS;
+
 my $help_string = <<"EOF";
   Usage: $0 [OPTIONS]
 
@@ -63,6 +75,11 @@ my $help_string = <<"EOF";
 
   Required option:
     -m, --mail-to      set mailto address; multiple addresses are allowed
+
+  Paths:
+        --cvs-bin      the path to the CVS binary [$CVSBIN]
+        --tmp-dir      the directory where temporary files are created
+                       [$TMPDIR]
 
   Optional features:
     -c, --config       the file to read configuration from; command-line options
@@ -127,19 +144,6 @@ PrintVersionOrHelp ($help_string, 1);
 
 use Getopt::Long qw(:config gnu_getopt require_order);
 
-# Configurable options.
-
-# Paths.
-my $CVSBIN        = "/usr/bin";
-my $TMPDIR        = "/tmp";
-
-# Set this to a domain to have CVS pretend that all users who make
-# commits have mail accounts within that domain.
-# my $EMULATE_LOCAL_MAIL_USER="nongnu.org";
-my $EMULATE_LOCAL_MAIL_USER='';
-my @MAIL_CMD      = ("/usr/lib/sendmail", "-i", "-t");
-my $MAIL_CMD_NEEDS_ADDRS;
-
 # Constants.
 # The constant pragma wasn't introduced until Perl 5.8.
 sub STATE_NONE    () { 0 }
@@ -159,6 +163,42 @@ sub debug
   foreach (@debug)
     {
       print $_ @_;
+    }
+}
+
+sub push_config_to_debug
+{
+  my $config = shift;
+  foreach (@{$config->{'debug-log'}})
+    {
+      my $debug;
+      if (open $debug, ">>$_")
+        {
+          push @debug, $debug;
+        }
+      else
+        {
+          warn "failed to open debug log `$_': $!";
+        }
+    }
+}
+
+sub debug_output_config
+{
+  my $config = shift;
+  # Print some debugging info about the config when requested.
+  if (@debug)
+    {
+      for ("debug", "tag", "url", "cvsroot", "send-diff",
+           "empty-diffs", "file-text", 'cvs-bin', 'tmp-dir')
+        {
+          debug ("config{$_} => ", $config->{$_}, "\n");
+        }
+      for ("debug-log", "mail-to", "diff-arg", "separate-diffs")
+        {
+          my @tmp = @{$config->{$_}} if $config->{$_};
+          debug ("config{$_} => ", join (":", @tmp), "\n");
+        }
     }
 }
 
@@ -213,37 +253,13 @@ sub set_defaults
         unless @{$config->{'separate-diffs'}};
     }
   $config->{'file-text'} = "cvs" if !exists $config->{'file-text'};
+  $config->{'cvs-bin'} = $CVSBIN unless exists $config->{'cvs-bin'};
+  $config->{'tmp-dir'} = $TMPDIR unless exists $config->{'tmp-dir'};
 
-  # Just set @debug in a global.  It's easier.
   $config->{'debug-log'} = [] unless exists $config->{'debug-log'};
   push @{$config->{'debug-log'}}, '&STDERR' if $config->{debug};
-  foreach (@{$config->{'debug-log'}})
-    {
-      my $debug;
-      if (open $debug, ">>$_")
-        {
-          push @debug, $debug;
-        }
-      else
-        {
-          warn "failed to open debug log `$_': $!";
-        }
-    }
-
-  # Print some debugging info about the config when requested.
-  if (@debug)
-    {
-      for ("debug", "tag", "url", "cvsroot", "send-diff",
-           "empty-diffs", "file-text")
-        {
-          debug ("config{$_} => ", $config->{$_}, "\n");
-        }
-      for ("debug-log", "mail-to", "diff-arg", "separate-diffs")
-        {
-          my @tmp = @{$config->{$_}} if $config->{$_};
-          debug ("config{$_} => ", join (":", @tmp), "\n");
-        }
-    }
+  push_config_to_debug ($config);
+  debug_output_config ($config);
 }
 
 sub new_config
@@ -299,7 +315,9 @@ my @option_spec = (
   "diff-arg|D=s@",
   "suppress-diffs-against-empties|E!",
   "empty-diffs|e!",
-  "separate-diffs|S:s@"
+  "separate-diffs|S:s@",
+  "cvs-bin=s",
+  "tmp-dir=s"
 );
 
 # Parse a config file.
@@ -991,8 +1009,9 @@ sub build_diffs
 
       open DIFF, "-|"
         or
-          exec "$CVSBIN/cvs", '-Qn', 'diff', '-N', @{$config->{'diff-arg'}},
-            "-r$oldrev", "-r$newrev", '--', "$dir$file";
+          exec $config->{'cvs-bin'}, '-Qn', 'diff', '-N',
+            @{$config->{'diff-arg'}}, "-r$oldrev", "-r$newrev", '--',
+            "$dir$file";
 
       while (<DIFF>)
         {
@@ -1179,7 +1198,7 @@ sub main
           # Read the rest of the input to avoid sending broken pipe errors
           # to our parent.
         }
-      cleanup_tmpfiles ($TMPDIR, $config->{'file-text'}, $id);
+      cleanup_tmpfiles ($config->{'tmp-dir'}, $config->{'file-text'}, $id);
       return 0;
     }
 
@@ -1222,14 +1241,16 @@ sub main
       write_file ($config->{'commit-log'}, @header, @body)
         if $config->{'commit-log'};
 
-      cleanup_tmpfiles ($TMPDIR, $config->{'file-text'}, $id);
+      cleanup_tmpfiles ($config->{'tmp-dir'}, $config->{'file-text'}, $id);
       return 0;
     }
 
   # Find the log file that matches this log message.
   my ($LAST_FILE, $LOG_BASE, $BRANCH_BASE, $ADDED_BASE, $CHANGED_BASE,
     $REMOVED_BASE, $URL_BASE, $CHANGED_REV_BASE, $ADDED_REV_BASE,
-    $REMOVED_REV_BASE) = get_temp_files ($TMPDIR, $config->{'file-text'}, $id);
+    $REMOVED_REV_BASE) = get_temp_files (
+      $config->{'tmp-dir'}, $config->{'file-text'}, $id
+    );
   my $i;
   for ($i = 0; ; $i++)
     {
@@ -1317,7 +1338,7 @@ sub main
     }
   else
     {
-      cleanup_tmpfiles ($TMPDIR, $config->{'file-text'}, $id);
+      cleanup_tmpfiles ($config->{'tmp-dir'}, $config->{'file-text'}, $id);
       die "* Fatal error: $LAST_FILE is not present.\n"
         . "  It should have been generated by commit_prep.pl.\n"
         . "  Check your CVSROOT/commitinfo file.";
@@ -1372,7 +1393,7 @@ sub main
         if $config->{'commit-log'};
     }
 
-  cleanup_tmpfiles ($TMPDIR, $config->{'file-text'}, $id);
+  cleanup_tmpfiles ($config->{'tmp-dir'}, $config->{'file-text'}, $id);
   return 0;
 }
 
