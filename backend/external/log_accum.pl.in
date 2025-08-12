@@ -330,6 +330,31 @@ my @option_spec = (
   "tmp-dir=s"
 );
 
+sub read_config_file
+{
+  my $file = shift;
+  my @ret = ();
+
+  open CONFIG, "<$file" or die "can't open $file: $!";
+  while (<CONFIG>)
+    {
+      # Skip comments and lines with nothing but blanks.
+      next if /^\s*(#.*)?$/;
+
+      # Split it.
+      chomp;
+      /^(\S*)(\s+(.*))?$/;
+
+      # Save the option.
+      push @ret, "--$1";
+
+      # There is a difference between no argument and an empty string argument.
+      push @ret, $3 if $2;
+    }
+  close CONFIG;
+  return @ret;
+}
+
 # Parse a config file.
 sub parse_config
 {
@@ -338,31 +363,11 @@ sub parse_config
 
   foreach my $file (@$files)
     {
-      local @ARGV = ();
-
       warn "config loop detected" && next if $parsed_configs->{$file};
       $parsed_configs->{$file} = 1;
 
       debug ("parse_config: parsing $file\n") if @debug;
-      open CONFIG, "<$file" or die "can't open $file: $!";
-
-      while (<CONFIG>)
-        {
-          # Skip comments and lines with nothing but blanks.
-          next if /^\s*(#.*)?$/;
-
-          # Split it.
-          chomp;
-          /^(\S*)(\s+(.*))?$/;
-
-          # Save the option.
-          push @ARGV, "--$1";
-
-          # There is a difference between no argument and an empty string
-          # argument.
-          push @ARGV, $3 if $2;
-        }
-      close CONFIG;
+      local @ARGV = read_config_file ($file);
 
       # Get the options from the config file.
       $config = new_config;
