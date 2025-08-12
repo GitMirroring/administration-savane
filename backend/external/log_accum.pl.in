@@ -202,14 +202,9 @@ sub debug_output_config
     }
 }
 
-# Set the default configuration values.  This should be called after
-# process_argv since it assumes that undefined values in config mean that
-# the option was not specified on the command line.
-sub set_defaults
+sub condense_configs
 {
   my ($config, $configs) = @_;
-
-  # Condense the configs.
   while (@$configs)
     {
       my $c = pop @$configs;
@@ -218,9 +213,12 @@ sub set_defaults
           $config->{$_} = $c->{$_} unless exists $config->{$_};
         }
     }
+}
 
+sub config_sanity_checks
+{
+  my $config = shift;
   # Anything not set will default to false in Perl.
-  # Sanity checks.
   die "No email destination specified." unless exists $config->{'mail-to'};
   die "cvsweb CVSROOT specified without --url."
     if exists $config->{'cvsroot'} && !exists $config->{'url'};
@@ -229,34 +227,53 @@ sub set_defaults
        && (exists $config->{'diff-arg'}
            || exists $config->{'empty-diffs'}
            || exists $config->{'separate-diffs'});
+}
 
-  # Set defaults.
-  if (!exists $config->{'cvsroot'})
+my %get_default_options = (
+  'cvsroot' => sub
+  {
+    my $ret = $ENV{'CVSROOT'};
+    $ret =~ s#^.*/([^/]*)$#$1#;
+    return $ret;
+  },
+  'send-diff' => sub { return 1; },
+  'diff-arg' => sub { return ["-ub"]; },
+  'empty-diffs' => sub { return 1; },
+  'file-text' => sub { return 'cvs'; },
+  'cvs-bin' => sub { return $CVSBIN; },
+  'tmp-dir' => sub { return $TMPDIR; },
+  'debug-log' => sub { return []; }
+);
+
+sub fixup_separate_diffs
+{
+  my $config = shift;
+  return unless exists $config->{'separate-diffs'};
+  # If --separate-diffs is ever specified without an argument,
+  # Getopt::Long pushes an empty string onto the array, so remove
+  # any empty strings.
+  @{$config->{'separate-diffs'}} = grep /\S/, @{$config->{'separate-diffs'}};
+
+  # If no email addresses were specified, use the argument(s) to --mail-to.
+  $config->{'separate-diffs'} = $config->{'mail-to'}
+    unless @{$config->{'separate-diffs'}};
+}
+
+# Set the default configuration values.  This should be called after
+# process_argv since it assumes that undefined values in config mean that
+# the option was not specified on the command line.
+sub set_defaults
+{
+  my ($config, $configs) = @_;
+  condense_configs ($config, $configs);
+  config_sanity_checks ($config);
+
+  foreach my $opt (keys %get_default_options)
     {
-      $config->{'cvsroot'} = $ENV{'CVSROOT'};
-      $config->{'cvsroot'} =~ s#^.*/([^/]*)$#$1#;
+      $config->{$opt} = $get_default_options{$opt} ()
+        unless exists $config->{$opt};
     }
-  $config->{'send-diff'} = 1 if !exists $config->{'send-diff'};
-  $config->{'diff-arg'} = ["-ub"] if !exists $config->{'diff-arg'};
-  $config->{'empty-diffs'} = 1 if !exists $config->{'empty-diffs'};
-  if (exists $config->{'separate-diffs'})
-    {
-      # If --separate-diffs is ever specified without an argument,
-      # Getopt::Long pushes an empty string onto the array, so remove
-      # any empty strings.
-      @{$config->{'separate-diffs'}}
-        = grep /\S/, @{$config->{'separate-diffs'}};
-
-      # If no email addresses were specified, use the argument(s) to
-      # --mail-to.
-      $config->{'separate-diffs'} = $config->{'mail-to'}
-        unless @{$config->{'separate-diffs'}};
-    }
-  $config->{'file-text'} = "cvs" if !exists $config->{'file-text'};
-  $config->{'cvs-bin'} = $CVSBIN unless exists $config->{'cvs-bin'};
-  $config->{'tmp-dir'} = $TMPDIR unless exists $config->{'tmp-dir'};
-
-  $config->{'debug-log'} = [] unless exists $config->{'debug-log'};
+  fixup_separate_diffs ($config);
   push @{$config->{'debug-log'}}, '&STDERR' if $config->{debug};
   push_config_to_debug ($config);
   debug_output_config ($config);
