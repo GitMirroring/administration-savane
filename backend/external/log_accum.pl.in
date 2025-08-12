@@ -32,6 +32,7 @@ my $TMPDIR        = "/tmp";
 
 # Set this to a domain to have CVS pretend that all users who make
 # commits have mail accounts within that domain.
+my @ALIASES = ();
 
 my $help_string = <<"EOF";
   Usage: $0 [OPTIONS]
@@ -81,7 +82,10 @@ my $help_string = <<"EOF";
   Optional features:
     -c, --config       the file to read configuration from; command-line options
                        always override values in file; in nested configs, parent
-                       options override any options from included files.
+                       options override any options from included files
+
+    -a, --aliases      the file to look for user's address in; multiple
+                       files are allowed, none by default
     -r, --only-tag
         --tag          operate only on changes in this tag or branch;
                        use -r '', -rHEAD, or -rTRUNK for only changes to TRUNK
@@ -191,7 +195,7 @@ sub debug_output_config
         {
           debug ("config{$_} => ", $config->{$_}, "\n");
         }
-      for ("debug-log", "mail-to", "diff-arg", "separate-diffs")
+      for ("debug-log", "mail-to", "diff-arg", "separate-diffs", "aliases")
         {
           my @tmp = @{$config->{$_}} if $config->{$_};
           debug ("config{$_} => ", join (":", @tmp), "\n");
@@ -239,7 +243,8 @@ my %get_default_options = (
   'file-text' => sub { return 'cvs'; },
   'cvs-bin' => sub { return $CVSBIN; },
   'tmp-dir' => sub { return $TMPDIR; },
-  'debug-log' => sub { return []; }
+  'debug-log' => sub { return []; },
+  'aliases' => sub { return []; }
 );
 
 sub fixup_separate_diffs
@@ -271,6 +276,7 @@ sub set_defaults
         unless exists $config->{$opt};
     }
   fixup_separate_diffs ($config);
+  @ALIASES = @{$config->{'aliases'}} if $config->{'aliases'};
   push @{$config->{'debug-log'}}, '&STDERR' if $config->{debug};
   push_config_to_debug ($config);
   debug_output_config ($config);
@@ -301,13 +307,15 @@ sub new_config
         warn "Using deprecated -u option. Use -T instead.";
         &{$config{'file-prefix'}} (@_);
       },
-    'suppress-diffs-against-empties' => sub { $config{'empty-diffs'} = !$_[1]; }
+    'suppress-diffs-against-empties' =>
+      sub { $config{'empty-diffs'} = !$_[1]; },
   );
   return \%config;
 }
 
 # This is global for convenience.  It is used in parse_config & process_argv.
 my @option_spec = (
+  "aliases|a=s@",
   "config|c=s@",
   "mail-to|m=s@",
   "only-tag|tag|r=s@",
@@ -566,6 +574,24 @@ sub parse_pwent
   return @ret;
 }
 
+sub get_email_from_aliases
+{
+  my $user = shift;
+  foreach my $alias (@ALIASES)
+    {
+      open EMAILS, "<$alias" or die "can't open alias file $alias: $!";
+      while (<EMAILS>)
+        {
+          next if /^\s*(#.*)?$/;
+          chomp;
+          next unless /^(\S+?):\s*(\S+@\S+)\s*$/;
+          next unless $user eq $1;
+          return $2;
+        }
+    }
+  return undef;
+}
+
 # Return username, fullname, and email for the change's author when available.
 sub getuserdata
 {
@@ -587,6 +613,7 @@ sub getuserdata
       $fullname = shift @ent if @ent;
       $mailname = shift @ent if @ent;
     }
+  $mailname = get_email_from_aliases ($username) unless defined $mailname;
   return $username, $fullname, $mailname;
 }
 
@@ -1153,9 +1180,8 @@ sub main
 
   # Initialize basic variables.
   my $id = getpgrp (); # You *must* use a shell which does setpgrp ().
-  my ($username, $fullname, $mailname) = getuserdata;
-
   my ($config, $module, $files, $oldrev, $newrev) = process_argv;
+  my ($username, $fullname, $mailname) = getuserdata;
 
   $module =~ m#^([^/]*)#;
   my $toplevel = $1;
