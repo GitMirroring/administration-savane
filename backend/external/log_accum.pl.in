@@ -279,40 +279,33 @@ sub set_defaults
   debug_output_config ($config);
 }
 
+# Set up the option processing functions.
 sub new_config
 {
   my %config;
-
-  # Set up the option processing functions.
-  $config{'only-tag'} =
-    sub
-    {
-      $_[1] = '' if $_[1] eq "HEAD" || $_[1] eq "TRUNK";
-      push @{$config{'tag'}}, $_[1];
-    };
-  $config{'quiet'} =
-    sub
-    {
-      $config{debug} = !$_[1];
-    };
-  $config{'file-prefix'} =
-    sub
-    {
-      die "Invalid identifier passed to option $_[0]: $_[1]"
-        unless $_[1] =~ /^([a-zA-Z0-9_.-]+)$/;
-      $config{'file-text'} = $1;
-    };
-  $config{'user'} =
-    sub
-    {
-      warn "Using deprecated -u option. Use -T instead.";
-      &{$config{'file-prefix'}} (@_);
-    };
-  $config{'suppress-diffs-against-empties'} =
-    sub
-    {
-      $config{'empty-diffs'} = !$_[1];
-    };
+  %config = (
+    'only-tag' =>
+      sub
+      {
+        $_[1] = '' if $_[1] eq "HEAD" || $_[1] eq "TRUNK";
+        push @{$config{'tag'}}, $_[1];
+      },
+    'quiet' => sub { $config{debug} = !$_[1]; },
+    'file-prefix' =>
+      sub
+      {
+        die "Invalid identifier passed to option $_[0]: $_[1]"
+          unless $_[1] =~ /^([a-zA-Z0-9_.-]+)$/;
+        $config{'file-text'} = $1;
+      },
+    'user' =>
+      sub
+      {
+        warn "Using deprecated -u option. Use -T instead.";
+        &{$config{'file-prefix'}} (@_);
+      },
+    'suppress-diffs-against-empties' => sub { $config{'empty-diffs'} = !$_[1]; }
+  );
   return \%config;
 }
 
