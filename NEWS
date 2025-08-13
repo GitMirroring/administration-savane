@@ -64,6 +64,10 @@
 
 ** Options -h and -v weren't recognized, only the long --help and --version.
 
+** Email messages were saved in file incorrectly when sendmail was unconfigured
+   since 2023-10 26c9f4cb648c2 (when the feature was introduced)---as opposed
+   to frontend where sv_sendmail.pl is used.
+
 [I18N]
 
 * Update French, German, Hebrew, Romanian, Russian.

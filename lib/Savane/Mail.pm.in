@@ -82,6 +82,7 @@ sub log_mail
   print FH "From: " . GetConf ("sys_mail_replyto") . "\n";
   print FH "X-Savane-Server: " . GetConf ("sys_default_domain") . "\n";
   print FH "User-Agent: Savane::Mail.pm\n";
+  print FH "\n$message";
   close FH;
 }
 
