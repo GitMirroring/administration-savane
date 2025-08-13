@@ -37,9 +37,12 @@ our @EXPORT = qw (GetVersion PrintVersionOrHelp get_prog_name);
 # Return Savane version.
 sub GetVersion
 {
+  my $long = @_? shift: 0;
   my $version = '@VERSION@';
   return $version unless $version =~ s/gamma.*//;
-  return $version . substr ('@SV_GIT_COMMIT@', 0, 6);
+  my $commit = '@SV_GIT_COMMIT@';
+  $commit = substr ($commit, 0, 6) unless $long;
+  return "$version$commit";
 }
 
 sub print_copyright_notice
