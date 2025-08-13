@@ -71,7 +71,8 @@ backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
 all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 
 build_time_scripts = db/init-database.pl
-test_scripts = tests/register-user tests/register-group tests/membership
+test_scripts = tests/register-user tests/register-group tests/membership \
+  tests/mail-pm
 all_test_scripts = ${test_scripts} tests/run-tests
 
 common_conf = savane.conf.pl membersh-conf.pl
