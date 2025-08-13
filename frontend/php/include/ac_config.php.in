@@ -48,11 +48,14 @@ $sys_confdir = "@sysconfdir@";
 $sys_pkgconfdir = "@confdir@";
 $sys_localedir = "@localedir@";
 unset ($prefix, $datarootdir);
-$savane_version = "@VERSION@";
+$savane_version = $savane_full_version = "@VERSION@";
 $ac_git_commit = "@SV_GIT_COMMIT@";
 $version = preg_replace ('/gamma.*/', '', $savane_version);
 if ($version !== $savane_version)
-  $savane_version = $version . substr ($ac_git_commit, 0, 4);
+  {
+    $savane_version = $version . substr ($ac_git_commit, 0, 4);
+    $savane_full_version = "$version$ac_git_commit";
+  }
 unset ($version);
 $sys_conf_file = null;
 $ac_package_tarname = "@PACKAGE_TARNAME@";

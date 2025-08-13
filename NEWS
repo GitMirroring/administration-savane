@@ -2,6 +2,9 @@
 
 [FRONTEND]
 
+* Savane version and souce code offer is added to the headers of emails
+  frontend sends.
+
 * New passphrase hashes are made using yescrypt by default, and
   old hashes are updated when the user logs in.  New config variables,
   $sys_use_php_crypt and $sys_pw_prefix.

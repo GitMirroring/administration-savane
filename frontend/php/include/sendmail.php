@@ -40,7 +40,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-foreach (['utils', 'gpg', 'parsemail'] as $h)
+foreach (['utils', 'gpg', 'parsemail', 'savane-git'] as $h)
   require_once (dirname (__FILE__) . "/$h.php");
 
 # Return the common signature for all messages, in a list.
@@ -143,6 +143,7 @@ function sendmail_finalize_body ($uid, $message, $context)
 
 function sendmail_x_savane_server_header ()
 {
+  global $savane_full_version;
   $ret = '';
   if (!empty ($GLOBALS['int_delayspamcheck']))
     return $ret;
@@ -155,7 +156,10 @@ function sendmail_x_savane_server_header ()
       if ($val !== '')
         $ret .= "$sep$val";
     }
-  return "X-Savane-Server: $ret\n";
+  $ret = "X-Savane-Server: $ret\nX-Savane-Version: $savane_full_version\n";
+  $offer = trim (str_replace (["\n", "\r"], ' ', git_agpl_notice ()));
+  $ret .= "Source-Code-Offer: $offer\n";
+  return $ret;
 }
 
 function sendmail_cc_addresses ($user_name, $context)
