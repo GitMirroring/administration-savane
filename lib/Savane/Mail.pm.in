@@ -42,6 +42,7 @@
 
 use strict;
 require Mail::Send;
+require Savane::Version;
 require Exporter;
 
 our @ISA = qw (Exporter);
@@ -61,6 +62,7 @@ sub get_headers
   %ret = (
     "From" => GetConf ("sys_mail_replyto"),
     "X-Savane-Server" => GetConf ("sys_default_domain"),
+    "X-Savane-Version" => GetVersion (1),
     "User-Agent" => "Savane::Mail.pm"
   );
   return %ret;

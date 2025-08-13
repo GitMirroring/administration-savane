@@ -42,6 +42,8 @@
 
 [BACKEND]
 
+* Savane version is added to the headers of email messages.
+
 * New options in sv_php_server.pl, --host, --file-host, --port.
 
 * Bug report address and Savane home page URL are added to help strings.
