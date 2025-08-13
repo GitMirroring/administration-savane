@@ -55,18 +55,30 @@ sub format_message
     .  "Message sent by " . GetConf ("sys_name") . "\nhttps://$url\n";
 }
 
+sub get_headers
+{
+  my %ret;
+  %ret = (
+    "From" => GetConf ("sys_mail_replyto"),
+    "X-Savane-Server" => GetConf ("sys_default_domain"),
+    "User-Agent" => "Savane::Mail.pm"
+  );
+  return %ret;
+}
+
 sub send_mail
 {
   my ($to, $subject, $message) = @_;
   my $msg = new Mail::Send;
   my $fh;
+  my %headers = get_headers ();
 
   $msg->to ($to);
   $msg->subject ($subject);
-  $msg->add ("From", GetConf ("sys_mail_replyto"));
-  $msg->add ("X-Savane-Server", GetConf ("sys_default_domain"));
-  $msg->add ("User-Agent", "Savane::Mail.pm");
-
+  foreach my $h (keys %headers)
+    {
+      $msg->add ($h, $headers{$h});
+    }
   $fh = $msg->open;
   print $fh $message;
   $fh->close;
@@ -77,11 +89,15 @@ sub log_mail
   my ($to, $subject, $message) = @_;
   my $logdir = "@logdir@";
   my $log = "$logdir/sendmail.mbox";
+  my %headers = get_headers ();
   die "Can't open $log for writing: $!\n" unless open FH, '>>', $log;
   print FH "From @PACKAGE@ " . `date`;
-  print FH "From: " . GetConf ("sys_mail_replyto") . "\n";
-  print FH "X-Savane-Server: " . GetConf ("sys_default_domain") . "\n";
-  print FH "User-Agent: Savane::Mail.pm\n";
+  print FH "To: $to\n";
+  print FH "Subject: $subject\n";
+  foreach my $h (keys %headers)
+    {
+      print FH "$h: $headers{$h}\n";
+    }
   print FH "\n$message";
   close FH;
 }
