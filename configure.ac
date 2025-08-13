@@ -166,6 +166,10 @@ AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
   [have_perl_modules=yes], [have_perl_modules=no]
 )
 
+AX_PERL_MODULE_VERSION([WWW::Mechanize 0],
+  [have_mechanize=yes], [have_mechanize=no]
+)
+
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],
   [AS_HELP_STRING([--enable-mirror], [install mirror-related scripts])],
@@ -398,6 +402,12 @@ AS_CASE(["$have_mirror_perl.$enable_mirror"], [no.yes],
   [
     AS_ECHO(["Note: Perl modules for mirror scripts are missing."])
     AS_ECHO(["      The installcheck target will fail."])
+  ]
+)
+AS_CASE([$have_mechanize], [no],
+  [
+    AS_ECHO(["Note: The Perl module WWW::Mechanize is missing."])
+    AS_ECHO(["      The test and distcheck targets will fail."])
   ]
 )
 AS_ECHO([])
