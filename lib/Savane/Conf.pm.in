@@ -51,6 +51,13 @@ my $conf_prefix = '@sysconfdir@/savane';
 my $conf_file;
 my $res;
 
+# Default values for some variables.
+our $sys_default_domain = '@WWW_SERVER_HOST@';
+our $sys_www_server_port = '@WWW_SERVER_PORT@';
+our $sys_mail_replyto = 'INVALID.NOREPLY';
+our $sys_name = 'Savannah-dev';
+our $sys_url_topdir = '';
+
 $conf_prefix = $ENV{'SAVANE_CONF'} if $ENV{'SAVANE_CONF'};
 
 $conf_file = "$conf_prefix/savane.conf.pl";
