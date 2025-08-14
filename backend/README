@@ -49,7 +49,7 @@ accounts/sv_groups
 ==================
 
 Creates VCS repositories and download areas when the features are
-enabled in Savane Web UI.
+enabled in Savane Web UI.  Updates CVS commit hooks.
 Runs twice an hour on download0 (download areas), vcs1 (CVS repositories),
 vcs0 (all other repositories).
 
