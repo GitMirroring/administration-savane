@@ -62,13 +62,17 @@ my $help_string = <<"EOF";
     -T                 specify hook [$temp_name]
     -u                 deprecated alias of -T
 
+    --tmp-dir          the directory where temporary files are created
+                       [$TMPDIR]
+
     -h, --help         show this help and exit
     -v, --version      show Savane version and exit
 EOF
 $help_string =~ s/^  //gm;
 
 PrintVersionOrHelp ($help_string, 1);
-GetOptions ('T|u=s' => \$temp_name) or die ("Wrong command line\n");
+GetOptions ('T|u=s' => \$temp_name, 'tmp-dir=s' => \$TMPDIR)
+  or die ("Wrong command line\n");
 
 die "Commit path is unspecified.\n" if $#ARGV < 0;
 $temp_name =~ /^([a-zA-Z0-9_.-]+)$/
