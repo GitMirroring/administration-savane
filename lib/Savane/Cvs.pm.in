@@ -84,79 +84,70 @@ sub CvsSavannahWebType
   return $dir_type;
 }
 
+sub check_spaces_in_dirs
+{
+  foreach my $dir (@_)
+    {
+      # Use POSIX [:space:] instead of \s for completeness
+      # (check man perlre).
+      return "A space in the dir name '$dir'" if $dir =~ /[[:space:]]/;
+    }
+  return '';
+}
+
+sub build_separate_diffs
+{
+  my ($diff_on, $emails_diff) = @_;
+  return '--no-send-diff ' unless $diff_on == 1;
+  my $ret = '--send-diff ';
+  return $ret unless $emails_diff ne '';
+  my @emails = split (',', $emails_diff);
+  return $ret . join ('', map { "--separate-diffs $_ " } @emails);
+}
+
+sub get_hook_regexp
+{
+  my $match_type = shift;
+  my @dirs = @_;
+  my $regexp;
+  return ($match_type, '')
+    if ($match_type eq 'ALL' || $match_type eq 'DEFAULT');
+  return ('', "Unknown match type: $match_type")
+    unless ($match_type eq 'dir_list');
+  return ('', 'Directory list is empty') if (scalar (@dirs) == 0);
+  return ('^' . $dirs[0] . '\(/\|$\)', '') if (scalar (@dirs) == 1);
+  return ('^\(' . join ('\|', @dirs) . '\)\(/\|$\)', '');
+}
+
+sub get_hook_config
+{
+  my $repo = shift;
+  my $config_file = 'log_accum-web.config';
+  $config_file = 'log_accum-sources.config' if $repo eq 'sources';
+  return "--config @confdir@/$config_file %p %{sVv}\n";
+}
+
 # Build the loginfo and commitinfo configuration for a single hook.
 sub BuildHooks
 {
   my ($group, $repo, $match_type, $dir_list, $emails_notif,
     $diff_on, $emails_diff, $branches, $hook_id) = @_;
-  my $warning = '';
   my $log_accum = '';
   $dir_list = '' if (!defined ($dir_list));
   $emails_diff = '' if (!defined ($emails_diff));
   $branches = '' if (!defined ($branches));
 
   my @dirs = split (',', $dir_list);
+  my $check = check_spaces_in_dirs (@dirs);
+  return ('', '', $check) unless $check eq '';
 
-  # Check for spaces in dir names - this could be used to insert
-  # a custom command, such as rm -rf...
-  foreach my $dir (@dirs)
-    {
-      # Use POSIX [:space:] instead of \s for completeness
-      # (check man perlre).
-      return ('', '', "A space in the dir name '$dir'")
-        if $dir =~ /[[:space:]]/;
-    }
-
-  my $regexp;
-  if ($match_type eq 'ALL' || $match_type eq 'DEFAULT')
-    {
-      $regexp = $match_type;
-    }
-  elsif ($match_type eq 'dir_list')
-    {
-      if (scalar(@dirs) == 0)
-        {
-          return  ('', '', $warning);
-        }
-      if (scalar(@dirs) == 1)
-        {
-          $regexp = '^' . $dirs[0] . '\(/\|$\)';
-        }
-      else
-        {
-          $regexp = '^\(' . join ('\|', @dirs) . '\)\(/\|$\)';
-        }
-    }
-  else
-    {
-      $warning = "Unknown match type: $match_type";
-    }
-  $log_accum .= $regexp;
-  $log_accum .= ' @bindir@/log_accum.pl ';
-
-  if ($emails_notif eq '')
-    {
-      $warning = "No emails_notif - skipping...";
-      return  ('', '', $warning);
-    }
+  my ($regexp, $warning) = get_hook_regexp ($match_type, @dirs);
+  return ('', '', $warning) unless $warning eq '';
+  return ('', '', "No emails_notif - skipping...") if $emails_notif eq '';
+  $log_accum .= $regexp . ' @bindir@/log_accum.pl ';
   my @emails = split (',', $emails_notif);
   $log_accum .= join ('', map { "--mail-to $_ " } @emails);
-
-  if ($diff_on == 1)
-    {
-      $log_accum .= '--send-diff';
-      $log_accum .= ' ';
-      if ($emails_diff ne '')
-        {
-          my @emails = split (',', $emails_diff);
-          $log_accum .= join ('', map { "--separate-diffs $_ " } @emails);
-        }
-    }
-  else
-    {
-      $log_accum .= '--no-send-diff';
-      $log_accum .= ' ';
-    }
+  $log_accum .= build_separate_diffs ($diff_on, $emails_diff);
 
   if ($branches ne '')
     {
@@ -164,18 +155,14 @@ sub BuildHooks
     }
 
   # Give a unique prefix for temporary files for each line.
-  # Some lines may run concurrently (eg. when regexp='ALL').
+  # Some lines may run concurrently (e.g. when regexp='ALL').
   $log_accum .= '--file-prefix ' . $group . '_' . $hook_id . ' ';
-
-  my $config_file = 'log_accum-web.config';
-  $config_file = 'log_accum-sources.config' if $repo eq 'sources';
-  $log_accum .= "--config @confdir@/$config_file %p %{sVv}\n";
+  $log_accum .= get_hook_config ($repo);
 
   my $commit_prep = "$regexp @bindir@/commit_prep.pl ";
-  $commit_prep .= '-T ' . $group . '_' . $hook_id;
-  $commit_prep .= " %p\n";
+  $commit_prep .= '-T ' . $group . '_' . $hook_id . " %p\n";
 
-  return ($log_accum, $commit_prep, $warning);
+  return ($log_accum, $commit_prep, '');
 }
 
 sub BasicWebHook
@@ -268,7 +255,7 @@ sub format_w
 sub fetch_hooks
 {
   my ($name, $repo) = @_;
-  return $dbd->selectall_hashref("
+  return $dbd->selectall_hashref ("
     SELECT groups.unix_group_name, cvs_hooks.*, cvs_hooks_log_accum.*
     FROM
       groups JOIN cvs_hooks ON groups.group_id = cvs_hooks.group_id
@@ -345,7 +332,6 @@ sub make_cvs_directory
 sub make_cvs_config
 {
   my ($dir_cvs, $repo_type, $name) = @_;
-  open (FILE, "> $dir_cvs/CVSROOT/config");
   my $text = <<"  EOF";
     # Set this to "no" if pserver shouldn't check system users/passwords
     SystemAuth=no
@@ -391,6 +377,7 @@ sub make_cvs_config
     UseNewInfoFmtStrings=yes
   EOF
   $text =~ s,^ *,,mg;
+  open (FILE, "> $dir_cvs/CVSROOT/config");
   print FILE $text;
   close (FILE);
 }
@@ -426,15 +413,13 @@ sub setup_cvs_permissions
 {
   my ($dir_cvs, $repo_type, $name) = @_;
 
-  chmod (0644, "$dir_cvs/CVSROOT/config");
-  chmod (0644, "$dir_cvs/CVSROOT/passwd");
-  chmod (0644, "$dir_cvs/CVSROOT/readers");
-  chmod (0644, "$dir_cvs/CVSROOT/writers");
-
-  # val-tags go world writable.
+  chmod (0644, "$dir_cvs/CVSROOT/config", "$dir_cvs/CVSROOT/passwd",
+    "$dir_cvs/CVSROOT/readers", "$dir_cvs/CVSROOT/writers"
+  );
+  # Val-tags go world-writable.
   chmod (0666, "$dir_cvs/CVSROOT/val-tags");
 
-  # History is group writable.
+  # History is group-writable.
   system ('chgrp', $name, "$dir_cvs/CVSROOT/history");
   chmod (0664, "$dir_cvs/CVSROOT/history");
 
