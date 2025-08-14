@@ -66,11 +66,15 @@ our $script = "sv_groups";
 my $lockfile = "groups-users.lock";
 my $dry_run;
 my $verbose;
+my $dir_prefix;
 
 my @opt_list = ("cron", "logfile=s", "dry-run", "webgroup", "one-group",
-  'verbose', 'no-group-check'
+  'verbose', 'no-group-check', 'dir-prefix=s'
 );
-my %options = ("logfile" => "/var/log/sv_database2system.log");
+my %options = (
+  "logfile" => "/var/log/sv_database2system.log",
+  'dir-prefix' => ''
+);
 
 my @artifacts = (
   'cvs', 'svn', 'git', 'hg', 'bzr', 'homepage', 'download'
@@ -105,6 +109,7 @@ Normally, sv_users should run just after.
       --webgroup       ignored
       --logfile        file for reports [$options{'logfile'}]
       --no-group-check do not check if local group exists
+      --dir-prefix     prefix to add to directories [$options{'dir-prefix'}]
 
       --no-cvs         do not update CVS trees
       --no-svn         do not update Subversion trees
@@ -143,8 +148,10 @@ if ($only_any)
 
 $verbose = $options{'verbose'};
 $dry_run = $options{'dry-run'};
+$dir_prefix = $options{'dir-prefix'};
 
 open_log ($options{'logfile'}, $script, $dry_run);
+print_log ("using '$dir_prefix' dir-prefix") if $verbose;
 
 # Locks: There are several sv_db2sys scripts,
 # but they should not run concurrently.
@@ -280,14 +287,14 @@ foreach my $group (@db_groups)
     my $madesomething;
 
     my $pub = $vars{'is_public'};
-    my $dis = $vars{'dir_svn'};
+    my $dis = $dir_prefix . $vars{'dir_svn'};
     # Create the cvs area, by relying on the library, that should
     # make the appropriate decision (i.e. if no %PROJECT string is
     # provided, nothing should be done; check if the directory does
     # not already exists).
     if ($vars{'use_cvs'} && !$options{'no-cvs'})
       {
-        my $dic = $vars{'dir_cvs'};
+        my $dic = $dir_prefix . $vars{'dir_cvs'};
         my $dtc = $vars{'dir_type_cvs'};
         $madesomething .= make_vcs_dir ($name, $dic, $dis, $dtc, $pub);
         $madesomething .= make_area ('CvsMakeAreaSavannah', $name, $dic, $pub)
@@ -297,7 +304,7 @@ foreach my $group (@db_groups)
     # The web area.
     if ($vars{'use_homepage'} && !$options{'no-homepage'})
       {
-        my $dih = $vars{'dir_homepage'};
+        my $dih = $dir_prefix . $vars{'dir_homepage'};
         my $dth = $vars{'dir_type_homepage'};
         $madesomething .= make_vcs_dir ($name, $dih, $dis, $dth, $pub);
         $madesomething .=
@@ -311,34 +318,35 @@ foreach my $group (@db_groups)
     # The download area.
     if ($vars{'use_download'} && !$options{'no-download'})
       {
-        my $did = $vars{'dir_download'};
+        my $did = $dir_prefix . $vars{'dir_download'};
          my $dtd = $vars{'dir_type_download'};
         $madesomething .= make_vcs_dir ($name, $did, $dis, $dtd, $pub);
       }
 
     if ($vars{'use_svn'} && !$options{'no-svn'})
       {
-        my $dts = $vars{'dir_type_svn'};
+        my $dts = $dir_prefix . $vars{'dir_type_svn'};
         $madesomething .= make_vcs_dir ($name, $dis, $dis, $dts, $pub);
       }
 
     if ($vars{'use_git'} && !$options{'no-git'})
       {
         $madesomething .=
-          make_area ('GitMakeArea', $name, $vars{'dir_git'}, $pub)
+          make_area ('GitMakeArea', $name, $dir_prefix . $vars{'dir_git'}, $pub)
             if $vars{'dir_type_git'} eq "basicgit";
       }
 
     if ($vars{'use_hg'} && !$options{'no-hg'})
       {
-        $madesomething .= make_area ('HgMakeArea', $name, $vars{'dir_hg'}, $pub)
-          if $vars{'dir_type_hg'} eq "basichg";
+        $madesomething .=
+          make_area ('HgMakeArea', $name, $dir_prefix . $vars{'dir_hg'}, $pub)
+            if $vars{'dir_type_hg'} eq "basichg";
       }
 
     if ($vars{'use_bzr'} && !$options{'no-bzr'})
       {
         $madesomething .=
-          make_area ('BzrMakeArea', $name, $vars{'dir_bzr'}, $pub)
+          make_area ('BzrMakeArea', $name, $dir_prefix . $vars{'dir_bzr'}, $pub)
             if $vars{'dir_type_bzr'} eq "basicbzr";
       }
     $madesomething =~ s, [|] $,,;

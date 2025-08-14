@@ -52,6 +52,8 @@
 
 [BACKEND]
 
+* New option in sv_groups, --dir-prefix.
+
 * Savane version is added to the headers of email messages.
 
 * New options in sv_php_server.pl, --host, --file-host, --port.
