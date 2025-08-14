@@ -51,12 +51,18 @@ use warnings;
 
 require Exporter;
 require Savane::Util;
+require Savane::Conf;
 our @ISA = qw (Exporter);
 our @EXPORT = qw (CvsMakeAreaSavannah
   WebCvsMakeAreaSavannahGNU WebCvsMakeAreaSavannahNonGNU
 );
 our $version = 1;
 our $dbd;
+
+sub new_sp_url
+{
+  return 'http://www.gnu.org/new-savannah-project/new.py';
+}
 
 # Compute the type argument for new-savannah-project/new.py.
 # It is derived from the dir_type_homepage of the group_type table
@@ -177,7 +183,7 @@ sub BasicWebHook
   my ($name) = @_;
   my $type = CvsSavannahWebType ($name);
   return "ALL echo 'Triggering webpages update...'; cat > /dev/null; "
-    . "curl http://www.gnu.org/new-savannah-project/new.py "
+    . GetConf ('sys_curl_bin') . ' ' . new_sp_url () . ' '
     . "-s -F type=$type -F project=`basename %r`\n"
 }
 
@@ -469,7 +475,7 @@ sub finalize_cvs_area
     }
   # Perform an initial checkout so that updates happen:
   # (will also be done at commit time now).
-  system ('/usr/bin/curl', 'http://www.gnu.org/new-savannah-project/new.py',
+  system (GetConf ('sys_curl_bin'), new_sp_url (),
     '-s', '-F', "type=$ws_type", '-F', "project=$name"
   );
   return '';

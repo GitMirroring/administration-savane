@@ -57,6 +57,7 @@ our $sys_www_server_port = '@WWW_SERVER_PORT@';
 our $sys_mail_replyto = 'INVALID.NOREPLY';
 our $sys_name = 'Savannah-dev';
 our $sys_url_topdir = '';
+our $sys_curl_bin = '/usr/bin/curl';
 
 $conf_prefix = $ENV{'SAVANE_CONF'} if $ENV{'SAVANE_CONF'};
 
