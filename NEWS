@@ -71,6 +71,10 @@
 * In sv_gen_passwd_group, commas in 'realname' are replaced with spaces when
   writing the 'passwd' file.
 
+* Cvs.pm refers to the versions of log_accum.pl and commit_prep.pl installed
+  with Savane; the configuration for log_accum.pl is supplied from Savane
+  configuration directory.
+
 * Bug fixes:
 
 ** sv_gen_passwd_group was incompatible with ONLY_FULL_GROUP_BY.

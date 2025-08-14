@@ -126,7 +126,7 @@ sub BuildHooks
       $warning = "Unknown match type: $match_type";
     }
   $log_accum .= $regexp;
-  $log_accum .= ' /usr/local/bin/log_accum.pl ';
+  $log_accum .= ' @bindir@/log_accum.pl ';
 
   if ($emails_notif eq '')
     {
@@ -161,18 +161,11 @@ sub BuildHooks
   # Some lines may run concurrently (eg. when regexp='ALL').
   $log_accum .= '--file-prefix ' . $group . '_' . $hook_id . ' ';
 
-  my $config_file;
-  if ($repo eq 'sources')
-    {
-      $config_file = 'log_accum-sources.config';
-    }
-  else
-    {
-      $config_file = 'log_accum-web.config';
-    }
-  $log_accum .= "--config /etc/$config_file %p %{sVv}\n";
+  my $config_file = 'log_accum-web.config';
+  $config_file = 'log_accum-sources.config' if $repo eq 'sources';
+  $log_accum .= "--config @confdir@/$config_file %p %{sVv}\n";
 
-  my $commit_prep = "$regexp /usr/local/bin/commit_prep.pl ";
+  my $commit_prep = "$regexp @bindir@/commit_prep.pl ";
   $commit_prep .= '-T ' . $group . '_' . $hook_id;
   $commit_prep .= " %p\n";
 
