@@ -102,6 +102,7 @@ Normally, sv_users should run just after.
       --verbose        log additional info
       --cron           ignored
       --one-group      ignored
+      --webgroup       ignored
       --logfile        file for reports [$options{'logfile'}]
       --no-group-check do not check if local group exists
 
@@ -119,10 +120,7 @@ Normally, sv_users should run just after.
       --only-hg        only update Mercurial trees
       --only-bzr       only update Bazaar trees
       --only-homepage  only update homepage dirs
-      --only-download  only update download dirs
-
-      --webgroup       for each Savane group, add users in two groups,
-                       including one with the prefix web";
+      --only-download  only update download dirs";
 PrintVersionOrHelp ($help_msg);
 unshift @opt_list, \%options;
 GetOptions (@opt_list) or die "Wrong command line";
