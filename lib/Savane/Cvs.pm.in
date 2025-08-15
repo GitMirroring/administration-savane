@@ -177,12 +177,13 @@ sub BasicWebHook
 sub load_file
 {
   my $file = shift;
+  my $fh;
   local $/;
   undef $/; # slurp mode
   return (" Cannot open $file for reading: $!.", '')
-    unless (open(IN, "< $file"));
-  my $text = <IN>;
-  close (IN);
+    unless (open ($fh, "< $file"));
+  my $text = readline ($fh);
+  close ($fh);
   return ('', $text);
 }
 
@@ -220,7 +221,7 @@ sub line_diff
 sub update_info_file
 {
   my ($file, $replace_string) = @_;
-  my $text;
+  my ($text, $fh);
   my ($w, $prev_text) = load_file ($file);
   return $w unless $w eq '';
   $text = $prev_text;
@@ -235,13 +236,13 @@ sub update_info_file
   return '' if $diff eq '';
   $w = "updating $file:\n$diff";
 
-  unless (open (OUT, "> $file"))
+  unless (open ($fh, "> $file"))
     {
       $w .= " Cannot open $file for writing: $!.";
       return $w;
     }
-  print OUT $text;
-  close (OUT);
+  print { $fh } $text;
+  close ($fh);
   return $w;
 }
 
@@ -332,6 +333,7 @@ sub make_cvs_directory
 sub make_cvs_config
 {
   my ($dir_cvs, $repo_type, $name) = @_;
+  my $fh;
   my $text = <<"  EOF";
     # Set this to "no" if pserver shouldn't check system users/passwords
     SystemAuth=no
@@ -377,36 +379,33 @@ sub make_cvs_config
     UseNewInfoFmtStrings=yes
   EOF
   $text =~ s,^ *,,mg;
-  open (FILE, "> $dir_cvs/CVSROOT/config");
-  print FILE $text;
-  close (FILE);
+  open ($fh, "> $dir_cvs/CVSROOT/config");
+  print { $fh } $text;
+  close ($fh);
 }
 
 sub init_cvsroot_files
 {
   my ($dir_cvs, $repo_type, $name) = @_;
+  my $fh;
 
-  open (FILE, "> $dir_cvs/CVSROOT/passwd");
-  print FILE "anonymous::nobody\nanoncvs::nobody\n";
-  close (FILE);
+  open ($fh, "> $dir_cvs/CVSROOT/passwd");
+  print { $fh } "anonymous::nobody\nanoncvs::nobody\n";
 
-  open (FILE, "> $dir_cvs/CVSROOT/readers");
-  print FILE "anonymous\nanoncvs\n";
-  close (FILE);
+  open ($fh, "> $dir_cvs/CVSROOT/readers");
+  print { $fh } "anonymous\nanoncvs\n";
 
   # Mark files for Savane hooks management.
-  open (FILE, "> $dir_cvs/CVSROOT/commitinfo");
-  print FILE "#<savane>\n#</savane>\n";
-  close (FILE);
-  open (FILE, "> $dir_cvs/CVSROOT/loginfo");
-  print FILE "#<savane>\n";
-  print FILE BasicWebHook ($name) if $repo_type eq 'web';
-  print FILE "#</savane>\n";
-  close (FILE);
+  open ($fh, "> $dir_cvs/CVSROOT/commitinfo");
+  print { $fh } "#<savane>\n#</savane>\n";
+  open ($fh, "> $dir_cvs/CVSROOT/loginfo");
+  print { $fh } "#<savane>\n";
+  print { $fh } BasicWebHook ($name) if $repo_type eq 'web';
+  print { $fh } "#</savane>\n";
   # If not present, pserver assumes write access for everybody
   # not in 'readers'.
-  open (TOUCH, "> $dir_cvs/CVSROOT/writers");
-  close (TOUCH);
+  open ($fh, "> $dir_cvs/CVSROOT/writers");
+  close ($fh);
 }
 
 sub setup_cvs_permissions
