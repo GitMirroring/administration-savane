@@ -490,7 +490,7 @@ sub CvsMakeAreaSavannah
 
   $repo_type = 'sources' unless defined ($repo_type);
   $res = MakeDir (\&make_cvs_area, $name, $dir_cvs, $is_public, $repo_type);
-  return $res unless $res ne 0;
+  return $res if $res ne 0;
   ($warning, $dir_cvs) = ExpandDirTemplate ($dir_cvs, $name);
   $res = UpdateCvsNotifications ($name, $dir_cvs, $repo_type);
   return $res unless $res eq 0;
@@ -501,7 +501,7 @@ sub WebCvsMakeArea
 {
   my ($name, $dir_cvs, $is_public, $update_acl) = @_;
   my ($warning, $dir) = ExpandDirTemplate ($dir_cvs, $name);
-  return '' unless $dir_cvs =~ s/\%PROJECT/$name/;
+  return '' unless $dir_cvs =~ /\%PROJECT/;
 
   # Give CvsMakeAreaSavannah a chance to update hooks
   # before skipping the operations that are only needed for fresh repos.

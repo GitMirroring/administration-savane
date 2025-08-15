@@ -68,6 +68,8 @@
    since 2023-10 26c9f4cb648c2 (when the feature was introduced)---as opposed
    to frontend where sv_sendmail.pl is used.
 
+** CVS hook updating was broken since 2023-05 (745096452907eb95).
+
 [I18N]
 
 * Update French, German, Hebrew, Romanian, Russian.
