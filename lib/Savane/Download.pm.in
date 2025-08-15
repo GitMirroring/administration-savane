@@ -55,7 +55,7 @@ sub make_download_area
   my ($name, $dir, $is_public) = @_;
   my $mode = $is_public? 2775: 2770;
   system ("mkdir", '-m', $mode, "-p", $dir);
-  system ("chgrp", $name, $dir);
+  system ("chgrp", $name, $dir) unless $>;
   return '';
 }
 

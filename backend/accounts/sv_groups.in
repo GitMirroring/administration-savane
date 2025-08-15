@@ -151,6 +151,9 @@ $dry_run = $options{'dry-run'};
 $dir_prefix = $options{'dir-prefix'};
 
 open_log ($options{'logfile'}, $script, $dry_run);
+print_log (
+  "Note: running as user #$>; group and ownership of config files are not set"
+) if $>;
 print_log ("using '$dir_prefix' dir-prefix") if $verbose;
 
 # Locks: There are several sv_db2sys scripts,

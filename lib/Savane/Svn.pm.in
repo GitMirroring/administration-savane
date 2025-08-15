@@ -65,7 +65,7 @@ sub make_svn_area
   # Group ownership - svnadmin takes care of setgid.
   # Giving privs to db/ is enough.
   # Giving privs to hooks/ would mean giving local access.
-  system ('chgrp', '-R', $name, "$dir_svn/db");
+  system ('chgrp', '-R', $name, "$dir_svn/db") unless $>;
   system ('chmod', '-R', 'g+w', "$dir_svn/db");
   system ('chmod', '-R', 'o=', "$dir_svn/db") unless $is_public;
   return '';

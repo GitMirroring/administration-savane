@@ -49,6 +49,36 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(GitMakeArea);
 our $version = 1;
 
+sub make_post_update_hook
+{
+  my $dir_git = shift;
+  my $w = '';
+  # Needed to make the repo accessible via bare HTTP.
+  open (HOOK, ">$dir_git/hooks/post-update")
+    or $w = " Cannot open hooks/post-update for writing: $!";
+  print HOOK "#!/bin/sh\n";
+  print HOOK "exec git update-server-info\n";
+  close (HOOK);
+  system ('chmod', '+x', "$dir_git/hooks/post-update");
+  return $w;
+}
+
+sub seal_hooks
+{
+  my $hooks = shift;
+  system ('chown', '-R', 'root:', "$hooks") unless $>;
+  system ('chmod', '-R', 'a-w', "$hooks");
+  system ('chmod', 'a+rx', "$hooks");
+}
+
+sub config_git
+{
+  # 'git-cvsserver' support
+  system ('git', 'config', 'gitcvs.pserver.enabled', 1);
+  system ('git', 'config', 'gitcvs.ext.enabled', 0);
+  system ('git', 'config', 'gitcvs.dbname', '%G/gitcvs-db/sqlite');
+}
+
 sub make_git_area
 {
   my ($name, $dir_git, $is_public) = @_;
@@ -58,27 +88,14 @@ sub make_git_area
   # --shared sets g+s on directories
   system ('git', 'init', '--shared=all');
 
-  system ('chgrp', '-R', $name, $dir_git);
+  system ('chgrp', '-R', $name, $dir_git) unless $>;
   system ('chmod', '-R', 'o=', $dir_git) unless $is_public;
-  # Needed to make the repo accessible via bare HTTP.
-  open (HOOK, ">$dir_git/hooks/post-update")
-    or $w = " Cannot open hooks/post-update for writing: $!";
-  print HOOK "#!/bin/sh\n";
-  print HOOK "exec git update-server-info\n";
-  close (HOOK);
-  system ('chmod', '+x', "$dir_git/hooks/post-update");
-  # Forbid access to hooks.
-  system ('chown', '-R', 'root:', "$dir_git/hooks");
-  system ('chmod', '-R', 'a-w', "$dir_git/hooks");
-  system ('chmod', 'a+rx', "$dir_git/hooks");
-
-  # 'git-cvsserver' support
-  system ('git', 'config', 'gitcvs.pserver.enabled', 1);
-  system ('git', 'config', 'gitcvs.ext.enabled', 0);
-  system ('git', 'config', 'gitcvs.dbname', '%G/gitcvs-db/sqlite');
+  $w = make_post_update_hook ($dir_git);
+  seal_hooks ("$dir_git/hooks");
+  config_git ();
   my $sqlite_dir = "$dir_git/gitcvs-db";
   system ('mkdir', $sqlite_dir, '-m', '755');
-  system ('chown', 'nobody', $sqlite_dir);
+  system ('chown', 'nobody', $sqlite_dir) unless $>;
 
   delete $ENV{'GIT_DIR'};
   return $w;

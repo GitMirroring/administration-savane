@@ -52,6 +52,9 @@
 
 [BACKEND]
 
+* sv_groups is runnable from non-root accounts, for testing purposes:
+  chown and chgrp are skipped then.
+
 * New option in sv_groups, --dir-prefix.
 
 * Savane version is added to the headers of email messages.

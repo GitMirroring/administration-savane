@@ -56,7 +56,7 @@ sub make_bzr_area
   my $old_umask = umask (0002);
 
   system ('mkdir', '-m', $mode, '-p', $dir_bzr);
-  system ('chgrp', $name, $dir_bzr);
+  system ('chgrp', $name, $dir_bzr) unless $>;
 
   # Clean up environment.
   umask ($old_umask);

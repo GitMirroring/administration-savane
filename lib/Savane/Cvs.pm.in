@@ -221,7 +221,7 @@ sub line_diff
 sub update_info_file
 {
   my ($file, $replace_string) = @_;
-  my ($text, $fh);
+  my ($text, $err);
   my ($w, $prev_text) = load_file ($file);
   return $w unless $w eq '';
   $text = $prev_text;
@@ -235,15 +235,9 @@ sub update_info_file
   my $diff = line_diff ($to_replace, $replace_string);
   return '' if $diff eq '';
   $w = "updating $file:\n$diff";
-
-  unless (open ($fh, "> $file"))
-    {
-      $w .= " Cannot open $file for writing: $!.";
-      return $w;
-    }
-  print { $fh } $text;
-  close ($fh);
-  return $w;
+  $err = init_cvs_file ($file, $text);
+  return $w if $err eq '';
+  return "$w Cannot open $file for writing: $err.";
 }
 
 sub format_w
@@ -316,8 +310,8 @@ sub make_cvs_directory
   # ancient versions of pserver, if ran as root, can be set to give root
   # access using the CVSROOT/passwd file; you also basically give local
   # access if you allow people to modify the hooks.
-  system ('chown', '-R', 'root:root', "$dir_cvs/CVSROOT");
-  system ('chmod', '755', "$dir_cvs/CVSROOT");
+  system ('chown', '-R', 'root:root', "$dir_cvs/CVSROOT") unless $>;
+  system ('chmod', '755', "$dir_cvs/CVSROOT") unless $>;
 
   # Cleanup CVSROOT.
   while (glob ("$dir_cvs/CVSROOT/*,v"))
@@ -330,10 +324,23 @@ sub make_cvs_directory
     }
 }
 
+sub init_cvs_file
+{
+  my ($file, $text) = @_;
+  my $fh;
+  my $ret = '';
+  system ('chmod', 'u+w', $file) if ($> && -f $file);
+  open ($fh, "> $file");
+  print { $fh } $text or $ret = $!;
+  close ($fh);
+  system ('chmod', 'u-w', $file) if $>;
+  return $ret;
+}
+
 sub make_cvs_config
 {
   my ($dir_cvs, $repo_type, $name) = @_;
-  my $fh;
+  my ($fh, $file);
   my $text = <<"  EOF";
     # Set this to "no" if pserver shouldn't check system users/passwords
     SystemAuth=no
@@ -379,59 +386,63 @@ sub make_cvs_config
     UseNewInfoFmtStrings=yes
   EOF
   $text =~ s,^ *,,mg;
-  open ($fh, "> $dir_cvs/CVSROOT/config");
-  print { $fh } $text;
-  close ($fh);
+  init_cvs_file ("$dir_cvs/CVSROOT/config", $text);
 }
 
 sub init_cvsroot_files
 {
   my ($dir_cvs, $repo_type, $name) = @_;
-  my $fh;
+  my $hook;
+  $dir_cvs .= '/CVSROOT';
 
-  open ($fh, "> $dir_cvs/CVSROOT/passwd");
-  print { $fh } "anonymous::nobody\nanoncvs::nobody\n";
-
-  open ($fh, "> $dir_cvs/CVSROOT/readers");
-  print { $fh } "anonymous\nanoncvs\n";
+  init_cvs_file ("$dir_cvs/passwd", "anonymous::nobody\nanoncvs::nobody\n");
+  init_cvs_file ("$dir_cvs/readers", "anonymous\nanoncvs\n");
 
   # Mark files for Savane hooks management.
-  open ($fh, "> $dir_cvs/CVSROOT/commitinfo");
-  print { $fh } "#<savane>\n#</savane>\n";
-  open ($fh, "> $dir_cvs/CVSROOT/loginfo");
-  print { $fh } "#<savane>\n";
-  print { $fh } BasicWebHook ($name) if $repo_type eq 'web';
-  print { $fh } "#</savane>\n";
+  init_cvs_file ("$dir_cvs/commitinfo", "#<savane>\n#</savane>\n");
+  $hook = "#<savane>\n";
+  $hook .= BasicWebHook ($name) if $repo_type eq 'web';
+  $hook .= "#</savane>\n";
+  init_cvs_file ("$dir_cvs/loginfo", $hook);
   # If not present, pserver assumes write access for everybody
   # not in 'readers'.
-  open ($fh, "> $dir_cvs/CVSROOT/writers");
-  close ($fh);
+  init_cvs_file ("$dir_cvs/writers", '');
+}
+
+sub chmod_if_exist
+{
+  my $mod = shift;
+  foreach (@_)
+    {
+      chmod ($mod, $_) if -f $_;
+    }
 }
 
 sub setup_cvs_permissions
 {
   my ($dir_cvs, $repo_type, $name) = @_;
+  my $root = "$dir_cvs/CVSROOT";
 
-  chmod (0644, "$dir_cvs/CVSROOT/config", "$dir_cvs/CVSROOT/passwd",
-    "$dir_cvs/CVSROOT/readers", "$dir_cvs/CVSROOT/writers"
+  chmod_if_exist (0644,
+    "$root/config", "$root/passwd", "$root/readers", "$root/writers"
   );
   # Val-tags go world-writable.
-  chmod (0666, "$dir_cvs/CVSROOT/val-tags");
+  chmod_if_exist (0666, "$root/val-tags");
 
   # History is group-writable.
-  system ('chgrp', $name, "$dir_cvs/CVSROOT/history");
-  chmod (0664, "$dir_cvs/CVSROOT/history");
+  system ('chgrp', $name, "$root/history") unless $>;
+  chmod_if_exist (0664, "$root/history");
 
   # Create the default module.
   system ('mkdir', '-m', '2775', "$dir_cvs/$name");
   # Allow group access.
-  system ('chgrp', $name, $dir_cvs, "$dir_cvs/$name");
+  system ('chgrp', $name, $dir_cvs, "$dir_cvs/$name") unless $>;
 
   # Build the locks.
   system ('mkdir', '-p', '-m', '777', "/var/lock/cvs/$repo_type/$name");
 
   # Seal CVSROOT dir.
-  system ('chmod', 'a-w', "$dir_cvs/CVSROOT/");
+  system ('chmod', 'a-w', "$root");
 }
 
 sub make_cvs_area
@@ -448,6 +459,7 @@ sub finalize_cvs_area
 {
   my ($dir, $name, $update_acl) = @_;
   my $ws_type = CvsSavannahWebType ($name);
+  $update_acl = 0 if $<;
 
   if ($update_acl)
     {

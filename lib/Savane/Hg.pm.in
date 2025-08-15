@@ -57,12 +57,12 @@ sub make_hg_dir
 
   system ('hg', 'init', $dir_hg);
   system ('chmod', 'g+s', $dir_hg);
-  system ('chgrp', '-R', $name, $dir_hg);
+  system ('chgrp', '-R', $name, $dir_hg) unless $>;
 
   open (FILE, "> $dir_hg/.hg/hgrc");
   print FILE "#<savane>\n[web]\ncontact =\ndescription = $name\n#</savane>\n";
   close (FILE);
-  system ('chgrp', $name, "$dir_hg/.hg/hgrc");
+  system ('chgrp', $name, "$dir_hg/.hg/hgrc") unless $>;
   system ('chmod', '-R', 'o=', $dir_hg) unless $is_public;
   umask ($old_umask);
   return '';
