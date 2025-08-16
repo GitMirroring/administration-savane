@@ -148,9 +148,7 @@ if ($upd_list)
       fb (no_i18n("No field to update or SQL error"));
   }
 
-# Send email and do site specific triggered stuff that comes along.
 send_new_project_email ($group_id);
-fb (no_i18n ("Mail sent, site-specific triggers executed"));
 
 if ($sys_group_id != $group_id)
   {
