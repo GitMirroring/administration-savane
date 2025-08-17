@@ -331,22 +331,45 @@ function html_format_feedback ($f)
   return nl2br (markup_basic (utils_specialchars ($f)));
 }
 
-# Print out the feedback.
-function html_feedback ($bottom)
+function html_print_fb_success ($suffix, $class_hide, $script_hide)
 {
-  global $feedback, $ffeedback, $sys_home;
-
-  # Be quiet when there is no feedback.
-  if (!($ffeedback || $feedback))
+  global $feedback, $ffeedback;
+  if (!($feedback && !$ffeedback))
     return;
+  # Only success.
+  $icon = html_image ("bool/ok.png", ['class' => 'feedbackimage']);
+  print "<div id=\"feedback$suffix\" class=\"$class_hide\">"
+    . "<p><span class='feedbacktitle'>$icon<b>"
+    . _("Success:") . "</b></span> $feedback</p></div>\n$script_hide";
+}
 
-  $feedback = html_format_feedback ($feedback);
-  $ffeedback = html_format_feedback ($ffeedback);
 
-  $suffix = '';
-  if ($bottom)
-    $suffix = '_bottom';
+function html_print_fb_error ($suffix, $class_hide, $script_hide)
+{
+  global $feedback, $ffeedback;
+  # Only errors.
+  if (!($ffeedback && !$feedback))
+    return;
+  $icon = html_image ("bool/wrong.png", ['class' => 'feedbackimage']);
+  print "<div id=\"feedback$suffix\" class=\"feedbackerror $class_hide\">"
+    . "<p><span class='feedbackerrortitle'>$icon<b>"
+    . _("Error:") . "</b></span>\n$ffeedback</p></div>\n";
+}
+function html_print_fb_success_error ($suffix, $class_hide, $script_hide)
+{
+  global $feedback, $ffeedback;
+  # Errors and success.
+  if (!($ffeedback && $feedback))
+    return;
+  $icon = html_image ("bool/wrong.png", ['class' => 'feedbackimage']);
+  print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
+    . "$class_hide\"><p>"
+    . "<span class='feedbackerrorandsuccesstitle'>$icon<b>"
+    . _("Some Errors:") . "</b></span> $feedback $ffeedback</p></div>\n";
+}
 
+function html_get_script_hide ($suffix)
+{
   $script_hide = '<script type="text/javascript" '
     . "src=\"/js/hide-feedback.php?suffix=$suffix\"></script>\n";
 
@@ -359,34 +382,31 @@ function html_feedback ($bottom)
       $class_hide = 'feedback feedback-hide';
       $script_hide = '';
     }
+  return [$script_hide, $class_hide];
+}
 
+# Print out the feedback.
+function html_feedback ($bottom)
+{
+  global $feedback, $ffeedback;
+
+  # Be quiet when there is no feedback.
+  if (!($ffeedback || $feedback))
+    return;
+
+  $plain_feedback = $feedback; $plain_ffeedback = $ffeedback;
+  $feedback = html_format_feedback ($feedback);
+  $ffeedback = html_format_feedback ($ffeedback);
+  $suffix = $bottom? '_bottom': '';
+
+  list ($script_hide, $class_hide) = html_get_script_hide ($suffix);
   print "<div id=\"feedbackback$suffix\" class='feedbackback'></div>\n";
-
-  $img_ok = html_image ("bool/ok.png", ['class' => 'feedbackimage']);
-  $img_wrong = html_image ("bool/wrong.png", ['class' => 'feedbackimage']);
-  # Only success.
-  if ($feedback && !$ffeedback)
-    print "<div id=\"feedback$suffix\" class=\"$class_hide\">"
-      . "<p><span class='feedbacktitle'>$img_ok<b>"
-      . _("Success:") . "</b></span> $feedback</p></div>\n$script_hide";
-
-  # Only errors.
-  if ($ffeedback && !$feedback)
-    print "<div id=\"feedback$suffix\" class=\"feedbackerror $class_hide\">"
-      . "<p><span class='feedbackerrortitle'>$img_wrong<b>"
-      . _("Error:") . "</b></span>\n$ffeedback</p></div>\n";
-
-  # Errors and success.
-  if ($ffeedback && $feedback)
-    print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
-      . "$class_hide\"><p><span class='feedbackerrorandsuccesstitle'>$img_wrong<b>"
-      . _("Some Errors:") . "</b></span> $feedback $ffeedback</p></div>\n";
+  html_print_fb_success ($suffix, $class_hide, $script_hide);
+  html_print_fb_error ($suffix, $class_hide, $script_hide);
+  html_print_fb_success_error ($suffix, $class_hide, $script_hide);
   print '<script type="text/javascript" src="/js/show-feedback.php?suffix='
     . "$suffix\"></script>\n";
-
-  # We empty feedback so there will be a bottom feedback only if something
-  # changes.
-  $feedback = $ffeedback = '';
+  $feedback = $plain_feedback; $ffeedback = $plain_ffeedback;
 }
 
 function html_feedback_top ()

@@ -23,6 +23,9 @@
 
 * When logging in an idle account, a warning is displayed.
 
+* The 'bottom' feedback overlapped the 'top' feedback; now messages from 'top'
+  feedback are duplicated in 'bottom' feedback.
+
 * Bug fixes:
 
 ** The implementation of strftime wasn't selected correctly.
