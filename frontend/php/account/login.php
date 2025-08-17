@@ -66,11 +66,29 @@ if (empty ($cookie_for_a_year))
 if (!$from_brother)
   form_check ('login');
 
+$uri = mark_idleness ($form_loginname, $uri);
+
 $stay_in_ssl = session_stay_in_ssl ();
 $uri_enc = utils_urlencode ($uri);
 
 if (!$from_brother)
   session_check_cookies ($uri, $uri_enc);
+
+function mark_idleness ($name, $url)
+{
+  if (empty ($name))
+    return $url;
+  $user_id = user_getid ($name);
+  if (empty ($user_id))
+    return $url;
+  $add_date = user_get_field ($user_id, 'add_date');
+  if (time () - $add_date > 365.25 * 24 * 3600)
+    return $url;
+  if (user_has_history ($user_id))
+    return $url;
+  $url .= (strpos ($url, '?') == false)? '?': '&';
+  return $url . 'idle=1';
+}
 
 function validate_login ($from_brother, $form_loginname, $form_pw)
 {
@@ -87,7 +105,7 @@ function validate_login ($from_brother, $form_loginname, $form_pw)
   return session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
 }
 
-function arrange_session ($uri, $uri_enc)
+function arrange_session ($uri, $uri_enc, $name)
 {
   global $sys_home, $stay_in_ssl, $sys_https_url;
   session_set_theme ();
@@ -111,7 +129,7 @@ if (!empty ($login))
   {
     $success = validate_login ($from_brother, $form_loginname, $form_pw);
     if ($success)
-      arrange_session ($uri, $uri_enc);
+      arrange_session ($uri, $uri_enc, $form_loginname);
   }
 
 site_header (['title' => _("Login")]);

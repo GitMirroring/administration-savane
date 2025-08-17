@@ -300,6 +300,7 @@ if (!empty ($forum_id) && !is_numeric ($forum_id))
 context_guess ();
 # Set the AUDIENCE constant.
 user_guess ();
+init_check_idle ();
 
 # If we got an item_id and no group_id we need to get the appropriate
 # group_id.
@@ -420,5 +421,18 @@ function init_ensure_constants ()
     context_guess ();
   if (!defined ('AUDIENCE'))
     user_guess ();
+}
+function init_check_idle ()
+{
+  $v = sane_import ('get', ['strings' => [['idle', ['default' => '0', '1']]]]);
+  if (!$v['idle'])
+    return;
+  $msg = sprintf (
+    _("Your account has no records of activity yet.  It will be removed "
+      . "unless you use it constructively.  For more details, see "
+      . "[%s Account lifecycle]."),
+    '//savannah.nongnu.org/maintenance/IdleAccounts/#non-idle'
+  );
+  fb ($msg, FB_ERROR);
 }
 ?>

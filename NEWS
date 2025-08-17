@@ -21,6 +21,8 @@
 * When a description is provided for tracker attachments, it's included
   in the notifications.
 
+* When logging in an idle account, a warning is displayed.
+
 * Bug fixes:
 
 ** The implementation of strftime wasn't selected correctly.

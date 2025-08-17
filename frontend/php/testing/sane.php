@@ -605,6 +605,14 @@ $reference = 'include/init.php';
   $out['group'] = null;
 
   test_sane_import ($in, $names, $out);
+
+  $names = ['strings' => [['idle', ['default' => '0', '1']]]];
+  $out = $in = ['idle' => 1];
+  test_sane_import ($in, $names, $out);
+
+  $out = ['idle' => 0];
+  $in['idle'] = 'a';
+  test_sane_import ($in, $names, $out);
 }
 
 $reference = 'include/my/general.php';

@@ -115,12 +115,36 @@ sub confirm_deletion
   print_test_log ("Deletion confirmed.");
 }
 
+sub have_idle_warning
+{
+  return $agent->content (raw => 1) =~ /Your account has no records of activity/;
+}
+
+sub check_for_idle_warning
+{
+  if (have_idle_warning ())
+    {
+      print_test_log ('Warning about being idle is shown on log in.');
+      $agent->get (make_url ("my/items.php"));
+      if (have_idle_warning ())
+        {
+          print_test_log ('Warning persists when visiting next page.');
+          exit (1);
+        }
+      print_test_log ('Warning is disappears when visiting next page.');
+      return;
+    }
+  print_test_log ('No warning about being idle is shown on log in.');
+  exit (1);
+}
+
 my ($login, $passwd) = request_account ();
 confirm_account ($login, $passwd);
 log_out ($agent);
 $agent->get (make_url ("users/$login"));
 print_test_log ("Account exists.");
 log_in ($agent, $login, $passwd);
+check_for_idle_warning ();
 request_removal ();
 confirm_deletion ();
 check_inaccessibility ("users/$login");
