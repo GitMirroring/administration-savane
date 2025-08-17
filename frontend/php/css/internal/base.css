@@ -176,6 +176,12 @@ pre
   width: 1em;
 }
 
+.feedback p, .feedbackerror p, .feedbackerrorandsuccess p
+{
+  margin: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
 .feedback, .feedbackerror, .feedbackerrorandsuccess
 {
   cursor: pointer;

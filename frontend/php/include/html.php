@@ -370,20 +370,20 @@ function html_feedback ($bottom)
   # Only success.
   if ($feedback && !$ffeedback)
     print "<div id=\"feedback$suffix\" class=\"$class_hide\">"
-      . '<span class="feedbacktitle">' . $img_ok
-      . _("Success:") . "</span> $feedback</div>\n$script_hide";
+      . "<p><span class='feedbacktitle'>$img_ok<b>"
+      . _("Success:") . "</b></span> $feedback</p></div>\n$script_hide";
 
   # Only errors.
   if ($ffeedback && !$feedback)
     print "<div id=\"feedback$suffix\" class=\"feedbackerror $class_hide\">"
-      . "<span class='feedbackerrortitle'>$img_wrong"
-      . _("Error:") . "</span>\n$ffeedback</div>\n";
+      . "<p><span class='feedbackerrortitle'>$img_wrong<b>"
+      . _("Error:") . "</b></span>\n$ffeedback</p></div>\n";
 
   # Errors and success.
   if ($ffeedback && $feedback)
     print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
-      . "$class_hide\"><span class='feedbackerrorandsuccesstitle'>$img_wrong"
-      . _("Some Errors:") . "</span> $feedback $ffeedback</div>\n";
+      . "$class_hide\"><p><span class='feedbackerrorandsuccesstitle'>$img_wrong<b>"
+      . _("Some Errors:") . "</b></span> $feedback $ffeedback</p></div>\n";
 
   # We empty feedback so there will be a bottom feedback only if something
   # changes.
