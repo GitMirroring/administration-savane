@@ -45,6 +45,8 @@
 
 ** Aging statistics in /bugs/reporting.php was broken.
 
+** Show and hide logic in frontend/php/js/show-feedback.php was broken.
+
 [BACKEND]
 
 * Savane version is added to the headers of email messages.

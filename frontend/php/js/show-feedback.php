@@ -51,7 +51,13 @@ if ($suffix === null)
 print git_agpl_notice_for_js ()
 . "document.getElementById('feedbackback$suffix').textContent = '"
 . _("Show feedback again") . "';
-document.getElementById('feedbackback').onclick =
+document.getElementById('feedback$suffix').onclick =
+function ()
+{
+  document.getElementById('feedback$suffix').style.visibility='hidden';
+  document.getElementById('feedbackback$suffix').style.visibility='visible';
+};
+document.getElementById('feedbackback$suffix').onclick =
 function ()
 {
   document.getElementById('feedback$suffix').style.visibility='visible';

@@ -361,8 +361,6 @@ function html_feedback ($bottom)
     }
 
   print "<div id=\"feedbackback$suffix\" class='feedbackback'></div>\n";
-  print '<script type="text/javascript" src="/js/show-feedback.php?suffix='
-    . "$suffix\"></script>\n";
 
   $img_ok = html_image ("bool/ok.png", ['class' => 'feedbackimage']);
   $img_wrong = html_image ("bool/wrong.png", ['class' => 'feedbackimage']);
@@ -383,6 +381,8 @@ function html_feedback ($bottom)
     print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
       . "$class_hide\"><p><span class='feedbackerrorandsuccesstitle'>$img_wrong<b>"
       . _("Some Errors:") . "</b></span> $feedback $ffeedback</p></div>\n";
+  print '<script type="text/javascript" src="/js/show-feedback.php?suffix='
+    . "$suffix\"></script>\n";
 
   # We empty feedback so there will be a bottom feedback only if something
   # changes.
