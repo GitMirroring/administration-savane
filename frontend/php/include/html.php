@@ -360,8 +360,7 @@ function html_feedback ($bottom)
       $script_hide = '';
     }
 
-  print "<div id=\"feedbackback$suffix\" class='feedbackback'>"
-    . _("Show feedback again") . "</div>\n";
+  print "<div id=\"feedbackback$suffix\" class='feedbackback'></div>\n";
   print '<script type="text/javascript" src="/js/show-feedback.php?suffix='
     . "$suffix\"></script>\n";
 
