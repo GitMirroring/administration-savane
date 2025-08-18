@@ -130,35 +130,37 @@ PrintVersionOrHelp ($help_msg);
 unshift @opt_list, \%options;
 GetOptions (@opt_list) or die "Wrong command line";
 
-# If we are asked to create only a few services, set everything to "no"
-# and later add the only ones asked for.
-my $only_any = 0;
-for my $art (@artifacts)
-  {
-    $only_any = 1 if $options{"only-$art"};
-    last if $only_any;
-  }
-if ($only_any)
-  {
-    for my $art (@artifacts)
-      {
-        $options{"no-$art"} = !$options{"only-$art"};
-      }
-  }
+sub init_params
+{
+  # If we are asked to create only a few services, set everything to "no"
+  # and later add the only ones asked for.
+  my $only_any = 0;
+  for my $art (@artifacts)
+    {
+      $only_any = 1 if $options{"only-$art"};
+      last if $only_any;
+    }
+  if ($only_any)
+    {
+      for my $art (@artifacts)
+        {
+          $options{"no-$art"} = !$options{"only-$art"};
+        }
+    }
 
-$verbose = $options{'verbose'};
-$dry_run = $options{'dry-run'};
-$dir_prefix = $options{'dir-prefix'};
+  $verbose = $options{'verbose'};
+  $dry_run = $options{'dry-run'};
+  $dir_prefix = $options{'dir-prefix'};
+}
 
-open_log ($options{'logfile'}, $script, $dry_run);
-print_log (
-  "Note: running as user #$>; group and ownership of config files are not set"
-) if $>;
-print_log ("using '$dir_prefix' dir-prefix") if $verbose;
-
-# Locks: There are several sv_db2sys scripts,
-# but they should not run concurrently.
-AcquireReplicationLock ($lockfile);
+sub start_log
+{
+  open_log ($options{'logfile'}, $script, $dry_run);
+  print_log (
+    "Note: running as user #$>; group and ownership of config files are not set"
+  ) if $>;
+  print_log ("using '$dir_prefix' dir-prefix") if $verbose;
+}
 
 # Grab database information.
 #
@@ -166,59 +168,59 @@ AcquireReplicationLock ($lockfile);
 # - db_group_type items
 
 # db_group_type:
-# Create an hash that contains group type infos from the table group_type,
+# Create an hash that contains group type data from the table group_type,
 # as lists for each group type (@{$db_group_type{$id}}).
-# Note that we store the data with the id as key, not the name, because
-# in the group db are only used the ids.
-#
-# To limit the number of requests, we use one very long SQL request.
 my @db_group_type_fields = ("name", "type_id");
-for my $art (@artifacts)
-  {
-    for my $pfx ('dir_type_', 'dir_', 'can_use_')
-      {
-        push @db_group_type_fields, "$pfx$art";
-      }
-  }
 my %db_group_type;
-foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
-  {
-    chomp ($line);
-    my @entry = split (",", $line);
-    print_log ("db: get $line from database") if $verbose;
-    $db_group_type{$entry[1]} = [@entry];
-  }
-
+sub fetch_group_types
+{
+  for my $art (@artifacts)
+    {
+      for my $pfx ('dir_type_', 'dir_', 'can_use_')
+        {
+          push @db_group_type_fields, "$pfx$art";
+        }
+    }
+  foreach my $line (GetDB ("group_type", 0, join (", ", @db_group_type_fields)))
+    {
+      chomp ($line);
+      my @entry = split (",", $line);
+      print_log ("db: get $line from database") if $verbose;
+      $db_group_type{$entry[1]} = [@entry];
+    }
+}
 # db_groups:
-# Create an hash that contains group infos from the table groups,
+# Create an hash that contains active group data from the table groups,
 # as lists for each group (@{$db_group{$name}}).
 # Additionally, create a list of groups.
-# Additionally, create an hash to find easily which groups are
-# in the database.
-#
-# Only groups in Active status will be handled!
 my %db_groups;
 my @db_groups;
 my @db_groups_fields = ("unix_group_name", "type", "is_public");
-for my $art (@artifacts)
-  {
-    for my $pfx ('use_', 'dir_')
-      {
-        push @db_groups_fields, "$pfx$art";
-      }
-  }
-foreach (GetDB ("groups", "status = 'A'", join (", ", @db_groups_fields)))
-  {
-    chomp;
-    my @entry = split ",";
-    print_log ("db: get group $_ from database") if $verbose;
-    $db_groups{$entry[0]} = [ @entry ];
-    push (@db_groups, $entry[0]);
- }
-print_log ("database info fetched");
-
-# Update existing groups, including the ones just created
-# These groups are in the database and on the system.
+sub fetch_groups
+{
+  for my $art (@artifacts)
+    {
+      for my $pfx ('use_', 'dir_')
+        {
+          push @db_groups_fields, "$pfx$art";
+        }
+    }
+  foreach (GetDB ("groups", "status = 'A'", join (", ", @db_groups_fields)))
+    {
+      chomp;
+      my @entry = split ",";
+      print_log ("db: get group $_ from database") if $verbose;
+      $db_groups{$entry[0]} = [ @entry ];
+      if ($options{'no-group-check'} || getgrnam ($entry[0]))
+        {
+          push (@db_groups, $entry[0]);
+          next;
+        }
+      print_log (
+        "-- no way to update $entry[0], the group is missing on the system"
+      );
+   }
+}
 
 sub make_area
 {
@@ -244,18 +246,18 @@ sub make_vcs_dir
   return make_area (${$f}{$dir_type}, $name, $dir, $pub)
 }
 
+init_params ();
+start_log ();
+AcquireReplicationLock ($lockfile);
+fetch_group_types ();
+fetch_groups ();
+print_log ("database info fetched");
+
+# Update existing groups, including the ones just created.
+# These groups are in the database and on the system.
+
 foreach my $group (@db_groups)
   {
-    # If we run in no etc mode, we cannot handle groups missing on the system.
-    my $exists = $options{'no-group-check'};
-    ($exists) = getgrnam ($group) unless $exists;
-    if (!$exists)
-      {
-        print_log (
-          "-- no way to update $group, the group is missing on the system"
-        );
-        next;
-      }
     my @group_entry = @{$db_groups{$group}};
     my %vars;
     foreach my $k (@db_groups_fields)
@@ -304,7 +306,6 @@ foreach my $group (@db_groups)
           if ($dtc eq "savannah-gnu" or $dtc eq "savannah-nongnu");
       }
 
-    # The web area.
     if ($vars{'use_homepage'} && !$options{'no-homepage'})
       {
         my $dih = $dir_prefix . $vars{'dir_homepage'};
@@ -318,7 +319,6 @@ foreach my $group (@db_groups)
             if $dth eq "savannah-nongnu";
       }
 
-    # The download area.
     if ($vars{'use_download'} && !$options{'no-download'})
       {
         my $did = $dir_prefix . $vars{'dir_download'};
