@@ -26,6 +26,8 @@
 #   skip_principals: when true, the "main" copyright holders
 #     are not forcefully added.
 #   dont_touch_license: when true, the text of the license isn't updated.
+#   all_are_principals: include copyright notices for all copyright holders
+#     in every file.
 
 # Configuration variables:
 #   notice_start: regex that defines start of the license notice to update.
@@ -71,6 +73,21 @@ BEGIN {
       principals[i++] = "Ineiev"
     }
   copy_mark = "Copyright (C) "
+}
+function make_all_principals (\
+  set_of_principals, i, h)
+{
+  for (i = 1; i in principals; i++)
+    {
+      set_of_principals[principals[i]] = 1
+    }
+  for (h in years)
+    {
+      if (h in set_of_principals)
+        continue
+      set_of_principals[h] = 1
+      principals[i++] = h
+    }
 }
 function extract_field(field)
 {
@@ -449,6 +466,8 @@ END {
     print "alias:\t" i "\t" aliases[i]
   for (i = 1; i in principals; i++)
     print "principal:\t" principals[i]
+  if (all_are_principals)
+    make_all_principals()
   for (i in files)
     process_file(i)
   clean_exit(0)
