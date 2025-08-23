@@ -42,6 +42,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/vcs/git.php');
+require_once (dirname (__FILE__) . '/vcs/cvs.php');
 
 function vcs_sorting_sequence ($vcs, $group_id)
 {

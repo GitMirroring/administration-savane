@@ -1,0 +1,309 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test listing repositories and their modules.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test group registration and removal.");
+
+my $unix_group_name = 'administration';
+my $agent = make_agent ();
+my $statedir = '@pkgstatedir@';
+my @git_repos = ('semel', 'bis', 'ter');
+my @src_modules = ($unix_group_name, 'proba');
+my @web_modules = ($unix_group_name);
+my @more_web_modules = ('www', 'web');
+
+sub try_mkdir
+{
+  my $dir = shift;
+  print_test_log ("Creating $dir directory.");
+  return if mkdir $dir;
+  print_test_log ("Can't create $dir directory: $!");
+  exit (1);
+}
+
+sub simulate_cvs_repos
+{
+  my @modules = @src_modules;
+  push @modules, 'CVSROOT';
+  my $root = $statedir;
+  for ('cvs', 'sources', $unix_group_name)
+    {
+      $root .= "/$_";
+      try_mkdir ($root);
+    }
+  try_mkdir ("$root/$_") for (@modules);
+  $root = "$statedir/cvs/web";
+  try_mkdir ($root);
+  $root .= "/$unix_group_name";
+  try_mkdir ($root);
+  @modules = @web_modules;
+  push @modules, 'CVSROOT';
+  try_mkdir ("$root/$_") for (@modules);
+}
+
+sub simulate_git_repos
+{
+  my $root = "$statedir/git";
+  try_mkdir ($root);
+  try_mkdir ("$root/$_") for ($unix_group_name, "$unix_group_name.git");
+  $root .= "/$unix_group_name";
+  try_mkdir ("$root/$_.git") for (@git_repos);
+}
+
+sub try_rm_dir
+{
+  my $dir = shift;
+  print_test_log ("Can't clear $dir: $!.")
+    unless rmdir ($dir);
+}
+
+sub clear_repos
+{
+  my $root = "$statedir/git/$unix_group_name";
+  my @modules = @src_modules;
+  push @modules, 'CVSROOT';
+  try_rm_dir ("$root/$_.git") for (@git_repos);
+  try_rm_dir ($root);
+  try_rm_dir ("$root.git");
+  try_rm_dir ("$statedir/git");
+  $root = "$statedir/cvs/sources/$unix_group_name";
+  try_rm_dir ("$root/$_") for (@modules);
+  try_rm_dir ($root);
+  $root = "$statedir/cvs/web/$unix_group_name";
+  @modules = @web_modules;
+  push @modules, 'CVSROOT';
+  try_rm_dir ("$root/$_") for (@modules);
+  try_rm_dir ($root);
+  $root = "$statedir/cvs";
+  try_rm_dir ("$statedir/cvs/$_") for ('sources', 'web');
+  try_rm_dir ($root);
+}
+my %mod_cnt;
+sub check_module_set
+{
+  my $res = 0;
+  for (@_)
+    {
+      next if (exists ($mod_cnt{$_}) && $mod_cnt{$_} == 1);
+      $res = 1;
+      if (exists ($mod_cnt{$_}))
+        {
+          print_test_log ("Module $_ is listed $mod_cnt{$_} times.");
+          next;
+        }
+      print_test_log ("Module $_ is absent in the list.")
+    }
+  if ($res)
+    {
+      save_page ($agent);
+      print_test_log ("See test.html.");
+      exit (1);
+    }
+}
+sub find_module_list
+{
+  my ($page, $start, $end) = @_;
+  unless ($page =~ s#.*$start(.*)$end.*#$1#s)
+    {
+      save_page ($agent);
+      print_test_log ("No module list found.  See test.html.");
+      exit (1);
+    }
+  $page =~ s#^\s*<li>(.*)</li>\s*$#$1#s;
+  %mod_cnt = ();
+  my @mods = split (/<\/li>\s*<li>/s, $page);
+  print_test_log ("Modules found: " . join (', ', @mods));
+  $mod_cnt{$_}++ for (@mods);
+}
+sub assert_no_module_list
+{
+  my ($page, $start, $end) = @_;
+  unless ($page =~ m#$start(.*)$end#s)
+    {
+      print_test_log ("No modules found.");
+      return;
+    }
+  print_test_log ("Module list is found unexpectedly:\n$1\n");
+  save_page ($agent);
+  print_test_log ("For the full page, see text.html.");
+}
+sub source_start
+{
+  return '<h4>Software repository:</h4>.*<p>Available CVS modules:</p>.*<ul>'
+    unless shift;
+  return '<h3>Authenticated SSH access</h3>.*'
+    . '<h4>Software repository:</h4>.*<p>Available CVS modules:</p>.*<ul>';
+}
+sub source_end
+{
+  return '</ul>.*<h4>Webpage repository:</h4>.*<h3>Authenticated SSH access</h3>'
+    unless shift;
+  return '</ul>.*<h4>Webpage repository:</h4>';
+}
+sub check_source_repos
+{
+  my $page = shift;
+  my ($start, $end);
+  print_test_log ("Looking for source module list in the anonymous section.");
+  $start = source_start ();
+  $end = source_end ();
+  find_module_list ($page, $start, $end);
+  check_module_set (@src_modules);
+
+  $start = source_start (1);
+  $end = source_end (1);
+  print_test_log (
+    "Looking for source module list in the authenticated section."
+  );
+  find_module_list ($page, $start, $end);
+  check_module_set (@src_modules);
+}
+
+sub check_source_absense
+{
+  my $page = shift;
+  my ($start, $end);
+  print_test_log ("Looking for source module list in the anonymous section.");
+  $start = source_start ();
+  $end = source_end ();
+  assert_no_module_list ($page, $start, $end);
+  $start = source_start (1);
+  $end = source_end (1);
+  print_test_log (
+    "Looking for source module list in the authenticated section."
+  );
+  assert_no_module_list ($page, $start, $end);
+}
+
+sub web_start
+{
+  return '<h4>Software repository:</h4>.*<h4>Webpage repository:</h4>.*<ul>'
+    unless shift;
+  return '<h3>Authenticated SSH access</h3>.*'
+    . '<h4>Software repository:</h4>.*<h4>Webpage repository:</h4>.*'
+    . '<p>Available CVS modules:</p>.*<ul>';
+}
+sub web_end
+{
+  return '</ul>.*<h3>Authenticated SSH access</h3>'
+    unless shift;
+  return '</ul>';
+}
+
+sub check_web_absense
+{
+  my $page = shift;
+  my ($start, $end);
+  $start = web_start ();
+  $end = web_end ();
+  print_test_log ("Looking for web module list in the anonymous section.");
+  assert_no_module_list ($page, $start, $end);
+  $start = web_start (1);
+  $end = web_end (1);
+  print_test_log ("Looking for web module list in the authenticated section.");
+  assert_no_module_list ($page, $start, $end);
+}
+
+sub check_web_repos
+{
+  my $page = shift;
+  my ($start, $end);
+  $start = web_start ();
+  $end = web_end ();
+  print_test_log ("Looking for web module list in the anonymous section.");
+  find_module_list ($page, $start, $end);
+  check_module_set (@web_modules);
+
+  $start = web_start (1);
+  $end = web_end (1);
+  print_test_log ("Looking for web module list in the authenticated section.");
+  find_module_list ($page, $start, $end);
+  check_module_set (@web_modules);
+}
+sub get_cvs_section
+{
+  my $url = shift;
+  my ($page, $start);
+  print_test_log ("Getting page at $url.");
+  $agent->get ($url);
+  $start = 'Getting a Copy of the CVS Repository';
+  $page = $agent->content (raw => 1);
+  return $page
+    if $page =~ s#.*<h2>$start</h2>(.*)<h2>Email Notifications</h2>.*#$1#s;
+  save_page ($agent);
+  print_test_log ("Page at $url has a wrong structure; see test.html.");
+  exit (1);
+}
+sub run_cvs_checks
+{
+  my $url = "cvs/?group=$unix_group_name";
+  my $page = get_cvs_section ($url);
+  check_source_absense ($page);
+  check_web_absense ($page);
+  simulate_cvs_repos ();
+  $page = get_cvs_section ($url);
+  check_source_repos ($page);
+  check_web_absense ($page);
+  print_test_log ("Adding web modules " . join (', ', @more_web_modules) . '.');
+  push @web_modules, @more_web_modules;
+  try_mkdir ("$statedir/cvs/web/$unix_group_name/$_") for (@more_web_modules);
+  $page = get_cvs_section ($url);
+  check_web_repos ($page);
+}
+
+sub run_git_checks
+{
+  simulate_git_repos ();
+}
+
+log_in ($agent);
+run_cvs_checks ();
+run_git_checks ();
+
+print_test_log ("Test done.");
+exit (0);
+END { clear_repos (); }

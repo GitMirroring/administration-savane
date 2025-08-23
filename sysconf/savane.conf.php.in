@@ -89,5 +89,8 @@ $sys_registration_captcha = @USE_CAPTCHA@;
 $sys_upload_max = 16384;
 
 $sys_etc_dir = "@confdir@";
-$sys_vcs_dir['git']['dir'] = "@confdir@";
+$sys_vcs_dir['git']['dir'] = "@pkgstatedir@/git";
+$sys_vcs_dir['cvs']['dir'] = [
+  'sources' => "@pkgstatedir@/cvs/sources", 'web' => "@pkgstatedir@/cvs/web"
+];
 ?>

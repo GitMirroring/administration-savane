@@ -479,6 +479,7 @@ ordinary_files = \
   php/include/user.php \
   php/include/utils.php \
   php/include/vars.php \
+  php/include/vcs/cvs.php \
   php/include/vcs/git.php \
   php/include/vcs.php \
   php/index.php \

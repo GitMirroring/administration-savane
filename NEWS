@@ -2,6 +2,10 @@
 
 [FRONTEND]
 
+* CVS modules are listed when $sys_cvs_dir['cvs']['dir'] is defined,
+  the available CVS modules are listed on the 'Use CVS' page, see
+  doc/savane.conf.php.
+
 * Savane version and souce code offer is added to the headers of emails
   frontend sends.
 

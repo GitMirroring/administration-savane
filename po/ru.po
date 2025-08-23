@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-08-17 13:48+0000\n"
-"PO-Revision-Date: 2025-08-17 15:44+0000\n"
+"POT-Creation-Date: 2025-08-24 10:13+0000\n"
+"PO-Revision-Date: 2025-08-24 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -5493,9 +5493,9 @@ msgid ""
 "Your account has no records of activity yet.  It will be removed unless you "
 "use it constructively.  For more details, see [%s Account lifecycle]."
 msgstr ""
-"Ваша учетная запись пока не проявляла активности. Она будет удалена, если "
-"вы не используете ее. Подробности см. на странице "
-"[%s Жизненный цикл учетной записи]."
+"Ваша учетная запись пока не проявляла активности. Она будет удалена, если вы "
+"не используете ее. Подробности см. на странице [%s Жизненный цикл учетной "
+"записи]."
 
 #. TRANSLATORS: the argument is file path.
 #, php-format
@@ -8466,6 +8466,9 @@ msgstr ""
 
 msgid "Tracker notifications are signed with the next key,"
 msgstr "Уведомления из журналов подписываются следующим ключом:"
+
+msgid "Available CVS modules:"
+msgstr "Есть модули CVS:"
 
 msgid ""
 "The CVS repository of this group can be checked out through anonymous CVS "

@@ -46,6 +46,21 @@
 include dirname (__FILE__) . '/../vcs.php';
 
 $cvs_cmd_base = "cvs -z3 -d:pserver:anonymous@cvs.$base_host:";
+$module_list = cvs_list_modules ($unix_name);
+$modules = [];
+foreach (cvs_repo_types () as $type)
+  if (empty ($module_list[$type]))
+    $modules[$type] = '';
+  else
+    $modules[$type] = '<p>' . _("Available CVS modules:") . "</p>\n<ul>\n<li>"
+      . join ("</li>\n<li>", $module_list[$type]) . "</li>\n</ul>\n";
+
+# Only list modules if more than the one default module is present.
+if (
+  empty ($module_list['web'])
+    || empty (array_diff ($module_list['web'], [$unix_name]))
+)
+  $modules['web'] = '';
 
 if ($project->isPublic ())
   {
@@ -64,12 +79,13 @@ if ($project->isPublic ())
         print "<pre>$cvs_cmd$unix_name</pre>\n";
         print "<p>" . _('With other CVS modules:') . "</p>\n";
         print "<pre>$cvs_cmd&lt;<var>" . _('modulename') . "</var>&gt;</pre>\n";
+        print $modules['sources'];
       }
     if ($project->CanUse ("homepage") || $project->UsesForHomepage ("cvs"))
       {
         print html_h (4, _('Webpage repository:'));
         print "<pre>$cvs_cmd_base" . $project->getTypeDir ('homepage')
-          . " co $unix_name</pre>\n";
+          . " co $unix_name</pre>\n" . $modules['web'];
       }
 
     print '<p>';
@@ -91,13 +107,14 @@ if ($project->Uses ("cvs"))
     print "<p>" . _('With other CVS modules:') . "</p>\n";
     print "<pre>$cvs_cmd&lt;<var>" . _('modulename') . '</var>&gt;'
       . "</pre></p>\n";
+    print $modules['sources'];
   }
 if ($project->CanUse ("homepage") || $project->UsesForHomepage ("cvs"))
   {
     print html_h (4, _('Webpage repository:'));
     print "<pre>$cvs_cmd_base"
       . preg_replace ('#/$#', "", $project->getTypeDir ("homepage"))
-      . " co $unix_name</pre></p>\n";
+      . " co $unix_name</pre></p>\n" . $modules['web'];
   }
 vcs_print_auth_description ();
 

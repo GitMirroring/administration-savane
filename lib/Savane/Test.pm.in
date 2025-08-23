@@ -184,7 +184,7 @@ sub get_mbox
 sub log_in
 {
   my $agent = shift;
-  my $login = shift;
+  my $login = @_? shift: '-';
   my $passwd = @_? shift: '-';
   print_test_log ("Logging in as <$login>, passphrase >$passwd<.");
   $agent->get (make_url ('account/login.php'));

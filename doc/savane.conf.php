@@ -111,9 +111,13 @@ $sys_watch_anon_posts = true;
 # to $sys_mail_admin.
 $sys_new_user_watch_days = 34;
 
-# Git configuration, see doc/git-repos.
 $sys_vcs_dir = [
-  'git' => ['dir' => "$sys_appdatadir/vcs/git", 'clone-path' => '/srv/git']
+  # Git configuration, see doc/git-repos.
+  'git' => ['dir' => "$sys_appdatadir/vcs/git", 'clone-path' => '/srv/git'],
+  # $sys_vcs_dir['cvs']['dir'] is used in /cvs/index.php
+  # to list available CVS modules; when defined, the strings points at the top
+  # directory of CVS repository tree, 'source' and 'web' respectively.
+  'cvs' => ['dir' => ['sources' => '/srv/cvs/sources', 'web' => '/srv/cvs/web']]
 ];
 
 # The GnuPG executable.
