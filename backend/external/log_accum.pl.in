@@ -547,8 +547,7 @@ sub build_header
   push @header,
     sprintf (
       "Changes by:\t%s%s<%s>\t%02d/%02d/%02d %02d:%02d:%02d",
-      $fullname, $fullname? " ": "",
-      $mailname? $mailname: $username,
+      $fullname, $fullname? " ": "", $username,
       $year % 100, $mon + 1, $mday, $hour, $min, $sec
     );
   push @header, "";
