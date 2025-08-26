@@ -934,16 +934,15 @@ function markup_convert_standalone_URLs ($line, $protocols)
   # surrounding them with braces []
   # (& = begin of html entities, it means a end of string unless
   # it is &amp; which itself is the entity for &)
+  $url_re = '\/\/([&]amp;|[^\s&]+[a-z0-9\/^=%])+';
   $line = preg_replace (
-    '/(^|[^;\[\/])((' . $protocols . '):\/\/(&amp;|[^\s&]+[a-z0-9\/^])+)/i',
-    '$1[$2]', $line
+    '/(^|[^;\[\/])((' . $protocols . '):'  . $url_re . ')/i', '$1[$2]', $line
   );
   # Remove spaces added in markup_prevent_nested_links ()
   # and process links with preceding ';'.
   $line = preg_replace ('/&#32;/', '', $line);
   $line = preg_replace (
-    '/(;)(((' . $protocols . '):)?\/\/(&amp;|[^\s&]+[a-z0-9\/^])+)/i',
-    '$1[$2]', $line
+    '/(;)(((' . $protocols . '):)?' . $url_re . ')/i', '$1[$2]', $line
   );
   return $line;
 }

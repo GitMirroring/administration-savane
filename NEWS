@@ -32,6 +32,9 @@
 
 * Bug fixes:
 
+** URLs with empty parameters like 'b' in 'https://a.test/a.html?b=&c=1'
+   were parsed incorrectly in include/markup.php.  Savannah sr #111306.
+
 ** The implementation of strftime wasn't selected correctly.
 
 ** Failures to run external processes were handled incorrectly.

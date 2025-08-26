@@ -256,4 +256,13 @@ $out_html = '<p><br />
 ';
 
 run_test ($in, $out, $out_html);
+
+$in = "https://a.test/a?a=&amp;b=c\nhttps://a.test/a?a=&amp;b=";
+$out = "https://a.test/a?a=&b=c\nhttps://a.test/a?a=&b=\n";
+$out_html = '<p><a href="https://a.test/a?a=&amp;b=c">'
+  . 'https://a.test/a?a=&amp;b=c</a><br />' . "\n"
+  . '<a href="https://a.test/a?a=&amp;b=">'
+  . 'https://a.test/a?a=&amp;b=</a><br />' . "\n</p>\n";
+
+run_test ($in, $out, $out_html);
 ?>
