@@ -2,6 +2,12 @@
 
 [FRONTEND]
 
+* In include/markup.php, the non-breakable length of URL strings is
+  limited like
+  http://savannah.gnu.org/bugs/?go_report=Apply&group=groff&max_rows=50#options
+  => http://savannah. ... x_rows=50#options
+  Savannah sr #111307.
+
 * CVS modules are listed when $sys_cvs_dir['cvs']['dir'] is defined,
   the available CVS modules are listed on the 'Use CVS' page, see
   doc/savane.conf.php.

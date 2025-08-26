@@ -1054,6 +1054,21 @@ function markup_expand_named_links ($line, $protocols)
     .'(.+?)\]/', '<a href="$1">$4</a>', $line);
 }
 
+# Limit the non-breakable length of URL strings.
+function break_URL_string ($string)
+{
+  # Things like &zwnj;, &#8203; and <wbr /> don't play well in some browsers,
+  # so just cut any longish strings.
+  $n = 17;
+  $infix = " ... ";
+  $len = strlen ($string);
+  if ($len < $n)
+    return $string;
+  if ($len < 2 * $n)
+    $n = intval ($len / 2) - 1;
+  return substr ($string, 0, $n) . $infix . substr ($string, -$n);
+}
+
 # Expand unnamed hyperlinks, e.g.
 # [http://gna.org/] -> <a href="http://gna.org/">http://gna.org/</a>
 # We make sure the string is not too long, otherwise we cut it.
@@ -1073,6 +1088,7 @@ function markup_expand_unnamed_links ($line, $protocols, $protocol_relative)
       $string = $url;
       if ($match_arr[3] == $protocol_relative)
         $string = $match_arr[4];
+      $string = break_URL_string ($string);
       return "<a href=\"$url\">$string</a>";
     },
     $line);
