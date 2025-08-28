@@ -1867,4 +1867,25 @@ function trackers_search_dependencies ($search, $artifact, $only_group)
     return;
   trackers_search_report_failure ();
 }
+
+function trackers_get_row_class ($field_name = '', $reset = false)
+{
+  static $j = 0;
+  if ($reset !== false)
+    {
+      if ($reset >= 0)
+        $j = $reset;
+      if ($reset === true)
+        $j = 0;
+    }
+  $ret = '';
+  # We keep the original submission with the default background color.
+  # We also use the boxitem background color only one time out of two,
+  # to keep the page light.
+  if ($j % 2 && $field_name != 'details')
+    $ret = ' class="' . utils_altrow ($j + 1) . '"';
+  if ($reset === false || $reset < 0)
+    $j++;
+  return $ret;
+}
 ?>

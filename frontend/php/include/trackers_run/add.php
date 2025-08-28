@@ -55,103 +55,114 @@ if (!group_restrictions_check ($group_id, ARTIFACT))
     exit_error (sprintf (_("Action Unavailable: %s"), $help));
   }
 
-
 trackers_header (['title' => _("Submit Item")]);
 $fields_per_line = 2;
 $max_size = 40;
 
-$grp_field = ARTIFACT . "_preamble";
-# First display the message preamble.
-$res_preamble = db_execute (
-  "SELECT $grp_field FROM groups WHERE group_id = ?", [$group_id]
-);
+function show_preamble ($group_id)
+{
+  $field = ARTIFACT . "_preamble";
+  $res_preamble = db_execute (
+     "SELECT `$field` FROM `groups` WHERE `group_id` = ?", [$group_id]
+  );
 
-$preamble = db_result ($res_preamble, 0, $grp_field);
-if ($preamble)
-  print html_h (2, _("Preamble")) . markup_rich ($preamble);
+  $preamble = db_result ($res_preamble, 0, $field);
+  if ($preamble)
+    print html_h (2, _("Preamble")) . markup_rich ($preamble);
+}
 
-print html_h (2, _("Details"));
+function show_form_caption ($group_id)
+{
+  print html_h (2, _("Details"));
+  print form_header (
+    null, "post", 'enctype="multipart/form-data" name="trackers_form"'
+  );
+  print form_hidden (["func" => "postadditem", 'group_id' => $group_id]);
+  print "\n<table cellpadding='0' width='100%'>";
+}
 
-# Beginning of the submission form with fixed fields.
-print form_header (
-  null, "post", 'enctype="multipart/form-data" name="trackers_form"'
-);
-print form_hidden (["func" => "postadditem", 'group_id' => $group_id]);
-print "\n<table cellpadding='0' width='100%'>";
+function filter_field ($field_name, $is_admin)
+{
+  if (!trackers_data_is_used ($field_name))
+    return true;
+  # If the field is a special field (except summary and original description),
+  # skip it.
+  if (trackers_data_is_special ($field_name)
+    && !in_array ($field_name, ['summary', 'details'])
+  )
+    return true;
+  # Plus only show fields allowed on the bug submit_form.
+  if (!user_isloggedin ()
+    && trackers_data_is_showed_on_add_nologin ($field_name)
+  )
+    return false;
+  if (!$is_admin && trackers_data_is_showed_on_add ($field_name))
+    return false;
+  if ($is_admin && trackers_data_is_showed_on_add_members ($field_name))
+    return false;
+  return true;
+}
 
-# Now display the variable part of the field list (depending on the project).
+function get_field_value ($field_name)
+{
+  global $prefill;
+  if (!empty ($GLOBALS[$field_name]))
+    return utils_specialchars ($GLOBALS[$field_name]);
+  # We let people make URLs with predefined values;
+  # if the value is in the URL, we override the default one.
+  if (isset ($prefill[$field_name]))
+    return $prefill[$field_name];
+  return trackers_data_get_default_value ($field_name);
+}
+
+function get_field_label ($field, $group_id)
+{
+  $label = trackers_field_label_display ($field, $group_id, false, false);
+  if ($field != 'details')
+    return $label;
+  $GLOBALS['int_trapisset'] = true;
+  $label .= ' <span class="preinput">' . markup_info ("full")
+    . "</span>&nbsp;\n&nbsp;" . form_submit (_('Preview'), 'preview');
+  return $label;
+}
+
+function field_star_value ($field, $group_id, $field_value)
+{
+  $star = '';
+  $mandatory_flag = trackers_data_mandatory_flag ($field);
+  if ($mandatory_flag == 3 || $mandatory_flag == 0)
+    {
+      $star = '<span class="warn"> *</span>';
+      $mandatory_flag = 0;
+    }
+  # Field display with special Unknown option, only for fields that
+  # are not mandatory.
+  $value = trackers_field_display (
+    $field, $group_id, $field_value, false, false, false,
+    false, false, false, false, false, true, $mandatory_flag
+  );
+  return [$star, $value];
+}
+
+show_preamble ($group_id);
+show_form_caption ($group_id);
+# Display the variable part of the field list (depending on the group).
 $i = 0;
-$j = 0;
 $is_trackeradmin = member_check (0, $group_id, 2);
 
 while ($field_name = trackers_list_all_fields ())
   {
-    # If the field is a special field (except summary and original description)
-    # or if not used by this project then skip it.
-    # Plus only show fields allowed on the bug submit_form.
-    if (!((!trackers_data_is_special ($field_name) || $field_name == 'summary'
-           || $field_name == 'details')
-          && trackers_data_is_used ($field_name)))
-      continue;
-    if (!(($is_trackeradmin
-           && trackers_data_is_showed_on_add_members ($field_name))
-          || (!$is_trackeradmin
-              && trackers_data_is_showed_on_add ($field_name))
-          || (!user_isloggedin ()
-              && trackers_data_is_showed_on_add_nologin ($field_name))))
+    if (filter_field ($field_name, $is_trackeradmin))
       continue;
 
-    # Display the bug field with its default value.
-    # If field size is greatest than max_size chars, then force it to
-    # appear alone on a new line or it won't fit in the page.
+    $field_value = get_field_value ($field_name);
+    $label = get_field_label ($field_name, $group_id);
+    list ($star, $value) =
+      field_star_value ($field_name, $group_id, $field_value);
+    $field_class = '';
 
-    # We allow people to make urls with predefined values,
-    # if the values are in the url, we override the default value.
-    if (!empty ($$field_name))
-      $field_value = utils_specialchars ($$field_name);
-    elseif (isset ($prefill[$field_name]))
-      $field_value = $prefill[$field_name];
-    else
-      $field_value = trackers_data_get_default_value ($field_name);
-    list ($sz,) = trackers_data_get_display_size ($field_name);
-    $label = trackers_field_label_display (
-      $field_name, $group_id, false, false
-    );
-    if ($field_name == 'details')
-      {
-        $GLOBALS['int_trapisset'] = true;
-        $label .= ' <span class="preinput">' . markup_info ("full")
-          . "</span>&nbsp;\n&nbsp;" . form_submit (_('Preview'), 'preview');
-      }
-
-    $star = '';
-    $mandatory_flag = trackers_data_mandatory_flag ($field_name);
-    if ($mandatory_flag == 3 || $mandatory_flag == 0)
-      {
-        $star = '<span class="warn"> *</span>';
-        $mandatory_flag = 0;
-      }
-
-    # Field display with special Unknown option, only for fields that
-    # are no mandatory.
-    $value = trackers_field_display (
-      $field_name, $group_id, $field_value, false, false, false,
-      false, false, false, false, false, true, $mandatory_flag
-    );
-    # Fields colors.
-    $field_class = $row_class = '';
-    if ($j % 2 && $field_name != 'details')
-      # We keep the original submission with the default background color,
-      # for lisibility sake.
-      #
-      # We also use the boxitem background color only one time out of two,
-      # to keep the page light.
-      $row_class = ' class="' . utils_altrow ($j + 1) . '"';
-
-    # If we are working on the cookbook, present checkboxes to
-    # defines context before the summary line.
-    if (CONTEXT == 'cookbook' && $field_name == 'summary' && $is_trackeradmin)
-      cookbook_print_form ();
+    if ($is_trackeradmin)
+      cookbook_print_form ($field_name, $field_class);
 
     # We highlight fields that were not properly/completely
     # filled.
@@ -159,12 +170,14 @@ while ($field_name = trackers_list_all_fields ())
         && array_key_exists ($field_name, $previous_form_bad_fields))
       $field_class = ' class="highlight"';
 
+    # If field size is greatest than max_size chars, then force it to
+    # appear alone on a new line or it won't fit in the page.
+    list ($sz,) = trackers_data_get_display_size ($field_name);
     if ($sz > $max_size)
       {
+        $row_class = trackers_get_row_class ($field_name);
         # Field getting one line for itself.
         # Each time prepare the background color change.
-        $j++;
-
         print "\n<tr$row_class>"
           . "<td valign='middle'$field_class width='15%'>$label</td>\n"
           . "<td valign='middle'$field_class colspan=\""
@@ -174,20 +187,19 @@ while ($field_name = trackers_list_all_fields ())
       }
     else
       {
+       print "\n";
         # Field getting half of a line for itself.
         if (!($i % $fields_per_line))
           {
             # Every one out of two, prepare the background color change.
             # We do that at this moment because we cannot be sure
             # there will be another field on this line.
-            $j++;
+            $row_class = trackers_get_row_class ($field_name);
+            print "<tr$row_class>";
           }
-
-        print ($i % $fields_per_line ? "\n": "\n<tr$row_class>");
         print "<td valign='middle'$field_class width='15%'>$label</td>\n"
           . "<td valign='middle'$field_class width='35%'>$value$star</td>\n";
-        $i++;
-        print ($i % $fields_per_line ? "\n": "</tr>\n");
+        print (++$i % $fields_per_line? "\n": "</tr>\n");
       }
   } # while ($field_name = trackers_list_all_fields ())
 

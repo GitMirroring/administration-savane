@@ -544,11 +544,11 @@ function trackers_data_get_field_predefined_values (
   );
 }
 
-function trackers_data_use_field_predefined_values ($field, $group_id)
+# Check whether a group field values are the default one or not.
+# If no entry in the database for the relevant field value belong to the group,
+# then it uses default values (fallback).
+function trackers_data_use_field_custom_values ($field, $group_id)
 {
-  # Check whether a group field values are the default one or not.
-  # If no entry in the database for the relevant field value belong to the
-  # group, then it uses default values (fallback).
   $field_id = trackers_data_get_field_id ($field);
 
   $result = db_execute ("
@@ -690,7 +690,7 @@ function trackers_data_is_username_field ($field, $by_field_id = false)
   return ($field == 'assigned_to') || ($field == 'submitted_by');
 }
 
-function trackers_data_is_project_scope ($field, $by_field_id = false)
+function trackers_data_field_is_group_scope ($field, $by_field_id = false)
 {
   return 'P' == trackers_data_field_val ($field, 'scope', $by_field_id);
 }
@@ -918,7 +918,7 @@ function trackers_data_create_value (
 {
   if (preg_match ("/^\s*$/", $value))
     {
-      fb (_("Empty field value not allowed"), 0);
+      fb (_("Empty field value not allowed"), 1);
       return;
     }
 
@@ -1000,7 +1000,7 @@ function trackers_data_update_value (
 {
   if (preg_match ("/^\s*$/", $value))
     {
-      fb (_("Empty field value not allowed"), 0);
+      fb (_("Empty field value not allowed"), 1);
       return;
     }
   list ($where_cond, $where_cond_params) =
@@ -1015,6 +1015,94 @@ function trackers_data_update_value (
     DB_AUTOQUERY_UPDATE, "$where_cond", $where_cond_params
   );
   trackers_data_report_update_value ($result);
+}
+
+function trackers_data_create_canned ($title, $body, $order_id, $group_id)
+{
+  $result = db_autoexecute (
+    ARTIFACT . '_canned_responses',
+    [
+      'group_id' => $group_id, 'title' => $title, 'body' => $body,
+      'order_id' => $order_id,
+    ],
+    DB_AUTOQUERY_INSERT
+  );
+  if ($result)
+    fb (_("Canned bug response inserted"));
+  else
+    fb (_("Error inserting canned bug response"), 1);
+}
+
+function trackers_data_update_canned ($title, $body, $order_id, $item_canned_id)
+{
+  global $group_id;
+  $result = db_autoexecute (
+    ARTIFACT . '_canned_responses',
+    ['title' => $title, 'body' => $body, 'order_id' => $order_id],
+    DB_AUTOQUERY_UPDATE, 'group_id = ? AND bug_canned_id = ?',
+    [$group_id,  $item_canned_id]
+  );
+  if ($result)
+    fb (_("Canned bug response updated"));
+  else
+    fb (_("Error updating canned bug response"), 1);
+}
+
+function trackers_data_transition_exists ($field_id, $from, $to)
+{
+  global $group_id;
+  $res = db_execute ("
+    SELECT `from_value_id`, `to_value_id`, `is_allowed`, `notification_list`
+    FROM `trackers_field_transition`
+    WHERE
+      `group_id` = ? AND `artifact` = ? AND `field_id` = ?
+      AND `from_value_id` = ? AND `to_value_id` = ?",
+   [$group_id, ARTIFACT, $field_id, $from, $to]
+  );
+  return db_numrows ($res);
+}
+
+# Update the existing entry for a transition.
+function trackers_data_update_transition (
+  $field_id, $from, $to, $mail_list, $allowed
+)
+{
+  global $group_id;
+  $result = db_autoexecute (
+    'trackers_field_transition',
+     ['is_allowed' => $allowed, 'notification_list' => $mail_list],
+     DB_AUTOQUERY_UPDATE,
+     'group_id = ? AND artifact = ? AND field_id = ?
+      AND from_value_id = ? AND to_value_id = ?',
+     [$group_id, ARTIFACT, $field_id, $from, $to]
+  );
+
+  if (db_affected_rows ($result) < 1)
+    fb (_("Update of transition failed"), 1);
+  else
+    fb (_("Transition updated"));
+}
+
+# Greate an entry for a transition.
+function trackers_data_create_transition (
+  $field_id, $from, $to, $mail_list, $allowed
+)
+{
+  global $group_id;
+  $result = db_autoexecute (
+    'trackers_field_transition',
+    [
+      'group_id' => $group_id, 'artifact' => ARTIFACT, 'field_id' => $field_id,
+      'from_value_id' => $from, 'to_value_id' => $to, 'is_allowed' => $allowed,
+      'notification_list' => $mail_list,
+    ],
+    DB_AUTOQUERY_INSERT
+  );
+
+  if (db_affected_rows ($result) < 1)
+    fb (_("Insert failed"), 1);
+  else
+    fb (_("New transition inserted"));
 }
 
 # Reset a field settings to its defaults usage (values are untouched). The defaults

@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-08-24 10:13+0000\n"
-"PO-Revision-Date: 2025-08-24 15:44+0000\n"
+"POT-Creation-Date: 2025-09-02 08:59+0000\n"
+"PO-Revision-Date: 2025-09-02 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -275,6 +275,14 @@ msgstr "Не удается обновить переход"
 msgid "Transition updated"
 msgstr "Переход обновлен"
 
+#, php-format
+msgid ""
+"The field you requested '%s' is not used by your group or you are not\n"
+"allowed to customize it"
+msgstr ""
+"Поле \"%s\", которое вам нужно, не используется в вашей группе, или вам не "
+"позволено настраивать его"
+
 msgid ""
 "No default values found. You should report this problem to\n"
 "administrators."
@@ -282,13 +290,15 @@ msgstr ""
 "Исходных значений не найдено. Сообщите, пожалуйста, об этом администраторам."
 
 #, php-format
-msgid "Edit Field Values for '%s'"
-msgstr "Править значения поля \"%s\""
+msgid "Field values for '%s'"
+msgstr "Значения поля \"%s\""
 
-msgid "Field Label:"
-msgstr "Название поля:"
+#. TRANSLATORS: this is a link.
+msgid "Field list"
+msgstr "Список полей"
 
-msgid "Jump to this field usage"
+#. TRANSLATORS: this is a link.
+msgid "This field usage"
 msgstr "Применение этого поля"
 
 #. TRANSLATORS: the  argument is field label.
@@ -327,15 +337,15 @@ msgstr "Постоянно"
 msgid "Hidden"
 msgstr "Скрыто"
 
-msgid "---- ACTIVE VALUES ----"
-msgstr "---- Активные значения ----"
-
 msgid ""
 "No active value for this field. Create one or reactivate a hidden value (if\n"
 "any)"
 msgstr ""
 "У этого поля нет активных значений. Создайте новое или активизируйте скрытое "
 "значение (если такие есть)"
+
+msgid "---- ACTIVE VALUES ----"
+msgstr "---- Активные значения ----"
 
 msgid "---- HIDDEN VALUES ----"
 msgstr "---- Скрытые значения ----"
@@ -350,17 +360,17 @@ msgstr ""
 "Перед созданием нового значения убедитесь, что ни одно из скрытых вам не "
 "подойдет."
 
-msgid "Value:"
-msgstr "Значение:"
-
-msgid "Rank:"
-msgstr "Ранг:"
-
 #. TRANSLATORS: the argument is minimum rank value;
 #. the string is used like "Rank: (must be > %s)".
 #, php-format
 msgid "(must be &gt; %s)"
 msgstr "(должен быть &gt; %s)"
+
+msgid "Value:"
+msgstr "Значение:"
+
+msgid "Rank:"
+msgstr "Ранг:"
 
 msgid "Description (optional):"
 msgstr "Описание (по желанию):"
@@ -378,13 +388,26 @@ msgstr ""
 msgid "For your information, the default active values are:"
 msgstr "Исходные активные значения:"
 
+#. TRANSLATORS: the argument is field name.
 #, php-format
-msgid ""
-"The field you requested '%s' is not used by your group or you are not\n"
-"allowed to customize it"
-msgstr ""
-"Поле \"%s\", которое вам нужно, не используется в вашей группе, или вам не "
-"позволено настраивать его"
+msgid "No transition defined yet for %s"
+msgstr "Для поля %s ни один переход еще не определен"
+
+#. TRANSLATORS: this refers to transitions.
+msgid "* - Any"
+msgstr "* - любое"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "Edit other fields update"
+msgstr "Настроить обновление других полей"
+
+msgid "Delete this transition"
+msgstr "Удалить этот переход"
 
 msgid "Registered Transitions"
 msgstr "Зарегистрированные переходы"
@@ -407,27 +430,6 @@ msgstr "Адреса уведомления"
 msgid "Delete"
 msgstr "Удалить"
 
-msgid "Yes"
-msgstr "Да"
-
-msgid "No"
-msgstr "Нет"
-
-#. TRANSLATORS: this refers to transitions.
-msgid "* - Any"
-msgstr "* - любое"
-
-msgid "Edit other fields update"
-msgstr "Настроить обновление других полей"
-
-msgid "Delete this transition"
-msgstr "Удалить этот переход"
-
-#. TRANSLATORS: the argument is field.
-#, php-format
-msgid "No transition defined yet for %s"
-msgstr "Для поля %s ни один переход еще не определен"
-
 msgid ""
 "By default, for this field, the\n"
 "transitions not registered are forbidden. This setting can be changed when\n"
@@ -447,6 +449,9 @@ msgstr ""
 msgid "Create a transition"
 msgstr "Создать переход"
 
+msgid "allowed or not"
+msgstr "разрешено или нет"
+
 msgid ""
 "Once a transition created, it will be possible to set &ldquo;Other Field\n"
 "Update&rdquo; for this transition."
@@ -454,14 +459,11 @@ msgstr ""
 "После создания перехода для него можно настроить &ldquo;Обновление других "
 "полей&rdquo;."
 
-msgid "allowed or not"
-msgstr "разрешено или нет"
-
 msgid "Update Transition"
 msgstr "Обновить переход"
 
-msgid "Edit Field Values"
-msgstr "Править значения полей"
+msgid "Field values"
+msgstr "Значения полей"
 
 msgid "Status:"
 msgstr "Состояние:"
@@ -599,6 +601,9 @@ msgstr "Не обновлять автоматически"
 
 msgid "Modify Field Usage"
 msgstr "Изменить использование поля"
+
+msgid "Field Label:"
+msgstr "Название поля:"
 
 msgid "Jump to this field values"
 msgstr "Значения этого поля"
@@ -764,6 +769,9 @@ msgid ""
 "be used."
 msgstr ""
 "Определить поля для этого журнала, определить, как они будут применяться."
+
+msgid "Edit Field Values"
+msgstr "Править значения полей"
 
 msgid ""
 "Define the set of possible values for the fields you have decided to use in\n"
@@ -6228,11 +6236,11 @@ msgstr "Журнал заплаток: публикация, поиск и ра�
 msgid "Submit new"
 msgstr "Составить"
 
-msgid "Reset to open"
-msgstr "Просмотреть открытые"
-
 msgid "Edit"
 msgstr "Править"
+
+msgid "Reset to open"
+msgstr "Просмотреть открытые"
 
 msgid "Export"
 msgstr "Экспорт"
@@ -8952,3 +8960,6 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid "Jump to this field usage"
+#~ msgstr "Применение этого поля"

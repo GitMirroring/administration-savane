@@ -113,61 +113,20 @@ elseif ($delete_canned)
   delete_response ($group_id, $item_canned_id);
 elseif ($post_changes)
   {
-    # A form of some sort was posted to update or create
-    # an existing value.
-    # Deleted Canned doesn't need a form, so let switch
-    # into this code.
-
+    # A form of some sort was posted to update or create an existing value.
+    # Deleted Canned doesn't need a form, so let switch into this code.
     if ($create_value)
-      {
-        # A form was posted to update a field value.
-        if ($title)
-          trackers_data_create_value (
-            $field, $group_id, $title, $description, $order_id, 'A'
-          );
-        else
-          fb (_("Empty field value is not allowed"), 1);
-      }
+      trackers_data_create_value (
+        $field, $group_id, $title, $description, $order_id, 'A'
+      );
     elseif ($update_value)
-      {
-        # A form was posted to update a field value.
-        if ($title)
-          trackers_data_update_value (
-            $fv_id, $field, $group_id, $title, $description, $order_id, $status
-          );
-        else
-          fb (_("Empty field value is not allowed"), 1);
-      }
+      trackers_data_update_value (
+        $fv_id, $field, $group_id, $title, $description, $order_id, $status
+      );
     elseif ($create_canned)
-      {
-        # A form was posted to create a canned response.
-        $result = db_autoexecute (
-          ARTIFACT . '_canned_responses',
-          [
-            'group_id' => $group_id, 'title' => $title, 'body' => $body,
-            'order_id' => $order_id,
-          ],
-          DB_AUTOQUERY_INSERT
-        );
-        if ($result)
-          fb (_("Canned bug response inserted"));
-        else
-          fb (_("Error inserting canned bug response"), 1);
-      }
+      trackers_data_create_canned ($title, $body, $order_id, $group_id);
     elseif ($update_canned)
-      {
-        # A form was posted to update a canned response.
-        $result = db_autoexecute (
-          ARTIFACT . '_canned_responses',
-          ['title' => $title, 'body' => $body, 'order_id' => $order_id],
-          DB_AUTOQUERY_UPDATE, 'group_id = ? AND bug_canned_id = ?',
-          [$group_id,  $item_canned_id]
-        );
-        if (!$result)
-          fb (_("Error updating canned bug response"), 1);
-        else
-          fb (_("Canned bug response updated"));
-      }
+      trackers_data_update_canned ($title, $body, $order_id, $item_canned_id);
   }
 
 $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
@@ -175,59 +134,29 @@ $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
 if ($to != $from)
   {
     # A form was posted to update or create a transition.
-    $res_value = db_execute (
-     "SELECT from_value_id, to_value_id, is_allowed, notification_list
-      FROM trackers_field_transition
-      WHERE
-        group_id = ? AND artifact = ? AND field_id = ?
-        AND from_value_id = ? AND to_value_id = ?",
-     [$group_id, ARTIFACT, $field_id, $from, $to]
-    );
-    $rows = db_numrows ($res_value);
-
-    # If no entry for this transition, create one.
-    if ($rows == 0)
-      {
-        $result = db_autoexecute (
-          'trackers_field_transition',
-          [
-            'group_id' => $group_id, 'artifact' => ARTIFACT,
-            'field_id' => $field_id, 'from_value_id' => $from,
-            'to_value_id' => $to, 'is_allowed' => $allowed,
-            'notification_list' => $mail_list,
-          ],
-          DB_AUTOQUERY_INSERT
-        );
-
-        if (db_affected_rows ($result) < 1)
-          fb (_("Insert failed"), 1);
-        else
-          fb (_("New transition inserted"));
-      }
+    if (trackers_data_transition_exists ($field_id, $from, $to))
+      trackers_data_update_transition (
+        $field_id, $from, $to, $mail_list, $allowed
+      );
     else
-      {
-        # Update the existing entry for this transition.
-        $result = db_autoexecute (
-          'trackers_field_transition',
-           ['is_allowed' => $allowed, 'notification_list' => $mail_list],
-           DB_AUTOQUERY_UPDATE,
-           'group_id = ? AND artifact = ? AND field_id = ?
-            AND from_value_id = ? AND to_value_id = ?',
-           [$group_id, ARTIFACT, $field_id, $from, $to]
-        );
-
-        if (db_affected_rows ($result) < 1)
-          fb (_("Update of transition failed"), 1);
-        else
-          fb (_("Transition updated"));
-      }
+      trackers_data_create_transition (
+        $field_id, $from, $to, $mail_list, $allowed
+      );
   } # ($to != $from)
 
-$td_select_box = function ($field)
+function td_select_box ($field)
 {
-  return trackers_data_get_field_id ($field)
-    && trackers_data_is_select_box ($field);
-};
+  if (
+    trackers_data_get_field_id ($field) && trackers_data_is_select_box ($field)
+  )
+    return;
+  # TRANSLATORS: the argument is field.
+  $msg = sprintf (
+    _("The field you requested '%s' is not used by your group "
+      . "or you are not\nallowed to customize it"), $field
+  );
+  exit_error ($msg);
+}
 
 function print_predefined_val_entry ($fld_val, &$defs)
 {
@@ -257,394 +186,463 @@ function list_predefined_values ($field)
   print html_dl ($defs);
 }
 
-if ($list_value)
-  {
-    # Display the list of values for a given bug field.
-    # TRANSLATORS: the argument is field label.
-    $hdr = sprintf (
-      _("Edit Field Values for '%s'"), trackers_data_get_label ($field)
+function print_field_header ($field, $title, $group)
+{
+  global $sys_home, $is_admin;
+  # TRANSLATORS: the argument is field label.
+  $title =
+    sprintf (_("Field values for '%s'"), trackers_data_get_label ($field));
+  trackers_header_admin (['title' => $title]);
+  print '<p><span class="smaller">';
+  $url = "field_values.php?group=$group";
+  # TRANSLATORS: this is a link.
+  print utils_link ($url, _("Field list")) . "\n";
+  $url = $sys_home . ARTIFACT . "/admin/field_usage.php?group=$group"
+    . "&amp;update_field=1&amp;field=$field";
+  if ($is_admin)
+    # TRANSLATORS: this is a link.
+    print "<br />\n" . utils_link ($url, _("This field usage")) . "\n";
+  print '</span></p>';
+}
+
+function fetch_field_values ($field)
+{
+  global $group_id;
+  $result = trackers_data_get_field_predefined_values (
+    $field, $group_id, false, false, false
+  );
+  # First check that this field is used by the group and
+  # it is in the group scope.
+  if (!db_numrows ($result))
+    # TRANSLATORS: the  argument is field label.
+    printf (html_h (2, _("No values defined yet for %s")),
+      trackers_data_get_label ($field)
     );
+  return $result;
+}
 
-    if ($td_select_box ($field))
-      {
-        # First check that this field is used by the group and
-        # it is in the group scope.
-        $is_group_scope = trackers_data_is_project_scope ($field);
-        trackers_header_admin (['title' => $hdr]);
-        print
-          html_h (1,
-            _("Field Label:") . ' ' . trackers_data_get_label ($field)
-          )
-          . '<p><span class="smaller">('
-          . utils_link (
-              $sys_home . ARTIFACT . "/admin/field_usage.php?group=$group"
-              . "&amp;update_field=1&amp;field=$field",
-              _("Jump to this field usage")
-            )
-          . ")</span></p>\n";
+function value_table_header ($field, $is_group_scope)
+{
+  $ret = html_h (2, _("Existing Values"));
+  $title_arr =  [_("Value label"), _("Description"), _("Rank"),
+    _("Status"), _("Occurrences")];
+  if (!$is_group_scope)
+    $title_arr = array_merge ([_('ID')], $title_arr);
+  return $ret . html_build_list_table_top ($title_arr);
+}
 
-        $result = trackers_data_get_field_predefined_values (
-          $field, $group_id, false, false, false
-        );
-        $rows = db_numrows ($result);
+function put_field_val_in_tr ($status, $html)
+{
+  static $i = ['a' => 0, 'h' => 0];
+  $suff = 'h';
+  if ($status == 'A' || $status == 'P')
+    $suff = 'a';
+  $class = utils_altrow ($i[$suff]);
+  $html = "<tr class=\"$class\">$html</tr>\n";
+  $i[$suff]++;
+  if ($suff == 'h')
+    return [$html, null];
+  return [null, $html];
 
-        if (!$result || $rows <= 0)
-          # TRANSLATORS: the  argument is field label.
-          printf (html_h (1, _("No values defined yet for %s")),
-            trackers_data_get_label ($field)
-          );
-        else
-          {
-            print html_h (2, _("Existing Values"));
-            $title_arr =  [_("Value label"), _("Description"), _("Rank"),
-              _("Status"), _("Occurrences")];
-            if (!$is_group_scope)
-              $title_arr = array_merge ([_('ID')], $title_arr);
+}
 
-            $hdr = html_build_list_table_top ($title_arr);
+function get_usage_string ($field, $value_id, $status)
+{
+  global $group_id;
+  $usage = trackers_data_count_field_value_usage ($group_id, $field, $value_id);
+  if ($status == 'H' && $usage > 0)
+    $usage = "<strong class='warn'>$usage</strong>";
+  return "<td align='center'>$usage</td>\n";
+}
 
-            # TRANSLATORS: this is field status.
-            $status_stg = [
-             'A' => _("Active"), 'P' => _("Permanent"), 'H' => _("Hidden")
-            ];
+function format_field_value ($fld_val, $field)
+{
+  global $is_admin, $php_self, $group_id;
+  $txt_val = $fld_val['value'];
+  # The permanent values can't be modified (no link).
+  if ($fld_val['status'] != 'P' && $is_admin)
+    $txt_val = "<a href=\"$php_self?update_value=1"
+      . "&fv_id={$fld_val['bug_fv_id']}&field=$field&group_id=$group_id"
+      . "\">$txt_val</a>";
+  return "<td>$txt_val</td>\n";
+}
 
-            # Display the list of values in 2 blocks: active first,
-            # hidden second.
-            $ia = $ih = 0;
-            $ha = $hh = '';
-            while ( $fld_val = db_fetch_array ($result) )
-              {
-                $item_fv_id = $fld_val['bug_fv_id'];
-                $status = $fld_val['status'];
-                $value_id = $fld_val['value_id'];
-                $value = $fld_val['value'];
-                $description = $fld_val['description'];
-                $order_id = $fld_val['order_id'];
-                $usage = trackers_data_count_field_value_usage (
-                  $group_id, $field, $value_id
-                );
-                $html = '';
-                # Keep the rank of the 'None' value in mind if any.
-                if ($value == 100)
-                  $none_rk = $order_id;
+function list_field_values ($fld_val, $field, $is_group_scope)
+{
+  global $none_rk;
+  # TRANSLATORS: this is field status.
+  $status_str = ['A' => _("Active"), 'P' => _("Permanent"), 'H' => _("Hidden")];
 
-                # Show the value ID only for system wide fields which
-                # value id are fixed and serve as a guide.
-                if (!$is_group_scope)
-                  $html .= "<td>$value_id</td>\n";
+  extract ($fld_val);
+  $html = '';
+  # Keep the rank of the 'None' value in mind if any.
+  if ($value == 100)
+    $none_rk = $order_id;
 
-                # The permanent values can't be modified (No link).
-                $txt_val = $value;
-                if ($status != 'P')
-                  $txt_val = "<a href=\"$php_self?update_value=1"
-                    . "&fv_id=$item_fv_id&field=$field&group_id=$group_id"
-                    . "\">$value</a>";
-                $html .= "<td>$txt_val</td>\n";
+  # Show the value ID only for system-wide fields whose value id is fixed
+  # and serve as a guide.
+  if (!$is_group_scope)
+    $html .= "<td>$value_id</td>\n";
+  $html .= format_field_value ($fld_val, $field)
+    .  "<td>$description&nbsp;</td>\n"
+    . "<td align='center'>$order_id</td>\n"
+    . "<td align='center'>{$status_str[$status]}</td>\n"
+    . get_usage_string ($field, $value_id, $status);
+  return put_field_val_in_tr ($status, $html);
+}
 
-                $html .= "<td>$description&nbsp;</td>\n"
-                  . "<td align='center'>$order_id</td>\n"
-                  . "<td align='center'>{$status_stg[$status]}</td>\n";
+function print_field_values ($hidden, $active, $hdr)
+{
+  global $is_admin;
+  $ha = join ('', $active);
+  $hh = '';
+  if ($is_admin)
+    {
+      if (empty ($active))
+        $hdr = '<p>'
+          . _("No active value for this field. Create one or "
+              . "reactivate a hidden value (if\nany)")
+          . "</p>\n$hdr";
+      else
+        $ha = '<tr><td colspan="4" class="center"><strong>'
+          . _("---- ACTIVE VALUES ----") . "</strong></tr>\n$ha";
+      if (!empty ($hidden))
+        $hh = "<tr><td colspan=\"4\"> &nbsp;</td></tr>\n"
+          .' <tr><td colspan="4"><center><strong>'
+          . _("---- HIDDEN VALUES ----")
+          . "</strong></center></tr>\n" . join ('', $hidden);
+    }
+  print "$hdr$ha$hh</table>\n";
+}
 
-                $us_str = $usage;
-                if ($status == 'H' && $usage > 0)
-                  $us_str = "<strong class='warn'>$usage</strong>";
-                $html .= "<td align='center'>$us_str</td>\n";
+function show_existing_fields ($field, $result, $is_group_scope)
+{
+  if (!db_numrows ($result))
+    return;
+  # Display the list of values in 2 blocks: active first,
+  # hidden second.
+  $hidden = $active = [];
+  while ($fld_val = db_fetch_array ($result))
+    list ($hidden[], $active[]) =
+      list_field_values ($fld_val, $field, $is_group_scope);
+  $hidden = array_filter ($hidden);
+  $active = array_filter ($active);
+  $hdr = value_table_header ($field, $is_group_scope);
+  print_field_values ($hidden, $active, $hdr);
+  return !empty ($hidden);
+}
 
-                $suff = 'h';
-                if ($status == 'A' || $status == 'P')
-                  $suff = 'a';
-                $class = utils_altrow (${"i$suff"});
-                $html = "<tr class=\"$class\">$html</tr>\n";
-                ${"i$suff"}++;
-                ${"h$suff"} .= $html;
-              }
+function print_create_caption ($field, $have_hidden)
+{
+  print html_h (2, _("Create a new field value"));
+  if (!$have_hidden)
+    return;
+  print '<p>'
+    . _("Before you create a new value make sure there isn't one "
+    . "in the hidden list\nthat suits your needs.")
+    . "</p>\n";
+}
 
-            # Display the list of values now.
-            if ($ia)
-              $ha = '<tr><td colspan="4" class="center"><strong>'
-                . _("---- ACTIVE VALUES ----") . "</strong></tr>\n$ha";
-            else
-              $hdr = '<p>'
-                . _("No active value for this field. Create one or "
-                    . "reactivate a hidden value (if\nany)")
-                . "</p>\n$hdr";
-            if ($ih)
-              $hh = "<tr><td colspan=\"4\"> &nbsp;</td></tr>\n"
-                .' <tr><td colspan="4"><center><strong>'
-                . _("---- HIDDEN VALUES ----")
-                . "</strong></center></tr>\n$hh";
-            print "$hdr$ha$hh</table>\n";
-          } # !(!$result || $rows <= 0)
+function print_create_form_hidden ($field)
+{
+  global $group_id;
+  print form_tag () . form_hidden (
+      [
+        'post_changes' => 'y', 'create_value' => 'y', 'list_value' => 'y',
+        'field' => $field, 'group_id' => $group_id
+      ]
+    );
+}
 
-        # Only show the add value form if this is a group scope field.
-        if ($is_group_scope)
-          {
-            print html_h (2, _("Create a new field value"));
-            if ($ih)
-              print '<p>'
-                . _("Before you create a new value make sure there isn't one "
-                . "in the hidden list\nthat suits your needs.")
-                . "</p>\n";
+function print_create_field_none_rk ()
+{
+  global $none_rk;
+  if (!isset ($none_rk))
+    return;
+  print "&nbsp;&nbsp;<strong> ";
+  # TRANSLATORS: the argument is minimum rank value;
+  # the string is used like "Rank: (must be > %s)".
+  printf (_("(must be &gt; %s)"), $none_rk);
+  print "</strong></p>\n";
+}
 
-            print form_tag ();
-            print form_hidden (
-                [
-                  'post_changes' => 'y', 'create_value' => 'y',
-                  'list_value' => 'y', 'field' => $field,
-                  'group_id' => $group_id
-                ]
-              );
-            print '<span class="preinput">'
-              . html_label ('title', _("Value:")) . '</span>&nbsp;'
-              . form_input ("text", "title", "", 'size="30" maxlength="60"')
-              . "\n&nbsp;&nbsp;<span class='preinput'>"
-              . html_label ('order_id', _("Rank:")) . '</span>&nbsp;'
-              . form_input ("text", "order_id", "", 'size="6" maxlength="6"');
+function show_create_field_value ($field, $have_hidden)
+{
+  global $group_id;
+  print_create_caption ($field, $have_hidden);
+  print_create_form_hidden ($field);
+  print '<span class="preinput">'
+    . html_label ('title', _("Value:")) . '</span>&nbsp;'
+    . form_input ("text", "title", "", 'size="30" maxlength="60"')
+    . "\n&nbsp;&nbsp;<span class='preinput'>"
+    . html_label ('order_id', _("Rank:")) . '</span>&nbsp;'
+    . form_input ("text", "order_id", "", 'size="6" maxlength="6"');
+  print_create_field_none_rk ();
+  print "<p><span class='preinput'>"
+    . html_label ('description', _("Description (optional):"))
+    . "</span><br />\n"
+    . form_textarea ('description', '',
+       "rows='4' cols='65' wrap='hard'")
+    . "</p>\n" . form_footer (_("Update"), 'submit');
+}
 
-            if (isset ($none_rk))
-              {
-                print "&nbsp;&nbsp;<strong> ";
-                # TRANSLATORS: the argument is minimum rank value;
-                # the string is used like "Rank: (must be > %s)".
-                printf (_("(must be &gt; %s)"), $none_rk);
-                print "</strong></p>\n";
-              }
+function show_reset_field_values ($field)
+{
+  global $group_id;
+  print html_h (2, _("Reset values"));
+  print '<p>'
+    . _("You are currently using custom values. If you want "
+        . "to reset values to the\ndefault ones, use the following "
+        . "form:")
+    . "</p>\n\n"
+    . form_tag (
+        ['action' => 'field_values_reset.php', 'class' => 'center']
+      )
+    . form_hidden (['group_id' => $group_id, 'field' => $field])
+    . form_footer (_("Reset values"), 'submit') . "<p>"
+    . _("For your information, the default active values are:")
+    . "</p>\n";
 
-            print "<p><span class='preinput'>"
-              . html_label ('description', _("Description (optional):"))
-              . "</span><br />\n"
-              . form_textarea ('description', '',
-                 "rows='4' cols='65' wrap='hard'")
-              . "</p>\n" . form_footer (_("Update"), 'submit');
-          } # $is_group_scope
+  list_predefined_values ($field);
+}
 
-        # If the group use custom values, propose to reset to the default.
-        if (trackers_data_use_field_predefined_values ($field, $group_id))
-          {
-            print html_h (2, _("Reset values"));
-            print '<p>'
-              . _("You are currently using custom values. If you want "
-                  . "to reset values to the\ndefault ones, use the following "
-                  . "form:")
-              . "</p>\n\n"
-              . form_tag (
-                  ['action' => 'field_values_reset.php', 'class' => 'center']
-                )
-              . form_hidden (['group_id' => $group_id, 'field' => $field])
-              . form_footer (_("Reset values"), 'submit') . "<p>"
-              . _("For your information, the default active values are:")
-              . "</p>\n";
+function get_val_label ($field, $by_field_id)
+{
+  global $group_id;
+  $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
+  $sql = '
+    SELECT `value_id`, `value` FROM `' . ARTIFACT . '_field_value`
+    WHERE `group_id` = ? AND `bug_field_id` = ?';
+  # Get all the value_id - value pairs.
+  $res = db_execute ($sql, [$group_id, $field_id]);
 
-            list_predefined_values ($field);
-          }
-      }
-    else # ! $td_select_box ($field)
-      {
-        # TRANSLATORS: the argument is field.
-        $msg = sprintf (
-          _("The field you requested '%s' is not used by your group "
-            . "or you are not\nallowed to customize it"),
-          $field
-        );
-        exit_error ($msg);
-      }
+  if (!db_numrows ($res))
+    $res = db_execute ($sql, [100, $field_id]);
 
-    $field_id = $by_field_id ? $field: trackers_data_get_field_id ($field);
-    if ($td_select_box ($field))
-      {
-        $sql = '
-          SELECT value_id, value FROM ' . ARTIFACT . '_field_value
-          WHERE group_id = ? AND bug_field_id = ?';
-        # Get all the value_id - value pairs.
-        $res_value = db_execute ($sql, [$group_id, $field_id]);
+  if (!db_numrows ($res))
+    return [$field_id, []];
+  $val_label = [];
+  while ($val_row = db_fetch_array ($res))
+    {
+      $value_id = $val_row['value_id'];
+      $value = $val_row['value'];
+      $val_label[$value_id] = $value;
+    }
+  return [$field_id, $val_label];
+}
 
-        if (!db_numrows ($res_value))
-          $res_value = db_execute ($sql, [100, $field_id]);
+function fetch_transitions ($field_id, $field)
+{
+  global $group_id;
+  $result = db_execute ('
+    SELECT
+      `transition_id`, `from_value_id`, `to_value_id`, `is_allowed`,
+      `notification_list`
+    FROM `trackers_field_transition`
+    WHERE `group_id` = ? AND `artifact` = ?  AND `field_id` = ?',
+    [$group_id, ARTIFACT, $field_id]
+  );
+  if (db_numrows ($result))
+    return $result;
+  print "\n\n<p>&nbsp;</p>\n";
+  # TRANSLATORS: the argument is field name.
+  printf (html_h (2, _("No transition defined yet for %s")),
+    trackers_data_get_label ($field)
+  );
+  return null;
+}
 
-        if (db_numrows ($res_value))
-          {
-            $val_label = [];
-            while ($val_row = db_fetch_array ($res_value))
-              {
-                $value_id = $val_row['value_id'];
-                $value = $val_row['value'];
-                $val_label[$value_id] = $value;
-              }
-          }
-        $result = db_execute ('
-          SELECT
-            transition_id, from_value_id, to_value_id, is_allowed,
-            notification_list
-          FROM trackers_field_transition
-          WHERE group_id = ? AND artifact = ?  AND field_id = ?',
-          [$group_id, ARTIFACT, $field_id]
-        );
-        $rows = db_numrows ($result);
+function print_transition_label ($transition, $val_label)
+{
+  if (empty ($val_label[$transition['from_value_id']]))
+    # TRANSLATORS: this refers to transitions.
+    $txt = _("* - Any");
+  else
+    $txt = $val_label[$transition['from_value_id']];
+  print "<td align='center'>$txt</td>\n";
+}
 
-        if ($result && $rows > 0)
-          {
-            print "\n\n<p>&nbsp;</p><h2>"
-              . html_anchor (_("Registered Transitions"), "registered")
-              . "</h2>\n";
+function print_transition_allowed ($transition, $val_label)
+{
+  if ($transition['is_allowed'] == 'A')
+    $allowed = _("Yes");
+  else
+    $allowed = _("No");
 
-            $title_arr = [
-              _("From"), _("To"), _("Is Allowed"),
-              _("Other Field Update"), _("Carbon-Copy List"), _("Delete")
-            ];
+  print '<td align="center">'
+    . $val_label[$transition['to_value_id']] . "</td>\n"
+    . "<td align='center'>$allowed</td>\n";
+}
 
-            print html_build_list_table_top ($title_arr);
+function list_transition_registered_fields ($registered)
+{
+  global $group_id;
+  if (!$registered)
+    return _("Edit other fields update");
+  $fields = '';
+  while ($entry = db_fetch_array ($registered))
+    {
+      # Add one entry per registered other field update.
+      $ufn =  $entry['update_field_name'];
+      $l = trackers_data_get_label ($ufn);
+      $v = trackers_data_get_value (
+        $ufn, $group_id, $entry['update_value_id']
+      );
+      $fields .= "$l:$v, ";
+    }
+  return trim ($fields, ", ");
+}
 
-            $reg_default_auth = '';
-            $z = 1;
-            while ($transition = db_fetch_array ($result))
-              {
-                $z++;
-                if ($transition['is_allowed'] == 'A')
-                  $allowed = _("Yes");
-                else
-                  $allowed = _("No");
+function print_transition_update ($transition)
+{
+  global $sys_home, $php_self, $group;
+  if ($transition['is_allowed'] != 'A')
+    {
+      print "<td align='center'>---------</td>\n"
+        . "<td align='center'>--------</td>\n";
+      return;
+    }
+  $registered =
+    trackers_transition_get_other_field_update ($transition['transition_id']);
+  $fields = list_transition_registered_fields ($registered);
 
-                print '<tr class="' . utils_altrow ($z) . '">';
-                if (empty ($val_label[$transition['from_value_id']]))
-                  # TRANSLATORS: this refers to transitions.
-                  $txt = _("* - Any");
-                else
-                  $txt = $val_label[$transition['from_value_id']];
-                print "<td align='center'>$txt</td>\n";
+  print '<td align="center">';
+  print utils_link (
+    $sys_home . ARTIFACT
+    . "/admin/field_values_transition-ofields-update.php?"
+    . "group=$group&amp;transition_id={$transition['transition_id']}",
+    $fields
+  );
+  print "</td>\n";
+  print "<td align='center'>{$transition['notification_list']}</td>\n";
+}
 
-                print '<td align="center">'
-                  . $val_label[$transition['to_value_id']] . "</td>\n"
-                  . "<td align='center'>$allowed</td>\n";
+function print_delete_transition ($transition, $field)
+{
+  global $group, $php_self;
+  print '<td align="center">';
+  print utils_link (
+    "$php_self?group=$group&amp;transition_id="
+    . $transition['transition_id'] . '&amp;list_value=1&amp;'
+    . "func=deltransition&amp;field=$field",
+    html_image_trash (['alt' => _("Delete this transition")])
+  );
+  print "</td>\n";
+}
 
-                if ($transition['is_allowed'] == 'A')
-                  {
-                    print '<td align="center">';
-                    $registered =
-                      trackers_transition_get_other_field_update (
-                        $transition['transition_id']
-                      );
-                    $fields = '';
-                    if ($registered)
-                      {
-                        while ($entry = db_fetch_array ($registered))
-                          {
-                            # Add one entry per registered other field update.
-                            $ufn =  $entry['update_field_name'];
-                            $l = trackers_data_get_label ($ufn);
-                            $v = trackers_data_get_value (
-                              $ufn, $group_id, $entry['update_value_id']
-                            );
-                            $fields .= "$l:$v, ";
-                          }
-                        $fields = trim ($fields, ", ");
-                      }
-                    else
-                      $fields = _("Edit other fields update");
+function show_transitions ($field, $field_id, $val_label)
+{
+  if (($result = fetch_transitions ($field_id, $field)) === null)
+    return;
+  print "\n\n<p>&nbsp;</p>"
+    . html_h (2, html_anchor (_("Registered Transitions"), "registered"));
+  print html_build_list_table_top ([
+    _("From"), _("To"), _("Is Allowed"),
+    _("Other Field Update"), _("Carbon-Copy List"), _("Delete")
+  ]);
+  $z = 0;
+  while ($transition = db_fetch_array ($result))
+    {
+      print '<tr class="' . utils_altrow ($z++) . '">';
+      print_transition_label ($transition, $val_label);
+      print_transition_allowed ($transition, $val_label);
+      print_transition_update ($transition);
+      print_delete_transition ($transition, $field);
+      print "</tr>\n";
+    }
+  print "</table>\n";
+}
 
-                    print utils_link (
-                      $sys_home . ARTIFACT
-                      . "/admin/field_values_transition-ofields-update.php?"
-                      . "group=$group&amp;transition_id="
-                      . $transition['transition_id'],
-                      $fields
-                    );
-                    print "</td>\n<td align='center'>"
-                      . $transition['notification_list'] . "</td>\n";
-                  }
-                else
-                  print "<td align='center'>---------</td>\n"
-                    .  "<td align='center'>--------</td>\n";
-                print '<td align="center">';
-                print utils_link (
-                  "$php_self?group=$group&amp;transition_id="
-                  . $transition['transition_id'] . '&amp;list_value=1&amp;'
-                  . "func=deltransition&amp;field=$field",
-                  html_image_trash (['alt' => _("Delete this transition")])
-                );
-                print "</td>\n</tr>\n";
-              } # while ($transition = db_fetch_array ($result))
-            print "</table>\n";
-          } # $result && $rows > 0
-        else
-          {
-            $reg_default_auth = '';
-            printf (
-              "\n\n<p>&nbsp;</p><h2>"
-              # TRANSLATORS: the argument is field.
-              . _("No transition defined yet for %s") . "</h2>\n",
-              trackers_data_get_label ($field)
-            );
-          }
+function get_transition_for_field ($field)
+{
+  global $group_id;
+  $result = db_execute ("
+     SELECT transition_default_auth
+     FROM " . ARTIFACT . "_field_usage
+     WHERE group_id = ? AND bug_field_id = ?",
+     [$group_id, trackers_data_get_field_id ($field)]
+  );
+  if (db_numrows ($result) > 0
+      && db_result ($result, 0, 'transition_default_auth') == "F")
+    return _("By default, for this field, the\n"
+      . "transitions not registered are forbidden. This setting "
+      . "can be changed when\nmanaging this field usage.");
+ return _("By default, for this field, the\n"
+   . "transitions not registered are allowed. This setting can "
+   . "be changed when\nmanaging this field usage.");
+}
 
-        print form_tag ([], "#registered");
-        print form_hidden (
-          ["list_value" => "y", "field" => $field, "group_id" => $group_id]
-        );
+function print_create_transition_caption ($field)
+{
+  global $group_id;
 
-        $result = db_execute ("
-           SELECT transition_default_auth
-           FROM " . ARTIFACT . "_field_usage
-           WHERE group_id = ? AND bug_field_id = ?",
-           [$group_id, trackers_data_get_field_id ($field)]
-        );
-        if (db_numrows ($result) > 0
-            && db_result ($result, 0, 'transition_default_auth') == "F")
-	  $transition_for_field = _("By default, for this field, the\n"
-           . "transitions not registered are forbidden. This setting "
-           . "can be changed when\nmanaging this field usage.");
-        else
-	  $transition_for_field = _("By default, for this field, the\n"
-           . "transitions not registered are allowed. This setting can "
-           . "be changed when\nmanaging this field usage.");
-        print "\n\n<p>&nbsp;</p><h2>" . _("Create a transition") . "</h2>\n";
-        print "<p>$transition_for_field</p>\n";
-        print '<p>'
-          . _("Once a transition created, it will be possible to set "
-          . "&ldquo;Other Field\nUpdate&rdquo; for this transition.")
-          . "</p>\n";
+  print form_tag ([], "#registered");
+  print form_hidden (
+    ["list_value" => "y", "field" => $field, "group_id" => $group_id]
+  );
+  print "\n\n<p>&nbsp;</p>" . html_h (2, _("Create a transition")) . "\n";
+}
 
-        $title_arr = [
-          _("From"), _("To"), _("Is Allowed"), _("Carbon-Copy List")
-        ];
+function print_create_transition_table ($field)
+{
+  global $group_id;
+  $title_arr = [_("From"), _("To"), _("Is Allowed"), _("Carbon-Copy List")];
+  $auth_label = ['allowed', 'forbidden']; $auth_val = ['A', 'F'];
 
-        $auth_label = ['allowed', 'forbidden']; $auth_val = ['A', 'F'];
+  $from = '<td>'
+    . trackers_field_box (
+        $field, 'from', $group_id, false, false, false, 1, _("* - Any")
+      )
+    . "</td>\n";
+  $to = '<td>'
+    . trackers_field_box ($field, 'to', $group_id, false, false) . "</td>\n";
+  print html_build_list_table_top ($title_arr) . "<tr>$from$to";
+  print '<td>'
+    . html_build_select_box_from_arrays (
+        $auth_val, $auth_label, 'allowed', 'allowed', false, 'None',
+        false, 'Any', false, _("allowed or not")
+      )
+    . "</td>\n";
+  $mlist = form_input ('text', 'mail_list', '',
+      "title=\"" . _("Carbon-Copy List") . '" size="30" maxlength="60"'
+    );
+  print "<td>\n$mlist</td>\n</tr>\n</table>\n";
+}
 
-        $hdr = html_build_list_table_top ($title_arr);
-        $from = '<td>'
-          . trackers_field_box (
-              $field, 'from', $group_id, false, false, false, 1, _("* - Any")
-            )
-          . "</td>\n";
-        $to = '<td>'
-          . trackers_field_box ($field, 'to', $group_id, false, false)
-          . "</td>\n";
-        print "$hdr<tr>$from$to";
-        print '<td>'
-          . html_build_select_box_from_arrays (
-              $auth_val, $auth_label, 'allowed', 'allowed', false, 'None',
-              false, 'Any', false, _("allowed or not")
-            )
-          . "</td>\n";
-        $mlist = form_input ('text', 'mail_list', '',
-            "title=\"" . _("Carbon-Copy List") . '" size="30" maxlength="60"'
-          );
-        print "<td>\n$mlist</td>\n</tr>\n</table>\n";
-        print form_footer (_("Update Transition"), 'submit');
-      }
-    else # !$td_select_box ($field)
-      {
-        print "\n\n<p><b>";
-        # TRANSLATORS: the argument is field.
-        printf (
-          _("The field you requested '%s' is not used by your group "
-            . "or you are not\nallowed to customize it"),
-          $field
-        );
-        print "</b></p>\n";
-      }
-    trackers_footer ();
-    exit (0);
-  } # if ($list_value)
+function print_create_transition ($field)
+{
+  print_create_transition_caption ($field);
+  print "<p> " . get_transition_for_field ($field) . "</p>\n";
+  print '<p>'
+    . _("Once a transition created, it will be possible to set "
+    . "&ldquo;Other Field\nUpdate&rdquo; for this transition.")
+    . "</p>\n";
+  print_create_transition_table ($field);
+  print form_footer (_("Update Transition"), 'submit');
+}
+
+# Display the list of values for a given bug field.
+function show_values ($field, $title, $group)
+{
+  global $group_id, $by_field_id;
+  td_select_box ($field);
+  print_field_header ($field, $title, $group);
+  $result = fetch_field_values ($field);
+  $is_group_scope = trackers_data_field_is_group_scope ($field);
+  $have_hidden = show_existing_fields ($field, $result, $is_group_scope);
+
+  if ($is_group_scope)
+    show_create_field_value ($field, $have_hidden);
+
+  # If the group use custom values, propose to reset to the default.
+  if (trackers_data_use_field_custom_values ($field, $group_id))
+    show_reset_field_values ($field);
+
+  list ($field_id, $val_label) = get_val_label ($field, $by_field_id);
+  show_transitions ($field, $field_id, $val_label);
+  print_create_transition ($field);
+  trackers_footer ();
+}
 
 function print_value_rank ($row, $title)
 {
@@ -660,11 +658,17 @@ function print_value_rank ($row, $title)
    );
 }
 
+if ($list_value)
+  {
+    show_values ($field, $title, $group);
+    exit (0);
+  }
+
 if ($update_value)
   {
     # Show the form to update an existing field_value.
     # Display the List of values for a given bug field.
-    trackers_header_admin (['title' => _("Edit Field Values")]);
+    trackers_header_admin (['title' => _("Field values")]);
 
     # Get all attributes of this value.
     $res = trackers_data_get_field_value ($fv_id);
@@ -822,30 +826,28 @@ if ($update_canned)
     exit (0);
   }
 
-trackers_header_admin (['title' => _("Edit Field Values")]);
+trackers_header_admin (['title' => _("Field values")]);
 print "<br />\n";
 
-# Loop through the list of all used fields that are group manageable.
+# Loop through the list of all used fields that are group-manageable.
 $i = 0;
 $title_arr = [_("Field Label"), _("Description"), _("Scope")];
 print html_build_list_table_top ($title_arr);
-while ($field_name = trackers_list_all_fields ())
+while ($field = trackers_list_all_fields ())
   {
     if (
-      !(trackers_data_is_select_box ($field_name)
-        && trackers_data_is_used ($field_name))
+      !(trackers_data_is_select_box ($field) && trackers_data_is_used ($field))
     )
       continue;
     $scope_label  = _("System");
-    if (trackers_data_is_project_scope ($field_name))
+    if (trackers_data_field_is_group_scope ($field))
       $scope_label  = _("Group");
-    $desc = trackers_data_get_description ($field_name);
-    print '<tr class="' . utils_altrow ($i) . '">'
+    $desc = trackers_data_get_description ($field);
+    print '<tr class="' . utils_altrow ($i++) . '">'
       . "<td><a href=\"$php_self?group_id=$group_id"
-      . "&list_value=1&field=$field_name\">"
-      . trackers_data_get_label ($field_name) . "</a></td>\n"
+      . "&list_value=1&field=$field\">"
+      . trackers_data_get_label ($field) . "</a></td>\n"
       . "<td>$desc</td>\n<td>$scope_label</td>\n</tr>\n";
-    $i++;
   }
 
 print '<tr class="' . utils_altrow ($i) . '"><td>';

@@ -198,79 +198,77 @@ function cookbook_build_form ($which = "audience")
 }
 
 # Describe a field type.
-function cookbook_describe ($which = "audience")
+function cookbook_describe ($which, $label)
 {
-  if ($which == "audience")
-    return _("Defines which users will actually get such recipe showing up\n"
+  $desc = [
+   "audience" =>
+      _("Defines which users will actually get such recipe showing up\n"
       . "as related recipe while browsing the site. It will not prevent "
-      . "other users to\nsee the recipe in the big list inside the Cookbook."
-    );
-  if ($which == "context")
-    return _("Defines on which pages such recipe will show up as related\n"
+      . "other users to\nsee the recipe in the big list inside the Cookbook."),
+    "context" =>
+    _("Defines on which pages such recipe will show up as related\n"
       . "recipe. It will not prevent other users to see the recipe in the big "
-      . "list\ninside the Cookbook."
-    );
-  if ($which == "subcontext")
-    return _("Defines while doing which actions such recipe will show up "
+      . "list\ninside the Cookbook."),
+    "subcontext" =>
+    _("Defines while doing which actions such recipe will show up "
       . "as\nrelated recipe. It will not prevent other users to see "
-      . "the recipe in the big\nlist inside the Cookbook."
-    );
-  return null;
+      . "the recipe in the big\nlist inside the Cookbook.")
+  ];
+  if (!array_key_exists ($which, $desc))
+    return null;
+  $ret = str_replace ('"', '&quot;', $desc[$which]);
+  return
+    "<span class='preinput'><span class='help' title=\"$ret\">"
+    . "$label</span></span>";
 }
 
-function cookbook_set_row_class (&$j, &$row_class)
+# Field getting one line for itself.
+#  |            Audience                     |
+function cookbook_print_form_audience ($td)
 {
-  $j++;
-  $row_class = '';
-  if ($j % 2)
-    $row_class = ' class="' . utils_altrow ($j + 1) . '"';
+  global $fields_per_line;
+  $row_class = trackers_get_row_class ();
+
+  print "<tr$row_class>$td width='15%'>"
+    . cookbook_describe ("audience", _("Audience:"))
+    . "</td>\n$td" . ' colspan="' . (2 * $fields_per_line - 1)
+    . '" width="75%">' . cookbook_build_form ("audience") . "</td>\n</tr>\n";
 }
 
 # Use cookbook_build_form to return a nice form that can be included in
 # mod and post forms.
-function cookbook_print_form ()
+function cookbook_print_form ($field_name, $field_class)
 {
-  global $j, $fields_per_line, $i, $row_class, $field_class;
+  global $fields_per_line, $i;
+  if ($field_name != 'summary' || CONTEXT != 'cookbook')
+    return;
 
-  # Field getting one line for itself
-  #  |            Audience                     |
-
-  $td = '<td valign="middle" ' . $field_class;
-
-  print "<tr$row_class>$td"
-    . ' width="15%"><span class="preinput"><span class="help" title="'
-    . cookbook_describe ("audience") . '">' . _("Audience:")
-    . "</span></span></td>\n"
-    . $td . ' colspan="' . (2 * $fields_per_line - 1)
-    . '" width="75%">' . cookbook_build_form ("audience") . "</td>\n</tr>\n";
-
+  $td = "<td valign='middle' $field_class";
+  if ($i % $fields_per_line)
+    print "</tr>\n";
+  cookbook_print_form_audience ($td);
+  $row_class = trackers_get_row_class ();
   $i = 0;
 
   # Field getting half of a line for itself
   #  | context, kind of pages | context, kind of action
   #       (CONTEXT)                   (SUBCONTEXT)
 
-  cookbook_set_row_class ($j, $row_class);
-
   print ($i % $fields_per_line? '': "<tr$row_class>");
-  print $td
-    . ' width="15%"><span class="preinput"><span class="help" title="'
-    . cookbook_describe("context").'">' . _("Feature:")
-    . '</span></span></td>' . $td . ' width="35%">'
+  print "$td width='15%'>" . cookbook_describe ("context", _("Feature:"))
+    . '</td>' . $td . ' width="35%">'
     . cookbook_build_form ("context") . "</td>\n";
   $i++;
   print ($i % $fields_per_line? '': "\n</tr>\n");
   print ($i % $fields_per_line? '': "<tr$row_class>");
   print $td
-    . ' width="15%"><span class="preinput"><span class="help" title="'
-    . cookbook_describe("subcontext").'">' . _("Action:")
-    . '</span></span></td>' . $td . ' width="35%">'
+    . ' width="15%">' . cookbook_describe ("subcontext", _("Action:"))
+    . "</td>$td width='35%'>"
     . cookbook_build_form ("subcontext") . "</td>\n";
   $i++;
   print ($i % $fields_per_line? '': "</tr>\n");
 
   $i = 0;
-  cookbook_set_row_class ($j, $row_class);
 }
 
 function cookbook_sane_import ()

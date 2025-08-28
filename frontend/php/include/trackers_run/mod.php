@@ -236,7 +236,6 @@ function mandatory_sign ($submitter, $field)
 
 $item_assigned_to = null;
 $i = 0; # Field counter.
-$j = 0; # Background selector.
 
 while ($field_name = trackers_list_all_fields ())
   {
@@ -326,17 +325,9 @@ while ($field_name = trackers_list_all_fields ())
       );
 
     $label .= mandatory_sign ($submitter, $field_name);
-    $field_class = $row_class = '';
-    if ($j % 2 && $field_name != 'details')
-      # We keep the original submission with the default background color.
-      # We also use the boxitem background color only one time
-      # out of two, to keep the page light.
-      $row_class = ' class="' . utils_altrow ($j + 1) . '"';
+    $field_class = '';
 
-    # If we are working on the cookbook, present checkboxes to
-    # defines context before the summary line;
-    if (CONTEXT == 'cookbook' && $field_name == 'summary')
-      cookbook_print_form ();
+    cookbook_print_form ($field_name, $field_class);
 
     if ($previous_form_bad_fields
         && array_key_exists ($field_name, $previous_form_bad_fields))
@@ -345,9 +336,7 @@ while ($field_name = trackers_list_all_fields ())
 
     if ($sz > $max_size)
       {
-        # Field getting one line for itself.
-        # Each time prepare the change of the background color.
-        $j++;
+        $row_class = trackers_get_row_class ($field_name);
 
         print "\n<tr$row_class>$td width='15%'>$label</td>\n$td colspan=\""
           . (2 * $fields_per_line - 1) . '" width="75%">'
@@ -361,13 +350,11 @@ while ($field_name = trackers_list_all_fields ())
         # Every one out of two, prepare the background color change.
         # We do that at this moment because we cannot be sure
         # there will be another field on this line.
-        $j++;
+        $row_class = trackers_get_row_class ($field_name);
+        print  "\n<tr$row_class>";
       }
-    if (!($i % $fields_per_line))
-      print  "\n<tr$row_class>";
     print "$td width='15%'>$label</td>\n$td width='35%'>$value</td>\n";
-    if (!(++$i % $fields_per_line))
-      print "</tr>\n";
+    print (++$i % $fields_per_line? "\n": "</tr>\n");
   } # while ($field_name = trackers_list_all_fields ())
 
 print "</table>\n";
