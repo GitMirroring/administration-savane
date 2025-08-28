@@ -50,8 +50,7 @@ require_directory ('project');
 extract (sane_import ('post', ['true' => 'submit']));
 form_check ('submit');
 
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 
 if (!user_isloggedin ())
   # Must be at least logged in to set up your personal notification

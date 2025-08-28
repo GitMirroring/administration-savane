@@ -46,8 +46,7 @@ require_once ('../include/people/general.php');
 require_once ('../include/vars.php');
 extract (sane_import ('get', ['digits' => ['group_id', 'job_id']]));
 
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 exit_if_missing ('job_id');
 
 # For security, include group_id.

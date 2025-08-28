@@ -48,8 +48,7 @@ require_once ('../include/group.php');
 require_once ('../include/trackers/general.php');
 require_once ('../include/trackers/votes.php');
 
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 
 $is_trackeradmin = member_check (0, $group_id, MEMBER_ROLE_TECHNAGER);
 

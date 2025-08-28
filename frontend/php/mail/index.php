@@ -44,9 +44,7 @@
 require_once ('../include/init.php');
 require_once ('../include/html.php');
 
-if (!$group_id)
-  exit_no_group ();
-
+exit_if_no_group ();
 exit_test_usesmail ($group_id);
 site_project_header (['group' => $group_id, 'context' => 'mail']);
 

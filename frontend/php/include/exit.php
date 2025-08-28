@@ -96,6 +96,16 @@ function exit_no_group ()
   exit_error (_("No group chosen"));
 }
 
+function exit_if_no_group ()
+{
+  global $group_id;
+  if (empty ($group_id))
+    exit_no_group ();
+  $group = group_get_object ($group_id);
+  if ($group->isError ())
+    exit_no_group ();
+}
+
 function exit_missing_param ($param_list = [])
 {
   exit_error (_("Missing Parameters"), join (', ', $param_list));

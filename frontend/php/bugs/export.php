@@ -45,8 +45,7 @@ require_once ('../include/init.php');
 require_once ('../include/trackers/general.php');
 extract (sane_import ('request', ['true' => 'download']));
 
-if (!$group_id)
-  print exit_no_group ();
+exit_if_no_group ();
 
 $project = project_get_object ($group_id);
 

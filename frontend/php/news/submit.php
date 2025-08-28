@@ -83,8 +83,7 @@ if ($update)
       fb (_("Error doing insert"), 1);
   }
 
-if (empty ($group_id))
-  exit_no_group ();
+exit_if_no_group ();
 
 site_project_header (
   ['title' => _("Submit News"), 'group' => $group_id, 'context' => 'news']

@@ -260,8 +260,7 @@ function vcs_print_links_to_repos ($group, $group_id, $vcs)
 
 function vcs_page ($vcs, $group_id)
 {
-  if (!$group_id)
-    exit_no_group ();
+  exit_if_no_group ();
   $vcs_name = vcs_label ($vcs);
   if ($vcs_name === null)
     exit_error ();

@@ -67,8 +67,7 @@ extract (sane_import ('post',
 ));
 form_check ($submit_buttons);
 
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 
 if (!member_check (0, $group_id))
   exit_permission_denied ();

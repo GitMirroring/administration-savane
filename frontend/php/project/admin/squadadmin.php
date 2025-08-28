@@ -61,10 +61,7 @@ extract (sane_import ('post',
 ));
 
 session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
-
-if (!$group_id)
-  exit_no_group ();
-
+exit_if_no_group ();
 form_check ($submit_buttons);
 
 function finish_page ()

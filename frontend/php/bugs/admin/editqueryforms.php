@@ -46,8 +46,7 @@ require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 extract (sane_import ('request', ['digits' => 'report_id']));
 extract (sane_import ('get', ['true' => ['show_report', 'new_report']]));
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 
 if (!user_isloggedin ())
   exit_permission_denied ();

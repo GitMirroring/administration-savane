@@ -59,10 +59,8 @@ extract (utils_find_item ($tracker, $item_id, ['privacy', 'spamscore']));
 if ($spamscore >= 5)
   exit_error (sprintf (_("Item #%s not found."), $item_id));
 
+exit_if_no_group ();
 $group = project_get_object ($group_id);
-if ($group->isError ())
-  exit_no_group ();
-
 $data_are_private = $privacy == '2' || !$group->isPublic ();
 $ctype = "text/plain";
 $fname = "$item_id.txt";

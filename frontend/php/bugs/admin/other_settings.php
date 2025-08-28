@@ -81,8 +81,7 @@ extract (sane_import ('post',
 form_check ('update');
 require_directory ("project");
 
-if (!$group_id)
-  exit_no_group();
+exit_if_no_group ();
 
 # Must be at least tracker admin or group admin.
 if (

@@ -124,9 +124,7 @@ function user_is_group_admin ($group = NULL)
 
 function user_check_group_admin ()
 {
-  global $group_id;
-  if (!$group_id)
-    exit_no_group ();
+  exit_if_no_group ();
   if (!user_is_group_admin ())
     exit_permission_denied ();
 }

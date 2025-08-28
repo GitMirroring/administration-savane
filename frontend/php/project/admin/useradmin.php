@@ -68,8 +68,7 @@ session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 if (!$update)
   $action = '';
 
-if (!$group_id)
-  exit_no_group();
+exit_if_no_group ();
 
 function usr_string ($usr)
 {

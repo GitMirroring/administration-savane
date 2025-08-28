@@ -64,8 +64,7 @@ $post_names = function ()
   return $names;
 };
 
-if (empty ($group_id))
-  exit_no_group ();
+exit_if_no_group ();
 
 if (project_get_object ($group_id)->getStatus () == 'X')
   {

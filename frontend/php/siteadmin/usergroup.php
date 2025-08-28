@@ -281,8 +281,7 @@ function action_update_user ()
 function action_add_user_to_group ()
 {
   global $user_id, $group_id;
-  if (empty ($group_id))
-    exit_no_group ();
+  exit_if_no_group ();
   $result = member_add ($user_id, $group_id);
   report_db_result (
     $result, no_i18n ('Error adding user to group:'),

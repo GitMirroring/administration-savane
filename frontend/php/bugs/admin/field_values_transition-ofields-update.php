@@ -47,8 +47,7 @@ require_once ('../../include/trackers/general.php');
 
 extract (sane_import ('request', ['digits' => 'transition_id']));
 
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 if (!member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   exit_permission_denied ();
 

@@ -46,8 +46,7 @@
 foreach (['init', 'graphs', 'trackers/general', 'group'] as $i)
   require_once ("../include/$i.php");
 
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 
 extract (sane_import ('get', ['name' => 'field']));
 

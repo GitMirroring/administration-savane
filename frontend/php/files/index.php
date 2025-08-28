@@ -41,8 +41,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 require_once ('../include/init.php');
-if (!$group_id)
-  exit_no_group ();
+exit_if_no_group ();
 $grp = project_get_object ($group_id);
 session_redirect ($grp->getUrl ('download'));
 ?>
