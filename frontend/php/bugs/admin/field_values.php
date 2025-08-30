@@ -833,8 +833,6 @@ while ($field_name = trackers_list_all_fields ())
   {
     if (
       !(trackers_data_is_select_box ($field_name)
-        && ($field_name != 'submitted_by')
-        && ($field_name != 'assigned_to')
         && trackers_data_is_used ($field_name))
     )
       continue;

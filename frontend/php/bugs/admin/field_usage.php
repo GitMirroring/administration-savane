@@ -384,15 +384,7 @@ while ($field_name = trackers_list_all_fields ())
   {
     # Do not show some special fields any way in the list,
     # because there is nothing to customize in them.
-    if (
-        in_array (
-          $field_name,
-          [
-            'group_id', 'comment_type_id', 'bug_id', 'date', 'close_date',
-            'submitted_by', 'updated'
-          ]
-        )
-    )
+    if (in_array ($field_name, ['group_id', 'comment_type_id', 'bug_id']))
       continue;
 
     # Show used, unused and required fields on separate lists.
