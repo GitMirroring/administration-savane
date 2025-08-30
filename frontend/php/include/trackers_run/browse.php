@@ -255,7 +255,17 @@ if ($morder != '' && user_isloggedin ())
   if ($morder != user_get_preference ($order_pref))
     user_set_preference ($order_pref, $morder);
 
-$morder = trackers_filter_morder ($morder);
+$full_field_list = $shown_fields = [];
+while ($field = trackers_list_all_fields ('cmp_place_result'))
+  {
+    $full_field_list[] = $field;
+    if (!trackers_data_is_used ($field))
+      continue;
+    if (!trackers_data_is_showed_on_result ($field))
+      continue;
+    $shown_fields[] = $field;
+  }
+$morder = trackers_filter_morder ($morder, $shown_fields);
 
 function parse_history_field ($val)
 {
@@ -371,11 +381,10 @@ if ($msort === null)
 # system group (meaningful on the cookbook).
 $not_group_specific = 1;
 
-while ($field = trackers_list_all_fields ())
+foreach ($shown_fields as $field)
   {
     # The select boxes for the bug DB search first.
-    if (!(trackers_data_is_showed_on_query ($field)
-          && trackers_data_is_select_box ($field)))
+    if (!trackers_data_is_select_box ($field))
       continue;
     if (!isset ($url_params[$field]))
       $url_params[$field][] = 0;
@@ -386,7 +395,7 @@ while ($field = trackers_list_all_fields ())
 # Force the selection of priority because it is always shown as color code.
 # Force the selection of privacy, we always want to be sure that no private
 # item title is provided to everybody.
-$full_field_list = $col_list = $width_list = $lbl_list = [];
+$col_list = $width_list = $lbl_list = [];
 $select = ['a.group_id', 'a.priority', 'a.privacy', 'a.status_id'];
 
 $where = "WHERE\n    a.group_id = ?";
@@ -659,13 +668,11 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
       }
     $boxes .= "</span></td>\n";
     $ib++;
-
-  # End of this row.
-  if ($ib % $fields_per_line == 0)
-    {
-      $html_select .= "$labels</tr>\n$boxes</tr>\n";
-      $labels = $boxes = '';
-    }
+    if ($ib % $fields_per_line == 0)
+      {
+        $html_select .= "$labels</tr>\n$boxes</tr>\n";
+        $labels = $boxes = '';
+      }
   } # while ($field = trackers_list_all_fields ('cmp_place_query'))
 
 # Make sure the last few cells are in the table.
@@ -688,18 +695,9 @@ if ($morder != '')
     if (!$msort)
       {
         $matching_morder = preg_replace ('/[<>]$/', '', $morder);
-        while ($field = trackers_list_all_fields ())
-          {
-            if (strcmp ($field, $matching_morder))
-              continue;
-            if (!trackers_data_is_used ($field))
-              continue;
-            if (!trackers_data_is_showed_on_result ($field))
-              continue;
+        foreach ($shown_fields as $field)
+          if (!strcmp ($field, $matching_morder))
             $matching_morder = '';
-            # Can't break here because tracker_list_all_fields ()
-            # only supports full iteration.
-          }
       }
     if (in_array ($matching_morder, ['', 'priority']))
       {
@@ -729,15 +727,8 @@ function lbl_item ($field, $crit)
 $morder_icon_is_set = '';
 $have_last_updated = false;
 $froms = [];
-while ($field = trackers_list_all_fields ('cmp_place_result'))
+foreach ($shown_fields as $field)
   {
-    # Need the full list of used fields
-    $full_field_list[] = $field;
-
-    if (!trackers_data_is_used ($field)
-        || !trackers_data_is_showed_on_result ($field))
-      continue;
-
     if ($field == 'updated')
       $have_last_updated = true;
     $col_list[] = $field;
@@ -797,7 +788,7 @@ while ($field = trackers_list_all_fields ('cmp_place_result'))
     $select[] = "user_$field.user_name AS $field";
     $froms[] = "user user_$field";
     $where .= "\n    AND user_$field.user_id = a.$field";
-  } # while ($field = trackers_list_all_fields ('cmp_place_result'))
+  } # foreach ($shown_fields as $field)
 
 # The submitted_by column may be compared against the user id
 # for access to private items, so make sure it's present.

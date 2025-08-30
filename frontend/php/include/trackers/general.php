@@ -1505,14 +1505,12 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
 }
 
 # Filter out invalid criteria.
-function trackers_filter_morder ($criteria_list)
+function trackers_filter_morder ($criteria_list, $shown_fields)
 {
   $criteria = explode (',', $criteria_list);
   $fields = ['bug_id' => 1, 'priority' => 1]; # These fields are always present.
-  while ($field = trackers_list_all_fields ())
-    # When the field isn't shown, it can't be used as sorting criterion.
-    if (trackers_data_is_showed_on_result ($field))
-      $fields[$field] = 1;
+  foreach ($shown_fields as $field)
+    $fields[$field] = 1;
   $fields = array_keys ($fields);
   $regexp = "/^(" . join ('|', $fields) . ')[<>]?$/';
   $criteria_filtered = [];
