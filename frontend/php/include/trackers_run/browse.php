@@ -225,10 +225,6 @@ if ($order !== null)
       $morder = '';
   }
 
-if ($morder != '' && user_isloggedin ())
-  if ($morder != user_get_preference ($order_pref))
-    user_set_preference ($order_pref, $morder);
-
 # If the report type is not defined then get it from the user preferences.
 # If it is set then update the user preference.  Also initialize the
 # bug report structures.
@@ -254,6 +250,12 @@ if (!trackers_report_init ($report_id))
     $report_id = 100;
     trackers_report_init ($report_id);
   }
+
+if ($morder != '' && user_isloggedin ())
+  if ($morder != user_get_preference ($order_pref))
+    user_set_preference ($order_pref, $morder);
+
+$morder = trackers_filter_morder ($morder);
 
 function parse_history_field ($val)
 {

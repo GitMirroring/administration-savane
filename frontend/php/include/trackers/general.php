@@ -1505,12 +1505,14 @@ function trackers_add_sort_criteria ($criteria_list, $order, $msort)
 }
 
 # Filter out invalid criteria.
-function trackers_criteria_sanitize ($criteria_list)
+function trackers_filter_morder ($criteria_list)
 {
   $criteria = explode (',', $criteria_list);
   $fields = ['bug_id' => 1, 'priority' => 1]; # These fields are always present.
   while ($field = trackers_list_all_fields ())
-    $fields[$field] = 1;
+    # When the field isn't shown, it can't be used as sorting criterion.
+    if (trackers_data_is_showed_on_result ($field))
+      $fields[$field] = 1;
   $fields = array_keys ($fields);
   $regexp = "/^(" . join ('|', $fields) . ')[<>]?$/';
   $criteria_filtered = [];
@@ -1523,19 +1525,14 @@ function trackers_criteria_sanitize ($criteria_list)
 # Transform criteria list to SQL query ('>' means ascending, '<' descending).
 function trackers_criteria_list_to_query ($criteria_list)
 {
-  $criteria_list = trackers_criteria_sanitize ($criteria_list);
-  $criteria_list = str_replace ('>', ' ASC', $criteria_list);
-  $criteria_list = str_replace ('<', ' DESC', $criteria_list);
+  $criteria_list = str_replace (['>', '<'], [' ASC', ' DESC'], $criteria_list);
   # Undo the uid->user_name trick to avoid "Column 'submitted_by' in
   # order clause is ambiguous" error. This is pretty ugly. Also check
   # trackers_data_is_username_field().
-  $criteria_list = str_replace (
-    'submitted_by ', 'user_submitted_by.user_name ', $criteria_list
+  return str_replace (['submitted_by ', 'assigned_to '],
+    ['user_submitted_by.user_name ', 'user_assigned_to.user_name '],
+    $criteria_list
   );
-  $criteria_list = str_replace (
-   'assigned_to ','user_assigned_to.user_name ', $criteria_list
-  );
-  return $criteria_list;
 }
 
 function trackers_sorting_order_img ($crit)

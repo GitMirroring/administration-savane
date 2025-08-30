@@ -38,6 +38,10 @@
 
 * Bug fixes:
 
+** Requests in trackers like
+   /bugs/?group=foo&func=browse&msort=1&morder=assigned_to>&report_id=104
+   when assigned_to wasn't shown with the query form 104.
+
 ** The fields  'date', 'close_date', 'submitted_by', 'updated' were
    uncustomizable in /bugs/admin/field_usage.php.
 
