@@ -636,41 +636,42 @@ function pagemenu_group ()
     pagemenu_news ($project, $gr_n, $is_admin);
 }
 
-function pagemenu_group_trackers_entry_list ($cookbook, $write_access, $export)
+function pagemenu_trackers_entry_list ($write_access, $export)
 {
   $browse = [_("Browse"), '', '', 1];
-  $entries = [];
-  if ($cookbook)
-    $entries[] = $browse;
-  $entries[] = [_("Submit new"), 'additem', '', $write_access];
-  if (!$cookbook)
-    {
-      $entries[] = $browse;
-      $entries[] = [_("Reset to open"), 'browse&amp;set=open', '', 1];
-    }
-  if ($cookbook)
-    $entries[] = [_("Edit"), 'browse', 'edit.php', $write_access];
-  $entries[] = [_("Digest"), 'digest', '', 1];
-  if (!$cookbook)
-    $entries[] = [_("Dependencies"), '', 'dependencies.php', 1];
-  $entries[] = [_("Export"), '', 'export.php', $export];
-  if (!$cookbook)
-    $entries[] = [_("Get statistics"), '', 'reporting.php', 1];
-  $entries[] = [_("Search"), 'search', '', 1];
-  return $entries;
+  $ret = [
+    [$browse, 'cookbook'],
+    [[_("Submit new"), 'additem', '', $write_access], 'trackers'],
+    [$browse, 'trackers'],
+    [[_("Reset to open"), 'browse&amp;set=open', '', 1], 'trackers'],
+    [[_("Edit"), 'browse', 'edit.php', $write_access], 'cookbook'],
+    [[_("Digest"), 'digest', '', 1], null],
+    [[_("Dependencies"), '', 'dependencies.php', 1], 'trackers'],
+    [[_("Export"), '', 'export.php', $export], null],
+    [[_("Get statistics"), '', 'reporting.php', 1], 'trackers'],
+    [[_("Search"), 'search', '', 1], null]
+  ];
+  if (!user_is_group_admin ())
+    $ret[] = [
+      [html_image ('contexts/help.png') . _('Field values'),
+       '', 'admin/field_values.php', 1], ''
+    ];
+  return $ret;
 }
 
 function pagemenu_group_trackers_entries ($tracker, $write_access, $export)
 {
   global $project;
   $ret = '';
-  $entries = pagemenu_group_trackers_entry_list (
-    $tracker == 'cookbook', $write_access, $export
-  );
-  foreach ($entries as $e)
-    $ret .= pagemenu_submenu_entry (
-      $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
-    );
+  $artifact = $tracker == 'cookbook'? 'cookbook': 'trackers';
+  foreach (pagemenu_trackers_entry_list ($write_access, $export) as $entry)
+    {
+      list ($e, $filter) = $entry;
+      if (empty ($filter) || $filter == $artifact)
+        $ret .= pagemenu_submenu_entry (
+          $e[0], $project->get_artifact_url ($tracker, $e[1], $e[2]), $e[3]
+        );
+    }
   return $ret;
 }
 

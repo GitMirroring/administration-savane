@@ -2,6 +2,9 @@
 
 [FRONTEND]
 
+* Tracker field values with comments are made world-viewable, e.g.
+  /tasks/admin/field_values.php?group=administration.
+
 * In include/markup.php, the non-breakable length of URL strings is
   limited like
   http://savannah.gnu.org/bugs/?go_report=Apply&group=groff&max_rows=50#options

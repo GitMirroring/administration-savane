@@ -145,27 +145,38 @@ function trackers_list_all_fields ($sort_func = false, $by_field_id = false)
   return $field_array[$idx];
 }
 
+function trackers_data_description_link ($field, $label)
+{
+  global $group_id, $sys_home;
+  $is_admin = user_is_group_admin ();
+  $url = $sys_home . ARTIFACT . "/admin";
+  $q_str = "group_id=$group_id&field=$field";
+  if (trackers_data_is_select_box ($field))
+    return
+      "<a href=\"$url/field_values.php?$q_str&list_value=1\">$label</a>";
+  if (!$is_admin)
+    return $label;
+  return
+    "<a href=\"$url/field_usage.php?$q_str&update_field=1\">$label</a>";
+}
+
 function trackers_field_label_display (
-  $field_name, $group_id, $break = false, $ascii = false, $tab = 25
+  $field, $group_id, $break = false, $ascii = false, $tab = 25
 )
 {
-  $label = trackers_data_get_label ($field_name) . ':';
+  $label = trackers_data_get_label ($field) . ':';
   $output = '';
+  $text = "<span class='preinput help' title=\""
+    . trackers_data_get_description ($field) . '">' . "$label</span>";
 
   if (!$ascii)
-    $output .= "<span class='preinput help' title=\""
-      . trackers_data_get_description ($field_name) . '">'
-      . "$label</span>";
-
+    $output .= trackers_data_description_link ($field, $text);
   if ($break)
-    $output .= ($ascii? "\n": '<br />');
+    return $output . ($ascii? "\n": '<br />');
+  if (!$ascii)
+    $output .= '&nbsp;';
   else
-    {
-      if (!$ascii)
-        $output .= '&nbsp;';
-      else
-        $output .= sprintf ("%{$tab}s", $label) . ' ';
-    }
+    $output .= sprintf ("%{$tab}s", $label) . ' ';
   return $output;
 }
 

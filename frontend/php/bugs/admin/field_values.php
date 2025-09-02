@@ -1,5 +1,5 @@
 <?php
-# Edit field values.
+# Edit or display field values.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2001, 2002 Laurent Julliard, CodeX Team, Xerox
@@ -46,35 +46,42 @@
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 
-extract (sane_import ('request',
-  [
-    'strings' => [['func', ['deltransition', 'delcanned']]],
-    'true' => ['update_value', 'create_canned', 'update_canned'],
-    'digits' => ['fv_id', 'item_canned_id'],
-    'name' => 'field'
-  ]
-));
-extract (sane_import ('get',
-  [
-    'true' => ['list_value'],
-    'digits' => 'transition_id'
-  ]
-));
-extract (sane_import ('post',
-  [
-    'true' => ['post_changes', 'create_value', 'by_field_id', 'submit'],
-    'specialchars' => ['title', 'description', 'body'],
-    'digits' => ['order_id', 'from', 'to'],
-    'strings' =>
+exit_if_no_group ();
+$is_admin = user_is_group_admin ();
+if (!(group_get_object ($group_id)->isPublic () || user_ismember ($group_id)))
+  exit_permission_denied ();
+
+extract (sane_import ('get', ['true' => ['list_value']]));
+extract (sane_import ('request', ['name' => 'field']));
+
+$func = $post_changes = $by_field_id = $to = $from = $title = $update_value =
+  $create_canned = $update_canned = null;
+if ($is_admin)
+  {
+    extract (sane_import ('request',
       [
-        ['allowed', ['A', 'F']],
-        ['status', ['A', 'P', 'H']]
-      ],
-    'preg' => [['mail_list', '/^[-+_@.,\s\da-zA-Z]*$/']]
-  ]
-));
-form_check (['create_value', 'post_changes', 'submit']);
-user_check_group_admin ();
+        'strings' => [['func', ['deltransition', 'delcanned']]],
+        'true' => ['update_value', 'create_canned', 'update_canned'],
+        'digits' => ['fv_id', 'item_canned_id']
+      ]
+    ));
+    extract (sane_import ('get', ['digits' => 'transition_id']));
+    extract (sane_import ('post',
+      [
+        'true' => ['post_changes', 'create_value', 'by_field_id', 'submit'],
+        'specialchars' => ['title', 'description', 'body'],
+        'digits' => ['order_id', 'from', 'to'],
+        'strings' =>
+          [
+            ['allowed', ['A', 'F']],
+            ['status', ['A', 'P', 'H']]
+          ],
+        'preg' => [['mail_list', '/^[-+_@.,\s\da-zA-Z]*$/']]
+      ]
+    ));
+    form_check (['create_value', 'post_changes', 'submit']);
+  } # $is_admin
+
 if (empty ($order_id))
   $order_id = 0;
 
@@ -223,11 +230,13 @@ function fetch_field_values ($field)
 
 function value_table_header ($field, $is_group_scope)
 {
+  global $is_admin;
   $ret = html_h (2, _("Existing Values"));
-  $title_arr =  [_("Value label"), _("Description"), _("Rank"),
-    _("Status"), _("Occurrences")];
-  if (!$is_group_scope)
-    $title_arr = array_merge ([_('ID')], $title_arr);
+  $title_arr =  [_("Value label"), _("Description")];
+  if ($is_admin)
+    array_push ($title_arr, _("Rank"), _("Status"), _("Occurrences"));
+  if (!$is_group_scope && $is_admin)
+    array_unshift ($title_arr, _('ID'));
   return $ret . html_build_list_table_top ($title_arr);
 }
 
@@ -259,8 +268,11 @@ function format_field_value ($fld_val, $field)
 {
   global $is_admin, $php_self, $group_id;
   $txt_val = $fld_val['value'];
-  # The permanent values can't be modified (no link).
-  if ($fld_val['status'] != 'P' && $is_admin)
+
+  if ($is_admin
+    && $fld_val['status'] != 'P'  # The permanent values can't be modified.
+    && !in_array ($field, ['assigned_to', 'submitted_by']) # Neither can users.
+  )
     $txt_val = "<a href=\"$php_self?update_value=1"
       . "&fv_id={$fld_val['bug_fv_id']}&field=$field&group_id=$group_id"
       . "\">$txt_val</a>";
@@ -269,7 +281,7 @@ function format_field_value ($fld_val, $field)
 
 function list_field_values ($fld_val, $field, $is_group_scope)
 {
-  global $none_rk;
+  global $none_rk, $is_admin;
   # TRANSLATORS: this is field status.
   $status_str = ['A' => _("Active"), 'P' => _("Permanent"), 'H' => _("Hidden")];
 
@@ -281,13 +293,14 @@ function list_field_values ($fld_val, $field, $is_group_scope)
 
   # Show the value ID only for system-wide fields whose value id is fixed
   # and serve as a guide.
-  if (!$is_group_scope)
+  if (!$is_group_scope && $is_admin)
     $html .= "<td>$value_id</td>\n";
   $html .= format_field_value ($fld_val, $field)
-    .  "<td>$description&nbsp;</td>\n"
-    . "<td align='center'>$order_id</td>\n"
-    . "<td align='center'>{$status_str[$status]}</td>\n"
-    . get_usage_string ($field, $value_id, $status);
+    .  "<td>$description</td>\n";
+  if ($is_admin)
+    $html .= "<td align='center'>$order_id</td>\n"
+      . "<td align='center'>{$status_str[$status]}</td>\n"
+      . get_usage_string ($field, $value_id, $status);
   return put_field_val_in_tr ($status, $html);
 }
 
@@ -323,8 +336,12 @@ function show_existing_fields ($field, $result, $is_group_scope)
   # hidden second.
   $hidden = $active = [];
   while ($fld_val = db_fetch_array ($result))
-    list ($hidden[], $active[]) =
-      list_field_values ($fld_val, $field, $is_group_scope);
+    {
+      if (empty ($fld_val['description']))
+        $fld_val['description'] = '&nbsp;';
+      list ($hidden[], $active[]) =
+        list_field_values ($fld_val, $field, $is_group_scope);
+    }
   $hidden = array_filter ($hidden);
   $active = array_filter ($active);
   $hdr = value_table_header ($field, $is_group_scope);
@@ -621,6 +638,16 @@ function print_create_transition ($field)
   print form_footer (_("Update Transition"), 'submit');
 }
 
+function exit_unless_admin ($end_str = '')
+{
+  global $is_admin;
+  if ($is_admin)
+    return;
+  print $end_str;
+  trackers_footer ();
+  exit (0);
+}
+
 # Display the list of values for a given bug field.
 function show_values ($field, $title, $group)
 {
@@ -630,6 +657,7 @@ function show_values ($field, $title, $group)
   $result = fetch_field_values ($field);
   $is_group_scope = trackers_data_field_is_group_scope ($field);
   $have_hidden = show_existing_fields ($field, $result, $is_group_scope);
+  exit_unless_admin ();
 
   if ($is_group_scope)
     show_create_field_value ($field, $have_hidden);
@@ -826,29 +854,42 @@ if ($update_canned)
     exit (0);
   }
 
+function print_field_scope ($field, $is_admin)
+{
+  if (!$is_admin)
+    return;
+  $scope_label  = _("System");
+  if (trackers_data_field_is_group_scope ($field))
+    $scope_label  = _("Group");
+  print "<td>$scope_label</td>\n";
+}
+
 trackers_header_admin (['title' => _("Field values")]);
 print "<br />\n";
 
 # Loop through the list of all used fields that are group-manageable.
 $i = 0;
-$title_arr = [_("Field Label"), _("Description"), _("Scope")];
+$title_arr = [_("Field Label"), _("Description")];
+if ($is_admin)
+  $title_arr[] = _("Scope");
 print html_build_list_table_top ($title_arr);
 while ($field = trackers_list_all_fields ())
   {
-    if (
-      !(trackers_data_is_select_box ($field) && trackers_data_is_used ($field))
-    )
+    if (!trackers_data_is_used ($field))
       continue;
-    $scope_label  = _("System");
-    if (trackers_data_field_is_group_scope ($field))
-      $scope_label  = _("Group");
+    if (in_array ($field, ['bug_id', 'group_id']))
+      continue;
     $desc = trackers_data_get_description ($field);
+    $link = trackers_data_description_link (
+      $field, trackers_data_get_label ($field)
+    );
     print '<tr class="' . utils_altrow ($i++) . '">'
-      . "<td><a href=\"$php_self?group_id=$group_id"
-      . "&list_value=1&field=$field\">"
-      . trackers_data_get_label ($field) . "</a></td>\n"
-      . "<td>$desc</td>\n<td>$scope_label</td>\n</tr>\n";
+      . "<td>$link</td>\n<td>$desc</td>\n";
+    print_field_scope ($field, $is_admin);
+    print "</tr>\n";
   }
+
+exit_unless_admin ("</table>\n");
 
 print '<tr class="' . utils_altrow ($i) . '"><td>';
 print "<a href=\"$php_self?group_id=$group_id&amp;create_canned=1\">"

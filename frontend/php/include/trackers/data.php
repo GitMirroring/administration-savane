@@ -1202,23 +1202,31 @@ function trackers_data_get_technicians ($group_id)
   # Get list of members.
   $uids = array_keys (member_get_group_members ($group_id));
   $uids = member_check_array ($uids, $group_id, 1);
-  $sql = "SELECT user_id, user_name FROM user WHERE ";
+  $sql = "
+    SELECT `user_id` AS `value_id`, `user_name` AS `value`,
+      0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
+      0 AS `order_id`, 'P' AS `status`
+    FROM `user` WHERE
+  ";
   if (empty ($uids))
     $sql .= 'NULL'; # Return a valid (but empty) result set.
   else
-    $sql .= 'user_id ' . utils_in_placeholders ($uids);
-  $sql .= " ORDER BY user_name";
+    $sql .= '`user_id` ' . utils_in_placeholders ($uids);
+  $sql .= " ORDER BY `user_name`";
+  array_unshift ($uids, $group_id);
   return db_execute ($sql, $uids);
 }
 
-function trackers_data_get_submitters ($group_id = false)
+function trackers_data_get_submitters ($group_id)
 {
   $art = ARTIFACT;
   return db_execute ("
-    SELECT DISTINCT user.user_id, user.user_name
-    FROM user, $art a
-    WHERE user.user_id = a.submitted_by AND a.group_id = ?
-    ORDER BY user.user_name", [$group_id]
+    SELECT DISTINCT `user_id` AS `value_id`, `user_name` AS `value`,
+      0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
+      0 AS `order_id`, 'P' AS `status`
+    FROM `user` JOIN `$art` `a` ON `user`.`user_id` = `a`.`submitted_by`
+    WHERE `a`.`group_id` = ?
+    ORDER BY `user`.`user_name`", [$group_id, $group_id]
   );
 }
 
