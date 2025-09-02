@@ -237,7 +237,7 @@ function trackers_field_display (
 
           if (is_array ($value))
             $output .= trackers_multiple_field_box (
-              $field_name,'',$group_id, $value, $show_none, $text_none,
+              $field_name, '', $group_id, $value, $show_none, $text_none,
               $show_any, $text_any
             );
           else

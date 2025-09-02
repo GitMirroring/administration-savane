@@ -495,8 +495,8 @@ function trackers_data_get_field_predefined_values (
   $active_only  = true
 )
 {
-  $field_id = ($by_field_id ? $field : trackers_data_get_field_id ($field));
-  $field_name = ($by_field_id ? trackers_data_get_field_name ($field) : $field);
+  $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
+  $field_name = $by_field_id? trackers_data_get_field_name ($field): $field;
 
   # The "Assigned_to" box requires some special processing,
   # because possible values  are group members) and they are

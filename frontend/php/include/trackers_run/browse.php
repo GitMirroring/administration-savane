@@ -155,7 +155,7 @@ function sanitize_value_id ($value_id)
   return $ret;
 }
 
-# Make sure all URL arguments are captured as array. For simple
+# Make sure all URL arguments are captured as array.  For simple
 # search they'll be arrays with only one element at index 0 (this
 # will avoid to deal with scalar in simple search and array in
 # advanced which would greatly complexifies the code).
@@ -166,26 +166,25 @@ foreach ($url_params as $field => $value_id)
     sanitize_field ($field);
     $url_params[$field] = sanitize_value_id ($value_id);
 
-    if (trackers_data_is_date_field ($field))
+    if (!trackers_data_is_date_field ($field))
+      continue;
+    if ($advsrch)
       {
-        if ($advsrch)
-          {
-            $co_field = "{$field}_end";
-            $names =
-              ['preg' => [[$field, $co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
-          }
-        else
-          {
-            $co_field = "{$field}_op";
-            $names = ['strings' => [[$co_field, trackers_date_op_list ()]]];
-          }
-        $in = sane_import ('request', $names);
-        $url_params[$co_field] = $in[$co_field];
-        if ($advsrch && empty($in[$field]))
-          unset ($url_params[$field]);
-        if (!$advsrch && !$url_params[$co_field])
-          $url_params[$co_field] = ['*'];
+        $co_field = "{$field}_end";
+        $names =
+          ['preg' => [[$field, $co_field, '/^\d{4}-\d{1,2}-\d{1,2}$/']]];
       }
+    else
+      {
+        $co_field = "{$field}_op";
+        $names = ['strings' => [[$co_field, trackers_date_op_list ()]]];
+      }
+    $in = sane_import ('request', $names);
+    $url_params[$co_field] = $in[$co_field];
+    if ($advsrch && empty($in[$field]))
+      unset ($url_params[$field]);
+    if (!$advsrch && !$url_params[$co_field])
+      $url_params[$co_field] = ['*'];
   }
 
 # If history event additional constraint is used, add it.
