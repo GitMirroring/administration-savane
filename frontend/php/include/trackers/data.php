@@ -950,7 +950,7 @@ function trackers_data_create_value (
       'bug_field_id' => $field_id, 'group_id' => $group_id,
       'value_id' => $value_id, 'value' => $value,
       'description' => $description, 'order_id' => $order_id,
-      'status' => $status
+      'email_ad' => '', 'status' => $status
     ],
     DB_AUTOQUERY_INSERT
   );
