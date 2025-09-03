@@ -132,7 +132,7 @@ sub make_test_marker
 {
   my $query = <<'  EOF';
     CREATE TABLE `test_marker` (
-      `name` varchar(255), `value` TEXT, PRIMARY KEY (`name`)
+      `name` varchar(255) PRIMARY KEY, `value` TEXT
     ) CHARSET=utf8 COLLATE=utf8_general_ci
   EOF
   my $res = system ("echo '$query' | " . mysql_cmd ());
