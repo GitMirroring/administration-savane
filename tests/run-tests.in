@@ -46,6 +46,7 @@ use Savane::Version;
 
 my $sbindir = "@sbindir@";
 my $pidfile = "@mysql_pid@";
+my $have_database ="@HAVE_DATABASE@";
 my $port;
 my $php_pid;
 my $exit_code = 0;
@@ -55,15 +56,18 @@ my $kill_servers = 1;
 
 sub launch_db
 {
+  return unless $have_database;
   system ("$sbindir/sv_launch_db.pl") && die "Can't launch the database.\n";
 }
 sub kill_db
 {
+  return unless $have_database;
   system ("$sbindir/sv_kill_db.pl")
     && print STDERR "Can't kill the database server.\n";
 }
 sub wait_for_db
 {
+  return unless $have_database;
   for (my $i = 0; $i < 0x11 && ! -f $pidfile; $i++)
     {
       sleep 1;

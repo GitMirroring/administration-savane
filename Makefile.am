@@ -135,6 +135,11 @@ else
   PHP_SENDMAIL_LINE = sendmail_path = "$(bindir)/sv_sendmail.pl"
   HAVE_SENDMAIL_VAR = 0
 endif
+if HAVE_DATABASE
+  HAVE_DATABASE_VAR = 1
+else
+  HAVE_DATABASE_VAR = 0
+endif
 
 subst_in_files = \
   ${SED} \
@@ -156,6 +161,7 @@ subst_in_files = \
     -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
     -e 's,[@]PHP_SENDMAIL_LINE[@],$(PHP_SENDMAIL_LINE),g' \
     -e 's,[@]PHP[@],$(PHP),g' \
+    -e 's,[@]HAVE_DATABASE[@],$(HAVE_DATABASE_VAR),g' \
     -e 's,[@]HAVE_SENDMAIL[@],$(HAVE_SENDMAIL_VAR),g' \
     -e 's,[@]ADD_SAMPLE_DB[@],$(ADD_SAMPLE_DB),g' \
     -e 's,[@]GRAPHVIZ_BIN[@],$(GRAPHVIZ_BIN),g' \
@@ -206,11 +212,14 @@ subst_in_files = \
 
 substituted = \
   $(all_scripts) $(build_time_scripts) $(conf_all:%=sysconf/%) $(modules) \
-  $(frontend_php_built) $(all_test_scripts)
+  $(frontend_php_built)
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
 
 $(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
+$(all_test_scripts): %: %.in Makefile dirs.stamp
+	$(subst_in_files) < $< > $@
+	chmod +x $@
 
 # Force trivial cgitrepos for the time being.
 cgirepos: ; echo -n > $@
