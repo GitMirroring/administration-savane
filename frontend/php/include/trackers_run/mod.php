@@ -126,15 +126,16 @@ function check_member ($role)
 {
   return member_check (0, $GLOBALS['group_id'], $role, true);
 }
-$member_help = function ($title, $arr)
+function help_on_member ($title, $arr)
 {
   print '<p>';
-  print help ($title, $arr);
+  print utils_help ($title, $arr);
   print "</p>\n";
 };
+
 $is_manager = member_check (0, $group_id, 3);
 if (check_member (2))
-  $member_help (
+  help_on_member (
     _("You are both technician and manager for this tracker."),
     [
      _("technician") =>
@@ -143,7 +144,7 @@ if (check_member (2))
     ]
   );
 elseif (check_member (1))
-  $member_help (
+  help_on_member (
     _("You are technician for this tracker."),
     [
       _("technician") =>
@@ -152,7 +153,7 @@ elseif (check_member (1))
     ]
   );
 elseif (check_member (3))
-  $member_help (
+  help_on_member (
     _("You are manager for this tracker."),
     [
       _("manager") =>

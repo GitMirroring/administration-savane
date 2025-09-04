@@ -694,16 +694,11 @@ function fb_dbresult ($success)
     fb_dberror ();
 }
 
-function utils_help ($text, $explanation_array)
-{
-  return help ($text, $explanation_array);
-}
-
 # Print help about a word.
 #   $text is the sentence where ballons are
 #   $explanation_array is the table word->explanation, must be in the
 #   array syntax.
-function help ($text, $explanation_array)
+function utils_help ($text, $explanation_array)
 {
   if (!is_array ($explanation_array))
     return "<span class='help' title=\"$explanation_array\">$text</span>";
