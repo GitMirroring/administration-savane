@@ -61,7 +61,7 @@ extract (sane_import ('post',
       ],
      'strings' =>
        [
-         ['form_transition_default_auth', ['A', 'F']],
+         ['form_transition_default_auth', $TRANSITION_STATUS_LIST],
          ['show_on_add_logged','show_on_add_mem',  ['1']],
          ['show_on_add_anon', ['2']]
        ]

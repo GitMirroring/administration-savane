@@ -47,6 +47,31 @@
 
 namespace {
 
+define ('FIELD_STATUS_ACTIVE', 'A');
+define ('FIELD_STATUS_PERMANENT', 'P');
+define ('FIELD_STATUS_HIDDEN', 'H');
+
+$FIELD_STATUS_SET = [
+  FIELD_STATUS_ACTIVE => 1,
+  FIELD_STATUS_PERMANENT => 1,
+  FIELD_STATUS_HIDDEN => 1
+];
+$FIELD_STATUS_ENABLED = [FIELD_STATUS_ACTIVE, FIELD_STATUS_PERMANENT];
+$FIELD_STATUS_LIST = array_keys ($FIELD_STATUS_SET);
+
+# TRANSLATORS: this is field status.
+$FIELD_STATUS_LABELS = [
+  FIELD_STATUS_ACTIVE => _("Active"),
+  FIELD_STATUS_PERMANENT => _("Permanent"),
+  FIELD_STATUS_HIDDEN => _("Hidden")
+];
+define ('TRANSITION_ALLOWED', 'A');
+define ('TRANSITION_FORBIDDEN', 'F');
+$TRANSITION_STATUS_SET = [
+  TRANSITION_ALLOWED => 1, TRANSITION_FORBIDDEN => 1
+];
+$TRANSITION_STATUS_LIST = array_keys ($TRANSITION_STATUS_SET);
+
 $dir_name = dirname (__FILE__);
 foreach (['trackers/transition', 'trackers/cookbook', 'utils', 'group'] as $i)
   require_once ("$dir_name/../$i.php");
@@ -149,8 +174,8 @@ function trackers_data_get_notification_settings ($group_id, $tracker)
     FROM {$tracker}_field f, {$tracker}_field_value fv
     WHERE
       fv.group_id = ? AND f.field_name = ?
-      AND fv.bug_field_id = f.bug_field_id AND fv.status != 'H'",
-    [$group_id, $cat_field_name]
+      AND fv.bug_field_id = f.bug_field_id AND fv.status != ?",
+    [$group_id, $cat_field_name, FIELD_STATUS_HIDDEN]
   );
   $settings['nb_categories'] = db_numrows ($result);
   $settings['category'] = [];
@@ -513,7 +538,7 @@ function trackers_data_get_field_predefined_values (
   if ($active_only)
     {
       $status_cond = "status IN (?, ?)";
-      $status_cond_params = [USER_STATUS_ACTIVE, USER_STATUS_PENDING];
+      $status_cond_params = $GLOBALS['FIELD_STATUS_ENABLED'];
       if ($checked && !is_array ($checked))
         {
           $status_cond = "($status_cond OR value_id = ?)";
@@ -692,7 +717,8 @@ function trackers_data_is_username_field ($field, $by_field_id = false)
 
 function trackers_data_field_is_group_scope ($field, $by_field_id = false)
 {
-  return 'P' == trackers_data_field_val ($field, 'scope', $by_field_id);
+  return FIELD_STATUS_PERMANENT
+    == trackers_data_field_val ($field, 'scope', $by_field_id);
 }
 
 function trackers_data_is_status_closed ($status)
@@ -912,7 +938,7 @@ function trackers_data_is_default_value ($item_fv_id)
 
 # Insert a new value for a given field for a given group.
 function trackers_data_create_value (
-  $field, $group_id, $value, $description, $order_id, $status = 'A',
+  $field, $group_id, $value, $description, $order_id, $status = FIELD_STATUS_ACTIVE,
   $by_field_id = false
 )
 {
@@ -995,7 +1021,7 @@ function trackers_data_report_update_value ($result)
 # Insert a new value for a given field for a given group.
 function trackers_data_update_value (
   $item_fv_id, $field, $group_id, $value, $description, $order_id,
-  $status = 'A'
+  $status = FIELD_STATUS_ACTIVE
 )
 {
   if (preg_match ("/^\s*$/", $value))
@@ -1129,7 +1155,7 @@ function trackers_data_reset_usage ($field_name, $group_id)
 function trackers_data_update_usage (
   $field_name, $group_id, $label, $description, $use_it, $rank, $display_size,
   $empty_ok, $keep_history, $show_on_add_members = 0, $show_on_add = 0,
-  $transition_default_auth = 'A'
+  $transition_default_auth = TRANSITION_ALLOWED
 )
 {
   # If it's a required field then make sure the use_it flag is true.
@@ -1205,7 +1231,7 @@ function trackers_data_get_technicians ($group_id)
   $sql = "
     SELECT `user_id` AS `value_id`, `user_name` AS `value`,
       0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
-      0 AS `order_id`, 'P' AS `status`
+      0 AS `order_id`, '" . USER_STATUS_PENDING . "' AS `status`
     FROM `user` WHERE
   ";
   if (empty ($uids))
@@ -1223,7 +1249,7 @@ function trackers_data_get_submitters ($group_id)
   return db_execute ("
     SELECT DISTINCT `user_id` AS `value_id`, `user_name` AS `value`,
       0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
-      0 AS `order_id`, 'P' AS `status`
+      0 AS `order_id`, '" . USER_STATUS_PENDING . "' AS `status`
     FROM `user` JOIN `$art` `a` ON `user`.`user_id` = `a`.`submitted_by`
     WHERE `a`.`group_id` = ?
     ORDER BY `user`.`user_name`", [$group_id, $group_id]

@@ -73,8 +73,8 @@ if ($is_admin)
         'digits' => ['order_id', 'from', 'to'],
         'strings' =>
           [
-            ['allowed', ['A', 'F']],
-            ['status', ['A', 'P', 'H']]
+            ['allowed', $TRANSITION_STATUS_LIST],
+            ['status', $FIELD_STATUS_LIST]
           ],
         'preg' => [['mail_list', '/^[-+_@.,\s\da-zA-Z]*$/']]
       ]
@@ -124,7 +124,7 @@ elseif ($post_changes)
     # Deleted Canned doesn't need a form, so let switch into this code.
     if ($create_value)
       trackers_data_create_value (
-        $field, $group_id, $title, $description, $order_id, 'A'
+        $field, $group_id, $title, $description, $order_id
       );
     elseif ($update_value)
       trackers_data_update_value (
@@ -169,7 +169,7 @@ function print_predefined_val_entry ($fld_val, &$defs)
 {
   extract ($fld_val);
   # Non-active value are not important here.
-  if ($status != "A")
+  if ($status != FIELD_STATUS_ACTIVE)
     return;
   $defs["<b>$value</b> ($order_id)"] = $description;
 }
@@ -244,7 +244,7 @@ function put_field_val_in_tr ($status, $html)
 {
   static $i = ['a' => 0, 'h' => 0];
   $suff = 'h';
-  if ($status == 'A' || $status == 'P')
+  if (in_array ($status, $GLOBALS['FIELD_STATUS_ENABLED']))
     $suff = 'a';
   $class = utils_altrow ($i[$suff]);
   $html = "<tr class=\"$class\">$html</tr>\n";
@@ -259,7 +259,7 @@ function get_usage_string ($field, $value_id, $status)
 {
   global $group_id;
   $usage = trackers_data_count_field_value_usage ($group_id, $field, $value_id);
-  if ($status == 'H' && $usage > 0)
+  if ($status == FIELD_STATUS_HIDDEN && $usage > 0)
     $usage = "<strong class='warn'>$usage</strong>";
   return "<td align='center'>$usage</td>\n";
 }
@@ -270,7 +270,8 @@ function format_field_value ($fld_val, $field)
   $txt_val = $fld_val['value'];
 
   if ($is_admin
-    && $fld_val['status'] != 'P'  # The permanent values can't be modified.
+        # The permanent values can't be modified.
+    && $fld_val['status'] != FIELD_STATUS_PERMANENT
     && !in_array ($field, ['assigned_to', 'submitted_by']) # Neither can users.
   )
     $txt_val = "<a href=\"$php_self?update_value=1"
@@ -282,8 +283,6 @@ function format_field_value ($fld_val, $field)
 function list_field_values ($fld_val, $field, $is_group_scope)
 {
   global $none_rk, $is_admin;
-  # TRANSLATORS: this is field status.
-  $status_str = ['A' => _("Active"), 'P' => _("Permanent"), 'H' => _("Hidden")];
 
   extract ($fld_val);
   $html = '';
@@ -299,7 +298,7 @@ function list_field_values ($fld_val, $field, $is_group_scope)
     .  "<td>$description</td>\n";
   if ($is_admin)
     $html .= "<td align='center'>$order_id</td>\n"
-      . "<td align='center'>{$status_str[$status]}</td>\n"
+      . "<td align='center'>{$GLOBALS['FIELD_STATUS_LABELS'][$status]}</td>\n"
       . get_usage_string ($field, $value_id, $status);
   return put_field_val_in_tr ($status, $html);
 }
@@ -481,7 +480,7 @@ function print_transition_label ($transition, $val_label)
 
 function print_transition_allowed ($transition, $val_label)
 {
-  if ($transition['is_allowed'] == 'A')
+  if ($transition['is_allowed'] == TRANSITION_ALLOWED)
     $allowed = _("Yes");
   else
     $allowed = _("No");
@@ -513,7 +512,7 @@ function list_transition_registered_fields ($registered)
 function print_transition_update ($transition)
 {
   global $sys_home, $php_self, $group;
-  if ($transition['is_allowed'] != 'A')
+  if ($transition['is_allowed'] != TRANSITION_ALLOWED)
     {
       print "<td align='center'>---------</td>\n"
         . "<td align='center'>--------</td>\n";
@@ -573,14 +572,14 @@ function show_transitions ($field, $field_id, $val_label)
 function get_transition_for_field ($field)
 {
   global $group_id;
-  $result = db_execute ("
+  $res = db_execute ("
      SELECT transition_default_auth
      FROM " . ARTIFACT . "_field_usage
      WHERE group_id = ? AND bug_field_id = ?",
      [$group_id, trackers_data_get_field_id ($field)]
   );
-  if (db_numrows ($result) > 0
-      && db_result ($result, 0, 'transition_default_auth') == "F")
+  if (db_numrows ($res) > 0
+      && db_result ($res, 0, 'transition_default_auth') == TRANSITION_FORBIDDEN)
     return _("By default, for this field, the\n"
       . "transitions not registered are forbidden. This setting "
       . "can be changed when\nmanaging this field usage.");
@@ -604,7 +603,8 @@ function print_create_transition_table ($field)
 {
   global $group_id;
   $title_arr = [_("From"), _("To"), _("Is Allowed"), _("Carbon-Copy List")];
-  $auth_label = ['allowed', 'forbidden']; $auth_val = ['A', 'F'];
+  $auth_label = ['allowed', 'forbidden'];
+  $auth_val = $GLOBALS['TRANSITION_STATUS_LIST'];
 
   $from = '<td>'
     . trackers_field_box (
@@ -714,8 +714,13 @@ if ($update_value)
       . html_label ('status', _("Status:")) . "</span>\n"
       . "<select name='status' id='status'>\n"
       # TRANSLATORS: this is field status.
-      . form_option ('A', null, _("Active"))
-      . form_option ('H', $row['status'], _("Hidden"))
+      . form_option (
+          FIELD_STATUS_ACTIVE, null, $FIELD_STATUS_LABELS[FIELD_STATUS_ACTIVE]
+        )
+      . form_option (
+          FIELD_STATUS_HIDDEN, $row['status'],
+          $FIELD_STATUS_LABELS[FIELD_STATUS_HIDDEN]
+        )
       . "</select>\n<p>\n<span class='preinput'>"
       . html_label ('description', _("Description (optional):"))
       . "</span><br />\n"
