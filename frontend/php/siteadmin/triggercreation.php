@@ -110,10 +110,10 @@ $to_update = ''; $upd_list = [];
 
 # Build the notification list.
 $res_admins = db_execute ("
-  SELECT user.user_name FROM user, user_group
-  WHERE
-    user.user_id = user_group.user_id AND user_group.group_id = ?
-    AND user_group.admin_flags = 'A'", [$group_id]
+  SELECT `user_name`
+  FROM `user` `u` JOIN `user_group` `ug` ON `u`.`user_id` = `ug`.`user_id`
+  WHERE `ug`.`group_id` = ? AND `ug`.`admin_flags` = ?",
+  [$group_id, MEMBER_FLAGS_ADMIN]
 );
 if (db_numrows ($res_admins) > 0)
   {

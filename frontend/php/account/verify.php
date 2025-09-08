@@ -67,7 +67,8 @@ function run_update ()
   account_validate_confirm_hash ($confirm_hash, HASH_NEW_ACCOUNT, $uid);
   if (!session_login_valid ($form_loginname, $form_pw, 0, 1))
     return;
-  db_autoexecute ('user', ['status' => 'A', 'confirm_hash' => null],
+  db_autoexecute ('user',
+    ['status' => USER_STATUS_ACTIVE, 'confirm_hash' => null],
     DB_AUTOQUERY_UPDATE, 'user_name = ?', [$form_loginname]
   );
   account_clear_confirm_hash ($form_loginname);

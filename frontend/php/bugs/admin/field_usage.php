@@ -62,7 +62,7 @@ extract (sane_import ('post',
      'strings' =>
        [
          ['form_transition_default_auth', $TRANSITION_STATUS_LIST],
-         ['show_on_add_logged','show_on_add_mem',  ['1']],
+         ['show_on_add_logged', 'show_on_add_mem',  ['1']],
          ['show_on_add_anon', ['2']]
        ]
   ]
@@ -340,17 +340,18 @@ if ($update_field)
         if (db_numrows ($result) > 0)
           $transition_default_auth =
             db_result ($result, 0, 'transition_default_auth');
-        $ck = $transition_default_auth !='F';
-        print "\n\n<p>&nbsp;</p>\n<h2>"
-          . _("By default, transitions (from one value to another) are:")
-          . "</h2>\n";
+        $ck = $transition_default_auth != TRANSITION_FORBIDDEN;
+        print "\n\n<p>&nbsp;</p>\n"
+          . html_h (2,
+              _("By default, transitions (from one value to another) are:")
+            );
         print
-          form_radio ('form_transition_default_auth', 'A',
+          form_radio ('form_transition_default_auth', TRANSITION_ALLOWED,
             [ 'checked' => $ck, 'label' => _("Allowed"),
               'id' => 'form_transition_default_auth_allowed']
           )
           . "<br />\n"
-          . form_radio ('form_transition_default_auth', 'F',
+          . form_radio ('form_transition_default_auth', TRANSITION_FORBIDDEN,
               [ 'checked' => !$ck, 'label' => _("Forbidden"),
                 'id' => 'form_transition_default_auth_forbidden']
             )

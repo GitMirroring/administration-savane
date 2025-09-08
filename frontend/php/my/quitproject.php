@@ -47,7 +47,7 @@ require_once ('../include/sane.php');
 require_once ('../include/form.php');
 require_once ('../include/sendmail.php');
 
-session_require (['isloggedin'=>'1']);
+session_require (['isloggedin' => '1']);
 $submits = ['confirm', 'cancel'];
 extract (sane_import ('request', ['digits' => 'quitting_group_id']));
 extract (sane_import ('post', ['true' => $submits]));
@@ -71,9 +71,8 @@ function notify_admins ($quitting_group_id)
   $group_name = group_getname ($quitting_group_id);
   $res_admin = db_execute ("
     SELECT u.email AS email FROM user u, user_group g
-    WHERE
-      g.user_id = u.user_id AND g.group_id = ? AND g.admin_flags = 'A'",
-    [$quitting_group_id]
+    WHERE g.user_id = u.user_id AND g.group_id = ? AND g.admin_flags = ?",
+    [$quitting_group_id, MEMBER_FLAGS_ADMIN]
   );
   $to = '';
   while ($row_admin = db_fetch_array ($res_admin))

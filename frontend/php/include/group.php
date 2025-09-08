@@ -316,7 +316,7 @@ class Group extends savane_error
 
   function isActive ()
   {
-    if ($this->getStatus () == 'A')
+    if ($this->getStatus () == GROUP_STATUS_ACTIVE)
       return true;
     return false;
   }

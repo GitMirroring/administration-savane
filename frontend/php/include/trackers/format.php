@@ -238,7 +238,7 @@ function format_member_icon ($poster_id, $group_id)
 {
   if ($poster_id == 100)
     return ['', ''];
-  if (member_check ($poster_id, $group_id, 'A'))
+  if (member_check ($poster_id, $group_id, MEMBER_FLAGS_ADMIN))
     {
       if ($group_id == $GLOBALS['sys_group_id'])
         return ["site-admin", _("Site Administrator")];
@@ -382,7 +382,7 @@ function format_details (
   format_set_comment_ids ($data, $item_id, $ascii);
   $comment_order = format_enforce_comment_order ($data, $ascii);
   $out = format_details_header ($ascii);
-  $is_admin = member_check (0, $group_id, 'A');
+  $is_admin = member_check (0, $group_id, MEMBER_FLAGS_ADMIN);
   foreach ($data as $i => $entry)
     {
       if ($ascii)

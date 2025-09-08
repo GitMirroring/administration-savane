@@ -59,14 +59,17 @@ $post_names = function ()
     'name' => 'form_name',
     'digits' => ['group_type', 'form_public'],
     'specialchars' => ['form_license', 'form_license_other'],
-    'strings' => [['form_status', ['A', 'D', 'P']]]
+    'strings' => [[
+      'form_status',
+      [GROUP_STATUS_ACTIVE, GROUP_STATUS_DELETED, GROUP_STATUS_PENDING]
+    ]]
   ];
   return $names;
 };
 
 exit_if_no_group ();
 
-if (project_get_object ($group_id)->getStatus () == 'X')
+if (project_get_object ($group_id)->getStatus () == GROUP_STATUS_SPECIAL)
   {
     site_admin_header (
       ['title' => no_i18n ("Group List"), 'context' => 'admgroup']
@@ -85,7 +88,7 @@ if (!form_vars_empty ($submit_buttons))
   {
     # Assign gidNumber before updating the status in order to
     # avoid the race condition with backend scripts.
-    if ($form_status === 'A')
+    if ($form_status === GROUP_STATUS_ACTIVE)
       group_assign_gidNumber ($group_id);
     # Full details update.
     if ($update)
@@ -161,7 +164,9 @@ function print_updatefast ($status, $image, $label, $name)
 }
 
 print html_h (2, no_i18n ("Registration Management Shortcuts"));
-print_updatefast ('A', 'bool/ok.orig.png', no_i18n ("Approve"), 'fastok');
+print_updatefast (
+  GROUP_STATUS_ACTIVE, 'bool/ok.orig.png', no_i18n ("Approve"), 'fastok'
+);
 $res = db_execute (
   "SELECT COUNT(group_list_id) AS cnt FROM mail_group_list WHERE group_id = ?",
   [$group_id]
@@ -171,7 +176,9 @@ $list_row = db_fetch_array ($res);
 if (!empty ($list_row))
   $no_lists = $list_row['cnt'] < 1;
 if ($no_lists)
-  print_updatefast ('D', 'bool/wrong.orig.png', no_i18n ("Discard"), 'fastdel');
+  print_updatefast (
+    GROUP_STATUS_DELETED, 'bool/wrong.orig.png', no_i18n ("Discard"), 'fastdel'
+  );
 else
   {
     $msg = sprintf (
@@ -213,8 +220,9 @@ print '<p><span class="preinput"><label for="form_status">'
 print "<select name='form_status' id='form_status'> ";
 foreach (
   [
-    'A' => no_i18n ("Active"), 'P' => no_i18n ("Pending"),
-    'D' => no_i18n ("Deleted"),
+    GROUP_STATUS_ACTIVE => no_i18n ("Active"),
+    GROUP_STATUS_PENDING => no_i18n ("Pending"),
+    GROUP_STATUS_DELETED => no_i18n ("Deleted"),
   ] as $k => $v
 )
   print form_option ($k, $row_grp['status'], $v);

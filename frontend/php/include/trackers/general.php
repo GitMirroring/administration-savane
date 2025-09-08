@@ -449,12 +449,12 @@ function trackers_field_box (
         WHERE group_id = ? AND bug_field_id = ?",
         [$group_id, $field_id]
       );
-      $default_auth = 'A';
+      $default_auth = TRANSITION_ALLOWED;
       if (db_numrows ($res) > 1)
         $default_auth = db_result ($res, 0, 'transition_default_auth');
       # Avoid corrupted database content, if its not F, it must be A.
       if ($default_auth != "F")
-        $default_auth = "A";
+        $default_auth = TRANSITION_ALLOWED;
 
       $trans_result = db_execute (
         "SELECT from_value_id,to_value_id,is_allowed,notification_list
@@ -483,7 +483,7 @@ function trackers_field_box (
                 {
                   $value_id = $val_row['value_id'];
                   $value = $val_row['value'];
-                  if ((($default_auth == 'A')
+                  if ((($default_auth == TRANSITION_ALLOWED)
                         && (!array_key_exists($value_id, $forbidden_to_id)))
                       ||
                       (($default_auth == 'F')

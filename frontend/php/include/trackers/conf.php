@@ -358,12 +358,14 @@ function conf_copy ($group_id, $artifact, $from_group_id)
 function groups_with_cookbook ()
 {
   return
-   "SELECT g.group_name, g.group_id FROM groups g, user_group u,
-     group_preferences gp
+   "SELECT `g`.`group_name`, `g`.`group_id`
+    FROM `groups` `g`, `user_group` `u`, `group_preferences` `p`
     WHERE
-      g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
-      AND g.status = 'A' AND gp.preference_name = 'use_cookbook'
-      AND g.group_id = gp.group_id AND gp.preference_value = '1'";
+      `g`.`group_id` = `u`.`group_id` AND `u`.`user_id` = ?
+      AND `g`.`group_id` != ?
+      AND `g`.`status` = '" . GROUP_STATUS_ACTIVE . "'
+      AND `p`.`preference_name` = 'use_cookbook'
+      AND `g`.`group_id` = `p`.`group_id` AND `p`.`preference_value` = '1'";
 }
 function groups_with_artifact ($artifact)
 {
@@ -373,7 +375,7 @@ function groups_with_artifact ($artifact)
     SELECT g.group_name, g.group_id FROM groups g, user_group u
     WHERE
       g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
-      AND g.status = 'A' g.use_{$artifact} = '1'";
+      AND g.status = " . GROUP_STATUS_ACTIVE . " AND g.use_{$artifact} = '1'";
 }
 } # namespace trackers_conf
 

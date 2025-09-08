@@ -129,8 +129,8 @@ form_check ($submits);
 if ($update)
   {
     $result_upd = db_execute ("
-      SELECT group_id FROM groups WHERE status = 'A' AND is_public = '1'
-      ORDER BY group_id"
+      SELECT group_id FROM groups WHERE status = ? AND is_public = '1'
+      ORDER BY group_id", [GROUP_STATUS_ACTIVE]
     );
     while ($val = db_fetch_array ($result_upd))
       {

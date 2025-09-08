@@ -156,7 +156,7 @@ $res = db_execute (
   [GROUP_STATUS_PENDING]
 );
 $row = db_fetch_array ();
-print '<td><a href="grouplist.php?status=P">'
+print '<td><a href="grouplist.php?status=' . GROUP_STATUS_PENDING . '">'
   . no_i18n ("Pending groups (an open task should exist about them)")
   . "</a></td>\n<td>" . $row['count'] . "</td>\n</tr>\n";
 
@@ -166,7 +166,7 @@ $res = db_execute (
   [GROUP_STATUS_DELETED]
 );
 $row = db_fetch_array ();
-print '<td><a href="grouplist.php?status=D">'
+print '<td><a href="grouplist.php?status=' . GROUP_STATUS_DELETED . '">'
   . no_i18n ("Deleted groups (the backend will remove the record soon)")
   . "</a></td>\n<td>" . $row['count'] . "</td>\n";
 print "</tr>\n";
@@ -179,12 +179,15 @@ $abc_array = [
 ];
 
 $status_arr = [
-  'A' => no_i18n ("Active"), 'P' => no_i18n ("Pending"),
-  'D' => no_i18n ("Deleted"), 'X' => no_i18n ("System internal")
+  USER_STATUS_ACTIVE => no_i18n ("Active"),
+  USER_STATUS_PENDING => no_i18n ("Pending"),
+  USER_STATUS_DELETED => no_i18n ("Deleted"), 'X' => no_i18n ("System internal")
 ];
 $status_proj_arr = [
-  'A' => no_i18n ("Active Groups"), 'P' => no_i18n ("Pending Groups"),
-  'D' => no_i18n ("Deleted Groups"), 'X' => no_i18n ("System internal Groups")
+  GROUP_STATUS_ACTIVE => no_i18n ("Active Groups"),
+  GROUP_STATUS_PENDING => no_i18n ("Pending Groups"),
+  GROUP_STATUS_DELETED => no_i18n ("Deleted Groups"),
+  GROUP_STATUS_SPECIAL => no_i18n ("System internal Groups")
 ];
 
 print html_h (2, no_i18n ("Group Search")) . "<p>"

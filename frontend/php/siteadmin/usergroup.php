@@ -232,7 +232,10 @@ function report_db_result ($result, $msg_err, $msg_ok)
 function action_activate ()
 {
   global $user_id;
-  db_execute ("UPDATE user SET status='A' WHERE user_id = ?", [$user_id]);
+  db_execute (
+    "UPDATE `user` SET `status` = ? WHERE `user_id` = ?",
+    [USER_STATUS_ACTIVE, $user_id]
+  );
 }
 
 function action_delete ()

@@ -42,6 +42,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 require_once (dirname (__FILE__) . '/member.php');
+require_once (dirname (__FILE__) . '/trackers/data.php');
 define ('USER_STATUS_ACTIVE', 'A');
 define ('USER_STATUS_PENDING', 'P');
 define ('USER_STATUS_SQUAD', MEMBER_FLAGS_SQUAD);
@@ -94,8 +95,8 @@ function user_can_be_super_user ($user_id = 0)
   # Admins of sys_group_id are admins and have superuser privs site-wide.
   $result = db_execute ("
     SELECT * FROM user_group
-    WHERE user_id = ? AND group_id = ? AND admin_flags = 'A'",
-    [$user_id, $GLOBALS['sys_group_id']]
+    WHERE user_id = ? AND group_id = ? AND admin_flags = ?",
+    [$user_id, $GLOBALS['sys_group_id'], MEMBER_FLAGS_ADMIN]
   );
   $USER_IS_SUPER_USER = (db_numrows ($result) >= 1);
   return $USER_IS_SUPER_USER;
@@ -133,9 +134,10 @@ function user_check_group_admin ()
 function user_group_names ($uid)
 {
   $result = db_execute ("
-    SELECT g.group_id, g.unix_group_name, g.group_name
-    FROM `groups` g JOIN user_group u ON g.group_id = u.group_id
-    WHERE u.user_id = ? AND g.status = 'A' ORDER BY g.unix_group_name", [$uid]
+    SELECT `g`.`group_id`, `g`.`unix_group_name`, `g`.`group_name`
+    FROM `groups` `g` JOIN `user_group` `u` ON `g`.`group_id` = `u`.`group_id`
+    WHERE `u`.`user_id` = ? AND `g`.`status` = ? ORDER BY `g`.`unix_group_name`",
+    [$uid, GROUP_STATUS_ACTIVE]
   );
   $ids = $names = [];
   while ($row = db_fetch_array ($result))
@@ -584,7 +586,7 @@ function user_delete_query_forms ($user_id, $art)
 {
   $res = db_execute (
     "SELECT report_id FROM {$art}_report WHERE scope = ? AND user_id = ?",
-    ['I', $user_id]
+    [QUERY_SCOPE_PERSONAL, $user_id]
   );
   $report_ids = [];
   while ($row = db_fetch_array ($res))
@@ -771,11 +773,13 @@ function user_list_groups_with_history ($uid, $skip)
 function user_list_groups_without_history ($uid, $skip)
 {
   return db_execute ("
-    SELECT g.group_name, g.group_id, g.unix_group_name, g.is_public,
-      u.admin_flags, 0 as date
-    FROM `groups` g, user_group u
-    WHERE g.group_id = u.group_id AND u.user_id = ? AND g.status = 'A' $skip
-    ORDER BY g.group_id", [$uid]
+    SELECT `g`.`group_name`, `g`.`group_id`, `g`.`unix_group_name`,
+      `g`.`is_public`, `u`.`admin_flags`, 0 as `date`
+    FROM `groups` `g`, `user_group` `u`
+    WHERE
+      `g`.`group_id` = `u`.`group_id` AND `u`.`user_id` = ?
+      AND `g`.`status` = ? $skip
+    ORDER BY `g`.`group_id`", [$uid, GROUP_STATUS_ACTIVE]
   );
 }
 

@@ -70,7 +70,8 @@ function stats_get_active_groups ($type_id = null)
   if (!empty ($stats))
     return stats_count_by_type ($stats, $type_id);
   $res = db_execute ("
-    SELECT type, count(*) AS count FROM groups WHERE status = 'A'
+    SELECT type, count(*) AS count FROM groups
+    WHERE status = '" . GROUP_STATUS_ACTIVE . "'
     GROUP BY type"
   );
   while ($row = db_fetch_array ($res))
@@ -81,7 +82,8 @@ function stats_get_active_groups ($type_id = null)
 function stats_get_pending_groups ()
 {
   return stats_get_generic (
-    "SELECT count(*) AS count FROM groups WHERE status = 'P'"
+    "SELECT count(*) AS count FROM groups
+     WHERE status = '" . GROUP_STATUS_PENDING . "'"
   );
 }
 
@@ -108,7 +110,8 @@ function stats_getprojects ($type_id = "", $is_public = "", $period = "")
     $sql .= " AND $period";
 
   return stats_get_generic (
-    "SELECT count(*) AS count FROM groups WHERE status='A' $sql", $params
+    "SELECT count(*) AS count FROM groups
+     WHERE status = '" . GROUP_STATUS_ACTIVE . "' $sql", $params
   );
 }
 
@@ -119,7 +122,8 @@ function stats_getusers ($period = "")
     $sql = " AND $period";
 
   return stats_get_generic (
-    "SELECT count(*) AS count FROM user WHERE status = 'A' $sql"
+    "SELECT count(*) AS count FROM user
+     WHERE status = '" . USER_STATUS_ACTIVE . "' $sql"
   );
 }
 
@@ -147,7 +151,7 @@ function stats_getthemeusers ($theme = "")
 {
   return stats_get_generic ("
       SELECT count(*) AS count FROM user
-      WHERE status = 'A' AND theme = ?", [$theme]
+      WHERE status = ? AND theme = ?", [USER_STATUS_ACTIVE, $theme]
   );
 }
 ?>

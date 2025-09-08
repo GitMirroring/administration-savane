@@ -238,7 +238,7 @@ function proj_home_img ($ctx)
   $img_attr = ['width' => '24', 'height' => '24', 'alt' => ''];
   return html_image ("contexts/admin.png", $img_attr) . '&nbsp;';
 }
-if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
+if ($sys_group_id == $group_id && member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   {
     require "$sys_www_topdir/include/features_boxes.php";
     print $HTML->box_top (
@@ -277,7 +277,7 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, 'A'))
     print "<br />\n";
   }
 
-if (member_check (0, $group_id, 'A'))
+if (member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   {
     print $HTML->box_top (
       # TRANSLATORS: the argument is group name (like GNU Coreutils).
