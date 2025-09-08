@@ -116,6 +116,8 @@ function theme_guidelines_check ($theme)
 # If the theme is valid, return $user_theme; else return default theme.
 function theme_validate ($user_theme)
 {
+  if ($user_theme === null)
+    return $GLOBALS['sys_themedefault'];
   utils_get_content ("forbidden_theme");
 
   # Disallow going towards filesystem root and other queer paths.
