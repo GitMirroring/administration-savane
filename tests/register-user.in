@@ -131,7 +131,7 @@ sub check_for_idle_warning
           print_test_log ('Warning persists when visiting next page.');
           exit (1);
         }
-      print_test_log ('Warning is disappears when visiting next page.');
+      print_test_log ('Warning disappears when visiting next page.');
       return;
     }
   print_test_log ('No warning about being idle is shown on log in.');
