@@ -2313,7 +2313,7 @@ LOCK TABLES `patch_field_usage` WRITE;
 INSERT INTO `patch_field_usage` VALUES
   (90, 100, 1, 0, 0, 10, NULL, NULL, NULL, NULL, NULL, 'A'),
   (91, 100, 1, 1, 1, 30, NULL, NULL, NULL, NULL, NULL, 'A'),
-  (92, 100, 0, 0, 0, 20, NULL, NULL, NULL, NULL, NULL, 'A'),
+  (92, 100, 1, 0, 0, 20, NULL, NULL, NULL, NULL, NULL, 'A'),
   (93, 100, 1, 0, 0, 40, NULL, NULL, NULL, NULL, NULL, 'A'),
   (94, 100, 1, 0, 0, 50, NULL, NULL, NULL, NULL, NULL, 'A'),
   (101, 100, 1, 0, 0, 600, NULL, NULL, NULL, NULL, NULL, 'A'),
@@ -3124,7 +3124,7 @@ LOCK TABLES `support_field_usage` WRITE;
 INSERT INTO `support_field_usage` VALUES
   (90, 100, 1, 0, 0, 10, NULL, NULL, NULL, NULL, NULL, 'A'),
   (91, 100, 1, 1, 1, 30, NULL, NULL, NULL, NULL, NULL, 'A'),
-  (92, 100, 0, 0, 0, 20, NULL, NULL, NULL, NULL, NULL, 'A'),
+  (92, 100, 1, 0, 0, 20, NULL, NULL, NULL, NULL, NULL, 'A'),
   (93, 100, 1, 0, 0, 40, NULL, NULL, NULL, NULL, NULL, 'A'),
   (94, 100, 1, 0, 0, 50, NULL, NULL, NULL, NULL, NULL, 'A'),
   (101, 100, 1, 0, 0, 600, NULL, NULL, NULL, NULL, NULL, 'A'),
