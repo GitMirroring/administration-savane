@@ -210,18 +210,13 @@ function print_field ($i, $field)
     . "</td>\n</tr>\n";
 }
 
-function scope_list ()
-{
-  return ['P' => _('Group'), 'S' => _('System'), 'I' => _('Personal')];
-}
-
 function scopes_available ($is_admin, $group_id)
 {
   if ($group_id == GROUP_NONE)
-    return ['S'];
-  $ret = ['I'];
+    return [QUERY_SCOPE_SYSTEM];
+  $ret = [QUERY_SCOPE_PERSONAL];
   if ($is_admin)
-    $ret[] = 'P';
+    $ret[] = QUERY_SCOPE_GROUP;
   return $ret;
 }
 
@@ -236,7 +231,7 @@ function scopes_sanitized ($is_admin, $group_id)
 function scope_label ($s)
 {
   $s = strtoupper ($s);
-  $scopes = scope_list ();
+  $scopes = trackers_data_query_scope_labels ();
   if (array_key_exists ($s, $scopes))
     return $scopes[$s];
   return "[$s]";
@@ -254,7 +249,7 @@ function print_default_query_input ($report_list)
   # for anonumous users.
   $texts = $vals =  [];
   foreach ($report_list as $id => $row)
-    if ($row['scope'] != 'I')
+    if ($row['scope'] != QUERY_SCOPE_PERSONAL)
       {
         $vals[] = $id; $texts[] = $row['name'];
       }

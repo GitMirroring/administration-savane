@@ -47,6 +47,10 @@
 
 namespace {
 
+$dir_name = dirname (__FILE__);
+foreach (['trackers/transition', 'trackers/cookbook', 'utils', 'group'] as $i)
+  require_once ("$dir_name/../$i.php");
+
 define ('FIELD_STATUS_ACTIVE', 'A');
 define ('FIELD_STATUS_PERMANENT', 'P');
 define ('FIELD_STATUS_HIDDEN', 'H');
@@ -72,9 +76,18 @@ $TRANSITION_STATUS_SET = [
 ];
 $TRANSITION_STATUS_LIST = array_keys ($TRANSITION_STATUS_SET);
 
-$dir_name = dirname (__FILE__);
-foreach (['trackers/transition', 'trackers/cookbook', 'utils', 'group'] as $i)
-  require_once ("$dir_name/../$i.php");
+define ('QUERY_SCOPE_SYSTEM', 'S');
+define ('QUERY_SCOPE_GROUP', 'P');
+define ('QUERY_SCOPE_PERSONAL', 'I');
+
+function trackers_data_query_scope_labels ()
+{
+  return [
+    QUERY_SCOPE_GROUP => _('Group'),
+    QUERY_SCOPE_SYSTEM => _('System'),
+    QUERY_SCOPE_PERSONAL => _('Personal')
+  ];
+}
 
 function trackers_data_fetch_all_fields ($group_ids, $group_cond)
 {
@@ -2326,16 +2339,15 @@ function trackers_data_get_canned_responses ($group_id)
 
 function trackers_data_get_reports ($group_id, $user_id)
 {
-  $system_scope = 'S'; $group_scope = 'P'; $personal_scope = 'I';
   $sql = "
     SELECT report_id, name, scope FROM " . ARTIFACT . "_report
     WHERE
       (group_id = ? AND scope = ?) OR scope = ?";
-  $params = [$group_id, $group_scope, $system_scope];
+  $params = [$group_id, QUERY_SCOPE_GROUP, QUERY_SCOPE_SYSTEM];
   if ($user_id)
     {
       $sql .= "\n      OR (user_id = ? AND group_id = ? AND scope = ?)";
-      array_push ($params, $user_id, $group_id, $personal_scope);
+      array_push ($params, $user_id, $group_id, QUERY_SCOPE_PERSONAL);
     }
 
   # List system-wide queries first, then group-defined queries,
@@ -2348,11 +2360,11 @@ function trackers_data_get_reports ($group_id, $user_id)
 function trackers_data_report_is_editable ($row, $uid, $is_admin)
 {
   $scope = strtoupper ($row['scope']);
-  if ($scope == 'S' && user_is_super_user ())
+  if ($scope == QUERY_SCOPE_SYSTEM && user_is_super_user ())
     return true;
-  if ($scope == 'I' && $uid == $row['user_id'])
+  if ($scope == QUERY_SCOPE_PERSONAL && $uid == $row['user_id'])
     return true;
-  return $scope == 'P' && $is_admin;
+  return $scope == QUERY_SCOPE_GROUP && $is_admin;
 }
 
 function trackers_data_get_editable_reports ($group_id, $is_admin)
