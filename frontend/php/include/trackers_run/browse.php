@@ -505,10 +505,11 @@ foreach ($url_params as $field => $value_id)
           }
         $where .= $field_defined;
       }
-    elseif ((trackers_data_is_text_field ($field)
-             || trackers_data_is_text_area ($field))
-            && $url_params[$field][0])
+    elseif (trackers_data_is_text ($field))
       {
+        if (!isset ($url_params[$field]))
+          $url_params[$field] = [''];
+
         # Buffer summary and original submission (details) to handle them later
         # in case we have an OR to do between the two, instead of the usual
         # AND.
@@ -649,8 +650,7 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
           $boxes .= trackers_field_date_operator ($field, $op_value)
             . trackers_field_date ($field, $value);
       }
-    elseif (trackers_data_is_text_field ($field)
-            || trackers_data_is_text_area ($field))
+    elseif (trackers_data_is_text ($field))
       {
         if ($field == 'summary')
           $summary_search = 1;

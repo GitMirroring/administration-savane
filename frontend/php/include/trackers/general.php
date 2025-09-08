@@ -532,13 +532,30 @@ function trackers_multiple_field_box (
   );
 }
 
+function trackers_extract_date_field (&$vfl, $key, $val)
+{
+  if (!preg_match ("/^(.*)_(day|month|year)fd$/", $key, $found))
+    return false;
+  if (is_array ($val))
+    return true;
+  list ($ignore, $field_name, $field_name_part) = $found;
+  if (!isset ($vfl[$field_name]))
+    $vfl[$field_name] = '--';
+  list ($year, $month, $day) = explode ("-", $vfl[$field_name]);
+  if ($field_name_part  == 'day')
+    $vfl[$field_name] = "$year-$month-$val";
+  elseif ($field_name_part == 'month')
+    $vfl[$field_name] = "$year-$val-$day";
+  elseif ($field_name_part == 'year')
+    $vfl[$field_name] = "$val-$month-$day";
+  return true;
+}
+
 # Return the list of field names in the HTML Form corresponding
 # to a field used by this group.
 function trackers_extract_field_list ($post_method = true)
 {
   global $BF_USAGE_BY_NAME;
-  # Specific: it must build the date fields if it finds _dayfd, _monthfd
-  # or _yearfd, because date fields comes from 3 separated input.
   $vfl = $date = [];
   if ($post_method)
     $superglobal =& $_POST;
@@ -547,34 +564,10 @@ function trackers_extract_field_list ($post_method = true)
 
   foreach ($superglobal as $key => $val)
     {
-      if (preg_match ("/^(.*)_(day|month|year)fd$/", $key, $found))
-        {
-          # Must build the date field key.
-          $field_name = $found[1];
-          $field_name_part = $found[2];
-
-          # We also must increment $day and $month, because the select
-          # starts from zero.
-
-          # Get what we already have.
-          if (!isset ($vfl[$field_name]))
-            $vfl[$field_name] = '--';
-          list ($year, $month, $day) = explode ("-", $vfl[$field_name]);
-          if ($field_name_part  == 'day')
-            $vfl[$field_name] = "$year-$month-$val";
-          elseif ($field_name_part == 'month')
-            $vfl[$field_name] = "$year-$val-$day";
-          elseif ($field_name_part == 'year')
-            $vfl[$field_name] = "$val-$month-$day";
-          continue;
-        }
+      if (trackers_extract_date_field ($vfl, $key, $val))
+        continue;
       if (isset ($BF_USAGE_BY_NAME[$key]) || $key == 'comment')
-        {
-          $vfl[$key] = $val;
-          continue;
-        }
-      $k = print_r ($key, true);
-      $v = print_r ($val, true);
+        $vfl[$key] = $val;
     }
   return $vfl;
 }
