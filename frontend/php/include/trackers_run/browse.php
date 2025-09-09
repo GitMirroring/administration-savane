@@ -460,10 +460,9 @@ foreach ($url_params as $field => $value_id)
       {
         # Transform a date field into a unix time and use <, > or =.
         $param = $url_params[$field][0];
-        list ($time, $ok) = utils_date_to_unixtime ($param);
-        $ok = $ok && preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $param, $match_arr);
+        list ($time, $ok, $date_arr) = utils_date_to_unixtime ($param);
         if ($ok)
-          list (, $year, $month, $day) = $match_arr;
+          list ($year, $month, $day) = $date_arr;
         $field_defined = "\n    AND a.$field <> 0 ";
 
         if ($advsrch)

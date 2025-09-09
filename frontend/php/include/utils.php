@@ -299,10 +299,10 @@ function utils_date_to_unixtime ($date)
 {
   $res = preg_match ("/\s*(\d+)-(\d+)-(\d+)/", $date, $match_arr);
   if ($res == 0)
-    return [0, false];
+    return [0, false, null];
   list (, $year, $month, $day) = $match_arr;
   $time = mktime (0, 0, 0, $month, $day, $year);
-  return [$time, true];
+  return [$time, true, [$year, $month, $day]];
 }
 
 function utils_read_file ($filename)
