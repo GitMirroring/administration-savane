@@ -125,13 +125,10 @@ unset ($url_params['history_date']);
 # Make safe for inclusion in an URL (replace quotes with dots).
 function sanitize_val ($x)
 {
-  if (is_string ($x))
-    {
-      $x = strtr ($x, '"\'', '..');
-      return $x;
-    }
   if (is_numeric ($x)) # Numbers are sane.
     return $x;
+  if (is_string ($x))
+    return $x; # Sanitize strings later.
   return 'xxx'; # Some queer type fed.
 }
 
@@ -334,7 +331,7 @@ function compile_pref_string ($url_params)
         $arr_val = [$arr_val];
       foreach ($arr_val as $value_id)
         if (is_scalar ($value_id))
-          $ret .= "&amp;{$field}[]=$value_id";
+          $ret .= "&amp;{$field}[]=" . urlencode ($value_id);
     }
   $vars =
     ['advsrch', 'msort', 'max_rows', 'spamscore', 'report_id', 'sumORdet'];

@@ -536,7 +536,8 @@ function trackers_extract_date_field (&$vfl, $key, $val)
 {
   if (!preg_match ("/^(.*)_(day|month|year)fd$/", $key, $found))
     return false;
-  if (is_array ($val))
+  trim ($val);
+  if (!is_numeric ($val))
     return true;
   list ($ignore, $field_name, $field_name_part) = $found;
   if (!isset ($vfl[$field_name]))
@@ -1580,8 +1581,9 @@ function trackers_criteria_list_to_text ($criteria_list, $url)
   return join (' &gt; ', $links);
 }
 
-function trackers_build_match_text ($field, $to_match)
+function trackers_build_match_text ($field, &$to_match)
 {
+  $to_match = utils_specialchars ($to_match);
   $params = [];
   # If it is sourrounded by /.../ the assume a regexp
   # else transform into a series of LIKE %word%.

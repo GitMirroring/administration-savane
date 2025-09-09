@@ -2,6 +2,9 @@
 
 [FRONTEND]
 
+* When browsing trackers, support for quotes in text fields used as criteria
+  is added.
+
 * Tracker field values with comments are made world-viewable, e.g.
   /tasks/admin/field_values.php?group=administration.
 
