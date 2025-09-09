@@ -1587,7 +1587,7 @@ function trackers_build_match_text ($field, &$to_match)
   $params = [];
   # If it is sourrounded by /.../ the assume a regexp
   # else transform into a series of LIKE %word%.
-  if (preg_match ('/\/(.*)\#/', $to_match, $matches))
+  if (preg_match ('/^\s*\/(.*)\/\s*$/', $to_match, $matches))
     return [" $field RLIKE ? ", [$matches[1]]];
   $words = preg_split ('/\s+/', $to_match);
   foreach ($words as $i => $w)

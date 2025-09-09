@@ -44,6 +44,9 @@
 
 * Bug fixes:
 
+** Regular expressions in tracker item selection criteria didn't work, like
+  /bugs/index.php?go_report=Apply&group=proba&func=browse&summary=%2Ffn.rd%2F.
+
 ** Requests in trackers like
    /bugs/?group=foo&func=browse&msort=1&morder=assigned_to>&report_id=104
    when assigned_to wasn't shown with the query form 104.
