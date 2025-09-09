@@ -1580,151 +1580,77 @@ function trackers_criteria_list_to_text ($criteria_list, $url)
   return join (' &gt; ', $links);
 }
 
+function trackers_build_match_text ($field, $to_match)
+{
+  $params = [];
+  # If it is sourrounded by /.../ the assume a regexp
+  # else transform into a series of LIKE %word%.
+  if (preg_match ('/\/(.*)\#/', $to_match, $matches))
+    return [" $field RLIKE ? ", [$matches[1]]];
+  $words = preg_split ('/\s+/', $to_match);
+  foreach ($words as $i => $w)
+    {
+      $words[$i] = "$field LIKE ?";
+      $params[] = "%$w%";
+    }
+  $expr = join (' AND ', $words);
+  return [" ($expr) ", $params];
+}
+
+function trackers_build_match_int_cmp ($field, &$to_match, $matches)
+{
+  $matches[2] = (string)((int)$matches[2]);
+  $to_match = $matches[1] . ' ' . $matches[2];
+  return [" ($field {$matches[1]} ?) ", [$matches[2]]];
+}
+
+function trackers_build_match_int_range ($field, &$to_match, $matches)
+{
+  $matches[1] = (string)((int)$matches[1]);
+  $matches[2] = (string)((int)$matches[2]);
+  $params = [$matches[1], $matches[2]];
+  $to_match = $matches[1] . '-' . $matches[2];
+  return [" ($field >= ? AND $field <= ?) ", $params];
+}
+
+function trackers_build_match_int_exact ($field, &$to_match, $matches)
+{
+  $param = (string)((int)$matches[1]);
+  $to_match = $param;
+  return [" $field = ? ", [$param]];
+}
+
+function trackers_build_match_int ($field, &$to_match)
+{
+  # If it is sourrounded by /.../ then assume a regexp
+  # else assume an equality.
+  if (preg_match ('/\/(.*)\#/', $to_match, $matches))
+    return [" $field RLIKE ? ", $matches[1]];
+  $int_reg = '[+\-]*[0-9]+';
+  if (preg_match ("/\s*(<|>|>=|<=)\s*($int_reg)/", $to_match, $matches))
+    return trackers_build_match_int_cmp ($field, $to_match, $matches);
+  if (preg_match ("/\s*($int_reg)\s*-\s*($int_reg)/", $to_match, $matches))
+    return trackers_build_match_int_range ($field, $to_match, $matches);
+  if (preg_match ("/\s*($int_reg)/", $to_match, $matches))
+    trackers_build_match_int_exact ($field, $to_match, $matches);
+  # Invalid syntax - no condition.
+  $to_match = '';
+  return [' 1 ', []];
+}
+
 function trackers_build_match_expression ($field, &$to_match)
 {
   # First get the field type.
   $res = db_execute ("SHOW COLUMNS FROM " . ARTIFACT . " LIKE ?", [$field]);
   $type = db_result ($res, 0, 'Type');
-
-  $expr = '';
-  $params = [];
   $field = "a.$field";
 
   if (preg_match ('/text|varchar|blob/i', $type))
-    {
-      # If it is sourrounded by /.../ the assume a regexp
-      # else transform into a series of LIKE %word%.
-      if (preg_match ('/\/(.*)\#/', $to_match, $matches))
-        {
-          $expr = "$field RLIKE ? ";
-          $params[] = $matches[1];
-        }
-      else
-        {
-          $words = preg_split ('/\s+/', $to_match);
-          reset ($words);
-
-          foreach ($words as $i => $w)
-            {
-              $words[$i] = "$field LIKE ?";
-              $params[] = "%$w%";
-            }
-          $expr = join (' AND ', $words);
-        }
-    }
-  elseif (preg_match ('/int/i', $type))
-    {
-      # If it is sourrounded by /.../ then assume a regexp
-      # else assume an equality.
-      if (preg_match ('/\/(.*)\#/', $to_match, $matches))
-        {
-          $expr = "$field RLIKE ? ";
-          $params[] = $matches[1];
-        }
-      else
-        {
-          $int_reg = '[+\-]*[0-9]+';
-          if (
-            preg_match ("/\s*(<|>|>=|<=)\s*($int_reg)/", $to_match, $matches)
-          )
-            {
-              # It's < or >,  = and a number then use as is.
-              $matches[2] = (string)((int)$matches[2]);
-              $expr = "$field {$matches[1]} ? ";
-              $params[] = $matches[2];
-              $to_match = $matches[1] . ' ' . $matches[2];
-            }
-          elseif (
-            preg_match (
-              "/\s*($int_reg)\s*-\s*($int_reg)/", $to_match, $matches
-            )
-          )
-            {
-              # It's a range number1-number2.
-              $matches[1] = (string)((int)$matches[1]);
-              $matches[2] = (string)((int)$matches[2]);
-              $expr = "$field >= ? AND $field <= ? ";
-              $params[] = $matches[1];
-              $params[] = $matches[2];
-              $to_match = $matches[1] . '-' . $matches[2];
-            }
-          elseif (preg_match ("/\s*($int_reg)/", $to_match, $matches))
-            {
-              # It's a number so use equality.
-              $matches[1] = (string)((int)$matches[1]);
-              $expr = "$field = ? ";
-              $params[] = $matches[1];
-              $to_match = $matches[1];
-            }
-          else
-            {
-              # Invalid syntax - no condition.
-              $expr = '1';
-              $to_match = '';
-            }
-        }
-    }
-  elseif  (preg_match('/float/i', $type))
-    {
-      # If it is sourrounded by /.../ the assume a regexp
-      # else assume an equality.
-      if (preg_match ('/\/(.*)\#', $to_match, $matches))
-        {
-          $expr = "$field RLIKE ? ";
-          $params[] = $matches[1];
-        }
-      else
-        {
-          $flt_reg = '[+\-0-9.eE]+';
-
-          if (
-            preg_match ("/\s*(<|>|>=|<=)\s*($flt_reg)/", $to_match, $matches)
-          )
-            {
-              # It's < or >,  = and a number then use as is.
-              $matches[2] = (string)((float)$matches[2]);
-              $expr = "$field {$matches[1]} ? ";
-              $params[] = $matches[2];
-              $to_match = $matches[1] . ' ' . $matches[2];
-            }
-          elseif (
-            preg_match (
-              "/\s*($flt_reg)\s*-\s*($flt_reg)/", $to_match, $matches
-            )
-          )
-            {
-              # It's a range number1-number2.
-              $matches[1] = (string)((float)$matches[1]);
-              $matches[2] = (string)((float)$matches[2]);
-              $expr = "$field >= ? AND $field <= $matches[2] ";
-              $params[] = $matches[1];
-              $params[] = $matches[2];
-              $to_match = $matches[1] . '-' . $matches[2];
-            }
-          elseif (preg_match ("/\s*($flt_reg)/", $to_match, $matches))
-            {
-              # It's a number so use  equality.
-              $matches[1] = (string)((float)$matches[1]);
-              $expr = "$field = ? ";
-              $params[] = $matches[1];
-              $to_match = $matches[1];
-            }
-          else
-            {
-              # Invalid syntax - no condition.
-              $expr = '1';
-              $to_match = '';
-            }
-        }
-    }
-  else
-    {
-      # All the rest (???) use =.
-      $expr = "$field = ?";
-      $params[] = $to_match;
-    }
-  $expr = " ($expr) ";
-  return [$expr, $params];
+    return trackers_build_match_text ($field, $to_match);
+  if (preg_match ('/int/i', $type))
+    return trackers_build_match_int ($field, $to_match);
+  # For all other types, use =.
+  return [" $field = ? ", [$to_match]];
 }
 
 # Register a msg id for an item update notification.
