@@ -311,8 +311,8 @@ function theme_select ()
     }
 
   # When the user is logged in, the theme comes from user's settings.
-  $user_theme = user_get_field (0, 'theme');
-  define ('SV_THEME', theme_value ($user_theme));
+  $user_theme = theme_value (user_get_field (0, 'theme'));
+  define ('SV_THEME', $user_theme);
   theme_set_cookies ($user_theme);
 }
 ?>
