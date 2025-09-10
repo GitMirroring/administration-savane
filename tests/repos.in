@@ -52,9 +52,12 @@ my $unix_group_name = 'administration';
 my $agent = make_agent ();
 my $statedir = '@pkgstatedir@';
 my @git_repos = ('semel', 'bis', 'ter');
+my @git_paths;
 my @src_modules = ($unix_group_name, 'proba');
 my @web_modules = ($unix_group_name);
 my @more_web_modules = ('www', 'web');
+my $git_url = make_url ("git/?group=$unix_group_name");
+my $admin_url = make_url ("git/admin/?group=$unix_group_name");
 
 sub try_mkdir
 {
@@ -85,13 +88,19 @@ sub simulate_cvs_repos
   try_mkdir ("$root/$_") for (@modules);
 }
 
+sub git_root
+{
+  return "$statedir/git";
+}
+
 sub simulate_git_repos
 {
-  my $root = "$statedir/git";
+  my $root = git_root ();
   try_mkdir ($root);
-  try_mkdir ("$root/$_") for ($unix_group_name, "$unix_group_name.git");
-  $root .= "/$unix_group_name";
-  try_mkdir ("$root/$_.git") for (@git_repos);
+  try_mkdir ("$root/$unix_group_name");
+  push @git_paths, "$unix_group_name.git";
+  push @git_paths, "$unix_group_name/$_.git" for @git_repos;
+  try_mkdir ("$root/$_") for @git_paths;
 }
 
 sub try_rm_dir
@@ -103,13 +112,12 @@ sub try_rm_dir
 
 sub clear_repos
 {
-  my $root = "$statedir/git/$unix_group_name";
+  my $root = git_root ();
   my @modules = @src_modules;
   push @modules, 'CVSROOT';
-  try_rm_dir ("$root/$_.git") for (@git_repos);
+  try_rm_dir ("$root/$_") for (@git_paths);
+  try_rm_dir ("$root/$unix_group_name");
   try_rm_dir ($root);
-  try_rm_dir ("$root.git");
-  try_rm_dir ("$statedir/git");
   $root = "$statedir/cvs/sources/$unix_group_name";
   try_rm_dir ("$root/$_") for (@modules);
   try_rm_dir ($root);
@@ -123,12 +131,16 @@ sub clear_repos
   try_rm_dir ($root);
 }
 my %mod_cnt;
-sub check_module_set
+sub check_existing_modules
 {
   my $res = 0;
   for (@_)
     {
-      next if (exists ($mod_cnt{$_}) && $mod_cnt{$_} == 1);
+      if ((exists ($mod_cnt{$_}) && $mod_cnt{$_} == 1))
+        {
+          $mod_cnt{$_} = -1;
+          next;
+        }
       $res = 1;
       if (exists ($mod_cnt{$_}))
         {
@@ -137,12 +149,27 @@ sub check_module_set
         }
       print_test_log ("Module $_ is absent in the list.")
     }
-  if ($res)
+  return $res;
+}
+sub check_extra_modules
+{
+  my $res = 0;
+  for (keys (%mod_cnt))
     {
-      save_page ($agent);
-      print_test_log ("See test.html.");
-      exit (1);
+      next if $mod_cnt{$_} < 0;
+      print_test_log ("Unexpected module $_ is listed $mod_cnt{$_} times.");
+      $res = 1;
     }
+  return $res;
+}
+sub check_module_set
+{
+  my $res = check_existing_modules (@_);
+  $res = 1 if check_extra_modules ();
+  return unless $res;
+  save_page ($agent);
+  print_test_log ("See test.html.");
+  exit (1);
 }
 sub find_module_list
 {
@@ -156,7 +183,7 @@ sub find_module_list
   $page =~ s#^\s*<li>(.*)</li>\s*$#$1#s;
   %mod_cnt = ();
   my @mods = split (/<\/li>\s*<li>/s, $page);
-  print_test_log ("Modules found: " . join (', ', @mods));
+  print_test_log ("Modules found: " . join (', ', @mods) . ".");
   $mod_cnt{$_}++ for (@mods);
 }
 sub assert_no_module_list
@@ -295,9 +322,148 @@ sub run_cvs_checks
   check_web_repos ($page);
 }
 
+sub find_repos_in_html
+{
+  my ($start, $end, $item_start, $item_end) = @_;
+  my $page = $agent->content (raw => 1);
+  unless ($page =~ s#.*$start(.*)$end.*#$1#s)
+    {
+      save_page ($agent);
+      print_test_log ("No repo list found.  See test.html.");
+      exit (1);
+    }
+  $page =~ s#^\s*$item_start(.*)$item_end\s*$#$1#s;
+  %mod_cnt = ();
+  my @mods = split (/$item_end\s*$item_start/s, $page);
+  $mod_cnt{$_}++ for (@mods);
+  print_test_log ("Repos found: " . join (', ', keys (%mod_cnt)) . ".");
+}
+
+sub list_git_browsing
+{
+  print_test_log ("Looking for repos in the browsing section.");
+  find_repos_in_html (
+    "<h2>Browsing the Git Repository</h2>.*<ul>",
+    "</ul>.*<h2>Getting a Copy of the Git Repository</h2>",
+    "<li><a [^>]*>", "</a></li>"
+  );
+  return check_module_set (@_);
+}
+
+sub list_git_anon_access
+{
+  print_test_log ("Looking for repos in anonymous access section.");
+  find_repos_in_html (
+    "<h3>Anonymous access</h3>\\s*<pre>",
+    "</pre>\\s*<h3>Authenticated SSH access</h3>",
+    "", "\\ngit clone[^\\n]*[.]git\\n"
+  );
+  return check_module_set (@_);
+}
+
+sub list_git_ssh_access
+{
+  print_test_log ("Looking for repos in authenticated access section.");
+  find_repos_in_html (
+    "<h3>Authenticated SSH access</h3>\\s*<pre>", "</pre>\\s*<p>",
+    "", "\\ngit clone[^\\n]*[.]git\\n"
+  );
+  return check_module_set (@_);
+}
+
+sub list_git_repos
+{
+  my @paths = @_;
+  my $exit_code = 0;
+  print_test_log ("Enumerating git repos.");
+  $agent->get ($git_url);
+  $exit_code = 1 if list_git_browsing (@paths);
+  $exit_code = 1 if list_git_anon_access (@paths);
+  $exit_code = 1 if list_git_ssh_access (@paths);
+  return  $exit_code;
+}
+
+sub list_git_admin_items
+{
+  my @repos = @_;
+  s/[.]git$// for @repos;
+  print_test_log ("Looking for repos on Git administration page.");
+  find_repos_in_html (
+    "web server[.]</p>\\s*<div class=.boxitem[^>]*>\\s<h2 [^>]*>",
+    "</h2>\\s*.*?</div>\\s*<p class=.backtotop.>",
+    "\\s*<div class=.boxitem[^>]*>\\s<h2 [^>]*>", "</h2>\\s*.*?</div>\\s*"
+  );
+  return check_module_set (@repos);
+}
+
+sub defstr
+{
+  my $a = shift;
+  return defined $a? $a: '(undef)';
+}
+
+sub set_git_input
+{
+  my ($i, $field_name, $val) = @_;
+  print_test_log ("Setting $field_name$i to '" . defstr ($val) . "'.");
+  $agent->form_with_fields ("desc$i", "disable_tarballs$i", "readme$i");
+  my $form = $agent->current_form ();
+  my $input = $form->find_input ("#${field_name}$i");
+  $agent->set_fields ("$field_name$i" => $val);
+  $agent->click ();
+  $agent->form_with_fields ("desc$i", "disable_tarballs$i", "readme$i");
+  $form = $agent->current_form ();
+  $input = $form->find_input ("#${field_name}$i");
+  return if (defstr ($input->value ()) eq defstr ($val));
+  print_test_log ("Can't set: the value is '" . defstr ($input->value ()) . "'.");
+  exit (1);
+}
+
+sub set_git_field
+{
+  my $field_name = shift;
+  my @ret;
+  my $i;
+  for ($i = 0; $i <= $#git_paths; $i++)
+    {
+      $agent->form_with_fields ("desc$i", "disable_tarballs$i", "readme$i");
+      my $form = $agent->current_form ();
+      my $input = $form->find_input ("#${field_name}$i");
+      push @ret, $input->value ();
+    }
+  for ($i = 0; ($i <= $#git_paths) && @_; $i++)
+    {
+      set_git_input ($i, $field_name, shift);
+    }
+  return @ret;
+}
+
+sub modify_git_configuration
+{
+  my @new_desc = ('default reposiory', 'third', 'first', 'second');
+  my @new_readme = ('admin.readme', 'third.read.me', 'readme.first', 'rm.sec');
+  my @new_tarballs = (undef, 1, undef, 1);
+  my @desc = set_git_field ('desc', @new_desc);
+  my @readme = set_git_field ('readme', @new_readme);
+  my @tarballs = set_git_field ('disable_tarballs', @new_tarballs);
+
+  $agent->get ($git_url);
+  my $ret = list_git_repos (@new_desc);
+  print_test_log ("Resetting Git configuration.");
+  $agent->get ($admin_url);
+  set_git_field ('desc', @desc);
+  set_git_field ('readme', @readme);
+  set_git_field ('disable_tarballs', @tarballs);
+  return $ret;
+}
+
 sub run_git_checks
 {
   simulate_git_repos ();
+  exit (1) if list_git_repos (@git_paths);
+  $agent->get ($admin_url);
+  exit (1) if list_git_admin_items (@git_paths);
+  exit (1) if modify_git_configuration ();
 }
 
 log_in ($agent);
