@@ -236,6 +236,7 @@ function utils_cutstring ($string, $length = 35)
 
 function utils_strftime ($timestamp, $format)
 {
+  global $sys_use_strftime;
   if (!empty ($sys_use_strftime) && function_exists ("strftime"))
     {
       $state = utils_disable_warnings (E_DEPRECATED);
