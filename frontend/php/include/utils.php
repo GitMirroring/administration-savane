@@ -247,8 +247,10 @@ function utils_strftime ($timestamp, $format)
   $env['TZ'] = getenv ('TZ');
   $cmd = "date +$format -d @$timestamp";
   utils_run_proc ($cmd, $output, $error, ['env' => $env]);
-  $output = substr ($output, 0, -1); # Drop trailing "\n".
-  return $output;
+  if ($output !== null)
+    return substr ($output, 0, -1); # Drop trailing "\n".
+  # Most probably, couldn't run $cmd due to lack of memory.
+  return '';
 }
 
 # Return a formatted date for a unix timestamp.
