@@ -220,19 +220,20 @@ $(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
 $(all_test_scripts): %: %.in Makefile dirs.stamp
 	$(subst_in_files) < $< > $@
 	chmod +x $@
+all_substituted = $(substituted) $(all_test_scripts)
 
 # Force trivial cgitrepos for the time being.
 cgirepos: ; echo -n > $@
 
 EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
   AUTHORS.SourceForge db/initial.sql db/mk-db.sql.in db/sample.sql \
-  $(substituted:%=%.in) $(mirmon_pkgdata) backend/README \
+  $(all_substituted:%=%.in) $(mirmon_pkgdata) backend/README \
   autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
   caboose/parse-files.awk doc/comments-via-email doc/git-repos \
   doc/signed-notifications
 
-CLEANFILES = $(substituted) dirs.stamp db/init.stamp
+CLEANFILES = $(all_substituted) dirs.stamp db/init.stamp
 
 dest_local = $(DESTDIR)$(pkgstatedir)
 dest_run = $(DESTDIR)$(rundir)
