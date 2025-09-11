@@ -236,22 +236,24 @@ function utils_cutstring ($string, $length = 35)
 
 function utils_strftime ($timestamp, $format)
 {
-  global $sys_use_strftime;
-  if (!empty ($sys_use_strftime) && function_exists ("strftime"))
+  if (!empty ($GLOBALS['sys_use_strftime']) && function_exists ("strftime"))
     {
+      if ($format === null)
+        return "PHP$timestamp";
       $state = utils_disable_warnings (E_DEPRECATED);
       $ret = strftime ($format, $timestamp);
       utils_restore_warnings ($state);
       return $ret;
     }
+  if ($format === null)
+    return "date-based$timestamp";
   $env['LC_ALL'] = setlocale (LC_TIME, 0);
   $env['TZ'] = getenv ('TZ');
   $cmd = "date +$format -d @$timestamp";
   utils_run_proc ($cmd, $output, $error, ['env' => $env]);
   if ($output !== null)
     return substr ($output, 0, -1); # Drop trailing "\n".
-  # Most probably, couldn't run $cmd due to lack of memory.
-  return '';
+  return ''; # Most probably, couldn't run $cmd due to lack of memory.
 }
 
 # Return a formatted date for a unix timestamp.

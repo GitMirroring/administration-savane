@@ -347,6 +347,39 @@ function test_sys_upload_dir ()
   return '<b>unlink failed:</b>' . $e['message'];
 }
 
+function test_strftime_alternatives ($t, &$defs)
+{
+  global $sys_use_strftime;
+  if (empty ($sys_use_strftime))
+    {
+      if (!function_exists ('strftime'))
+        return;
+      $sys_use_strftime = 1;
+    }
+  else
+    unset ($sys_use_strftime);
+  $mark = utils_strftime ('', null);
+  $defs["$mark implementation"] =
+    ['strftime-alt-timestamp', utils_strftime ($t, '%c')];
+}
+
+function test_strftime ()
+{
+  global $sys_use_strftime;
+  print html_h (2, "Implementation of strftime");
+  $saved = $sys_use_strftime;
+  $t = time ();
+  $defs = [];
+  list_sysvar ('use_strftime', $defs);
+  $defs['Check for internal strftime'] =
+    function_exists ('strftime')? 'Exists.': 'Absent.';
+  $defs['Used implementation'] = ['strftime-imp10n', utils_strftime ('', null)];
+  $defs["Timestamp $t"] = ['strftime-timestamp', utils_strftime ($t, '%c')];
+  test_strftime_alternatives ($t, $defs);
+  print html_dl ($defs);
+  $sys_use_strftime = $saved;
+}
+
 function test_captcha ()
 {
   global $sys_captchadir;
@@ -1083,6 +1116,7 @@ function test_sysconfigs ()
   include $GLOBALS['sys_conf_file'];
   test_sysvars ();
   print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
+  test_strftime ();
   test_captcha ();
   test_mailman ();
   test_hash ();

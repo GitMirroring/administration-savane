@@ -565,6 +565,7 @@ ordinary_files = \
   php/testing/index.php \
   php/testing/markup.php \
   php/testing/sane.php \
+  php/testing/strftime.php \
   php/testing/test.php \
   php/testing/utils.php \
   php/u \
