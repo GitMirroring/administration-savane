@@ -133,6 +133,8 @@
 
 [BUILD]
 
+* Add PHP syntax check to installcheck.
+
 * New configure option, --disable-captcha.
 
 * Rewrite from scratch tests in tests/.  Make distcheck depend on them.

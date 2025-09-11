@@ -770,7 +770,8 @@ install-data-hook: ; \
   ${INSTALL} -m 444 ../savane-${VERSION}.tar.gz \
     "${dest_dir}/php/source/savane-${SV_GIT_COMMIT}.tar.gz"
 
-installcheck_local_targets = installcheck-run-tests installcheck-test-symlinks
+installcheck_local_targets = installcheck-run-tests installcheck-test-symlinks \
+  installcheck-php-lint
 
 .PHONY: $(installcheck_local_targets)
 installcheck-local: $(installcheck_local_targets)
@@ -801,5 +802,16 @@ installcheck-test-symlinks: ; \
         echo link "$$l" not found in the installed tree; \
         exit 1; \
       done
+
+installcheck-php-lint: ; \
+  failed=`\
+    find ${dest_dir}/php -type f -name '*.php' | while read f; do \
+      $(PHP) -l "$$f" >& /dev/null || printf "%s\n" "$$f"; \
+    done; \
+  `; \
+  if test "$${failed:+y}"; then \
+    printf "%s\n" "$$failed" | while read f; do $(PHP) -l "$$f"; done; \
+    exit 1; \
+  fi
 
 endif # HAVE_FRONTEND
