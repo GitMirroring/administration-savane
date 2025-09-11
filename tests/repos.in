@@ -46,7 +46,7 @@ use Savane::Version;
 use Savane::Test;
 use WWW::Mechanize;
 
-PrintVersionOrHelp ("Test group registration and removal.");
+PrintVersionOrHelp ("Test repositories and their modules.");
 
 my $unix_group_name = 'administration';
 my $agent = make_agent ();
