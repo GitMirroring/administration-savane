@@ -44,7 +44,7 @@
 $testconfig_php = true;
 require_once ("include/ac_config.php");
 $sys_file_domain = '';
-foreach (['database', 'mailman', 'savane-git'] as $inc)
+foreach (['database', 'mailman', 'savane-git', 'trackers/data'] as $inc)
   require_once ("include/$inc.php");
 
 function return_bytes ($v)
@@ -863,7 +863,80 @@ function test_db_structure ()
     test_db_fields ($t, $field_func, $defs);
   print html_dl ($defs);
 }
+function query_required_field_usage ()
+{
+  $subqueries = [];
+  foreach (utils_get_tracker_list () as $tracker)
+    $subqueries[] = "
+      (
+        SELECT
+          '$tracker' AS `tracker`, `g`.`group_id`, `unix_group_name`,
+          `f`.`bug_field_id`, `field_name`, `label`
+        FROM
+          `groups` `g` JOIN `{$tracker}_field_usage` `u`
+            ON `g`.`group_id` = `u`.`group_id`
+          JOIN `{$tracker}_field` `f` ON `u`.`bug_field_id` = `f`.`bug_field_id`
+        WHERE `f`.`required` = 1 AND `u`.`use_it` = 0
+      )";
 
+  return db_execute (
+    join (' UNION ', $subqueries)
+    . ' ORDER BY `unix_group_name`, `tracker`, `field_name`, `label`'
+  );
+}
+function print_db_values ($res, $columns)
+{
+  $header_row = "<tr>"
+    . join ('', array_map (function ($x) { return "<th>$x</th>"; }, $columns))
+    . "</tr>\n";
+  print "<table border='1'>\n$header_row";
+  while ($row = db_fetch_array ($res))
+    {
+      print "<tr>";
+      foreach ($columns as $col)
+        print "<td>{$row[$col]}</td>";
+      print "</tr>\n";
+    }
+  print "$header_row\n</table>\n";
+}
+function explain_unused_required_tracker_fields ($ids)
+{
+  print "<p>Having required fields that aren't used is counter-intuitive "
+    . "and may result in unexpected behavior when configuring trackers.</p>\n";
+  $q = [];
+  foreach ($ids as $tracker => $vals)
+    $q[] = "
+      UPDATE `{$tracker}_field_usage` SET `use_it` = 1
+      WHERE `bug_field_id` IN (" . join (', ', array_unique ($vals)) . ");
+    ";
+  $query = join ("\n", $q);
+  print "<p>You can fix this issue with a query like <code>$query</code></p>\n";
+}
+function list_unused_required_tracker_fields ()
+{
+  print html_h (3, 'Unused required tracker fields');
+  $res = query_required_field_usage ();
+  if (!db_numrows ($res))
+    {
+      print "<p>No such fields found.</p>\n";
+      return;
+    }
+  $columns = [
+   'group_id', 'unix_group_name', 'tracker',
+   'bug_field_id', 'field_name', 'label'
+  ];
+  $ids = [];
+  while ($row = db_fetch_array ($res))
+    $ids[$row['tracker']][] = $row['bug_field_id'];
+  db_data_seek ($res);
+  explain_unused_required_tracker_fields ($ids);
+  print_db_values ($res, $columns);
+}
+function test_db_values ()
+{
+  print html_h (2, 'Database value consistency');
+  list_unused_required_tracker_fields ();
+}
 function array_add_suff ($arr, $suff)
 {
   if (!is_array ($suff))
@@ -993,8 +1066,9 @@ function test_mysql ()
   if (try_db_connect ())
     return;
   print html_dl (test_mysql_params ());
-  test_db_structure ();
   test_db_features ();
+  test_db_structure ();
+  test_db_values ();
 }
 
 function list_unset_val ($must_be_unset, $value)

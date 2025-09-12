@@ -42,6 +42,8 @@
 * The 'bottom' feedback overlapped the 'top' feedback; now messages from 'top'
   feedback are duplicated in 'bottom' feedback.
 
+* A few tests for database record consistency is added to /testconfig.php.
+
 * Bug fixes:
 
 ** Regular expressions in tracker item selection criteria didn't work, like
