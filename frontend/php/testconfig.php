@@ -932,10 +932,74 @@ function list_unused_required_tracker_fields ()
   explain_unused_required_tracker_fields ($ids);
   print_db_values ($res, $columns);
 }
+function query_duplicate_usage ()
+{
+  $subqueries = [];
+  foreach (utils_get_tracker_list () as $tracker)
+    $subqueries[] =  "
+      (
+        SELECT
+          '$tracker' AS `tracker`, `unix_group_name`, `u`.`group_id`,
+          `u`.`bug_field_id`, `field_name`, `label`, COUNT(*) AS `count`
+        FROM
+          `{$tracker}_field_usage` `u` JOIN `groups` `g`
+            ON `u`.`group_id` = `g`.`group_id`
+          JOIN `{$tracker}_field` `f` ON `f`.`bug_field_id` = `u`.`bug_field_id`
+        GROUP BY
+          `tracker`, `unix_group_name`, `u`.`group_id`, `u`.`bug_field_id`,
+          `field_name`, `label`
+      )";
+  return db_execute ("
+    SELECT * FROM (" . join (' UNION ', $subqueries) . ") `data`
+    WHERE `count` > 1
+    ORDER BY `unix_group_name`, `tracker`, `bug_field_id`"
+  );
+}
+function explain_duplicate_field_usage ($ids)
+{
+  $q = [];
+  foreach ($ids as $tracker => $vals)
+    foreach ($vals as $group_id => $field_ids)
+      $q[] = "
+        SELECT * FROM `{$tracker}_field_usage`
+        WHERE
+          `bug_field_id` IN (" . join (', ', $field_ids) . ")
+          AND `group_id` = $group_id
+        ORDER BY `bug_field_id`
+      ";
+  $queries = join (
+    "\n",
+    array_map (function ($x) { return "<li><code>$x</code></li>"; }, $q)
+  );
+  print "<p>Generally, every group should have no more than one usage record "
+    . "for every field.  To look into the issue, you can use queries like,</p>"
+    . "\n<ul>$queries</ul>\n";
+}
+function list_duplicate_field_usage ()
+{
+  print html_h (3, 'Duplicate field usage');
+  $columns = [
+    'group_id', 'unix_group_name', 'tracker', 'bug_field_id',
+    'field_name', 'label', 'count'
+  ];
+  $res = query_duplicate_usage ();
+  if (!db_numrows ($res))
+    {
+      print "<p>No duplicate usage found.</p>\n";
+      return;
+    }
+  $ids = [];
+  while ($row = db_fetch_array ($res))
+    $ids[$row['tracker']][$row['group_id']][] = $row['bug_field_id'];
+  db_data_seek ($res);
+  print_db_values ($res, $columns);
+  explain_duplicate_field_usage ($ids);
+}
 function test_db_values ()
 {
   print html_h (2, 'Database value consistency');
   list_unused_required_tracker_fields ();
+  list_duplicate_field_usage ();
 }
 function array_add_suff ($arr, $suff)
 {
