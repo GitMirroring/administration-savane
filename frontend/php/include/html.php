@@ -684,8 +684,8 @@ function html_build_localized_select_box (
 )
 {
   return html_build_select_box_from_arrays (
-    utils_result_column_to_array($result),
-    utils_result_column_to_array($result, 1, true),
+    utils_result_column_to_array ($result),
+    utils_result_column_to_array ($result, 1, true),
     $name, $checked_val, $show_100, $text_100, $show_any, $text_any,
     $show_unknown, $title
   );

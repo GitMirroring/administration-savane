@@ -100,14 +100,14 @@ function read_test_key ($algo)
   $dir = dirname (__FILE__) . "/testing/gpg";
   $keys = [];
   foreach (["$algo-pub.asc", "$algo-priv.asc"] as $p)
-   {
-     $k = utils_read_file ("$dir/$p");
-     $keys[] = $k;
-     if (!empty ($k))
-       continue;
-     print "Can't read $dir/$p";
-     return null;
-   }
+    {
+      $k = utils_read_file ("$dir/$p");
+      $keys[] = $k;
+      if (!empty ($k))
+        continue;
+      print "Can't read $dir/$p";
+      return null;
+    }
   return join ("\n", $keys);
 }
 
@@ -750,7 +750,7 @@ function test_language ($lang)
       $res = gettext ($str);
       if (($res == $str  && $lang == 'en') || ($res != $str && $lang != 'en'))
         return "$str => $res";
-     }
+    }
   $ret = "<b>Fail.</b> Check <code>locale -a</code> output,\n"
     . "be sure to install language-pack-* in Trisquel";
   return $ret;
