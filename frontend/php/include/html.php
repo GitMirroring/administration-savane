@@ -503,6 +503,29 @@ function html_dl ($defs, $id = '')
   return "$ret</dl>\n";
 }
 
+# Transform a list of items in a joined strings with items tagged, e.g.
+# html_join_enclosed (['a', 'b'], ['li', 'code']) produces
+# "<li><code>a</code></li>\n<li><code>b</code></li>".
+function html_join_enclosed ($items, $tags, $separator = "\n", $protect = false)
+{
+  $head = $tail = '';
+  if (!is_array ($tags))
+    $tags = [$tags];
+  foreach ($tags as $t)
+    {
+      $head .= "<$t>";
+      $tail = "</$t>$tail";
+    }
+  $tagged = array_map (
+    function ($x) use ($head, $tail, $protect) {
+      $x = $protect? utils_specialchars ($x): $x;
+      return "$head$x$tail";
+    },
+    $items
+  );
+  return join ($separator, $tagged);
+}
+
 function html_h ($no, $title, $attr = [])
 {
   $extra = '';

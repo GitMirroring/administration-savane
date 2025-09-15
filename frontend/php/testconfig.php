@@ -886,9 +886,7 @@ function query_required_field_usage ()
 }
 function print_db_values ($res, $columns)
 {
-  $header_row = "<tr>"
-    . join ('', array_map (function ($x) { return "<th>$x</th>"; }, $columns))
-    . "</tr>\n";
+  $header_row = "<tr>" . html_join_enclosed ($columns, 'th', '') . "</tr>\n";
   print "<table border='1'>\n$header_row";
   while ($row = db_fetch_array ($res))
     {
@@ -967,10 +965,7 @@ function explain_duplicate_field_usage ($ids)
           AND `group_id` = $group_id
         ORDER BY `bug_field_id`
       ";
-  $queries = join (
-    "\n",
-    array_map (function ($x) { return "<li><code>$x</code></li>"; }, $q)
-  );
+  $queries = html_join_enclosed ($q, ['li', 'code']);
   print "<p>Generally, every group should have no more than one usage record "
     . "for every field.  To look into the issue, you can use queries like,</p>"
     . "\n<ul>$queries</ul>\n";
