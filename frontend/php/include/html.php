@@ -522,23 +522,17 @@ function html_build_list_table_top (
 )
 {
   $return = '';
-
   if ($table)
     $return = "\n<table class='box'>\n";
-
   $return .= "<tr>\n";
-
   $count = count ($title_arr);
-  if ($links_arr)
-    for ($i = 0; $i < $count; $i++)
-      {
-        $ln = $links_arr[$i]; $ti = $title_arr[$i];
-        $return .= "<th class='boxtitle'>"
-          . "<a class='sortbutton' href=\"$ln\">$ti</a></th>\n";
-      }
-  else
-    for ($i = 0; $i < $count; $i++)
-      $return .= "<th class='boxtitle'>{$title_arr[$i]}</th>\n";
+  for ($i = 0; $i < $count; $i++)
+    {
+      $ti = $title_arr[$i];
+      if ($links_arr)
+        $ti = "<a class='sortbutton' href=\"{$links_arr[$i]}\">$ti</a>";
+      $return .= "<th class='boxtitle'>$ti</th>\n";
+    }
   return "$return</tr>\n";
 }
 
