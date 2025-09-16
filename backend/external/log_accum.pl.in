@@ -140,6 +140,7 @@ my $help_string = <<"EOF";
     send-diff
 EOF
 $help_string =~ s/^  //gm;
+$help_string =~ s/\n$//;
 
 PrintVersionOrHelp ($help_string, 1);
 

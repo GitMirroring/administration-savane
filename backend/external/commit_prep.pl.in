@@ -69,6 +69,7 @@ my $help_string = <<"EOF";
     -v, --version      show Savane version and exit
 EOF
 $help_string =~ s/^  //gm;
+$help_string =~ s/\n$//;
 
 PrintVersionOrHelp ($help_string, 1);
 GetOptions ('T|u=s' => \$temp_name, 'tmp-dir=s' => \$TMPDIR)
