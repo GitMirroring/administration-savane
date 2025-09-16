@@ -562,11 +562,9 @@ ordinary_files = \
   php/testing/gpg/ecc25519-priv.asc \
   php/testing/gpg/rsa-pub.asc \
   php/testing/gpg/rsa-priv.asc \
-  php/testing/index.php \
   php/testing/markup.php \
   php/testing/sane.php \
   php/testing/strftime.php \
-  php/testing/test.php \
   php/testing/utils.php \
   php/u \
   php/us \
