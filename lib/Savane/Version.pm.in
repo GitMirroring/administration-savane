@@ -112,7 +112,7 @@ sub get_prog_name
 
 sub help_is_short
 {
-  return $_[0] =~ /\.$/;
+  return ($_[0] =~ /\.$/) && !($_[0] =~ /\n/g);
 }
 
 sub expand_short_help
