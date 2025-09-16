@@ -132,6 +132,14 @@ $sys_cc_error = [
   'sv-dev@example.org' => ['exclude' => ['[E_USER_NOTICE] permission denied']]
 ];
 
+# The next two variables define the maximum number of error email reports
+# ($sys_error_cc_limit) within $sys_error_cc_period, in seconds.
+# Further messages are blocked until the period passes.
+# When $sys_debug_footer is set, these variables are ignored and the rate
+# isn't limited.
+$sys_error_cc_limit = 20;
+$sys_error_cc_period = 60;
+
 # Add debugging summary to error log every time when page output completes.
 $sys_debug_footer = true;
 # Character set to select when connecting to the database.
@@ -170,7 +178,7 @@ $sys_passwd_user_shell = "$sys_pkgconfdir/user-shell";
 $sys_max_items_per_page = 1000;
 # Use strftime to render timestamps when that function exists; when this
 # variable is empty, a command line like 'date +$format -d $timestamp' is used.
-# As of PHP 8.1, strftime is deprecated and unreliable.
+# Since PHP 8.1, strftime is deprecated.
 $sys_use_strftime = true;
 
 # Use captcha when registering user accounts.

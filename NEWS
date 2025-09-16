@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* Error email report rate limit is configurable, see doc/cc-error.
+
 * When browsing trackers, support for quotes in text fields used as criteria
   is added.
 

@@ -21,6 +21,12 @@ Note that the feature is implemented with the set_error_handler PHP function,
 so it doesn't report certain types of errors that land in the PHP error
 log file.
 
+Two variables are used to limit email rate, $sys_error_cc_limit and
+$sys_error_cc_period.  The former specifies the maximum number of messages
+sent within a period of $sys_error_cc_period; further email messages are
+suppressed.  However, when $sys_debug_footer is set, this setting is ignored
+and the rate is unlimited.
+
 Copyright (C) 1999, 2000 The SourceForge Crew
 Copyright (C) 2000-2006 Mathieu Roy
 Copyright (C) 2014, 2016, 2017 Assaf Gordon

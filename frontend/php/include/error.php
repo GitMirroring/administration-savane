@@ -281,11 +281,28 @@ function error_cc_limit_path ($override = null)
   return "$sys_trackers_attachments_dir/cc-error";
 }
 
-define ('ERROR_CC_LIMIT', 17);
-define ('ERROR_CC_PERIOD', 289);
-
-function error_count_cc ($cc_error_file = null, $period = ERROR_CC_PERIOD)
+# Maximum number of error email messages sent in error_cc_period () seconds.
+function error_cc_limit ()
 {
+  global $sys_error_cc_limit;
+  if (isset ($sys_error_cc_limit) && $sys_error_cc_period > 0)
+    return $sys_error_cc_limit;
+  return 17;
+}
+
+# Period for error email message rate in seconds.
+function error_cc_period ()
+{
+  global $sys_error_cc_period;
+  if (isset ($sys_error_cc_period) && $sys_error_cc_period > 0)
+    return $sys_error_cc_period;
+  return 289;
+}
+
+function error_count_cc ($cc_error_file = null, $period = null)
+{
+  if ($period === null)
+    $period = error_cc_period ();
   $t = time ();
   $ret = [$t];
   $t -= $period;
@@ -298,13 +315,14 @@ function error_count_cc ($cc_error_file = null, $period = ERROR_CC_PERIOD)
   return $ret;
 }
 
-function error_check_cc_limit ($cc_error_file = null, $limit = ERROR_CC_LIMIT)
+function error_check_cc_limit ($cc_error_file = null, $limit = null)
 {
   $sem = null; $ret = true;
   $state = utils_disable_warnings ();
   if (function_exists ('sem_get'))
     $sem = utils_sem_acquire (__FILE__);
   $timestamps = error_count_cc ($cc_error_file);
+  $limit = $limit === null? error_cc_limit (): $limit;
   if (count ($timestamps) <= $limit)
     {
       $ret = false;
@@ -360,9 +378,46 @@ function error_test_cc_limit_update ()
   return no_i18n ('OK');
 }
 
+function error_list_cc_error_param ($var)
+{
+  global $sys_debug_footer;
+  $msg = no_i18n ('The effective value is %s.');
+  if ($sys_debug_footer)
+    $msg = no_i18n (
+      'With $sys_debug_footer unset, the effective value would be %s.'
+    );
+  $func = "error_cc_$var";
+  $id = "cc-error-$var";
+  $val = $func ();
+  $val_txt = "<br />\n" . sprintf ($msg, $val);
+  if (!isset ($GLOBALS["sys_cc_error_$var"]))
+    return [$id, no_i18n ('<b>unset</b>') . $val_txt];
+  $ret = $GLOBALS["sys_cc_error_$var"];
+  if ($ret != $val)
+    $ret .= no_i18n (' <strong>(overridden)</strong>') . $val_txt;
+  return [$id, $ret];
+}
+
+function error_show_sys_debug_footer ()
+{
+  global $sys_debug_footer;
+  $id = 'error-cc-debug-footer';
+  if (!isset ($sys_debug_footer))
+    return [$id, no_i18n ('<b>unset</b>')];
+  $ret = $sys_debug_footer;
+  if ($sys_debug_footer)
+    $ret .=
+      no_i18n ("<br />\n<i>The error email report rate is not limited.</i>");
+  return [$id, $ret];
+}
+
 function error_test_cc_limit ()
 {
-  $defs = [no_i18n ('timestamp file') => error_test_cc_limit_path ()];
+  $defs = [no_i18n ("\$sys_debug_footer") => error_show_sys_debug_footer ()];
+  foreach (['limit', 'period'] as $var)
+  $defs[no_i18n ("\$sys_error_cc_$var")] =
+    error_list_cc_error_param ($var);
+  $defs[no_i18n ('timestamp file')] = error_test_cc_limit_path ();
   $state = utils_disable_warnings ();
   $cnt = count (error_count_cc ()) - 1;
   utils_restore_warnings ($state);
