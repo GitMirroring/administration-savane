@@ -1144,24 +1144,34 @@ function list_unset_val ($must_be_unset, $value)
     . "at production servers.</strong>";
 }
 
+function process_sysvar_flags ($tag, $flags)
+{
+  $ret = [];
+  foreach ($flags as $f => $key)
+    $ret[$key] = strstr ($tag, $f) !== false;
+  $tag = str_replace (array_keys ($flags), '', $tag);
+  return [$tag, $ret];
+}
+
 function list_sysvar ($tag, &$defs)
 {
-  $must_be_unset = substr ($tag, 0, 1) === '!';
-  $tag = preg_replace ('/^!/', '', $tag);
+  list ($tag, $flags) = process_sysvar_flags (
+    $tag, ['!' => 'must_be_unset', '*' => 'must_be_hidden']
+  );
   $var = "sys_$tag";
   $value = '<>';
   if (isset ($GLOBALS[$var]))
     $value = utils_specialchars (print_r ($GLOBALS[$var], true));
-  if ($var == "sys_dbpasswd")
+  if ($flags['must_be_hidden'])
     $value = "**************";
-  $defs[$var] = list_unset_val ($must_be_unset, $value);
+  $defs[$var] = list_unset_val ($flags['must_be_unset'], $value);
 }
 
 function output_sysvars ()
 {
   $variables = [
     'dbcharset',
-    'dbhost', 'dbname', 'dbpasswd', 'dbport', 'dbsocket', 'dbuser',
+    'dbhost', 'dbname', '*dbpasswd', 'dbport', 'dbsocket', 'dbuser',
     'default_domain', 'brother_domain', 'file_domain', 'https_host',
     'gpg_name', 'gpg_home', 'graphviz',
     'etc_dir', 'incdir', 'upload_dir', 'url_topdir',
