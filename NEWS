@@ -51,6 +51,8 @@
 
 * Bug fixes:
 
+** The frontend/testing/account.php test was broken when running installcheck.
+
 ** Regular expressions in tracker item selection criteria didn't work, like
   /bugs/index.php?go_report=Apply&group=proba&func=browse&summary=%2Ffn.rd%2F.
 

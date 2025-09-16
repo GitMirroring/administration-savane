@@ -47,7 +47,22 @@
 #
 # In case of fail, diagnostic text is output to stdout.
 
-define ('TESTING_HASH', true); # Use deterministic pseudo-random numbers.
+# When TESTING_HASH is defined, the code use deterministic pseudo-random numbers,
+# hash_crypt returns null in case of failure instead of invoking exit_error (),
+# sv_crypt retries follow without a delay, and sv_crypt is disabled unless
+# INSTALLCHECK is defined.
+define ('TESTING_HASH', true);
+while ($a = array_shift ($argv))
+  if ($a === '--')
+    break;
+while ($a = array_shift ($argv))
+  if (preg_match ('/(.*)=(.*)/', $a, $matches))
+    define ($matches[1], $matches[2]);
+  else
+    define ($a, true);
+if (defined ('BINDIR'))
+  $bindir = BINDIR;
+
 require_once ('include/account.php');
 function validate_order ($round, $set, $len)
 {
@@ -69,16 +84,18 @@ function validate_order ($round, $set, $len)
 }
 
 # This is possible in theory, but we'd better look for a bug in our code.
-function check_if_order_is_trivial ($round, $order)
+function check_if_order_is_trivial ($round, $order, $len)
 {
   foreach ($order as $idx => $val)
     if ($idx != $val)
       return;
-  print "Round $round: the order is trivial\n";
+  print "Round $round, length $len: the order is trivial\n";
 }
 
 function test_gen_random_order ($len)
 {
+  if ($len < 0x11)
+    $len = 0x11;
   for ($i = 0; $i < 0x121; $i++)
     {
       $order = hash_gen_random_order ($len);
@@ -88,7 +105,7 @@ function test_gen_random_order ($len)
           $set[$o]++;
         else
           $set[$o] = 1;
-      check_if_order_is_trivial ($i, $order);
+      check_if_order_is_trivial ($i, $order, $len);
       validate_order ($i, $set, $len);
     }
 }

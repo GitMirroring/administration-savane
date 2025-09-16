@@ -777,13 +777,13 @@ installcheck-local: $(installcheck_local_targets)
 installcheck-run-tests: ; \
   cd $(dest_dir)/php; \
   for t in account error format_date markup sane utils; do \
-    res=`$(PHP) -c $(DESTDIR)/$(confdir)/php.ini \
-        -d INSTALLCHECK=1 testing/$$t.php \
+    res=`$(PHP) -c $(DESTDIR)$(confdir)/php.ini \
+        testing/$$t.php -- INSTALLCHECK BINDIR=$(DESTDIR)$(bindir) \
       || echo Exit code of \
-         \'$(PHP) -c $(DESTDIR)/$(confdir)/php.ini \
-            -d INSTALLCHECK=1 testing/$$t.php\' is $$?`; \
+         \'$(PHP) -c $(DESTDIR)$(confdir)/php.ini testing/$$t.php -- \
+            INSTALLCHECK BINDIR=$(DESTDIR)$(bindir)\' is $$?`; \
     if test "x$$res" = x; then continue; fi; \
-    echo $$t failed: ; echo $$res; exit 1; \
+    echo $$t failed: ; echo "$$res"; exit 1; \
   done
 
 installcheck-test-symlinks: ; \
