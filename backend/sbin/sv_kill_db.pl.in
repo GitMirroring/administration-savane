@@ -49,16 +49,7 @@ our $rundir = "@mysql_rundir@";
 our $pidfile = "@mysql_pid@";
 our $socket = "@mysql_socket@";
 
-my $help =
-"Usage: $0 [OPTIONS]
-
-Stop database daemon of Savane.
-
-  -h, --help         show this help and exit
-  -v, --version      show Savane version and exit
-";
-
-PrintVersionOrHelp ($help);
+PrintVersionOrHelp ("Stop database daemon of Savane.");
 
 die "$rundir directory doesn't exist.\n" unless -d $rundir;
 die "PID file $pidfile doesn't exist.\n" unless -e $pidfile;

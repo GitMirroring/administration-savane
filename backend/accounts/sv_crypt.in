@@ -45,17 +45,11 @@ use strict;
 use warnings;
 use Savane::Version;
 
-my $help =
-"Usage: $0 [OPTIONS]
-
-Run crypt(3).  Used in web UI to make and validate hashed passphrases.
-The first line is the hashed passphrase (or the prefix), the rest is
-the passphrase in cleartext.
-
-  -h, --help           show this help and exit
-  -v, --version        show Savane version and exit";
-
-PrintVersionOrHelp ($help);
+PrintVersionOrHelp (
+  "Run crypt(3).  Used in web UI to make and validate hashed passphrases.\r"
+  . "The first line is the hashed passphrase (or the prefix), the rest is\r"
+  . "the passphrase in cleartext."
+);
 
 my $pfx_hash = <STDIN>;
 my $passphrase = '';

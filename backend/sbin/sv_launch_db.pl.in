@@ -54,16 +54,7 @@ our $filepriv = "@mysql_secfile@";
 our $datadir = "@mysql_datadir@";
 our $tmpdir = "@mysql_tmpdir@";
 
-my $help =
-"Usage: $0 [OPTIONS]
-
-Launch database daemon for Savane.
-
-  -h, --help         show this help and exit
-  -v, --version      show Savane version and exit
-";
-
-PrintVersionOrHelp ($help);
+PrintVersionOrHelp ('Launch database daemon for Savane.');
 
 my $conf_file = "@confdir@/launch-db.pl";
 our $sql_mode = '';

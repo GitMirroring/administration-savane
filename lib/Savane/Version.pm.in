@@ -110,6 +110,9 @@ sub get_prog_name
   return basename ($name);
 }
 
+# Help string is considered short when it contains no newline characters
+# and ends in '.'; all "\r" characters will be converted to new lines,
+# and common help about usage and options will be added.
 sub help_is_short
 {
   return ($_[0] =~ /\.$/) && !($_[0] =~ /\n/g);
@@ -119,6 +122,7 @@ sub expand_short_help
 {
   my $help = shift;
   return $help unless (help_is_short ($help));
+  $help =~ s/\r/\n/g;
   $help = <<"  EOF";
     Usage: $0 [OPTIONS]
 
@@ -128,6 +132,7 @@ sub expand_short_help
     -v, --version        show Savane version and exit
   EOF
   $help =~ s,^ {4},,gm;
+  $help =~ s/\n$//;
   return $help;
 }
 
