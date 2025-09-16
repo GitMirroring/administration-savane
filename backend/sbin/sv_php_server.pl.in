@@ -52,19 +52,28 @@ my $host = "@WWW_SERVER_HOST@";
 my $file_host = "@FILE_SERVER_HOST@";
 my $php_bin = "@PHP@";
 my @ini_directives;
+my $confdir = '@confdir@';
 
-my $help =
-"Usage: $0 [OPTIONS]
+my $help = <<"EOF";
+  Usage: $0 [OPTIONS]
 
-Run frontend in PHP built-in server.
+  Run frontend in PHP built-in server.
 
-  -h, --help           show this help and exit
-  -v, --version        show Savane version and exit
-      --php-bin        PHP executable [$php_bin]
-  -d directive[=value] pass additional INI directive to PHP
-      --host           set host [$host]
-      --file-host      set host for files [$file_host]
-      --port           set port [$port]";
+    -h, --help           show this help and exit
+    -v, --version        show Savane version and exit
+        --php-bin        PHP executable [$php_bin]
+    -d directive[=value] pass additional INI directive to PHP
+        --host           set host [$host]
+        --file-host      set host for files [$file_host]
+        --port           set port [$port]
+
+  Note that when you set --port different from the default, you may want
+  to set the \$sys_detect_www_port variable in $confdir/savane.conf.php,
+  in configure time with '--enable-detect-www-port' option or manually
+  after installation.
+EOF
+$help =~ s,^  ,,gm;
+$help =~ s,\n$,,;
 
 $help .= "\n\nNote: Port is less than 1024; this script needs root privileges."
   if $port < 1024;
@@ -82,7 +91,7 @@ $php_bin = abs_path ($php_bin);
 chdir '@frontenddir@/php';
 
 $ENV{'LANG'} = 'C';
-$ENV{'SAVANE_CONF'} = '@confdir@';
+$ENV{'SAVANE_CONF'} = '$confdir';
 
 my $pid = 0;
 $pid = fork () if $file_host ne $host;
@@ -94,7 +103,7 @@ foreach my $d (@ini_directives)
     push @ini_options, '-d', $d;
   }
 system (
-  $php_bin, '-c', '@confdir@/php.ini', @ini_options, '-S', "$h:$port",
+  $php_bin, '-c', "$confdir/php.ini", @ini_options, '-S', "$h:$port",
   '-t', "@frontenddir@/php", "@frontenddir@/local.php"
 );
 kill ($pid) if $pid;

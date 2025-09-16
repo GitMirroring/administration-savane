@@ -28,6 +28,13 @@ $sys_https_host = $sys_default_domain;
 $sys_brother_domain = "savannah.nongnu.org";
 # Host for serving files.
 $sys_file_domain = "file.$sys_default_domain";
+
+# This variable is set in ./configure time; with the next two lines,
+# it overrides $sys_www_sever_port with the info coming from Apache.
+$sys_detect_www_port = false;
+if ($sys_detect_www_port)
+  $sys_www_server_port = $_SERVER['SERVER_PORT'];
+
 if ($sys_www_server_port != 80)
   foreach (['default', 'brother', 'file'] as $v)
     ${"sys_{$v}_domain"} .= ":$sys_www_server_port";
