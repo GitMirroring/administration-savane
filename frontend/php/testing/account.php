@@ -49,24 +49,6 @@
 
 define ('TESTING_HASH', true); # Use deterministic pseudo-random numbers.
 require_once ('include/account.php');
-# '0' will not do as a passphrase because account_validpw checks for emptiness.
-# Running checks against non-ASCII strings is essential because Perl may have
-# issues with them.
-$plain_pw = ['10', '11', '\xff\xaa\xff', '\x9f\x98\x85'];
-foreach ($plain_pw as $p)
-  $stored_pw[$p] = hash_encryptpw ($p);
-
-foreach ($plain_pw as $p)
-  if (!account_validpw ($stored_pw[$p], $p))
-    print "False negative for >$p< ({$stored_pw[$p]})\n";
-foreach ($plain_pw as $k0 => $p0)
-  foreach ($plain_pw as $k => $p)
-    {
-      if ($k0 == $k)
-        continue;
-      if (account_validpw ($stored_pw[$p0], $p))
-        print "False positive for >$p< against hash generated for >$p0<\n";
-    }
 function validate_order ($round, $set, $len)
 {
   for ($i = 0; $i < $len; $i++)
@@ -110,5 +92,38 @@ function test_gen_random_order ($len)
       validate_order ($i, $set, $len);
     }
 }
+
+function test_sv_crypt_failure ()
+{
+  global $bindir, $sys_use_php_crypt;
+  list ($bin, $use) = [$bindir, $sys_use_php_crypt];
+  $sys_use_php_crypt = false;
+  $bindir = '.';
+  $res = hash_encryptpw ('passphrase');
+  if ($res !== null)
+    print "Unexpected success: hash_encryptpw returns $res\n";
+  list ($bindir, $sys_use_php_crypt) = [$bin, $use];
+}
+
+# '0' will not do as a passphrase because account_validpw checks for emptiness.
+# Running checks against non-ASCII strings is essential because Perl may have
+# issues with them.
+$plain_pw = ['10', '11', '\xff\xaa\xff', '\x9f\x98\x85'];
+foreach ($plain_pw as $p)
+  $stored_pw[$p] = hash_encryptpw ($p);
+
+foreach ($plain_pw as $p)
+  if (!account_validpw ($stored_pw[$p], $p))
+    print "False negative for >$p< ({$stored_pw[$p]})\n";
+foreach ($plain_pw as $k0 => $p0)
+  foreach ($plain_pw as $k => $p)
+    {
+      if ($k0 == $k)
+        continue;
+      if (account_validpw ($stored_pw[$p0], $p))
+        print "False positive for >$p< against hash generated for >$p0<\n";
+    }
 test_gen_random_order (strlen ($stored_pw[$plain_pw[0]]));
+if (defined ('INSTALLCHECK'))
+  test_sv_crypt_failure ();
 ?>

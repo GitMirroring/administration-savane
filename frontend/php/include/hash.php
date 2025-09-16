@@ -180,15 +180,36 @@ function hash_get_pw_cost ($use_low_cost = false)
   return $costs[$pfx][1];
 }
 
+function hash_try_sv_crypt ($plainpw, $salt)
+{
+  global $bindir;
+  for ($i = 0; $i < 5; $i++)
+    {
+      $exit_code = utils_run_proc (
+        "$bindir/sv_crypt", $out, $err, ['in' => "$salt\n$plainpw\n"]
+      );
+      if (!$exit_code)
+        return substr ($out, 0, -1);
+      if (!defined ('TESTING_HASH'))
+        sleep (1);
+      if ($i)
+        continue;
+      utils_disable_warnings (); # Don't report further failures.
+    }
+  return null;
+}
+
 function hash_crypt ($plainpw, $salt)
 {
-  global $sys_use_php_crypt, $bindir;
+  global $sys_use_php_crypt;
   if (!empty ($sys_use_php_crypt) || defined ('NO_SV_CRYPT'))
     return crypt ($plainpw, $salt);
-  $code = utils_run_proc (
-    "$bindir/sv_crypt", $out, $err, ['in' => "$salt\n$plainpw\n"]
-  );
-  return substr ($out, 0, -1);
+  $state = utils_disable_warnings (0, true);
+  $ret = hash_try_sv_crypt ($plainpw, $salt);
+  utils_restore_warnings ($state);
+  if ($ret === null && !defined ('TESTING_HASH'))
+    exit_error ();
+  return $ret;
 }
 
 function hash_get_prefix_with_cost ($use_low_cost = false)
