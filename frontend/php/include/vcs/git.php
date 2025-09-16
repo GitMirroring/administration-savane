@@ -104,7 +104,7 @@ function git_list_subdirs ($dir_name)
   # isn't readable, the attributes need fixing in the filesystem.
   $dir_handle = opendir ($dir_name);
   if ($dir_handle === false)
-    return null;
+    return [];
   $ret = [];
   while (($entry = readdir ($dir_handle)) !== false)
     if (preg_match ('/[.]git$/', $entry))
