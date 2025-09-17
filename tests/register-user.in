@@ -49,6 +49,7 @@ use WWW::Mechanize;
 PrintVersionOrHelp ("Test user account creation and removal.");
 
 my $agent = make_agent ();
+my $login = 'test_user';
 
 sub get_password
 {
@@ -61,7 +62,6 @@ sub get_password
 
 sub request_account
 {
-  my $login = 'test_user';
   $agent->get (make_url ('account/register.php'));
   my $passwd = get_password ();
   $agent->form_with_fields (qw (form_id));
@@ -73,7 +73,7 @@ sub request_account
   );
   $agent->click ('update');
   print_test_log ("Account requested.");
-  return ($login, $passwd);
+  return $passwd;
 }
 
 sub get_confirmation_url
@@ -139,7 +139,9 @@ sub check_for_idle_warning
   return 1;
 }
 
-my ($login, $passwd) = request_account ();
+print_test_log ("Checking for <$login> existence.");
+check_inaccessibility ("users/$login");
+my $passwd = request_account ();
 confirm_account ($login, $passwd);
 log_out ($agent);
 $agent->get (make_url ("users/$login"));
