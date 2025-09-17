@@ -79,6 +79,7 @@ sub request_account
 sub get_confirmation_url
 {
   my $url = get_mbox ();
+  return '' if $url eq '';
   clear_mbox ();
   $url =~ s/^.*?visit the following URL[^:]*:\n+//s;
   $url =~ s/\n.*$//s;
@@ -129,13 +130,13 @@ sub check_for_idle_warning
       if (have_idle_warning ())
         {
           print_test_log ('Warning persists when visiting next page.');
-          exit (1);
+          return 1;
         }
       print_test_log ('Warning disappears when visiting next page.');
-      return;
+      return 0;
     }
   print_test_log ('No warning about being idle is shown on log in.');
-  exit (1);
+  return 1;
 }
 
 my ($login, $passwd) = request_account ();
@@ -144,9 +145,10 @@ log_out ($agent);
 $agent->get (make_url ("users/$login"));
 print_test_log ("Account exists.");
 log_in ($agent, $login, $passwd);
-check_for_idle_warning ();
+my $exit_code = check_for_idle_warning ();
+save_page ($agent, 'idle-warning.html') if $exit_code;
 request_removal ();
 confirm_deletion ();
 check_inaccessibility ("users/$login");
 print_test_log ("Test done.");
-exit (0);
+exit ($exit_code);
