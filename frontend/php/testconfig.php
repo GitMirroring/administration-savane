@@ -503,29 +503,37 @@ function test_hash_cost ()
   return $cost;
 }
 
+function test_hash_algo ($pfx, $prefix, $rounds)
+{
+  global $sys_pw_prefix, $sys_pw_rounds;
+  $plain = 'foo \xff\xaa\xff \x9f\x98\x85';
+  $sys_pw_prefix = $pfx;
+  if ($pfx === $prefix)
+    $sys_pw_rounds = $rounds;
+  else
+    unset ($sys_pw_rounds);
+  $stored = hash_encryptpw ($plain);
+  $ret = "<b>fail</b>";
+  if ($stored === '*0')
+    $ret .= ': algorithm is unsupported';
+  elseif (account_validpw ($stored, $plain))
+    $ret = 'OK';
+  return $ret;
+}
+
 function test_hash_algos ()
 {
-  global $sys_pw_rounds, $sys_pw_prefix;
-  list ($saved_prefix, $saved_rounds) = [$sys_pw_prefix, $sys_pw_rounds];
+  global $sys_pw_rounds, $sys_pw_prefix, $hash_silent_crypt;
+  list ($prefix, $rounds, $silent) = [
+    $sys_pw_prefix, $sys_pw_rounds, $hash_silent_crypt
+  ];
+  $hash_silent_crypt = true;
   $defs = [];
-  $plain = 'foo \xff\xaa\xff \x9f\x98\x85';
   foreach (hash_supported_pw_prefices () as $pfx)
-    {
-      $sys_pw_prefix = $pfx;
-      if ($pfx === $saved_prefix)
-        $sys_pw_rounds = $saved_rounds;
-      else
-        unset ($sys_pw_rounds);
-      $stored = hash_encryptpw ($plain);
-      $ret = "<b>fail</b>";
-      if ($stored === '*0')
-        $ret .= ': algorithm is unsupported';
-      elseif (account_validpw ($stored, $plain))
-        $ret = 'OK';
-      $defs[$pfx] = $ret;
-    }
+    $defs[$pfx] = test_hash_algo ($pfx, $prefix, $rounds);
   print html_dl ($defs);
-  list ($sys_pw_prefix, $sys_pw_rounds) = [$saved_prefix, $saved_rounds];
+  list ($sys_pw_prefix, $sys_pw_rounds, $hash_silent_crypt) =
+    [$prefix, $rounds, $silent];
 }
 
 function test_hash ()

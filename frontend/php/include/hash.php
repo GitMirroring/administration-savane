@@ -201,9 +201,16 @@ function hash_try_sv_crypt ($plainpw, $salt)
 
 function hash_crypt ($plainpw, $salt)
 {
-  global $sys_use_php_crypt;
+  global $sys_use_php_crypt, $hash_silent_crypt;
   if (!empty ($sys_use_php_crypt) || defined ('NO_SV_CRYPT'))
-    return crypt ($plainpw, $salt);
+    {
+      if (!empty ($hash_silent_crypt))
+        $saved = utils_disable_warnings (E_DEPRECATED);
+      $ret = crypt ($plainpw, $salt);
+      if (!empty ($hash_silent_crypt))
+        utils_restore_warnings ($saved);
+      return $ret;
+    }
   $state = utils_disable_warnings (0, true);
   $ret = hash_try_sv_crypt ($plainpw, $salt);
   utils_restore_warnings ($state);
