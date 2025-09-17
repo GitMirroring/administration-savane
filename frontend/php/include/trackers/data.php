@@ -1172,15 +1172,26 @@ function trackers_data_have_usage ($table, $field_id, $group_id)
   return db_numrows ($result);
 }
 
+function trackers_data_delete_usage ($table, $field_id, $group_id)
+{
+  db_execute (
+    "DELETE FROM `$table` WHERE `bug_field_id` = ? AND `group_id` = ?",
+    [$field_id, $group_id]
+  );
+}
+
 function trackers_data_execute_usage ($table, $field_id, $group_id, $fields)
 {
-  if (trackers_data_have_usage ($table, $field_id, $group_id))
+  $rows = trackers_data_have_usage ($table, $field_id, $group_id);
+  if ($rows == 1)
     $result = db_autoexecute (
       $table, $fields, DB_AUTOQUERY_UPDATE,
       "`bug_field_id` = ? AND `group_id` = ?", [$field_id, $group_id]
     );
   else
     {
+      if ($rows > 1) # Something went wrong.  Start from a clean page.
+        trackers_data_delete_usage ($table, $field_id, $group_id);
       $fields['bug_field_id'] = $field_id;
       $fields['group_id'] = $group_id;
       $result = db_autoexecute ($table, $fields, DB_AUTOQUERY_INSERT);

@@ -969,6 +969,8 @@ function explain_duplicate_field_usage ($ids)
   print "<p>Generally, every group should have no more than one usage record "
     . "for every field.  To look into the issue, you can use queries like,</p>"
     . "\n<ul>$queries</ul>\n";
+  print "<p>Editing field usage should also fix this issue "
+    . "for that field and group.</p>\n";
 }
 function list_duplicate_field_usage ()
 {
