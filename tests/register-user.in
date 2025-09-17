@@ -79,7 +79,7 @@ sub request_account
 sub get_confirmation_url
 {
   my $url = get_mbox ();
-  return '' if $url eq '';
+  return make_url ('no-such-page') if $url eq '';
   clear_mbox ();
   $url =~ s/^.*?visit the following URL[^:]*:\n+//s;
   $url =~ s/\n.*$//s;
