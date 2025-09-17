@@ -172,7 +172,12 @@ sub get_mbox
   my $clear = shift;
   my $fd;
   my @ret;
-  open ($fd, '<', mbox_path ()) or return '';
+  my $mp = mbox_path ();
+  unless (open ($fd, '<', $mp))
+    {
+      print_test_log ("Can't open mbox $mp.");
+      return '';
+    }
   while (<$fd>)
     {
       push @ret, $_;
