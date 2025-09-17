@@ -1161,78 +1161,78 @@ function trackers_data_reset_usage ($field_name, $group_id)
   fb (_("Field value successfully reset to defaults."));
 }
 
-# Update a field settings in the trackers_usage_table.
-# Rk: All the show_on_xxx boolean parameters are set to 0 by default because their
-# values come from checkboxes and if not checked the form variable
-# is not set at all. It must be 0 to be ok with the SQL statement.
-function trackers_data_update_usage (
-  $field_name, $group_id, $label, $description, $use_it, $rank, $display_size,
-  $empty_ok, $keep_history, $show_on_add_members = 0, $show_on_add = 0,
-  $transition_default_auth = TRANSITION_ALLOWED
-)
+# See if this field usage exists in the table for this group.
+function trackers_data_have_usage ($table, $field_id, $group_id)
 {
-  # If it's a required field then make sure the use_it flag is true.
-  if (trackers_data_is_required ($field_name))
-    $use_it = 1;
-
-  $field_id = trackers_data_get_field_id ($field_name);
-
-  $lbl = isset ($label)? $label: null;
-  $desc = isset ($description)? $description: null;
-  $disp_size = isset ($display_size)? $display_size: null;
-  $emp_ok = isset ($empty_ok)? $empty_ok: null;
-  $keep_hist = isset ($keep_history)? $keep_history: null;
-
-  foreach (
-    [ 'show_on_add' => 0, 'show_on_add_members' => 0, 'use_it' => 0,
-      'transition_default_auth' => '']
-    as $var => $val
-  )
-    if (!isset ($$var))
-      $$var = $val;
-
-  # See if this field usage exists in the table for this group.
   $result = db_execute ("
-    SELECT bug_field_id FROM " . ARTIFACT . "_field_usage
-    WHERE bug_field_id = ? AND group_id = ?",
+    SELECT `bug_field_id` FROM `$table`
+    WHERE `bug_field_id` = ? AND `group_id` = ?",
     [$field_id, $group_id]
   );
-  $rows = db_numrows ($result);
+  return db_numrows ($result);
+}
 
-  # If it does exist, then update it, else insert a new usage entry
-  # for this field.
-  if ($rows)
+function trackers_data_execute_usage ($table, $field_id, $group_id, $fields)
+{
+  if (trackers_data_have_usage ($table, $field_id, $group_id))
     $result = db_autoexecute (
-      ARTIFACT . '_field_usage',
-      [
-        'use_it' => $use_it, 'show_on_add' => $show_on_add,
-        'show_on_add_members' => $show_on_add_members,
-        'place' => $rank, 'custom_label' => $lbl,
-        'custom_description' => $desc, 'custom_display_size' => $disp_size,
-        'custom_empty_ok' => $emp_ok, 'custom_keep_history' => $keep_hist,
-        'transition_default_auth' => $transition_default_auth
-      ],
-      DB_AUTOQUERY_UPDATE, "bug_field_id = ? AND group_id = ?",
-      [$field_id, $group_id]
+      $table, $fields, DB_AUTOQUERY_UPDATE,
+      "`bug_field_id` = ? AND `group_id` = ?", [$field_id, $group_id]
     );
   else
-    $result = db_autoexecute (
-      ARTIFACT . '_field_usage',
-      [
-        'bug_field_id' => $field_id, 'group_id' => $group_id,
-        'use_it' => $use_it, 'show_on_add' => $show_on_add,
-        'show_on_add_members' => $show_on_add_members,
-        'place' => $rank, 'custom_label' => $lbl,
-        'custom_description' => $desc, 'custom_display_size' => $disp_size,
-        'custom_empty_ok' => $emp_ok, 'custom_keep_history' => $keep_hist,
-        'transition_default_auth' => $transition_default_auth
-      ], DB_AUTOQUERY_INSERT
-    );
+    {
+      $fields['bug_field_id'] = $field_id;
+      $fields['group_id'] = $group_id;
+      $result = db_autoexecute ($table, $fields, DB_AUTOQUERY_INSERT);
+    }
 
   if (db_affected_rows ($result) < 1)
     fb (_("Update of field usage failed."), 1);
   else
     fb (_("Field usage updated."));
+}
+
+function trackers_data_make_usage_fields (
+  $label, $description, $use_it, $rank, $size, $empty_ok, $keep_history,
+  $on_add_members, $on_add, $allow_transition
+)
+{
+  foreach (
+    [0 => ['on_add', 'on_add_members', 'use_it'], '' => ['allow_transition']]
+    as $val => $vars
+  )
+    foreach ($vars as $var)
+      $$var = isset ($$var)? $$var: $val;
+  # NULL keys are cast to '', so do this in a separate cycle.
+  foreach (['label', 'description', 'size', 'empty_ok', 'keep_history'] as $v)
+    $$v = isset ($$v)? $$v: null;
+  return [
+    'use_it' => $use_it, 'custom_label' => $label, 'place' => $rank,
+    'show_on_add' => $on_add, 'show_on_add_members' => $on_add_members,
+    'custom_keep_history' => $keep_history, 'custom_empty_ok' => $empty_ok,
+    'custom_description' => $description, 'custom_display_size' => $size,
+    'transition_default_auth' => $allow_transition
+  ];
+}
+
+# Update a field settings in the trackers_usage_table.
+function trackers_data_update_usage (
+  $field_name, $group_id, $label, $description, $use_it, $rank, $display_size,
+  $empty_ok, $keep_history, $show_on_add_members, $show_on_add,
+  $transition_default_auth
+)
+{
+  if (trackers_data_is_required ($field_name))
+    $use_it = 1;
+
+  $field_id = trackers_data_get_field_id ($field_name);
+  $fields = trackers_data_make_usage_fields (
+    $label, $description, $use_it, $rank, $display_size,
+    $empty_ok, $keep_history, $show_on_add_members, $show_on_add,
+    $transition_default_auth
+  );
+  $table = ARTIFACT . '_field_usage';
+  trackers_data_execute_usage ($table, $field_id, $group_id, $fields);
 }
 
 # Get a list of technicians for a tracker.
