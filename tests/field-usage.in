@@ -87,7 +87,7 @@ sub find_the_form
 my_log_in ();
 print_test_log ("Visiting field usage page.");
 $agent->get (make_url ("task/admin/field_usage.php?group=$group"));
-print_test_log ("Trying originator phone link.");
+print_test_log ("Looking for originator phone link.");
 my $link = $agent->find_link (text => 'Originator Phone');
 if (!defined ($link))
   {
@@ -95,7 +95,13 @@ if (!defined ($link))
     exit (1);
   }
 my $field_usage_url = $link->url ();
+my $broken_field = 'no-such-field';
+my $broken_url = $field_usage_url;
+$broken_url =~ s/([?&])field=[^&]*([&]|$)/$1field=$broken_field$2/;
+print_test_log ("Trying non-existing field '$broken_field'.");
+check_inaccessibility (unmake_url ($broken_url), '-');
 print_test_log ("Visiting field usage edit page.");
+print_test_log ("Trying originator phone link.");
 $agent->get ($field_usage_url);
 my $form = find_the_form ();
 my %form_settings = $form->form;

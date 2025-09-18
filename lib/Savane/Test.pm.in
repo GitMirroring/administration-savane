@@ -47,8 +47,8 @@ require Exporter;
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
-  clear_mbox get_mbox make_url print_test_log make_agent log_in log_in_su
-  log_out check_inaccessibility get_user_id save_page
+  clear_mbox get_mbox make_url unmake_url print_test_log make_agent
+  log_in log_in_su log_out check_inaccessibility get_user_id save_page
 );
 sub save_page
 {
@@ -132,6 +132,13 @@ sub get_user_id
 sub make_url
 {
   return "$root_url$_[0]";
+}
+
+sub unmake_url
+{
+  my $ret = shift;
+  $ret =~ s,^$root_url/?,,;
+  return $ret;
 }
 
 my $log_fd;

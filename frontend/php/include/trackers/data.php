@@ -597,13 +597,23 @@ function trackers_data_use_field_custom_values ($field, $group_id)
   return db_numrows ($result);
 }
 
+function trackers_data_bf_var ($by_field_id)
+{
+  $var_name = 'BF_USAGE_BY_';
+  if ($by_field_id)
+    return $var_name . 'ID';
+  return $var_name . 'NAME';
+}
+
+function trackers_data_field_exists ($field, $by_field_id = false)
+{
+  $var_name = trackers_data_bf_var ($by_field_id);
+  return array_key_exists ($field, $GLOBALS[$var_name]);
+}
+
 function trackers_data_field_val ($field, $idx, $by_field_id = false)
 {
-  $var_name = "BF_USAGE_BY_";
-  if ($by_field_id)
-    $var_name .= 'ID';
-  else
-    $var_name .= 'NAME';
+  $var_name = trackers_data_bf_var ($by_field_id);
 
   if (!isset ($GLOBALS[$var_name][$field][$idx]))
     return null;

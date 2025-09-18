@@ -393,6 +393,8 @@ function print_update_field_footer ()
 # - "special" means the field is not entered by the user but by the system
 function print_update_field_page ($field, $group_id, $group)
 {
+  if (!trackers_data_field_exists ($field))
+    exit_error (sprintf (_("No field '%s' found."), $field));
   print_update_field_header ($field, $group_id, $group);
   print_general_controls ($field);
   print "\n\n" . html_h (2, _("Access:"));
