@@ -70,11 +70,11 @@ foreach (
 $sign_func = function ($sign, $id, $legend)
 {
   return "<span class=\"show-hide\" id=\"$id\">"
-   . "<span class=\"minusorplus\">($sign)</span>$legend</span>";
+   . "<span class=\"minusorplus\">$sign</span>$legend</span>";
 };
 print git_agpl_notice_for_js ()
   . "document.write('"
-  .  $sign_func ('-', $hide, $legend) .  $sign_func ('+', $show, $legend)
+  .  $sign_func ('▼', $hide, $legend) .  $sign_func ('►', $show, $legend)
   . "');\n";
 
 $inline_el = $show_el;
