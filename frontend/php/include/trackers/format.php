@@ -718,6 +718,7 @@ function format_item_cc_list_comment ($row)
     TRACKERS_CC_COMMENTED => _('Posted a comment'),
     TRACKERS_CC_UPDATED => _('Updated the item'),
     TRACKERS_CC_VOTED => _('Voted in favor of this item'),
+    TRACKERS_CC_SUBSCRIBED => _('Subscribed to discussion')
   ];
 
   $comment = $row['comment'];
@@ -782,6 +783,7 @@ function format_item_cc_list_entry ($row, $item_id, $user_data, $i)
 function format_item_cc_list ($item_id, $group_id)
 {
   global $HTML;
+  $cc_list = [];
   $result = trackers_data_get_cc_list ($item_id);
   $n = db_numrows ($result);
   $out = format_item_cc_list_header ($n);
@@ -790,8 +792,43 @@ function format_item_cc_list ($item_id, $group_id)
   $user_data = format_item_cc_list_user_data ($group_id);
   $i = 0;
   while ($row = db_fetch_array ($result))
-    $out .= format_item_cc_list_entry ($row, $item_id, $user_data, $i++);
+    {
+      $out .= format_item_cc_list_entry ($row, $item_id, $user_data, $i++);
+      $cc_list[$row['email']] = $row;
+    }
   $out .= $HTML->box_bottom (1);
-  return $out;
+  return [$out, $cc_list];
+}
+
+function format_item_subscribe ($item_id, $group_id)
+{
+  $name = user_getname ();
+  return '<p>' . _('You are not subscribed to this discussion.') . ' '
+    . form_submit (_("Subscribe"), "submit")  . "</p>\n";
+}
+
+function format_item_unsubscribe ($item_id, $group_id)
+{
+  return '<p>' . _('You are subscribed to this discussion.') . ' '
+    . form_submit (_("Unsubscribe"), "submit") . "</p>\n";
+}
+
+function format_item_subscription ($item_id, $group_id, $cc_list)
+{
+  if (!user_isloggedin ())
+    return;
+  $subscribed = false;
+  foreach ([user_getid (), user_getname (), user_getemail ()] as $email)
+    if (!empty ($cc_list[$email]))
+      $subscribed = true;
+  $ret = form_tag () . form_hidden ([
+    'group_id' => $group_id, 'item_id' => $item_id,
+    'func' => $subscribed? 'unsubscribe': 'subscribe',
+  ]);
+  if ($subscribed)
+    $ret .= format_item_unsubscribe ($item_id, $group_id);
+  else
+    $ret .= format_item_subscribe ($item_id, $group_id);
+  return "$ret</form>\n";
 }
 ?>

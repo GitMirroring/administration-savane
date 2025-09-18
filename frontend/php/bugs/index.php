@@ -505,7 +505,7 @@ switch ($func)
 
   case 'delete_cc':
     # Remove a person from the Cc.
-    $changed = trackers_delete_cc ($group_id, $item_id, $item_cc_id, $changes);
+    trackers_delete_cc ($group_id, $item_id, $item_cc_id);
 
     # Unset previous settings and return to the item.
     $depends_search = $reassign_change_group_search = $add_cc = $input_file
@@ -579,9 +579,13 @@ switch ($func)
   case 'viewspam':
     include '../include/trackers_run/mod.php';
     break;
+  case 'subscribe':
+  case 'unsubscribe':
+    include '../include/trackers_run/mod.php';
+    break;
 
-  case 'browse' :
-  default :
+  case 'browse':
+  default:
     include '../include/trackers_run/browse.php';
     break;
 } # switch ($func)

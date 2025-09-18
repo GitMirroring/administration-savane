@@ -117,6 +117,9 @@ if (!group_restrictions_check ($group_id, ARTIFACT, TRACKER_EVENT_COMMENT))
     $enable_comments = false;
   }
 
+if (in_array ($func, ['subscribe', 'unsubscribe']))
+  trackers_handle_item_subscription ($func, $item_id, $group_id);
+
 trackers_header (
   ['title' => "$item_name, " . utils_cutstring ($res_arr['summary'])]
 );
@@ -169,6 +172,9 @@ function help_on_member ()
         return;
       }
 }
+
+list ($item_cc_text, $item_cc_list) = format_item_cc_list ($item_id, $group_id);
+print format_item_subscription ($item_id, $group_id, $item_cc_list);
 
 $is_manager = member_check (0, $group_id, 3);
 help_on_member ();
@@ -683,7 +689,7 @@ if ($is_trackeradmin)
       . "\n";
     print "<p>&nbsp;</p>\n";
   }
-show_item_cc_list ($item_id, $group_id);
+print $item_cc_text;
 print "<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();
 

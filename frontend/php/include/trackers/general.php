@@ -51,6 +51,7 @@ foreach (
 
 define ('TRACKERS_CC_SUBMITTED', '-SUB-');
 define ('TRACKERS_CC_COMMENTED', '-COM-');
+define ('TRACKERS_CC_SUBSCRIBED', '-SSC-');
 define ('TRACKERS_CC_UPDATED', '-UPD-');
 define ('TRACKERS_CC_VOTED', '-VOT-');
 define ('TRACKERS_CC_REGEX', '-...-');
@@ -1259,7 +1260,7 @@ function trackers_insert_cc ($item_id, $cc, $added_by, $comment, $date)
 
   # Store the change in history only if the CC was a manual add, not a direct
   # effect of another action.
-  if ($manual)
+  if ($manual || $comment === TRACKERS_CC_SUBSCRIBED)
     trackers_data_add_history (
       "Carbon-Copy", "-", "Added $cc", $item_id, 0, 0, 1
     );
@@ -1315,9 +1316,15 @@ function trackers_add_cc ($item_id, $email, $comment)
   return $ok;
 }
 
-function trackers_delete_cc (
-  $group_id = false, $item_id = false, $item_cc_id = false
-)
+function trackers_add_cc_history_rm ($email, $item_id)
+{
+  fb (_("CC Removed"));
+  trackers_data_add_history (
+    "Carbon-Copy", "Removed $email", "-", $item_id, 0, 0, 1
+  );
+}
+
+function trackers_delete_cc ($group_id, $item_id, $item_cc_id)
 {
   # Extract data about the CC.
   $res1 = db_execute ("
@@ -1370,34 +1377,25 @@ function trackers_delete_cc (
       fb (_("Failed to remove CC"), 1);
       return false;
     }
-  fb (_("CC Removed"));
-  trackers_data_add_history (
-    "Carbon-Copy", "Removed " . db_result ($res1, 0, 'email'), "-", $item_id,
-    0, 0, 1
-  );
+  trackers_add_cc_history_rm (db_result ($res1, 0, 'email'), $item_id);
   return true;
 }
 
 # Remove the uid from an item CC list.
 function trackers_delete_cc_by_user ($item_id, $user_id)
 {
-  # An user may be in CC of an item in different ways
-  #  - as uid
-  #  - as username
-  #  - as email
-  # We will try them all, to make sure the user is properly removed from CC.
-
+  # A user may be in CC of an item in different ways: as uid, as username,
+  # as email.  We will try them all, to make sure the user is properly removed
+  # from CC.
   if (!user_exists ($user_id))
     return false;
 
   $result = db_execute ("
-    DELETE  FROM " . ARTIFACT . "_cc
-    WHERE bug_id = ?  AND (email = ? OR email = ? OR email = ?)",
+    DELETE FROM " . ARTIFACT . "_cc
+    WHERE bug_id = ? AND (email = ? OR email = ? OR email = ?)",
     [$item_id, $user_id, user_getname ($user_id), user_getemail ($user_id)]
   );
-
-  # Return the success or failure.
-  return db_numrows ($result) >= 1;
+  return $result === true || db_numrows ($result);
 }
 
 function trackers_delete_dependency (
@@ -1805,5 +1803,19 @@ function trackers_get_row_class ($field_name = '', $reset = false)
   if ($reset === false || $reset < 0)
     $j++;
   return $ret;
+}
+
+function trackers_handle_item_subscription ($func, $item_id, $group_id)
+{
+  if (!user_isloggedin ())
+    return;
+  if ($func === 'unsubscribe')
+    {
+      trackers_delete_cc_by_user ($item_id, user_getid ());
+      trackers_add_cc_history_rm (user_getname (), $item_id);
+    }
+  else
+    trackers_add_cc ($item_id, user_getname (), TRACKERS_CC_SUBSCRIBED);
+  trackers_init ($group_id);
 }
 ?>

@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-09-02 08:59+0000\n"
-"PO-Revision-Date: 2025-09-02 15:44+0000\n"
+"POT-Creation-Date: 2025-09-18 16:58+0000\n"
+"PO-Revision-Date: 2025-09-18 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -248,33 +248,6 @@ msgstr "Шаблон ответа удален"
 msgid "Error deleting canned response"
 msgstr "Ошибка при удалении шаблона ответа"
 
-msgid "Empty field value is not allowed"
-msgstr "Пустое значение недопустимо"
-
-msgid "Canned bug response inserted"
-msgstr "Шаблон ответа на ошибку вставлен"
-
-msgid "Error inserting canned bug response"
-msgstr "Ошибка при выполнении вставки шаблона ответа на ошибку"
-
-msgid "Error updating canned bug response"
-msgstr "Ошибка при обновлении шаблона ответа на ошибку"
-
-msgid "Canned bug response updated"
-msgstr "Шаблон ответа на ошибку обновлен"
-
-msgid "Insert failed"
-msgstr "Сбой при вставке"
-
-msgid "New transition inserted"
-msgstr "Новый переход вставлен"
-
-msgid "Update of transition failed"
-msgstr "Не удается обновить переход"
-
-msgid "Transition updated"
-msgstr "Переход обновлен"
-
 #, php-format
 msgid ""
 "The field you requested '%s' is not used by your group or you are not\n"
@@ -326,16 +299,6 @@ msgstr "Употребления"
 
 msgid "ID"
 msgstr "Идентификатор"
-
-#. TRANSLATORS: this is field status.
-msgid "Active"
-msgstr "Активно"
-
-msgid "Permanent"
-msgstr "Постоянно"
-
-msgid "Hidden"
-msgstr "Скрыто"
 
 msgid ""
 "No active value for this field. Create one or reactivate a hidden value (if\n"
@@ -526,17 +489,17 @@ msgid ""
 "common responses."
 msgstr "Общие сообщения могут сэкономить много времени на обычные ответы."
 
-msgid "Field Label"
-msgstr "Название поля"
-
-msgid "Scope"
-msgstr "Контекст"
-
 msgid "System"
 msgstr "Система"
 
 msgid "Group"
 msgstr "Группа"
+
+msgid "Field Label"
+msgstr "Название поля"
+
+msgid "Scope"
+msgstr "Контекст"
 
 msgid "Canned Responses"
 msgstr "Шаблоны ответов"
@@ -599,20 +562,14 @@ msgstr "Новое значение"
 msgid "No automatic update"
 msgstr "Не обновлять автоматически"
 
-msgid "Modify Field Usage"
-msgstr "Изменить использование поля"
+msgid "Jump to this field values"
+msgstr "Значения этого поля"
 
 msgid "Field Label:"
 msgstr "Название поля:"
 
-msgid "Jump to this field values"
-msgstr "Значения этого поля"
-
-msgid "Required"
-msgstr "обязательно"
-
-msgid "Used"
-msgstr "используется"
+msgid "Modify Field Usage"
+msgstr "Изменить использование поля"
 
 msgid "whether to keep in history"
 msgstr "сохранять ли в истории"
@@ -626,8 +583,11 @@ msgstr "Не учитывать изменения значений этого �
 msgid "Item History:"
 msgstr "История заявки:"
 
-msgid "Access:"
-msgstr "Доступ:"
+msgid "Required"
+msgstr "обязательно"
+
+msgid "Used"
+msgstr "используется"
 
 msgid "whether the field is mandatory"
 msgstr "обязательно ли это поле"
@@ -643,9 +603,6 @@ msgstr "Обязательно, только если присутствует �
 
 msgid "This field is:"
 msgstr "Это поле"
-
-msgid "On new item submission:"
-msgstr "При написании заявки:"
 
 msgid "Show field to anonymous users"
 msgstr "Показывать поле анонимным пользователям"
@@ -685,6 +642,16 @@ msgstr "запрещены"
 
 msgid "Reset to defaults"
 msgstr "Сбросить в исходное состояние"
+
+#, php-format
+msgid "No field '%s' found."
+msgstr "Поле «%s» не найдено."
+
+msgid "Access:"
+msgstr "Доступ:"
+
+msgid "On new item submission:"
+msgstr "При написании заявки:"
 
 msgid "Select Fields"
 msgstr "Выбрать поля"
@@ -859,9 +826,6 @@ msgstr "Ранг в поиске"
 
 msgid "Column width (optional)"
 msgstr "Ширина столбца (необязательно)"
-
-msgid "Personal"
-msgstr "Личное"
 
 #. TRANSLATORS: this string is as argument in
 #. "Browse with the %s query form".
@@ -4491,10 +4455,25 @@ msgstr "Редактор заявки"
 msgid "Voted in favor of this item"
 msgstr "Голосует за эту заявку"
 
+msgid "Subscribed to discussion"
+msgstr "Отслеживает обсуждение"
+
 #. TRANSLATORS: the first argument is email, the second is user's name.
 #, php-format
 msgid "<!-- email --> %1$s added by %2$s"
 msgstr "%1$s добавлен пользователем %2$s"
+
+msgid "You are not subscribed to this discussion."
+msgstr "Вы не подписаны на это обсуждение."
+
+msgid "Subscribe"
+msgstr "Подписаться"
+
+msgid "You are subscribed to this discussion."
+msgstr "Вы подписаны на это обсуждение."
+
+msgid "Unsubscribe"
+msgstr "Отменить подписку"
 
 msgid "Anonymous Users"
 msgstr "Анонимные пользователи"
@@ -4735,14 +4714,14 @@ msgstr "Адрес оповещения добавлен."
 msgid "CC addition failed."
 msgstr "Не удается добавить адрес оповещения."
 
+msgid "CC Removed"
+msgstr "Адрес оповещения удален"
+
 msgid "Removing CC is not allowed"
 msgstr "Удалять адрес оповещения не разрешено"
 
 msgid "Failed to remove CC"
 msgstr "Не удалось удалить адрес оповещения."
-
-msgid "CC Removed"
-msgstr "Адрес оповещения удален"
 
 msgid "Failed to delete dependency."
 msgstr "Не удалось удалить зависимость."
@@ -4842,6 +4821,18 @@ msgstr "Удалить эту зависимость"
 msgid "---- Private ----"
 msgstr "---- Скрыто ----"
 
+msgid "Active"
+msgstr "Активно"
+
+msgid "Permanent"
+msgstr "Постоянно"
+
+msgid "Hidden"
+msgstr "Скрыто"
+
+msgid "Personal"
+msgstr "Личное"
+
 msgid ""
 "Here you can decide whether the lists of persons to be notified on new "
 "submissions and updates depend on item categories, and provide the "
@@ -4907,6 +4898,30 @@ msgstr "Не удается обновить значение поля."
 
 msgid "New field value updated."
 msgstr "Новое значение поля обновлено."
+
+msgid "Canned bug response inserted"
+msgstr "Шаблон ответа на ошибку вставлен"
+
+msgid "Error inserting canned bug response"
+msgstr "Ошибка при выполнении вставки шаблона ответа на ошибку"
+
+msgid "Canned bug response updated"
+msgstr "Шаблон ответа на ошибку обновлен"
+
+msgid "Error updating canned bug response"
+msgstr "Ошибка при обновлении шаблона ответа на ошибку"
+
+msgid "Update of transition failed"
+msgstr "Не удается обновить переход"
+
+msgid "Transition updated"
+msgstr "Переход обновлен"
+
+msgid "Insert failed"
+msgstr "Сбой при вставке"
+
+msgid "New transition inserted"
+msgstr "Новый переход вставлен"
 
 msgid "Field value successfully reset to defaults."
 msgstr "Значение поля было успешно сброшено в исходное состояние."
@@ -6236,11 +6251,11 @@ msgstr "Журнал заплаток: публикация, поиск и ра�
 msgid "Submit new"
 msgstr "Составить"
 
-msgid "Edit"
-msgstr "Править"
-
 msgid "Reset to open"
 msgstr "Просмотреть открытые"
+
+msgid "Edit"
+msgstr "Править"
 
 msgid "Export"
 msgstr "Экспорт"
@@ -8960,6 +8975,9 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid "Empty field value is not allowed"
+#~ msgstr "Пустое значение недопустимо"
 
 #~ msgid "Jump to this field usage"
 #~ msgstr "Применение этого поля"
