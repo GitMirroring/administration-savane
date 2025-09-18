@@ -126,34 +126,28 @@ function check_member ($role)
 {
   return member_check (0, $GLOBALS['group_id'], $role, true);
 }
-function help_on_member ($title, $arr)
-{
-  print '<p>';
-  print utils_help ($title, $arr);
-  print "</p>\n";
-}
 
-$is_manager = member_check (0, $group_id, 3);
-if (check_member (2))
-  help_on_member (
+$help_on_member_strings = [
+  [
+    2,
     _("You are both technician and manager for this tracker."),
     [
-     _("technician") =>
-       _("can be assigned items, cannot change status or priority"),
-     _("manager") => _("fully manage the items"),
+      _("technician") =>
+      _("can be assigned items, cannot change status or priority"),
+      _("manager") => _("fully manage the items"),
     ]
-  );
-elseif (check_member (1))
-  help_on_member (
+  ],
+  [
+    1,
     _("You are technician for this tracker."),
     [
       _("technician") =>
-        _("you can be assigned tracker's items, but you cannot reassign "
-          . "items, change priority, open nor close")
+      _("you can be assigned tracker's items, but you cannot reassign "
+        . "items, change priority, open nor close")
     ]
-  );
-elseif (check_member (3))
-  help_on_member (
+  ],
+  [
+    3,
     _("You are manager for this tracker."),
     [
       _("manager") =>
@@ -161,7 +155,23 @@ elseif (check_member (3))
           . "items to technicians, reassigning items over trackers and "
           . "groups, changing priority, opening and closing items")
     ]
-  );
+  ]
+];
+
+function help_on_member ()
+{
+  foreach ($GLOBALS['help_on_member_strings'] as $item)
+    if (check_member ($item[0]))
+      {
+        print '<p>';
+        print utils_help ($item[1], $item[2]);
+        print "</p>\n";
+        return;
+      }
+}
+
+$is_manager = member_check (0, $group_id, 3);
+help_on_member ();
 
 if (!empty ($private_intro))
   print "<p>$private_intro</p>\n";
