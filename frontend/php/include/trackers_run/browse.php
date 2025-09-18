@@ -1061,9 +1061,7 @@ $form_fieldname = html_build_select_box_from_arrays (
 $form_modified = html_build_select_box_from_arrays (
   $hist_ev_value, $hist_ev_text, 'history_event', $history_event,
   false, '', false, '', false, _("modified or not"));
-$form_since = trackers_field_date (
-  'history_date', $history_date, 0, 0, false
-);
+$form_since = trackers_field_date ('history_date', $history_date);
 if ($form_separator != '')
   $form .= '<p class="smaller"><span class="preinput">'
     # TRANSLATORS: the argument is 'activated' or 'deactivated'.

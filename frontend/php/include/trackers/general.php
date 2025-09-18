@@ -294,9 +294,7 @@ function trackers_field_display (
   return $output;
 }
 
-function trackers_field_date (
-  $field, $value, $size = 0, $maxlength = 0, $ro = false
-)
+function trackers_field_date ($field, $value)
 {
   if ($value !== null)
     # Value is formatted as Y-m-d.
@@ -304,15 +302,6 @@ function trackers_field_date (
   $year = isset ($t[0])? $t[0]: null;
   $month = isset ($t[1])? $t[1]: null;
   $day = isset ($t[2])? $t[2]: null;
-
-  if ($ro)
-    return $value;
-  if (!$size || !$maxlength)
-    {
-      $t = trackers_data_get_display_size ($field);
-      $size = isset ($t[0])? $t[0]: null;
-      $$maxlength = isset ($t[1])? $t[1]: null;
-    }
 
   # Date part are missing, take the date of the day.
   $today = localtime ();
@@ -400,10 +389,7 @@ function trackers_field_textarea (
     $title = trackers_data_get_description ($field_name);
   if (!$cols || !$rows)
     {
-      $t = trackers_data_get_display_size ($field_name);
-      $cols = isset ($t[0])? $t[0]: null;
-      $rows = isset ($t[1])? $t[1]: null;
-
+      list ($cols, $rows) = trackers_data_get_display_size ($field_name);
       # Nothing defined for this field? Use hardcoded default values.
       if (!$cols || !$rows)
         {
