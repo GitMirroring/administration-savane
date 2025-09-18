@@ -165,7 +165,6 @@ pre
 {
   vertical-align: middle;
   font-family: monospace;
-  font-size: xx-small;
 }
 
 .minusorplus:after { content: " "; }
