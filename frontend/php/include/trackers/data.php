@@ -808,7 +808,10 @@ function trackers_data_get_display_size ($field, $by_field_id = false)
   $v = trackers_data_custom_val ($field, 'display_size', $by_field_id);
   if ($v !== null)
     $val = $v;
-  return explode ('/', $val);
+  $ret = explode ('/', $val);
+  while (count ($ret) < 2)
+    $ret[] = '';
+  return $ret;
 }
 
 # Return the default value associated to a field_name as defined
