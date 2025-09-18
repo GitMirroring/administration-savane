@@ -131,7 +131,7 @@ function help_on_member ($title, $arr)
   print '<p>';
   print utils_help ($title, $arr);
   print "</p>\n";
-};
+}
 
 $is_manager = member_check (0, $group_id, 3);
 if (check_member (2))
@@ -544,14 +544,14 @@ printf (
   $GLOBALS['sys_upload_max']
 );
 
-$file_input = function ($n)
+function file_input ($n)
 {
   if ($n % 2)
     print "<br />\n&nbsp;&nbsp;&nbsp;";
   print
     "<input type='file' name='input_file$n' size='10' title=\""
     . _("File to attach") . '" /> ';
-};
+}
 print "</p>\n";
 
 if ($enable_comments)
@@ -560,7 +560,7 @@ if ($enable_comments)
       . _("Attach Files:") . "</span>";
 
     for ($i = 1; $i < 5; $i++)
-      $file_input ($i);
+      file_input ($i);
 
     print "\n<br />\n"
       . '<span class="preinput">' . _("Comment:")
@@ -677,7 +677,7 @@ show_item_cc_list ($item_id, $group_id);
 print "<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();
 
-$display_votes = function ($group_id, $item_id, $votes,  $new_vote, $lock)
+function display_votes ($group_id, $item_id, $votes,  $new_vote, $lock)
 {
   if (!trackers_data_is_used ("vote"))
     return;
@@ -735,10 +735,17 @@ $display_votes = function ($group_id, $item_id, $votes,  $new_vote, $lock)
   );
   print $end;
   return;
-};
+}
 
-$display_votes ($group_id, $item_id, $votes, $new_vote, !$enable_comments);
-unset ($display_votes);
+function specific_reassign_artifact ($art, $title)
+{
+  $checked = '';
+  if (!$GLOBALS['reassign_change_artifact'] && ARTIFACT == $art
+      || $GLOBALS['reassign_change_artifact'] == $art)
+    $checked = $art;
+  return form_option ($art, $checked, $title);
+}
+display_votes ($group_id, $item_id, $votes, $new_vote, !$enable_comments);
 
 # Reassign an item, if manager of the tracker.
 # Not possible on the cookbook manager, cookbook entries are too specific.
@@ -748,14 +755,6 @@ if ($is_manager && ARTIFACT != "cookbook")
     print '<span class="noprint">';
     print html_hidsubpart_header ("reassign", _("Reassign this item"));
 
-    function specific_reassign_artifact ($art, $title)
-      {
-        $checked = '';
-        if (!$GLOBALS['reassign_change_artifact'] && ARTIFACT == $art
-            || $GLOBALS['reassign_change_artifact'] == $art)
-          $checked = $art;
-        return form_option ($art, $checked, $title);
-      }
     $tracker_select = '<select title="' . _("Tracker to reassign to")
                       . '" name="reassign_change_artifact">';
     $title_arr = [
