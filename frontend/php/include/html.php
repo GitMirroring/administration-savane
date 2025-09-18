@@ -52,33 +52,32 @@ require_once ("$dir_name/form.php");
 # specific content/page description.
 # The form should end by #options so it the user does not have to scroll down
 # too much.
-function html_show_displayoptions ($content, $form_opening=0, $submit=0)
+function html_show_displayoptions ($content, $form_opening = 0, $submit = 0)
 {
   return html_show_boxoptions (
     _("Display Criteria"), $content, $form_opening, $submit
   );
 }
 
-function html_show_boxoptions ($legend, $text, $form_opening = 0,
-  $submit = 0
-)
+function html_boxoptionslinkshow ($boxoptionwanted, $legend)
+{
+  $link = "\n<span id='boxoptionslinkshow'>$legend</span>\n";
+  if (!empty ($GLOBALS['sys_ignore_deployed']))
+    return $link;
+  return "\n<script type='text/javascript' src=\"/js/show-hide.php?"
+    . "deploy=$boxoptionwanted&amp;legend=" . utils_urlencode ($legend)
+    . "&amp;box_id=boxoptions&amp;suffix=\"></script>"
+    . "\n<noscript>$link</noscript>\n";
+}
+
+function html_show_boxoptions ($legend, $text, $form_opening = 0, $submit = 0)
 {
   $ret = "\n";
   extract (sane_import ('request', ['true' => 'boxoptionwanted']));
-
-  if ($boxoptionwanted != 1)
-    $boxoptionwanted = 0;
-  else
-    $boxoptionwanted = 1;
-
-  $ret .= "\n<script type='text/javascript' src=\"/js/show-hide.php?"
-    . "deploy=$boxoptionwanted&amp;legend=" . utils_urlencode ($legend)
-    . "&amp;box_id=boxoptions&amp;suffix=\"></script>";
-  $ret .= "\n<noscript>\n<span id='boxoptionslinkshow'>$legend</span>\n"
-    . "</noscript>\n";
-
+  $boxoptionwanted = ($boxoptionwanted != 1)? 0: 1;
+  $ret .= html_boxoptionslinkshow ($boxoptionwanted, $legend);
   $ret .= "<div id='boxoptionscontent'>\n";
-  if ($boxoptionwanted != 1)
+  if ($boxoptionwanted != 1 && empty ($GLOBALS['sys_ignore_deployed']))
     $ret .= "\n<script type=\"text/javascript\" "
       . "src=\"/js/hide-span.php?box_id=boxoptionscontent\"></script>\n";
 
@@ -98,7 +97,7 @@ function html_show_boxoptions ($legend, $text, $form_opening = 0,
 
 function html_hidsubpart_set_deployed ($uniqueid, $deployed)
 {
-  global $is_deployed;
+  global $is_deployed, $sys_ignore_deployed;
 
   # Try to find a deployed value that match the unique id.
   # If found, override the deployed setting (the deployed setting should be
@@ -109,15 +108,18 @@ function html_hidsubpart_set_deployed ($uniqueid, $deployed)
     $deployed = $is_deployed[$uniqueid];
   if ($deployed != 1)
     $deployed = 0;
-  return $deployed;
+  return $deployed && empty ($sys_ignore_deployed);
 }
 
 function html_hidsubpart_js ($deployed, $title, $uniqueid)
 {
- return '<script type="text/javascript" src="/js/show-hide.php?'
-  . "deploy=$deployed&amp;legend=" . utils_urlencode ($title)
-  . "&amp;box_id=hidsubpart&amp;suffix=$uniqueid\"></script>\n"
-  . "\n<noscript>\n<a href=\"#$uniqueid\">$title</a>\n</noscript>";
+  $link = "<a href=\"#$uniqueid\">$title</a>";
+  if (!empty ($GLOBALS['sys_ignore_deployed']))
+    return $link;
+  return '<script type="text/javascript" src="/js/show-hide.php?'
+   . "deploy=$deployed&amp;legend=" . utils_urlencode ($title)
+   . "&amp;box_id=hidsubpart&amp;suffix=$uniqueid\"></script>\n"
+   . "\n<noscript>\n$link\n</noscript>";
 }
 
 # Function to create a an area in the page that can be hidden or shown
@@ -129,12 +131,13 @@ function html_hidsubpart_js ($deployed, $title, $uniqueid)
 # access easily.
 function html_hidsubpart_header ($uniqueid, $title, $deployed = false)
 {
+  global $sys_ignore_deployed;
   $deployed = html_hidsubpart_set_deployed ($uniqueid, $deployed);
   $ret = html_h (
     2, html_hidsubpart_js ($deployed, $title, $uniqueid), $uniqueid
   );
   $ret .= "<div id=\"hidsubpartcontent$uniqueid\">\n";
-  if ($deployed)
+  if ($deployed || !empty ($sys_ignore_deployed))
     return $ret;
   return $ret . '<script type="text/javascript" src="/js/hide-span.php'
     . "?box_id=hidsubpartcontent$uniqueid\"></script>\n";

@@ -23,6 +23,9 @@
   the available CVS modules are listed on the 'Use CVS' page, see
   doc/savane.conf.php.
 
+* A new configuration variable $sys_ignore_deployed to disable expand and shrink
+  controls in trackers, see doc/savane.conf.php Savannah sr #111315.
+
 * Savane version and souce code offer is added to the headers of emails
   frontend sends.
 

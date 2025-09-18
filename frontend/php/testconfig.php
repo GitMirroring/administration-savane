@@ -1193,7 +1193,7 @@ function output_sysvars ()
     'themedefault', 'unix_group_name', 'upload_max', 'use_strftime',
     'watch_anon_posts', 'new_user_watch_days',
     'mailman_wrapper', 'savane_cgit', 'group_file', 'max_items_per_page',
-    'registration_text_spam_test', 'registration_captcha',
+    'registration_text_spam_test', 'registration_captcha', 'ignore_deployed',
     'error_cc_limit', 'error_cc_period', '!debug_footer'
   ];
   $defs = [];

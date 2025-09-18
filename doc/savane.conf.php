@@ -192,4 +192,6 @@ $sys_use_strftime = true;
 $sys_registration_captcha = 1;
 # Use simple anti-spam trap when registering user accounts.
 $sys_registration_text_spam_test = 0;
+# Don't show expand and shrink JavaScript controls in trackers.
+$sys_ignore_deployed = true;
 ?>
