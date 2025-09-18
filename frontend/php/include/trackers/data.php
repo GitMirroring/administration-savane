@@ -145,7 +145,7 @@ function trackers_data_get_all_fields ($group_id, $reload = false)
     return;
 
   $BF_USAGE_BY_ID = $BF_USAGE_BY_NAME = [];
-  $group_ids = [GROUP_NONE, $group_id];
+  $group_ids = array_unique ([GROUP_NONE, $group_id]);
   $cond = 'group_id ' . utils_in_placeholders ($group_ids);
   $all_fields = trackers_data_fetch_all_fields ($group_ids, $cond);
   trackers_data_assign_fields ($all_fields, $group_ids);
