@@ -47,11 +47,24 @@ use Savane::Version;
 my $sbindir = "@sbindir@";
 my $pidfile = "@mysql_pid@";
 my $have_database ="@HAVE_DATABASE@";
+my $php_bin = "@PHP@";
 my $port;
 my $php_pid;
 my $exit_code = 0;
+my $help = <<"EOF";
+  Usage: $0 [OPTIONS]
 
-PrintVersionOrHelp ("Run regression tests.");
+  Run regression tests.
+
+  -h, --help           show this help and exit
+  -v, --version        show Savane version and exit
+      --php-bin        PHP executable [$php_bin]
+EOF
+$help =~ s,^  ,,gm;
+
+PrintVersionOrHelp ($help);
+GetOptions ("php-bin=s" => \$php_bin)
+  or die ("Wrong command line.");
 my $kill_servers = 1;
 
 sub launch_db
@@ -84,7 +97,10 @@ sub launch_php_server
     {
       $kill_servers = undef;
       setpgrp ();
-      system ("$sbindir/sv_php_server.pl --port=$port >> test-php.log 2>&1");
+      system (
+        "$sbindir/sv_php_server.pl --port=$port --php-bin=$php_bin "
+        . ">> test-php.log 2>&1"
+      );
       exit (0);
     }
   return -1 unless kill 0, $pid;
