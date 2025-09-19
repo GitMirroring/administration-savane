@@ -58,7 +58,7 @@ foreach (cvs_repo_types () as $type)
 # Only list modules if more than the one default module is present.
 if (
   empty ($module_list['web'])
-    || empty (array_diff ($module_list['web'], [$unix_name]))
+    || !count (array_diff ($module_list['web'], [$unix_name]))
 )
   $modules['web'] = '';
 

@@ -117,7 +117,8 @@ function print_email_cell ($user_arr, $is_squad)
 function print_gpg_row ($user_arr, $user_id)
 {
   global $tr_head;
-  if (empty (user_get_gpg_key ($user_id)))
+  $key = user_get_gpg_key ($user_id);
+  if (empty ($key))
     return;
   print "$tr_head<td></td><td>";
   print "<a href=\"{$GLOBALS['sys_home']}people/viewgpg.php?user_id="
