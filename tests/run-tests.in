@@ -150,7 +150,7 @@ for (@scripts)
   {
     my $str = 'PASS';
     print "TEST $_\r";
-    if (system ("echo $port | ./$_"))
+    if (system ("echo $port | ./$_ 2>> test.log"))
       {
         $exit_code = 1;
         $str = 'FAIL';
