@@ -149,13 +149,14 @@ my %results = ('PASS' => 0, 'FAIL' => 0);
 for (@scripts)
   {
     my $str = 'PASS';
+    print "TEST $_\r";
     if (system ("echo $port | ./$_"))
       {
         $exit_code = 1;
         $str = 'FAIL';
       }
      $results{$str}++;
-     print "$str: $_\n";
+     print "$str $_\n";
   }
 print "\nNumber of tests:\n";
 my $total = 0;
