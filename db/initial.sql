@@ -257,7 +257,7 @@ INSERT INTO `bugs_field` VALUES
     'Release in which it is planned to have the item fixed '
     '(in free text)', 'S', 0, 1, 1, 0, 0),
   (211, 'priority', 'SB', '', 'Priority',
-    'How quickly the item should be handled', 'S', 1, 0, 1, 0, 0),
+    'How quickly the item should be handled', 'S', 0, 0, 1, 0, 0),
   (212, 'keywords', 'TF', '60/120', 'Keywords',
     'List of comma-separated keywords associated with this item',
     'S', 0, 1, 1, 0, 0),
@@ -976,7 +976,7 @@ INSERT INTO `cookbook_field` VALUES
   (205, 'comment_type_id', 'SB', '', 'Comment Type', 'Nature of the comment',
     'P', 1, 1, 0, 1, 0),
   (211, 'priority', 'SB', '', 'Importance', 'How important is this recipe',
-    'S', 1, 1, 1, 0, 0),
+    'S', 0, 1, 1, 0, 0),
   (212, 'keywords', 'TF', '60/120', 'Keywords',
     'List of comma-separated keywords associated with an item', 'S', 0, 1, 1,
     0, 0),
@@ -3632,7 +3632,7 @@ INSERT INTO `task_field` VALUES
     '(in free text)', 'S', 0, 1, 1, 0, 0),
   (211, 'priority', 'SB', '', 'Priority',
     'How quickly the item must be completed '
-    '(Immediate, Normal, Low, Later, ...)', 'S', 1, 0, 1, 0, 0),
+    '(Immediate, Normal, Low, Later, ...)', 'S', 0, 0, 1, 0, 0),
   (212, 'keywords', 'TF', '60/120', 'Keywords',
     'List of comma-separated keywords associated with an item',
     'S', 0, 1, 1, 0, 0),
