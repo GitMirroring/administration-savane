@@ -54,6 +54,8 @@
 
 * Bug fixes:
 
+** User registration was broken for PHP pre-8 since 2024-08 (8a3bc1727).
+
 ** The frontend/testing/account.php test was broken when running installcheck.
 
 ** Regular expressions in tracker item selection criteria didn't work, like

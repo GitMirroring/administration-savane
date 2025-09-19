@@ -68,7 +68,7 @@ extract (sane_import ('request',
 form_check ($submit_buttons);
 
 if (empty ($step))
-  $step = 0;
+  $step = '0';
 
 exit_if_missing ('item');
 if (!user_getid ())
@@ -610,7 +610,7 @@ $input_func = [
 if ($item == 'delete')
   exit_if_member_of_any_group ();
 
-if (in_array ($step, ['confirm', 'discard']))
+if (in_array ($step, ['confirm', 'discard'], true))
   {
     # At this step, a GET request is used because the URL comes
     # from the confrimation email.  That means no form_id-based CSRF
