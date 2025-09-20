@@ -11,15 +11,19 @@ are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.  This file is offered as-is,
 without any warranty.
 
-This document describes a sample Savane installation procedure using
-an initial database.  For more details and options, you may want
-to look into Savannah wiki (https://savannah.gnu.org/maintenance/).
-The commands are run from an ordinary (non-root) account
-unless in the 'Advanced and troubleshooting' section where it's
-specifically noted otherwise.
+This document describes a sample Savane installation procedure using an initial
+database.  It was tested on Trisquel 8 to 11.  For more details and options,
+you may want to look into Savannah wiki (https://savannah.gnu.org/maintenance/).
+The commands are run from an ordinary (non-root) account unless in the 'Advanced
+and troubleshooting' section where it's specifically noted otherwise.
 
 Basic installation
 ------------------
+
+In this case, a full database directory tree will be created in user's home
+directory.  This works starting with Trisquel 10 (it comes with MariaDB 10.3.39
+and MySQL 8.0.41); for older releases, see the 'Advanced and troubleshooting'
+section.
 
 Install dependencies listed in README.  If you are going to use localizations,
 make sure the languages are listed when running locale -a (in Trisquel,
