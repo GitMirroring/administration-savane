@@ -316,19 +316,20 @@ function print_field_values ($hidden, $active, $hdr)
               . "reactivate a hidden value (if\nany)")
           . "</p>\n$hdr";
       else
-        $ha = '<tr><td colspan="4" class="center"><strong>'
-          . _("---- ACTIVE VALUES ----") . "</strong></tr>\n$ha";
+        $ha = '<tr><td colspan="4" class="center"><b>'
+          . _("---- ACTIVE VALUES ----") . "</b></tr>\n$ha";
       if (!empty ($hidden))
         $hh = "<tr><td colspan=\"4\"> &nbsp;</td></tr>\n"
-          .' <tr><td colspan="4"><center><strong>'
+          .' <tr><td colspan="4"><center><b>'
           . _("---- HIDDEN VALUES ----")
-          . "</strong></center></tr>\n" . join ('', $hidden);
+          . "</b></center></tr>\n" . join ('', $hidden);
     }
   print "$hdr$ha$hh</table>\n";
 }
 
-function show_existing_fields ($field, $result, $is_group_scope)
+function show_existing_fields ($field, $is_group_scope)
 {
+  $result = fetch_field_values ($field);
   if (!db_numrows ($result))
     return;
   # Display the list of values in 2 blocks: active first,
@@ -654,9 +655,8 @@ function show_values ($field, $title, $group)
   global $group_id, $by_field_id;
   td_select_box ($field);
   print_field_header ($field, $title, $group);
-  $result = fetch_field_values ($field);
   $is_group_scope = trackers_data_field_is_group_scope ($field);
-  $have_hidden = show_existing_fields ($field, $result, $is_group_scope);
+  $have_hidden = show_existing_fields ($field, $is_group_scope);
   exit_unless_admin ();
 
   if ($is_group_scope)
@@ -686,6 +686,76 @@ function print_value_rank ($row, $title)
    );
 }
 
+function print_update_value_header ($fv_id, $field, $group_id)
+{
+  trackers_header_admin (['title' => _("Field values")]);
+  print form_tag ()
+    . form_hidden (
+        [
+          "post_changes" => "y", "update_value" => "y", "list_value" => "y",
+          "fv_id" => $fv_id, "field" => $field, "group_id" => $group_id,
+        ]
+      );
+}
+
+function field_status_option ($option, $status)
+{
+  global $FIELD_STATUS_LABELS;
+  return form_option ($option, $status, $FIELD_STATUS_LABELS[$option]);
+}
+
+function print_update_value_status ($row)
+{
+  print "\n&nbsp;&nbsp;\n<span class='preinput'>"
+    . html_label ('status', _("Status:")) . "</span>\n"
+    . "<select name='status' id='status'>\n"
+    . field_status_option (FIELD_STATUS_ACTIVE, $row['status'])
+    . field_status_option (FIELD_STATUS_HIDDEN, $row['status'])
+    . "</select>\n<p>\n<span class='preinput'>"
+    . html_label ('description', _("Description (optional):"))
+    . "</span><br />\n"
+    . form_textarea ('description', $row['description'],
+        'rows="4" cols="65" wrap="soft"'
+      )
+    . "</p>\n";
+}
+
+function print_value_usage_counter ($field, $group_id, $row)
+{
+  $count = trackers_data_count_field_value_usage (
+    $group_id, $field, $row['value_id']
+  );
+  if ($count <= 0)
+    return;
+  print '<p class="warn">';
+  printf (
+    ngettext (
+      "This field value applies to %s item of your tracker.",
+      "This field value applies to %s items of your tracker.", $count
+    ),
+    $count
+  );
+  print ' ';
+  printf (
+    _("If you hide this field value, the related items will have no "
+      . "value in the\nfield '%s'."),
+    $field
+  );
+  print "</p>\n";
+}
+
+function print_update_value ($fv_id, $field, $group_id)
+{
+  $row = db_fetch_array (trackers_data_get_field_value ($fv_id));
+  print_update_value_header ($fv_id, $field, $group_id);
+  print_value_rank ($row, _("Value:"));
+  print_update_value_status ($row);
+  print_value_usage_counter ($field, $group_id, $row);
+  print "\n<div class='center'>\n"
+    . form_submit (_("Submit"), 'submit') . "</div>\n";
+  trackers_footer ();
+}
+
 if ($list_value)
   {
     show_values ($field, $title, $group);
@@ -694,64 +764,7 @@ if ($list_value)
 
 if ($update_value)
   {
-    # Show the form to update an existing field_value.
-    # Display the List of values for a given bug field.
-    trackers_header_admin (['title' => _("Field values")]);
-
-    # Get all attributes of this value.
-    $res = trackers_data_get_field_value ($fv_id);
-    $row = db_fetch_array ($res);
-
-    print form_tag ()
-      . form_hidden (
-          [
-            "post_changes" => "y", "update_value" => "y", "list_value" => "y",
-            "fv_id" => $fv_id, "field" => $field, "group_id" => $group_id,
-          ]
-        );
-    print_value_rank ($row, _("Value:"));
-    print "\n&nbsp;&nbsp;\n<span class='preinput'>"
-      . html_label ('status', _("Status:")) . "</span>\n"
-      . "<select name='status' id='status'>\n"
-      # TRANSLATORS: this is field status.
-      . form_option (
-          FIELD_STATUS_ACTIVE, null, $FIELD_STATUS_LABELS[FIELD_STATUS_ACTIVE]
-        )
-      . form_option (
-          FIELD_STATUS_HIDDEN, $row['status'],
-          $FIELD_STATUS_LABELS[FIELD_STATUS_HIDDEN]
-        )
-      . "</select>\n<p>\n<span class='preinput'>"
-      . html_label ('description', _("Description (optional):"))
-      . "</span><br />\n"
-      . form_textarea ('description', $row['description'],
-          'rows="4" cols="65" wrap="soft"')
-      . "</p>\n";
-    $count = trackers_data_count_field_value_usage (
-      $group_id, $field, $row['value_id']
-    );
-    if ($count > 0)
-      {
-        print '<p class="warn">';
-        printf (
-          ngettext (
-            "This field value applies to %s item of your tracker.",
-            "This field value applies to %s items of your tracker.", $count
-          ),
-          $count
-        );
-        print ' ';
-        printf (
-          _("If you hide this field value, the related items will have no "
-            . "value in the\nfield '%s'."),
-          $field
-        );
-        print "</p>\n";
-      }
-    print "\n<div class='center'>\n"
-      . form_submit (_("Submit"), 'submit') . "</div>\n";
-
-    trackers_footer ();
+    print_update_value ($fv_id, $field, $group_id);
     exit (0);
   }
 function canned_hidden ($create)
