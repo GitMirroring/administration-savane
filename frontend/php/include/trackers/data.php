@@ -525,17 +525,8 @@ function trackers_data_get_all_report_fields ($report_id = 100)
   return db_numrows ($res) > 0;
 }
 
-# Return all possible values for a select box field.
-# Rk: if the checked value is given then it means that we want this value
-# in the list in any case (even if it is hidden and active_only is requested).
-function trackers_data_get_field_predefined_values (
-  $field, $group_id  = false, $checked  = false, $by_field_id  = false,
-  $active_only  = true
-)
+function trackers_data_predefined_special_fields ($field_name, $group_id)
 {
-  $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
-  $field_name = $by_field_id? trackers_data_get_field_name ($field): $field;
-
   # The "Assigned_to" box requires some special processing,
   # because possible values  are group members) and they are
   # not stored in the trackers_field_value table but in the user_group table.
@@ -544,42 +535,66 @@ function trackers_data_get_field_predefined_values (
 
   if ($field_name == 'submitted_by')
     return trackers_data_get_submitters ($group_id);
+  return null;
+}
 
-  $status_cond = '';
-  $status_cond_params = [];
-
-  if ($active_only)
+function trackers_data_field_status_cond ($checked, $active_only)
+{
+  if (!$active_only)
+    return ['', []];
+  $status_cond = "status IN (?, ?)";
+  $params = $GLOBALS['FIELD_STATUS_ENABLED'];
+  if ($checked && !is_array ($checked))
     {
-      $status_cond = "status IN (?, ?)";
-      $status_cond_params = $GLOBALS['FIELD_STATUS_ENABLED'];
-      if ($checked && !is_array ($checked))
-        {
-          $status_cond = "($status_cond OR value_id = ?)";
-          $status_cond_params[] = $checked;
-        }
-      $status_cond = "AND $status_cond ";
+      $status_cond = "($status_cond OR value_id = ?)";
+      $params[] = $checked;
     }
+  $status_cond = "AND $status_cond ";
+  return [$status_cond, $params];
+}
 
+function trackers_data_fetch_predefined_values (
+  $field_id, $group_id, $checked, $active_only
+)
+{
+  list ($status_cond, $params) =
+    trackers_data_field_status_cond ($checked, $active_only);
+  array_unshift ($params, $group_id, $field_id);
   # The fields value_id and value must be first in the select statement,
   # because the output is used in the html_build_select_box function.
-
-  # Look for group-specific values first.
-  $sql = "
+  return db_execute ("
     SELECT
       value_id, value, bug_fv_id, bug_field_id, group_id, description,
       order_id, status
     FROM " . ARTIFACT . "_field_value
     WHERE group_id = ? AND bug_field_id = ? $status_cond
-    ORDER BY order_id, value ASC";
-  $res_value = db_execute (
-    $sql, array_merge ([$group_id, $field_id], $status_cond_params)
+    ORDER BY order_id, value ASC", $params
   );
+}
+
+# Return all possible values for a select box field.
+# Rk: if the checked value is given then it means that we want this value
+# in the list in any case (even if it is hidden and active_only is requested).
+function trackers_data_get_field_predefined_values (
+  $field, $group_id, $checked  = false, $by_field_id  = false,
+  $active_only  = true
+)
+{
+  $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
+  $field_name = $by_field_id? trackers_data_get_field_name ($field): $field;
+  $res = trackers_data_predefined_special_fields ($field_name, $group_id);
+  if ($res !== null)
+    return $res;
+  # Look for group-specific values first.
+  $res = trackers_data_fetch_predefined_values (
+      $field_id, $group_id, $checked, $active_only
+    );
+  if (db_numrows ($res))
+    return $res;
   # If no specific value for this group, then look for default values.
-  if (db_numrows ($res_value) != 0)
-    return $res_value;
-  return db_execute (
-    $sql, array_merge ([100, $field_id], $status_cond_params)
-  );
+  return trackers_data_fetch_predefined_values (
+      $field_id, GROUP_NONE, $checked, $active_only
+    );
 }
 
 # Check whether a group field values are the default one or not.
