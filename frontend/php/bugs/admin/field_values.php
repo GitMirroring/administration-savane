@@ -674,7 +674,7 @@ function show_values ($field, $title, $group)
 
 function print_value_rank ($row, $title)
 {
-  print '<span class="preinput">' . html_label ('title', $title);
+  print '<span class="preinput">' . html_label ('title', $title) . ' </span>';
   print form_input (
     "text", "title", utils_specialchars_decode ($row['value'], ENT_QUOTES),
     'size="40" maxlength="60"'
