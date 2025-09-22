@@ -74,9 +74,10 @@ sub launch_db
 }
 sub kill_db
 {
-  return unless $have_database;
-  system ("$sbindir/sv_kill_db.pl")
-    && print STDERR "Can't kill the database server.\n";
+  return 0 unless $have_database;
+  return 0 unless system ("$sbindir/sv_kill_db.pl");
+  print STDERR "Can't kill the database server.\n";
+  return 1;
 }
 sub wait_for_db
 {
@@ -126,7 +127,8 @@ sub look_for_port
 END
 {
   return unless defined $kill_servers;
-  kill_db ();
+  $exit_code = 1 if kill_db ();
+  $? = $exit_code;
   return unless defined $php_pid;
   return if kill ('-TERM', $php_pid);
   $? = 1;
