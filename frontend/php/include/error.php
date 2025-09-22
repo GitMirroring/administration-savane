@@ -380,9 +380,9 @@ function error_test_cc_limit_update ()
 
 function error_list_cc_error_param ($var)
 {
-  global $sys_debug_footer;
+  global $saved_sys_debug_footer;
   $msg = no_i18n ('The effective value is %s.');
-  if ($sys_debug_footer)
+  if ($saved_sys_debug_footer)
     $msg = no_i18n (
       'With $sys_debug_footer unset, the effective value would be %s.'
     );
@@ -400,12 +400,12 @@ function error_list_cc_error_param ($var)
 
 function error_show_sys_debug_footer ()
 {
-  global $sys_debug_footer;
+  global $saved_sys_debug_footer;
   $id = 'error-cc-debug-footer';
-  if (!isset ($sys_debug_footer))
+  if (!isset ($saved_sys_debug_footer))
     return [$id, no_i18n ('<b>unset</b>')];
-  $ret = $sys_debug_footer;
-  if ($sys_debug_footer)
+  $ret = $saved_sys_debug_footer? 1: 0;
+  if ($saved_sys_debug_footer)
     $ret .=
       no_i18n ("<br />\n<i>The error email report rate is not limited.</i>");
   return [$id, $ret];
