@@ -106,6 +106,7 @@ Bootstrapping from Git checkout
 Build Time
 ----------
 
+* GNU Bash - assumed in Makefiles
 * GNU Coreutils
 * GNU Gettext 0.16.1 or later
 * GNU Make
