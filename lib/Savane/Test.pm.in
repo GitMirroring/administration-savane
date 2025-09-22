@@ -63,11 +63,12 @@ sub save_page
 sub check_for_test_marker
 {
   my @test = GetDBAsIs ("SHOW TABLES LIKE 'test_marker'");
-  die "Cowardly refusing to run tests: the database isn't intended for that.\n"
-    unless $test[0] eq 'test_marker';
+  return 0 if $test[0] eq 'test_marker';
+  print_test_log (
+    "Cowardly refusing to run tests: the database isn't intended for that."
+  );
+  return 1;
 }
-
-check_for_test_marker ();
 
 my $root_url;
 
@@ -229,6 +230,7 @@ END
 }
 
 init_log ();
+exit (1) if check_for_test_marker ();
 init_root_url ();
 clear_mbox ();
 
