@@ -52,6 +52,10 @@
 
 * A few tests for database record consistency is added to /testconfig.php.
 
+* In bugs/admins/field_values.php, the number of values shown at once
+  is limited (100 by default); further values are viewable
+  with the html_nexprev () control.
+
 * Bug fixes:
 
 ** User registration was broken for PHP pre-8 since 2024-08 (8a3bc1727).

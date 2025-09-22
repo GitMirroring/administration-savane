@@ -46,6 +46,7 @@
 require_once ('../../include/init.php');
 require_once ('../../include/trackers/general.php');
 
+$limit_predefined_values = true;
 exit_if_no_group ();
 $is_admin = user_is_group_admin ();
 if (!(group_get_object ($group_id)->isPublic () || user_ismember ($group_id)))
@@ -81,6 +82,8 @@ if ($is_admin)
     ));
     form_check (['create_value', 'post_changes', 'submit']);
   } # $is_admin
+
+html_nextprev_extract_params (100);
 
 if (empty ($order_id))
   $order_id = 0;
@@ -177,7 +180,7 @@ function print_predefined_val_entry ($fld_val, &$defs)
 function list_predefined_values ($field)
 {
   $res = trackers_data_get_field_predefined_values (
-    $field, '100', false, false, false
+    $field, GROUP_NONE, false, false, false
   );
   if (!db_numrows ($res))
     {
@@ -212,6 +215,12 @@ function print_field_header ($field, $title, $group)
   print '</span></p>';
 }
 
+function count_field_values ($field)
+{
+  global $group_id, $is_admin;
+  return trackers_data_get_field_value_count ($field, $group_id, !$is_admin);
+}
+
 function fetch_field_values ($field)
 {
   global $group_id;
@@ -228,10 +237,10 @@ function fetch_field_values ($field)
   return $result;
 }
 
-function value_table_header ($field, $is_group_scope)
+function value_table_header ($field, $is_group_scope, $nextprev)
 {
   global $is_admin;
-  $ret = html_h (2, _("Existing Values"));
+  $ret = html_h (2, _("Existing Values")) . $nextprev;
   $title_arr =  [_("Value label"), _("Description")];
   if ($is_admin)
     array_push ($title_arr, _("Rank"), _("Status"), _("Occurrences"));
@@ -327,13 +336,24 @@ function print_field_values ($hidden, $active, $hdr)
   print "$hdr$ha$hh</table>\n";
 }
 
+function nextprev_values ($field, $total_rows)
+{
+  global $offset, $max_rows, $php_self, $group_id;
+  if ($max_rows >= $total_rows)
+    return '';
+  return html_nextprev_str (
+    "$php_self?list_value=1&amp;group_id=$group_id&amp;field=$field",
+    $offset, $max_rows, $total_rows
+  );
+}
+
 function show_existing_fields ($field, $is_group_scope)
 {
+  $total_rows = count_field_values ($field);
   $result = fetch_field_values ($field);
   if (!db_numrows ($result))
     return;
-  # Display the list of values in 2 blocks: active first,
-  # hidden second.
+  # Display the list of values in 2 blocks: active first, hidden second.
   $hidden = $active = [];
   while ($fld_val = db_fetch_array ($result))
     {
@@ -344,8 +364,10 @@ function show_existing_fields ($field, $is_group_scope)
     }
   $hidden = array_filter ($hidden);
   $active = array_filter ($active);
-  $hdr = value_table_header ($field, $is_group_scope);
+  $nextprev = nextprev_values ($field, $total_rows);
+  $hdr = value_table_header ($field, $is_group_scope, $nextprev);
   print_field_values ($hidden, $active, $hdr);
+  print $nextprev;
   return !empty ($hidden);
 }
 
@@ -434,7 +456,7 @@ function get_val_label ($field, $by_field_id)
   $res = db_execute ($sql, [$group_id, $field_id]);
 
   if (!db_numrows ($res))
-    $res = db_execute ($sql, [100, $field_id]);
+    $res = db_execute ($sql, [GROUP_NONE, $field_id]);
 
   if (!db_numrows ($res))
     return [$field_id, []];

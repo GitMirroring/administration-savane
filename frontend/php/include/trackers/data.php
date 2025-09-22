@@ -538,37 +538,103 @@ function trackers_data_predefined_special_fields ($field_name, $group_id)
   return null;
 }
 
-function trackers_data_field_status_cond ($checked, $active_only)
+function trackers_data_predefined_value_order ()
 {
-  if (!$active_only)
-    return ['', []];
-  $status_cond = "status IN (?, ?)";
+  global $offset, $max_rows, $limit_predefined_values;
+  $ret = "\nORDER BY `section`, `order_id`, `value` ASC";
+  if (empty ($limit_predefined_values))
+    return $ret;
+  $off = intval ($offset);
+  $rows = $max_rows + 1;
+  return "$ret\nLIMIT $off, $rows";
+}
+
+function trackers_data_predefined_value_sql ($status_cond)
+{
+  static $i = 0;
+  # The fields value_id and value must be first in the select statement,
+  # because the output is used in the html_build_select_box function.
+  $i++;
+  return "
+    SELECT
+      `value_id`, `value`, `bug_fv_id`, `bug_field_id`, `group_id`,
+      `description`, `order_id`, `status`, $i AS `section`
+    FROM `" . ARTIFACT . "_field_value`
+    WHERE `group_id` = ? AND `bug_field_id` = ? AND $status_cond";
+}
+
+function trackers_data_fetch_active_values ($checked, $prm)
+{
+  $status_cond = "`status` IN (?, ?)";
   $params = $GLOBALS['FIELD_STATUS_ENABLED'];
   if ($checked && !is_array ($checked))
     {
-      $status_cond = "($status_cond OR value_id = ?)";
+      $status_cond = "($status_cond OR `value_id` = ?)";
       $params[] = $checked;
     }
-  $status_cond = "AND $status_cond ";
-  return [$status_cond, $params];
+  return db_execute (
+    trackers_data_predefined_value_sql ($status_cond)
+    . trackers_data_predefined_value_order (),
+    array_merge ($prm, $params)
+  );
+}
+
+function trackers_data_count_special_field_values ($field, $group_id)
+{
+  if ($field == 'assigned_to')
+    return trackers_data_get_technician_count ($group_id);
+
+  if ($field == 'submitted_by')
+    return trackers_data_get_submitter_count ($group_id);
+  return null;
+}
+
+function trackers_data_get_field_value_count ($field, $group_id, $active_only)
+{
+   $ret = trackers_data_count_special_field_values ($field, $group_id);
+   if ($ret !== null)
+     return $ret;
+   $field_id = trackers_data_get_field_id ($field);
+   $table = ARTIFACT . '_field_value';
+   $sql = "
+     SELECT COUNT(`value_id`) AS `cnt` FROM `$table`
+     WHERE `group_id` = ? AND `bug_field_id` = ?";
+   $params = [$group_id, $field_id];
+   if ($active_only)
+     {
+       $sql .= ' AND `status` '
+         . utils_in_placeholders ($GLOBALS['FIELD_STATUS_ENABLED']);
+       $params = array_merge ($params, $GLOBALS['FIELD_STATUS_ENABLED']);
+     }
+   $ret = db_result (db_execute ($sql, $params), 0, 'cnt');
+   if ($ret)
+     return $ret;
+   $params[0] = GROUP_NONE;
+   return db_result (db_execute ($sql, $params), 0, 'cnt');
 }
 
 function trackers_data_fetch_predefined_values (
   $field_id, $group_id, $checked, $active_only
 )
 {
-  list ($status_cond, $params) =
-    trackers_data_field_status_cond ($checked, $active_only);
-  array_unshift ($params, $group_id, $field_id);
-  # The fields value_id and value must be first in the select statement,
-  # because the output is used in the html_build_select_box function.
-  return db_execute ("
-    SELECT
-      value_id, value, bug_fv_id, bug_field_id, group_id, description,
-      order_id, status
-    FROM " . ARTIFACT . "_field_value
-    WHERE group_id = ? AND bug_field_id = ? $status_cond
-    ORDER BY order_id, value ASC", $params
+  $prm = [$group_id, $field_id];
+  if ($active_only)
+    return trackers_data_fetch_active_values ($checked, $prm);
+  $st = $GLOBALS['FIELD_STATUS_ENABLED'];
+  $params = array_merge ($prm, $st);
+  $sql =
+    '('
+      . trackers_data_predefined_value_sql (
+          '`status` ' . utils_in_placeholders ($st)
+        )
+    . ')';
+  $params = array_merge ($params, $prm, [FIELD_STATUS_HIDDEN]);
+  $sql .= ' UNION '
+    . ' ('
+    . trackers_data_predefined_value_sql ('`status` = ?')
+    . ')';
+  return db_execute (
+    $sql . trackers_data_predefined_value_order (), $params
   );
 }
 
@@ -1274,6 +1340,24 @@ function trackers_data_update_usage (
   trackers_data_execute_usage ($table, $field_id, $group_id, $fields);
 }
 
+function trackers_data_get_technician_count ($group_id)
+{
+  $uids = array_keys (member_get_group_members ($group_id));
+  $uids = member_check_array ($uids, $group_id, 1);
+  return count ($uids);
+}
+
+function trackers_data_limit_technicians (&$uids)
+{
+  global $offset, $max_rows, $limit_predefined_values;
+  if (empty ($limit_predefined_values))
+    return '';
+  $off = intval ($offset);
+  $rows = intval ($max_rows);
+  array_push ($uids, $off, $rows);
+  return " LIMIT ?, ?";
+}
+
 # Get a list of technicians for a tracker.
 function trackers_data_get_technicians ($group_id)
 {
@@ -1283,28 +1367,46 @@ function trackers_data_get_technicians ($group_id)
   $sql = "
     SELECT `user_id` AS `value_id`, `user_name` AS `value`,
       0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
-      0 AS `order_id`, '" . USER_STATUS_PENDING . "' AS `status`
-    FROM `user` WHERE
-  ";
+      0 AS `order_id`, '" . FIELD_STATUS_PERMANENT . "' AS `status`
+    FROM `user` WHERE ";
   if (empty ($uids))
     $sql .= 'NULL'; # Return a valid (but empty) result set.
   else
     $sql .= '`user_id` ' . utils_in_placeholders ($uids);
   $sql .= " ORDER BY `user_name`";
   array_unshift ($uids, $group_id);
+  $sql .= trackers_data_limit_technicians ($uids);
   return db_execute ($sql, $uids);
+}
+
+function trackers_data_get_submitter_count ($group_id)
+{
+  $art = ARTIFACT;
+  $res = db_execute ("
+    SELECT COUNT(DISTINCT `user_id`) AS `cnt`
+    FROM `user` JOIN `$art` `a` ON `user`.`user_id` = `a`.`submitted_by`
+    WHERE `a`.`group_id` = ?", [$group_id]
+  );
+  if (!db_numrows ($res))
+    return 0;
+  return db_result ($res, 0, 'cnt');
 }
 
 function trackers_data_get_submitters ($group_id)
 {
+  global $offset, $max_rows;
+  $off = intval ($offset);
+  $rows = intval ($max_rows);
+
   $art = ARTIFACT;
   return db_execute ("
     SELECT DISTINCT `user_id` AS `value_id`, `user_name` AS `value`,
       0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
-      0 AS `order_id`, '" . USER_STATUS_PENDING . "' AS `status`
+      0 AS `order_id`, ? AS `status`
     FROM `user` JOIN `$art` `a` ON `user`.`user_id` = `a`.`submitted_by`
     WHERE `a`.`group_id` = ?
-    ORDER BY `user`.`user_name`", [$group_id, $group_id]
+    ORDER BY `user`.`user_name` LIMIT ?, ?",
+    [$group_id, FIELD_STATUS_PERMANENT, $group_id, $off, $rows]
   );
 }
 
