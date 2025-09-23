@@ -49,7 +49,9 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url print_test_log make_agent
   log_in log_in_su log_out check_inaccessibility get_user_id save_page
+  register_user remove_user
 );
+
 sub save_page
 {
   my $agent = shift;
@@ -221,6 +223,97 @@ sub log_out
   print_test_log ("Logging out.");
   $agent->get (make_url ("account/logout.php"));
   print_test_log ("Logged out.");
+}
+
+sub get_password
+{
+  my $agent = shift;
+  my $passwd = $agent->text ();
+  $passwd =~ s/.*For instance: ([^.]*).*/$1/;
+  $passwd = "merge&tragic-Maxim#$passwd^Detest2new*mutiny";
+  print_test_log ("Password: $passwd");
+  return $passwd;
+}
+
+sub request_account
+{
+  my ($agent, $login) = @_;
+  $agent->get (make_url ('account/register.php'));
+  my $passwd = get_password ($agent);
+  $agent->form_with_fields (qw (form_id));
+  $agent->set_fields (
+    'form_loginname' => $login,
+    'form_pw' => $passwd, 'form_pw2' => $passwd,
+    'form_realname' => "Test User",
+    'form_email' => 'user@savane.test',
+  );
+  $agent->click ('update');
+  print_test_log ("Account requested.");
+  return $passwd;
+}
+
+sub get_confirmation_url
+{
+  my $url = get_mbox ();
+  return make_url ('no-such-page') if $url eq '';
+  clear_mbox ();
+  $url =~ s/^.*?visit the following URL[^:]*:\n+//s;
+  $url =~ s/\n.*$//s;
+  print_test_log ("Confirmation URL: $url.");
+  return $url;
+}
+
+sub confirm_account
+{
+  my ($agent, $login, $passwd) = @_;
+  my $url = get_confirmation_url ();
+  $agent->get ($url);
+  $agent->form_with_fields (qw (form_id));
+  $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
+  $agent->click ('update');
+  print_test_log ("Account confirmed.");
+}
+
+sub register_user
+{
+  my ($agent, $login) = @_;
+  print_test_log ("Checking for <$login> existence.");
+  check_inaccessibility ("users/$login");
+  my $passwd = request_account ($agent, $login);
+  confirm_account ($agent, $login, $passwd);
+  log_out ($agent);
+  $agent->get (make_url ("users/$login"));
+  print_test_log ("Account exists.");
+  return $passwd;
+}
+
+sub request_user_removal
+{
+  my $agent = shift;
+  $agent->get (make_url ('my/admin/change.php?item=delete'));
+  $agent->form_with_fields (qw (form_id));
+  $agent->tick ('newvalue', 'deletionconfirmed');
+  $agent->click ('update');
+  print_test_log ("Deletion requested.");
+}
+
+sub confirm_user_deletion
+{
+  my $agent = shift;
+  my $url = get_confirmation_url ();
+  $agent->get ($url);
+  $agent->form_with_fields (qw (form_id));
+  $agent->click ('update');
+  print_test_log ("Deletion confirmed.");
+}
+
+sub remove_user
+{
+  my ($agent, $login, $passwd) = @_;
+  log_in ($agent, $login, $passwd);
+  request_user_removal ($agent);
+  confirm_user_deletion ($agent);
+  check_inaccessibility ("users/$login");
 }
 
 END

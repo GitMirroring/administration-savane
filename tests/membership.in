@@ -125,7 +125,7 @@ sub option_is_possible
   save_page ($agent);
   exit (1);
 }
-sub remove_user
+sub remove_user_from_group
 {
   my ($user, $id) = @_;
   print_test_log ("Removing <$user> from group.");
@@ -237,11 +237,11 @@ sub check_approval_email
     }
   print_test_log ("Approval message looks sane.");
 }
-sub add_user
+sub add_user_to_group
 {
   my $user = shift;
   my $id = get_user_id ($user);
-  remove_user ($user, $id) if id_is_removable ($id, 0);
+  remove_user_from_group ($user, $id) if id_is_removable ($id, 0);
 
   print_test_log ("Looking for user <$user>.");
   $agent->form_with_fields (qw (action form_id words));
@@ -301,7 +301,7 @@ my $user = 'eve';
 my $id = get_user_id ($user);
 log_in ($agent, '-');
 $agent->get ($admin_url);
-remove_user ($user, $id) if id_is_removable ($id, 0);
+remove_user_from_group ($user, $id) if id_is_removable ($id, 0);
 log_out ($agent);
 request_inclusion ($user);
 
@@ -309,16 +309,16 @@ log_in ($agent, '-');
 $agent->get ($admin_url);
 
 $user = 'dave';
-$id = add_user ($user);
-remove_user ($user, $id);
+$id = add_user_to_group ($user);
+remove_user_from_group ($user, $id);
 
 $user = 'eve';
 $id = approve_user ($user);
-remove_user ($user, $id);
+remove_user_from_group ($user, $id);
 
 $user = 'dave';
 print_test_log ("Testing self-removal.");
-add_user ($user);
+add_user_to_group ($user);
 log_out ($agent);
 quit_group ('dave');
 
