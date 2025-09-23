@@ -492,7 +492,7 @@ foreach ($url_params as $field => $value_id)
                 $where_params[] = $time;
                 $where_params[] = $time_end;
               }
-            else
+            elseif ($operator === '<' || $operator === '>')
               {
                 $time = mktime (0, 0, 0, $month, $day + 1, $year);
                 $where .= "\n    AND a.$field $operator= ?";
