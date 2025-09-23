@@ -104,7 +104,8 @@ sub check_inaccessibility
   my $status = $agent->status ();
   unless ($status =~ /^40\d$/)
     {
-      print_test_log ("Wrong $url status: $status.");
+      save_page ($agent, "$status.html");
+      print_test_log ("Wrong $url status: $status, see $status.html.");
       exit (1);
     }
   print_test_log ("$url confirmed to be absent (status $status).");
@@ -237,15 +238,16 @@ sub get_password
 
 sub request_account
 {
-  my ($agent, $login) = @_;
+  my $agent = shift;
+  my $login = shift;
+  my $name = @_? shift: $login;
   $agent->get (make_url ('account/register.php'));
   my $passwd = get_password ($agent);
   $agent->form_with_fields (qw (form_id));
   $agent->set_fields (
-    'form_loginname' => $login,
+    'form_loginname' => $login, 'form_realname' => $name,
     'form_pw' => $passwd, 'form_pw2' => $passwd,
-    'form_realname' => "Test User",
-    'form_email' => 'user@savane.test',
+    'form_email' => $login . '@savane.test',
   );
   $agent->click ('update');
   print_test_log ("Account requested.");

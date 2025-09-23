@@ -1,0 +1,176 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test trackers.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test tracker operations.");
+
+my $agent = make_agent ();
+my $group = 'administration';
+my $submit_url = make_url ("/support/?group=$group&func=additem");
+my @logins = ('semel', 'bis', 'ter', 'quater', 'quinquies', 'sexies');
+my @registered_logins;
+my %passwords;
+my $exit_code = 0;
+
+my %submit_selects = (
+  'category_id' => ['100'],
+  'severity' => ['1', '3', '5', '7', '8', '9'],
+  'privacy' => ['1', '2'],
+  'platform_version_id' => ['100', '110', '120', '130', '140']
+);
+
+my @submit_texts = (
+  'originator_email', 'plan_release', 'summary', 'file_description'
+);
+my @submit_textareas = ('details');
+my @submit_files;
+for (my $i = 1; $i <= 4; $i++)
+  {
+    push @submit_files, "input_file$i";
+  }
+my @submit_buttons = ('preview', 'submit');
+
+sub check_input_set
+{
+  my ($form, $input_type) = (shift, shift);
+  my $type = lc ($input_type);
+  my @texts = map { $_->name ()} $form->find_input (undef, $type);
+  my %text_set;
+  my $ret = 0;
+  print_test_log ("Checking $type inputs.");
+  print_test_log ("$input_type inputs found: ("
+    . join (', ', map { "'$_'" } @texts) . ")."
+  );
+  $text_set{$_} = 1 foreach (@texts);
+  foreach my $t (@_)
+    {
+      next if defined $text_set{$t};
+      print_test_log ("$input_type input '$t' is missing.");
+      $ret = 1;
+    }
+  print_test_log ("All expected $type inputs are present.") unless $ret;
+  return $ret;
+}
+
+sub report_select_values
+{
+  my $input = shift;
+  my @vals = $input->possible_values ();
+  print_test_log ("Values found: (" . join (', ', map { "'$_'" } @vals) . ").");
+}
+
+sub check_select_values
+{
+  my $input = shift;
+  my $ret = 0;
+  my %vals = ('!unknown!' => 1);
+  my (@missing, @extra);
+  $vals{$_} = 1 foreach (@_);
+  $vals{$_}-- foreach ($input->possible_values ());
+  foreach (keys %vals)
+    {
+      push @missing, "'$_'" if $vals{$_} > 0;
+      push @extra, "'$_'" if $vals{$_} < 0;
+      next unless $vals{$_};
+      $ret = 1;
+    }
+  report_select_values ($input);
+  print_test_log ("Missing values: (" . join (', ', @missing) . ").")
+    if @missing;
+  print_test_log ("Unexpected values: (" . join (', ', @extra) . ").")
+    if @extra;
+  return $ret;
+}
+
+sub check_submit_options
+{
+  my $form = shift;
+  my $ret = check_input_set ($form, 'Option', keys (%submit_selects));
+  return $ret if $ret;
+  foreach my $name (keys %submit_selects)
+    {
+      print_test_log ("Checking for values of $name select box.");
+      my $input = $form->find_input ($name);
+      if (check_select_values ($input, @{$submit_selects{$name}}))
+        {
+          $ret = 1;
+          next;
+        }
+      print_test_log ("Value set doesn't differ from the expected one.")
+    }
+  return $ret;
+}
+
+sub check_submit_fields
+{
+  my $form = shift;
+  my $ret;
+  print_test_log ("Checking submit form fields.");
+  $ret = check_input_set ($form, 'Text', @submit_texts);
+  $ret = 1 if check_input_set ($form, 'Textarea', @submit_textareas);
+  $ret = 1 if check_submit_options ($form);
+  return $ret;
+}
+
+END
+{
+  print_test_log ("Removing users registered in the test.");
+  remove_user ($agent, $_, $passwords{$_}) foreach (@registered_logins);
+}
+
+foreach my $login (@logins)
+  {
+    $passwords{$login} = register_user ($agent, $login);
+    push @registered_logins, $login;
+  }
+
+$agent->get ($submit_url);
+$agent->form_with_fields (qw (form_id func group_id));
+$exit_code = check_submit_fields ($agent->current_form ());
+
+print_test_log ("Test done.") unless $exit_code;;
+exit ($exit_code);
