@@ -105,13 +105,15 @@ function filter_field ($field_name, $is_admin)
 
 function get_field_value ($field_name)
 {
-  global $prefill;
+  global $prefill, $form_check_submit;
   if (!empty ($GLOBALS[$field_name]))
     return utils_specialchars ($GLOBALS[$field_name]);
   # We let people make URLs with predefined values;
   # if the value is in the URL, we override the default one.
   if (isset ($prefill[$field_name]))
     return $prefill[$field_name];
+  if ($form_check_submit && array_key_exists ($field_name, $GLOBALS))
+    return $GLOBALS[$field_name];
   return trackers_data_get_default_value ($field_name);
 }
 

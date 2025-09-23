@@ -112,11 +112,10 @@ function form_filter_request ()
 {
   $suppress_keys = [
     'depends_search', 'depends_search_only_artifact',
-    'depends_search_only_group',
-    'file_description', 'form_id', 'func',
+    'depends_search_only_group', 'file_description', 'form_id',
     'reassign_change_artifact', 'reassign_change_new_group',
     'reassign_change_group_search',
-    'submit', 'submitreturn'
+    'submit', 'submitreturn', 'form_check_submit'
   ];
   $ret = [];
   foreach (array_replace ($_GET, $_POST) as $k => $v)
@@ -150,8 +149,49 @@ function form_summary_cmp ($a, $b, $request)
   return $a_ > $b_? -1: 1;
 }
 
+function form_rejected_request_note ()
+{
+  return '<p>'
+    . _("Your request contains no valid one-time hash.\n"
+        . "Some possible reasons are listed below.")
+    . "</p>\n"
+    . "<ul>\n"
+    . "<li>" . _("You submitted the same request more than once.") . "</li>\n"
+    . "<li>"
+      . _("You submitted a request, went back to the original page, "
+          . "edited the request form with the old hash, then submitted it.")
+    . "</li>\n"
+    . "<li>" . _("The request was forged by a third-party website.") . "</li>\n"
+    . "</ul>\n";
+}
+
+function form_proceed_control_note ()
+{
+  return '<p>'
+    . _("If the request is valid, you can push the next button "
+        . "to proceed with editing it.  Please make sure that it isn't "
+        . "erroneous before re-submitting it.")
+    . "</p>\n";
+}
+
+function form_proceed_control ($hidden)
+{
+  global $item_id;
+  $funcs = ['postmoditem' => 'detailitem', 'postadditem' => 'postadditem'];
+  if (empty ($hidden['func']) || empty ($funcs[$hidden['func']]))
+    return '';
+  $suff = '';
+  if (!empty ($item_id))
+    $suff = "?$item_id";
+  $hidden['func'] = $funcs[$hidden['func']];
+  return form_proceed_control_note ()
+    . form_tag ([], $suff) . form_hidden ($hidden)
+    . form_submit (_('Proceed with editing'), 'form_check_submit')
+    . "</form>\n";
+}
+
 # Return a HTML summary of a rejected request.
-function form_summarize_request ()
+function form_summarize_request ($submit_list)
 {
   $request = form_filter_request ();
   uksort ($request,
@@ -160,11 +200,16 @@ function form_summarize_request ()
       return form_summary_cmp ($a, $b, $request);
     }
   );
-  $ret = html_h (1, _("Rejected Request"));
-  $defs = [];
+  $ret = html_h (1, _("Rejected request")) . form_rejected_request_note ();
+  $defs = $hidden = [];
   foreach ($request as $k => $v)
-    $defs[utils_specialchars ($k)] =
-      "<pre>" . utils_specialchars ($v) . "</pre>";
+    {
+      $defs[utils_specialchars ($k)] =
+        "<pre>" . utils_specialchars ($v) . "</pre>";
+      if (!is_array ($submit_list) || !in_array ($k, $submit_list, true))
+        $hidden[$k] = $v;
+    }
+  $ret .= form_proceed_control ($hidden);
   return $ret . html_dl ($defs);
 }
 
@@ -190,6 +235,6 @@ function form_check ($submit_list = null)
   # the form ID no longer exists and then we exit.  We will have only one
   # SQL request, reducing as much as possible delays.
   if (form_reset_form_id ($form_id))
-    exit_error (null, form_summarize_request ());
+    exit_error (null, form_summarize_request ($submit_list));
 }
 ?>

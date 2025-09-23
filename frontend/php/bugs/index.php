@@ -105,7 +105,7 @@ extract (sane_import ('request',
 ));
 extract (sane_import ('post',
   [
-    'true' => ['submitreturn', 'preview'],
+    'true' => ['submitreturn', 'preview', 'form_check_submit'],
     'digits' => ['comment_type_id', 'quote_no', 'new_vote'],
     'pass' => 'comment',
     'preg' =>

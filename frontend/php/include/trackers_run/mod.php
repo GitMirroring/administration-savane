@@ -80,7 +80,8 @@ foreach (['comment', 'file'] as $pre)
 
 $preambles = group_get_preference  ($group_id, $preambles);
 
-if ($preview)
+$fill_fields_from_request = $preview || !empty ($form_check_submit);
+if ($fill_fields_from_request)
   $field_list = trackers_extract_field_list ();
 
 # Item name, converting bugs to bug.
@@ -292,11 +293,13 @@ while ($field_name = trackers_list_all_fields ())
     # on database content.
     if (!isset ($nocache))
       $nocache = false;
-    if ((empty ($$field_name) || $nocache) && !($preview && $is_trackeradmin))
+    if ((empty ($$field_name) || $nocache)
+      && !($fill_fields_from_request && $is_trackeradmin)
+    )
       $field_value = $res_arr[$field_name];
     else
       {
-        if ($preview && isset ($field_list[$field_name]))
+        if ($fill_fields_from_request && isset ($field_list[$field_name]))
           {
             $$field_name = $field_list[$field_name];
             if (trackers_data_is_date_field ($field_name))
