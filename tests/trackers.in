@@ -156,6 +156,52 @@ sub check_submit_fields
   return $ret;
 }
 
+sub fill_anon_check
+{
+  my ($input, $name) = @_;
+  return if $name ne 'anonymous';
+  print_test_log ("Filling the anonymous check.");
+  $input = $form->find_input ('check', 'text');
+  $input->value ('1984');
+}
+
+sub request_new_item
+{
+  my ($agent, $name) = @_;
+  my ($form, $input, $text);
+  $agent->get ($submit_url);
+  $form = $agent->form_with_fields (qw (form_id func group_id));
+  return 1 if (check_submit_fields ($form));
+  $text = "request by $name";
+  print_test_log ("Setting summary, '$text'.");
+  $input = $form->find_input ('summary', 'text');
+  $input->value ($text);
+  $text = "This item was submitted in the name of $name.";
+  print_test_log ("Setting details, '$text'.");
+  $input = $form->find_input ('details', 'textarea');
+  $input->value ($text);
+  fill_anon_check ($input, $name);
+  print_test_log ('Sending the request.');
+  $agent->click ('submit');
+  $name =~ s/[<>]//g;
+  save_page ($agent, "new-item-$name.html");
+  return 0;
+}
+
+sub submit_item
+{
+  my ($agent, $login) = @_;
+  my $name = defined ($login)? "<$login>": "anonymous";
+  my $ret;
+  print_test_log ("Submitting item as $name.");
+  log_in ($agent, $login, $passwords{$login}) if defined $login;
+  $ret = request_new_item ($agent, $name);
+  # Remove originator_email from further non-anonymous submissions.
+  shift @submit_texts unless defined $login;
+  log_out ($agent) if defined $login;
+  return $ret;
+}
+
 END
 {
   print_test_log ("Removing users registered in the test.");
@@ -170,9 +216,10 @@ foreach my $login (@logins)
     push @registered_logins, $login;
   }
 
-$agent->get ($submit_url);
-$agent->form_with_fields (qw (form_id func group_id));
-$exit_code = check_submit_fields ($agent->current_form ());
+foreach (undef, @logins)
+  {
+    $exit_code = 1 if submit_item ($agent, $_);
+  }
 
 print_test_log ("Test done.") unless $exit_code;;
 exit ($exit_code);
