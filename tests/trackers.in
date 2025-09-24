@@ -162,6 +162,8 @@ END
   remove_user ($agent, $_, $passwords{$_}) foreach (@registered_logins);
 }
 
+speed_up_crypt ();
+
 foreach my $login (@logins)
   {
     $passwords{$login} = register_user ($agent, $login);

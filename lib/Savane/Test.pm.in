@@ -51,6 +51,7 @@ our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url print_test_log make_agent
   log_in log_in_su log_out check_inaccessibility get_user_id save_page
   append_savane_conf reset_savane_conf register_user remove_user
+  speed_up_crypt
 );
 
 sub save_page
@@ -370,6 +371,15 @@ sub reset_savane_conf
       print { $th } $_;
     }
   close_and_move ($th, $tn, $fname);
+}
+
+# Set a low-cost crypt algorithm.
+sub speed_up_crypt
+{
+  append_savane_conf (<<'  EOF');
+    $sys_pw_prefix = '$6$';
+    $sys_pw_rounds = 1000;
+  EOF
 }
 
 END
