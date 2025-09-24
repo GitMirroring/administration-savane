@@ -42,6 +42,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use strict;
 use Savane::DB;
+use Savane::Util;
 use WWW::Mechanize;
 require Exporter;
 
@@ -49,7 +50,7 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url print_test_log make_agent
   log_in log_in_su log_out check_inaccessibility get_user_id save_page
-  register_user remove_user
+  append_savane_conf reset_savane_conf register_user remove_user
 );
 
 sub save_page
@@ -318,8 +319,62 @@ sub remove_user
   check_inaccessibility ("users/$login");
 }
 
+sub savane_conf_start_marker
+{
+  return "<?php # SAVANE TEST\n";
+}
+
+my $savane_conf_modified = 0;
+
+sub append_savane_conf
+{
+  my $text = shift;
+  my $fh;
+  my $fname = '@confdir@/savane.conf.php';
+  my $formatted = $text;
+  my $ret = 0;
+  $formatted =~ s,^,    ,gm;
+  print_test_log ("Appending to savane.conf.php:\n$formatted");
+  unless (open ($fh, '>>:encoding(UTF-8)', $fname))
+    {
+      print_test_log ("Can't open $fname: $!.");
+      $ret = 1;
+    }
+  print { $fh } savane_conf_start_marker ();
+  print { $fh } $text;
+  print { $fh } "\n?>\n";
+  $savane_conf_modified = 1;
+  return $ret;
+}
+
+sub reset_savane_conf
+{
+  return unless $savane_conf_modified;
+  my $fname = '@confdir@/savane.conf.php';
+  my ($th, $tn) = open_tmp ('reset-sv-conf');
+  my $fh;
+  print_test_log ("Resetting savane.conf.php");
+  unless (open ($fh, '<:encoding(UTF-8)', $fname))
+    {
+      print_test_log ("Can't open $fname: $!.");
+      return;
+    }
+  while (!eof ($fh))
+    {
+      if (!defined ($_ = <$fh>))
+        {
+          print_test_log ("Error when reading $fname: $!");
+          return;
+        }
+      last if $_ eq savane_conf_start_marker ();
+      print { $th } $_;
+    }
+  close_and_move ($th, $tn, $fname);
+}
+
 END
 {
+  reset_savane_conf ();
   my $name = script_name ();
   print_test_log ("== Test $name end.");
 }
