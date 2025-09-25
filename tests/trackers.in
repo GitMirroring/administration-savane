@@ -66,6 +66,9 @@ my %submit_selects = (
 my @submit_texts = (
   'originator_email', 'plan_release', 'summary', 'file_description'
 );
+my %submit_fields = (
+  'anonymous' => {'originator_email' => 'anon@savane.test'}
+);
 my @submit_textareas = ('details');
 my @submit_files;
 for (my $i = 1; $i <= 4; $i++)
@@ -166,27 +169,95 @@ sub fill_anon_check
   $input->value ('1984');
 }
 
-sub request_new_item
+sub fill_new_item_form
 {
-  my ($agent, $name) = @_;
-  my ($form, $input, $text);
-  $agent->get ($submit_url);
-  $form = $agent->form_with_fields (qw (form_id func group_id));
-  return 1 if (check_submit_fields ($form));
+  my ($form, $name) = @_;
+  my ($input, $text);
   $text = "request by $name";
   print_test_log ("Setting summary, '$text'.");
   $input = $form->find_input ('summary', 'text');
   $input->value ($text);
-  $text = "This item was submitted in the name of $name.";
+  $text = "This item was submitted by name of $name.";
   print_test_log ("Setting details, '$text'.");
   $input = $form->find_input ('details', 'textarea');
   $input->value ($text);
+  return unless exists $submit_fields{$name};
+  my $fields = $submit_fields{$name};
+  foreach my $k (keys %$fields)
+    {
+      my $val = $fields->{$k};
+      print_test_log ("Setting the '$k' field to '$val'.");
+      $input = $form->find_input ($k);
+      $input->value ($val);
+    }
+}
+
+sub check_request_status
+{
+  my $agent = shift;
+  my $status = $agent->status ();
+  return 0 if $status eq '200';
+  print_test_log ("Unexpected request status $status.");
+  return 1;
+}
+
+sub extract_new_item_no
+{
+  my ($agent, $txt, $name) = @_;
+  return $1 if $txt =~ m,#(\d+)<,;
+  my $file = "no-item-id-$name.html";
+  print_test_log ("Item ID not found, see $file.");
+  save_page ($agent, $file);
+  return undef;
+}
+
+sub check_for_success
+{
+  my ($agent, $txt, $name) = @_;
+  return extract_new_item_no ($agent, $1, $name)
+    if $txt =~ m,/bool/ok[.]png.* />.*Success:.*New item posted [(]([^)]*)[)],;
+  my $file = "no-sucess-$name.html";
+  print_test_log ("Success message not found, see $file.");
+  save_page ($agent, $file);
+  return undef;
+}
+
+sub check_for_fb
+{
+  my ($agent, $name) = @_;
+  my $txt = $agent->content (raw => 1);
+  $name =~ s,[<>],,g;
+  return check_for_success ($agent, $1, $name)
+    if $txt =~ m,<div id="feedback" class="feedback">([^\n]*),;
+  my $file = "no-fb-$name.html";
+  print_test_log ("Feedback not found, see $file.");
+  save_page ($agent, $file);
+  return undef;
+}
+
+sub check_submitted_item
+{
+  my ($agent, $name) = @_;
+  my $item_id;
+  print_test_log ("Checking the submitted request.");
+  return 1 if check_request_status ($agent);
+  $item_id = check_for_fb ($agent, $name);
+  return 1 unless defined $item_id;
+  return 0;
+}
+
+sub request_new_item
+{
+  my ($agent, $name) = @_;
+  my $form;
+  $agent->get ($submit_url);
+  $form = $agent->form_with_fields (qw (form_id func group_id));
+  return 1 if (check_submit_fields ($form));
+  fill_new_item_form ($form, $name);
   fill_anon_check ($form, $name);
   print_test_log ('Sending the request.');
   $agent->click ('submit');
-  $name =~ s/[<>]//g;
-  save_page ($agent, "new-item-$name.html");
-  return 0;
+  return check_submitted_item ($agent, $name);
 }
 
 sub submit_item
