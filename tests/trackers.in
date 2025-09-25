@@ -158,7 +158,8 @@ sub check_submit_fields
 
 sub fill_anon_check
 {
-  my ($input, $name) = @_;
+  my ($form, $name) = @_;
+  my $input;
   return if $name ne 'anonymous';
   print_test_log ("Filling the anonymous check.");
   $input = $form->find_input ('check', 'text');
@@ -180,7 +181,7 @@ sub request_new_item
   print_test_log ("Setting details, '$text'.");
   $input = $form->find_input ('details', 'textarea');
   $input->value ($text);
-  fill_anon_check ($input, $name);
+  fill_anon_check ($form, $name);
   print_test_log ('Sending the request.');
   $agent->click ('submit');
   $name =~ s/[<>]//g;
@@ -193,8 +194,11 @@ sub submit_item
   my ($agent, $login) = @_;
   my $name = defined ($login)? "<$login>": "anonymous";
   my $ret;
+  my $pw = '-';
+  $pw = $passwords{$login}
+    if ((defined ($login)) and (defined ($passwords{$login})));
   print_test_log ("Submitting item as $name.");
-  log_in ($agent, $login, $passwords{$login}) if defined $login;
+  log_in ($agent, $login, $pw) if defined $login;
   $ret = request_new_item ($agent, $name);
   # Remove originator_email from further non-anonymous submissions.
   shift @submit_texts unless defined $login;
@@ -216,7 +220,9 @@ foreach my $login (@logins)
     push @registered_logins, $login;
   }
 
-foreach (undef, @logins)
+unshift @logins, undef, '-', 'alice', 'bob';
+
+foreach (@logins)
   {
     $exit_code = 1 if submit_item ($agent, $_);
   }
