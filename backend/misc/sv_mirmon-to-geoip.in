@@ -91,6 +91,14 @@ die qq{Too few command line arguments $#ARGV\n} if $#ARGV < 3;
 my @schemes = ('http', 'https');
 
 our %source_overrides = ('am' => '!az,am,bg,de');
+# Sometimes, the GeoIP library returns a code that isn't really a contry.
+our %cc_aliases = (
+  'ap' => 'as', # 'Asia/Pacific': assume American Samoa.
+  'eu' => 'fr', # 'Europe': assume France.
+  'a1' => 'us', # 'Anonymous proxy'
+  'a2' => 'us', # 'Satellite provider'
+  'aq' => 'ch', # ? Let it be Switzerland.
+);
 my $fallback_country = 'us';
 my $conf_file = "@confdir@/mirmon-to-geoip.conf";
 die "No $conf_file found. Exiting" unless -e $conf_file;
@@ -317,15 +325,22 @@ sub find_source_country
   return join (',', @codes_sorted);
 }
 
-sub output_mirrors
+sub get_source_countries
 {
-  my ($sch, $path) = @_;
+  my $sch = shift;
   my $source_countries;
-  my ($tmp_h, $tmp_name) = tempfile (UNLINK => 1);
   foreach my $code (@known_codes)
     {
       $source_countries->{$code} = find_source_country ($code, $sch);
     }
+  return $source_countries;
+}
+
+sub output_mirrors
+{
+  my ($sch, $path) = @_;
+  my ($tmp_h, $tmp_name) = tempfile (UNLINK => 1);
+  my $source_countries = get_source_countries ($sch);
   foreach my $site (keys %{$sites->{$sch}})
     {
       my $country_code = $sites->{$sch}->{$site};
@@ -336,6 +351,10 @@ sub output_mirrors
   foreach my $cc (@known_codes)
     {
       print $tmp_h "$cc\t$source_countries->{$cc}\n";
+    }
+  foreach my $cc (keys %cc_aliases)
+    {
+      print $tmp_h "$cc => $cc_aliases{$cc}\n";
     }
   close ($tmp_h);
   system ("chmod", "a+r", $tmp_name);

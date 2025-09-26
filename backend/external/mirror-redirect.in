@@ -135,6 +135,7 @@ $path_info =~ s,^/*,/,; # Make a pretty URL, without extra slashes.
 
 my $mirrors;
 my $source_countries;
+my $country_aliases;
 
 sub ip_is_valid
 {
@@ -153,6 +154,11 @@ sub load_mirrors
       if ($line =~ /(.*)\t(.*)/)
         {
           $source_countries->{$1} = $2;
+          next;
+        }
+      if ($line =~ /(.*) => (.*)/)
+        {
+          $country_aliases->{$1} = $2;
           next;
         }
       next unless $line =~ /(.*) (.*)/;
@@ -224,7 +230,7 @@ sub set_overrides
       $ret{$1} = lc ($2);
     }
   $ret{'addr'} = undef unless ip_is_valid ($ret{'addr'});
-  $ret{'cc'} = undef unless $ret{'cc'} =~ /^[a-z]{2}$/;
+  $ret{'cc'} = undef unless $ret{'cc'} =~ /^[a-z0-9]{2}$/;
   return ($ret{'addr'}, $ret{'cc'});
 }
 
@@ -233,6 +239,12 @@ sub get_source_list
   my $cc = shift;
   my (@c_list, @m_list);
   my $n = 0;
+  $cc = $country_aliases->{$cc} if exists $country_aliases->{$cc};
+  unless (exists $source_countries->{$cc})
+    {
+      print STDERR "Unknown country code $cc; using default $default_cc.";
+      $cc = $default_cc;
+    }
   foreach my $s (split (',', $source_countries->{$cc}))
     {
       my @m = @{$mirrors->{$s}};
@@ -282,6 +294,8 @@ my $country = ($ip_v6 && $gi->can ('country_name_by_addr_v6'))?
 $country ||= "(unknown)";
 
 $remote_addr .= ' (overridden in query string)' if defined $addr_ovr;
+$remote_cc .= " (aliased to $country_aliases->{$remote_cc})"
+  if exists ($country_aliases->{$remote_cc});
 $remote_cc .= ' (overridden in query string)' if defined $cc_ovr;
 
 my $cc_mirrors = join ("\n    ", @mirror_list);

@@ -102,6 +102,9 @@
 
 [BACKEND]
 
+* In sv_mirmon-to-geoip and mirror-redirect, add support for non-country
+  special codes sometimes returned by Geo::IP like 'ap' and 'eu'.
+
 * sv_groups is runnable from non-root accounts, for testing purposes:
   chown and chgrp are skipped then.
 
