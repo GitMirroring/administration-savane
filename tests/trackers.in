@@ -85,17 +85,17 @@ sub check_input_set
   my %text_set;
   my $ret = 0;
   print_test_log ("Checking $type inputs.");
-  print_test_log ("$input_type inputs found: ("
+  print_test_result ("$input_type inputs found: ("
     . join (', ', map { "'$_'" } @texts) . ")."
   );
   $text_set{$_} = 1 foreach (@texts);
   foreach my $t (@_)
     {
       next if defined $text_set{$t};
-      print_test_log ("$input_type input '$t' is missing.");
+      print_test_error ("$input_type input '$t' is missing.");
       $ret = 1;
     }
-  print_test_log ("All expected $type inputs are present.") unless $ret;
+  print_test_result ("All expected $type inputs are present.") unless $ret;
   return $ret;
 }
 
@@ -103,7 +103,9 @@ sub report_select_values
 {
   my $input = shift;
   my @vals = $input->possible_values ();
-  print_test_log ("Values found: (" . join (', ', map { "'$_'" } @vals) . ").");
+  print_test_result (
+    "Values found: (" . join (', ', map { "'$_'" } @vals) . ")."
+  );
 }
 
 sub check_select_values
@@ -122,9 +124,9 @@ sub check_select_values
       $ret = 1;
     }
   report_select_values ($input);
-  print_test_log ("Missing values: (" . join (', ', @missing) . ").")
+  print_test_error ("Missing values: (" . join (', ', @missing) . ").")
     if @missing;
-  print_test_log ("Unexpected values: (" . join (', ', @extra) . ").")
+  print_test_error ("Unexpected values: (" . join (', ', @extra) . ").")
     if @extra;
   return $ret;
 }
@@ -143,7 +145,7 @@ sub check_submit_options
           $ret = 1;
           next;
         }
-      print_test_log ("Value set doesn't differ from the expected one.")
+      print_test_result ("Value set doesn't differ from the expected one.");
     }
   return $ret;
 }
@@ -197,7 +199,7 @@ sub check_request_status
   my $agent = shift;
   my $status = $agent->status ();
   return 0 if $status eq '200';
-  print_test_log ("Unexpected request status $status.");
+  print_test_error ("Unexpected request status $status.");
   return 1;
 }
 
@@ -206,7 +208,7 @@ sub extract_new_item_no
   my ($agent, $txt, $name) = @_;
   return $1 if $txt =~ m,#(\d+)<,;
   my $file = "no-item-id-$name.html";
-  print_test_log ("Item ID not found, see $file.");
+  print_test_error ("Item ID not found.");
   save_page ($agent, $file);
   return undef;
 }
@@ -217,7 +219,7 @@ sub check_for_success
   return extract_new_item_no ($agent, $1, $name)
     if $txt =~ m,/bool/ok[.]png.* />.*Success:.*New item posted [(]([^)]*)[)],;
   my $file = "no-sucess-$name.html";
-  print_test_log ("Success message not found, see $file.");
+  print_test_error ("Success message not found.");
   save_page ($agent, $file);
   return undef;
 }
@@ -230,7 +232,7 @@ sub check_for_fb
   return check_for_success ($agent, $1, $name)
     if $txt =~ m,<div id="feedback" class="feedback">([^\n]*),;
   my $file = "no-fb-$name.html";
-  print_test_log ("Feedback not found, see $file.");
+  print_test_error ("Feedback not found.");
   save_page ($agent, $file);
   return undef;
 }
@@ -298,5 +300,5 @@ foreach (@logins)
     $exit_code = 1 if submit_item ($agent, $_);
   }
 
-print_test_log ("Test done.") unless $exit_code;;
+print_test_result ("Test done.") unless $exit_code;;
 exit ($exit_code);

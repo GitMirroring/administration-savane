@@ -64,7 +64,7 @@ sub try_mkdir
   my $dir = shift;
   print_test_log ("Creating $dir directory.");
   return if mkdir $dir;
-  print_test_log ("Can't create $dir directory: $!");
+  print_test_error ("Can't create $dir directory: $!");
   exit (1);
 }
 
@@ -106,7 +106,7 @@ sub simulate_git_repos
 sub try_rm_dir
 {
   my $dir = shift;
-  print_test_log ("Can't clear $dir: $!.")
+  print_test_error ("Can't clear $dir: $!.")
     unless rmdir ($dir);
 }
 
@@ -144,10 +144,10 @@ sub check_existing_modules
       $res = 1;
       if (exists ($mod_cnt{$_}))
         {
-          print_test_log ("Module $_ is listed $mod_cnt{$_} times.");
+          print_test_error ("Module $_ is listed $mod_cnt{$_} times.");
           next;
         }
-      print_test_log ("Module $_ is absent in the list.")
+      print_test_error ("Module $_ is absent in the list.")
     }
   return $res;
 }
@@ -157,7 +157,7 @@ sub check_extra_modules
   for (keys (%mod_cnt))
     {
       next if $mod_cnt{$_} < 0;
-      print_test_log ("Unexpected module $_ is listed $mod_cnt{$_} times.");
+      print_test_error ("Unexpected module $_ is listed $mod_cnt{$_} times.");
       $res = 1;
     }
   return $res;
@@ -167,8 +167,7 @@ sub check_module_set
   my $res = check_existing_modules (@_);
   $res = 1 if check_extra_modules ();
   return unless $res;
-  save_page ($agent);
-  print_test_log ("See test.html.");
+  save_page ($agent, 'module-set.html');
   exit (1);
 }
 sub find_module_list
@@ -176,14 +175,14 @@ sub find_module_list
   my ($page, $start, $end) = @_;
   unless ($page =~ s#.*$start(.*)$end.*#$1#s)
     {
-      save_page ($agent);
-      print_test_log ("No module list found.  See test.html.");
+      print_test_error ("No module list found.");
+      save_page ($agent, 'no-module-list.html');
       exit (1);
     }
   $page =~ s#^\s*<li>(.*)</li>\s*$#$1#s;
   %mod_cnt = ();
   my @mods = split (/<\/li>\s*<li>/s, $page);
-  print_test_log ("Modules found: " . join (', ', @mods) . ".");
+  print_test_result ("Modules found: " . join (', ', @mods) . ".");
   $mod_cnt{$_}++ for (@mods);
 }
 sub assert_no_module_list
@@ -191,12 +190,11 @@ sub assert_no_module_list
   my ($page, $start, $end) = @_;
   unless ($page =~ m#$start(.*)$end#s)
     {
-      print_test_log ("No modules found.");
+      print_test_result ("No modules found.");
       return;
     }
-  print_test_log ("Module list is found unexpectedly:\n$1\n");
-  save_page ($agent);
-  print_test_log ("For the full page, see text.html.");
+  print_test_error ("Module list is found unexpectedly:\n$1\n");
+  save_page ($agent, 'modules.html');
 }
 sub source_start
 {
@@ -301,8 +299,8 @@ sub get_cvs_section
   $page = $agent->content (raw => 1);
   return $page
     if $page =~ s#.*<h2>$start</h2>(.*)<h2>Email Notifications</h2>.*#$1#s;
-  save_page ($agent);
-  print_test_log ("Page at $url has a wrong structure; see test.html.");
+  print_test_error ("Page at $url has a wrong structure.");
+  save_page ($agent, 'cvs-section.html');
   exit (1);
 }
 sub run_cvs_checks
@@ -328,15 +326,15 @@ sub find_repos_in_html
   my $page = $agent->content (raw => 1);
   unless ($page =~ s#.*$start(.*)$end.*#$1#s)
     {
-      save_page ($agent);
-      print_test_log ("No repo list found.  See test.html.");
+      print_test_error ("No repo list found.");
+      save_page ($agent, 'repos.html');
       exit (1);
     }
   $page =~ s#^\s*$item_start(.*)$item_end\s*$#$1#s;
   %mod_cnt = ();
   my @mods = split (/$item_end\s*$item_start/s, $page);
   $mod_cnt{$_}++ for (@mods);
-  print_test_log ("Repos found: " . join (', ', keys (%mod_cnt)) . ".");
+  print_test_result ("Repos found: " . join (', ', keys (%mod_cnt)) . ".");
 }
 
 sub list_git_browsing
@@ -415,7 +413,9 @@ sub set_git_input
   $form = $agent->current_form ();
   $input = $form->find_input ("#${field_name}$i");
   return if (defstr ($input->value ()) eq defstr ($val));
-  print_test_log ("Can't set: the value is '" . defstr ($input->value ()) . "'.");
+  print_test_error (
+    "Can't set: the value is '" . defstr ($input->value ()) . "'."
+  );
   exit (1);
 }
 
@@ -470,6 +470,6 @@ log_in ($agent);
 run_cvs_checks ();
 run_git_checks ();
 
-print_test_log ("Test done.");
+print_test_result ("Test done.");
 exit (0);
 END { clear_repos (); }

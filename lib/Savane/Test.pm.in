@@ -48,9 +48,10 @@ require Exporter;
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
-  clear_mbox get_mbox make_url unmake_url print_test_log make_agent
-  log_in log_in_su log_out check_inaccessibility get_user_id save_page
-  append_savane_conf reset_savane_conf register_user remove_user
+  clear_mbox get_mbox make_url unmake_url make_agent
+  print_test_log print_test_error print_test_result
+  log_in log_in_su log_out check_inaccessibility get_user_id
+  save_page append_savane_conf reset_savane_conf register_user remove_user
   speed_up_crypt
 );
 
@@ -58,7 +59,9 @@ sub save_page
 {
   my $agent = shift;
   my $file = @_? shift: 'test.html';
+  my $error = $_? shift: 1;
   my $fd;
+  print_test_result ("See $file.", $error);
   open ($fd, '>:encoding(UTF-8)', $file);
   print {$fd} $agent->content (raw => 1);
   close ($fd);
@@ -68,7 +71,7 @@ sub check_for_test_marker
 {
   my @test = GetDBAsIs ("SHOW TABLES LIKE 'test_marker'");
   return 0 if $test[0] eq 'test_marker';
-  print_test_log (
+  print_test_error (
     "Cowardly refusing to run tests: the database isn't intended for that."
   );
   return 1;
@@ -106,11 +109,11 @@ sub check_inaccessibility
   my $status = $agent->status ();
   unless ($status =~ /^40\d$/)
     {
+      print_test_error ("Wrong $url status: $status.");
       save_page ($agent, "$status.html");
-      print_test_log ("Wrong $url status: $status, see $status.html.");
       exit (1);
     }
-  print_test_log ("$url confirmed to be absent (status $status).");
+  print_test_result ("$url confirmed to be absent (status $status).");
 }
 
 sub make_agent
@@ -128,10 +131,10 @@ sub get_user_id
   my $html = $agent->content (raw => 1);
   unless ($html =~ /<td>Id: <\/td>\n<td><b>#(\d+)<\/b><\/td>/)
     {
-      print_test_log ("Can't find user id; the page follows:\n$html\n");
+      print_test_error ("Can't find user id; the page follows:\n$html\n");
       exit (1);
     }
-  print_test_log ("User Id is $1.");
+  print_test_result ("User Id is $1.");
   return $1;
 }
 
@@ -149,9 +152,37 @@ sub unmake_url
 
 my $log_fd;
 
+sub print_test
+{
+  my ($str, $pref) = @_;
+  $str =~ s,^,$pref,gm;
+  $str =~ s,\n$,\n$pref,;
+  print { $log_fd } "$str\n";
+}
+
 sub print_test_log
 {
-  print { $log_fd } "$_[0]\n";
+  my $str = shift;
+  my $pref = '= ';
+  $pref = '==' if ($str =~ s/^==//);
+  print_test ($str, $pref);
+}
+
+sub print_test_error
+{
+  print_test (shift, '% ');
+}
+
+sub print_test_result
+{
+  my $str = shift;
+  my $result = @_? shift: 0;
+  if ($result)
+    {
+      print_test_error ($str);
+      return;
+    }
+  print_test ($str, '- ');
 }
 
 sub script_name
@@ -188,7 +219,7 @@ sub get_mbox
   my $mp = mbox_path ();
   unless (open ($fd, '<', $mp))
     {
-      print_test_log ("Can't open mbox $mp.");
+      print_test_error ("Can't open mbox $mp.");
       return '';
     }
   while (<$fd>)
@@ -209,7 +240,7 @@ sub log_in
   $agent->form_with_fields (qw (form_id));
   $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
   $agent->click ('login');
-  print_test_log ("Logged in as <$login>.");
+  print_test_result ("Logged in as <$login>.");
 }
 
 sub log_in_su
@@ -217,7 +248,7 @@ sub log_in_su
   my $agent = shift;
   log_in ($agent, '-');
   $agent->follow_link (url_regex => qr,^/account/su\.php[?],);
-  print_test_log ('Acquired superuser privileges.');
+  print_test_result ('Acquired superuser privileges.');
 }
 
 sub log_out
@@ -225,7 +256,7 @@ sub log_out
   my $agent = shift;
   print_test_log ("Logging out.");
   $agent->get (make_url ("account/logout.php"));
-  print_test_log ("Logged out.");
+  print_test_result ("Logged out.");
 }
 
 sub get_password
@@ -234,7 +265,7 @@ sub get_password
   my $passwd = $agent->text ();
   $passwd =~ s/.*For instance: ([^.]*).*/$1/;
   $passwd = "merge&tragic-Maxim#$passwd^Detest2new*mutiny";
-  print_test_log ("Password: $passwd");
+  print_test_result ("Password: $passwd");
   return $passwd;
 }
 
@@ -252,7 +283,7 @@ sub request_account
     'form_email' => $login . '@savane.test',
   );
   $agent->click ('update');
-  print_test_log ("Account requested.");
+  print_test_result ("Account requested.");
   return $passwd;
 }
 
@@ -263,7 +294,7 @@ sub get_confirmation_url
   clear_mbox ();
   $url =~ s/^.*?visit the following URL[^:]*:\n+//s;
   $url =~ s/\n.*$//s;
-  print_test_log ("Confirmation URL: $url.");
+  print_test_result ("Confirmation URL: $url.");
   return $url;
 }
 
@@ -275,7 +306,7 @@ sub confirm_account
   $agent->form_with_fields (qw (form_id));
   $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
   $agent->click ('update');
-  print_test_log ("Account confirmed.");
+  print_test_result ("Account confirmed.");
 }
 
 sub register_user
@@ -287,7 +318,7 @@ sub register_user
   confirm_account ($agent, $login, $passwd);
   log_out ($agent);
   $agent->get (make_url ("users/$login"));
-  print_test_log ("Account exists.");
+  print_test_result ("Account exists.");
   return $passwd;
 }
 
@@ -298,7 +329,7 @@ sub request_user_removal
   $agent->form_with_fields (qw (form_id));
   $agent->tick ('newvalue', 'deletionconfirmed');
   $agent->click ('update');
-  print_test_log ("Deletion requested.");
+  print_test_result ("Deletion requested.");
 }
 
 sub confirm_user_deletion
@@ -308,7 +339,7 @@ sub confirm_user_deletion
   $agent->get ($url);
   $agent->form_with_fields (qw (form_id));
   $agent->click ('update');
-  print_test_log ("Deletion confirmed.");
+  print_test_result ("Deletion confirmed.");
 }
 
 sub remove_user
@@ -338,7 +369,7 @@ sub append_savane_conf
   print_test_log ("Appending to savane.conf.php:\n$formatted");
   unless (open ($fh, '>>:encoding(UTF-8)', $fname))
     {
-      print_test_log ("Can't open $fname: $!.");
+      print_test_error ("Can't open $fname: $!.");
       $ret = 1;
     }
   print { $fh } savane_conf_start_marker ();
@@ -357,14 +388,14 @@ sub reset_savane_conf
   print_test_log ("Resetting savane.conf.php");
   unless (open ($fh, '<:encoding(UTF-8)', $fname))
     {
-      print_test_log ("Can't open $fname: $!.");
+      print_test_error ("Can't open $fname: $!.");
       return;
     }
   while (!eof ($fh))
     {
       if (!defined ($_ = <$fh>))
         {
-          print_test_log ("Error when reading $fname: $!");
+          print_test_error ("Error when reading $fname: $!");
           return;
         }
       last if $_ eq savane_conf_start_marker ();

@@ -63,19 +63,19 @@ $msg =~ s/^  //gm;
 
 print_test_log ("Sending mail.");
 MailSend ($to, $subj, $msg);
-print_test_log ("Mail sent.");
+print_test_result ("Mail sent.");
 
 my $mbox = get_mbox (1);
 unless ($mbox =~ /./)
   {
-    print_test_log ("Mailbox is empty.");
+    print_test_error ("Mailbox is empty.");
     exit (1);
   }
 my $needle = 'From @PACKAGE@';
 my $exit_code = 0;
 if (index ($mbox, $needle) != 0)
   {
-    print_test_log ("Mailbox doesn't start with '$needle'.");
+    print_test_error ("Mailbox doesn't start with '$needle'.");
     save_mbox ($mbox);
     $exit_code = 1;
   }
@@ -90,18 +90,18 @@ my @headers = (
 foreach (@headers)
   {
     next unless index ($mbox, "\n$_") < 0;
-    print_test_log ("Mailbox has no line starting with '$_'.");
+    print_test_error ("Mailbox has no line starting with '$_'.");
     save_mbox ($mbox);
     $exit_code = 1;
   }
 if (index ($mbox, "\n\n$msg") < 0)
   {
-    print_test_log ("Mailbox doesn't contain message '$msg'.");
+    print_test_error ("Mailbox doesn't contain message '$msg'.");
     save_mbox ($mbox);
     $exit_code = 1;
   }
 
 exit (1) if $exit_code;
 
-print_test_log ("Test done.");
+print_test_result ("Test done.");
 exit (0);

@@ -67,7 +67,7 @@ sub my_log_out
 sub finalize
 {
   my_log_out () if $have_logged_in;
-  print_test_log ('Test done.') unless shift;
+  print_test_result ('Test done.') unless shift;
 }
 
 sub find_the_form
@@ -78,7 +78,7 @@ sub find_the_form
   );
   if (!defined ($form))
     {
-      print_test_log ("Form not found.");
+      print_test_error ("Form not found.");
       exit (1);
     }
   return $form;
@@ -91,7 +91,7 @@ print_test_log ("Looking for originator phone link.");
 my $link = $agent->find_link (text => 'Originator Phone');
 if (!defined ($link))
   {
-    print_test_log ("Link not found");
+    print_test_error ("Link not found");
     exit (1);
   }
 my $field_usage_url = $link->url ();
@@ -106,8 +106,8 @@ $agent->get ($field_usage_url);
 my $form = find_the_form ();
 my %form_settings = $form->form;
 my $group_id = $form_settings{'group_id'};
-print_test_log ('Current fields:');
-print_test_log ("  $_ => " . $form_settings{$_})
+print_test_result ('Current fields:');
+print_test_result ("  $_ => " . $form_settings{$_})
   foreach (keys %form_settings);
 my @modified_fields = qw (n1 n2 place);
 my %saved_settings;
@@ -118,8 +118,8 @@ foreach (@checkboxes)
   {
     $saved_checkboxes{$_->name} = $_->value;
   }
-print_test_log ("Checkboxes:");
-print_test_log (
+print_test_result ("Checkboxes:");
+print_test_result (
   "  $_ => " . (defined ($saved_checkboxes{$_})? $saved_checkboxes{$_}: 'undef')
 )
   foreach (keys %saved_checkboxes);
@@ -145,15 +145,15 @@ foreach (@modified_fields)
         $remark = 'FAIL';
         $exit_code = 1;
       }
-    print_test_log ("[$remark] $_ => $val");
+    print_test_result ("[$remark] $_ => $val", $remark ne ' OK ');
   }
 if ($form->find_input ('#status', 'checkbox')->value)
   {
-    print_test_log ('Status has been set successfully.');
+    print_test_result ('Status has been set successfully.');
   }
 else
   {
-    print_test_log ('Status has not been set correctly.');
+    print_test_error ('Status has not been set correctly.');
     $exit_code = 1;
   }
 my %other_checkboxes = %saved_checkboxes;
@@ -168,10 +168,10 @@ foreach (keys %other_checkboxes)
     $val = 0 unless defined ($val);
     if ($val == $saved)
       {
-        print_test_log ("$pref OK");
+        print_test_result ("$pref OK");
         next;
       }
-    print_test_log ("$pref was unintendedly modified");
+    print_test_error ("$pref was unintendedly modified");
     $exit_code = 1;
   }
 print_test_log ('Reverting settings.');

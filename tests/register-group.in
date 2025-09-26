@@ -56,8 +56,10 @@ sub check_request_result
 {
   my $res = shift;
   return if ($res->as_string () =~ /<h2>Registration Complete!<\/h2>/);
-  print_test_log ("Can't pass submission.  The response was,\n-----");
-  print_test_log ($res->as_string () . "\n-----");
+  print_test_error (
+    "Can't pass submission.  The response was,\n-----"
+    . $res->as_string () . "\n-----"
+  );
   exit (1);
 }
 
@@ -82,7 +84,7 @@ sub request_new_group
     }
   $agent->tick ('cl_requirements', '1');
   check_request_result ($agent->click ());
-  print_test_log ('New group requested.');
+  print_test_result ('New group requested.');
   log_out ($agent);
 }
 
@@ -93,9 +95,9 @@ sub check_group_status
   $agent->form_with_fields (qw (group_type form_name form_status));
   my $form = $agent->current_form ();
   my $status = $form->param ('form_status');
-  print_test_log ("Current group status: '$status'.");
+  print_test_result ("Current group status: '$status'.");
   return if $status eq $correct_status;
-  print_test_log ("The status is wrong, should be '$correct_status'.");
+  print_test_error ("The status is wrong, should be '$correct_status'.");
   exit (1);
 }
 
@@ -124,7 +126,7 @@ sub approve_group
   print_test_log ('Approving group.');
   $agent->click ();
   check_group_status ('A');
-  print_test_log ("New group has been approved, group_id = $id.");
+  print_test_result ("New group has been approved, group_id = $id.");
   return $id;
 }
 
@@ -134,7 +136,7 @@ sub check_group_visibility
   log_out ($agent);
   print_test_log ("Visiting main page of new group, $url.");
   $agent->get (make_url ($url));
-  print_test_log ('Group is visible.');
+  print_test_result ('Group is visible.');
 }
 
 sub mark_for_removal
@@ -159,7 +161,7 @@ sub run_cleanup
     unless system (
       "$bindir/sv_cleaner --big-cleanup --logfile=cleaner.log"
     );
-  print_test_log ('Failed to run sv_cleaner.');
+  print_test_error ('Failed to run sv_cleaner.');
   exit (1);
 }
 
@@ -171,5 +173,5 @@ check_inaccessibility ("projects/$unix_group_name");
 run_cleanup ();
 check_inaccessibility ("siteadmin/groupedit.php?group_id=$group_id", '*');
 
-print_test_log ("Test done.");
+print_test_result ("Test done.");
 exit (0);

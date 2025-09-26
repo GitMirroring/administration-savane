@@ -58,20 +58,20 @@ sub have_idle_warning
 
 sub check_for_idle_warning
 {
+  if (!have_idle_warning ())
+    {
+      print_test_error ('No warning about being idle is shown on log in.');
+      return 1;
+    }
+  print_test_result ('Warning about being idle is shown on log in.');
+  $agent->get (make_url ("my/items.php"));
   if (have_idle_warning ())
     {
-      print_test_log ('Warning about being idle is shown on log in.');
-      $agent->get (make_url ("my/items.php"));
-      if (have_idle_warning ())
-        {
-          print_test_log ('Warning persists when visiting next page.');
-          return 1;
-        }
-      print_test_log ('Warning disappears when visiting next page.');
-      return 0;
+      print_test_error ('Warning persists when visiting next page.');
+      return 1;
     }
-  print_test_log ('No warning about being idle is shown on log in.');
-  return 1;
+  print_test_result ('Warning disappears when visiting next page.');
+  return 0;
 }
 
 my $passwd = register_user ($agent, $login, 'Test User');
@@ -80,5 +80,5 @@ my $exit_code = check_for_idle_warning ();
 save_page ($agent, 'idle-warning.html') if $exit_code;
 log_out ($agent);
 remove_user ($agent, $login, $passwd);
-print_test_log ("Test done.");
+print_test_result ("Test done.");
 exit ($exit_code);
