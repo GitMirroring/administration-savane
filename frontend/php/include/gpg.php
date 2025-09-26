@@ -522,7 +522,10 @@ function gpg_get_sys_key ()
     return '';
   $res = utils_run_proc ($cmd, $out, $err);
   if ($res)
-    return gpg\expand_error ($res, 0, $out, $err);
+    {
+      list ($code, $str) = gpg\expand_error ($res, 0, $out, $err);
+      return $str;
+    }
   return $out;
 }
 function gpg_decrypt_and_verify ($input, $user_id)

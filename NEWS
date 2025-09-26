@@ -72,6 +72,9 @@
 ** The fields  'date', 'close_date', 'submitted_by', 'updated' were
    uncustomizable in /bugs/admin/field_usage.php.
 
+** GnuPG executable errors when showing system keys weren't displayed
+   correctly.
+
 ** URLs with empty parameters like 'b' in 'https://a.test/a.html?b=&c=1'
    were parsed incorrectly in include/markup.php.  Savannah sr #111306.
 
