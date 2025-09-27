@@ -51,7 +51,7 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
   print_test_log print_test_error print_test_result
-  log_in log_in_su log_out check_inaccessibility get_user_id
+  log_in log_in_su log_out assert_status_code check_inaccessibility get_user_id
   save_page append_savane_conf reset_savane_conf register_user remove_user
   speed_up_crypt
 );
@@ -105,21 +105,30 @@ sub log_in_for_accessibility
   log_in ($agent, $user);
 }
 
-sub check_inaccessibility
+sub assert_status_code
 {
   my $url = shift;
+  my $expected = shift;
   my $user = @_? shift: undef;
   my $agent = make_agent (0);
+  print_test_log ("Asserting status /^$expected\$/ for $url.");
   log_in_for_accessibility ($agent, $user);
   $agent->get (make_url ($url));
   my $status = $agent->status ();
-  unless ($status =~ /^40\d$/)
+  unless ($status =~ /^$expected$/)
     {
       print_test_error ("Wrong $url status: $status.");
       save_page ($agent, "$status.html");
       exit (1);
     }
-  print_test_result ("$url confirmed to be absent (status $status).");
+  print_test_result ("$url status is like expected ($status).");
+}
+
+sub check_inaccessibility
+{
+  my $url = shift;
+  my $user = @_? shift: undef;
+  assert_status_code ($url, '40\d', $user);
 }
 
 sub make_agent
@@ -213,26 +222,34 @@ sub mbox_path
 
 sub clear_mbox
 {
+  my $silent = @_? shift: 0;
   my $path = mbox_path ();
-  unlink ($path) if -f $path;
+  print_test_log ('Removing mbox file.');
+  unless (-f $path)
+    {
+      print_test_result ("No mbox at $path", !$silent);
+      return;
+    }
+  unlink ($path) or print_test_result ("Can't remove $path: $!.", !$silent);
 }
 
 sub get_mbox
 {
   my $clear = shift;
+  my $silent = @_? shift: 0;
   my $fd;
   my @ret;
   my $mp = mbox_path ();
   unless (open ($fd, '<', $mp))
     {
-      print_test_error ("Can't open mbox $mp.");
+      print_test_error ("Can't open mbox $mp.") unless $silent;
       return '';
     }
   while (<$fd>)
     {
       push @ret, $_;
     }
-  clear_mbox () if $clear;
+  clear_mbox ($silent) if $clear;
   return join '', @ret;
 }
 
@@ -432,6 +449,6 @@ END
 init_log ();
 exit (1) if check_for_test_marker ();
 init_root_url ();
-clear_mbox ();
+clear_mbox (1);
 
 return "true";

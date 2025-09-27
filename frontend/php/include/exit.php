@@ -131,6 +131,8 @@ function exit_if_missing ($param_list, $var_array = null)
 # Standardize the way we log important exit on error.
 function exit_log ($message)
 {
+  if (empty ($GLOBALS['sys_log_exits']))
+    return;
   $username = "anonymous user";
   if (user_isloggedin ())
     $username = "user " . user_getname ();

@@ -194,4 +194,7 @@ $sys_registration_captcha = 1;
 $sys_registration_text_spam_test = 0;
 # Don't show expand and shrink JavaScript controls in trackers.
 $sys_ignore_deployed = true;
+# Log exits on errors like 'permission denied' and 'filled the spam trap
+# special field', disabled by default.
+$sys_log_exits = true;
 ?>

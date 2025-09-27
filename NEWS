@@ -36,6 +36,10 @@
   old hashes are updated when the user logs in.  New config variables,
   $sys_use_php_crypt and $sys_pw_prefix.
 
+* Don't log exits in frontend/php/include/exit.php:log_exit by default;
+  new configuration variable $sys_log_exits enables the old behavior,
+  see doc/savane.conf.php.
+
 * In /users.php, info is provided on how the account was removed.
 
 * Commas in 'realname' are replaced with spaces when writing the 'passwd'
