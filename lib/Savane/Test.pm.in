@@ -43,6 +43,7 @@
 use strict;
 use Savane::DB;
 use Savane::Util;
+use Savane::Test::PHP;
 use WWW::Mechanize;
 require Exporter;
 
@@ -78,13 +79,18 @@ sub check_for_test_marker
 }
 
 my $root_url;
+my ($php_port, $php_bin);
 
 sub init_root_url
 {
   my $host = "@WWW_SERVER_HOST@";
   my $port = <>;
   chomp $port;
+  $php_bin = <>;
+  chomp $php_bin;
   $root_url = "http://$host:$port/";
+  launch_php_server ($port, $php_bin);
+  $php_port = $port;
 }
 
 sub log_in_for_accessibility
@@ -376,6 +382,8 @@ sub append_savane_conf
   print { $fh } $text;
   print { $fh } "\n?>\n";
   $savane_conf_modified = 1;
+  print_test_log ('Restarting PHP server.');
+  restart_php_server ();
   return $ret;
 }
 
@@ -402,6 +410,7 @@ sub reset_savane_conf
       print { $th } $_;
     }
   close_and_move ($th, $tn, $fname);
+  restart_php_server ();
 }
 
 # Set a low-cost crypt algorithm.

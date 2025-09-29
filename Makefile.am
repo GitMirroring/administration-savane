@@ -82,7 +82,7 @@ conf_files += $(common_conf)
 conf_all += $(common_conf)
 
 directories = backend/accounts backend/sbin backend/external \
-  backend/extra/git backend/mail backend/misc db lib/Savane \
+  backend/extra/git backend/mail backend/misc db lib/Savane lib/Savane/Test \
   frontend/php/include sysconf tests
 
 modules = \
@@ -99,6 +99,7 @@ modules = \
   lib/Savane/Mail.pm \
   lib/Savane/Mirror.pm \
   lib/Savane/Svn.pm \
+  lib/Savane/Test/PHP.pm \
   lib/Savane/Test.pm \
   lib/Savane/User.pm \
   lib/Savane/Util.pm \

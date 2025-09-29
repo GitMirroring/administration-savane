@@ -43,14 +43,16 @@
 use strict;
 use warnings;
 use Savane::Version;
+use Savane::Test::PHP;
 
 my $sbindir = "@sbindir@";
 my $pidfile = "@mysql_pid@";
 my $have_database ="@HAVE_DATABASE@";
 my $php_bin = "@PHP@";
 my $port;
-my $php_pid;
 my $exit_code = 0;
+my $php_log_name = 'test-php.log';
+my $php_log;
 my $help = <<"EOF";
   Usage: $0 [OPTIONS]
 
@@ -64,13 +66,12 @@ $help =~ s,^  ,,gm;
 
 PrintVersionOrHelp ($help);
 GetOptions ("php-bin=s" => \$php_bin)
-  or die ("Wrong command line.");
-my $kill_servers = 1;
+  or die ("Wrong command line.\n");
 
 sub launch_db
 {
   return unless $have_database;
-  system ("$sbindir/sv_launch_db.pl") && die "Can't launch the database.\n";
+  system ("$sbindir/sv_launch_db.pl") && die "Cannot launch the database.\n";
 }
 sub kill_db
 {
@@ -88,26 +89,6 @@ sub wait_for_db
     }
   -f ($pidfile) || die "Database isn't running.\n";
 }
-sub launch_php_server
-{
-  my $port = shift;
-  my $pid = fork ();
-  system ("echo Trying port $port... >> test-php.log");
-  die "Can't fork: $!" unless defined $pid;
-  unless ($pid)
-    {
-      $kill_servers = undef;
-      setpgrp ();
-      system (
-        "$sbindir/sv_php_server.pl --port=$port --php-bin=$php_bin "
-        . ">> test-php.log 2>&1"
-      );
-      exit (0);
-    }
-  return -1 unless kill 0, $pid;
-  system ("echo Using port $port. >> test-php.log");
-  return $pid;
-}
 sub look_for_port
 {
   my $port = "@WWW_SERVER_PORT@";
@@ -117,27 +98,37 @@ sub look_for_port
 
   for (my $i = 0; $i < 289; $i++)
     {
-      my $php = launch_php_server ($port);
-      return ($php, $port) unless $php < 0;
+      print {$php_log} "Trying port $port...\n";
+      my $php = launch_php_server ($port, $php_bin);
+      # Older PHP built-in servers like 8.0 may need reloading when
+      # savane.conf.php changes, so we launch server in each test process
+      # to simplify IPC; here we only test port availability.  In contrast,
+      # the database server is launched once for all tests.
+      die "Cannot kill PHP server.\n" if kill_php_server ();
+      return $port unless $php < 0;
       $port++;
     }
-  die "Can't start PHP server.";
+  die "Cannot start PHP server.\n";
+}
+sub init_all
+{
+  open ($php_log, '>>', $php_log_name)
+    or die "Cannot open log file $php_log_name: $!\n";
+  select ($php_log);
+  $| = 1;
+  select (STDOUT);
+  launch_db ();
+  $port = look_for_port ();
+  wait_for_db ();
 }
 
 END
 {
-  return unless defined $kill_servers;
   $exit_code = 1 if kill_db ();
   $? = $exit_code;
-  return unless defined $php_pid;
-  return if kill ('-TERM', $php_pid);
-  $? = 1;
-  print STDERR "Can't kill PHP server.\n";
 }
 
-launch_db ();
-($php_pid, $port) = look_for_port ();
-wait_for_db ();
+init_all ();
 my @scripts;
 my @all_scripts = qw (@test_scripts@);
 for (@all_scripts)
@@ -152,7 +143,8 @@ for (@scripts)
   {
     my $str = 'PASS';
     print "TEST $_\r";
-    if (system ("echo $port | ./$_ 2>> test.log"))
+    print {$php_log} "Running $_...\n";
+    if (system ("echo \"$port\n$php_bin\" | ./$_ 2>> test.log"))
       {
         $exit_code = 1;
         $str = 'FAIL';

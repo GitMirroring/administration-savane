@@ -1,0 +1,159 @@
+# Launching and shutting down a test PHP server.
+
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use WWW::Mechanize;
+require Exporter;
+our @ISA = qw (Exporter);
+our @EXPORT = qw (launch_php_server restart_php_server kill_php_server);
+
+my $sbindir = "@sbindir@";
+my $host = "@WWW_SERVER_HOST@";
+my $log_name = 'test-php.log';
+my ($php_server_pid, $php_port, $php_bin);
+
+sub print_log
+{
+  my $log_file;
+
+  open ($log_file, '>>', $log_name) or die "Cannot open log file $log_name: $!";
+  print {$log_file} shift . "\n" if defined $log_file;
+  close ($log_file);
+}
+
+sub server_url
+{
+  return "http://$host:$php_port/";
+}
+
+sub server_return_code
+{
+  my $agent = WWW::Mechanize->new (autocheck => 0);
+  return $agent->get (server_url ())->code ();
+}
+
+sub server_is_up
+{
+  my $code = @_? shift: server_return_code ();
+  return $code ne '500';
+}
+
+sub wait_for_server
+{
+  my $wait_for_shutdown = @_? shift: 0;
+  my $pid = "PID $php_server_pid";
+  my $sd = $wait_for_shutdown? 'to shutdown': 'to start up';
+  my $url = server_url ();
+  print_log ("Waiting for $host:$php_port $sd, $pid.");
+  for (my $i = 0; $i < 0x11; $i++)
+    {
+      my $code = server_return_code ();
+      my $vex = server_is_up ($code);
+      $vex = !$vex if $wait_for_shutdown;
+      return 0 if $vex;
+      print_log ("Waiting for $pid $sd, $i - $code.");
+      kill ('TERM', $php_server_pid) if $wait_for_shutdown;
+      sleep 1;
+    }
+  print_log ("Time for $url $sd is out, $pid.");
+  kill_php_server ();
+  return 1;
+}
+
+sub exec_server
+{
+  setpgrp ();
+  open (STDOUT, '>>', $log_name);
+  open (STDERR, '>>', $log_name);
+  exec (
+    "$sbindir/sv_php_server.pl", '--port', $php_port, '--php-bin', $php_bin
+  );
+}
+
+sub launch_php_server
+{
+  ($php_port, $php_bin) = @_;
+  if (server_is_up ())
+    {
+      print_log ("Server $host:$php_port is already running.");
+      return -1;
+    }
+  print_log ("Address $host:$php_port is not in use.");
+  my $pid = fork ();
+  die "Can't fork: $!" unless defined $pid;
+  exec_server () unless ($pid);
+  $php_server_pid = $pid;
+  return -1 if wait_for_server ();
+  print_log ("Launched $host:$php_port, PID $pid.");
+  return $pid;
+}
+
+sub kill_php_server
+{
+  return unless defined $php_server_pid;
+  my $exit_code = $?;
+  if (kill ('TERM', $php_server_pid))
+    {
+      waitpid ($php_server_pid, 0);
+      my $ret = wait_for_server (1);
+      print_log ("Killed $php_server_pid.") unless $ret;
+      undef $php_server_pid;
+      $? = $exit_code;
+      return $ret;
+    }
+  print_log ("Cannot kill PHP server $host:$php_port, PID $php_server_pid.");
+  $? = 1;
+  return 1;
+}
+
+sub restart_php_server
+{
+  kill_php_server ();
+  launch_php_server ($php_port, $php_bin);
+}
+
+END
+{
+  kill_php_server ();
+}
+
+return "true";
