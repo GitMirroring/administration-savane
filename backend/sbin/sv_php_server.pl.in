@@ -53,6 +53,9 @@ my $file_host = "@FILE_SERVER_HOST@";
 my $php_bin = "@PHP@";
 my @ini_directives;
 my $confdir = '@confdir@';
+my $frontenddir = '@frontenddir@';
+my $pid = -1;
+my $pid1 = 0;
 
 my $help = <<"EOF";
   Usage: $0 [OPTIONS]
@@ -88,22 +91,41 @@ GetOptions (
 
 $php_bin = abs_path ($php_bin);
 
-chdir '@frontenddir@/php';
+sub kill_servers
+{
+  my @siglist;
+  push @siglist, $pid if $pid > 0;
+  push @siglist, $pid1 if $pid1;
+  $pid = $pid1 = 0;
+  return unless @siglist;
+  kill ('TERM', @siglist);
+  1 while (wait () != -1);
+}
+
+END { kill_servers (); }
+
+$SIG{TERM} = \&kill_servers;
 
 $ENV{'LANG'} = 'C';
-$ENV{'SAVANE_CONF'} = '$confdir';
+$ENV{'SAVANE_CONF'} = "$confdir";
 
-my $pid = 0;
+chdir "$frontenddir/php";
+
 $pid = fork () if $file_host ne $host;
 die "Can't fork: $!" unless defined $pid;
-my $h = $pid? $file_host: $host;
+my $h = $pid? $host: $file_host;
 my @ini_options;
 foreach my $d (@ini_directives)
   {
     push @ini_options, '-d', $d;
   }
-system (
+$pid1 = fork () if $pid;
+die "Can't fork: $!" unless defined $pid1;
+my @cmd = (
   $php_bin, '-c', "$confdir/php.ini", @ini_options, '-S', "$h:$port",
-  '-t', "@frontenddir@/php", "@frontenddir@/local.php"
+  '-t', "$frontenddir/php", "$frontenddir/local.php"
 );
-kill ($pid) if $pid;
+
+exec (@cmd) unless ($pid and $pid1);
+1 while (wait () != -1);
+exit (0);

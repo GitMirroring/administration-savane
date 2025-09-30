@@ -114,6 +114,9 @@
 
 * New options in sv_php_server.pl, --host, --file-host, --port.
 
+* sv_php_server.pl kills the servers it launched when receiving the TERM
+  signal; previously, the servers weren't affected.
+
 * Bug report address and Savane home page URL are added to help strings.
 
 * In sv_aliases, fallback defaults are provided for email list and
