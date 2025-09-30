@@ -60,14 +60,9 @@ sub my_log_in
 
 sub my_log_out
 {
+  return unless $have_logged_in;
   log_out ($agent);
   $have_logged_in = 0;
-}
-
-sub finalize
-{
-  my_log_out () if $have_logged_in;
-  print_test_result ('Test done.') unless shift;
 }
 
 sub find_the_form
@@ -168,10 +163,10 @@ foreach (keys %other_checkboxes)
     $val = 0 unless defined ($val);
     if ($val == $saved)
       {
-        print_test_result ("$pref OK");
+        print_test_result ("[ OK ] $_");
         next;
       }
-    print_test_error ("$pref was unintendedly modified");
+    print_test_error ("$_ was unintendedly modified");
     $exit_code = 1;
   }
 print_test_log ('Reverting settings.');
@@ -195,5 +190,6 @@ foreach (@modified_fields)
     $input->value ($saved_settings{$_});
   }
 $agent->click ();
+print_test_result ('Test done.') unless $exit_code;
 exit ($exit_code);
-END { finalize ($exit_code); }
+END { my_log_out (); }

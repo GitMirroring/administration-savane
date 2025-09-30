@@ -101,7 +101,5 @@ if (index ($mbox, "\n\n$msg") < 0)
     $exit_code = 1;
   }
 
-exit (1) if $exit_code;
-
-print_test_result ("Test done.");
-exit (0);
+print_test_result ("Test done.") unless $exit_code;
+exit ($exit_code);
