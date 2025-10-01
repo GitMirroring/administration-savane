@@ -61,11 +61,29 @@ sub find_input_or_exit
   exit (1) if $exit_on_fail;
   return undef;
 }
+sub find_forms
+{
+  my $agent = shift;
+  my @ret = ();
+  return $agent->all_forms_with_fields (@_)
+    if (exists &WWW::Mechanize::all_forms_with_fields);
+  foreach my $form ($agent->forms ())
+    {
+      my $vex = 0;
+      foreach my $name (@_)
+        {
+          $vex = 1 unless defined $form->find_input ($name);
+        }
+      next if $vex;
+      push @ret, $form;
+    }
+  return @ret;
+}
 sub find_list
 {
   my $action = shift;
   my $exit_on_fail = @_? shift: 1;
-  my @forms = $agent->all_forms_with_fields ('action', 'user_ids[]');
+  my @forms = find_forms ($agent, 'action', 'user_ids[]');
 
   for (@forms)
     {
