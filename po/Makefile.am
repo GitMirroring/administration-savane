@@ -39,6 +39,7 @@ POTFILES = \
 	frontend/php/testing/sane.php \
 	frontend/php/testing/markup.php \
 	frontend/php/testing/format_date.php \
+	frontend/php/testing/internal_strftime.php \
 	frontend/php/testing/strftime.php \
 	frontend/php/testing/utils.php \
 	frontend/php/file.php \
