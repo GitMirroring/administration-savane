@@ -148,6 +148,8 @@
 
 * Bug fixes:
 
+** sv_kill_db.pl didn't actually wait for the server to shutdown.
+
 ** sv_gen_passwd_group was incompatible with ONLY_FULL_GROUP_BY.
 
 ** sv_gnu-mirmon left the output file empty when failing to download

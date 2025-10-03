@@ -56,7 +56,7 @@ die "PID file $pidfile doesn't exist.\n" unless -e $pidfile;
 my $pid = `cat $pidfile`;
 if (kill 0, $pid)
   {
-    kill 'TERM', $pid;
+    sleep 1 while kill ('TERM', $pid);
     exit 0;
   }
 print STDERR "Note: no process $pid found; clearing $rundir\n";
