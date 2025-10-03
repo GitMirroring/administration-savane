@@ -50,7 +50,8 @@ PrintVersionOrHelp ("Test tracker operations.");
 
 my $agent = make_agent ();
 my $group = 'administration';
-my $submit_url = make_url ("/support/?group=$group&func=additem");
+my $tracker = 'support';
+my $submit_url = make_url ("/$tracker/?group=$group&func=additem");
 my @logins = ('semel', 'bis', 'ter', 'quater', 'quinquies', 'sexies');
 my @registered_logins;
 my %passwords;
@@ -63,11 +64,15 @@ my %submit_selects = (
   'platform_version_id' => ['100', '110', '120', '130', '140']
 );
 
+my %submit_value_names;
+
 my @submit_texts = (
   'originator_email', 'plan_release', 'summary', 'file_description'
 );
 my %submit_fields = (
-  'anonymous' => {'originator_email' => 'anon@savane.test'}
+  'anonymous' => {'originator_email' => 'anon@savane.test'},
+  '<bob>' => {'severity' => '1', 'plan_release' => '0.1'},
+  '<ter>' => {'privacy' => '2'}
 );
 my @submit_textareas = ('details');
 my @submit_files;
@@ -99,13 +104,56 @@ sub check_input_set
   return $ret;
 }
 
+sub assign_submit_value_names
+{
+  my $input = shift;
+  my $name = $input->name ();
+  my @vals = $input->possible_values ();
+  my @val_names = $input->value_names ();
+  my @vn;
+  foreach (@vals)
+    {
+      my $n = shift @val_names;
+      $submit_value_names{$name}->{$_} = $n;
+      push @vn, "'$_' => '" . $n . "'";
+    }
+}
+
+sub report_changed_names
+{
+  my $input = shift;
+  my $name = $input->name ();
+  my @vals = $input->possible_values ();
+  my @val_names = $input->value_names ();
+  my @vn;
+  foreach (@vals)
+    {
+      next unless exists $submit_value_names{$name}->{$_};
+      my $new_val = $submit_value_names{$name}->{$_};
+      my $v = shift @val_names;
+      push @vn, "'$_': '$v' -> '$new_val'" if $new_val ne $v;;
+    }
+  return unless @vn;
+  my $sep = "\n  ";
+  print_test_error ("Values changed for $name:$sep" . join ($sep, @vn));
+}
+
 sub report_select_values
 {
   my $input = shift;
+  my $name = $input->name ();
   my @vals = $input->possible_values ();
-  print_test_result (
-    "Values found: (" . join (', ', map { "'$_'" } @vals) . ")."
-  );
+  my @val_names = $input->value_names ();
+  if (exists $submit_value_names{$name})
+    {
+      report_changed_names ($input);
+      return;
+    }
+  assign_submit_value_names ($input);
+  my @vn;
+  push @vn, "'$_' => '" . (shift @val_names) . "'" foreach (@vals);
+  my $sep = "\n  ";
+  print_test_result ("Values found for $name:$sep" . join ($sep, @vn));
 }
 
 sub check_select_values
@@ -116,6 +164,7 @@ sub check_select_values
   my (@missing, @extra);
   $vals{$_} = 1 foreach (@_);
   $vals{$_}-- foreach ($input->possible_values ());
+  report_select_values ($input);
   foreach (keys %vals)
     {
       push @missing, "'$_'" if $vals{$_} > 0;
@@ -123,7 +172,6 @@ sub check_select_values
       next unless $vals{$_};
       $ret = 1;
     }
-  report_select_values ($input);
   print_test_error ("Missing values: (" . join (', ', @missing) . ").")
     if @missing;
   print_test_error ("Unexpected values: (" . join (', ', @extra) . ").")
@@ -242,10 +290,10 @@ sub check_submitted_item
   my ($agent, $name) = @_;
   my $item_id;
   print_test_log ("Checking the submitted request.");
-  return 1 if check_request_status ($agent);
+  return -1 if check_request_status ($agent);
   $item_id = check_for_fb ($agent, $name);
-  return 1 unless defined $item_id;
-  return 0;
+  return -1 unless defined $item_id;
+  return $item_id;
 }
 
 sub request_new_item
@@ -262,17 +310,26 @@ sub request_new_item
   return check_submitted_item ($agent, $name);
 }
 
+sub check_new_item
+{
+  my ($agent, $name, $item_id) = @_;
+  return 1 if $item_id < 0;
+  $agent->get (make_url ("/$tracker/?$item_id"));
+  return 0;
+}
+
 sub submit_item
 {
   my ($agent, $login) = @_;
   my $name = defined ($login)? "<$login>": "anonymous";
-  my $ret;
+  my ($item_id, $ret);
   my $pw = '-';
   $pw = $passwords{$login}
     if ((defined ($login)) and (defined ($passwords{$login})));
   print_test_log ("Submitting item as $name.");
   log_in ($agent, $login, $pw) if defined $login;
-  $ret = request_new_item ($agent, $name);
+  $item_id = request_new_item ($agent, $name);
+  $ret = check_new_item ($agent, $name, $item_id);
   # Remove originator_email from further non-anonymous submissions.
   shift @submit_texts unless defined $login;
   log_out ($agent) if defined $login;
