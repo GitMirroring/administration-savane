@@ -77,6 +77,13 @@ sub server_is_up
   return $code ne '500';
 }
 
+sub server_is_alive
+{
+  return 1 if kill (0, $php_server_pid);
+  print_log ("Process $php_server_pid is not running.");
+  return 0;
+}
+
 sub wait_for_server
 {
   my $wait_for_shutdown = @_? shift: 0;
@@ -86,6 +93,7 @@ sub wait_for_server
   print_log ("Waiting for $host:$php_port $sd, $pid.");
   for (my $i = 0; $i < 0x11; $i++)
     {
+      return -2 if !($wait_for_shutdown || server_is_alive ());
       my $code = server_return_code ();
       my $vex = server_is_up ($code);
       $vex = !$vex if $wait_for_shutdown;
@@ -96,7 +104,7 @@ sub wait_for_server
     }
   print_log ("Time for $url $sd is out, $pid.");
   kill_php_server ();
-  return 1;
+  return -1;
 }
 
 sub exec_server
@@ -122,14 +130,16 @@ sub launch_php_server
   die "Can't fork: $!" unless defined $pid;
   exec_server () unless ($pid);
   $php_server_pid = $pid;
-  return -1 if wait_for_server ();
+  my $w = wait_for_server ();
+  return $w if $w;
   print_log ("Launched $host:$php_port, PID $pid.");
   return $pid;
 }
 
 sub kill_php_server
 {
-  return unless defined $php_server_pid;
+  return 0 unless defined $php_server_pid;
+  return 0 unless server_is_alive ();
   my $exit_code = $?;
   if (kill ('TERM', $php_server_pid))
     {
@@ -155,5 +165,12 @@ END
 {
   kill_php_server ();
 }
+
+use POSIX ":sys_wait_h";
+$SIG{CHLD} = sub
+{
+  local ($!, $?);
+  1 while (waitpid (-1, WNOHANG) > 0);
+};
 
 return "true";

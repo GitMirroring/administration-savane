@@ -100,6 +100,7 @@ sub look_for_port
     {
       print {$php_log} "Trying port $port...\n";
       my $php = launch_php_server ($port, $php_bin);
+      last if $php < -1;
       # Older PHP built-in servers like 8.0 may need reloading when
       # savane.conf.php changes, so we launch server in each test process
       # to simplify IPC; here we only test port availability.  In contrast,
