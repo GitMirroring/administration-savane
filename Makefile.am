@@ -100,6 +100,7 @@ modules = \
   lib/Savane/Mail.pm \
   lib/Savane/Mirror.pm \
   lib/Savane/Svn.pm \
+  lib/Savane/Test/Membership.pm \
   lib/Savane/Test/PHP.pm \
   lib/Savane/Test.pm \
   lib/Savane/User.pm \

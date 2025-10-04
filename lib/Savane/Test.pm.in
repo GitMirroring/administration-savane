@@ -60,7 +60,7 @@ sub save_page
 {
   my $agent = shift;
   my $file = @_? shift: 'test.html';
-  my $error = $_? shift: 1;
+  my $error = @_? shift: 1;
   my $fd;
   print_test_result ("See $file.", $error);
   open ($fd, '>:encoding(UTF-8)', $file);
