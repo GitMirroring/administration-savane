@@ -173,11 +173,22 @@ sub mark_for_removal
   return $ret;
 }
 
+sub select_features
+{
+  my ($agent, $id, $group) = @_;
+  $agent->get ("project/admin/editgroupfeatures.php?group=$group");
+  save_page ($agent, 'select');
+  return $id;
+}
+
 sub register_group
 {
   my ($agent, $user, $group) = @_;
+  my $id;
   return -1 if request_new_group ($agent, $user, $group);
-  return approve_group ();
+  $id = approve_group ();
+  return $id if $id < 0;
+  return select_features ($agent, $id, $group);
 }
 
 sub remove_group
