@@ -53,7 +53,7 @@ our @EXPORT = qw (
   print_test_log print_test_error print_test_result
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   save_page append_savane_conf reset_savane_conf register_user remove_user
-  speed_up_crypt run_cleanup
+  speed_up_crypt run_cleanup check_request_status
 );
 
 my $bindir = '@bindir@';
@@ -68,6 +68,15 @@ sub save_page
   open ($fd, '>:encoding(UTF-8)', $file);
   print {$fd} $agent->content (raw => 1);
   close ($fd);
+}
+
+sub check_request_status
+{
+  my $agent = shift;
+  my $status = $agent->status ();
+  return 0 if $status eq '200';
+  print_test_error ("Unexpected request status $status.");
+  return 1;
 }
 
 sub check_for_test_marker

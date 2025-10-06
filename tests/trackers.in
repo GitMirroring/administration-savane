@@ -57,7 +57,7 @@ my @logins = ('semel', 'bis', 'ter', 'quater', 'quinquies', 'sexies');
 my @registered_logins;
 my %registered_groups;
 my %passwords;
-my $exit_code = 0;
+my $exit_code = 2;
 
 my %submit_selects = (
   'category_id' => ['100'],
@@ -86,7 +86,6 @@ for (my $i = 1; $i <= 4; $i++)
   }
 my @submit_buttons = ('preview', 'submit');
 
-
 sub submit_url
 {
  my ($group, $tracker) = @_;
@@ -96,6 +95,7 @@ sub submit_url
 sub check_input_set
 {
   my ($form, $input_type) = (shift, shift);
+  return 1 unless defined $form;
   my $type = lc ($input_type);
   my @texts = map { $_->name ()} $form->find_input (undef, $type);
   my %text_set;
@@ -212,6 +212,7 @@ sub check_submit_options
 sub check_submit_fields
 {
   my $form = shift;
+  return 1 unless defined $form;
   my $ret;
   print_test_log ("Checking submit form fields.");
   $ret = check_input_set ($form, 'Text', @submit_texts);
@@ -245,15 +246,6 @@ sub fill_new_item_form
       $input = $form->find_input ($k);
       $input->value ($val);
     }
-}
-
-sub check_request_status
-{
-  my $agent = shift;
-  my $status = $agent->status ();
-  return 0 if $status eq '200';
-  print_test_error ("Unexpected request status $status.");
-  return 1;
 }
 
 sub extract_new_item_no
@@ -313,10 +305,13 @@ sub check_submitted_item
 sub request_new_item
 {
   my ($agent, $name, $group, $tracker) = @_;
-  my $form;
   $agent->get (submit_url ($group, $tracker));
-  $form = $agent->form_with_fields (qw (form_id func group_id));
-  return -1 if (check_submit_fields ($form));
+  my $form = $agent->form_with_fields (qw (form_id func group_id));
+  if (check_submit_fields ($form))
+    {
+      save_page ($agent, 'submit-fields.html');
+      return -1;
+    }
   fill_new_item_form ($form, $name);
   fill_anon_check ($form, $name);
   print_test_log ('Sending the request.');
@@ -357,6 +352,7 @@ END
   remove_user ($agent, $_, $passwords{$_}) foreach (@registered_logins);
   print_test_log ("Removing groups registered in the test.");
   remove_group ($registered_groups{$_}, $_) foreach (keys %registered_groups);
+  $? = $exit_code;
 }
 
 speed_up_crypt ();
@@ -382,5 +378,6 @@ foreach (@logins)
     $exit_code = 1 if submit_item ($_, $group, $tracker);
   }
 
+$exit_code = 0 if ($exit_code == 2);
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);

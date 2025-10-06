@@ -122,6 +122,15 @@ sub extract_group_id
   return $id;
 }
 
+sub trigger_creation
+{
+  my $agent = shift;
+  return 1 unless ($agent->form_with_fields (qw (form_id group_id update)));
+  print_test_log ('Triggering group creation');
+  $agent->click ();
+  return check_request_status ($agent);
+}
+
 sub approve_group
 {
   my $agent = make_agent ();
@@ -134,9 +143,10 @@ sub approve_group
   my $id = extract_group_id ($agent);
   $agent->get (make_url ("siteadmin/groupedit.php?group_id=$id"));
   print_test_log ('Looking for approval form.');
-  $agent->form_with_fields (qw (fastok));
+  return -1 unless defined $agent->form_with_fields (qw (fastok));
   print_test_log ('Approving group.');
   $agent->click ();
+  $id = -1 if trigger_creation ($agent);
   $id = -1 if check_group_status ($agent, 'A');
   log_out ($agent);
   print_test_result ("New group has been approved, group_id = $id.")
@@ -173,11 +183,38 @@ sub mark_for_removal
   return $ret;
 }
 
+sub fill_feature_checkboxes
+{
+  my $form = shift;
+  my @boxes = ('bugs', 'task', 'support', 'patch', 'cookbook', 'news');
+  my $ret = 0;
+  return 1 unless defined $form;
+  foreach (@boxes)
+    {
+      my $input = $form->find_input ("#use_$_");
+      if (defined $input)
+        {
+          $input->check ();
+          next;
+        }
+      print_test_error ("Checkbox use_$_ not found");
+      $ret = 1;
+    }
+  return $ret;
+}
+
 sub select_features
 {
-  my ($agent, $id, $group) = @_;
+  my ($user, $id, $group) = @_;
+  my $agent = make_agent (0);
+  print_test_log ('Selecting features.');
+  log_in ($agent, $user);
   $agent->get ("project/admin/editgroupfeatures.php?group=$group");
-  save_page ($agent, 'select');
+  return -1 if check_request_status ($agent);
+  my $form = $agent->form_with_fields (qw (form_id group_id));
+  return -1 if fill_feature_checkboxes ($form);
+  $agent->click ();
+  return -1 if check_request_status ($agent);
   return $id;
 }
 
@@ -188,7 +225,7 @@ sub register_group
   return -1 if request_new_group ($agent, $user, $group);
   $id = approve_group ();
   return $id if $id < 0;
-  return select_features ($agent, $id, $group);
+  return select_features ($user, $id, $group);
 }
 
 sub remove_group
