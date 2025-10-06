@@ -71,9 +71,11 @@ my @submit_texts = (
 );
 my %submit_fields = (
   'anonymous' => {'originator_email' => 'anon@savane.test'},
-  '<bob>' => {'severity' => '1', 'plan_release' => '0.1'},
-  '<ter>' => {'privacy' => '2'}
+  '<bob>' => {'severity' => '1', 'plan_release' => '0.1'}
 );
+
+my %private_names = ('<ter>' => 1, '<quinquies>' => 1, '<dave>' => 1);
+my (%private_items, %submitted_items);
 my @submit_textareas = ('details');
 my @submit_files;
 for (my $i = 1; $i <= 4; $i++)
@@ -222,17 +224,11 @@ sub fill_anon_check
 sub fill_new_item_form
 {
   my ($form, $name) = @_;
-  my ($input, $text);
-  $text = "request by $name";
-  print_test_log ("Setting summary, '$text'.");
-  $input = $form->find_input ('summary', 'text');
-  $input->value ($text);
-  $text = "This item was submitted by name of $name.";
-  print_test_log ("Setting details, '$text'.");
-  $input = $form->find_input ('details', 'textarea');
-  $input->value ($text);
-  return unless exists $submit_fields{$name};
-  my $fields = $submit_fields{$name};
+  my ($input, $text, $fields);
+  $fields = $submit_fields{$name} if exists $submit_fields{$name};
+  $fields->{'privacy'} = '2' if defined $private_names{$name};
+  $fields->{'summary'} = "request by $name";
+  $fields->{'details'} = "This item was submitted by name of $name.";
   foreach my $k (keys %$fields)
     {
       my $val = $fields->{$k};
@@ -285,6 +281,13 @@ sub check_for_fb
   return undef;
 }
 
+sub name_to_login
+{
+  my $name = shift;
+  return undef unless $name =~ s/^<(.*)>$/$1/;
+  return $1;
+}
+
 sub check_submitted_item
 {
   my ($agent, $name) = @_;
@@ -293,6 +296,8 @@ sub check_submitted_item
   return -1 if check_request_status ($agent);
   $item_id = check_for_fb ($agent, $name);
   return -1 unless defined $item_id;
+  $private_items{$item_id} = 1 if defined $private_names{$name};
+  $submitted_items{$item_id} = name_to_login ($name);
   return $item_id;
 }
 
@@ -353,7 +358,7 @@ foreach my $login (@logins)
     push @registered_logins, $login;
   }
 
-unshift @logins, undef, '-', 'alice', 'bob';
+unshift @logins, undef, '-', 'alice', 'bob', 'dave';
 
 foreach (@logins)
   {
