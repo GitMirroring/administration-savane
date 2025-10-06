@@ -1,0 +1,194 @@
+# Facilities for testing group registration and removal.
+
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Test;
+use WWW::Mechanize;
+require Exporter;
+
+our @ISA = qw (Exporter);
+our @EXPORT = qw (register_group remove_group);
+
+sub check_request_result
+{
+  my $agent = shift;
+  my $res = $agent->response ();
+  return 0 if ($res->as_string () =~ /<h2>Registration Complete!<\/h2>/);
+  print_test_error ("Can't pass submission.");
+  save_page ($agent, 'group-submission.html');
+  return 1;
+}
+
+sub fill_new_group_request
+{
+  my ($agent, $group, $purpose) = @_;
+  return 1 unless defined $agent->form_with_fields (qw (full_name unix_name));
+  my %fields = (
+    'full_name' => "Test group $group", 'unix_name' => $group,
+    'purpose' => "$purpose " x 0x11, 'license' => 'gplv3orlater',
+    'required_sw' => 'Savane and its dependencies.',
+    'tarball_url' => make_url ('images/Savannah.theme/arrows/top.orig.png')
+  );
+  for (my $i = 1; $i < 8; $i++)
+    {
+      $fields{"cl$i"} = '1';
+    }
+  $fields{"cl_requirements"} = '1';
+  $agent->set_fields (%fields);
+  return 0;
+}
+
+sub request_new_group
+{
+  my ($agent, $user, $group) = @_;
+  my $ret;
+  log_in ($agent, $user);
+  print_test_log ('Requesting new group.');
+  $agent->get (make_url ('register/'));
+  return 1
+    if fill_new_group_request ($agent, $group, 'Testing group registration.');
+  $agent->click ();
+  $ret = check_request_result ($agent);
+  print_test_result ('New group requested.') unless $ret;
+  log_out ($agent);
+  return $ret;
+}
+
+sub check_group_status
+{
+  my ($agent, $correct_status) = @_;
+  print_test_log ('Selecting form with group status.');
+  my $form = $agent->form_with_fields (qw (group_type form_name form_status));
+  unless (defined $form)
+    {
+      save_page ($agent, 'group-status.html');
+      return 1;
+    }
+  my $status = $form->param ('form_status');
+  print_test_result ("Current group status: '$status'.");
+  return 0 if $status eq $correct_status;
+  print_test_error ("The status is wrong, should be '$correct_status'.");
+  return 1;
+}
+
+sub extract_group_id
+{
+  my $agent = shift;
+  my $link = $agent->find_link (
+    url_regex => qr/\/siteadmin\/groupedit.php[?]group_id=\d+$/
+  );
+  my $id = $link->url;
+  $id =~ s/.*=//;
+  return $id;
+}
+
+sub approve_group
+{
+  my $agent = make_agent ();
+  log_in_su ($agent);
+  print_test_log ('Visiting administration task tracker.');
+  $agent->get (make_url ('task/?group=administration'));
+  print_test_log ('Looking for the task.');
+  $agent->follow_link (url_regex => qr/^[?]\d+$/);
+  print_test_log ('Visiting approval page.');
+  my $id = extract_group_id ($agent);
+  $agent->get (make_url ("siteadmin/groupedit.php?group_id=$id"));
+  print_test_log ('Looking for approval form.');
+  $agent->form_with_fields (qw (fastok));
+  print_test_log ('Approving group.');
+  $agent->click ();
+  $id = -1 if check_group_status ($agent, 'A');
+  log_out ($agent);
+  print_test_result ("New group has been approved, group_id = $id.")
+    unless $id < 0;
+  return $id;
+}
+
+sub check_group_visibility
+{
+  my ($group, $user) = @_;
+  my $url = "projects/$group";
+  my $ret;
+  print_test_log ("Visiting main page of new group, $url.");
+  $ret = check_status_code ($url, '200', $user);
+  print_test_result ('Group is visible.') unless $ret;
+  return $ret;
+}
+
+sub mark_for_removal
+{
+  my ($group_id, $group) = @_;
+  my $ret;
+  my $agent = make_agent ();
+  log_in_su ($agent);
+  print_test_log ('Visiting group administration page.');
+  $agent->get (make_url ("siteadmin/groupedit.php?group_id=$group_id"));
+  print_test_log ('Looking for deletion form.');
+  $agent->form_with_fields (qw (fastdel));
+  print_test_log ('Marking group for deletion.');
+  $agent->click ();
+  $ret = check_group_status ($agent, 'D')
+    || check_group_visibility ($group, '*');
+  log_out ($agent);
+  return $ret;
+}
+
+sub register_group
+{
+  my ($agent, $user, $group) = @_;
+  return -1 if request_new_group ($agent, $user, $group);
+  return approve_group ();
+}
+
+sub remove_group
+{
+  my ($id, $unix_group_name) = @_;
+  my $ret = mark_for_removal ($id, $unix_group_name);
+  $ret = 1 if check_inaccessibility ("projects/$unix_group_name");
+  $ret = 1 if run_cleanup ();
+  $ret = 1
+    if check_inaccessibility ("siteadmin/groupedit.php?group_id=$id", '*');
+  return $ret;
+}
+
+return "true";

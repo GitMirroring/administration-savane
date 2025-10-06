@@ -53,8 +53,10 @@ our @EXPORT = qw (
   print_test_log print_test_error print_test_result
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   save_page append_savane_conf reset_savane_conf register_user remove_user
-  speed_up_crypt
+  speed_up_crypt run_cleanup
 );
+
+my $bindir = '@bindir@';
 
 sub save_page
 {
@@ -430,6 +432,17 @@ sub reset_savane_conf
     }
   close_and_move ($th, $tn, $fname);
   restart_php_server ();
+}
+
+sub run_cleanup
+{
+  print_test_log ('Clearing deleted things with sv_cleaner.');
+  return 0
+    unless system (
+      "$bindir/sv_cleaner --big-cleanup --logfile=cleaner.log"
+    );
+  print_test_error ('Failed to run sv_cleaner.');
+  return 1;
 }
 
 # Set a low-cost crypt algorithm.

@@ -44,159 +44,18 @@ use strict;
 use warnings;
 use Savane::Version;
 use Savane::Test;
+use Savane::Test::Group;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test group registration and removal.");
 
-my $unix_group_name = 'proba';
-my $bindir = '@bindir@';
-my $exit_code = 0;
-
-sub check_request_result
-{
-  my $agent = shift;
-  my $res = $agent->response ();
-  return 0 if ($res->as_string () =~ /<h2>Registration Complete!<\/h2>/);
-  print_test_error ("Can't pass submission.");
-  save_page ($agent, 'group-submission.html');
-  return 1;
-}
-
-sub fill_new_group_request
-{
-  my ($agent, $group, $purpose) = @_;
-  return 1 unless defined $agent->form_with_fields (qw (full_name unix_name));
-  my %fields = (
-    'full_name' => "Test group $group", 'unix_name' => $group,
-    'purpose' => "$purpose " x 0x11, 'license' => 'gplv3orlater',
-    'required_sw' => 'Savane and its dependencies.',
-    'tarball_url' => make_url ('images/Savannah.theme/arrows/top.orig.png')
-  );
-  for (my $i = 1; $i < 8; $i++)
-    {
-      $fields{"cl$i"} = '1';
-    }
-  $fields{"cl_requirements"} = '1';
-  $agent->set_fields (%fields);
-  return 0;
-}
-
-sub request_new_group
-{
-  my ($agent, $user, $group) = @_;
-  my $ret;
-  log_in ($agent, $user);
-  print_test_log ('Requesting new group.');
-  $agent->get (make_url ('register/'));
-  return 1
-    if fill_new_group_request ($agent, $group, 'Testing group registration.');
-  $agent->click ();
-  $ret = check_request_result ($agent);
-  print_test_result ('New group requested.') unless $ret;
-  log_out ($agent);
-  return $ret;
-}
-
-sub check_group_status
-{
-  my ($agent, $correct_status) = @_;
-  print_test_log ('Selecting form with group status.');
-  my $form = $agent->form_with_fields (qw (group_type form_name form_status));
-  unless (defined $form)
-    {
-      save_page ($agent, 'group-status.html');
-      return 1;
-    }
-  my $status = $form->param ('form_status');
-  print_test_result ("Current group status: '$status'.");
-  return 0 if $status eq $correct_status;
-  print_test_error ("The status is wrong, should be '$correct_status'.");
-  return 1;
-}
-
-sub extract_group_id
-{
-  my $agent = shift;
-  my $link = $agent->find_link (
-    url_regex => qr/\/siteadmin\/groupedit.php[?]group_id=\d+$/
-  );
-  my $id = $link->url;
-  $id =~ s/.*=//;
-  return $id;
-}
-
-sub approve_group
-{
-  my $agent = make_agent ();
-  log_in_su ($agent);
-  print_test_log ('Visiting administration task tracker.');
-  $agent->get (make_url ('task/?group=administration'));
-  print_test_log ('Looking for the task.');
-  $agent->follow_link (url_regex => qr/^[?]\d+$/);
-  print_test_log ('Visiting approval page.');
-  my $id = extract_group_id ($agent);
-  $agent->get (make_url ("siteadmin/groupedit.php?group_id=$id"));
-  print_test_log ('Looking for approval form.');
-  $agent->form_with_fields (qw (fastok));
-  print_test_log ('Approving group.');
-  $agent->click ();
-  $id = -1 if check_group_status ($agent, 'A');
-  log_out ($agent);
-  print_test_result ("New group has been approved, group_id = $id.")
-    unless $id < 0;
-  return $id;
-}
-
-sub check_group_visibility
-{
-  my ($group, $user) = @_;
-  my $url = "projects/$group";
-  my $ret;
-  print_test_log ("Visiting main page of new group, $url.");
-  $ret = check_status_code ($url, '200', $user);
-  print_test_result ('Group is visible.') unless $ret;
-  return $ret;
-}
-
-sub mark_for_removal
-{
-  my ($group_id, $group) = @_;
-  my $ret;
-  my $agent = make_agent ();
-  log_in_su ($agent);
-  print_test_log ('Visiting group administration page.');
-  $agent->get (make_url ("siteadmin/groupedit.php?group_id=$group_id"));
-  print_test_log ('Looking for deletion form.');
-  $agent->form_with_fields (qw (fastdel));
-  print_test_log ('Marking group for deletion.');
-  $agent->click ();
-  $ret = check_group_status ($agent, 'D')
-    || check_group_visibility ($group, '*');
-  log_out ($agent);
-  return $ret;
-}
-
-sub run_cleanup
-{
-  print_test_log ('Deleting group with sv_cleaner.');
-  return 0
-    unless system (
-      "$bindir/sv_cleaner --big-cleanup --logfile=cleaner.log"
-    );
-  print_test_error ('Failed to run sv_cleaner.');
-  return 1;
-}
+my $group = 'proba';
+my $user = 'alice';
+my $exit_code = 1;
 
 my $agent = make_agent ();
-$exit_code = request_new_group ($agent, 'alice', $unix_group_name);
-my $group_id = approve_group ();
-$exit_code ||= $group_id < 0;
-$exit_code ||= check_group_visibility ($unix_group_name);
-$exit_code ||= mark_for_removal ($group_id, $unix_group_name);
-$exit_code ||= check_inaccessibility ("projects/$unix_group_name");
-$exit_code ||= run_cleanup ();
-$exit_code ||=
-  check_inaccessibility ("siteadmin/groupedit.php?group_id=$group_id", '*');
-
+my $group_id = register_group ($agent, $user, $group);
+exit (1) if $group_id < 0;
+$exit_code = remove_group ($group_id, $group);
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);
