@@ -59,7 +59,7 @@ EOF
 
 sub check_mbox
 {
-  my $should_be_empty = @_? shift: 1;
+  my $should_be_empty = shift;
   my $empty = get_mbox (1, 1) eq '';
   if ($should_be_empty)
     {
@@ -79,21 +79,31 @@ sub check_mbox
   print_test_result ("Mbox was expectedly not empty.");
   return 0;
 }
+sub run_url
+{
+  my ($url, $msg) = (shift, shift);
+  my $cc_err = @_? shift: undef;
+  my $should_be_empty = @_? shift: 1;
+  print_test_log ($msg);
+  append_savane_conf ($cc_err) if defined $cc_err;
+  return 1 if check_status_code ($url, '403');
+  return check_mbox ($should_be_empty);
+}
 
 append_savane_conf ($cc_error_setting);
-print_test_log ('Checking default $sys_log_exits behavior.');
-assert_status_code ("$url/?iter=0", '403');
-$exit_code = 1 if check_mbox ();
-print_test_log ('Checking $sys_log_exits explicitly set to false.');
-append_savane_conf ('$sys_log_exits = false;');
-assert_status_code ("$url/?iter=1", '403');
-$exit_code = 1 if check_mbox ();
-print_test_log ('Checking $sys_log_exits set to true.');
-append_savane_conf ('$sys_log_exits = true;');
-assert_status_code ("$url/?iter=2", '403');
-$exit_code = 1 if check_mbox (0);
+$exit_code = 1 if run_url (
+  "$url/?iter=0", 'Checking default $sys_log_exits behavior.'
+);
+$exit_code = 1 if run_url (
+  "$url/?iter=1", 'Checking $sys_log_exits explicitly set to false.',
+  '$sys_log_exits = false;'
+);
+$exit_code = 1 if run_url (
+  "$url/?iter=2", 'Checking $sys_log_exits set to true.',
+  '$sys_log_exits = true;', 0
+);
 print_test_log ('Checking the theoretical existence of the URL tested.');
-assert_status_code ("$url/?iter=3", '200', '*');
+$exit_code = 1 if check_status_code ("$url/?iter=3", '200', '*');
 
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);

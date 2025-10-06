@@ -51,7 +51,7 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
   print_test_log print_test_error print_test_result
-  log_in log_in_su log_out assert_status_code check_inaccessibility get_user_id
+  log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   save_page append_savane_conf reset_savane_conf register_user remove_user
   speed_up_crypt
 );
@@ -105,7 +105,7 @@ sub log_in_for_accessibility
   log_in ($agent, $user);
 }
 
-sub assert_status_code
+sub check_status_code
 {
   my $url = shift;
   my $expected = shift;
@@ -119,16 +119,17 @@ sub assert_status_code
     {
       print_test_error ("Wrong $url status: $status.");
       save_page ($agent, "$status.html");
-      exit (1);
+      return 1;
     }
   print_test_result ("$url status is like expected ($status).");
+  return 0;
 }
 
 sub check_inaccessibility
 {
   my $url = shift;
   my $user = @_? shift: undef;
-  assert_status_code ($url, '40\d', $user);
+  return check_status_code ($url, '40\d', $user);
 }
 
 sub make_agent
@@ -142,12 +143,13 @@ sub get_user_id
   my $agent = make_agent (0);
   print_test_log ("Getting user Id for <$user_name>.");
   $agent->get (make_url ("users/$user_name"));
-  return 0 if $agent->status () =~ /40\d/;
+  return -1 if $agent->status () =~ /40\d/;
   my $html = $agent->content (raw => 1);
   unless ($html =~ /<td>Id: <\/td>\n<td><b>#(\d+)<\/b><\/td>/)
     {
-      print_test_error ("Can't find user id; the page follows:\n$html\n");
-      exit (1);
+      print_test_error ("Can't find user ID.");
+      save_page ($agent, "no-user-$user_name.html");
+      return -1;
     }
   print_test_result ("User Id is $1.");
   return $1;
@@ -336,7 +338,7 @@ sub register_user
 {
   my ($agent, $login) = @_;
   print_test_log ("Checking for <$login> existence.");
-  check_inaccessibility ("users/$login");
+  return undef if check_inaccessibility ("users/$login");
   my $passwd = request_account ($agent, $login);
   confirm_account ($agent, $login, $passwd);
   log_out ($agent);
@@ -371,7 +373,7 @@ sub remove_user
   log_in ($agent, $login, $passwd);
   request_user_removal ($agent);
   confirm_user_deletion ($agent);
-  check_inaccessibility ("users/$login");
+  return check_inaccessibility ("users/$login");
 }
 
 sub savane_conf_start_marker

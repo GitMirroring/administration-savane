@@ -346,7 +346,10 @@ speed_up_crypt ();
 
 foreach my $login (@logins)
   {
-    $passwords{$login} = register_user ($agent, $login);
+    my $passwd = register_user ($agent, $login);
+    $exit_code = 1 unless defined $passwd;
+    next unless defined $passwd;
+    $passwords{$login} = $passwd;
     push @registered_logins, $login;
   }
 

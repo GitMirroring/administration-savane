@@ -75,6 +75,7 @@ sub check_for_idle_warning
 }
 
 my $passwd = register_user ($agent, $login, 'Test User');
+exit (1) unless defined $passwd;
 log_in ($agent, $login, $passwd);
 my $exit_code = check_for_idle_warning ();
 save_page ($agent, 'idle-warning.html') if $exit_code;

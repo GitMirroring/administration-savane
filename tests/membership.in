@@ -52,12 +52,19 @@ my $exit_code = 0;
 
 my $user = 'eve';
 my $id = get_user_id ($user);
-log_in ($agent, '-');
-$agent->get (group_admin_url ());
-remove_user_from_group ($agent, $user, $id)
-  if user_id_is_removable ($agent, $id);
-log_out ($agent);
-$exit_code = 1 if request_inclusion ($agent, $user);
+if ($id < 0)
+  {
+    $exit_code = 1;
+  }
+else
+  {
+    log_in ($agent, '-');
+    $agent->get (group_admin_url ());
+    remove_user_from_group ($agent, $user, $id)
+      if user_id_is_removable ($agent, $id);
+    log_out ($agent);
+    $exit_code = 1 if request_inclusion ($agent, $user);
+  }
 
 log_in ($agent, '-');
 $agent->get (group_admin_url ());
