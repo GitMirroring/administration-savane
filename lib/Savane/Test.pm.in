@@ -271,20 +271,26 @@ sub log_in
   my $agent = shift;
   my $login = @_? shift: '-';
   my $passwd = @_? shift: '-';
+  my $ret = 0;
   print_test_log ("Logging in as <$login>, passphrase >$passwd<.");
   $agent->get (make_url ('account/login.php'));
+  return 1 if check_request_status ($agent);
   $agent->form_with_fields (qw (form_id));
   $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
   $agent->click ('login');
-  print_test_result ("Logged in as <$login>.");
+  $ret = check_request_status ($agent);
+  print_test_result ("Logged in as <$login>.") unless $ret;
+  return $ret;
 }
 
 sub log_in_su
 {
   my $agent = shift;
-  log_in ($agent, '-');
+  return 1 if log_in ($agent, '-');
   $agent->follow_link (url_regex => qr,^/account/su\.php[?],);
-  print_test_result ('Acquired superuser privileges.');
+  my $ret = check_request_status ($agent);
+  print_test_result ('Acquired superuser privileges.') unless $ret;
+  return $ret;
 }
 
 sub log_out
@@ -292,7 +298,9 @@ sub log_out
   my $agent = shift;
   print_test_log ("Logging out.");
   $agent->get (make_url ("account/logout.php"));
-  print_test_result ("Logged out.");
+  my $ret = check_request_status ($agent);
+  print_test_result ("Logged out.") unless $ret;
+  return $ret;
 }
 
 sub get_password
