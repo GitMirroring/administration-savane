@@ -60,19 +60,25 @@ my %passwords;
 my $exit_code = 2;
 
 my %submit_selects = (
-  'category_id' => ['100'],
+  'category_id' => ['100'], 'bug_group_id' => ['100'], 'privacy' => ['1', '2'],
   'severity' => ['1', '3', '5', '7', '8', '9'],
-  'privacy' => ['1', '2'],
-  'platform_version_id' => ['100', '110', '120', '130', '140']
+  'platform_version_id' => ['100', '110', '120', '130', '140'],
+  'percent_complete' => [
+    '1', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'
+  ],
+  'reproducibility_id' => ['100', '110', '120', '130']
 );
 
 my %submit_value_names;
 
 my @submit_texts = (
-  'originator_email', 'plan_release', 'summary', 'file_description'
+  'originator_email', 'plan_release', 'summary', 'file_description', 'hours',
+  'keywords'
 );
 my %submit_fields = (
   'anonymous' => {'originator_email' => 'anon@savane.test'},
+  '<bis>' => {'platform_version_id' => '110'},
+  '<quater>' => {'percent_complete' => '30', 'reproducibility_id' => '120'},
   '<bob>' => {'severity' => '1', 'plan_release' => '0.1'}
 );
 

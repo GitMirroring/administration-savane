@@ -214,8 +214,83 @@ sub select_features
   my $form = $agent->form_with_fields (qw (form_id group_id));
   return -1 if fill_feature_checkboxes ($form);
   $agent->click ();
-  return -1 if check_request_status ($agent);
-  return $id;
+  return check_request_status ($agent);
+}
+
+sub set_field_usage_checkboxes
+{
+  my $form = shift;
+  my $ret = 0;
+  foreach (
+    'status', 'show_on_add_mem', 'show_on_add_logged', 'show_on_add_anon'
+  )
+    {
+      my $input = $form->find_input ($_, 'checkbox');
+      if (defined $input)
+        {
+          $input->check ();
+          next;
+        }
+      $ret = 1;
+      print_test_error ("Checkbox '$_' not found.");
+    }
+  return $ret;
+}
+
+sub get_selection_form
+{
+  my ($agent, $page_name) = @_;
+  my $form = $agent->form_with_fields (qw (form_id post_changes field));
+  return $form if defined $form;
+  print_test_error ('Selection form not found.');
+  save_page ($agent, $page_name);
+  return undef;
+}
+
+sub select_field
+{
+  my ($agent, $url, $page_name) = @_;
+  print_test_log ('Visiting field selection page.');
+  $agent->get (make_url ($url));
+  return 1 if (check_request_status ($agent));
+  print_test_log ('Looking for selection form.');
+  my $form = get_selection_form ($agent, $page_name);
+  return 1 unless (defined $form);
+  if (set_field_usage_checkboxes ($form))
+    {
+      save_page ($agent, $page_name);
+      return 1;
+    }
+  print_test_log ('Submitting field selection form.');
+  $agent->click ();
+  my $ret = check_request_status ($agent);
+  print_test_result ('Field has been selected successfully.');
+  return $ret;
+}
+
+sub select_fields
+{
+  my ($user, $id, $group) = @_;
+  my ($agent, $ret) = (make_agent (0), 0);
+  my @trackers = ('bugs', 'task', 'support');
+  my @fields = ('keywords', 'plan_release', 'hours', 'percent_complete',
+    'reproducibility_id', 'platform_version_id'
+  );
+  print_test_log ('Selecting tracker fields.');
+  log_in ($agent, $user);
+  foreach my $tr (@trackers)
+    {
+      foreach (@fields)
+        {
+          my $url =
+            "$tr/admin/field_usage.php?group_id=$id&update_field=1&field=";
+          print_test_log ("Selecting $tr field $_ for group $group.");
+          $ret = 1
+            if select_field ($agent, "$url$_", "use-$group-$tr-$_.html");
+        }
+    }
+  log_out ($agent);
+  return $ret;
 }
 
 sub register_group
@@ -225,7 +300,9 @@ sub register_group
   return -1 if request_new_group ($agent, $user, $group);
   $id = approve_group ();
   return $id if $id < 0;
-  return select_features ($user, $id, $group);
+  return -1 if select_features ($user, $id, $group);
+  return -1 if select_fields ($user, $id, $group);
+  return $id;
 }
 
 sub remove_group
