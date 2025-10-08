@@ -47,7 +47,8 @@ use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test membership operations.");
 
-my $agent = make_agent ();
+my $agent = make_agent ()
+  or exit (1);
 my $exit_code = 0;
 
 my $user = 'eve';

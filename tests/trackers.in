@@ -49,7 +49,8 @@ use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test tracker operations.");
 
-my $agent = make_agent ();
+my $agent = make_agent ()
+  or exit (1);
 my $group = 'proba';
 my $admin = 'bob';
 my $tracker = 'bugs';

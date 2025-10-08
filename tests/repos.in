@@ -49,7 +49,6 @@ use WWW::Mechanize;
 PrintVersionOrHelp ("Test repositories and their modules.");
 
 my $unix_group_name = 'administration';
-my $agent = make_agent ();
 my $statedir = '@pkgstatedir@';
 my @git_repos = ('semel', 'bis', 'ter');
 my @git_paths;
@@ -58,6 +57,8 @@ my @web_modules = ($unix_group_name);
 my @more_web_modules = ('www', 'web');
 my $git_url = make_url ("git/?group=$unix_group_name");
 my $admin_url = make_url ("git/admin/?group=$unix_group_name");
+my $agent = make_agent ()
+  or exit (1);
 
 sub try_mkdir
 {

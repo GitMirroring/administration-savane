@@ -48,7 +48,8 @@ use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test user account creation and removal.");
 
-my $agent = make_agent ();
+my $agent = make_agent ()
+  or exit (1);
 my $login = 'test_user';
 
 sub have_idle_warning

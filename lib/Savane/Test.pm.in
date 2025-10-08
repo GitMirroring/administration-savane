@@ -90,7 +90,7 @@ sub check_for_test_marker
 }
 
 my $root_url;
-my ($php_port, $php_bin);
+my ($php_port, $php_bin, $have_launched_php);
 
 sub init_root_url
 {
@@ -100,7 +100,6 @@ sub init_root_url
   $php_bin = <>;
   chomp $php_bin;
   $root_url = "http://$host:$port/";
-  launch_php_server ($port, $php_bin);
   $php_port = $port;
 }
 
@@ -145,7 +144,15 @@ sub check_inaccessibility
 
 sub make_agent
 {
-  return WWW::Mechanize->new (autocheck => @_? shift: 1);
+  return WWW::Mechanize->new (autocheck => @_? shift: 1)
+    if $have_launched_php;
+  if (launch_php_server ($php_port, $php_bin) < 0)
+    {
+      print_test_error ("Failed to launch PHP server.");
+      return undef;
+    }
+  $have_launched_php = 1;
+  return make_agent (@_);
 }
 
 sub get_user_id
@@ -409,6 +416,7 @@ sub append_savane_conf
   my $fname = '@confdir@/savane.conf.php';
   my $formatted = $text;
   my $ret = 0;
+  return 0 unless defined $text;
   $formatted =~ s,^,    ,gm;
   print_test_log ("Appending to savane.conf.php:\n$formatted");
   unless (open ($fh, '>>:encoding(UTF-8)', $fname))
@@ -421,7 +429,7 @@ sub append_savane_conf
   print { $fh } "\n?>\n";
   $savane_conf_modified = 1;
   print_test_log ('Restarting PHP server.');
-  restart_php_server ();
+  $ret = 1 if restart_php_server ();
   return $ret;
 }
 
@@ -448,7 +456,7 @@ sub reset_savane_conf
       print { $th } $_;
     }
   close_and_move ($th, $tn, $fname);
-  restart_php_server ();
+  return restart_php_server ();
 }
 
 sub run_cleanup

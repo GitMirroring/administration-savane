@@ -48,7 +48,8 @@ use Savane::Mail;
 
 PrintVersionOrHelp ('Test $sys_log_exits (see doc/savane.conf.php).');
 
-my $agent = make_agent ();
+my $agent = make_agent ()
+  or exit (1);
 my $exit_code = 0;
 my $url = 'siteadmin/index.php';
 my $cc_error_setting = <<'EOF';
@@ -85,12 +86,12 @@ sub run_url
   my $cc_err = @_? shift: undef;
   my $should_be_empty = @_? shift: 1;
   print_test_log ($msg);
-  append_savane_conf ($cc_err) if defined $cc_err;
+  return 1 if append_savane_conf ($cc_err);
   return 1 if check_status_code ($url, '403');
   return check_mbox ($should_be_empty);
 }
 
-append_savane_conf ($cc_error_setting);
+$exit_code = 1 if append_savane_conf ($cc_error_setting);
 $exit_code = 1 if run_url (
   "$url/?iter=0", 'Checking default $sys_log_exits behavior.'
 );

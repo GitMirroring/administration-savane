@@ -53,7 +53,8 @@ my $group = 'proba';
 my $user = 'alice';
 my $exit_code = 1;
 
-my $agent = make_agent ();
+my $agent = make_agent ()
+  or exit (1);
 my $group_id = register_group ($agent, $user, $group);
 exit (1) if $group_id < 0;
 $exit_code = remove_group ($group_id, $group);

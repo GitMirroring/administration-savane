@@ -158,7 +158,7 @@ sub kill_php_server
 sub restart_php_server
 {
   kill_php_server ();
-  launch_php_server ($php_port, $php_bin);
+  return launch_php_server ($php_port, $php_bin) < 0;
 }
 
 END

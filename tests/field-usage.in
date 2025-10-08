@@ -48,7 +48,8 @@ use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test field usage manipulation.");
 
-my $agent = make_agent ();
+my $agent = make_agent ()
+  or exit (1);
 my $group = 'administration';
 my $have_logged_in = 0;
 
