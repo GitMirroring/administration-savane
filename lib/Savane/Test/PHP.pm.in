@@ -91,7 +91,7 @@ sub wait_for_server
   my $sd = $wait_for_shutdown? 'to shutdown': 'to start up';
   my $url = server_url ();
   print_log ("Waiting for $host:$php_port $sd, $pid.");
-  for (my $i = 0; $i < 0x11; $i++)
+  for (my $i = 0; $i < 10; $i++)
     {
       return -2 if !($wait_for_shutdown || server_is_alive ());
       my $code = server_return_code ();
@@ -117,15 +117,8 @@ sub exec_server
   );
 }
 
-sub launch_php_server
+sub launch
 {
-  ($php_port, $php_bin) = @_;
-  if (server_is_up ())
-    {
-      print_log ("Server $host:$php_port is already running.");
-      return -1;
-    }
-  print_log ("Address $host:$php_port is not in use.");
   my $pid = fork ();
   die "Can't fork: $!" unless defined $pid;
   exec_server () unless ($pid);
@@ -136,6 +129,23 @@ sub launch_php_server
   return $pid;
 }
 
+sub launch_php_server
+{
+  ($php_port, $php_bin) = @_;
+  my $pid = -1;
+  if (server_is_up ())
+    {
+      print_log ("Server $host:$php_port is already running.");
+      return -1;
+    }
+  print_log ("Address $host:$php_port is not in use.");
+  for (my $i = 0; $i < 7 && $pid < 0; $i++)
+    {
+      $pid = launch ();
+      return $pid if $pid >= 0;
+    }
+  return -1;
+}
 sub kill_php_server
 {
   return 0 unless defined $php_server_pid;
