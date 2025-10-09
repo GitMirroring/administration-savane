@@ -120,7 +120,7 @@ sub check_status_code
   my $url = shift;
   my $expected = shift;
   my $user = @_? shift: undef;
-  my $agent = make_agent (0);
+  my $agent = @_? shift: make_agent (0);
   print_test_log ("Asserting status /^$expected\$/ for $url.");
   log_in_for_accessibility ($agent, $user);
   $agent->get (make_url ($url));
@@ -131,7 +131,7 @@ sub check_status_code
       save_page ($agent, "$status.html");
       return 1;
     }
-  print_test_result ("$url status is like expected ($status).");
+  print_test_result ("$url status $status is like expected.");
   return 0;
 }
 
@@ -273,31 +273,40 @@ sub get_mbox
   return join '', @ret;
 }
 
+sub become_su
+{
+  my $agent = shift;
+  $agent->follow_link (url_regex => qr,^/account/su\.php[?],);
+  my $ret = check_request_status ($agent);
+  print_test_result ('Acquired superuser privileges.') unless $ret;
+  return $ret;
+}
+
 sub log_in
 {
   my $agent = shift;
   my $login = @_? shift: '-';
   my $passwd = @_? shift: '-';
   my $ret = 0;
+  my $su = $login eq '*';
   print_test_log ("Logging in as <$login>, passphrase >$passwd<.");
+  $login = '-' if $su;
   $agent->get (make_url ('account/login.php'));
   return 1 if check_request_status ($agent);
   $agent->form_with_fields (qw (form_id));
   $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
   $agent->click ('login');
-  $ret = check_request_status ($agent);
-  print_test_result ("Logged in as <$login>.") unless $ret;
-  return $ret;
+  return 1 if check_request_status ($agent);
+  print_test_result ("Logged in as <$login>.");
+  return 0 unless $su;
+  return become_su ($agent);
 }
 
 sub log_in_su
 {
   my $agent = shift;
   return 1 if log_in ($agent, '-');
-  $agent->follow_link (url_regex => qr,^/account/su\.php[?],);
-  my $ret = check_request_status ($agent);
-  print_test_result ('Acquired superuser privileges.') unless $ret;
-  return $ret;
+  return become_su ($agent);
 }
 
 sub log_out

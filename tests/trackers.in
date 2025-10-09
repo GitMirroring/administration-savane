@@ -58,6 +58,7 @@ my @logins = ('semel', 'bis', 'ter', 'quater', 'quinquies', 'sexies');
 my @registered_logins;
 my %registered_groups;
 my %passwords;
+my %submitters_by_item_id;
 my $exit_code = 2;
 
 my %submit_selects = (
@@ -82,6 +83,8 @@ my %submit_fields = (
   '<quater>' => {'percent_complete' => '30', 'reproducibility_id' => '120'},
   '<bob>' => {'severity' => '1', 'plan_release' => '0.1'}
 );
+
+my %group_members = ($admin => 1);
 
 my %private_names = ('<ter>' => 1, '<quinquies>' => 1, '<dave>' => 1);
 my (%private_items, %submitted_items);
@@ -334,15 +337,27 @@ sub check_new_item
   return check_request_status ($agent);
 }
 
+sub user_password
+{
+  my $login = shift;
+  my $pw;
+  return $passwords{$login}
+    if ((defined ($login)) and (defined ($passwords{$login})));
+  return '-';
+}
+
+sub displayed_user_name
+{
+  return defined ($_[0])? "<$_[0]>": "anonymous";
+}
+
 sub submit_item
 {
   my ($login, $group, $tracker) = @_;
-  my $name = defined ($login)? "<$login>": "anonymous";
+  my $name = displayed_user_name ($login);
   my ($item_id, $ret);
   my $agent = make_agent (0);
-  my $pw = '-';
-  $pw = $passwords{$login}
-    if ((defined ($login)) and (defined ($passwords{$login})));
+  my $pw = user_password ($login);
   print_test_log ("Submitting item as $name.");
   log_in ($agent, $login, $pw) if defined $login;
   $item_id = request_new_item ($agent, $name, $group, $tracker);
@@ -350,6 +365,82 @@ sub submit_item
   # Remove originator_email from further non-anonymous submissions.
   shift @submit_texts unless defined $login;
   log_out ($agent) if defined $login;
+  $submitters_by_item_id{$item_id} = $login unless $ret;
+  return $ret;
+}
+
+sub clear_session_set
+{
+  my $agents = shift;
+  return unless defined $agents;
+  print_test_log ('Clearing session set.');
+  foreach (keys %$agents)
+    {
+      log_out ($agents->{$_}) if defined $_;
+    }
+}
+
+sub make_session_set
+{
+  my @users = (undef, 'alice', '-', $admin, '*');
+  push @users, map { name_to_login ($_) } keys %private_names;
+  my %ret;
+  my $fail = 0;
+  print_test_log ('Making a set of sessions.');
+  foreach (@users)
+    {
+      my ($agent, $pw) = (make_agent (0), user_password ($_));
+      my $res = (defined $_)? log_in ($agent, $_, $pw): 0;
+      if ($res)
+        {
+          $fail = 1;
+          last;
+        }
+      $ret{displayed_user_name ($_)} = $agent;
+    }
+  return \%ret unless $fail;
+  clear_session_set (\%ret);
+  return undef;
+}
+
+sub should_have_access
+{
+  my ($user, $item) = @_;
+  my $submitter = displayed_user_name ($submitted_items{$item});
+  return 1 unless $private_items{$item};
+  return 0 unless defined $user;
+  return 1 if $submitter eq displayed_user_name ($user);
+  return 1 if $user eq '*';
+  return 1 if exists $group_members{$user};
+  return 0;
+}
+
+sub test_user_access
+{
+  my ($name, $agent) = @_;
+  my $user = name_to_login ($name);
+  my $ret = 0;
+  foreach (keys %submitted_items)
+    {
+      my $have_access = should_have_access ($user, $_);
+      print_test_log ("Testing accessibility of item #$_ to user $name");
+      my $status_code = $have_access? '200': '40\d';
+      $ret = 1
+        if check_status_code ("$tracker/?$_", $status_code, undef, $agent);
+    }
+  return $ret;
+}
+
+sub check_item_access
+{
+  my $agents = make_session_set ();
+  return 1 unless defined $agents;
+  my $ret = 0;
+  foreach (keys (%$agents))
+    {
+      $ret = 1 if test_user_access ($_, $agents->{$_});
+    }
+  clear_session_set ($agents);
   return $ret;
 }
 
@@ -376,7 +467,6 @@ foreach my $login (@logins)
 unshift @logins, undef, '-', 'alice', 'bob', 'dave';
 
 my $group_id = register_group ($agent, $admin, $group);
-# TODO select features.
 exit (1) if $group_id < 0;
 $registered_groups{$group} = $group_id;
 
@@ -385,6 +475,7 @@ foreach (@logins)
     $exit_code = 1 if submit_item ($_, $group, $tracker);
   }
 
+$exit_code = 1 if check_item_access ();
 $exit_code = 0 if ($exit_code == 2);
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);
