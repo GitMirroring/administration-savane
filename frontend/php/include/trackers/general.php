@@ -1019,11 +1019,50 @@ function trackers_mail_followup (
   );
 }
 
+function trackers_upload_err_ini_size ()
+{
+  $ret = _('Uploaded file size exceeds configured value.');
+  $size = ini_get ('upload_max_filesize');
+  if ($size === false || $size === null)
+    return $ret;
+  $size = utils_ini_size_bytes ($size);
+  $ret .=  ' ' . sprintf (
+    _('Maximum upload file size is %s.'), utils_human_readable_size ($size)
+  );
+  return $ret;
+}
+
+function trackers_add_file_fb ($file)
+{
+  if ($file['name'] === '')
+    return;
+  $code = $file['error'];
+  $msg0 = sprintf (_("Error while uploading file '%s':"), $file['name']);
+  $msg = sprintf (_('Unknown file upload error code: %s.'), $code);
+  $errors = [
+    UPLOAD_ERR_INI_SIZE => trackers_upload_err_ini_size (),
+    # UPLOAD_ERR_FROM_FILE is intendedly omitted:
+    # we don't use MAX_FILE_SIZE in HTML forms.
+    UPLOAD_ERR_PARTIAL => _('The file was only partially uploaded.'),
+    UPLOAD_ERR_NO_FILE => _('No file was uploaded.'),
+    UPLOAD_ERR_NO_TMP_DIR => _('Missing temporary directory.'),
+    UPLOAD_ERR_CANT_WRITE => _('Failed to write file to disk.'),
+    UPLOAD_ERR_EXTENSION => _('Upload was stopped by some PHP extension.'),
+  ];
+  if (!empty ($errors[$code]))
+    $msg = $errors[$code];
+  fb ("$msg0\n$msg", 1);
+  # exit_error ($msg);
+}
+
 function trackers_add_file ($item_id, $file, $file_description, &$changes)
 {
-  if (empty ($file['tmp_name']))
-    return null;
   if (empty ($file['emailed']) && $file['error'] != UPLOAD_ERR_OK)
+    {
+      trackers_add_file_fb ($file);
+      return null;
+    }
+  if (empty ($file['tmp_name']))
     return null;
 
   $id = trackers_attach_file ($item_id, $file, $file_description, $changes);

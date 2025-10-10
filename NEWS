@@ -109,6 +109,8 @@
 
 ** Show and hide logic in frontend/php/js/show-feedback.php was broken.
 
+** File upload errors were not reported to the user, Savannah sr #111322.
+
 [BACKEND]
 
 * In sv_mirmon-to-geoip and mirror-redirect, add support for non-country

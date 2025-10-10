@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-10-14 11:09+0000\n"
-"PO-Revision-Date: 2025-09-26 15:44+0000\n"
+"POT-Creation-Date: 2025-10-14 12:38+0000\n"
+"PO-Revision-Date: 2025-10-14 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -4640,6 +4640,36 @@ msgstr "Предполагается спам: сообщение не буде�
 msgid "Could not send item update."
 msgstr "Не удалось отправить обновление заявки."
 
+msgid "Uploaded file size exceeds configured value."
+msgstr "Размер переданного файла превосходит заданный предел."
+
+#, php-format
+msgid "Maximum upload file size is %s."
+msgstr "Максимальный допустимый размер файла — %s."
+
+#, php-format
+msgid "Error while uploading file '%s':"
+msgstr "Ошибка при передаче файла «%s»:"
+
+#, php-format
+msgid "Unknown file upload error code: %s."
+msgstr "Неизвестный код ошибки передачи файла: %s."
+
+msgid "The file was only partially uploaded."
+msgstr "Файл передан только частично."
+
+msgid "No file was uploaded."
+msgstr "Файл не отправлен."
+
+msgid "Missing temporary directory."
+msgstr "Отсутствует временный каталог."
+
+msgid "Failed to write file to disk."
+msgstr "Не удалось записать файл на диск."
+
+msgid "Upload was stopped by some PHP extension."
+msgstr "Передача была прервана каким-то из расширений PHP."
+
 #, php-format
 msgid "Unexpected error, disregarding file %s attachment"
 msgstr "Неожиданная ошибка, файл приложения %s игнорируется"
@@ -4664,8 +4694,8 @@ msgid ""
 "(Note: upload size limit is set to %s, after insertion of\n"
 "the required escape characters.)"
 msgstr ""
-"(Замечание: размер файлов ограничен величиной %s после вставки "
-"необходимых экранирующих символов.)"
+"(Замечание: размер файлов ограничен величиной %s после вставки необходимых "
+"экранирующих символов.)"
 
 #, php-format
 msgid "File %s is empty."
