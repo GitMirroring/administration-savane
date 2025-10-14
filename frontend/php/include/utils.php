@@ -320,6 +320,15 @@ function utils_read_file ($filename)
   return $val;
 }
 
+function utils_ini_size_bytes ($size)
+{
+  $factors = ['k' => 1024, 'm' => 1024 * 1024, 'g' => 1024 * 1024 * 1024];
+  $suff = strtolower (substr ($size, -1));
+  if (!array_key_exists ($suff, $factors))
+    return $size;
+  return substr ($size, 0, -1) * $factors[$suff];
+}
+
 function utils_human_readable_size ($size)
 {
   if ($size < 1024)

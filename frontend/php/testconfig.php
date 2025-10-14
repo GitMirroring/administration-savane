@@ -653,7 +653,9 @@ foreach ($phptags as $tag => $good)
   if (compare_ini_vals ($tag, $good, $cmp))
     $have_unset = true;
 # Check against minimum sizes.
-$phptags = ['post_max_size' => '3M', 'upload_max_filesize' => '2M'];
+$phptags = [
+  'memory_limit' => '4M', 'post_max_size' => '3M', 'upload_max_filesize' => '2M'
+];
 $cmp = function ($a, $b) { return return_bytes ($a) >= return_bytes ($b); };
 foreach ($phptags as $tag => $good)
   if (compare_ini_vals ($tag, $good, $cmp))
@@ -1265,6 +1267,63 @@ function check_varchar ($table_struct, $table, $field, $n = 153)
   return $type;
 }
 
+function ini_size_note ($former, $latter)
+{
+  return "<br /><strong>Note: $former is greater than $latter. "
+    . 'The effective limit will be the latter.</strong>';
+}
+
+function test_upload_ini_vals (&$defs)
+{
+  $mem_limit = utils_ini_size_bytes (ini_get ('memory_limit'));
+  $defs['PHP memory_limit setting'] = utils_human_readable_size ($mem_limit);
+  $post_max = utils_ini_size_bytes (ini_get ('post_max_size'));
+  $defs['PHP post_max_size setting'] = utils_human_readable_size ($post_max);
+  if ($mem_limit < $post_max && $mem_limit >= 0)
+    $defs['PHP memory_limit setting'] .=
+      ini_size_note ('post_max_size', 'memory_limit');
+  $umfs = utils_ini_size_bytes (ini_get ('upload_max_filesize'));
+  $defs['PHP upload_max_filesize setting'] = utils_human_readable_size ($umfs);
+  if ($post_max < $umfs)
+    $defs['PHP upload_max_filesize setting'] .=
+      ini_size_note ('upload_max_filesize', 'post_max_size');
+  return $umfs;
+}
+
+function test_uploads (&$defs)
+{
+  $defs['sys_upload_dir writability'] =
+    ['sys-upload-dir', test_sys_upload_dir ()];
+  $ini_val = test_upload_ini_vals ($defs);
+  list_sysvar ('upload_max', $arr);
+  $val = $arr['sys_upload_max'];
+  if (strstr ($val, '>') === false)
+    {
+      $arr['sys_upload_max'] *= 1024;
+      $val = utils_human_readable_size ($arr['sys_upload_max']);
+    }
+  $defs['sys_upload_max'] = ['sys-upload-max', $val];
+  if (!array_key_exists ('sys_upload_max', $GLOBALS))
+    return;
+  if ($arr['sys_upload_max'] <= $ini_val)
+    return;
+  $defs['sys_upload_max'][1] .=
+    ini_size_note ('$sys_upload_max', 'upload_max_filesize');
+}
+
+function run_other_tests ()
+{
+  $defs = [];
+  test_repos ($defs);
+  test_uploads ($defs);
+  print html_dl ($defs);
+  print html_h (3, 'Limiting email error report rate', 'error-cc-limit');
+  print error_test_cc_limit ();
+  print html_h (3, 'Timestamps', 'error-timestamp');
+  print '<p>' . error_test_timestamp () . "</p>\n";
+
+}
+
 function test_sysconfigs ()
 {
   include $GLOBALS['sys_conf_file'];
@@ -1279,15 +1338,7 @@ function test_sysconfigs ()
   test_gpg ();
   test_i18n ();
   print html_h (2, "Other tests");
-  $defs = [];
-  test_repos ($defs);
-  $defs['sys_upload_dir writability'] =
-    ['sys-upload-dir', test_sys_upload_dir ()];
-  print html_dl ($defs);
-  print html_h (3, 'Limiting email error report rate', 'error-cc-limit');
-  print error_test_cc_limit ();
-  print html_h (3, 'Timestamps', 'error-timestamp');
-  print '<p>' . error_test_timestamp () . "</p>\n";
+  run_other_tests ();
 }
 
 $page .= html_h (2, "Configured settings");
