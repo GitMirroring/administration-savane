@@ -218,12 +218,7 @@ if ($preview)
 
 
 print "<p>&nbsp;</p>\n";
-print html_h (2, _("Attached Files"));
-printf (
-  _("(Note: upload size limit is set to %s kB, after insertion of\n"
-    . "the required escape characters.)"),
-  $GLOBALS['sys_upload_max']
-);
+print html_h (2, _("Attached Files")) . trackers_upload_size_limit_note ();
 
 print '<p><span class="preinput"> ' . _("Attach Files:") . "</span><br />\n";
 

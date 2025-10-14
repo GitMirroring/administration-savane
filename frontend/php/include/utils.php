@@ -320,24 +320,27 @@ function utils_read_file ($filename)
   return $val;
 }
 
+function utils_human_readable_size ($size)
+{
+  if ($size >= 1048576)
+    # TRANSLATORS: this expresses file size.
+    $size = sprintf (_("%sMiB"), round ($size / 1048576));
+  elseif ($size >= 1024)
+    # TRANSLATORS: this expresses file size.
+    $size = sprintf(_("%sKiB"), round ($size / 1024));
+  else
+    # TRANSLATORS: this expresses file size.
+    $size = sprintf(_("%sB"), round ($size));
+  return $size;
+}
+
 function utils_filesize ($filename, $file_size = 0)
 {
   # If file size is defined, assume that we just want an unit conversion.
-
   # Round results: Savane is not a math software.
   if (!isset ($file_size))
     $file_size = filesize ($filename);
-
-  if ($file_size >= 1048576)
-    # TRANSLATORS: this expresses file size.
-    $file_size = sprintf (_("%sMiB"), round ($file_size / 1048576));
-  elseif ($file_size >= 1024)
-    # TRANSLATORS: this expresses file size.
-    $file_size = sprintf(_("%sKiB"), round ($file_size / 1024));
-  else
-    # TRANSLATORS: this expresses file size.
-    $file_size = sprintf(_("%sB"), round ($file_size));
-  return $file_size;
+  return utils_human_readable_size ($file_size);
 }
 
 # Return human-readable sizes.

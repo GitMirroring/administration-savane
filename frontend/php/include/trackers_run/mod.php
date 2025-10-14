@@ -556,12 +556,7 @@ print html_hidsubpart_header ("attached", _("Attached Files"));
 if (!empty ($preambles[ARTIFACT . '_file_preamble']))
   print markup_rich ($preambles[ARTIFACT . '_file_preamble']);
 
-print '<p class="noprint">';
-printf (
-  _("(Note: upload size limit is set to %s kB, after insertion of\n"
-    . "the required escape characters.)"),
-  $GLOBALS['sys_upload_max']
-);
+print '<p class="noprint">' . trackers_upload_size_limit_note ();
 
 function file_input ($n)
 {

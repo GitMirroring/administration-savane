@@ -103,7 +103,7 @@ $sys_enable_forum_comments = 0;
 $sys_registration_text_spam_test = 0;
 # Whether to use captcha on user registration page.
 $sys_registration_captcha = 1;
-# Maximum size of uploaded files.
+# Maximum size of uploaded files, kB.
 $sys_upload_max = 16384;
 
 # The directory where Savane configuration files are located.

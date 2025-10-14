@@ -503,7 +503,7 @@ function format_attachment ($file, $public)
         $file[$k1] = $file["file$k"];
      }
   $ret = sprintf ("Name: %-30s Size: %s\n",
-    $file['name'], utils_filesize (null, intval ($file['size']))
+    $file['name'], utils_human_readable_size (intval ($file['size']))
   );
   $description = '';
   if (!empty ($file['description']))
@@ -629,7 +629,8 @@ function format_item_file_details ($row, $href)
     $lnk . utils_specialchars ($row['filename']) . '</a>',
     utils_user_link ($row['user_name'])
   );
-  $out .= ' <span class="smaller">(' . utils_filesize (null, $row['filesize']);
+  $out .= ' <span class="smaller">('
+    . utils_human_readable_size ($row['filesize']);
   if ($row['filetype'])
     $out .= ' - ' . $row['filetype'];
   if ($row['description'])

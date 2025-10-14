@@ -1119,22 +1119,26 @@ function trackers_get_upload_size ($file)
   return $filesize + $GLOBALS['current_upload_size'];
 }
 
+function trackers_upload_size_limit_note ()
+{
+  return sprintf (
+    _("(Note: upload size limit is set to %s, after insertion of\n"
+      . "the required escape characters.)"),
+    utils_human_readable_size ($GLOBALS['sys_upload_max'] * 1024)
+  );
+}
+
 function trackers_file_too_big ($file, $file_name, $comment)
 {
-  $filesize = round (filesize ($file) / 1024);
   if (trackers_get_upload_size ($file) <= $GLOBALS['sys_upload_max'])
     return false;
-  $msg_not_attached = sprintf (ngettext (
-    "File %s not attached: its size is %s kilobyte.",
-    "File %s not attached: its size is %s kilobytes.",
-    $filesize), $file_name, $filesize
+  $msg_not_attached = sprintf (
+    "File %s not attached: its size is %s.",
+    $file_name, utils_filesize ($file_name)
   );
-  $msg_max_size = sprintf (ngettext (
-    "Maximum allowed file size is %s kilobyte,\n"
-    . "after escaping characters as required.",
-    "Maximum allowed file size is %s kilobytes,\n"
-    . "after escaping characters as required.",
-    $GLOBALS['sys_upload_max']), $GLOBALS['sys_upload_max']
+  $msg_max_size = sprintf (
+    "Maximum allowed file size is %s, after escaping characters as required.",
+    utils_human_readable_size ($GLOBALS['sys_upload_max'] * 1024)
   );
   fb ("$msg_not_attached $msg_max_size$comment", 1);
   return true;
