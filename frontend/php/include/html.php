@@ -367,8 +367,8 @@ function html_print_fb_success_error ($suffix, $class_hide, $script_hide)
   $icon = html_image ("bool/wrong.png", ['class' => 'feedbackimage']);
   print "<div id=\"feedback$suffix\" class=\"feedbackerrorandsuccess "
     . "$class_hide\"><p>"
-    . "<span class='feedbackerrorandsuccesstitle'>$icon<b>"
-    . _("Some Errors:") . "</b></span> $feedback $ffeedback</p></div>\n";
+    . "<span class='feedbackerrorandsuccesstitle'>$icon<b>". _("Some Errors:")
+    . "</b></span> $feedback<hr />\n$ffeedback</p></div>\n";
 }
 
 function html_get_script_hide ($suffix)
