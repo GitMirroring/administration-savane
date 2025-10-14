@@ -50,6 +50,16 @@ require_once ("$dirname/../trackers/votes.php");
 
 require_directory ("search"); # Need search functions.
 
+function restore_feedback ()
+{
+  $query = sane_import ('get', ['pass' => ['feedback', 'ffeedback']]);
+  if ($query['feedback'])
+    fb ($query['feedback']);
+  if ($query['ffeedback'])
+    fb ($query['ffeedback'], 1);
+}
+restore_feedback ();
+
 $fields_per_line = 2;
 $max_size = 40;
 $max_rows = 25;

@@ -97,6 +97,24 @@ function fb_anon_check_failed ($check)
   );
 }
 
+function redirect_postmoditem ()
+{
+  global $item_id, $feedback, $ffeedback;
+  if (!isset ($item_id))
+    return;
+  $params = '';
+  if (isset ($feedback))
+    $params .= '&feedback=' . utils_urlencode ($feedback);
+  if (isset ($ffeedback))
+    $params .= '&ffeedback=' . utils_urlencode ($ffeedback);
+  if ($params === '')
+    $params = $item_id;
+  else
+    $params = "item_id=$item_id$params";
+  # Include tracker item number and feedback in URL, if present.
+  session_redirect ("{$_SERVER['PHP_SELF']}?$params");
+}
+
 extract (sane_import ('request',
   [
     'funcs' => 'func',
@@ -474,11 +492,7 @@ switch ($func)
       }
     if (!$process_comment)
       {
-        if (isset ($item_id))
-          {
-            # Include tracker item number in URL, if present.
-            session_redirect ("{$_SERVER['PHP_SELF']}?$item_id");
-          }
+        redirect_postmoditem ();
         $_POST = $_FILES = [];
         $depends_search = $reassign_change_group_search =
         $add_cc = $input_file = $changed = $vfl = $details = $comment = null;
