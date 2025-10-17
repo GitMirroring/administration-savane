@@ -322,16 +322,20 @@ function utils_read_file ($filename)
 
 function utils_human_readable_size ($size)
 {
-  if ($size >= 1048576)
+  if ($size < 1024)
     # TRANSLATORS: this expresses file size.
-    $size = sprintf (_("%sMiB"), round ($size / 1048576));
-  elseif ($size >= 1024)
-    # TRANSLATORS: this expresses file size.
-    $size = sprintf(_("%sKiB"), round ($size / 1024));
-  else
-    # TRANSLATORS: this expresses file size.
-    $size = sprintf(_("%sB"), round ($size));
-  return $size;
+    return sprintf (_("%sB"), round ($size));
+  $size /= 1024;
+  # TRANSLATORS: this expresses file size.
+  $fmt = _("%sKiB");
+  if ($size >= 1024)
+    {
+      # TRANSLATORS: this expresses file size.
+      $fmt = _("%sMiB");
+      $size /= 1024;
+    }
+  $size = sprintf ('%.' . ($size < 10? 1: 0). 'f', $size);
+  return sprintf ($fmt, $size);
 }
 
 function utils_filesize ($filename, $file_size = 0)
