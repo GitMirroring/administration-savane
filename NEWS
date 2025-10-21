@@ -79,6 +79,8 @@
 ** The fields  'date', 'close_date', 'submitted_by', 'updated' were
    uncustomizable in /bugs/admin/field_usage.php.
 
+** Superusers weren't allowed to comment in private tracker items.
+
 ** GnuPG executable errors when showing system keys weren't displayed
    correctly.
 

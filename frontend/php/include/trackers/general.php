@@ -1694,7 +1694,8 @@ function trackers_may_user_comment ($user_id, $item_id)
   if (empty ($fields))
     return [false, $fields];
   if (
-    $fields['privacy'] == 2 && !member_check ($user_id, $fields['group_id'])
+    $fields['privacy'] == 2 && !$fields['is_trackeradmin']
+    && !member_check ($user_id, $fields['group_id'])
     && $fields['submitted_by'] != $user_id
   )
     return [false, $fields];
