@@ -447,9 +447,15 @@ sub check_item_access
 END
 {
   print_test_log ("Removing users registered in the test.");
-  remove_user ($agent, $_, $passwords{$_}) foreach (@registered_logins);
+  foreach (@registered_logins)
+    {
+      $exit_code = 1 if remove_user ($agent, $_, $passwords{$_});
+    }
   print_test_log ("Removing groups registered in the test.");
-  remove_group ($registered_groups{$_}, $_) foreach (keys %registered_groups);
+  foreach (keys %registered_groups)
+    {
+      $exit_code = 1 if remove_group ($registered_groups{$_}, $_);
+    }
   $? = $exit_code;
 }
 
