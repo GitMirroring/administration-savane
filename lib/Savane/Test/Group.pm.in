@@ -194,6 +194,7 @@ sub fill_feature_checkboxes
       my $input = $form->find_input ("#use_$_");
       if (defined $input)
         {
+          print_test_log ("Selecting $_.");
           $input->check ();
           next;
         }
@@ -203,18 +204,72 @@ sub fill_feature_checkboxes
   return $ret;
 }
 
-sub select_features
+sub select_features_
 {
-  my ($user, $id, $group) = @_;
-  my $agent = make_agent (0);
-  print_test_log ('Selecting features.');
-  log_in ($agent, $user);
+  my ($agent, $id, $group) = @_;
   $agent->get ("project/admin/editgroupfeatures.php?group=$group");
   return -1 if check_request_status ($agent);
   my $form = $agent->form_with_fields (qw (form_id group_id));
   return -1 if fill_feature_checkboxes ($form);
   $agent->click ();
   return check_request_status ($agent);
+}
+
+sub select_features
+{
+  my $user = shift;
+  my $agent = make_agent (0);
+  print_test_log ('Selecting features.');
+  log_in ($agent, $user);
+  my $ret = select_features_ ($agent, @_);
+  log_out ($agent);
+  return $ret;
+}
+
+sub set_comment_permission
+{
+  my ($agent, $form, $tracker) = @_;
+  unless (defined $form)
+    {
+      print_test_error ('Permission form not found.');
+      save_page ($agent, "$tracker-userperm.html");
+      return -1;
+    }
+  my $input = $form->find_input ("${tracker}_restrict_event2");
+  unless (defined $input)
+    {
+      print_test_error ('Cannot find permission select box.');
+      save_page ($agent, "$tracker-userperm-input.html");
+      return 1;
+    }
+  print_test_log ('Setting anonymous level permission for comments.');
+  $input->value ('2');
+  return 0;
+}
+
+sub set_permissions_
+{
+  my ($agent, $tracker, $group) = @_;
+  print_test_log ('Visiting userperms page.');
+  $agent->get (make_url ("$tracker/admin/userperms.php?group=$group"));
+  return -1 if check_request_status ($agent);
+  my $form =
+    $agent->form_with_fields ('form_id', 'group', "${tracker}_restrict_event2");
+  return -1 if set_comment_permission ($agent, $form, $tracker);
+  $agent->click ();
+  return check_request_status ($agent);
+}
+
+sub set_permissions
+{
+  my ($user, $group) = @_;
+  my $agent = make_agent (0);
+  my $tracker = 'bugs';
+  print_test_log ("Setting permissions for $tracker.");
+  log_in ($agent, $user);
+  my $ret = set_permissions_ ($agent, $tracker, $group);
+  log_out ($agent);
+  return $ret;
 }
 
 sub set_field_usage_checkboxes
@@ -301,6 +356,7 @@ sub register_group
   $id = approve_group ();
   return $id if $id < 0;
   return -1 if select_features ($user, $id, $group);
+  return -1 if set_permissions ($user, $group);
   return -1 if select_fields ($user, $id, $group);
   return $id;
 }
