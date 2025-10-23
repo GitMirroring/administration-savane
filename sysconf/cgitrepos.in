@@ -1,4 +1,5 @@
 # Sample cgitrepos file.  Public domain.  Initially written by Ineiev.
+# As of 2025-10-24, not used.
 repo.group=Savane administration
 repo.url=administration.git
 repo.path=/srv/git/administration.git

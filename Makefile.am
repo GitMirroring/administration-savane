@@ -9,7 +9,7 @@ AM_DISTCHECK_CONFIGURE_FLAGS = --enable-mirror
 # The list of subdirectories containing Makefiles.
 SUBDIRS = . frontend po
 bin_SCRIPTS =
-EXTRA_DIST =
+EXTRA_DIST = COPYING.GPL autotools/m4/README sysconf/cgitrepos.in
 nobase_pkgdata_DATA =
 
 mirmon_bin = backend/misc/sv_gnu-mirmon backend/misc/sv_mirmon-to-geoip \
@@ -234,8 +234,8 @@ EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
   $(all_substituted:%=%.in) $(mirmon_pkgdata) backend/README \
   autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
-  caboose/parse-files.awk doc/comments-via-email doc/git-repos \
-  doc/signed-notifications
+  caboose/parse-files.awk doc/cc-error doc/comments-via-email doc/git-repos \
+  doc/i18n doc/savane.conf.php doc/signed-notifications doc/sv-to-unix-accounts
 
 CLEANFILES = $(all_substituted) dirs.stamp db/init.stamp
 
