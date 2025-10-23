@@ -1,0 +1,43 @@
+This file describes the test suites coming with Savane.
+
+= frontend/php/testconfig.php
+
+This test is accessible on the running web server at /testconfig.php.
+It displays the configuration of the server and reports possible problems.
+The output is a HTML page written in English to be read with a browser.
+
+= frontend/php/testing/
+
+A number of basic regression tests can run without installation.  They
+are invoked from the frontend/php directory with a command like
+
+	php testing/account.php
+
+On success, they are silent; on failure, they report errors.
+
+These tests are run in the 'installcheck' target of the Makefile.
+Besides that, 'installcheck' runs 'php -l' on every installed PHP file
+and the standard checks like '--help' and '--version' for every
+backend script.
+
+= tests/
+
+This is the newest suite based on WWW::Mechanize.  It includes a number
+of functional tests like user and group registration, tracker configuration
+and usage, Git repo listing, and more.  The suite is invoked as the 'test'
+Makefile target.  The target installs a sandbox instance of Savane
+in the 'test' subdirectory of the build directory and runs tests on that
+instance; then it removes the subdirectory in case of success unless
+the KEEP_TEST variable is set to 'yes' like in 'make KEEP_TEST=yes test'.
+The test results are logged in the 'test/tests' directory.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2025 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.

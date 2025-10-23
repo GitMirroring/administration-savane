@@ -235,7 +235,8 @@ EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
   autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
   caboose/parse-files.awk doc/cc-error doc/comments-via-email doc/git-repos \
-  doc/i18n doc/savane.conf.php doc/signed-notifications doc/sv-to-unix-accounts
+  doc/i18n doc/savane.conf.php doc/signed-notifications \
+  doc/sv-to-unix-accounts doc/tests-and-checks
 
 CLEANFILES = $(all_substituted) dirs.stamp db/init.stamp
 
