@@ -228,6 +228,8 @@ sub check_submit_fields
   print_test_log ("Checking submit form fields.");
   $ret = check_input_set ($form, 'Text', @submit_texts);
   $ret = 1 if check_input_set ($form, 'Textarea', @submit_textareas);
+  $ret = 1 if check_input_set ($form, 'File', @submit_files);
+  $ret = 1 if check_input_set ($form, 'Submit', @submit_buttons);
   $ret = 1 if check_submit_options ($form);
   save_page ($agent, 'submit-fields.html') if $ret;
   return $ret;
