@@ -182,6 +182,8 @@
 
 * Rewrite from scratch tests in tests/.  Make distcheck depend on them.
 
+* In distcheck, look for files present in $(srcdir) but missing in $(distdir).
+
 * Bug fixes:
 
 ** Files COPYING.GPL autotools/m4/README sysconf/cgitrepos.in doc/cc-error

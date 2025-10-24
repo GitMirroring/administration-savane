@@ -312,7 +312,22 @@ uninstall-local: ; \
     $(RM) "$(DESTDIR)$(confdir)/$$i"; \
   done
 
-distcheck-hook: test
+check-missing: ; \
+  missing=`\
+    find $(srcdir) \
+      -type f ! -path $(srcdir)/.git/\* ! -path $(srcdir)/configure~ \
+      ! -path $(srcdir)/autom4te.cache/\* -print \
+    | while read f; do \
+        f="$${f#$(srcdir)/}"; \
+        test -f "$(distdir)/$$f" || echo $$f; \
+      done \
+  `; \
+  if test "$${missing:+y}"; then \
+    echo Files are missing in the tarball:; echo "$$missing"; \
+    false; \
+  fi
+
+distcheck-hook: check-missing test
 	if grep -q '^This is a stub' $(distdir)/ChangeLog; then \
 	  echo; echo; \
 	  echo "ChangeLog hasn't been generated.  " \
