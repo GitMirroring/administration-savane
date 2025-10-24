@@ -53,6 +53,7 @@ my $port;
 my $exit_code = 0;
 my $php_log_name = 'test-php.log';
 my $php_log;
+my $have_launched_db = 0;
 my $help = <<"EOF";
   Usage: $0 [OPTIONS]
 
@@ -72,9 +73,11 @@ sub launch_db
 {
   return unless $have_database;
   system ("$sbindir/sv_launch_db.pl") && die "Cannot launch the database.\n";
+  $have_launched_db = 1;
 }
 sub kill_db
 {
+  return 0 unless $have_launched_db;
   return 0 unless $have_database;
   return 0 unless system ("$sbindir/sv_kill_db.pl");
   print STDERR "Can't kill the database server.\n";
