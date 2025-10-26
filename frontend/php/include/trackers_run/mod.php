@@ -566,7 +566,8 @@ print html_hidsubpart_header ("attached", _("Attached Files"));
 if (!empty ($preambles[ARTIFACT . '_file_preamble']))
   print markup_rich ($preambles[ARTIFACT . '_file_preamble']);
 
-print '<p class="noprint">' . trackers_upload_size_limit_note ();
+$public = trackers_item_is_public ($privacy, $group_id);
+show_item_attached_files ($item_id, $group_id, $public);
 
 function file_input ($n)
 {
@@ -576,10 +577,11 @@ function file_input ($n)
     "<input type='file' name='input_file$n' size='10' title=\""
     . _("File to attach") . '" /> ';
 }
-print "</p>\n";
 
 if ($enable_comments)
   {
+    print '<p class="noprint">' . trackers_upload_size_limit_note ();
+    print "</p>\n";
     print '<p class="noprint"><span class="preinput"> '
       . _("Attach Files:") . "</span>";
 
@@ -594,9 +596,6 @@ if ($enable_comments)
   }
 
 print "<p>";
-
-$public = trackers_item_is_public ($privacy, $group_id);
-show_item_attached_files ($item_id, $group_id, $public);
 
 print "</p>\n<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();

@@ -612,8 +612,7 @@ function format_item_file_header ($list_is_empty, $ascii)
     {
       if ($ascii)
         return '';
-      return
-        '<span class="warn">' . _("No files currently attached") . '</span>';
+      return '<p>' . _("This item currently has no attached files.") . "</p>\n";
     }
   if ($ascii)
     return "    _______________________________________________________\n"

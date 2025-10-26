@@ -47,8 +47,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-10-14 12:38+0000\n"
-"PO-Revision-Date: 2025-10-14 15:44+0000\n"
+"POT-Creation-Date: 2025-10-26 12:14+0000\n"
+"PO-Revision-Date: 2025-10-26 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -4424,8 +4424,8 @@ msgstr "Сбросить признак спама"
 msgid "Flag as spam"
 msgstr "Выставить признак спама"
 
-msgid "No files currently attached"
-msgstr "Никакие файлы в настоящее время не приложены"
+msgid "This item currently has no attached files."
+msgstr "К этой заявке никакие файлы не приложены."
 
 #. TRANSLATORS: the first argument is file name, the second is user's name.
 #, php-format
@@ -5546,8 +5546,8 @@ msgstr "(адрес неизвестен в Savane, будет сбой, есл�
 
 #. TRANSLATORS: this expresses file size.
 #, php-format
-msgid "%sMiB"
-msgstr "%sМиБ"
+msgid "%sB"
+msgstr "%sБ"
 
 #. TRANSLATORS: this expresses file size.
 #, php-format
@@ -5556,8 +5556,8 @@ msgstr "%sКиБ"
 
 #. TRANSLATORS: this expresses file size.
 #, php-format
-msgid "%sB"
-msgstr "%sБ"
+msgid "%sMiB"
+msgstr "%sМиБ"
 
 #. TRANSLATORS: this is file size unit (no prefix).
 msgid "B"
