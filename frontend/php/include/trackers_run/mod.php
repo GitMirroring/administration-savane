@@ -575,66 +575,68 @@ if ($enable_comments)
 print "<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();
 
-# Deployed by default, important item info.
+function print_depends_search_input ($depends_search)
+{
+  print '<p class="noprint"><span class="preinput">';
+  print html_label ('depends_search',
+    $depends_search?
+      _("New search, in case the previous one was not satisfactory "
+        . "(to\nfill a dependency against):"):
+      _("Search an item (to fill a dependency against):")
+  );
+  print "</span><br />\n&nbsp;&nbsp;&nbsp;"
+    . form_input ('text',  'depends_search', $depends_search,
+        "size='40' maxlength='255'"
+      ) . "<br />\n";
+}
+
+function print_depends_tracker_select ($depends_search_only_artifact)
+{
+  $ret = html_label ('depends_search_only_artifact', _("Tracker to search in:"))
+   . '&nbsp;&nbsp;&nbsp;<select name="depends_search_only_artifact">';
+  $tracker_list = [
+    'all'     => _("any tracker"),
+    'support' => _("the support tracker only"),
+    'bugs'    => _("the bug tracker only"),
+    'task'    => _("the task manager only"),
+    'patch'   => _("the patch manager only"),
+  ];
+
+  foreach ($tracker_list as $option_value => $text)
+    $ret .= form_option ($option_value, $depends_search_only_artifact, $text);
+  print "$ret</select>\n";
+}
+
+function print_depends_group_select ($depends_search_only_group)
+{
+  $group_select =
+    html_label (
+      'depends_search_only_group', _("Whether to search in any group")
+    )
+    . '<select name="depends_search_only_group">';
+
+  # By default, search restricted to the group (lighter for the CPU,
+  # probably also more accurate).
+  $group_select .=
+    # TRANSLATORS: this string is used in the context like
+    # "search an item of [the bug tracker only] of [any group]".
+    form_option ('any', $depends_search_only_group, _("any group"));
+  $selected = 'val';
+  if ($depends_search_only_group != 'any')
+    $selected = 'notany';
+  # TRANSLATORS: this string is used in the context like
+  # "search an item of [the bug tracker only] of [this group only]".
+  print $group_select . form_option ('notany', $selected, _("this group only"))
+    . "</select>&nbsp;";
+}
+
 print html_hidsubpart_header ("dependencies", _("Dependencies"));
 if ($is_trackeradmin)
   {
-    print '<p class="noprint"><span class="preinput">';
-    print html_label ('depends_search',
-      $depends_search?
-        _("New search, in case the previous one was not satisfactory "
-          . "(to\nfill a dependency against):"):
-        _("Search an item (to fill a dependency against):")
-    );
-    print "</span><br />\n&nbsp;&nbsp;&nbsp;"
-      . form_input ('text',  'depends_search', $depends_search,
-          "size='40' maxlength='255'"
-        ) . "<br />\n";
-
-    $tracker_select =
-    '&nbsp;&nbsp;&nbsp;<select title="' . _("Tracker to search in")
-      . '" name="depends_search_only_artifact">';
-
-    # Generate the list of searchable trackers.
-    $tracker_list = [
-      'all'     => _("any tracker"),
-      'support' => _("the support tracker only"),
-      'bugs'    => _("the bug tracker only"),
-      'task'    => _("the task manager only"),
-      'patch'   => _("the patch manager only"),
-    ];
-
-    foreach ($tracker_list as $option_value => $text)
-      $tracker_select .=
-        form_option ($option_value, $depends_search_only_artifact, $text);
-    $tracker_select .= "</select>\n";
-
-    $group_select = '<select title="' . _("Whether to search in any group")
-      . '" name="depends_search_only_group">';
-
-    # By default, search restricted to the group (lighter for the CPU,
-    # probably also more accurate).
-    $group_select .=
-      # TRANSLATORS: this string is used in the context like
-      # "search an item of [the bug tracker only] of [any group]".
-      form_option ('any', $depends_search_only_group, _("any group"));
-    $selected = 'val';
-    if ($depends_search_only_group != 'any')
-      $selected = 'notany';
-    # TRANSLATORS: this string is used in the context like
-    # "search an item of [the bug tracker only] of [this group only]".
-    $group_select .= form_option ('notany', $selected, _("this group only"))
-      . "</select>&nbsp;";
-
-    # TRANSLATORS: the first argument is tracker type (like the bug tracker),
-    # the second argument is either 'this group only' or 'any group'.
-    printf (_('Of %1$s of %2$s'), $tracker_select, $group_select);
-
-    if ($depends_search)
-      print form_submit (_("New search"), "submit");
-    else
-      print form_submit (_("Search"), "submit");
-
+    print_depends_search_input ($depends_search);
+    print_depends_tracker_select ($depends_search_only_artifact);
+    print_depends_group_select ($depends_search_only_group);
+    print form_submit ($depends_search? _("New search"): _("Search"), "submit");
     trackers_search_dependencies (
       $depends_search, $depends_search_only_artifact,
       $depends_search_only_group
