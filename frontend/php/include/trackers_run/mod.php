@@ -609,23 +609,22 @@ function print_depends_tracker_select ($depends_search_only_artifact)
 
 function print_depends_group_select ($depends_search_only_group)
 {
-  $group_select =
-    html_label (
-      'depends_search_only_group', _("Whether to search in any group")
+  $group_select = ' ' . html_label (
+      'depends_search_only_group', _("Search in groups:")
     )
-    . '<select name="depends_search_only_group">';
+    . ' <select name="depends_search_only_group">';
 
   # By default, search restricted to the group (lighter for the CPU,
   # probably also more accurate).
   $group_select .=
     # TRANSLATORS: this string is used in the context like
-    # "search an item of [the bug tracker only] of [any group]".
+    # "Search in groups: [this group only]".
     form_option ('any', $depends_search_only_group, _("any group"));
   $selected = 'val';
   if ($depends_search_only_group != 'any')
     $selected = 'notany';
   # TRANSLATORS: this string is used in the context like
-  # "search an item of [the bug tracker only] of [this group only]".
+  # "Search in groups: [this group only]".
   print $group_select . form_option ('notany', $selected, _("this group only"))
     . "</select>&nbsp;";
 }

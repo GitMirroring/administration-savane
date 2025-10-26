@@ -440,8 +440,12 @@ function show_dependent_check_for_empty ($tracker_set, $dependson)
     $title = _("Items that depend on this one");
   if (!empty ($tracker_set))
     return $title;
-  print '<p class="warn">' . sprintf (("%s: %s"), $title, _("None found"))
-    . "</p>\n";
+  print '<p>';
+  if ($dependson)
+    print _('This item does not depend on any other items.');
+  else
+    print _('No items depend on this one.');
+  print "</p>\n";
   return null;
 }
 

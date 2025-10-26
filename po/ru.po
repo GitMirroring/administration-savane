@@ -47,7 +47,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-10-26 12:14+0000\n"
+"POT-Creation-Date: 2025-10-26 13:20+0000\n"
 "PO-Revision-Date: 2025-10-26 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
@@ -3719,21 +3719,6 @@ msgstr "Обсуждение"
 msgid "Attached Files"
 msgstr "Присоединенные файлы"
 
-msgid "File to attach"
-msgstr "Файл для присоединения"
-
-msgid "Attach Files:"
-msgstr "Присоединить файлы:"
-
-msgid "Comment:"
-msgstr "Комментарий:"
-
-msgid "File description"
-msgstr "Описание файла"
-
-msgid "Dependencies"
-msgstr "Зависимости"
-
 msgid ""
 "New search, in case the previous one was not satisfactory (to\n"
 "fill a dependency against):"
@@ -3744,42 +3729,39 @@ msgstr ""
 msgid "Search an item (to fill a dependency against):"
 msgstr "Поиск заявки (для заполнения зависимости):"
 
-msgid "Tracker to search in"
-msgstr "Журнал для поиска"
+msgid "Tracker to search in:"
+msgstr "Искать в журнале:"
 
 msgid "any tracker"
-msgstr "любого журнала"
+msgstr "любом"
 
 msgid "the support tracker only"
-msgstr "только журнала поддержки"
+msgstr "только в журнале поддержки"
 
 msgid "the bug tracker only"
-msgstr "только журнала ошибок"
+msgstr "только в журнале ошибок"
 
 msgid "the task manager only"
-msgstr "только журнала задач"
+msgstr "только в журнале задач"
 
 msgid "the patch manager only"
-msgstr "только журнала заплаток"
+msgstr "только в журнале заплаток"
 
-msgid "Whether to search in any group"
-msgstr "Искать ли во всех группах"
+msgid "Search in groups:"
+msgstr "Поиск в группах:"
 
 #. TRANSLATORS: this string is used in the context like
-#. "search an item of [the bug tracker only] of [any group]".
+#. "Search in groups: [this group only]".
 msgid "any group"
-msgstr "любой группы"
+msgstr "в любой группе"
 
 #. TRANSLATORS: this string is used in the context like
-#. "search an item of [the bug tracker only] of [this group only]".
+#. "Search in groups: [this group only]".
 msgid "this group only"
-msgstr "только этой группы"
+msgstr "только в этой группе"
 
-#. TRANSLATORS: the first argument is tracker type (like the bug tracker),
-#. the second argument is either 'this group only' or 'any group'.
-#, php-format
-msgid "Of %1$s of %2$s"
-msgstr "%1$s %2$s"
+msgid "Dependencies"
+msgstr "Зависимости"
 
 msgid "New search"
 msgstr "Новый поиск"
@@ -3797,6 +3779,9 @@ msgstr ""
 
 msgid "Add Email Addresses (comma as separator):"
 msgstr "Добавить адреса электронной почты (разделенные запятыми):"
+
+msgid "Comment:"
+msgstr "Комментарий:"
 
 msgid "Votes"
 msgstr "Голосование"
@@ -4794,6 +4779,9 @@ msgstr "Первоначальная заявка"
 msgid "Jump to the recipe preview"
 msgstr "Предварительный просмотр рецепта"
 
+msgid "Attach Files:"
+msgstr "Присоединить файлы:"
+
 msgid "support dependencies"
 msgstr "зависимости журнала поддержки"
 
@@ -4820,6 +4808,12 @@ msgstr "Зависит от следующих заявок"
 
 msgid "Items that depend on this one"
 msgstr "Заявки, зависящие от этой"
+
+msgid "This item does not depend on any other items."
+msgstr "Эта заявка не зависит ни от какой другой."
+
+msgid "No items depend on this one."
+msgstr "Никакие заявки не зависят от этой."
 
 msgid "Delete this dependency"
 msgstr "Удалить эту зависимость"
@@ -9013,6 +9007,19 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid "File to attach"
+#~ msgstr "Файл для присоединения"
+
+#~ msgid "File description"
+#~ msgstr "Описание файла"
+
+#~ msgid "Whether to search in any group"
+#~ msgstr "Искать ли во всех группах"
+
+#, php-format
+#~ msgid "Of %1$s of %2$s"
+#~ msgstr "%1$s %2$s"
 
 #, php-format
 #~ msgid "File %s not attached: its size is %s kilobyte."
