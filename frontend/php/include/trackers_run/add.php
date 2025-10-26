@@ -42,6 +42,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+require_once (dirname (__FILE__) . '/../trackers/show.php');
 
 extract (sane_import ('request',
   ['array' => [['prefill', [null, 'specialchars']]]]
@@ -218,23 +219,9 @@ if ($preview)
 
 
 print "<p>&nbsp;</p>\n";
-print html_h (2, _("Attached Files")) . trackers_upload_size_limit_note ();
+print html_h (2, _("Attached Files"));
 
-print '<p><span class="preinput"> ' . _("Attach Files:") . "</span><br />\n";
-
-for ($i = 1; $i < 5; $i++)
-  {
-    $odd = $i % 2;
-    if ($odd)
-      print "&nbsp;&nbsp;&nbsp;";
-    print "<input type='file' name='input_file$i' size='10' />\n";
-    if (!$odd)
-      print "<br />\n";
-  }
-print '<span class="preinput">' . _("Comment:") . "</span><br />\n"
-  . '&nbsp;&nbsp;&nbsp;'
-  . "<input type='text' name='file_description' size='60' maxlength='255' />"
-  . "\n</p>\n";
+show_attach_inputs ();
 
 # Cc addresses.
 if ($is_trackeradmin)

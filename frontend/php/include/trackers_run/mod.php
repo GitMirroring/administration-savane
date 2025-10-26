@@ -569,35 +569,10 @@ if (!empty ($preambles[ARTIFACT . '_file_preamble']))
 $public = trackers_item_is_public ($privacy, $group_id);
 show_item_attached_files ($item_id, $group_id, $public);
 
-function file_input ($n)
-{
-  if ($n % 2)
-    print "<br />\n&nbsp;&nbsp;&nbsp;";
-  print
-    "<input type='file' name='input_file$n' size='10' title=\""
-    . _("File to attach") . '" /> ';
-}
-
 if ($enable_comments)
-  {
-    print '<p class="noprint">' . trackers_upload_size_limit_note ();
-    print "</p>\n";
-    print '<p class="noprint"><span class="preinput"> '
-      . _("Attach Files:") . "</span>";
+  show_attach_inputs ();
 
-    for ($i = 1; $i < 5; $i++)
-      file_input ($i);
-
-    print "\n<br />\n"
-      . '<span class="preinput">' . _("Comment:")
-      . "</span><br />\n&nbsp;&nbsp;&nbsp;"
-      . '<input type="text" name="file_description" title="'
-      . _("File description") . "\" size='60' maxlength='255' />\n</p>\n";
-  }
-
-print "<p>";
-
-print "</p>\n<p>&nbsp;</p>\n";
+print "<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();
 
 # Deployed by default, important item info.

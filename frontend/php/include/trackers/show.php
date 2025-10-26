@@ -307,6 +307,22 @@ function show_item_attached_files ($item_id, $group_id, $public)
   print format_item_attached_files ($item_id, $group_id, false, $public);
 }
 
+function show_attach_inputs ()
+{
+  print '<p class="noprint">' . trackers_upload_size_limit_note () . "</p>\n";
+  print '<p><span class="preinput"> ' . _("Attach Files:") . "</span>\n";
+  for ($i = 1; $i < 5; $i++)
+    {
+      if ($i % 2)
+        print "<br />\n&nbsp;&nbsp;&nbsp;";
+      print "<input type='file' name='input_file$i' size='10' />\n";
+    }
+  print '<br /><span class="preinput">' . _("Comment:") . "</span><br />\n"
+    . '&nbsp;&nbsp;&nbsp;'
+    . "<input type='text' name='file_description' size='60' maxlength='255' />"
+    . "\n</p>\n";
+}
+
 # Look for items that $item_id depends on in all artifact.
 function show_item_dependency ($item_id)
 {
