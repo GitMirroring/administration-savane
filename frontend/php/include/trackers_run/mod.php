@@ -506,6 +506,17 @@ function print_comment_box ($group_id, $comment, $have_canned)
   print "</p>\n";
 }
 
+function print_submit_buttons ($print_preview = true)
+{
+  print '<div align="center" class="noprint"><p>';
+  if ($print_preview)
+    print form_submit (_("Preview"), "preview") . ' ';
+  print form_submit (_("Submit changes and browse items"), 'submit')
+    . ' '
+    . form_submit (_("Submit changes and return to this item"), 'submitreturn')
+    . "</p></div>\n";
+}
+
 if ($enable_comments)
   {
     print html_hidsubpart_header (
@@ -570,7 +581,10 @@ $public = trackers_item_is_public ($privacy, $group_id);
 show_item_attached_files ($item_id, $group_id, $public);
 
 if ($enable_comments)
-  show_attach_inputs ();
+  {
+    show_attach_inputs ();
+    print_submit_buttons (false);
+  }
 
 print "<p>&nbsp;</p>\n";
 print html_hidsubpart_footer ();
@@ -839,13 +853,7 @@ if ($enable_comments)
           )
         . " <input type='text' id='check' name='check' /></p>\n";
 
-    print '<div align="center" class="noprint">'
-      . form_submit (_("Preview"), "preview")
-      . ' '
-      . form_submit (_("Submit changes and browse items"), "submit", 'class="bold"')
-      . ' '
-      . form_submit (_("Submit changes and return to this item"), "submitreturn")
-      . "</div>\n";
+    print_submit_buttons ();
   }
 print "</form>\n";
 print html_hidsubpart_header ("history", _("History"));
