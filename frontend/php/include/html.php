@@ -486,22 +486,36 @@ function html_label ($for, $title)
   return "<label for='$for'>$title</label>";
 }
 
-function html_dl ($defs, $id = '')
+function html_attr_str ($attr)
+{
+  $ret = '';
+  if (!is_array ($attr))
+    $attr = ['id' => $attr];
+  foreach ($attr as $k => $v)
+    $ret .= " $k='$v'";
+  return $ret;
+}
+
+function html_dl ($defs, $attr = [])
 {
   if (empty ($defs))
     return '';
-  if (!empty ($id))
-    $id = " id='$id'";
-  $ret = "<dl$id>\n";
+  $ret = "<dl" . html_attr_str ($attr) . ">\n";
   foreach ($defs as $k => $v)
     {
-      $id = '';
+      $attr = $dd_attr = '';
       if (is_array ($v))
         {
-          $id = " id='" . $v[0] . "'";
+          $attr = html_attr_str ($v[0]);
+          if (is_array ($v[0]))
+            {
+              if (array_key_exists ('id', $v[0]))
+                unset ($v[0]['id']);
+              $dd_attr = html_attr_str ($v[0]);
+            }
           $v = $v[1];
         }
-      $ret .= "<dt$id>$k</dt>\n  <dd>$v</dd>\n";
+      $ret .= "<dt$attr>$k</dt>\n  <dd$dd_attr>$v</dd>\n";
     }
   return "$ret</dl>\n";
 }
@@ -531,11 +545,7 @@ function html_join_enclosed ($items, $tags, $separator = "\n", $protect = false)
 
 function html_h ($no, $title, $attr = [])
 {
-  $extra = '';
-  if (!is_array ($attr))
-    $attr = ['id' => $attr];
-  foreach ($attr as $k => $v)
-    $extra .= " $k='$v'";
+  $extra = html_attr_str ($attr);
   return "<h$no$extra>$title</h$no>\n";
 }
 
