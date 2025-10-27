@@ -49,7 +49,19 @@ PrintVersionOrHelp ("Test membership operations.");
 
 my $agent = make_agent ()
   or exit (1);
-my $exit_code = 0;
+my $exit_code = 2;
+
+sub test_self_removal
+{
+  my ($user, $group) = @_;
+  print_test_log (
+    (defined $group)? "Testing self-removal from <$group>.":
+    "Testing self-removal from any group."
+  );
+  return 1 if (add_user_to_group ($agent, $user) < 0);
+  log_out ($agent);
+  return quit_group ($agent, $user, $group);
+}
 
 my $user = 'eve';
 my $id = get_user_id ($user);
@@ -83,7 +95,6 @@ else
     $exit_code = 1 if remove_user_from_group ($agent, $user, $id);
   }
 
-
 $user = 'eve';
 $id = approve_user ($agent, $user);
 if ($id < 0)
@@ -95,17 +106,14 @@ else
     $exit_code = 1 if remove_user_from_group ($agent, $user, $id);
   }
 
-$user = 'dave';
-print_test_log ("Testing self-removal.");
-if (add_user_to_group ($agent, $user) < 0)
+foreach (undef, group_default_name ())
   {
-    $exit_code = 1;
-  }
-else
-  {
+    $exit_code = 1 if test_self_removal ('dave', $_);
     log_out ($agent);
-    $exit_code = 1 if quit_group ($agent, 'dave');
+    log_in ($agent, '-');
+    $agent->get (group_admin_url ());
   }
-
+log_out ($agent);
+$exit_code = 0 if $exit_code == 2;
 print_test_result ('Test done.') unless $exit_code;
 exit ($exit_code);

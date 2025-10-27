@@ -50,7 +50,7 @@ my $default_group_name = 'administration';
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
-  group_admin_url group_user_perm_url
+  group_admin_url group_user_perm_url group_default_name
   add_user_to_group remove_user_from_group quit_group
   user_id_is_removable request_inclusion approve_user
 );
@@ -59,6 +59,11 @@ sub group_admin_url
 {
   my $group_name = @_? shift: $default_group_name;
   return make_url ("project/admin/useradmin.php?group=$group_name");
+}
+
+sub group_default_name
+{
+  return $default_group_name;
 }
 
 sub group_user_perm_url
@@ -296,18 +301,31 @@ sub approve_user
   return -1 if check_approval_email ($user);
   return $id;
 }
-sub quit_group
+sub quit_link_re
 {
-  my ($agent, $user) = @_;
-  log_in ($agent, $user);
-  print_test_log ('Visiting my group page.');
-  $agent->get (make_url ('my/groups.php'));
+  my $group_id = shift;
+  return qr,my/quitproject[.]php\b, if $group_id < 0;
+  $group_id .= '$';
+  return qr,my/quitproject[.]php[?]quitting_group_id=$group_id,
+}
+sub quit_cancel
+{
+  my ($agent, $link_re) = @_;
   print_test_log ('Following a quit link.');
-  my $link_re = qr,my/quitproject[.]php\b,;
   $agent->follow_link (url_regex => $link_re);
   $agent->form_with_fields (qw (form_id quitting_group_id));
   print_test_log ("Cancelling quit.");
   $agent->click ('cancel');
+}
+sub quit_group
+{
+  my ($agent, $user, $group) = @_;
+  my $group_id = defined $group? get_group_id ($group): -1;
+  log_in ($agent, $user);
+  print_test_log ('Visiting my group page.');
+  $agent->get (make_url ('my/groups.php'));
+  my $link_re = quit_link_re ($group_id);
+  quit_cancel ($agent, $link_re);
   print_test_log ('Following a quit link again.');
   $agent->follow_link (url_regex => $link_re);
   $agent->form_with_fields (qw (form_id quitting_group_id));
