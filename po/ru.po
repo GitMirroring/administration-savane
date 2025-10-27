@@ -3312,7 +3312,7 @@ msgstr "Рассылки"
 msgid "Administration Summary"
 msgstr "Меню администрирования"
 
-msgid "Search in this Group"
+msgid "Search in this group"
 msgstr "Поиск в этой группе"
 
 msgid "Summary"

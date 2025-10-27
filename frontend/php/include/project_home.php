@@ -68,35 +68,35 @@ $res_admin = member_admin_flags_query (
   $group_id, '= ? AND onduty = 1', MEMBER_FLAGS_ADMIN
 );
 print "\n<div class='indexright'>\n";
-print $HTML->box_top (_("Membership Info"), "", 1);
-$start_div = function (&$j)
+print $HTML->box_top (html_h (2, _("Membership Info")), "", 1);
+function start_div ($j)
 {
-  print "<div class=\"" . utils_altrow ($j++) . '"><span class="smaller">';
+  print "<div class=\"" . utils_altrow ($j) . '"><span class="smaller">';
 };
-$end_div = function ()
+function end_div ()
 {
   print "</span></div>\n";
 };
 $j = 1;
 function print_group_admins ($res_admin)
 {
-  global $sys_home, $j, $start_div, $end_div;
+  global $sys_home, $j;
   $adminsnum = db_numrows ($res_admin);
   if (!$adminsnum)
     return;
-  $start_div ($j);
+  start_div ($j++);
   print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
-  $end_div ();
+  end_div ();
   print "\n<ul class='group-page-admins'>\n";
   while ($row_admin = db_fetch_array ($res_admin))
     {
       print "<li>";
-      $start_div ($j);
+      start_div ($j++);
       print utils_link (
             "{$sys_home}users/{$row_admin['user_name']}",
             $row_admin['realname']
           );
-      $end_div ();
+      end_div ();
       print "</li>\n";
     }
   print "</ul>\n";
@@ -112,28 +112,28 @@ $membersnum = db_fetch_array (db_execute ("
 
 $membersnum = $membersnum['count'];
 
-$start_div ($j);
+start_div ($j++);
 printf (
   ngettext ("%s active member", "%s active members", $membersnum),
   "<b>$membersnum</b>"
 );
-$end_div ();
+end_div ();
 
 # If member = 1, it's obviously (or it should be) the group admin.
 # If there's no admin, we need to get access to the list.
 # But we show it anyway: this page can be used for request for membership,
 # provide more info that the little infobox.
-$start_div ($j);
+start_div ($j++);
 
 print '['
   . utils_link (
      "{$sys_home}project/memberlist.php?group=$group", _("View Members")
     )
   . ']';
-$end_div ();
+end_div ();
 print $HTML->box_bottom (1);
 print "<br />\n";
-print $HTML->box_top (_("Group identification"), "", 1);
+print $HTML->box_top (html_h (2, _("Group identification")), "", 1);
 $j = 0;
 
 $item_arr = [
@@ -146,17 +146,15 @@ $item_arr = [
 
 foreach ($item_arr as $key => $val)
   {
-    $start_div ($j);
+    start_div ($j++);
     print "$key <b>$val</b>";
-    $end_div ();
+    end_div ();
   }
-unset ($start_div);
-unset ($end_div);
 print $HTML->box_bottom (1) . "<br />\n";
 
 if (search_has_group_anything_to_search ($group_id))
   {
-    print $HTML->box_top (_("Search in this Group"));
+    print $HTML->box_top (html_h (2, _("Search in this group")));
     print '<span class="smaller">' . search_box () . '</span>';
     print $HTML->box_bottom ();
   }
@@ -220,10 +218,11 @@ if ($project->Uses ("news"))
 
     print
       $HTML->box_top (
-        _("Latest News") . "&nbsp;"
-        . "<a href='{$sys_home}news/atom.php?group=$group' "
-        . "class='inline-link'><img alt='rss feed' "
-        . "src='{$sys_home}images/common/feed16.png' /></a>"
+        html_h (2, _("Latest News") . "&nbsp;"
+          . "<a href='{$sys_home}news/atom.php?group=$group' "
+          . "class='inline-link'><img alt='rss feed' "
+          . "src='{$sys_home}images/common/feed16.png' /></a>"
+        )
       );
     print news_show_latest ($group_id, 4);
     print $HTML->box_bottom ();
@@ -243,7 +242,8 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, MEMBER_FLAGS_ADMIN
     require "$sys_www_topdir/include/features_boxes.php";
     print $HTML->box_top (
       # TRANSLATORS: the argument is site name (like Savannah).
-      sprintf (_("Administration: %s server"), $sys_name));
+      html_h (2, sprintf (_("Administration: %s server"), $sys_name))
+    );
     print '<div class="justify">';
     # TRANSLATORS: the argument is site name (like Savannah).
     printf (
@@ -281,7 +281,7 @@ if (member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   {
     print $HTML->box_top (
       # TRANSLATORS: the argument is group name (like GNU Coreutils).
-      sprintf (_("Administration: %s group"), $project->getName())
+      html_h (2, sprintf (_("Administration: %s group"), $project->getName()))
     );
     print '<div class="justify">'
       . _("As administrator of this group, you can manage members and\n"
@@ -311,7 +311,7 @@ function specific_makesep ()
   print $HTML->box_nextitem (utils_altrow ($i));
 }
 
-print $HTML->box_top (_("Quick Overview"));
+print $HTML->box_top (html_h (2, _("Quick Overview")));
 $i = 1;
 
 if ($project->Uses ("homepage")
@@ -424,7 +424,7 @@ if ($sys_unix_group_name == $group
   || $job_num)
   {
     $i = 0; specific_makesep (); $i++;
-    print $HTML->box_top (_("Communication Tools"));
+    print $HTML->box_top (html_h (2, _("Communication Tools")));
 
     if ($project->Uses ("support"))
       {
@@ -535,7 +535,7 @@ if ($uses_dev)
   {
     $i = 0; specific_makesep (); $i++;
     print $HTML->box_top (
-      "<div id='devtools'>" . _("Development Tools") . "</div>"
+      "<div id='devtools'>" . html_h (2, _("Development Tools")) . "</div>"
     );
     $i = 1;
 
