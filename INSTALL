@@ -29,6 +29,11 @@ Install dependencies listed in README.  If you are going to use localizations,
 make sure the languages are listed when running locale -a (in Trisquel,
 look for language-pack-*).
 
+Enable Apache rewrite module if needed (this requires root privileges):
+
+$ cd /etc/apache2/mods-enabled && sudo ln -s ../mods-available/rewrite.load . \
+  && sudo apachectl -k graceful
+
 Download the latest tarball and its signature:
 
 $ wget \
