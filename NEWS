@@ -34,7 +34,7 @@
 
 * New passphrase hashes are made using yescrypt by default, and
   old hashes are updated when the user logs in.  New config variables,
-  $sys_use_php_crypt and $sys_pw_prefix.
+  $sys_use_php_crypt and $sys_pw_prefix; see doc/savane.conf.php.
 
 * Don't log exits in frontend/php/include/exit.php:log_exit by default;
   new configuration variable $sys_log_exits enables the old behavior,
@@ -57,7 +57,7 @@
 * The 'bottom' feedback overlapped the 'top' feedback; now messages from 'top'
   feedback are duplicated in 'bottom' feedback.
 
-* A few tests for database record consistency is added to /testconfig.php.
+* A few tests for database record consistency are added to /testconfig.php.
 
 * In bugs/admins/field_values.php, the number of values shown at once
   is limited (100 by default); further values are viewable
@@ -77,7 +77,8 @@
 
 ** Requests in trackers like
    /bugs/?group=foo&func=browse&msort=1&morder=assigned_to>&report_id=104
-   when assigned_to wasn't shown with the query form 104.
+   when assigned_to wasn't shown with the query form 104
+   resulted in an SQL error.
 
 ** The fields  'date', 'close_date', 'submitted_by', 'updated' were
    uncustomizable in /bugs/admin/field_usage.php.
@@ -146,9 +147,10 @@
 * In sv_gen_passwd_group, commas in 'realname' are replaced with spaces when
   writing the 'passwd' file.
 
-* Cvs.pm refers to the versions of log_accum.pl and commit_prep.pl installed
-  with Savane; the configuration for log_accum.pl is supplied from Savane
-  configuration directory.
+* Cvs.pm writes references to the versions of log_accum.pl and commit_prep.pl
+  installed with Savane (previously, the locations were hardcoded
+  to /usr/local/bin); the configuration for log_accum.pl is supplied
+  from Savane configuration directory.
 
 * The location of curl executable is configurable in savane.conf.pl with
   $sys_curl_bin, defaulting to /usr/bin/curl.
