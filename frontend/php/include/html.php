@@ -446,11 +446,8 @@ function html_image_attributes ($src, $args)
   if (empty ($args['border']))
     $args['border'] = 0;
 
-  $return = "src=\"$sys_home$base\"";
-
-  foreach ($args as $k => $v)
-    $return .= " $k=\"$v\"";
-
+  $args['src'] = "$sys_home$base";
+  $return = html_attr_str ($args, '"');
   # If there is neither height nor width tag, insert them both.
   if (empty ($args['height']) && empty ($args['width']))
     $return .= ' ' . html_image_get_size ($src, $path);
@@ -486,13 +483,13 @@ function html_label ($for, $title)
   return "<label for='$for'>$title</label>";
 }
 
-function html_attr_str ($attr)
+function html_attr_str ($attr, $quote = "'")
 {
   $ret = '';
   if (!is_array ($attr))
     $attr = ['id' => $attr];
   foreach ($attr as $k => $v)
-    $ret .= " $k='$v'";
+    $ret .= " $k=$quote$v$quote";
   return $ret;
 }
 

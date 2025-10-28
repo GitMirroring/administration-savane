@@ -93,9 +93,7 @@ function form_tag ($args = [], $action_suffix = '')
       $args[$k] = $def_args[$k];
 
   $args['action'] .= $action_suffix;
-  $attr = '';
-  foreach ($args as $k => $v)
-    $attr .= " $k=\"$v\"";
+  $attr = html_attr_str ($args, '"');
 
   return "<form $attr>\n" . form_id_input ($args['method']);
 }
@@ -125,13 +123,11 @@ function form_set_label_attr (&$attr)
 function form_radio ($name, $value, $attr)
 {
   $label = form_set_label_attr ($attr);
-  $extra = '';
   if (!empty ($attr['checked']))
-    $extra .= "checked='checked' ";
+    $attr['checked'] .= 'checked';
   if (empty ($attr['id']) && $label)
     $attr['id'] = "val_{$value}_$name";
-  if (!empty ($attr['id']))
-    $extra .= "id=\"{$attr['id']}\"";
+  $extra = html_attr_str ($attr);
   $ret = form_input ('radio', $name, $value, $extra);
   if (null === $label || empty ($attr['id']))
     return $ret;
@@ -141,12 +137,9 @@ function form_radio ($name, $value, $attr)
 function form_checkbox ($name, $is_checked = 0, $attr = [])
 {
   $label = form_set_label_attr ($attr);
-  $extra = '';
   if ($is_checked)
-    $extra .= ' checked="checked"';
-  if (!empty ($attr))
-    foreach ($attr as $k => $v)
-      $extra .= " $k=\"$v\"";
+    $attr['checked'] = 'checked';
+  $extra = html_attr_str ($attr, '"');
   $val = '1';
   if (isset ($attr['value']))
     $val = '';
