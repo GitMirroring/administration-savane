@@ -294,7 +294,8 @@ install-conf-files: $(conf_files:%=sysconf/%) ; \
 make-var-subdirs: ; $(MKDIR_P) $(dirs_to_make)
 install-data-local: init-database
 if HAVE_FRONTEND
-	test `${SED} '1s/-.*//;q' ${srcdir}/NEWS` != '????' \
+	t=`${SED} '1s/-.*//;q' ${srcdir}/NEWS`; \
+	test "$$t" != '????' \
 	  || ${SED} -i '1s/.*/0000-00-00 '"${VERSION}-${SV_GIT_COMMIT}/" \
 	       ${srcdir}/NEWS
 	$(MAKE) $(AM_MAKEFLAGS) dist
