@@ -147,6 +147,7 @@ sub fill_db
   $res = system (mysql_cmd () . " < @srcdir@/db/sample.sql");
   die "Failed to add sample database entries.\n" if $res;
   return 0 unless $#ARGV < 2;
+  return 0 unless $ARGV[1];
   make_test_marker ();
 }
 
