@@ -115,6 +115,9 @@
 
 ** File upload errors were not reported to the user, Savannah sr #111322.
 
+** Primitive fallback parsing email messages without the mailparse PHP extension
+   was broken.
+
 [BACKEND]
 
 * In sv_mirmon-to-geoip and mirror-redirect, add support for non-country

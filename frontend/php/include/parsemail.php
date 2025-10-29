@@ -332,7 +332,7 @@ function parsemail_extract_basic ($email, $user_id, $error_handler)
 function parsemail_extract_message ($email, $user_id, $error_handler)
 {
   if (!function_exists ('mailparse_msg_create'))
-    return parsemail_extact_basic ($email, $user_id, $error_handler);
+    return parsemail_extract_basic ($email, $user_id, $error_handler);
   $mime = parsemail_open ($email);
   list ($ret, $error) = parsemail_extract ($mime, $email, $user_id);
   parsemail_close ($mime);
