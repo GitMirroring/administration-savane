@@ -237,13 +237,18 @@ function parsemail_close ($mime)
   mailparse_msg_free ($mime);
 }
 
+function parsemail_data_is_attachment ($data)
+{
+  if (empty ($data['content-disposition']))
+    return 0;
+  return $data['content-disposition'] === 'attachment';
+}
+
 function parsemail_extract_attachment ($mime, $email, $i)
 {
   $idx = "1.$i";
   $data = parsemail_get_part_data ($mime, $idx);
-  if (empty ($data['content-disposition']))
-    return null;
-  if ($data['content-disposition'] !== 'attachment')
+  if (!parsemail_data_is_attachment ($data))
     return null;
   $msg = parsemail_extract_part ($mime, $idx, $email);
   if (array_key_exists ('charset', $data))
@@ -251,11 +256,11 @@ function parsemail_extract_attachment ($mime, $email, $i)
   if (!array_key_exists ('disposition-filename', $data))
     $data['disposition-filename'] = $i;
   if (!array_key_exists ('content-type', $data))
-     $data['content-type'] = null;
+    $data['content-type'] = null;
   if (!array_key_exists ('content-description', $data))
     $data['content-description'] = '';
-  foreach (['content-type', 'disposition-filename', 'content-description']
-    as $f
+  foreach (
+    ['content-type', 'disposition-filename', 'content-description'] as $f
   )
     $data[$f] = iconv_mime_decode ($data[$f]);
   return [
