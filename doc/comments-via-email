@@ -88,23 +88,38 @@ Then, the admin should make sure to process the data incoming to
 the address listed in $sys_reply_to.  This can be done with a simple
 procmail script; a sample script follows.
 
-  # Public domain.  Originally written by Ineiev <ineiev@gnu.org>.
+  # Public domain.  Originally written by Ineiev <ineiev@gnu.org> (2024, 2025).
 
-  WDIR=procmail/sv-trackers
-  HEADER="Content-Type: multipart/form-data; boundary="
-  TRACKER_EMAIL="savannah-trackers@gnu[.]org"
-  SV_HOST=savannah
-  SV_URL=https://savannah.gnu.org
+  WDIR = procmail/sv-trackers
+  HEADER = "Content-Type: multipart/form-data; boundary="
+  TRACKER_EMAIL = "savannah-trackers@gnu[.]org"
+  SV_HOST = savannah
+  SV_URL = https://savannah.gnu.org
 
   # Space and Tab.
   ST = " 	"
   # Space, Tab or end of line, once or more times.
   S = "([$ST]|$)+"
 
-  :0: D
+  # Look for Savannah tracker address in Cc; override if also found in To.
+  ADDRESS = ""
+
+  :0 D
+  * $ ^Cc:.*$S\/[0-9]+-[a-z]+-$SV_HOST$S<$TRACKER_EMAIL>
+  {
+    ADDRESS = "$MATCH"
+  }
+
+  :0 D
   * $ ^To:.*$S\/[0-9]+-[a-z]+-$SV_HOST$S<$TRACKER_EMAIL>
   {
     ADDRESS = "$MATCH"
+  }
+
+  :0: D
+  * ADDRESS ?? .
+  {
+    # The address is present; pass the message to Savannah Web UI.
     :0 w
     * ADDRESS ?? ()\/[0-9]+
     { UID = "$MATCH" }
@@ -142,6 +157,7 @@ procmail script; a sample script follows.
         $SV_URL/$TRACKER/comment.php -O $WDIR/wget-file.html \
         2> $WDIR/wget-err > $WDIR/wget-out
   }
+  # Save in a dedicated mailbox if something went wrong in the addresses.
   :0
   * $ ^TO_$TRACKER_EMAIL
   $WDIR/../tracker-malformed
