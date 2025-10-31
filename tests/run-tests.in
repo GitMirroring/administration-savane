@@ -158,7 +158,7 @@ for (@scripts)
   }
 print "\nNumber of tests:\n";
 my $total = 0;
-for (keys %results)
+for (sort (keys %results))
   {
     print "$_: $results{$_}\n";
     $total += $results{$_};
