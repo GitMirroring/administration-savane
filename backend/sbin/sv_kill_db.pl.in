@@ -54,7 +54,8 @@ PrintVersionOrHelp ("Stop database daemon of Savane.");
 die "$rundir directory doesn't exist.\n" unless -d $rundir;
 die "PID file $pidfile doesn't exist.\n" unless -e $pidfile;
 my $pid = `cat $pidfile`;
-if (kill 0, $pid)
+chomp $pid;
+if (kill (0, $pid))
   {
     sleep 1 while kill ('TERM', $pid);
     exit 0;
