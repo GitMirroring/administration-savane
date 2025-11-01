@@ -1,5 +1,11 @@
 ????-??-?? 3.17
 
+[BACKEND]
+
+* sv_launch_db.pl checks if the server process exists; if not, it cleans up
+  the files and launches the server; previously, it exited with a warning
+  whenever the PID file existed, without further action.
+
 2025-10-31 3.16
 
 [FRONTEND]

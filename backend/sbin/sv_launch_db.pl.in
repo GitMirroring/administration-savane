@@ -53,6 +53,7 @@ our $logdir = "@logdir@";
 our $filepriv = "@mysql_secfile@";
 our $datadir = "@mysql_datadir@";
 our $tmpdir = "@mysql_tmpdir@";
+our $bindir = "@bindir@";
 
 PrintVersionOrHelp ('Launch database daemon for Savane.');
 
@@ -75,8 +76,16 @@ $sql_mode = "--sql_mode=$sql_mode" unless $sql_mode eq '';
 
 if (-e $pidfile)
   {
-    print STDERR "Database server is running already.\n";
-    exit 0;
+    my $pid = `cat $pidfile`;
+    chomp $pid;
+    if (kill (0, $pid))
+      {
+        print STDERR "Database server is running already.\n";
+        exit 0;
+      }
+     # The server isn't running; sv_kill_db.pl will emit a warning
+     # and clean up mysql_rundir.
+     system ("$bindir/sv_kill_db.pl");
   }
 system (
   '@MYSQLD_SAFE_BIN@ --skip-networking '
