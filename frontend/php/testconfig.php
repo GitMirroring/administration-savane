@@ -46,15 +46,76 @@ require_once ("include/ac_config.php");
 $sys_file_domain = '';
 foreach (['database', 'mailman', 'savane-git', 'trackers/data'] as $inc)
   require_once ("include/$inc.php");
+if (empty ($inside_siteadmin))
+  $inside_siteadmin = false;
+
+function get_section_no ($inc = false)
+{
+  static $section_no = null;
+  if ($section_no === null)
+    {
+      $section_no = -1;
+      $test_summary = [];
+      $inc = true;
+    }
+  if (!$inc)
+    return $section_no;
+  $section_no++;
+  $test_summary[$section_no] = [];
+  return $section_no;
+}
+
+function test_h ($level, $title, $attr = null)
+{
+  global $test_sections;
+  $sec_no = get_section_no (true);
+  $test_sections[$sec_no] = [$title, $attr];
+  if (empty ($attr))
+    $attr = "sec-$sec_no";
+  return html_h ($level, $title, $attr);
+}
+
+function add_summary ($summary)
+{
+  global $test_summary;
+  if (empty ($summary))
+    return;
+  $test_summary[get_section_no ()][] = $summary;
+}
+
+function get_test_summaries ()
+{
+  global $test_summary, $test_sections;
+  $h = test_h (2, 'Failed test summary', 'summary');
+  $defs = [];
+  for ($i = 0; $i <= get_section_no (); $i++)
+    {
+      if (empty ($test_summary[$i]))
+        continue;
+      list ($title, $id) = $test_sections[$i];
+      $term = $title;
+      if (!empty ($id))
+        $term = "<a href='#$id'>$term</a>";
+      $defs[$term] = join ("<hr />\n", $test_summary[$i]);
+    }
+  return $h . html_dl ($defs);
+}
+
+function gpg_unset ($head)
+{
+  $msg = "<strong>GnuPG is not configured.</strong>";
+  add_summary ($msg);
+  return [true, "$head<p>$msg</p>\n"];
+}
 
 # Test if GPG executable is configured and can run, basically.
 # Return zero on success.
 function check_gpg_executable ()
 {
   global $sys_gpg_name;
-  $ret = html_h (2, "GnuPG", 'gnupg');
+  $ret = test_h (2, "GnuPG", 'gnupg');
   if (!isset ($sys_gpg_name))
-    return [true, "$ret<p><strong>GnuPG is not configured.</strong></p>\n"];
+    return gpg_unset ($ret);
   $gpg_result = utils_run_proc  (
     gpg\gpg_name () . " --version", $gpg_output, $gpg_stderr
   );
@@ -66,8 +127,9 @@ function check_gpg_executable ()
     "<code>stderr</code> output" =>
       "<pre>\n" . utils_specialchars ($gpg_stderr) . "</pre>"
   ];
-  $ret .= html_dl ($defs);
-  return [$gpg_result, $ret];
+  if ($gpg_result)
+    add_summary ('Cannot get GnuPG version.');
+  return [$gpg_result, $ret . html_dl ($defs)];
 }
 
 function read_test_key ($algo)
@@ -80,10 +142,11 @@ function read_test_key ($algo)
       $keys[] = $k;
       if (!empty ($k))
         continue;
-      print "Can't read $dir/$p";
-      return null;
+      $msg = "Cannot read $dir/$p";
+      add_summary ($msg);
+      return [null, $msg];
     }
-  return join ("\n", $keys);
+  return [join ("\n", $keys), ''];
 }
 
 function run_gpg ($command, $msg, $input)
@@ -126,12 +189,16 @@ function run_gpg_sign ($key_id, $home, $algo, &$defs)
         gen_signature ($key_id, $home, $option, $input);
       if ($error)
         {
+          add_summary ("Signing failed with $term.");
           $defs[$term] = $msg;
           continue;
         }
       if ($option == '--detach-sign')
         $signature[] = $input;
-      $defs[$term] = run_gpg_verify ($home, $signature, $input);
+      $msg = run_gpg_verify ($home, $signature, $input);
+      $defs[$term] = $msg;
+      if ($msg !== 'OK')
+        add_summary ("Verification failed with $term.");
     }
 }
 
@@ -161,25 +228,34 @@ function run_gpg_encrypt ($key_id, $home, $algo, &$defs)
     list ($dec, $res, $msg) = decrypt_test ($key_id, $home, $enc);
   if ($res)
     {
+      add_summary ("Encryption failed with $algo.");
       $defs[$algo] = $msg;
       return;
     }
   if ($dec === $input)
-    $defs[$algo] = 'OK';
-  else
-    $defs[$algo] = "Decrypted sample doesn't match the clear text";
+    {
+      $defs[$algo] = 'OK';
+      return;
+    }
+  $defs[$algo] = "Decrypted sample doesn't match the clear text";
+  add_summary ("Decrypted sampled does not match with $algo.");
 }
 
 function test_gpg_func ($algo, $capability, $func, &$defs)
 {
-  $key = read_test_key (strtolower ($algo));
+  list ($key, $error) = read_test_key (strtolower ($algo));
   if (empty ($key))
-    return;
+    {
+      $defs[$algo] = $error;
+      return;
+    }
   list ($key_id, $home, $error) =
     gpg\get_key ($key, $capability);
   if ($error)
     {
-      $defs[$algo] = gpg\error_str ($error);
+      $msg = gpg\error_str ($error);
+      $defs[$algo] = $msg;
+      add_summary ('Cannot get key.');
       return;
     }
   $func ($key_id, $home, $algo, $defs);
@@ -200,9 +276,13 @@ function test_sys_gpg_key ()
 {
   $defs = [];
   $key = gpg_get_sys_key ();
-  $ret = html_h (3, 'Frontend key', 'frontend-key');
+  $ret = test_h (3, 'Frontend key', 'frontend-key');
   if (empty ($key))
-    return "$ret<p>GnuPG key isn't defined.</p>\n";
+    {
+      $msg = "GnuPG key isn't defined.";
+      add_summary ($msg);
+      return "$ret<p>$msg</p>\n";
+    }
   $ret .= "<pre>" . utils_specialchars ($key) . "</pre>\n";
   return $ret . gpg_run_sys_checks ($key, 4);
 }
@@ -212,12 +292,12 @@ function test_gpg ()
   list ($res, $ret) = check_gpg_executable ();
   if ($res)
     return $ret;
-  $ret .= html_h (3, "Verify signature", 'gpg-verify-sig');
+  $ret .= test_h (3, "Verify signature", 'gpg-verify-sig');
   $defs = [];
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_verify ($algo, $defs);
   $ret .= html_dl ($defs);
-  $ret .= html_h (3, 'Encrypt', 'gpg-encrypt');
+  $ret .= test_h (3, 'Encrypt', 'gpg-encrypt');
   $defs = [];
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_encrypt ($algo, $defs);
@@ -268,28 +348,23 @@ function sys_vcs_dir_not_set ()
 {
   global $sys_vcs_dir;
   if (empty ($sys_vcs_dir))
-    {
-      print '<em>$sys_vcs_dir not set</em>';
-      return true;
-    }
+    return '<em>$sys_vcs_dir not set</em>';
   if (empty ($sys_vcs_dir['git']))
-    {
-      print '<em>$sys_vcs_dir["git"] not set</em>';
-      return true;
-    }
+    return '<em>$sys_vcs_dir["git"] not set</em>';
   if (empty ($sys_vcs_dir['git']['dir']))
-    {
-      print '<em>$sys_vcs_dir["git"]["dir"] not set</em>';
-      return true;
-    }
-  return false;
+    return '<em>$sys_vcs_dir["git"]["dir"] not set</em>';
+  return null;
 }
 
 function test_git_dirs ()
 {
   global $sys_vcs_dir;
-  if (sys_vcs_dir_not_set ())
-    return '';
+  $error = sys_vcs_dir_not_set ();
+  if ($error !== null)
+    {
+      add_summary ($error);
+      return $error;
+    }
   $git = $sys_vcs_dir["git"];
   $ret = "'dir': " . $git["dir"] . ' ';
   if (!is_dir ($git["dir"]))
@@ -311,12 +386,16 @@ function test_sys_upload_dir ()
 {
   $path = utils_make_upload_file ("test.txt", $errors);
   if ($path === null)
-    return "<b>can't make file:</b> $errors";
+    {
+      add_summary ('Cannot make upload file.');
+      return "<b>can't make file:</b> $errors";
+    }
   $state = utils_disable_warnings (E_WARNING);
   $res = unlink ($path);
   utils_restore_warnings ($state);
   if ($res)
     return 'OK';
+  add_summary ('Cannot remove upload file.');
   $e = error_get_last ();
   return '<b>unlink failed:</b>' . $e['message'];
 }
@@ -340,7 +419,7 @@ function test_strftime_alternatives ($t, &$defs)
 function test_strftime ()
 {
   global $sys_use_strftime;
-  $ret = html_h (2, "Implementation of strftime", 'strftime');
+  $ret = test_h (2, "Implementation of strftime", 'strftime');
   $saved = $sys_use_strftime;
   $t = time ();
   $defs = [];
@@ -355,25 +434,38 @@ function test_strftime ()
   return $ret;
 }
 
-function test_captcha ()
+function test_captchadir ()
 {
   global $sys_captchadir;
   $default_dir = '/usr/share/php';
-
-  $ret = html_h (2, "Captcha", 'captcha');
+  $ret = '';
   if (empty ($sys_captchadir))
     {
-      $ret .= "<p><strong>sys_captchadir isn't set.</strong></p>\n";
-      $ret .= "<p>Falling back to default, $default_dir</p>\n";
       $sys_captchadir = $default_dir;
+      return "<p><strong>sys_captchadir isn't set.</strong></p>\n"
+        . "<p>Falling back to default, $default_dir</p>\n";
     }
-  else
-    $ret .= "<p><b>sys_captchadir</b> is set to $sys_captchadir</p>\n";
+  return "<p><b>sys_captchadir</b> is set to $sys_captchadir</p>\n";
+}
+
+function test_captcha ()
+{
+  global $sys_captchadir;
+
+  $ret = test_h (2, "Captcha", 'captcha') . test_captchadir ();
   if (!is_dir ($sys_captchadir))
-    return "$ret<p><strong>No $sys_captchadir directory found.</strong></p>\n";
+   {
+     $msg = "<strong>No $sys_captchadir directory found.</strong>";
+     add_summary ($msg);
+     return "$ret<p>$msg</p>\n";
+   }
   $f = "$sys_captchadir/Text/CAPTCHA.php";
   if (!is_file ($f))
-    return "$ret<p><strong>No $f file found.</strong></p>\n";
+    {
+      $msg = "<strong>No $f file found.</strong>";
+      add_summary ($msg);
+      return "$ret<p>$msg</p>\n";
+    }
   return "$ret<p>Sample image:</p>\n"
     . "<p><img id='captcha' src='/captcha.php' alt='CAPTCHA' /></p>\n";
 }
@@ -421,7 +513,10 @@ function output_mailman_version ($ver)
 function output_mailman_query ($q, &$defs)
 {
   if (test_mailman_failed ($q, $defs))
-    return false;
+    {
+      add_summary ('Cannot run query.');
+      return false;
+    }
   $nested = [];
   foreach ($q as $k => $v)
      $nested[utils_specialchars ($k)] = utils_specialchars ($v);
@@ -431,7 +526,7 @@ function output_mailman_query ($q, &$defs)
 
 function test_mailman ()
 {
-  $ret = html_h (2, "Mailman connection", 'mailman');
+  $ret = test_h (2, "Mailman connection", 'mailman');
   $defs = [];
   $ver = mailman_get_version ();
   list ($have_version, $msg) = output_mailman_version ($ver);
@@ -441,7 +536,10 @@ function test_mailman ()
       output_mailman_query (mailman_query_list ('savannah-users'), $defs);
     }
   else
-    $defs['Run time'] = sprintf ('%s ms', $ver['timestamp']);
+    {
+      add_summary ('Cannot get script version.');
+      $defs['Run time'] = sprintf ('%s ms', $ver['timestamp']);
+    }
   $ret .= html_dl ($defs);
   if ($have_version && preg_match ("/^stub /", $ver['version']))
     $ret .= "<p><strong>This is a stub; write the real command "
@@ -490,6 +588,8 @@ function test_hash_algo ($pfx, $prefix, $rounds)
     $ret .= ': algorithm is unsupported';
   elseif (account_validpw ($stored, $plain))
     $ret = 'OK';
+  else
+    add_summary ("Algorithm $pfx failed.");
   return $ret;
 }
 
@@ -511,7 +611,7 @@ function test_hash_algos ()
 function test_hash ()
 {
   global $sys_use_php_crypt;
-  $ret = html_h (2, 'Stored passwords', 'hash');
+  $ret = test_h (2, 'Stored passwords', 'hash');
   $defs = [
     'Supported algorithms for new hashes' =>
       join (', ', hash_supported_pw_prefices ()),
@@ -521,10 +621,10 @@ function test_hash ()
   ];
   $ret .= html_dl ($defs);
   $saved_use = $sys_use_php_crypt;
-  $ret .= html_h (3, 'Testing sv_crypt', 'sv-crypt');
+  $ret .= test_h (3, 'Testing sv_crypt', 'sv-crypt');
   $sys_use_php_crypt = false;
   $ret .= test_hash_algos ();
-  $ret .= html_h (3, 'Testing PHP crypt() function', 'php-crypt');
+  $ret .= test_h (3, 'Testing PHP crypt() function', 'php-crypt');
   $sys_use_php_crypt = true;
   $ret .= test_hash_algos ();
   $sys_use_php_crypt = $saved_use;
@@ -545,7 +645,7 @@ function page_start ($inside_siteadmin)
     . "</head>\n\n"
     . "<body>\n";
 
-  $ret .= html_h (1, "Basic pre-tests for Savane installation");
+  $ret .= test_h (1, "Basic pre-tests for Savane installation");
   if (empty ($inside_siteadmin))
     $ret .= "<p>This page should help you to check whether your installation\n"
       . "is properly configured. It shouldn't display any sensitive\n"
@@ -556,6 +656,7 @@ function page_start ($inside_siteadmin)
 
 function check_source_code ()
 {
+  $h = test_h (2, "Savane source code", 'source-code');
   $commit = git_get_commit ();
   $cgit_url = git_get_savane_url ('');
   $tarball_name = git_get_tarball_name ();
@@ -573,7 +674,9 @@ function check_source_code ()
     'Tarball' => "<a href='$tarball_url'>$tarball_name</a>",
     'Availability' => $avail
   ];
-  return html_h (2, "Savane source code", 'source-code') . html_dl ($defs);
+  if ($avail !== 'OK')
+    add_summary ('Source code looks unaccessible.');
+  return $h . html_dl ($defs);
 }
 
 function unknown_ini_val ($tag, $gv)
@@ -582,13 +685,13 @@ function unknown_ini_val ($tag, $gv)
     "<tr><td>%s</td><td class=\"unset\">Unknown*</td><td>%s</td></tr>\n",
     $tag, $gv
   );
+  add_summary ("$tag value is not set.");
   return [$str, true];
 }
 
 function good_ini_val ($tag, $t, $gv)
 {
-  $str =
-    sprintf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
+  $str = '<tr>' . html_join_enclosed ([$tag, $t, $gv], 'td') . "</tr>\n";
   return [$str, false];
 }
 
@@ -609,6 +712,7 @@ function compare_ini_vals ($tag, $good, $cmp, $all_inis)
   else
     $page .= " (can be set in php.ini or httpd.conf, but not in .htaccess)";
   $page .= "</td></tr>\n";
+  add_summary ("$tag value differs from $good.");
   return [$page, false];
 }
 
@@ -621,7 +725,7 @@ function php_conf_table_header ($summary)
 
 function basic_php_conf_start ()
 {
-  $ret = html_h (2, "Basic PHP configuration", 'basic-php');
+  $ret = test_h (2, "Basic PHP configuration", 'basic-php');
   $ret .= "<p>PHP version: " . phpversion () . "</p>\n";
   $ret .= php_conf_table_header ('PHP configuration');
 
@@ -640,9 +744,10 @@ function check_tags ($phptags, $cmp, &$have_unset)
     {
       list ($str, $cmp_result) =
         compare_ini_vals ($tag, $good, $cmp, $all_inis);
-      if ($cmp_result)
-        $have_unset = true;
       $ret .= $str;
+      if (!$cmp_result)
+        continue;
+      $have_unset = true;
     }
   return $ret;
 }
@@ -687,14 +792,15 @@ function basic_php_config ()
   $ret .= check_basic_tags ($have_unset);
   $ret .= check_size_tags ($have_unset);
   $ret .= "</table>\n\n";
-  if ($have_unset)
-    $ret .= unset_warning ();
+  if (!$have_unset)
+    return $ret;
+  $ret .= unset_warning ();
   return $ret;
 }
 
 function optional_php_config_start ()
 {
-  return html_h (2, "Optional PHP configuration", 'optional-php')
+  return test_h (2, "Optional PHP configuration", 'optional-php')
     . "<p>The following is not required to run Savane, but could enhance\n"
     . "security of your production server. Displaying errors is recommended:\n"
     . "they may annoy the user with warnings, but allow you to spot "
@@ -734,7 +840,10 @@ function list_facilities ($func, $items, $labels = [])
       if ($func ($name))
         $res = $lab[true];
       else
-        $res = sprintf ("<b>%s</b> <i>%s</i>", $lab[false], $comment);
+        {
+          $res = sprintf ("<b>%s</b> <i>%s</i>", $lab[false], $comment);
+          add_summary ("$name not found.");
+        }
       $defs["<b>$name</b>"] = $res;
     }
   return html_dl ($defs);
@@ -748,7 +857,7 @@ function php_extensions ()
       'mailparse' => 'Parsing email messages (php-mailparse) ! [RECOMMENDED]',
       'mysqli' => 'Database access (php-mysqli) ! [REQUIRED]',
     ];
-  return html_h (2, "PHP extensions", 'php-ext')
+  return test_h (2, "PHP extensions", 'php-ext')
     . list_facilities (
         'extension_loaded', $php_extensions, [true => 'Loaded.']
       );
@@ -774,30 +883,44 @@ function php_functions ()
         . '(--enable-sysvsem) ! [REQUIRED]',
       'hrtime'=> 'Optionally used in diagnostic timestamps.'
     ];
-  return html_h (2, "PHP functions", 'php-func')
+  return test_h (2, "PHP functions", 'php-func')
     . list_facilities ('function_exists', $phpfunctions);
 }
 
-function test_language ($lang)
+function undefined_locale ($lang, $report_fails)
+{
+  if ($report_fails)
+    add_summary ("Undefined locale for $lang.");
+  return "Locale for $lang is not defined.";
+}
+
+function i18n_setup_failed ($lang, $err, $report_fails)
+{
+  if ($report_fails)
+    add_summary ("$lang failed.");
+  $ret = "<b>Fail:</b>\n<ul>\n";
+  foreach ($err as $e)
+    $ret .= "\n  <li>$e</li>\n";
+  return "$ret</ul>\n";
+}
+
+function test_language ($lang, $report_fails = false)
 {
   global $locale_list;
   if (!array_key_exists ($lang, $locale_list))
-    return "Locale for $lang is not defined.";
+    return undefined_locale ($lang, $report_fails);
   $loc = $locale_list[$lang];
   $err = i18n_setup ($loc);
   if (!empty ($err))
-    {
-      $ret = "<b>Fail:</b>\n<ul>\n";
-      foreach ($err as $e)
-        $ret .= "\n  <li>$e</li>\n";
-      return "$ret</ul>\n";
-    }
+    return i18n_setup_failed ($lang, $err, $report_fails);
   foreach (['Any', 'Apply'] as $str)
     {
       $res = gettext ($str);
       if (($res == $str  && $lang == 'en') || ($res != $str && $lang != 'en'))
         return "$str => $res";
     }
+  if ($report_fails)
+    add_summary ("$lang failed.");
   return "<b>Fail.</b> Check <code>locale -a</code> output,\n"
     . "be sure to install language-pack-* in Trisquel";
 }
@@ -806,7 +929,7 @@ function test_disabled_languages ($loc_list)
 {
   global $sys_linguas;
   $linguas = $sys_linguas;
-  $ret = html_h (3, "Other defined languages", 'other-lang') . "<p>";
+  $ret = test_h (3, "Other defined languages", 'other-lang') . "<p>";
   if (empty ($loc_list))
     return "{$ret}none.</p>\n";
   $ret .= join (", ", array_keys ($loc_list)) . ".</p>\n";
@@ -823,23 +946,24 @@ function test_disabled_languages ($loc_list)
 
 function get_locales ()
 {
+  $h = test_h (3, "Locales defined", 'locales-defined');
   $res = utils_run_proc ('locale -a', $out, $err);
   if ($res)
     return "<p>Can't get locales defined: </p>\n<pre>$err</pre>\n";
   $out = str_replace ("\n", ', ', substr ($out, 0, -1));
-  return html_h (3, "Locales defined", 'locales-defined') . "<p>$out.</p>\n";
+  return "$h<p>$out.</p>\n";
 }
 
 function test_i18n ()
 {
   global $sys_linguas, $languages_available;
   $loc_list = $languages_available;
-  $ret = html_h (2, "I18n", 'i18n') . get_locales ()
-    . html_h (3, "sys_linguas", 'sys-linguas') . "<p>$sys_linguas</p>\n";
+  $ret = test_h (2, "I18n", 'i18n') . get_locales ()
+    . test_h (3, "sys_linguas", 'sys-linguas') . "<p>$sys_linguas</p>\n";
   $defs = [];
   foreach (explode (':', $sys_linguas) as $lang)
     {
-      $defs[$lang] = test_language ($lang);
+      $defs[$lang] = test_language ($lang, true);
       if (array_key_exists ($lang, $loc_list))
         unset ($loc_list[$lang]);
     }
@@ -850,6 +974,7 @@ function test_i18n ()
 
 function apache_envv ()
 {
+  $h = test_h (2, "Apache environment variables", 'apache-envv');
   $vv = [];
   foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
     {
@@ -857,8 +982,7 @@ function apache_envv ()
       if ($vv[$var] === false)
         $vv[$var] = '<b>unset</b>';
     }
-  return html_h (2, "Apache environment variables", 'apache-envv')
-    . html_dl ($vv);
+  return $h . html_dl ($vv);
 }
 
 function test_db_fields ($t, $field_func, &$defs)
@@ -884,7 +1008,7 @@ function check_for_db_test_marker ()
 
 function test_db_structure ()
 {
-  $ret = html_h (2, 'Database structure', 'db-struct');
+  $ret = test_h (2, 'Database structure', 'db-struct');
   $ret .= check_for_db_test_marker ();
   $defs = [];
   $table_fields = [
@@ -951,10 +1075,11 @@ function explain_unused_required_tracker_fields ($ids)
 
 function list_unused_required_tracker_fields ()
 {
-  $ret = html_h (3, 'Unused required tracker fields', 'unused-required-fields');
+  $ret = test_h (3, 'Unused required tracker fields', 'unused-required-fields');
   $res = query_required_field_usage ();
   if (!db_numrows ($res))
     return "$ret<p>No such fields found.</p>\n";
+  add_summary ('Unused required tracker fields found.');
   $columns = [
    'group_id', 'unix_group_name', 'tracker',
    'bug_field_id', 'field_name', 'label'
@@ -1013,7 +1138,7 @@ function explain_duplicate_field_usage ($ids)
 
 function list_duplicate_field_usage ()
 {
-  $ret = html_h (3, 'Duplicate field usage', 'duplicate-field-usage');
+  $ret = test_h (3, 'Duplicate field usage', 'duplicate-field-usage');
   $columns = [
     'group_id', 'unix_group_name', 'tracker', 'bug_field_id',
     'field_name', 'label', 'count'
@@ -1021,6 +1146,7 @@ function list_duplicate_field_usage ()
   $res = query_duplicate_usage ();
   if (!db_numrows ($res))
     return "$ret<p>No duplicate usage found.</p>\n";
+  add_summary ('Duplicate usage records found.');
   $ids = [];
   while ($row = db_fetch_array ($res))
     $ids[$row['tracker']][$row['group_id']][] = $row['bug_field_id'];
@@ -1031,7 +1157,7 @@ function list_duplicate_field_usage ()
 
 function test_db_values ()
 {
-  $ret = html_h (2, 'Database value consistency', 'db-val');
+  $ret = test_h (2, 'Database value consistency', 'db-val');
   $ret .= list_unused_required_tracker_fields ();
   return $ret . list_duplicate_field_usage ();
 }
@@ -1087,29 +1213,29 @@ function try_utf8_search ()
 function test_utf8_search ()
 {
   $sets_to_try = ['utf8', 'utf8mb4', 'utf8mb3'];
-  $ret = html_h (3, 'Unicode search', 'utf8-search');
+  $ret = test_h (3, 'Unicode search', 'utf8-search');
   $saved_charset = db_charset_name ();
   $defs = ['Initial character set' => $saved_charset];
   $test_result = try_utf8_search ();
   $defs['UTF-8 search'] = $test_result;
-  if ($test_result != 'OK')
+  if ($test_result == 'OK')
+    return $ret . html_dl ($defs);
+  add_summary ('Search with the initial charset failed.');
+  foreach ($sets_to_try as $charset)
     {
-      foreach ($sets_to_try as $charset)
-        {
-          if ($charset === $saved_charset)
-            continue;
-          db_reconnect ($charset);
-          $test_result = try_utf8_search ();
-          $defs["UTF-8 search ($charset charset)"] = $test_result;
-        }
-      db_reconnect ($saved_charset);
+      if ($charset === $saved_charset)
+        continue;
+      db_reconnect ($charset);
+      $test_result = try_utf8_search ();
+      $defs["UTF-8 search ($charset charset)"] = $test_result;
     }
+  db_reconnect ($saved_charset);
   return $ret . html_dl ($defs);
 }
 
 function test_db_features ()
 {
-  $ret = html_h (2, 'Database features', 'db-features');
+  $ret = test_h (2, 'Database features', 'db-features');
   return $ret . test_utf8_search ();
 }
 
@@ -1145,7 +1271,11 @@ function test_mysql_params ()
       $value = db_result ($result, 0, $param);
       if (isset ($comment[1]))
         foreach ($comment[1] as $flag)
-          $value = str_replace ($flag, "<strong>$flag</strong>", $value);
+          {
+            $value = str_replace ($flag, "<strong>$flag</strong>", $value);
+            if (strstr ($value, '<strong>') !== false)
+              add_summary ("$flag is set in $param.");
+          }
       $value = "'$value'";
       if ($comment[0] !== null)
         $value .= "<br />\n{$comment[0]}";
@@ -1161,10 +1291,13 @@ function test_mysql ()
     $sys_debug_footer = false;
   $saved_sys_debug_footer = $sys_debug_footer;
   $sys_debug_footer = true;
-  $ret = html_h (2, "Database configuration", 'db-conf');
+  $ret = test_h (2, "Database configuration", 'db-conf');
   list ($res, $str) = try_db_connect ();
   if ($res)
-    return "$ret$str";
+    {
+      add_summary ('Cannot connect database.');
+      return "$ret$str";
+    }
   $ret .= html_dl (test_mysql_params ());
   $ret .= test_db_features ();
   $ret .= test_db_structure ();
@@ -1241,9 +1374,12 @@ function test_sysvars ()
     utils_set_csp_headers ();
   $page = output_sysvars ();
   if ($sys_file_domain === $sys_default_domain)
-    $page .=
-      "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
-      . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
+    {
+      $page .=
+        "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
+        . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
+      add_summary ('sys_file_domain and sys_default_domain coincide.');
+    }
   return "$page<p>Savane generally uses safe default values when variables\n"
     . "are not set in the configuration file.</p>\n";
 }
@@ -1259,6 +1395,7 @@ function get_table_structure ($table)
 
 function db_field_type_expected ($type, $table, $field)
 {
+  add_summary ("Field $field is undefined in $table has a wrong type.");
   return "<br />\n<strong>$type is expected.</strong><br />\n"
     . " Run <code>ALTER TABLE `$table` MODIFY `$field` $type;</code>\n"
     . "to upgrade the column.";
@@ -1266,6 +1403,7 @@ function db_field_type_expected ($type, $table, $field)
 
 function db_field_undefined ($type, $table, $field)
 {
+  add_summary ("Field $field is undefined in $table.");
   return "<strong>Undefined</strong><br />\n"
    . " Run <code>ALTER TABLE `$table` ADD `$field` $type;</code>\n"
     . "to create the column.";
@@ -1287,16 +1425,24 @@ function check_varchar ($table_struct, $table, $field, $n = 153)
   if (!array_key_exists ($field, $table_struct))
     return db_field_undefined ($right_type, $table, $field);
   $type = strtolower ($table_struct[$field]['Type']);
-  $wrong_type = $type . db_field_type_expected ($right_type, $table, $field);
+  $wrong_type = false;
   if (!preg_match ('/varchar[(]([0-9]+)[)]/', $type, $matches))
-    return $wrong_type;
+    $wrong_type = true;
   if ($n > $matches[1])
-    return $wrong_type;
+    $wrong_type = true;
+  if ($wrong_type)
+    $type .= db_field_type_expected ($right_type, $table, $field);
   return $type;
 }
 
 function ini_size_note ($former, $latter)
 {
+  static $have_reported;
+  if (empty ($have_reported))
+    {
+      add_summary ('Sizes are inconsistent.');
+      $have_reported = 1;
+    }
   return "<br /><strong>Note: $former is greater than $latter. "
     . 'The effective limit will be the latter.</strong>';
 }
@@ -1342,13 +1488,13 @@ function test_uploads (&$defs)
 function run_other_tests ()
 {
   $defs = [];
-  $ret = html_h (2, "Other tests", 'other-tests');
+  $ret = test_h (2, "Other tests", 'other-tests');
   test_repos ($defs);
   test_uploads ($defs);
   $ret .= html_dl ($defs);
-  $ret .= html_h (3, 'Limiting email error report rate', 'error-cc-limit');
+  $ret .= test_h (3, 'Limiting email error report rate', 'error-cc-limit');
   $ret .= error_test_cc_limit ();
-  $ret .= html_h (3, 'Timestamps', 'error-timestamp');
+  $ret .= test_h (3, 'Timestamps', 'error-timestamp');
   $ret .= '<p>' . error_test_timestamp () . "</p>\n";
   return $ret;
 }
@@ -1372,27 +1518,30 @@ function test_sysconfigs ()
 function savane_conf_file ()
 {
   global $sys_conf_file;
-  $page = html_h (2, "Savane configuration", 'savane-config') . '<p>';
+  $page = test_h (2, "Savane configuration", 'savane-config') . '<p>';
+  $err = null;
   if (empty ($sys_conf_file))
-    $page .= "<strong>sys_conf_file not set!</strong>\n";
+    $err = $str = "<strong>sys_conf_file not set.</strong>\n";
   else
     {
-      $page .= "sys_conf_file is set to $sys_conf_file<br />\n";
-      $page .= "File <strong>$sys_conf_file</strong> ";
-
+      $str = "File <strong>$sys_conf_file</strong> ";
       if (is_readable ($sys_conf_file))
-        $page .= "exists and is readable.";
+        $str .= "exists and is readable.";
       else
-        $page .= "does not exist or is not readable!";
+        {
+          $str .= "does not exist or is not readable!";
+          $err = $str;
+        }
+      $str = "sys_conf_file is set to $sys_conf_file<br />\n$str";
     }
-  $page .= "</p>\n";
-  return $page;
+  add_summary ($err);
+  return "$page$str</p>\n";
 }
 
 function savane_settings ()
 {
   global $sys_conf_file;
-  $page = html_h (2, "Configured settings", 'settings');
+  $page = test_h (2, "Configured settings", 'settings');
 
   if (!is_readable ($sys_conf_file))
     return "$page\nSince $sys_conf_file does not exist or is not readable, "
@@ -1410,6 +1559,7 @@ $page .= php_functions ();
 $page .= apache_envv ();
 $page .= savane_conf_file ();
 $page .= savane_settings ();
+$page .= get_test_summaries ();
 $page .= '<pre>' . utils_specialchars (utils_debug_footer ())
   . "</pre>\n</body>\n</html>\n";
 print $page;

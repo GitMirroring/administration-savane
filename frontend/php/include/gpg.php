@@ -430,13 +430,14 @@ function minify_key ($key)
   return [$minified, $temp_dir, $error[0]];
 }
 
-function test_sign ($input)
+function test_verify ($input)
 {
   global $sys_gpg_home;
   list ($res, $err_msg) = verify ($sys_gpg_home, $input);
-  if ($res)
-    return "<p><b>Fail.</b></p>\n<pre>$err_msg</pre>\n";
-  return "<p>OK</p>\n";
+  if (!$res)
+    return "<p>OK</p>\n";
+  add_fb ('Verification failed.');
+  return "<p><b>Fail.</b></p>\n<pre>$err_msg</pre>\n";
 }
 
 function extract_micalg ($res, $stderr)
@@ -481,17 +482,18 @@ function gpg_run_sys_checks ($key, $level)
   global $sys_gpg_home;
   $output = '';
   gpg\test_listing ($sys_gpg_home, $level, $output);
-  $output .= html_h ($level, 'Signature for an empty file');
+  $output .= test_h ($level, 'Signature for an empty file', 'gpg-sys-checks');
   $input = '';
   list ($signature, $res, $err_msg) = gpg_sign ($input);
   if ($res)
     {
+      add_fb ('Failed to sign.');
       $output .= "<p><b>Fail.</b></p>\n<pre>$err_msg</pre>\n";
       return $output;
     }
   $output .= "<pre>$signature</pre>\n";
-  $output .= html_h ($level, 'Signature verification');
-  $output .= gpg\test_sign ([$signature, $input]);
+  $output .= test_h ($level, 'Signature verification', 'gpg-sys-verify');
+  $output .= gpg\test_verify ([$signature, $input]);
   return $output;
 }
 

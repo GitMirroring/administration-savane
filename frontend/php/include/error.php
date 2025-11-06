@@ -68,6 +68,7 @@ function error_test_timestamp ($delay = 5000)
   if ($delay < 30000)
     # No success; give it a chance with a lower resolution.
     return error_test_timestamp ($delay * 4);
+  add_fb ('Timestamps are inaccurate.');
   return "<strong>Timestamp mismatch: $t vs $delay</strong>";
 }
 
@@ -422,7 +423,10 @@ function error_test_cc_limit ()
   $cnt = count (error_count_cc ()) - 1;
   utils_restore_warnings ($state);
   $defs[no_i18n ('timestamp count')] = $cnt;
-  $defs[no_i18n ('updating timestamps')] = error_test_cc_limit_update ();
+  $msg = error_test_cc_limit_update ();
+  $defs[no_i18n ('updating timestamps')] = $msg;
+  if ($msg !== 'OK')
+    add_fb ('Updating limit rate failed.');
   $ret = html_dl ($defs);
   if (!function_exists ('sem_get'))
     $ret .= "<p>"
