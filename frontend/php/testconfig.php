@@ -47,28 +47,6 @@ $sys_file_domain = '';
 foreach (['database', 'mailman', 'savane-git', 'trackers/data'] as $inc)
   require_once ("include/$inc.php");
 
-function return_bytes ($v)
-{
-  $val = trim ($v);
-  if (is_int ($val))
-    return $val;
-  $last = strtolower (substr ($val, -1));
-  $val = substr ($val, 0, -1);
-  if (!preg_match ('/^\d*$/', $val) || !in_array ($last, ['g', 'm', 'k']))
-    return ">$v<";
-  switch ($last)
-    {
-      # Fall through all cases.
-      case 'g':
-        $val *= 1024;
-      case 'm':
-        $val *= 1024;
-      case 'k':
-        $val *= 1024;
-    }
-  return (int) $val;
-}
-
 # Test if GPG executable is configured and can run, basically.
 # Return zero on success.
 function check_gpg_executable ()
@@ -677,6 +655,11 @@ function check_basic_tags (&$have_unset)
 
   $cmp = function ($a, $b) { return $a === $b; };
   return check_tags ($phptags, $cmp, $have_unset);
+}
+
+function return_bytes ($size)
+{
+  return utils_ini_size_bytes ($size);
 }
 
 # Check against minimum sizes.
