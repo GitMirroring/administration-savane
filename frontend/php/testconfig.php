@@ -74,12 +74,9 @@ function return_bytes ($v)
 function check_gpg_executable ()
 {
   global $sys_gpg_name;
-  print html_h (2, "GnuPG");
+  $ret = html_h (2, "GnuPG", 'gnupg');
   if (!isset ($sys_gpg_name))
-    {
-      print "<p><strong>GnuPG is not configured.</strong></p>\n";
-      return true;
-    }
+    return [true, "$ret<p><strong>GnuPG is not configured.</strong></p>\n"];
   $gpg_result = utils_run_proc  (
     gpg\gpg_name () . " --version", $gpg_output, $gpg_stderr
   );
@@ -91,8 +88,8 @@ function check_gpg_executable ()
     "<code>stderr</code> output" =>
       "<pre>\n" . utils_specialchars ($gpg_stderr) . "</pre>"
   ];
-  print html_dl ($defs);
-  return $gpg_result;
+  $ret .= html_dl ($defs);
+  return [$gpg_result, $ret];
 }
 
 function read_test_key ($algo)
@@ -225,31 +222,29 @@ function test_sys_gpg_key ()
 {
   $defs = [];
   $key = gpg_get_sys_key ();
-  print html_h (3, 'Frontend key');
+  $ret = html_h (3, 'Frontend key', 'frontend-key');
   if (empty ($key))
-    {
-      print "<p>GnuPG key isn't defined.</p>\n";
-      return;
-    }
-  print "<pre>" . utils_specialchars ($key) . "</pre>\n";
-  print gpg_run_sys_checks ($key, 4);
+    return "$ret<p>GnuPG key isn't defined.</p>\n";
+  $ret .= "<pre>" . utils_specialchars ($key) . "</pre>\n";
+  return $ret . gpg_run_sys_checks ($key, 4);
 }
 
 function test_gpg ()
 {
-  if (check_gpg_executable ())
-    return;
-  print html_h (3, "Verify signature");
+  list ($res, $ret) = check_gpg_executable ();
+  if ($res)
+    return $ret;
+  $ret .= html_h (3, "Verify signature", 'gpg-verify-sig');
   $defs = [];
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_verify ($algo, $defs);
-  print html_dl ($defs);
-  print html_h (3, 'Encrypt');
+  $ret .= html_dl ($defs);
+  $ret .= html_h (3, 'Encrypt', 'gpg-encrypt');
   $defs = [];
   foreach (test_gpg_algo_list () as $algo)
     test_gpg_encrypt ($algo, $defs);
-  print html_dl ($defs);
-  test_sys_gpg_key ();
+  $ret .= html_dl ($defs);
+  return $ret . test_sys_gpg_key ();
 }
 
 function test_cgitrepos_presence ()
@@ -367,7 +362,7 @@ function test_strftime_alternatives ($t, &$defs)
 function test_strftime ()
 {
   global $sys_use_strftime;
-  print html_h (2, "Implementation of strftime");
+  $ret = html_h (2, "Implementation of strftime", 'strftime');
   $saved = $sys_use_strftime;
   $t = time ();
   $defs = [];
@@ -377,8 +372,9 @@ function test_strftime ()
   $defs['Used implementation'] = ['strftime-imp10n', utils_strftime ('', null)];
   $defs["Timestamp $t"] = ['strftime-timestamp', utils_strftime ($t, '%c')];
   test_strftime_alternatives ($t, $defs);
-  print html_dl ($defs);
+  $ret .= html_dl ($defs);
   $sys_use_strftime = $saved;
+  return $ret;
 }
 
 function test_captcha ()
@@ -386,27 +382,21 @@ function test_captcha ()
   global $sys_captchadir;
   $default_dir = '/usr/share/php';
 
-  print html_h (2, "Captcha");
+  $ret = html_h (2, "Captcha", 'captcha');
   if (empty ($sys_captchadir))
     {
-      print "<p><strong>sys_captchadir isn't set.</strong></p>\n";
-      print "<p>Falling back to default, $default_dir</p>\n";
+      $ret .= "<p><strong>sys_captchadir isn't set.</strong></p>\n";
+      $ret .= "<p>Falling back to default, $default_dir</p>\n";
       $sys_captchadir = $default_dir;
     }
   else
-    print "<p><b>sys_captchadir</b> is set to $sys_captchadir</p>\n";
+    $ret .= "<p><b>sys_captchadir</b> is set to $sys_captchadir</p>\n";
   if (!is_dir ($sys_captchadir))
-    {
-      print "<p><strong>No $sys_captchadir directory found.</strong></p>\n";
-      return;
-    }
+    return "$ret<p><strong>No $sys_captchadir directory found.</strong></p>\n";
   $f = "$sys_captchadir/Text/CAPTCHA.php";
   if (!is_file ($f))
-    {
-      print "<p><strong>No $f file found.</strong></p>\n";
-      return;
-    }
-  print "<p>Sample image:</p>\n"
+    return "$ret<p><strong>No $f file found.</strong></p>\n";
+  return "$ret<p>Sample image:</p>\n"
     . "<p><img id='captcha' src='/captcha.php' alt='CAPTCHA' /></p>\n";
 }
 
@@ -463,21 +453,22 @@ function output_mailman_query ($q, &$defs)
 
 function test_mailman ()
 {
-  print html_h (2, "Mailman connection");
+  $ret = html_h (2, "Mailman connection", 'mailman');
   $defs = [];
   $ver = mailman_get_version ();
   list ($have_version, $msg) = output_mailman_version ($ver);
   if ($have_version)
     {
-      print $msg;
+      $ret .= $msg;
       output_mailman_query (mailman_query_list ('savannah-users'), $defs);
     }
   else
     $defs['Run time'] = sprintf ('%s ms', $ver['timestamp']);
-  print html_dl ($defs);
+  $ret .= html_dl ($defs);
   if ($have_version && preg_match ("/^stub /", $ver['version']))
-    print "<p><strong>This is a stub; write the real command "
+    $ret .= "<p><strong>This is a stub; write the real command "
       . "in \$sys_mailman_wrapper.</strong></p>\n";
+  return $ret;
 }
 
 function test_hash_pfx ()
@@ -534,15 +525,15 @@ function test_hash_algos ()
   $defs = [];
   foreach (hash_supported_pw_prefices () as $pfx)
     $defs[$pfx] = test_hash_algo ($pfx, $prefix, $rounds);
-  print html_dl ($defs);
   list ($sys_pw_prefix, $sys_pw_rounds, $hash_silent_crypt) =
     [$prefix, $rounds, $silent];
+  return html_dl ($defs);
 }
 
 function test_hash ()
 {
   global $sys_use_php_crypt;
-  print html_h (2, 'Stored passwords');
+  $ret = html_h (2, 'Stored passwords', 'hash');
   $defs = [
     'Supported algorithms for new hashes' =>
       join (', ', hash_supported_pw_prefices ()),
@@ -550,37 +541,41 @@ function test_hash ()
       'libc via the sv_crypt script': 'PHP crypt() function',
     'sys_pw_prefix' => test_hash_pfx (), 'sys_pw_rounds' => test_hash_cost ()
   ];
-  print html_dl ($defs);
+  $ret .= html_dl ($defs);
   $saved_use = $sys_use_php_crypt;
-  print html_h (3, 'Testing sv_crypt');
+  $ret .= html_h (3, 'Testing sv_crypt', 'sv-crypt');
   $sys_use_php_crypt = false;
-  test_hash_algos ();
-  print html_h (3, 'Testing PHP crypt() function');
+  $ret .= test_hash_algos ();
+  $ret .= html_h (3, 'Testing PHP crypt() function', 'php-crypt');
   $sys_use_php_crypt = true;
-  test_hash_algos ();
+  $ret .= test_hash_algos ();
   $sys_use_php_crypt = $saved_use;
+  return $ret;
 }
 
-$page = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n"
-      . "  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
-$page .=
-  "<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en_US' lang='en_US'>\n"
-  . "<head>\n"
-  . "<meta http-equiv='content-type' content='text/html; charset=utf-8' />\n"
-  . "<title>Basic configuration tests</title>\n"
-  . "<link rel=\"stylesheet\" type=\"text/css\" "
-  . "href=\"/css/internal/testconfig.css\" />\n"
-  . "</head>\n\n"
-  . "<body>\n";
+function page_start ($inside_siteadmin)
+{
+  $ret = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n"
+    . "  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
+  $ret .=
+    "<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en_US' lang='en_US'>\n"
+    . "<head>\n"
+    . "<meta http-equiv='content-type' content='text/html; charset=utf-8' />\n"
+    . "<title>Basic configuration tests</title>\n"
+    . "<link rel=\"stylesheet\" type=\"text/css\" "
+    . "href=\"/css/internal/testconfig.css\" />\n"
+    . "</head>\n\n"
+    . "<body>\n";
 
-$page .= html_h (1, "Basic pre-tests for Savane installation");
-if (empty ($inside_siteadmin))
-  $page .= "<p>This page should help you to check whether your installation\n"
-    . "is properly configured. It shouldn't display any sensitive\n"
-    . "information, since it could give details about your setup\n"
-    . "to anybody.</p>\n";
+  $ret .= html_h (1, "Basic pre-tests for Savane installation");
+  if (empty ($inside_siteadmin))
+    $ret .= "<p>This page should help you to check whether your installation\n"
+      . "is properly configured. It shouldn't display any sensitive\n"
+      . "information, since it could give details about your setup\n"
+      . "to anybody.</p>\n";
+  return $ret;
+}
 
-$page .= html_h (2, "Savane source code");
 function check_source_code ()
 {
   $commit = git_get_commit ();
@@ -600,47 +595,35 @@ function check_source_code ()
     'Tarball' => "<a href='$tarball_url'>$tarball_name</a>",
     'Availability' => $avail
   ];
-  return html_dl ($defs);
+  return html_h (2, "Savane source code", 'source-code') . html_dl ($defs);
 }
-$page .= check_source_code ();
-$page .= html_h (2, "Basic PHP configuration");
-$page .= "<p>PHP version: " . phpversion () . "</p>\n";
 
-# cf. http://php.net/manual/en/ini.php
-$phptags = ['file_uploads' => '1', 'allow_url_fopen' => '1'];
-
-# Get all php.ini values.
-$all_inis = ini_get_all ();
-# Define missing constant to interpret the 'access' field.
-define ('PHP_INI_SYSTEM', 4);
-# Cf. http://www.php.net/manual/en/ini.core.php
-
-$page .= "\n<table border=\"1\" summary=\"PHP configuration\">\n";
-$page .= "<tr><th>PHP Tag name</th><th>Local value</th>"
-  . "<th>Suggested value</th></tr>\n";
-$have_unset = false;
-ksort ($phptags);
-function compare_ini_vals ($tag, $good, $cmp)
+function unknown_ini_val ($tag, $gv)
 {
-  global $all_inis, $page;
+  $str = sprintf (
+    "<tr><td>%s</td><td class=\"unset\">Unknown*</td><td>%s</td></tr>\n",
+    $tag, $gv
+  );
+  return [$str, true];
+}
+
+function good_ini_val ($tag, $t, $gv)
+{
+  $str =
+    sprintf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
+  return [$str, false];
+}
+
+function compare_ini_vals ($tag, $good, $cmp, $all_inis)
+{
   $gv = utils_specialchars ($good);
   if (!array_key_exists ($tag, $all_inis))
-    {
-      $page .= sprintf (
-        "<tr><td>%s</td><td class=\"unset\">Unknown*</td><td>%s</td></tr>\n",
-        $tag, $gv
-      );
-      return true;
-    }
+    return unknown_ini_val ($tag, $gv);
   $ini_val = ini_get ($tag);
   $t = utils_specialchars ($ini_val);
   if ($cmp ($ini_val, $good))
-    {
-      $page .=
-        sprintf ("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n", $tag, $t, $gv);
-      return false;
-    }
-  $page .= sprintf (
+    return good_ini_val ($tag, $t, $gv);
+  $page = sprintf (
     "<tr><td>%s</td><td class=\"different\">%s</td><td>%s", $tag, $t, $gv
   );
   if ($all_inis[$tag]['access'] > PHP_INI_SYSTEM)
@@ -648,53 +631,114 @@ function compare_ini_vals ($tag, $good, $cmp)
   else
     $page .= " (can be set in php.ini or httpd.conf, but not in .htaccess)";
   $page .= "</td></tr>\n";
-  return false;
+  return [$page, false];
 }
 
-$cmp = function ($a, $b) { return $a === $b; };
-foreach ($phptags as $tag => $good)
-  if (compare_ini_vals ($tag, $good, $cmp))
-    $have_unset = true;
+function php_conf_table_header ($summary)
+{
+  return "\n<table border=\"1\" summary=\"$summary\">\n"
+    . "<tr><th>PHP Tag name</th><th>Local value</th>"
+    . "<th>Suggested value</th></tr>\n";
+}
+
+function basic_php_conf_start ()
+{
+  $ret = html_h (2, "Basic PHP configuration", 'basic-php');
+  $ret .= "<p>PHP version: " . phpversion () . "</p>\n";
+  $ret .= php_conf_table_header ('PHP configuration');
+
+  # Define missing constant to interpret the 'access' field.
+  define ('PHP_INI_SYSTEM', 4);
+  # Cf. http://www.php.net/manual/en/ini.core.php
+
+  return $ret;
+}
+
+function check_tags ($phptags, $cmp, &$have_unset)
+{
+  $ret = '';
+  $all_inis = ini_get_all ();
+  foreach ($phptags as $tag => $good)
+    {
+      list ($str, $cmp_result) =
+        compare_ini_vals ($tag, $good, $cmp, $all_inis);
+      if ($cmp_result)
+        $have_unset = true;
+      $ret .= $str;
+    }
+  return $ret;
+}
+
+function check_basic_tags (&$have_unset)
+{
+  # cf. http://php.net/manual/en/ini.php
+  $phptags = ['file_uploads' => '1', 'allow_url_fopen' => '1'];
+  ksort ($phptags);
+
+  $cmp = function ($a, $b) { return $a === $b; };
+  return check_tags ($phptags, $cmp, $have_unset);
+}
+
 # Check against minimum sizes.
-$phptags = [
-  'memory_limit' => '4M', 'post_max_size' => '3M', 'upload_max_filesize' => '2M'
-];
-$cmp = function ($a, $b) { return return_bytes ($a) >= return_bytes ($b); };
-foreach ($phptags as $tag => $good)
-  if (compare_ini_vals ($tag, $good, $cmp))
-    $have_unset = true;
-$page .= "</table>\n\n";
-if ($have_unset)
-  $page .= "<blockquote><p>* This tag was not found at all. "
+function check_size_tags (&$have_unset)
+{
+  $phptags = [
+    'memory_limit' => '4M', 'post_max_size' => '3M',
+    'upload_max_filesize' => '2M'
+  ];
+  $cmp = function ($a, $b) { return return_bytes ($a) >= return_bytes ($b); };
+  return check_tags ($phptags, $cmp, $have_unset);
+}
+
+function unset_warning ()
+{
+  return "<blockquote><p>* This tag was not found at all. "
     . "It is probably irrelevant to your PHP version so you may ignore this "
     . "entry.</p></blockquote>\n";
+}
 
-$page .= html_h (2, "Optional PHP configuration");
+function basic_php_config ()
+{
+  $ret = basic_php_conf_start ();
+  $have_unset = false;
+  $ret .= check_basic_tags ($have_unset);
+  $ret .= check_size_tags ($have_unset);
+  $ret .= "</table>\n\n";
+  if ($have_unset)
+    $ret .= unset_warning ();
+  return $ret;
+}
 
-$page .= "<p>The following is not required to run Savane, but could enhance\n"
-  . "security of your production server. Displaying errors is recommended:\n"
-  . "they may annoy the user with warnings, but allow you to spot "
-  . "and report\npotentially harmful bugs.</p>\n";
+function optional_php_config_start ()
+{
+  return html_h (2, "Optional PHP configuration", 'optional-php')
+    . "<p>The following is not required to run Savane, but could enhance\n"
+    . "security of your production server. Displaying errors is recommended:\n"
+    . "they may annoy the user with warnings, but allow you to spot "
+    . "and report\npotentially harmful bugs.</p>\n"
+    . php_conf_table_header ('Optional PHP configuration');
+}
 
-$phptags = [
-  'disable_functions' => 'passthru,popen,shell_exec,system',
-  'display_errors' => '1', 'error_reporting' => (string)(E_ALL),
-  'log_errors' => '1',
-];
+function optional_php_check_tags (&$have_unset)
+{
+  $phptags = [
+    'disable_functions' => 'passthru,popen,shell_exec,system',
+    'display_errors' => '1', 'error_reporting' => (string)(E_ALL),
+    'log_errors' => '1',
+  ];
+  $cmp = function ($a, $b) { return $a === $b; };
+  return check_tags ($phptags, $cmp, $have_unset);
+}
 
-$page .= "\n<table border=\"1\">\n"
-. "<tr><th>PHP Tag name</th><th>Local value</th>"
-. "<th>Suggested value</th></tr>\n";
-$have_unset = false;
-$cmp = function ($a, $b) { return $a === $b; };
-foreach ($phptags as $tag => $good)
-  if (compare_ini_vals ($tag, $good, $cmp))
-    $have_unset = true;
-$page .= "</table>\n\n";
-if ($have_unset)
-  $page .= "<blockquote><p>* This tag was not found at all. "
-    . "It is probably irrelevant to your PHP version "
-    . "so you may ignore this entry.</p></blockquote>\n\n";
+function optional_php_config ()
+{
+  $have_unset = false;
+  $ret = optional_php_config_start ();
+  $ret .= optional_php_check_tags ($have_unset) . "</table>\n";
+  if ($have_unset)
+    $ret .= unset_warning ();
+  return $ret;
+}
 
 function list_facilities ($func, $items, $labels = [])
 {
@@ -713,36 +757,43 @@ function list_facilities ($func, $items, $labels = [])
   return html_dl ($defs);
 }
 
-$page .= html_h (2, "PHP extensions");
-$php_extensions =
-  [
-    'imap' => 'Composing signed email messages (php-imap) ! [RECOMMENDED]',
-    'mailparse' => 'Parsing email messages (php-mailparse) ! [RECOMMENDED]',
-    'mysqli' => 'Database access (php-mysqli) ! [REQUIRED]',
-  ];
-$page .=
-  list_facilities ('extension_loaded', $php_extensions, [true => 'Loaded.']);
+function php_extensions ()
+{
+  $php_extensions =
+    [
+      'imap' => 'Composing signed email messages (php-imap) ! [RECOMMENDED]',
+      'mailparse' => 'Parsing email messages (php-mailparse) ! [RECOMMENDED]',
+      'mysqli' => 'Database access (php-mysqli) ! [REQUIRED]',
+    ];
+  return html_h (2, "PHP extensions", 'php-ext')
+    . list_facilities (
+        'extension_loaded', $php_extensions, [true => 'Loaded.']
+      );
+}
 
-$page .= html_h (2, "PHP functions");
-$phpfunctions =
-  [
-    'crypt' => 'Used to handle passwords ! [REQUIRED]',
-    'gettext' =>
-      'You should install PHP with gettext support '
-      . '(--with-gettext --enable-intl) ! [RECOMMENDED]',
-    'strftime' => 'When this function is dropped from PHP '
-      . '(deprecated in 8.1), date output is expected to slow down '
-      . '! [RECOMMENDED]',
-    'ctype_digit' => 'You must have a PHP version supporting ctype '
-      . '(--enable-ctype) ! [REQUIRED]',
-    'imagettfbbox' =>
-      'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
-    'sem_get' =>
-      'Used when connecting mailman and updating the group file '
-      . '(--enable-sysvsem) ! [REQUIRED]',
-    'hrtime'=> 'Optionally used in diagnostic timestamps.'
- ];
-$page .= list_facilities ('function_exists', $phpfunctions);
+function php_functions ()
+{
+  $phpfunctions =
+    [
+      'crypt' => 'Used to handle passwords ! [REQUIRED]',
+      'gettext' =>
+        'You should install PHP with gettext support '
+        . '(--with-gettext --enable-intl) ! [RECOMMENDED]',
+      'strftime' => 'When this function is dropped from PHP '
+        . '(deprecated in 8.1), date output is expected to slow down '
+        . '! [RECOMMENDED]',
+      'ctype_digit' => 'You must have a PHP version supporting ctype '
+        . '(--enable-ctype) ! [REQUIRED]',
+      'imagettfbbox' =>
+        'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
+      'sem_get' =>
+        'Used when connecting mailman and updating the group file '
+        . '(--enable-sysvsem) ! [REQUIRED]',
+      'hrtime'=> 'Optionally used in diagnostic timestamps.'
+    ];
+  return html_h (2, "PHP functions", 'php-func')
+    . list_facilities ('function_exists', $phpfunctions);
+}
 
 function test_language ($lang)
 {
@@ -764,16 +815,15 @@ function test_language ($lang)
       if (($res == $str  && $lang == 'en') || ($res != $str && $lang != 'en'))
         return "$str => $res";
     }
-  $ret = "<b>Fail.</b> Check <code>locale -a</code> output,\n"
+  return "<b>Fail.</b> Check <code>locale -a</code> output,\n"
     . "be sure to install language-pack-* in Trisquel";
-  return $ret;
 }
 
 function test_disabled_languages ($loc_list)
 {
   global $sys_linguas;
   $linguas = $sys_linguas;
-  $ret = html_h (3, "Other defined languages") . "<p>";
+  $ret = html_h (3, "Other defined languages", 'other-lang') . "<p>";
   if (empty ($loc_list))
     return "{$ret}none.</p>\n";
   $ret .= join (", ", array_keys ($loc_list)) . ".</p>\n";
@@ -794,15 +844,15 @@ function get_locales ()
   if ($res)
     return "<p>Can't get locales defined: </p>\n<pre>$err</pre>\n";
   $out = str_replace ("\n", ', ', substr ($out, 0, -1));
-  return html_h (3, "Locales defined") . "<p>$out.</p>\n";
+  return html_h (3, "Locales defined", 'locales-defined') . "<p>$out.</p>\n";
 }
 
 function test_i18n ()
 {
   global $sys_linguas, $languages_available;
-  print html_h (2, "I18n");
   $loc_list = $languages_available;
-  $ret = get_locales () . html_h (3, "sys_linguas") . "<p>$sys_linguas</p>\n";
+  $ret = html_h (2, "I18n", 'i18n') . get_locales ()
+    . html_h (3, "sys_linguas", 'sys-linguas') . "<p>$sys_linguas</p>\n";
   $defs = [];
   foreach (explode (':', $sys_linguas) as $lang)
     {
@@ -812,33 +862,21 @@ function test_i18n ()
     }
   $ret .= html_dl ($defs) . test_disabled_languages ($loc_list);
   i18n_setup ("en_US.UTF-8");
-  print $ret;
+  return $ret;
 }
 
-$page .= html_h (2, "Apache environment variables");
-$vv = [];
-foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
-  {
-    $vv[$var] = getenv ($var);
-    if ($vv[$var] === false)
-      $vv[$var] = '<b>unset</b>';
-  }
-$page .= html_dl ($vv);
-$page .= html_h (2, "Savane configuration") . '<p>';
-
-if (empty ($sys_conf_file))
-  $page .= "<strong>sys_conf_file not set!</strong>\n";
-else
-  {
-    $page .= "sys_conf_file is set to $sys_conf_file<br />\n";
-    $page .= "File <strong>$sys_conf_file</strong> ";
-
-    if (is_readable ($sys_conf_file))
-      $page .= "exists and is readable.";
-    else
-      $page .= "does not exist or is not readable!";
-  }
-$page .= "</p>\n";
+function apache_envv ()
+{
+  $vv = [];
+  foreach (['SAVANE_CONF', 'SV_LOCAL_INC_PREFIX'] as $var)
+    {
+      $vv[$var] = getenv ($var);
+      if ($vv[$var] === false)
+        $vv[$var] = '<b>unset</b>';
+    }
+  return html_h (2, "Apache environment variables", 'apache-envv')
+    . html_dl ($vv);
+}
 
 function test_db_fields ($t, $field_func, &$defs)
 {
@@ -855,16 +893,16 @@ function check_for_db_test_marker ()
   $table = 'test_marker';
   $res = db_execute ("SHOW TABLES LIKE '$table'");
   if (!db_numrows ($res))
-    return;
-  print "<p><strong>Note:</strong> table '$table' exists. "
+    return '';
+  return "<p><strong>Note:</strong> table '$table' exists. "
     . "<i>This table should only be present in temporary databases "
     . "created for testing.</i></p>\n";
 }
 
 function test_db_structure ()
 {
-  print html_h (2, 'Database structure');
-  check_for_db_test_marker ();
+  $ret = html_h (2, 'Database structure', 'db-struct');
+  $ret .= check_for_db_test_marker ();
   $defs = [];
   $table_fields = [
     'user' =>
@@ -874,7 +912,7 @@ function test_db_structure ()
   ];
   foreach ($table_fields as $t => $field_func)
     test_db_fields ($t, $field_func, $defs);
-  print html_dl ($defs);
+  return $ret . html_dl ($defs);
 }
 
 function query_required_field_usage ()
@@ -902,20 +940,20 @@ function query_required_field_usage ()
 function print_db_values ($res, $columns)
 {
   $header_row = "<tr>" . html_join_enclosed ($columns, 'th', '') . "</tr>\n";
-  print "<table border='1'>\n$header_row";
+  $ret = "<table border='1'>\n$header_row";
   while ($row = db_fetch_array ($res))
     {
-      print "<tr>";
+      $ret .= "<tr>";
       foreach ($columns as $col)
-        print "<td>{$row[$col]}</td>";
-      print "</tr>\n";
+        $ret .= "<td>{$row[$col]}</td>";
+      $ret .= "</tr>\n";
     }
-  print "$header_row\n</table>\n";
+  return "$ret$header_row\n</table>\n";
 }
 
 function explain_unused_required_tracker_fields ($ids)
 {
-  print "<p>Having required fields that aren't used is counter-intuitive "
+  $ret = "<p>Having required fields that aren't used is counter-intuitive "
     . "and may result in unexpected behavior when configuring trackers.</p>\n";
   $q = [];
   foreach ($ids as $tracker => $vals)
@@ -924,18 +962,16 @@ function explain_unused_required_tracker_fields ($ids)
       WHERE `bug_field_id` IN (" . join (', ', array_unique ($vals)) . ");
     ";
   $query = join ("\n", $q);
-  print "<p>You can fix this issue with a query like <code>$query</code></p>\n";
+  return
+    "$ret<p>You can fix this issue with a query like <code>$query</code></p>\n";
 }
 
 function list_unused_required_tracker_fields ()
 {
-  print html_h (3, 'Unused required tracker fields');
+  $ret = html_h (3, 'Unused required tracker fields', 'unused-required-fields');
   $res = query_required_field_usage ();
   if (!db_numrows ($res))
-    {
-      print "<p>No such fields found.</p>\n";
-      return;
-    }
+    return "$ret<p>No such fields found.</p>\n";
   $columns = [
    'group_id', 'unix_group_name', 'tracker',
    'bug_field_id', 'field_name', 'label'
@@ -944,8 +980,8 @@ function list_unused_required_tracker_fields ()
   while ($row = db_fetch_array ($res))
     $ids[$row['tracker']][] = $row['bug_field_id'];
   db_data_seek ($res);
-  explain_unused_required_tracker_fields ($ids);
-  print_db_values ($res, $columns);
+  $ret .= explain_unused_required_tracker_fields ($ids);
+  return $ret . print_db_values ($res, $columns);
 }
 
 function query_duplicate_usage ()
@@ -985,39 +1021,36 @@ function explain_duplicate_field_usage ($ids)
         ORDER BY `bug_field_id`
       ";
   $queries = html_join_enclosed ($q, ['li', 'code']);
-  print "<p>Generally, every group should have no more than one usage record "
+  $ret = "<p>Generally, every group should have no more than one usage record "
     . "for every field.  To look into the issue, you can use queries like,</p>"
     . "\n<ul>$queries</ul>\n";
-  print "<p>Editing field usage should also fix this issue "
+  return "$ret<p>Editing field usage should also fix this issue "
     . "for that field and group.</p>\n";
 }
 
 function list_duplicate_field_usage ()
 {
-  print html_h (3, 'Duplicate field usage');
+  $ret = html_h (3, 'Duplicate field usage', 'duplicate-field-usage');
   $columns = [
     'group_id', 'unix_group_name', 'tracker', 'bug_field_id',
     'field_name', 'label', 'count'
   ];
   $res = query_duplicate_usage ();
   if (!db_numrows ($res))
-    {
-      print "<p>No duplicate usage found.</p>\n";
-      return;
-    }
+    return "$ret<p>No duplicate usage found.</p>\n";
   $ids = [];
   while ($row = db_fetch_array ($res))
     $ids[$row['tracker']][$row['group_id']][] = $row['bug_field_id'];
   db_data_seek ($res);
-  print_db_values ($res, $columns);
-  explain_duplicate_field_usage ($ids);
+  $ret .= print_db_values ($res, $columns);
+  return $ret . explain_duplicate_field_usage ($ids);
 }
 
 function test_db_values ()
 {
-  print html_h (2, 'Database value consistency');
-  list_unused_required_tracker_fields ();
-  list_duplicate_field_usage ();
+  $ret = html_h (2, 'Database value consistency', 'db-val');
+  $ret .= list_unused_required_tracker_fields ();
+  return $ret . list_duplicate_field_usage ();
 }
 
 function array_add_suff ($arr, $suff)
@@ -1071,7 +1104,7 @@ function try_utf8_search ()
 function test_utf8_search ()
 {
   $sets_to_try = ['utf8', 'utf8mb4', 'utf8mb3'];
-  print html_h (3, 'Unicode search', ['id' => 'utf8-search']);
+  $ret = html_h (3, 'Unicode search', 'utf8-search');
   $saved_charset = db_charset_name ();
   $defs = ['Initial character set' => $saved_charset];
   $test_result = try_utf8_search ();
@@ -1088,22 +1121,21 @@ function test_utf8_search ()
         }
       db_reconnect ($saved_charset);
     }
-  print html_dl ($defs);
+  return $ret . html_dl ($defs);
 }
 
 function test_db_features ()
 {
-  print html_h (2, 'Database features');
-  test_utf8_search ();
+  $ret = html_h (2, 'Database features', 'db-features');
+  return $ret . test_utf8_search ();
 }
 
 function try_db_connect ()
 {
   $db_err = db_connect ();
   if ($db_err === null)
-    return false;
-  print $db_err;
-  return true;
+    return [false, ''];
+  return [true, $db_err];
 }
 
 function mysql_params_to_test ()
@@ -1146,13 +1178,14 @@ function test_mysql ()
     $sys_debug_footer = false;
   $saved_sys_debug_footer = $sys_debug_footer;
   $sys_debug_footer = true;
-  print html_h (2, "Database configuration");
-  if (try_db_connect ())
-    return;
-  print html_dl (test_mysql_params ());
-  test_db_features ();
-  test_db_structure ();
-  test_db_values ();
+  $ret = html_h (2, "Database configuration", 'db-conf');
+  list ($res, $str) = try_db_connect ();
+  if ($res)
+    return "$ret$str";
+  $ret .= html_dl (test_mysql_params ());
+  $ret .= test_db_features ();
+  $ret .= test_db_structure ();
+  return $ret . test_db_values ();
 }
 
 function list_unset_val ($must_be_unset, $value)
@@ -1215,21 +1248,20 @@ function output_sysvars ()
   $defs = [];
   foreach ($variables as $tag)
     list_sysvar ($tag, $defs);
-  print html_dl ($defs);
+  return html_dl ($defs);
 }
 
 function test_sysvars ()
 {
-  global $page, $sys_file_domain, $sys_default_domain;
-  print $page;
-  $page = '';
+  global $sys_file_domain, $sys_default_domain, $inside_siteadmin;
   if (empty ($inside_siteadmin))
     utils_set_csp_headers ();
-  output_sysvars ();
+  $page = output_sysvars ();
   if ($sys_file_domain === $sys_default_domain)
-    print "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
+    $page .=
+      "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
       . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
-  print "<p>Savane generally uses safe default values when variables\n"
+  return "$page<p>Savane generally uses safe default values when variables\n"
     . "are not set in the configuration file.</p>\n";
 }
 
@@ -1317,9 +1349,9 @@ function test_uploads (&$defs)
     }
   $defs['sys_upload_max'] = ['sys-upload-max', $val];
   if (!array_key_exists ('sys_upload_max', $GLOBALS))
-    return;
+    return '';
   if ($arr['sys_upload_max'] <= $ini_val)
-    return;
+    return '';
   $defs['sys_upload_max'][1] .=
     ini_size_note ('$sys_upload_max', 'upload_max_filesize');
 }
@@ -1327,46 +1359,77 @@ function test_uploads (&$defs)
 function run_other_tests ()
 {
   $defs = [];
+  $ret = html_h (2, "Other tests", 'other-tests');
   test_repos ($defs);
   test_uploads ($defs);
-  print html_dl ($defs);
-  print html_h (3, 'Limiting email error report rate', 'error-cc-limit');
-  print error_test_cc_limit ();
-  print html_h (3, 'Timestamps', 'error-timestamp');
-  print '<p>' . error_test_timestamp () . "</p>\n";
-
+  $ret .= html_dl ($defs);
+  $ret .= html_h (3, 'Limiting email error report rate', 'error-cc-limit');
+  $ret .= error_test_cc_limit ();
+  $ret .= html_h (3, 'Timestamps', 'error-timestamp');
+  $ret .= '<p>' . error_test_timestamp () . "</p>\n";
+  return $ret;
 }
 
 function test_sysconfigs ()
 {
   include $GLOBALS['sys_conf_file'];
-  test_sysvars ();
-  print "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
-  test_strftime ();
-  test_captcha ();
-  test_mailman ();
-  test_hash ();
-  test_mysql ();
-
-  test_gpg ();
-  test_i18n ();
-  print html_h (2, "Other tests");
-  run_other_tests ();
+  $ret = test_sysvars ();
+  $ret .= "<p><img src='/file?file_id=test.png' alt='Test image'/></p>\n";
+  $ret .= test_strftime ();
+  $ret .= test_captcha ();
+  $ret .= test_mailman ();
+  $ret .= test_hash ();
+  $ret .= test_mysql ();
+  $ret .= test_gpg ();
+  $ret .= test_i18n ();
+  $ret .= run_other_tests ();
+  return $ret;
 }
 
-$page .= html_h (2, "Configured settings");
+function savane_conf_file ()
+{
+  global $sys_conf_file;
+  $page = html_h (2, "Savane configuration", 'savane-config') . '<p>';
+  if (empty ($sys_conf_file))
+    $page .= "<strong>sys_conf_file not set!</strong>\n";
+  else
+    {
+      $page .= "sys_conf_file is set to $sys_conf_file<br />\n";
+      $page .= "File <strong>$sys_conf_file</strong> ";
 
-if (is_readable ($sys_conf_file))
-  {
-    require_once ("include/i18n.php");
-    test_sysconfigs ();
-  }
-else
-  print "$page\nSince $sys_conf_file does not exist or is not readable, "
-    . "this part cannot be checked.";
-$footer = utils_specialchars (utils_debug_footer ());
-print "<pre>$footer</pre>\n";
-print "</body>\n</html>\n";
+      if (is_readable ($sys_conf_file))
+        $page .= "exists and is readable.";
+      else
+        $page .= "does not exist or is not readable!";
+    }
+  $page .= "</p>\n";
+  return $page;
+}
+
+function savane_settings ()
+{
+  global $sys_conf_file;
+  $page = html_h (2, "Configured settings", 'settings');
+
+  if (!is_readable ($sys_conf_file))
+    return "$page\nSince $sys_conf_file does not exist or is not readable, "
+      . "this part cannot be checked.";
+  require_once ("include/i18n.php");
+  return $page . test_sysconfigs ();
+}
+
+$page = page_start ($inside_siteadmin);
+$page .= check_source_code ();
+$page .= basic_php_config ();
+$page .= optional_php_config ();
+$page .= php_extensions ();
+$page .= php_functions ();
+$page .= apache_envv ();
+$page .= savane_conf_file ();
+$page .= savane_settings ();
+$page .= '<pre>' . utils_specialchars (utils_debug_footer ())
+  . "</pre>\n</body>\n</html>\n";
+print $page;
 $sys_debug_footer = $saved_sys_debug_footer;
 utils_output_debug_footer ();
 ?>
