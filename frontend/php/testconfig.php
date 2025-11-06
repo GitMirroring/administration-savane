@@ -333,6 +333,7 @@ function test_repos (&$defs)
   $defs['cgitrepos'] = ['cgitrepos', test_cgitrepos ()];
   $defs['git directories'] = ['gitrepos', test_git_dirs ()];
 }
+
 function test_sys_upload_dir ()
 {
   $path = utils_make_upload_file ("test.txt", $errors);
@@ -448,6 +449,7 @@ function output_mailman_version ($ver)
   ];
   return [true, html_dl ($defs)];
 }
+
 function output_mailman_query ($q, &$defs)
 {
   if (test_mailman_failed ($q, $defs))
@@ -490,6 +492,7 @@ function test_hash_pfx ()
       . "<i>Overridden; the effective value is</i> <b>$real_pfx</b>.";
   return $pfx;
 }
+
 function test_hash_cost ()
 {
   global $sys_pw_rounds;
@@ -873,6 +876,7 @@ function test_db_structure ()
     test_db_fields ($t, $field_func, $defs);
   print html_dl ($defs);
 }
+
 function query_required_field_usage ()
 {
   $subqueries = [];
@@ -894,6 +898,7 @@ function query_required_field_usage ()
     . ' ORDER BY `unix_group_name`, `tracker`, `field_name`, `label`'
   );
 }
+
 function print_db_values ($res, $columns)
 {
   $header_row = "<tr>" . html_join_enclosed ($columns, 'th', '') . "</tr>\n";
@@ -907,6 +912,7 @@ function print_db_values ($res, $columns)
     }
   print "$header_row\n</table>\n";
 }
+
 function explain_unused_required_tracker_fields ($ids)
 {
   print "<p>Having required fields that aren't used is counter-intuitive "
@@ -920,6 +926,7 @@ function explain_unused_required_tracker_fields ($ids)
   $query = join ("\n", $q);
   print "<p>You can fix this issue with a query like <code>$query</code></p>\n";
 }
+
 function list_unused_required_tracker_fields ()
 {
   print html_h (3, 'Unused required tracker fields');
@@ -940,6 +947,7 @@ function list_unused_required_tracker_fields ()
   explain_unused_required_tracker_fields ($ids);
   print_db_values ($res, $columns);
 }
+
 function query_duplicate_usage ()
 {
   $subqueries = [];
@@ -963,6 +971,7 @@ function query_duplicate_usage ()
     ORDER BY `unix_group_name`, `tracker`, `bug_field_id`"
   );
 }
+
 function explain_duplicate_field_usage ($ids)
 {
   $q = [];
@@ -982,6 +991,7 @@ function explain_duplicate_field_usage ($ids)
   print "<p>Editing field usage should also fix this issue "
     . "for that field and group.</p>\n";
 }
+
 function list_duplicate_field_usage ()
 {
   print html_h (3, 'Duplicate field usage');
@@ -1002,12 +1012,14 @@ function list_duplicate_field_usage ()
   print_db_values ($res, $columns);
   explain_duplicate_field_usage ($ids);
 }
+
 function test_db_values ()
 {
   print html_h (2, 'Database value consistency');
   list_unused_required_tracker_fields ();
   list_duplicate_field_usage ();
 }
+
 function array_add_suff ($arr, $suff)
 {
   if (!is_array ($suff))
@@ -1093,6 +1105,7 @@ function try_db_connect ()
   print $db_err;
   return true;
 }
+
 function mysql_params_to_test ()
 {
   $wrong_modes = []; # No unsupported modes these days.
