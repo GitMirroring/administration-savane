@@ -53,10 +53,30 @@ our @EXPORT = qw (
   print_test_log print_test_error print_test_result
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   get_group_id save_page append_savane_conf reset_savane_conf register_user
-  remove_user speed_up_crypt run_cleanup check_request_status
+  remove_user speed_up_crypt run_cleanup check_request_status try_mkdir
 );
 
 my $bindir = '@bindir@';
+
+sub try_mkdir
+{
+  my $dir = shift;
+  my $exit_on_error = @_? shift: 1;
+  print_test_log ("Creating $dir directory.");
+  if (-d $dir)
+    {
+      print_test_result ("Directory $dir already exists.");
+      return 0;
+    }
+  if (mkdir $dir)
+    {
+      print_test_result ("Successfully created $dir/.");
+      return 0;
+    }
+  print_test_error ("Cannot create $dir directory: $!");
+  exit (1) if $exit_on_error;
+  return 1;
+}
 
 sub save_page
 {
@@ -73,8 +93,10 @@ sub save_page
 sub check_request_status
 {
   my $agent = shift;
+  my $page = @_? shift: undef;
   my $status = $agent->status ();
   return 0 if $status eq '200';
+  save_page ($agent, $page) if defined $page;
   print_test_error ("Unexpected request status $status.");
   return 1;
 }

@@ -6,6 +6,10 @@
   the files and launches the server; previously, it exited with a warning
   whenever the PID file existed, without further action.
 
+[BUILD]
+
+* New test in tests/, 'testconfig'.
+
 2025-10-31 3.16
 
 [FRONTEND]

@@ -6,6 +6,8 @@ This test is accessible on the running web server at /testconfig.php.
 It displays the configuration of the server and reports possible problems.
 The output is a HTML page written in English to be read with a browser.
 
+This test is also run in the 'test' Makefile target.
+
 = frontend/php/testing/
 
 A number of basic regression tests can run without installation.  They

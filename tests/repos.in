@@ -60,15 +60,6 @@ my $admin_url = make_url ("git/admin/?group=$unix_group_name");
 my $agent = make_agent ()
   or exit (1);
 
-sub try_mkdir
-{
-  my $dir = shift;
-  print_test_log ("Creating $dir directory.");
-  return if mkdir $dir;
-  print_test_error ("Can't create $dir directory: $!");
-  exit (1);
-}
-
 sub simulate_cvs_repos
 {
   my @modules = @src_modules;

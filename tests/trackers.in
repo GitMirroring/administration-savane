@@ -374,6 +374,7 @@ sub submit_item
   shift @submit_texts unless defined $login;
   log_out ($agent) if defined $login;
   $submitters_by_item_id{$item_id} = $login unless $ret;
+  save_page ($agent, "$name-$group-$tracker-submit.html") if $ret;
   return $ret;
 }
 
@@ -473,8 +474,8 @@ sub download_file
   my ($agent, $url, $fn) = @_;
   print_test_log ("Downloading file $fn.");
   $agent->get ($url);
-  return $agent->content (raw => 1) unless check_request_status ($agent);
-  save_page ($agent, "$fn-download.html");
+  return $agent->content (raw => 1)
+    unless check_request_status ($agent, "$fn-download.html");
   return undef;
 }
 
@@ -527,7 +528,7 @@ sub remove_attachment
   my ($agent, $fn, $item_id, $file_id) = @_;
   print_test_log ("Removing attachment #$file_id.");
   $agent->get (make_url (comment_page_url ($item_id)));
-  return 1 if check_request_status ($agent);
+  return 1 if check_request_status ($agent, "$fn-status.html");
   my $link = find_file_deletion_link ($agent, $file_id);
   unless (defined $link)
     {
@@ -537,7 +538,7 @@ sub remove_attachment
     }
   print_test_log ('Following deletion link.');
   $agent->get ($link->url ());
-  return 1 if check_request_status ($agent);
+  return 1 if check_request_status ($agent, "$fn-del-status.html");
   return check_if_deletion_is_absent ($agent, $file_id, $fn);
 }
 
@@ -552,11 +553,7 @@ sub try_attach
   fill_anon_check ($form, $name);
   print_test_log ('Submitting file.');
   $agent->click ('submitreturn');
-  if (check_request_status ($agent))
-    {
-      save_page ($agent, "$fn-status.html");
-      return 1;
-    }
+  return 1 if check_request_status ($agent, "$fn-status.html");
   my $file_id = compare_attachment ($agent, $fn, $text);
   return 1 unless defined $file_id;
   my $user = name_to_login ($name);

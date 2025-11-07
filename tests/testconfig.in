@@ -1,0 +1,112 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Visit testconfig.php and check for essential issues.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+
+my $frontenddir = '@frontenddir@';
+my $gnupgdir = "@pkgstatedir@/gnupg";
+
+sub install_gpg_key
+{
+  my $pref = "$frontenddir/php/testing/gpg/rsa";
+  print_test_log ('Installing sample GnuPG key.');
+  try_mkdir ($gnupgdir);
+  chmod 0700, $gnupgdir;
+  my $gpg_version = `@GPG@ --version`;
+  die "Cannot get GnuPG version.\n" unless defined $gpg_version;
+  print_test_log ('@GPG@' . " --version output:\n$gpg_version");
+  system ('@GPG@', '--home', $gnupgdir, '--import', "$pref-pub.asc")
+    && die "Cannot install public GnuPG key.\n";
+  system ('@GPG@', '--home', $gnupgdir, '--import', "$pref-priv.asc")
+    && die "Cannot install private GnuPG key.\n";
+  append_savane_conf ('$sys_gpg_home = "' . $gnupgdir . '";');
+  return 0;
+}
+
+sub check_source_availability
+{
+  my $agent = shift;
+  print_test_log ('Checking source code availability.');
+  my $link = $agent->find_link (text_regex => qr/^savane-[0-9a-f]*\.tar\.gz$/);
+  if (!defined $link)
+    {
+      print_test_error ("Link to source code not found.");
+      save_page ($agent, 'no-source-link.html');
+      return 1;
+    }
+  return check_status_code (unmake_url ($link->url ()), '200');
+}
+
+END {
+  return unless -d $gnupgdir;
+  print_test_log ('Removing GnuPG directory.');
+  system ('rm', '-f', '-r', $gnupgdir);
+}
+
+PrintVersionOrHelp ('Visit testconfig.php and check for essential issues.');
+
+my $exit_code = 2;
+exit (1) if install_gpg_key ();
+my $agent = make_agent (0) or exit (1);
+my $url = 'testconfig.php';
+
+print_test_log ('Visiting testconfig.php.');
+$agent->get (make_url ('testconfig.php'));
+$exit_code = 1 if check_request_status ($agent, 'testconfig-status.html');
+
+if ($agent->content (raw => 1) =~ /<p id='no-tests-failed'>/)
+  {
+    print_test_result ('No essential tests failed on the page.');
+  }
+else
+  {
+    $exit_code = 1;
+    print_test_error ('Some tests failed.');
+    save_page ($agent, 'testconfig.html');
+  }
+$exit_code = 1 if check_source_availability ($agent);
+$exit_code = 0 if $exit_code == 2;
+print_test_result ("Test done.") unless $exit_code;
+exit ($exit_code);

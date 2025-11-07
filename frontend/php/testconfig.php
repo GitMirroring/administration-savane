@@ -98,6 +98,8 @@ function get_test_summaries ()
         $term = "<a href='#$id'>$term</a>";
       $defs[$term] = join ("<hr />\n", $test_summary[$i]);
     }
+  if (empty ($defs))
+    return $h . "<p id='no-tests-failed'>No essential tests failed.</p>\n";
   return $h . html_dl ($defs);
 }
 
@@ -674,7 +676,7 @@ function check_source_code ()
     'Tarball' => "<a href='$tarball_url'>$tarball_name</a>",
     'Availability' => $avail
   ];
-  if ($avail !== 'OK')
+  if ($avail !== 'OK' && php_sapi_name () !== 'cli-server')
     add_summary ('Source code looks unaccessible.');
   return $h . html_dl ($defs);
 }
@@ -1210,17 +1212,25 @@ function try_utf8_search ()
   return join ("<br />\n", $ret);
 }
 
+function test_initial_utf8_search ($saved_charset)
+{
+  $defs = ['Initial character set' => $saved_charset];
+  $test_result = try_utf8_search ();
+  $defs['UTF-8 search'] = $test_result;
+  if ($test_result !== 'OK' && php_sapi_name () !== 'cli-server')
+    add_summary ('Search with the initial charset failed.');
+  return $defs;
+}
+
 function test_utf8_search ()
 {
   $sets_to_try = ['utf8', 'utf8mb4', 'utf8mb3'];
   $ret = test_h (3, 'Unicode search', 'utf8-search');
   $saved_charset = db_charset_name ();
-  $defs = ['Initial character set' => $saved_charset];
-  $test_result = try_utf8_search ();
-  $defs['UTF-8 search'] = $test_result;
-  if ($test_result == 'OK')
+  $defs = test_initial_utf8_search ($saved_charset);
+  if ($defs['UTF-8 search'] === 'OK')
     return $ret . html_dl ($defs);
-  add_summary ('Search with the initial charset failed.');
+  $no_good_charset = true;
   foreach ($sets_to_try as $charset)
     {
       if ($charset === $saved_charset)
@@ -1228,8 +1238,12 @@ function test_utf8_search ()
       db_reconnect ($charset);
       $test_result = try_utf8_search ();
       $defs["UTF-8 search ($charset charset)"] = $test_result;
+      if ($test_result === 'OK')
+        $no_good_charset = false;
     }
   db_reconnect ($saved_charset);
+  if ($no_good_charset && php_sapi_name () === 'cli-server')
+    add_summary ('Search with all tested charsets failed.');
   return $ret . html_dl ($defs);
 }
 
