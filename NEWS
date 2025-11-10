@@ -6,6 +6,10 @@
   the files and launches the server; previously, it exited with a warning
   whenever the PID file existed, without further action.
 
+[I18N]
+
+* Update French, German, Hebrew, Romanian.
+
 [BUILD]
 
 * New test in tests/, 'testconfig'.
