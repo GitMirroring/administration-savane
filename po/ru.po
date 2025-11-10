@@ -48,7 +48,7 @@ msgstr ""
 "Project-Id-Version: savane 3.15\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
 "POT-Creation-Date: 2025-10-26 13:20+0000\n"
-"PO-Revision-Date: 2025-10-26 15:44+0000\n"
+"PO-Revision-Date: 2025-11-10 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -3313,6 +3313,9 @@ msgid "Administration Summary"
 msgstr "Меню администрирования"
 
 msgid "Search in this group"
+msgstr "Поиск в этой группе"
+
+msgid "Search in this Group"
 msgstr "Поиск в этой группе"
 
 msgid "Summary"
