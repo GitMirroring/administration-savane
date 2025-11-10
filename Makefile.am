@@ -148,6 +148,7 @@ endif
 subst_in_files = \
   ${SED} \
     -e 's,[@]GIT[@],$(GIT),g' \
+    -e 's,[@]GPG[@],$(GPG),g' \
     -e 's,[@]PERL[@],$(PERL),g' \
     -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
     -e 's,[@]PACKAGE_TARNAME[@],$(PACKAGE_TARNAME),g' \

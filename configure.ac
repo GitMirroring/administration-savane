@@ -68,6 +68,9 @@ AC_ARG_VAR([PHP], [PHP executable])
 AC_PATH_PROG([SENDMAIL], [sendmail])
 AC_ARG_VAR([SENDMAIL], [sendmail executable])
 
+AC_PATH_PROG([GPG], [gpg])
+AC_ARG_VAR([GPG], [GnuPG executable])
+
 # Look for Apache2 and database server, needed for local testing.
 AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [], [$PATH$PATH_SEPARATOR/usr/sbin])
 AC_ARG_VAR([WWW_SERVER_BIN], [Apache2 executable])
