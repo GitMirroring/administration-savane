@@ -95,4 +95,7 @@ $sys_vcs_dir['git']['dir'] = "@pkgstatedir@/git";
 $sys_vcs_dir['cvs']['dir'] = [
   'sources' => "@pkgstatedir@/cvs/sources", 'web' => "@pkgstatedir@/cvs/web"
 ];
+$sys_gpg_name = "@GPG@";
+if ($sys_gpg_name === 'not found')
+  unset ($sys_gpg_name);
 ?>
