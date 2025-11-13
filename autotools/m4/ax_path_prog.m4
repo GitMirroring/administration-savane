@@ -1,4 +1,4 @@
-dnl A shortcut for AC_PATH_PROG with AC_ARG_VAR
+dnl A shortcut for a summarizing AC_PATH_PROG with AC_ARG_VAR
 
 dnl Copyright (C) 2025 Ineiev <ineiev@gnu.org>
 
@@ -24,5 +24,19 @@ AC_DEFUN([AX_PATH_PROG],
         AS_CASE(["x$5"], [x], [], [AC_MSG_ERROR([$5])])
       ]
     )
+    ax_pp_arg="[$3] ("'$'"[$1])"
+    ax_pp_arg=`AS_ECHO(["${ax_pp_arg}: $[$1]"]) | ${SED} "s/[[\t ]]/+/g; q"`
+    ax_path_progs="$ax_path_progs ${ax_pp_arg}"
+  ]
+)
+
+dnl Report the accumulated results of AX_PATH_PROG runs.
+
+AC_DEFUN([AX_PATH_PROG_REPORT],
+  [
+    for prog in $ax_path_progs
+    do
+      AS_ECHO(["`echo $prog | ${SED} 's/+/ /g'`"])
+    done
   ]
 )

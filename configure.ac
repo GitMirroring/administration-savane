@@ -323,6 +323,7 @@ AC_OUTPUT
 
 AS_ECHO([])
 AS_ECHO(["Configured $PACKAGE_STRING"])
+AX_PATH_PROG_REPORT
 AS_ECHO(["Git commit: $SV_GIT_COMMIT ($commit_source)"])
 AS_ECHO(["Prefix: $prefix"])
 AS_ECHO(["Configuration directory: $SV_CONF"])
