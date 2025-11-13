@@ -1,4 +1,4 @@
-Copyright (C) 2024 Ineiev <ineiev@gnu.org>
+Copyright (C) 2024, 2025 Ineiev <ineiev@gnu.org>
 
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice
@@ -13,5 +13,5 @@ from gettext-0.21.1 (po.m4 is modified in Savane).
 ax_perl_module_version.m4 come from autoconf-archive-2023.02.20,
 then was modified.
 
-ax_gen_changelog.m4 was written for Savane, but isn't considered
-a part of it for consistency with the other files in this directory.
+ax_gen_changelog.m4 and ax_path_prog.m4 were written for Savane, but are not
+considered a part of it for consistency with the other files in this directory.

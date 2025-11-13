@@ -72,6 +72,8 @@ $sys_name = "Savannah-dev";
 $sys_unix_group_name = "administration";
 $sys_themedefault = "Savannah";
 $sys_graphviz = '@GRAPHVIZ_BIN@';
+if ($sys_graphviz === 'not found')
+  unset ($sys_graphviz);
 
 # Directory for group registration uploads.
 $sys_upload_dir = "@pkgstatedir@/submissions_uploads/";

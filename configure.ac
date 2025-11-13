@@ -58,40 +58,26 @@ AC_SUBST([DIRNAME],
   [['${SED} -e "s,\([^/]\)/*$$,\1,;tb;:b;s,^[^/]*$$,.,;tq;" \
     -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']]
 )
-AC_PATH_PROG([PERL], [perl])
-AS_CASE(["x$PERL"], [x], [AC_MSG_ERROR([Perl not found])])
-AC_ARG_VAR([PERL], [Perl executable])
-
-AC_PATH_PROG([PHP], [php])
-AC_ARG_VAR([PHP], [PHP executable])
-
-AC_PATH_PROG([SENDMAIL], [sendmail])
-AC_ARG_VAR([SENDMAIL], [sendmail executable])
-
-AC_PATH_PROG([GPG], [gpg])
-AC_ARG_VAR([GPG], [GnuPG executable])
+AX_PATH_PROG([PERL], [perl], [Perl executable], [], [Perl not found])
+AX_PATH_PROG([PHP], [php], [PHP executable])
+AX_PATH_PROG([SENDMAIL], [sendmail], [sendmail executable])
+AX_PATH_PROG([GPG], [gpg], [GnuPG executable])
 
 # Look for Apache2 and database server, needed for local testing.
-AC_PATH_PROG([WWW_SERVER_BIN], [apache2], [], [$PATH$PATH_SEPARATOR/usr/sbin])
-AC_ARG_VAR([WWW_SERVER_BIN], [Apache2 executable])
-AC_PATH_PROG([MYSQLD_BIN], [mysqld], [], [$PATH$PATH_SEPARATOR/usr/sbin])
-AC_ARG_VAR([MYSQLD_BIN], [MariaDB daemon])
-AC_PATH_PROG([MYSQLD_SAFE_BIN], [mysqld_safe], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin]
+apache_path="$PATH$PATH_SEPARATOR/usr/sbin"
+AX_PATH_PROG([WWW_SERVER_BIN], [apache2], [Apache2 executable], [$apache_path])
+AX_PATH_PROG([MYSQLD_BIN], [mysqld], [MariaDB daemon], [$apache_path])
+AX_PATH_PROG([MYSQLD_SAFE_BIN],
+  [mysqld_safe], [MariaDB 'safe' daemon], [$apache_path]
 )
-AC_ARG_VAR([MYSQLD_SAFE_BIN], [MariaDB 'safe' daemon])
-AC_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db], [],
-  [$PATH$PATH_SEPARATOR/usr/sbin]
+AX_PATH_PROG([MYSQL_INSTALLDB_BIN], [mysql_install_db],
+  [mysql_install_db executable], [$apache_path]
 )
-AC_ARG_VAR([MYSQL_INSTALLDB_BIN], [mysql_install_db executable])
-AC_PATH_PROG([MYSQL_BIN], [mysql])
-AC_ARG_VAR([MYSQL_BIN], [Database client])
-AS_CASE(["x$MYSQL_BIN"], [x], [AC_MSG_ERROR([Database client not found])])
-AC_PATH_PROG([GRAPHVIZ_BIN], [dot])
-AC_ARG_VAR([GRAPHVIZ_BIN], [Graphviz executable])
-
-AC_PATH_PROG([GIT], [git])
-AC_ARG_VAR([GIT], [Git executable])
+AX_PATH_PROG([MYSQL_BIN], [mysql], [Database client],
+  [], [Database client not found]
+)
+AX_PATH_PROG([GRAPHVIZ_BIN], [dot], [Graphviz executable])
+AX_PATH_PROG([GIT], [git], [Git executable])
 
 AX_GEN_CHANGELOG
 
