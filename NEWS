@@ -1,5 +1,9 @@
 ????-??-?? 3.17
 
+[FRONTEND]
+
+* Support for PHP 8.5 is declared.
+
 [BACKEND]
 
 * sv_launch_db.pl checks if the server process exists; if not, it cleans up

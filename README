@@ -122,7 +122,7 @@ Run Time
 * Curl (Savannah-specific: triggering web page updates on changes in CVS)
 * Grep
 * GnuPG
-* PHP 5.{4,5,6}, 7.{0,1,2,3,4}, 8.{0,1,2,3,4} - frontend
+* PHP 5.{4,5,6}, 7.{0,1,2,3,4}, 8.{0,1,2,3,4,5} - frontend
 ** Text_CAPTCHA (php-text-captcha, php-image-text in Trisquel)
 ** mysqli extension (php-mysqli in Trisquel)
 ** mailparse extension (php-mailparse in Trisquel) - comments on trackers
