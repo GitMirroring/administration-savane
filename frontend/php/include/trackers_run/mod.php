@@ -91,6 +91,7 @@ foreach (['comment', 'file'] as $pre)
 $preambles = group_get_preference  ($group_id, $preambles);
 
 $fill_fields_from_request = $preview || !empty ($form_check_submit);
+$field_list = null;
 if ($fill_fields_from_request)
   $field_list = trackers_extract_field_list ();
 
@@ -261,74 +262,81 @@ function mandatory_sign ($submitter, $field)
   return '';
 }
 
+function field_is_hidden ($field, $submitter, $is_trackeradmin, $is_manager)
+{
+  if (!trackers_data_is_used ($field))
+    return true;
+
+  if (trackers_data_is_special ($field))
+    {
+      if (!$is_trackeradmin)
+        return true;
+      # If we are on the cookbook, details (a special field) must be
+      # allowed too.
+      if (
+        $field != 'summary' && !(ARTIFACT == 'cookbook' && $field == 'details')
+      )
+        return true;
+    }
+  # Print the originator email field only if the submitter was anonymous.
+  if ($field == 'originator_email' && $submitter != '100')
+    return true;
+
+  if ($field == 'discussion_lock' && !$is_manager)
+    return true;
+  return false;
+}
+
+function get_field_value ($field, $field_list, $nocache)
+{
+  global $res_arr, $fill_fields_from_request, $is_trackeradmin;
+
+  if (
+    (empty ($GLOBALS[$field]) || $nocache)
+    && !($fill_fields_from_request && $is_trackeradmin)
+  )
+    return $res_arr[$field];
+  if ($fill_fields_from_request && isset ($field_list[$field]))
+    {
+      $GLOBALS[$field] = $field_list[$field];
+      if (trackers_data_is_date_field ($field))
+        {
+          list ($yr, $mn, $dy) = preg_split ("/-/", $GLOBALS[$field]);
+          $GLOBALS[$field] = mktime (0, 0, 0, $mn, $dy, $yr);
+        }
+    }
+  if (isset ($GLOBALS[$field)])
+    return utils_specialchars ($GLOBALS[$field]);
+  trigger_error ("Field value is not set for '$field'.");
+  return null;
+}
+
 $item_assigned_to = null;
 $i = 0; # Field counter.
 
-while ($field_name = trackers_list_all_fields ())
+if (!isset ($nocache))
+  $nocache = false;
+while ($field = trackers_list_all_fields ())
   {
-    # If the field is not used by the group, skip it.
-    if (!trackers_data_is_used ($field_name))
+    if (field_is_hidden ($field, $submitter, $is_trackeradmin, $is_manager))
       continue;
 
-    # If the field is a special field (not summary) then skip it.
-    if (trackers_data_is_special ($field_name))
-      {
-        if (!$is_trackeradmin)
-          continue;
-        # If we are on the cookbook, details (a special field) must be
-        # allowed too.
-        if (
-          $field_name != 'summary'
-          && !(ARTIFACT == 'cookbook' && $field_name == 'details')
-        )
-          continue;
-      }
+    # Display the field.
+    # If field size is greater than max_size, then force it to appear alone
+    # on a new line or it won't fit in the page.
 
-    #  Print the originator email field only if the submitter was anonymous.
-    if ($field_name == 'originator_email' && $submitter != '100')
-      continue;
+    # Look for the field value in the database only if we miss its values.
+    # If we already have a value, we are probably in step 2 of a search.
+    $field_value = get_field_value ($field, $field_list, $nocache);
 
-    if ($field_name == 'discussion_lock' && !$is_manager)
-      continue;
-
-    # Display the bug field.
-    # If field size is greatest than max_size chars then force it to
-    # appear alone on a new line or it won't fit in the page.
-
-    # Look for the field value in the database only if we missing
-    # its values. If we already have a value, we are probably in
-    # step 2 of a search.
-
-    # If nocache is set, we were explicitely asked to rely only
-    # on database content.
-    if (!isset ($nocache))
-      $nocache = false;
-    if ((empty ($$field_name) || $nocache)
-      && !($fill_fields_from_request && $is_trackeradmin)
-    )
-      $field_value = $res_arr[$field_name];
-    else
-      {
-        if ($fill_fields_from_request && isset ($field_list[$field_name]))
-          {
-            $$field_name = $field_list[$field_name];
-            if (trackers_data_is_date_field ($field_name))
-              {
-                list ($yr, $mn, $dy) = preg_split ("/-/", $$field_name);
-                $$field_name = mktime (0, 0, 0, $mn, $dy, $yr);
-              }
-          }
-        if (isset ($$field_name))
-          $field_value = utils_specialchars ($$field_name);
-      }
-    list ($sz,) = trackers_data_get_display_size ($field_name);
+    list ($sz,) = trackers_data_get_display_size ($field);
     $label = trackers_field_label_display (
-      $field_name, $group_id, false, false
+      $field, $group_id, false, false
     );
-    if ($field_name == 'assigned_to')
+    if ($field == 'assigned_to')
       {
         $item_assigned_to = trackers_field_display (
-          $field_name, $group_id, $field_value, false, false, true
+          $field, $group_id, $field_value, false, false, true
         );
         $value = utils_user_link (
           user_getname ($field_value), user_getrealname ($field_value)
@@ -338,34 +346,34 @@ while ($field_name = trackers_list_all_fields ())
     # assigned_to, status_id and priority too, for technicians
     # (if super_user, do nothing).
     if (!$is_manager
-        && (in_array ($field_name,
+        && (in_array ($field,
             ['status_id', 'assigned_to', 'priority', 'originator_email'])))
       {
         $value = trackers_field_display (
-          $field_name, $group_id, $field_value, false, false, true
+          $field, $group_id, $field_value, false, false, true
         );
-        if ($field_name == 'originator_email')
+        if ($field == 'originator_email')
           $value = utils_email_basic ($value);
       }
     else
       $value = trackers_field_display (
-        $field_name, $group_id, $field_value, false, false,
+        $field, $group_id, $field_value, false, false,
         $ro_fields, false, false, _("None"), false, _("Any"), true
       );
 
-    $label .= mandatory_sign ($submitter, $field_name);
+    $label .= mandatory_sign ($submitter, $field);
     $field_class = '';
 
-    cookbook_print_form ($field_name, $field_class);
+    cookbook_print_form ($field, $field_class);
 
     if ($previous_form_bad_fields
-        && array_key_exists ($field_name, $previous_form_bad_fields))
+        && array_key_exists ($field, $previous_form_bad_fields))
       $field_class = ' class="highlight"';
     $td = "<td valign='middle'$field_class";
 
     if ($sz > $max_size)
       {
-        $row_class = trackers_get_row_class ($field_name);
+        $row_class = trackers_get_row_class ($field);
 
         print "\n<tr$row_class>$td width='15%'>$label</td>\n$td colspan=\""
           . (2 * $fields_per_line - 1) . '" width="75%">'
@@ -379,12 +387,12 @@ while ($field_name = trackers_list_all_fields ())
         # Every one out of two, prepare the background color change.
         # We do that at this moment because we cannot be sure
         # there will be another field on this line.
-        $row_class = trackers_get_row_class ($field_name);
+        $row_class = trackers_get_row_class ($field);
         print  "\n<tr$row_class>";
       }
     print "$td width='15%'>$label</td>\n$td width='35%'>$value</td>\n";
     print (++$i % $fields_per_line? "\n": "</tr>\n");
-  } # while ($field_name = trackers_list_all_fields ())
+  } # while ($field = trackers_list_all_fields ())
 
 print "</table>\n";
 if ($enable_comments)
