@@ -305,10 +305,8 @@ function get_field_value ($field, $field_list, $nocache)
           $GLOBALS[$field] = mktime (0, 0, 0, $mn, $dy, $yr);
         }
     }
-  if (isset ($GLOBALS[$field)])
+  if (array_key_exists ($field, $GLOBALS))
     return utils_specialchars ($GLOBALS[$field]);
-  trigger_error ("Field value is not set for '$field'.");
-  return null;
 }
 
 $item_assigned_to = null;
