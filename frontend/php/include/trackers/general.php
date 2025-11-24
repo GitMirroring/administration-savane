@@ -1862,4 +1862,53 @@ function trackers_handle_item_subscription ($func, $item_id, $group_id)
     trackers_add_cc ($item_id, user_getname (), TRACKERS_CC_SUBSCRIBED);
   trackers_init ($group_id);
 }
+
+function trackers_get_field_class ($field)
+{
+  global $previous_form_bad_fields;
+  if ($previous_form_bad_fields
+      && array_key_exists ($field, $previous_form_bad_fields))
+    return ' class="highlight"';
+  return '';
+}
+
+function trackers_print_new_row (&$i, $field)
+{
+  global $fields_per_line;
+  if ($i % $fields_per_line)
+    return;
+  $row_class = trackers_get_row_class ($field);
+  print "\n<tr$row_class>";
+  $i = 0;
+}
+
+function trackers_print_field_cell ($field, $label, $value)
+{
+  global $max_size, $fields_per_line;
+  static $i = 0;
+  list ($sz,) = trackers_data_get_display_size ($field);
+  $td = "<td valign='middle'" . trackers_get_field_class ($field);
+  # If field size is greater than max_size, then force it to appear alone
+  # on a new line or it won't fit in the page.
+  if ($sz > $max_size)
+    {
+      $i = 0;
+      trackers_print_new_row ($i, $field);
+      print "$td width='15%'>$label</td>\n$td colspan='"
+        . (2 * $fields_per_line - 1) . "' width='75%'>$value</td>\n</tr>\n";
+      return;
+    }
+  trackers_print_new_row ($i, $field);
+  print "$td width='15%'>$label</td>\n$td width='35%'>$value</td>\n";
+  print (++$i % $fields_per_line? "\n": "</tr>\n");
+}
+
+function trackers_anon_captcha ($value = '')
+{
+  return '<p class="noprint">'
+    . _("Please enter the title of <a\n"
+        . "href=\"https://en.wikipedia.org/wiki/George_Orwell\">George "
+        . "Orwell</a>'s famous\ndystopian book (it's a date):")
+    . "\n" . form_input ('text', 'check', $value) . "</p>\n";
+}
 ?>

@@ -144,7 +144,7 @@ function field_star_value ($field, $group_id, $field_value)
     $field, $group_id, $field_value, false, false, false,
     false, false, false, false, false, true, $mandatory_flag
   );
-  return [$star, $value];
+  return "$value$star";
 }
 
 show_preamble ($group_id);
@@ -153,62 +153,22 @@ show_form_caption ($group_id);
 $i = 0;
 $is_trackeradmin = member_check (0, $group_id, 2);
 
-while ($field_name = trackers_list_all_fields ())
+while ($field = trackers_list_all_fields ())
   {
-    if (filter_field ($field_name, $is_trackeradmin))
+    if (filter_field ($field, $is_trackeradmin))
       continue;
 
-    $field_value = get_field_value ($field_name);
-    $label = get_field_label ($field_name, $group_id);
-    list ($star, $value) =
-      field_star_value ($field_name, $group_id, $field_value);
-    $field_class = '';
+    $field_value = get_field_value ($field);
+    $label = get_field_label ($field, $group_id);
+    $value = field_star_value ($field, $group_id, $field_value);
 
     if ($is_trackeradmin)
-      cookbook_print_form ($field_name, $field_class);
+      cookbook_print_form ($field, '');
+    trackers_print_field_cell ($field, $label, $value);
+  } # while ($field = trackers_list_all_fields ())
 
-    # We highlight fields that were not properly/completely
-    # filled.
-    if (!empty ($previous_form_bad_fields)
-        && array_key_exists ($field_name, $previous_form_bad_fields))
-      $field_class = ' class="highlight"';
-
-    # If field size is greatest than max_size chars, then force it to
-    # appear alone on a new line or it won't fit in the page.
-    list ($sz,) = trackers_data_get_display_size ($field_name);
-    if ($sz > $max_size)
-      {
-        $row_class = trackers_get_row_class ($field_name);
-        # Field getting one line for itself.
-        # Each time prepare the background color change.
-        print "\n<tr$row_class>"
-          . "<td valign='middle'$field_class width='15%'>$label</td>\n"
-          . "<td valign='middle'$field_class colspan=\""
-          . (2 * $fields_per_line - 1) . '" width="75%">'
-          . "$value$star</td>\n</tr>\n";
-        $i = 0;
-      }
-    else
-      {
-       print "\n";
-        # Field getting half of a line for itself.
-        if (!($i % $fields_per_line))
-          {
-            # Every one out of two, prepare the background color change.
-            # We do that at this moment because we cannot be sure
-            # there will be another field on this line.
-            $row_class = trackers_get_row_class ($field_name);
-            print "<tr$row_class>";
-          }
-        print "<td valign='middle'$field_class width='15%'>$label</td>\n"
-          . "<td valign='middle'$field_class width='35%'>$value$star</td>\n";
-        print (++$i % $fields_per_line? "\n": "</tr>\n");
-      }
-  } # while ($field_name = trackers_list_all_fields ())
-
-print "</table>\n";
-print
-  '<p><span class="warn smaller">* ' . _("Mandatory Fields") . "</span></p>\n";
+print "</table>\n<p>"
+ . '<span class="warn smaller">* ' . _("Mandatory Fields") . "</span></p>\n";
 
 if ($preview)
   {
@@ -255,11 +215,7 @@ if (empty ($fields['check']))
 else
   $check = $fields['check'];
 if (!user_isloggedin ())
-  print '<p class="noprint">'
-    . _("Please enter the title of <a\n"
-        . "href=\"https://en.wikipedia.org/wiki/George_Orwell\">George "
-        . "Orwell</a>'s famous\ndystopian book (it's a date):")
-    . "\n" . form_input ('text', 'check', $check) . "</p>\n";
+  print trackers_anon_captcha ($check);
 
 print '<div align="center">';
 $int_trapisset = true;

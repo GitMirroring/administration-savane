@@ -338,38 +338,13 @@ function get_field_class ($field)
   return '';
 }
 
-function print_new_row (&$i, $field)
-{
-  global $fields_per_line;
-  if ($i % $fields_per_line)
-    return;
-  $row_class = trackers_get_row_class ($field);
-  print "\n<tr$row_class>";
-  $i = 0;
-}
-
 function print_field ($field, $value, $label, $submitter)
 {
   global $max_size, $fields_per_line;
   static $i = 0;
   $label .= mandatory_sign ($submitter, $field);
-  list ($sz,) = trackers_data_get_display_size ($field);
-
   cookbook_print_form ($field, '');
-  $td = "<td valign='middle'" . get_field_class ($field);
-  # If field size is greater than max_size, then force it to appear alone
-  # on a new line or it won't fit in the page.
-  if ($sz > $max_size)
-    {
-      $i = 0;
-      print_new_row ($i, $field);
-      print "$td width='15%'>$label</td>\n$td colspan='"
-        . (2 * $fields_per_line - 1) . "' width='75%'>$value</td>\n</tr>\n";
-      return;
-    }
-  print_new_row ($i, $field);
-  print "$td width='15%'>$label</td>\n$td width='35%'>$value</td>\n";
-  print (++$i % $fields_per_line? "\n": "</tr>\n");
+  trackers_print_field_cell ($field, $label, $value);
 }
 
 $item_assigned_to = null;
@@ -852,16 +827,8 @@ if ($is_manager && ARTIFACT != "cookbook")
 
 if ($enable_comments)
   {
-    # Minimal anti-spam.
     if (!user_isloggedin ())
-      print '<p class="noprint">'
-        . html_label ("check",
-            _("Please enter the title of <a\n"
-              . "href=\"https://en.wikipedia.org/wiki/George_Orwell\">"
-              . "George Orwell</a>'s famous\ndystopian book (it's a date):")
-          )
-        . " <input type='text' id='check' name='check' /></p>\n";
-
+      print trackers_anon_captcha ();
     print_submit_buttons ();
   }
 print "</form>\n";
