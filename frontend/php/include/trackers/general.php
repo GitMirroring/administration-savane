@@ -181,6 +181,93 @@ function trackers_field_label_display (
   return $output;
 }
 
+function trackers_field_display_sb_ro ($field_name, $value, $group_id, $args)
+{
+  # If multiple values are selected, return a list of <br />-separated values.
+  $arr = $value;
+  if (!is_array ($arr))
+    $arr = [$arr];
+  for ($i = 0;$i < count ($arr); $i++)
+    if ($arr[$i] == 0)
+      $arr[$i] = $args['text_any'];
+    elseif ($arr[$i] == 100 && $field_name != 'percent_complete')
+      $arr[$i] = $args['text_none'];
+    else
+      $arr[$i] = trackers_data_get_value (
+        $field_name, $group_id, $arr[$i]
+      );
+  return join ('<br />', $arr);
+}
+
+function trackers_field_display_sb ($field_name, $value, $group_id, $args)
+{
+  if ($args['ro'])
+    return trackers_field_display_sb_ro ($field_name, $value, $group_id, $args);
+  # If it is a user name field (assigned_to, submitted_by) then make
+  # sure to add the "None" entry in the menu 'coz it's not in the DB.
+  if (trackers_data_is_username_field ($field_name))
+    {
+      $args['show_none'] = true;
+      $args['text_none'] = _('None');
+    }
+
+  if (is_array ($value))
+    return trackers_multiple_field_box (
+      $field_name, '', $group_id, $value, $args['show_none'],
+      $args['text_none'], $args['show_any'], $args['text_any']
+    );
+  return trackers_field_box (
+    $field_name, '', $group_id, $value, $args['show_none'], $args['text_none'],
+    $args['show_any'], $args['text_any'],
+    $args['allowed_transition_only'], $args['show_unknown']
+  );
+}
+
+function trackers_field_display_df ($field_name, $value, $group_id, $args)
+{
+  if ($args['ascii'])
+    return utils_format_date ($value);
+  if ($args['ro'])
+    return utils_format_date ($value);
+  return trackers_field_date (
+    $field_name, empty ($value)? null: date ("Y-m-d", $value)
+  );
+}
+
+function trackers_field_display_tf ($field_name, $value, $group_id, $args)
+{
+  if ($args['ascii'])
+    return utils_unconvert_htmlspecialchars ($value);
+  return $args['ro']? $value: trackers_field_text ($field_name, $value);
+}
+
+function trackers_field_display_ta ($field_name, $value, $group_id, $args)
+{
+  if ($args['ascii'])
+    return markup_ascii ($value);
+  return $args['ro']? markup_full ($value):
+    trackers_field_textarea ($field_name, $value);
+}
+
+function trackers_field_display_unknown ($field_name, $value, $group_id, $args)
+{
+  $display_type = trackers_data_get_display_type ($field_name);
+  $output .= 'Unknown ' . ARTIFACT . ' field display type '
+    . '"' . utils_specialchars ($display_type) . '"';
+}
+
+function trackers_field_display_func ($field_name)
+{
+  $display = [
+    'SB' => 'trackers_field_display_sb', 'DF' => 'trackers_field_display_df',
+    'TF' => 'trackers_field_display_tf', 'TA' => 'trackers_field_display_ta'
+  ];
+  $display_type = trackers_data_get_display_type ($field_name);
+  if (array_key_exists ($display_type, $display))
+     return $display[$display_type];
+  return 'trackers_field_display_unknown';
+}
+
 # Display a bug field either as a read-only value or as a read-write
 # making modification possible.
 # - field_name: name of the column.
@@ -207,92 +294,25 @@ function trackers_field_display (
 )
 {
   $output = '';
+  $arg_names = [
+    'text_any', 'text_none', 'show_none', 'show_any', 'allowed_transition_only',
+    'show_unknown', 'ro', 'ascii'
+  ];
+  $args = [];
+  foreach ($arg_names as $a)
+    $args[$a] = $$a;
+  $display = [
+    'SB' => 'trackers_field_display_sb', 'DF' => 'trackers_field_display_df',
+    'TF' => 'trackers_field_display_tf', 'TA' => 'trackers_field_display_ta'
+  ];
+  $display_type = trackers_data_get_display_type ($field_name);
 
   if ($label)
     $output = trackers_field_label_display (
       $field_name, $group_id, $break, $ascii, $tab
     );
-
-  # Display depends upon display type of this field.
-  switch (trackers_data_get_display_type ($field_name))
-    {
-    case 'SB':
-      if ($ro)
-        {
-          # If multiple values are selected, return a list
-          # of <br />-separated values.
-          $arr = $value;
-          if (!is_array ($arr))
-            $arr = [$arr];
-          for ($i = 0;$i < count ($arr); $i++)
-            {
-              if ($arr[$i] == 0)
-                $arr[$i] = $text_any;
-              elseif ($arr[$i] == 100 && $field_name != 'percent_complete')
-                $arr[$i] = $text_none;
-              else
-                $arr[$i] = trackers_data_get_value (
-                  $field_name, $group_id, $arr[$i]
-                );
-            }
-          $output .= join ('<br />', $arr);
-        }
-      else
-        {
-          # If it is a user name field (assigned_to, submitted_by) then make
-          # sure to add the "None" entry in the menu 'coz it's not in the DB.
-          if (trackers_data_is_username_field ($field_name))
-            {
-              $show_none = true;
-              $text_none = _('None');
-            }
-
-          if (is_array ($value))
-            $output .= trackers_multiple_field_box (
-              $field_name, '', $group_id, $value, $show_none, $text_none,
-              $show_any, $text_any
-            );
-          else
-            $output .= trackers_field_box (
-              $field_name, '', $group_id, $value, $show_none, $text_none,
-              $show_any, $text_any, $allowed_transition_only, $show_unknown
-            );
-        }
-      break;
-
-    case 'DF':
-      if ($ascii)
-        $output .= utils_format_date ($value);
-      else
-        {
-          if ($ro)
-            $output .= utils_format_date ($value);
-          else
-            $output .= trackers_field_date (
-              $field_name, empty ($value)? null: date ("Y-m-d", $value)
-          );
-        }
-      break;
-
-    case 'TF':
-      if ($ascii)
-        $output .= utils_unconvert_htmlspecialchars ($value);
-      else
-        $output .= $ro? $value: trackers_field_text ($field_name, $value);
-      break;
-
-    case 'TA':
-      if ($ascii)
-        $output .= markup_ascii ($value);
-      else
-        $output .= $ro? markup_full ($value):
-          trackers_field_textarea ($field_name, $value);
-      break;
-
-    default:
-      $output .= 'Unknown ' . ARTIFACT . ' Field Display Type';
-    }
-  return $output;
+  $func = trackers_field_display_func ($field_name);
+  return $output . $func ($field_name, $value, $group_id, $args);
 }
 
 function trackers_field_date ($field, $value)
