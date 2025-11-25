@@ -2422,6 +2422,30 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
   return $item_id;
 }
 
+function trackers_data_fetch_value ($group_id, $field_id, $value_id)
+{
+  $sql = "
+    SELECT * FROM " . ARTIFACT . "_field_value
+    WHERE group_id = ? AND value_id = ?";
+  $args = [$group_id, $value_id];
+  if ($field_id !== null)
+    {
+      $sql .= ' AND bug_field_id = ?';
+      $args[] = $field_id;
+    }
+  # Look for group-specific values first...
+  $result = db_execute ($sql, $args);
+  if (db_numrows ($result) > 0)
+    return db_result ($result, 0, 'value');
+
+  # If it fails, look for system-wide default values (group_id = GROUP_NONE).
+  $args[0] = GROUP_NONE;
+  $result = db_execute ($sql, $args);
+  if (db_numrows ($result) > 0)
+    return db_result ($result, 0, 'value');
+  return null;
+}
+
 # Simply return the value associated with a given value_id
 # for a given field of a given group. If associated value not
 # found then return value_id itself with an error message.
@@ -2437,34 +2461,12 @@ function trackers_data_get_value (
 
   if (trackers_data_is_date_field ($field))
     return utils_format_date ($value_id);
+  $field_id = $by_field_id? $field: trackers_data_get_field_id ($field);
 
-  if ($by_field_id)
-    $field_id = $field;
-  else
-    $field_id = trackers_data_get_field_id ($field);
+  $val = trackers_data_fetch_value ($group_id, $field_id, $value_id);
+  if ($val !== null)
+    return $val;
 
-  $sql = "
-    SELECT * FROM " . ARTIFACT . "_field_value
-    WHERE group_id = ? AND value_id = ?";
-  $args = [$group_id, $value_id];
-  if ($field_id !== null)
-    {
-      $sql .= ' AND bug_field_id = ?';
-      $args[] = $field_id;
-    }
-
-  # Look for group-specific values first...
-  $result = db_execute ($sql, $args);
-  if (db_numrows ($result) > 0)
-    return db_result ($result, 0, 'value');
-
-  # If it fails, look for system-wide default values (group_id = GROUP_NONE).
-  $args[0] = GROUP_NONE;
-  $result = db_execute ($sql, $args);
-  if (db_numrows ($result) > 0)
-    return db_result ($result, 0, 'value');
-
-  # No value found for this value id.
   return "$value_id " . _('(Error - Not Found)');
 }
 
