@@ -4,6 +4,11 @@
 
 * Support for PHP 8.5 is declared.
 
+* Bug fixes:
+
+** Notifications for new items listed incorrect values for zero value_id, e.g.
+   'Unlocked' discussion_lock was output as 'Any'.  Savannah sr #111348.
+
 [BACKEND]
 
 * sv_launch_db.pl checks if the server process exists; if not, it cleans up

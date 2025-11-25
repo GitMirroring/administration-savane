@@ -2447,14 +2447,13 @@ function trackers_data_fetch_value ($group_id, $field_id, $value_id)
 }
 
 # Simply return the value associated with a given value_id
-# for a given field of a given group. If associated value not
-# found then return value_id itself with an error message.
+# for a given field of a given group.  If associated value not
+# found then return value_id itself with an error message,
+# or 'None' for zero value_id.
 function trackers_data_get_value (
   $field, $group_id, $value_id, $by_field_id = false
 )
 {
-  if (empty ($value_id))
-    return 'None';
   # submitted_by and assigned_to fields are special select box fields.
   if (($field == 'assigned_to') || ($field == 'submitted_by'))
     return user_getname ($value_id);
@@ -2467,6 +2466,8 @@ function trackers_data_get_value (
   if ($val !== null)
     return $val;
 
+  if (empty ($value_id))
+    return 'None';
   return "$value_id " . _('(Error - Not Found)');
 }
 

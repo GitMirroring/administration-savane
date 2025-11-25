@@ -188,14 +188,15 @@ function trackers_field_display_sb_ro ($field_name, $value, $group_id, $args)
   if (!is_array ($arr))
     $arr = [$arr];
   for ($i = 0;$i < count ($arr); $i++)
-    if ($arr[$i] == 0)
-      $arr[$i] = $args['text_any'];
-    elseif ($arr[$i] == 100 && $field_name != 'percent_complete')
-      $arr[$i] = $args['text_none'];
-    else
-      $arr[$i] = trackers_data_get_value (
-        $field_name, $group_id, $arr[$i]
-      );
+    {
+      if ($arr[$i] == 100 && $field_name != 'percent_complete')
+        $val = $args['text_none'];
+      else
+        $val = trackers_data_get_value ($field_name, $group_id, $arr[$i]);
+      if ($val == 'None' && $arr[$i] == 0)
+        $val = $args['text_any'];
+      $arr[$i] = $val;
+    }
   return join ('<br />', $arr);
 }
 
