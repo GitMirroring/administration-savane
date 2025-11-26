@@ -321,15 +321,60 @@ sub check_submitted_item
   return $item_id;
 }
 
+sub check_submission_subject
+{
+  my ($box, $item_id) = @_;
+  unless ($box =~ s,.*\nSubject: ([^\n]*).*,$1,s)
+    {
+      print_test_error ('Failed to find the subject line in the message.');
+      return 1;
+    }
+  unless ($box =~ /^\[[a-z]+ #$item_id\] request by /)
+    {
+      print_test_error ("Wrong subject '$box'.");
+      return 1;
+    }
+  print_test_result ("Subject line is correct.");
+  return 0;
+}
+
+sub check_discussion_lock
+{
+  my ($box, $item_id) = @_;
+  print_test_log ("Checking for discussion lock value.");
+  unless ($box =~ s,.*\n\s*Discussion Lock: ([^\n]*).*,$1,s)
+    {
+      print_test_error ('Failed to find discussion lock field in the message.');
+      return 1;
+    }
+  unless ($box eq 'Unlocked')
+    {
+      print_test_error ("Wrong discussion lock value '$box'.");
+      return 1;
+    }
+  print_test_result ("The value is correct.");
+  return 0;
+}
+
+sub check_submit_notification
+{
+  my $item_id = shift;
+  my $box = get_mbox (1, 1);
+  print_test_log ("Checking the notification.");
+  my $ret = check_submission_subject ($box, $item_id);
+  $ret = 1 if check_discussion_lock ($box, $item_id);
+  save_text ($box, "$item_id-submit.mbox") if $ret;
+  print_test_result ("The notification looks sane.") unless $ret;
+  return $ret;
+}
+
 sub request_new_item
 {
   my ($agent, $name, $group, $tracker) = @_;
+  my $ret;
   $agent->get (make_url ("$tracker/?group=$group&func=additem"));
   my $form = find_mod_form ($agent, 'request-new-item.html');
-  if (check_submit_fields ($form))
-    {
-      return -1;
-    }
+  return -1 if check_submit_fields ($form);
   fill_new_item_form ($form, $name);
   fill_anon_check ($form, $name);
   print_test_log ('Sending the request.');
@@ -340,9 +385,11 @@ sub request_new_item
 sub check_new_item
 {
   my ($agent, $tracker, $item_id) = @_;
+  my $notif_result = check_submit_notification ($item_id);
   return 1 if $item_id < 0;
   $agent->get (make_url (comment_page_url ($item_id)));
-  return check_request_status ($agent);
+  return 1 if check_request_status ($agent);
+  return $notif_result;
 }
 
 sub user_password
@@ -670,6 +717,7 @@ my $group_id = register_group ($agent, $admin, $group);
 exit (1) if $group_id < 0;
 $registered_groups{$group} = $group_id;
 
+clear_mbox (1);
 foreach (@logins)
   {
     $exit_code = 1 if submit_item ($_, $group, $tracker);

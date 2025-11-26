@@ -50,9 +50,9 @@ require Exporter;
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
-  print_test_log print_test_error print_test_result
+  print_test_log print_test_error print_test_result save_page save_text
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
-  get_group_id save_page append_savane_conf reset_savane_conf register_user
+  get_group_id append_savane_conf reset_savane_conf register_user
   remove_user speed_up_crypt run_cleanup check_request_status try_mkdir
 );
 
@@ -78,16 +78,24 @@ sub try_mkdir
   return 1;
 }
 
+sub save_text
+{
+  my $text = shift;
+  my $file = @_? shift: 'test.txt';
+  my $error = @_? shift: 1;
+  my $fd;
+  print_test_result ("See $file.", $error);
+  open ($fd, '>:encoding(UTF-8)', $file);
+  print {$fd} $text;
+  close ($fd);
+}
+
 sub save_page
 {
   my $agent = shift;
   my $file = @_? shift: 'test.html';
   my $error = @_? shift: 1;
-  my $fd;
-  print_test_result ("See $file.", $error);
-  open ($fd, '>:encoding(UTF-8)', $file);
-  print {$fd} $agent->content (raw => 1);
-  close ($fd);
+  save_text ($agent->content (raw => 1), $file, $error);
 }
 
 sub check_request_status
@@ -284,7 +292,7 @@ sub mbox_path
 
 sub clear_mbox
 {
-  my $silent = @_? shift: 0;
+  my $silent = shift;
   my $path = mbox_path ();
   print_test_log ('Removing mbox file.');
   unless (-f $path)
@@ -297,8 +305,7 @@ sub clear_mbox
 
 sub get_mbox
 {
-  my $clear = shift;
-  my $silent = @_? shift: 0;
+  my ($clear, $silent) = @_;
   my $fd;
   my @ret;
   my $mp = mbox_path ();
