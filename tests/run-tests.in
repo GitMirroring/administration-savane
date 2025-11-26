@@ -55,9 +55,9 @@ my $php_log_name = 'test-php.log';
 my $php_log;
 my $have_launched_db = 0;
 my $help = <<"EOF";
-  Usage: $0 [OPTIONS]
+  Usage: $0 [OPTIONS] [TEST...]
 
-  Run regression tests.
+  Run regression tests.  When TEST... list is empty, all tests are run.
 
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
