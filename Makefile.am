@@ -360,6 +360,6 @@ test:
 	  --disable-db-networking --enable-sample-db --enable-db-test-marker \
 	  --enable-detect-www-port
 	${MAKE} -C test all install
-	for script in ${all_test_scripts}; do chmod +x test/$$script; done
+	cd ./test && chmod a+x ${all_test_scripts}
 	cd ./test/tests && ./run-tests ${RUN_TESTS_ARGS}
 	test 'x${KEEP_TEST}' = xyes || ${RM} -r test
