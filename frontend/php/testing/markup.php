@@ -234,6 +234,22 @@ nomarkup</p>
 
 run_test ($in, $out, $out_html);
 
+$in = "&gt; test +nomarkup+quoted nomarkup-nomarkup- text.\n";
+$out = "> test quoted nomarkup text.\n";
+
+$html_head = "<p><br />\n</p>\n<blockquote class='quote'><p>";
+$html_msg =
+  "&gt; test <span class='nomarkup'>quoted nomarkup</span> text.<br />\n";
+$html_tail = "</p></blockquote>\n<p><br />\n</p>\n";
+
+run_test ($in, "\n$out\n", "$html_head$html_msg$html_tail");
+
+$in .= "$in$in";
+$out .= "$out$out";
+$html_msg .= "$html_msg$html_msg";
+
+run_test ($in, "\n$out\n", "$html_head$html_msg$html_tail");
+
 $in = '
 file #19
 bug #289
