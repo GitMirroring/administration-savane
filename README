@@ -106,6 +106,9 @@ Bootstrapping from Git checkout
 Build Time
 ----------
 
+These are dependencies for Make targets 'all', 'install', 'installcheck', 'dist';
+the 'distcheck' target depends on 'test' (see Regression tests).
+
 * GNU Bash - assumed in Makefiles
 * GNU Coreutils
 * GNU Gettext 0.16.1 or later
@@ -134,13 +137,21 @@ Run Time
 ** Mail::Send (libmailtools-perl in Trisquel)
 ** Geo::IP (libgeo-ip-perl, geoip-database in Trisquel) - mirror-redirect
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
-** WWW::Mechanize (libwww-mechanize-perl in Trisquel) - regression tests
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
 * MariaDB (MySQL may also work)
 * Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel) - frontend
 * Pwqcheck (passwdqc in Trisquel) - handling new passwords in frontend
 * Graphviz (graphviz in Trisquel) - frontend, optionally displaying inter-item
     dependency graphs.
+
+Regression tests
+----------------
+
+Regression tests are invoked as the 'test' Make target and assume all build
+time and run time dependencies, including optional ones, plus an additional
+Perl module,
+
+* WWW::Mechanize (libwww-mechanize-perl in Trisquel)
 
 Documentation
 =============
