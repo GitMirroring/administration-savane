@@ -79,6 +79,20 @@ function format_file_url_path ($file, $public)
   return utils_public_file_url ($file);
 }
 
+function run_test ($in, $out, $out_html)
+{
+  $res = markup_ascii ($in);
+
+  if ($out !== $res)
+    print "markup_ascii doesn't match\nexpected:\n$out\nresult:\n$res\n"
+      . "input:\n$in\n";
+
+  $res = markup_full ($in);
+  if ($out_html !== $res)
+    print "markup_full doesn't match\nexpected:\n$out_html\nresult:\n$res\n"
+      . "input:\n$in\n";
+}
+
 $in = '= Title =
 0 item 1
 0* item 1.1
@@ -183,20 +197,6 @@ $out_html = '<h2>Title</h2>
 <p><br />
 </p>
 ';
-
-function run_test ($in, $out, $out_html)
-{
-  $res = markup_ascii ($in);
-
-  if ($out !== $res)
-    print "markup_ascii doesn't match\nexpected:\n$out\nresult:\n$res\n"
-      . "input:\n$in\n";
-
-  $res = markup_full ($in);
-  if ($out_html !== $res)
-    print "markup_full doesn't match\nexpected:\n$out_html\nresult:\n$res\n"
-      . "input:\n$in\n";
-}
 
 run_test ($in, $out, $out_html);
 
