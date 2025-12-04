@@ -550,6 +550,11 @@ function markup_inline_ascii_chunk ($text)
   return $ret;
 }
 
+function markup_quote_ascii_chunk ($ch, &$state)
+{
+  return markup_inline_ascii_chunk ($ch);
+}
+
 # The version of markup_build_chunk () for ASCII output.  Most things
 # are very simple, but ordered lists need extra computations.
 function markup_build_ascii ($ch, &$state)
@@ -558,10 +563,10 @@ function markup_build_ascii ($ch, &$state)
     $state = ['stack' => [], 'length' => 0];
   if (!is_array ($ch))
     return markup_inline_ascii_chunk ($ch);
-  $pass_tags = ['verbatim', 'nomarkup', 'quote'];
+  $pass_tags = ['verbatim', 'nomarkup'];
   if (in_array ($ch[0], $pass_tags))
     return "$ch[1]\n";
-  $func_tags = [];
+  $func_tags = ['quote'];
   foreach (['o', 'u'] as $lt)
     foreach (['-start', 'li', 'li-end', '-end'] as $stage)
       $func_tags[] = "$lt$stage";

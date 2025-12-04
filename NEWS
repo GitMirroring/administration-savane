@@ -9,6 +9,13 @@
 ** Notifications for new items listed incorrect values for zero value_id, e.g.
    'Unlocked' discussion_lock was output as 'Any'.  Savannah sr #111348.
 
+** The +nomarkup+...-nomarkup- tags in quoted texts weren't processed
+   in the text mode: in email notifications, they looked like,
+     > +nomarkup+void f (char* a, int* b)-nomarkup-
+   instead of
+     > void f (char* a, int* b)
+   Savannah sr #111351.
+
 [BACKEND]
 
 * sv_launch_db.pl checks if the server process exists; if not, it cleans up
