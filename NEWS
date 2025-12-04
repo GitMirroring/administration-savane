@@ -16,6 +16,9 @@
      > void f (char* a, int* b)
    Savannah sr #111351.
 
+** The checked attribute of radio buttons was set incorrectly since 1ed5905db
+   (2025-10).  Reported by Luis Falcon on sv-hackers-public@.
+
 [BACKEND]
 
 * sv_launch_db.pl checks if the server process exists; if not, it cleans up

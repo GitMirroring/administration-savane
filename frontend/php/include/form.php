@@ -124,7 +124,9 @@ function form_radio ($name, $value, $attr)
 {
   $label = form_set_label_attr ($attr);
   if (!empty ($attr['checked']))
-    $attr['checked'] .= 'checked';
+    $attr['checked'] = 'checked';
+  else
+    unset ($attr['checked']);
   if (empty ($attr['id']) && $label)
     $attr['id'] = "val_{$value}_$name";
   $extra = html_attr_str ($attr);
