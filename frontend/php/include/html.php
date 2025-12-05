@@ -430,7 +430,9 @@ function html_image_get_size ($src, $path)
   if (!array_key_exists ($src, $img_attr) && is_file ($path))
     list ($width, $height, $type, $img_attr[$src]) =
       @getimagesize ($path);
-  return $img_attr[$src];
+  if (array_key_exists ($src, $img_attr))
+    return ' ' . $img_attr[$src];
+  return '';
 }
 
 # Compile attributes for <img /> and <input type="image" />.
@@ -450,7 +452,7 @@ function html_image_attributes ($src, $args)
   $return = html_attr_str ($args, '"');
   # If there is neither height nor width tag, insert them both.
   if (empty ($args['height']) && empty ($args['width']))
-    $return .= ' ' . html_image_get_size ($src, $path);
+    $return .= html_image_get_size ($src, $path);
 
   return $return;
 }
