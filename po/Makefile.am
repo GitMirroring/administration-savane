@@ -36,6 +36,7 @@ POTFILES = \
 	frontend/php/bugs/admin/notification_settings.php \
 	frontend/php/testing/account.php \
 	frontend/php/testing/error.php \
+	frontend/php/testing/form.php \
 	frontend/php/testing/sane.php \
 	frontend/php/testing/markup.php \
 	frontend/php/testing/format_date.php \

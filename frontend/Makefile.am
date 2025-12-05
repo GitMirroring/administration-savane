@@ -557,6 +557,7 @@ ordinary_files = \
   php/testconfig.php \
   php/testing/account.php \
   php/testing/error.php \
+  php/testing/form.php \
   php/testing/format_date.php \
   php/testing/internal_strftime.php \
   php/testing/gpg/ecc25519-pub.asc \
@@ -775,9 +776,11 @@ installcheck_local_targets = installcheck-run-tests installcheck-test-symlinks \
 .PHONY: $(installcheck_local_targets)
 installcheck-local: $(installcheck_local_targets)
 
+PHP_CHECKS = account form error format_date internal_strftime markup sane utils
+
 installcheck-run-tests: ; \
   cd $(dest_dir)/php; \
-  for t in account error format_date internal_strftime markup sane utils; do \
+  for t in ${PHP_CHECKS}; do \
     res=`$(PHP) -c $(DESTDIR)$(confdir)/php.ini \
         testing/$$t.php -- INSTALLCHECK BINDIR=$(DESTDIR)$(bindir) \
       || echo Exit code of \
