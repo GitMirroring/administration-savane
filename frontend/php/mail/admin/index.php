@@ -45,8 +45,6 @@ require_once ('../../include/init.php');
 require_once ('../../include/account.php');
 require_once ('../../include/mailman.php');
 
-define ('PUBLIC_UNLINK', 10);
-
 $key_func = ['preg', '/^(\d+|new)$/'];
 $list_name_func = ['name', ['min_len' => 0, 'max_len' => 80]];
 $submit_buttons = ['post_changes', 'add_list', 'confirm', 'cancel'];
@@ -91,13 +89,38 @@ if (!$ml_address || $ml_address == "@")
       . "your site administrator to review group type setup.")
   );
 
-function delete_list_link ($row)
+function handle_list_link ($row, $title, $param)
 {
   return "<br />\n&nbsp;&nbsp;&nbsp;"
     . '<a href="index.php?group_id='
-    . $row['group_id'] . '&delete_list_id=' . $row['group_list_id'] . '">'
-    . sprintf (_("Delete %s (this cannot be undone!)"), $row['list_name'])
-    . "</a>\n";
+    . $row['group_id'] . "&$param=" . $row['group_list_id'] . '">'
+    . sprintf ($title, $row['list_name']) . "</a>\n";
+}
+
+function reassign_list_link ($row)
+{
+  if (!user_is_super_user ())
+    return '';
+  return "<br />\n&nbsp;&nbsp;&nbsp;"
+    . "<a href='../../siteadmin/mailman.php?list_name={$row['list_name']}'>"
+    . sprintf (no_i18n ('Reassign %s to another group'), $row['list_name'])
+    . "</a>";
+}
+
+function unlink_list_link ($row)
+{
+  if (!user_is_super_user ())
+    return '';
+  return handle_list_link (
+    $row, no_i18n ("Unlink %s from database"), 'unlink_list_id'
+  );
+}
+
+function delete_list_link ($row)
+{
+  return handle_list_link (
+    $row,  _("Delete %s (this cannot be undone!)"), 'delete_list_id'
+  );
 }
 
 function find_list ($delete_list_id, $lists)
@@ -108,30 +131,67 @@ function find_list ($delete_list_id, $lists)
   exit_error (_('Mailing list not found.'));
 }
 
-function confirm_list_deletion ($row)
+function confirm_list_action ($row, $param, $title)
 {
   print form_header ();
   print form_hidden (
-    ['group_id' => $row['group_id'], 'delete_list_id' => $row['group_list_id']]
-  );
-  printf (
-    _("You are about to delete the mailing list %s, please confirm:"),
-    $row['list_name']
-  );
-  print form_confirm_cancel () . "</form>\n";
+    ['group_id' => $row['group_id'], $param => $row['group_list_id']]
+  ) . '<p>';
+  printf ($title, '<code>' . $row['list_name'] . '</code>');
+  print "</p>\n" . form_confirm_cancel () . "</form>\n";
 }
 
-function check_delete_list ($lists)
+function delete_list ($delete_list_id, $row)
+{
+  global $confirm;
+  if ($confirm)
+    {
+      mailman_delete_list ($delete_list_id, $row['list_name']);
+      return;
+    }
+  confirm_list_action (
+    $row, 'delete_list_id',
+    _("You are about to delete the mailing list %s, please confirm:")
+  );
+}
+
+function unlink_list ($row)
+{
+  global $confirm;
+  if (!user_is_super_user ())
+    return;
+  if (isset ($confirm))
+    {
+      mailman_unlink_list ($row['group_list_id'], $row['list_name']);
+      return;
+    }
+  confirm_list_action (
+    $row, 'unlink_list_id',
+    no_i18n (
+      "You are about to unlink the mailing list %s from the database, "
+      . "please confirm:"
+    )
+  );
+}
+
+function check_confirmable_action ($lists)
 {
   global $confirm, $cancel;
-  extract (sane_import ('request', ['digits' => ['delete_list_id']]));
-  if (!isset ($delete_list_id) || isset ($cancel))
+  extract (sane_import ('request',
+    ['digits' => ['delete_list_id', 'unlink_list_id']])
+  );
+  if (isset ($cancel))
     return;
-  $row = find_list ($delete_list_id, $lists);
-  if ($confirm)
-    mailman_delete_list ($delete_list_id, $row['list_name']);
+  if (!isset ($delete_list_id) && !isset ($unlink_list_id))
+    return;
+  $row = find_list (
+    isset ($delete_list_id)? $delete_list_id: $unlink_list_id,
+    $lists
+  );
+  if (isset ($delete_list_id))
+    delete_list ($delete_list_id, $row);
   else
-    confirm_list_deletion ($row);
+    unlink_list ($row);
   site_project_footer ();
   exit;
 }
@@ -235,19 +295,13 @@ function update_list ($id, $name, $group_id)
   if (empty ($row_status))
     return;
 
-  if ($is_public[$id] == PUBLIC_UNLINK)
-    {
-      if (user_is_super_user ())
-        mailman_unlink_list ($id, $name);
-      return;
-    }
   if (!empty ($reset_password[$id]))
     {
       mailman_reset_password ($group_id, $name);
       return;
     }
 
-  # We update only when it change.
+  # We update only when it changes.
   $pub = $is_public[$id];
   if ($pub === $row_status['is_public'])
     $pub = null;
@@ -272,7 +326,7 @@ site_project_header (['title' => _("Update Mailing List"),
   'group' => $group_id, 'context' => 'amail']
 );
 
-check_delete_list ($result);
+check_confirmable_action ($result);
 
 print '<p>';
 print _("You can administer list information from here.\n"
@@ -314,26 +368,15 @@ while ($row = db_fetch_array ($result))
           [ 'checked' => $row['is_public'] == "0", 'id' => "is_private[$id]",
             'label' => _("private")
           ]);
-    if (user_is_super_user ())
-      {
-        print "<br />\n&nbsp;&nbsp;&nbsp;";
-        print form_radio ("is_public[$id]", PUBLIC_UNLINK,
-          [ 'checked' => $row['is_public'] == PUBLIC_UNLINK,
-            'id' => "to_be_unlinked[$id]",
-            'label' => no_i18n ("Unlink from database")]
-        );
-        print "<br />\n&nbsp;&nbsp;&nbsp;"
-          . "<a href='../../siteadmin/mailman.php?"
-          . "list_name={$row['list_name']}'>"
-          . no_i18n ('Reassign to another group') . "</a>";
-      }
     print "<br />\n&nbsp;&nbsp;&nbsp;"
-      . form_checkbox ("reset_password[$id]", 0)
-      . "\n"
-      . html_label ("reset_password[$id]", _("Reset list admin password"))
+      . form_checkbox ("reset_password[$id]", 0,
+          ['label' => _("Reset list admin password")]
+        )
       . "\n";
     print form_hidden (["list_name[$id]" => $row['list_name']]);
     print delete_list_link ($row);
+    print reassign_list_link ($row);
+    print unlink_list_link ($row);
   } # while ($row = db_fetch_array($result))
 print form_footer ();
 

@@ -4,7 +4,7 @@
 
 * Support for PHP 8.5 is declared.
 
-* A confirmation step is added for mailing list deletion
+* A confirmation step is added for mailing list deletion and unlinking
   in /mail/admin/index.php.
 
 * Bug fixes:
