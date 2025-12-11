@@ -121,9 +121,5 @@ print '<span class="preinput">';
 printf (_("You are about to leave the group %s, please confirm:"),
   group_getname ($quitting_group_id)
 );
-print "</span>\n";
-print '<div class="center">'
-  . form_submit (_("Confirm"), "confirm") . "\n"
-  . form_submit (_("Cancel"), "cancel")
-  . "</div>\n</form>\n";
+print "</span>\n" . form_confirm_cancel () . "</form>\n";
 ?>

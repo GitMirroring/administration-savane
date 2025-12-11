@@ -223,4 +223,11 @@ function form_footer ($text = false, $submit_name = "update")
   return "\n<div class='center'>\n" . form_submit ($text, $submit_name)
     . "</div>\n</form>\n";
 }
+
+function form_confirm_cancel ()
+{
+  return '<div class="center">'
+    . form_submit (_("Confirm"), "confirm") . ' '
+    . form_submit (_("Cancel"), "cancel") . "</div>\n";
+}
 ?>

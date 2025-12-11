@@ -79,8 +79,5 @@ printf (
   trackers_data_get_label ($field)
 );
 print '</span>';
-print '<div class="center">'
-  . form_submit (_("Confirm"), "confirm") . ' '
-  . form_submit (_("Cancel"), "cancel") . "</div>\n";
-print "</form>\n";
+print form_confirm_cancel () . "</form>\n";
 ?>
