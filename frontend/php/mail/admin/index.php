@@ -45,12 +45,11 @@ require_once ('../../include/init.php');
 require_once ('../../include/account.php');
 require_once ('../../include/mailman.php');
 
-define ('PUBLIC_DELETE', 9);
 define ('PUBLIC_UNLINK', 10);
 
 $key_func = ['preg', '/^(\d+|new)$/'];
 $list_name_func = ['name', ['min_len' => 0, 'max_len' => 80]];
-$submit_buttons = ['post_changes', 'add_list'];
+$submit_buttons = ['post_changes', 'add_list', 'confirm', 'cancel'];
 extract (sane_import ('post',
   [
     'true' => $submit_buttons,
@@ -91,6 +90,51 @@ if (!$ml_address || $ml_address == "@")
     _("Mailing lists are misconfigured. Post a support request to ask\n"
       . "your site administrator to review group type setup.")
   );
+
+function delete_list_link ($row)
+{
+  return "<br />\n&nbsp;&nbsp;&nbsp;"
+    . '<a href="index.php?group_id='
+    . $row['group_id'] . '&delete_list_id=' . $row['group_list_id'] . '">'
+    . sprintf (_("Delete %s (this cannot be undone!)"), $row['list_name'])
+    . "</a>\n";
+}
+
+function find_list ($delete_list_id, $lists)
+{
+  while ($row = db_fetch_array ($lists))
+    if ($row['group_list_id'] == $delete_list_id)
+      return $row;
+  exit_error (_('Mailing list not found.'));
+}
+
+function confirm_list_deletion ($row)
+{
+  print form_header ();
+  print form_hidden (
+    ['group_id' => $row['group_id'], 'delete_list_id' => $row['group_list_id']]
+  );
+  printf (
+    _("You are about to delete the mailing list %s, please confirm:"),
+    $row['list_name']
+  );
+  print form_confirm_cancel () . "</form>\n";
+}
+
+function check_delete_list ($lists)
+{
+  global $confirm, $cancel;
+  extract (sane_import ('request', ['digits' => ['delete_list_id']]));
+  if (!isset ($delete_list_id) || isset ($cancel))
+    return;
+  $row = find_list ($delete_list_id, $lists);
+  if ($confirm)
+    mailman_delete_list ($delete_list_id, $row['list_name']);
+  else
+    confirm_list_deletion ($row);
+  site_project_footer ();
+  exit;
+}
 
 # Find the filled part of the templated list name and the respective
 # $newlist_format_index.  Return an empty string when none found.
@@ -191,11 +235,6 @@ function update_list ($id, $name, $group_id)
   if (empty ($row_status))
     return;
 
-  if ($is_public[$id] == PUBLIC_DELETE)
-    {
-      mailman_delete_list ($id, $name);
-      return;
-    }
   if ($is_public[$id] == PUBLIC_UNLINK)
     {
       if (user_is_super_user ())
@@ -223,15 +262,17 @@ if ($post_changes)
     update_list ($id, $name, $group_id);
 
 $result = db_execute ("
-  SELECT list_name, group_list_id, is_public, description
-  FROM mail_group_list
-  WHERE group_id = ? ORDER BY list_name ASC", [$group_id]
+  SELECT `list_name`, `group_list_id`, `is_public`, `description`, `group_id`
+  FROM `mail_group_list`
+  WHERE `group_id` = ? ORDER BY `list_name` ASC", [$group_id]
 );
 
 # Show the form to modify lists status.
 site_project_header (['title' => _("Update Mailing List"),
   'group' => $group_id, 'context' => 'amail']
 );
+
+check_delete_list ($result);
 
 print '<p>';
 print _("You can administer list information from here.\n"
@@ -273,11 +314,6 @@ while ($row = db_fetch_array ($result))
           [ 'checked' => $row['is_public'] == "0", 'id' => "is_private[$id]",
             'label' => _("private")
           ]);
-    print "<br />\n&nbsp;&nbsp;&nbsp;"
-      . form_radio ("is_public[$id]", PUBLIC_DELETE,
-          [ 'checked' => $row['is_public'] == PUBLIC_DELETE,
-            'id' => "to_be_deleted[$id]",
-            'label' => _("Delete (this cannot be undone!)")]);
     if (user_is_super_user ())
       {
         print "<br />\n&nbsp;&nbsp;&nbsp;";
@@ -291,13 +327,13 @@ while ($row = db_fetch_array ($result))
           . "list_name={$row['list_name']}'>"
           . no_i18n ('Reassign to another group') . "</a>";
       }
-
     print "<br />\n&nbsp;&nbsp;&nbsp;"
       . form_checkbox ("reset_password[$id]", 0)
       . "\n"
       . html_label ("reset_password[$id]", _("Reset list admin password"))
       . "\n";
     print form_hidden (["list_name[$id]" => $row['list_name']]);
+    print delete_list_link ($row);
   } # while ($row = db_fetch_array($result))
 print form_footer ();
 
@@ -343,5 +379,5 @@ if (count ($formats))
     print form_hidden (['add_list' => 'y', 'group_id' => $group_id]);
     print form_footer ();
   }
-site_project_footer ([]);
+site_project_footer ();
 ?>

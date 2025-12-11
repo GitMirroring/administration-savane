@@ -4,6 +4,9 @@
 
 * Support for PHP 8.5 is declared.
 
+* A confirmation step is added for mailing list deletion
+  in /mail/admin/index.php.
+
 * Bug fixes:
 
 ** Notifications for new items listed incorrect values for zero value_id, e.g.
