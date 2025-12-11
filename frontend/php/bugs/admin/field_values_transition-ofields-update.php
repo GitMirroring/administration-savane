@@ -143,13 +143,12 @@ $to = trackers_data_get_value (
 trackers_header_admin (
   ['title' => _("Field Value Transitions: Update Other Fields")]
 );
-print '<h2>';
-printf (
+$t = sprintf (
   _('Other Fields to update when &ldquo;%1$s&rdquo; changes' . "\n"
     . 'from &ldquo;%2$s&rdquo; to &ldquo;%3$s&rdquo;:'),
   trackers_data_get_label ($field), $from, $to
 );
-print "</h2>\n";
+print html_h (2, $t);
 
 print '<p class="warn">';
 printf (

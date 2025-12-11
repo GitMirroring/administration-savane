@@ -52,6 +52,16 @@
 
 require_once (dirname (__FILE__) . "/vcs.php");
 
+function pagemenu_heading ($params)
+{
+  $ret =
+    html_image ('contexts/' . context_icon () . '.orig.png',
+      [ 'width' => '48', 'height' => '48', 'alt' => context_alt (),
+        'class' => 'pageicon']
+    ) . sitemenu_context_title ($params);
+  return html_h (1, $ret, ['class' => 'toptitle']);
+}
+
 # Menu specific to the current page: group if group page, my if my pages etc.
 function pagemenu ($params)
 {
@@ -65,12 +75,7 @@ function pagemenu ($params)
     $GLOBALS['stone_age_menu_lastcontext']);
   $GLOBALS['submenucount'] = 0;
 
-  print '<h1 class="toptitle">'
-    . html_image ('contexts/' . context_icon () . '.orig.png',
-        [ 'width' => '48', 'height' => '48', 'alt' => context_alt (),
-           'class' => 'pageicon']
-      );
-  print sitemenu_context_title ($params) . "</h1>\n\n";
+  print pagemenu_heading ($params) . "\n";
 
   # Print topmenu subtitle.
   unset ($scope);

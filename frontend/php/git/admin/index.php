@@ -155,7 +155,7 @@ function show_repo_title ($r)
 {
   global $php_self, $group_id, $repos, $group_name, $anchor, $name;
   $url_base = "$php_self?group=$group_name&amp;name=$name&amp;func=";
-  print "<h2 id='$anchor'>$name</h2>\n";
+  print html_h (2, $name, $anchor);
   if (count ($repos) < 2)
     return;
   print "<p>";

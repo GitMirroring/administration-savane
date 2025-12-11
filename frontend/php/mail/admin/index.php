@@ -249,7 +249,7 @@ print form_hidden (["post_changes" => "y", "group_id" => $group_id]);
 while ($row = db_fetch_array ($result))
   {
     $id = $row['group_list_id'];
-    print "<h2>{$row['list_name']}</h2>\n";
+    print html_h (2, $row['list_name']);
 
     print '<span class="preinput">'
       . html_label ("description[$id]", _("Description:")) . '</span>';
@@ -304,7 +304,7 @@ print form_footer ();
 # New list form.
 utils_get_content ("mail/about_list_creation");
 
-print "<h2>" . _('Create a new mailing list:') . "</h2>\n";
+print html_h (2, _('Create a new mailing list:'));
 $i = 0;
 $add_radio = count ($formats) > 1;
 if (count ($formats))
