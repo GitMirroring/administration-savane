@@ -215,6 +215,34 @@ sub push_output_field
   $ctx{$k} = $v;
 }
 
+my %req_vars;
+
+sub fill_list
+{
+  my $fh = shift;
+  foreach (@{$req_vars{'newlist'}})
+    {
+      my $field = $ctx{$_};
+      $field =~ s/^/= /gm;
+      print {$fh} "$_\n$field\n";
+    }
+}
+
+sub make_list
+{
+  my $list = $ctx{'list_full_name'};
+  my $name = $list;
+  $name =~ s,@.*,,;
+  my $path = "$statedir/$name";
+  my $fh;
+  print LOG "Creating list $name.\n";
+  exit_error ("List $name already exists.") if -e $path;
+  open ($fh, ">:encoding(UTF-8)", $path)
+    or exit_error ("Cannot open '$path' for writing: $!");
+  fill_list ($fh);
+  close ($fh);
+}
+
 sub post_query
 {
   my $list = $ctx{'list_name'};
@@ -263,7 +291,7 @@ scan_input ();
 require_vars ('command');
 my $cmd = $ctx{'command'};
 
-my %req_vars = (
+%req_vars = (
   'newlist' => [
      'list_full_name', 'admin_mail', 'visibility', 'description', 'password'
   ],
@@ -280,7 +308,9 @@ my %sanitizers = (
 );
 
 my %pre_cmds = ('version' => 'pre_version');
-my %post_cmds = ('query' => 'post_query');
+my %post_cmds = (
+  'newlist' => 'make_list', 'query' => 'post_query'
+);
 
 exit_error ("unknown command $cmd") unless exists $req_vars{$cmd};
 
