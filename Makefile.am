@@ -243,6 +243,7 @@ CLEANFILES = $(all_substituted) dirs.stamp db/init.stamp
 
 dest_local = $(DESTDIR)$(pkgstatedir)
 dest_run = $(DESTDIR)$(rundir)
+mailman_wrapper_dirs = $(dest_local)/mailman-wrapper
 if HAVE_MIRROR
 dest_mirror_log_dirs = \
   $(DESTDIR)$(mirror_redirect_logdir) $(DESTDIR)$(mirror_stat_dir)
@@ -263,7 +264,7 @@ frontend_dirs = $(DESTDIR)$(apache_rundir) $(DESTDIR)$(apache_logdir)
 frontend_cache_dirs = $(dest_local)/submissions_uploads/trackers_attachments
 endif # HAVE_FRONTEND
 dirs_to_make = $(db_dirs) $(dest_log_dirs) $(frontend_dirs) \
-  $(frontend_cache_dirs)
+  $(frontend_cache_dirs) $(mailman_wrapper_dirs)
 uninstalled_dirs = $(dirs_to_make) $(uninstalled_db_dirs)
 
 uninstall-hook:

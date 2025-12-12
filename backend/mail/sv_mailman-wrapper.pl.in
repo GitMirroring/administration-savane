@@ -49,6 +49,11 @@ use Time::Local;
 
 my $logfile = "/dev/null";
 my $args = join (' ', @ARGV);
+my $destdir = '';
+my $verbose;
+my $statedir = '@pkgstatedir@/mailman-wrapper';
+my $clear_data;
+my $have_results;
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -57,9 +62,18 @@ Stub mailman wrapper; implements the protocol used with list\@lists.gnu.org.
 
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
-      --logfile        log requests in file [$logfile]";
+
+      --logfile        log requests in file [$logfile]
+      --clear-data     erase the emulated set of mailing lists and exit
+      --verbose        produce more verbose logs";
 PrintVersionOrHelp ($help);
-GetOptions ("logfile=s" => \$logfile) or die ("Wrong command line");
+GetOptions (
+  "logfile=s" => \$logfile, 'clear-data' => \$clear_data,
+  'dest-dir=s' => \$destdir, 'verbose' => \$verbose
+)
+  or die ("Wrong command line");
+$destdir =~ s,/*$,,;
+$statedir = "$destdir$statedir";
 
 my $dry_run = 0;
 my @output_fields = ('version');
@@ -69,7 +83,41 @@ $ctx{'version'} = 'stub Savane ' . GetVersion;
 open (LOG, ">>:encoding(UTF-8)", $logfile);
 print LOG strftime "--- %c ---\n", localtime;
 print LOG "$0 $args\n";
+print LOG "destdir: '$destdir'\n" if $verbose;
+print LOG "statedir: '$statedir'\n" if $verbose;
+clear_data () if $clear_data;
 print LOG "--- parsing request ---\n";
+$have_results = 1;
+
+sub open_statedir
+{
+  my $dir;
+  exit_error ("Directory '$statedir' does not exist.")
+    unless -d $statedir;
+  exit_error ("Cannot open directory $statedir: $!")
+    unless opendir ($dir, $statedir);
+  return $dir;
+}
+
+sub clear_data
+{
+  my $exit_code = 0;
+  print LOG "--- clearing data ---\n";
+  my $dir = open_statedir ();
+  my $entry;
+  while (defined ($entry = readdir ($dir)))
+    {
+      my $path = "$statedir/$entry";
+      next unless -f $path;
+      print LOG "removing $entry\n";
+      unless (unlink $path)
+        {
+          print (LOG "Cannot remove $_: $!\n");
+          $exit_code = 1;
+        }
+    }
+  exit $exit_code;
+}
 
 sub random_string
 {
@@ -136,7 +184,7 @@ sub exit_error
 {
   print "Error: $_[0]\n";
   print LOG "Error: $_[0]\n";
-  print_results ();
+  print_results () if $have_results;
   exit 1;
 }
 
