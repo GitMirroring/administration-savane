@@ -219,13 +219,24 @@ my %req_vars;
 
 sub fill_list
 {
-  my $fh = shift;
+  my $name = shift;
+  my $path = list_path ($name);
+  my $fh;
+  open ($fh, ">:encoding(UTF-8)", $path)
+    or exit_error ("Cannot open '$path' for writing: $!");
   foreach (@{$req_vars{'newlist'}})
     {
       my $field = $ctx{$_};
       $field =~ s/^/= /gm;
       print {$fh} "$_\n$field\n";
     }
+  close ($fh);
+}
+
+sub list_path
+{
+  my $list = @_? shift: $ctx{'list_name'};
+  return "$statedir/$list";
 }
 
 sub make_list
@@ -233,25 +244,87 @@ sub make_list
   my $list = $ctx{'list_full_name'};
   my $name = $list;
   $name =~ s,@.*,,;
-  my $path = "$statedir/$name";
-  my $fh;
+  my $path = list_path ($name);
   print LOG "Creating list $name.\n";
   exit_error ("List $name already exists.") if -e $path;
-  open ($fh, ">:encoding(UTF-8)", $path)
-    or exit_error ("Cannot open '$path' for writing: $!");
-  fill_list ($fh);
+  fill_list ($name);
+}
+
+sub output_new_list_fields
+{
+  my $domain = 'savane.test';
+  my $list = $ctx{'list_name'};
+  $domain = $ctx{'list_full_name'} if defined $ctx{'list_full_name'};
+  $domain =~ s,.*@,,;
+  my $advertised = 1;
+  $advertised = 0
+    if ((defined $ctx{'visibility'}) && ($ctx{'visibility'} eq 'private'));
+  push_output_field ('qry::host_name', $domain);
+  push_output_field ('qry::advertised', $advertised);
+  push_output_field ('qry::description', $ctx{'description'});
+  push_output_field ('qry::owner', $ctx{'admin_mail'});
+}
+
+sub parse_cached_list
+{
+  my $fh = shift;
+  my $param;
+  my @lines = ();
+  while (<$fh>)
+    {
+      chomp;
+      if (s/^= //)
+        {
+          push @lines, $_;
+          next;
+        }
+      my $p = $param;
+      my $l = join ("\n", @lines);
+      $param = $_;
+      @lines = ();
+      next unless defined ($param);
+      next unless $p ne '';
+      $ctx{$p} = $l;
+    }
+}
+
+sub load_list_params
+{
+  my ($name, $path) = assert_list_exists ();
+  my $fh;
+  open ($fh, "<:encoding(UTF-8)", $path)
+    or exit_error ("Cannot open list '$name' file '$path' for reading: $!");
+  parse_cached_list ($fh);
   close ($fh);
 }
 
 sub post_query
 {
-  my $list = $ctx{'list_name'};
-  my $domain = 'savane.test';
-  return if $list =~ /fnord/;
-  push_output_field ('qry::host_name', $domain);
-  push_output_field ('qry::advertised', 1);
-  push_output_field ('qry::description', "description for $list\@$domain");
-  push_output_field ('qry::owner', "example\@$domain");
+  load_list_params ();
+  output_new_list_fields ();
+}
+
+sub assert_list_exists
+{
+  my $path = list_path ();
+  my $name = $ctx{'list_name'};
+  exit_error ("List $name does not exist.") unless -f $path;
+  return ($name, $path);
+}
+
+sub change_pw
+{
+  my $fh;
+  my $pw = $ctx{'password'};
+  load_list_params ();
+  $ctx{'password'} = $pw;
+  fill_list ($ctx{'list_name'});
+}
+
+sub rm_list
+{
+  my ($name, $path) = assert_list_exists ();
+  exit_error ("Cannot remove list $name: $!") unless unlink ($path);
 }
 
 sub run_sub
@@ -309,7 +382,8 @@ my %sanitizers = (
 
 my %pre_cmds = ('version' => 'pre_version');
 my %post_cmds = (
-  'newlist' => 'make_list', 'query' => 'post_query'
+  'newlist' => 'make_list', 'query' => 'post_query', 'rmlist' => 'rm_list',
+  'change_pw' => 'change_pw'
 );
 
 exit_error ("unknown command $cmd") unless exists $req_vars{$cmd};
