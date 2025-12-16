@@ -28,6 +28,12 @@
   the files and launches the server; previously, it exited with a warning
   whenever the PID file existed, without further action.
 
+* sv_mailman_wrapper.pl saves and reads created mailing lists in pkgdatadir.
+  initially, data for savannah-users is installed for testconfig.php
+  to avoid error message.  Previously, the script assumed any mailing lists
+  except 'fnord' existed.  New options, --clear-data, --force and undocumented
+  --dest-dir.
+
 [I18N]
 
 * Update French, German, Hebrew, Romanian, Russian.

@@ -54,6 +54,7 @@ my $verbose;
 my $statedir = '@pkgstatedir@/mailman-wrapper';
 my $clear_data;
 my $have_results;
+my $force;
 
 my $help =
 "Usage: $0 [OPTIONS]
@@ -63,13 +64,14 @@ Stub mailman wrapper; implements the protocol used with list\@lists.gnu.org.
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
 
+  -f, --force          try to install a new file when it exists
       --logfile        log requests in file [$logfile]
       --clear-data     erase the emulated set of mailing lists and exit
       --verbose        produce more verbose logs";
 PrintVersionOrHelp ($help);
 GetOptions (
   "logfile=s" => \$logfile, 'clear-data' => \$clear_data,
-  'dest-dir=s' => \$destdir, 'verbose' => \$verbose
+  'dest-dir=s' => \$destdir, 'verbose' => \$verbose, 'force|f' => \$force
 )
   or die ("Wrong command line");
 $destdir =~ s,/*$,,;
@@ -251,6 +253,12 @@ sub make_list
 {
   my $name = extract_list_name ();
   my $path = list_path ($name);
+  if (-e $path)
+    {
+      print LOG "$path exists.\n";
+      exit (1) unless $force;
+      print LOG "Overwriting the file.\n";
+    }
   print LOG "Creating list $name.\n";
   exit_error ("List $name already exists.") if -e $path;
   fill_list ($name);

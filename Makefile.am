@@ -294,7 +294,7 @@ install-conf-files: $(conf_files:%=sysconf/%) ; \
   done
 
 make-var-subdirs: ; $(MKDIR_P) $(dirs_to_make)
-install-data-local: init-database
+install-data-local: init-database init-mailman-wrapper
 if HAVE_FRONTEND
 	t=`${SED} '1s/-.*//;q' ${srcdir}/NEWS`; \
 	test "$$t" != '????' \
@@ -308,12 +308,27 @@ init-database: make-var-subdirs install-conf-link install-conf-files
 	  $(add_test_marker)
 	$(skip_init_db) test -e db/init.stamp || exit 1
 
-.PHONY: install-conf-link install-conf-files make-var-subdirs init-database test
+init-mailman-wrapper: ; \
+  if test "x$(DESTDIR)" != x; then dest="--dest-dir=$(DESTDIR)"; fi; \
+  test -f "$(DESTDIR)$(pkgstatedir)/mailman-wrapper/savannah-users" \
+  || \
+    { \
+      echo command = newlist; echo admin_mail = admin@savane.test; \
+      echo list_full_name = savannah-users@savane.test; \
+      echo password = ssssss; echo visibility = public; \
+      echo description = mailing list queried in testconfig.php; \
+    } \
+    | $(PERL) "-I$(top_builddir)/lib" \
+        "$(DESTDIR)$(bindir)/sv_mailman-wrapper.pl" --force "$$dest"
+
+.PHONY: install-conf-link install-conf-files make-var-subdirs init-database \
+  init-mailman-wrapper test
 
 uninstall-local: ; \
   for i in $(conf_files) launch-db.pl; do \
     $(RM) "$(DESTDIR)$(confdir)/$$i"; \
-  done
+  done; \
+  $(RM) "$(DESTDIR)$(pkgstatedir)/mailman-wrapper/savannah-users"
 
 check-missing: ; \
   missing=`\
