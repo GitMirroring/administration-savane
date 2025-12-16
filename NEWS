@@ -38,9 +38,9 @@
 
 * Update French, German, Hebrew, Romanian, Russian.
 
-[BUILD]
+[TESTS]
 
-* New test in tests/, 'testconfig'.
+* New tests, 'testconfig' and 'mailman'.
 
 2025-10-31 3.16
 

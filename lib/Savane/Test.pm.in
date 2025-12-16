@@ -256,6 +256,8 @@ sub print_test_log
 sub print_test_error
 {
   print_test (shift, '% ');
+  return unless @_;
+  save_page (@_);
 }
 
 sub print_test_result

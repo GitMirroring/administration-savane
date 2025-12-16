@@ -73,7 +73,7 @@ backend_scripts = $(backend_bin_scripts) $(backend_sbin_scripts)
 all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 
 build_time_scripts = db/init-database.pl
-test_scripts = tests/field-usage tests/mail-pm tests/log-exits \
+test_scripts = tests/field-usage tests/mail-pm tests/log-exits tests/mailman \
   tests/membership tests/register-group tests/register-user tests/repos \
   tests/testconfig tests/trackers
 all_test_scripts = ${test_scripts} tests/run-tests

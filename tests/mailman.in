@@ -1,0 +1,483 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test sv_mailman-wrapper.pl and mailman operations.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test sv_mailman-wrapper.pl and mailman operations.");
+
+my $wrapper = "@bindir@/sv_mailman-wrapper.pl";
+my $group = 'administration';
+my $list_param_pack = 4;
+my @list_params = (
+  'sample-list', 'sample "description"', 'public', 3,
+  'other', '</list> <list>', 'private', 3,
+  'templated', "'templated' list", 'public', 0,
+  'info', 'info/ list', 'public', 1,
+  'bug', 'bug list', 'private', 2
+);
+
+my $exit_code = 2;
+my @created_lists;
+append_savane_conf ("\$sys_mailman_wrapper = '$wrapper';") or exit (1);
+my $agent = make_agent () or exit (1);
+log_in_su ($agent);
+
+sub visit_list_admin_page
+{
+  my $agent = shift;
+  print_test_log ('Visiting mailing list config page.');
+  $agent->get (make_url ("/mail/admin/?group=$group"));
+  check_request_status ($agent);
+}
+
+sub set_newlist_format
+{
+  my ($agent, $form, $format) = @_;
+  print_test_log ("Selecting list name format '$format'.");
+  my $input = $form->find_input ('newlist_format_index', 'radio');
+  if (defined $input)
+    {
+      $input->value ($format);
+      return 0;
+    }
+  print_test_error ("Cannot select list name format.");
+  save_page ($agent, 'newlist-format-index.html');
+  return 1;
+}
+
+sub set_list_name
+{
+  my ($agent, $form, $name, $format) = @_;
+  if ($format == 1 || $format == 2)
+    {
+      print_test_log ("Skipping list name '$name'.");
+      return 0;
+    }
+  print_test_log ("Setting list name '$name'.");
+  my $input = $form->find_input ('new_list_name[' . $format . ']', 'text');
+  if (defined $input)
+    {
+      $input->value ($name);
+      return 0;
+    }
+  print_test_error ("Cannot set list name.");
+  save_page ($agent, 'new-list-name.html');
+  return 1;
+}
+
+sub set_list_description
+{
+  my ($agent, $form, $description) = @_;
+  print_test_log ("Setting list description '$description'.");
+  my $input = $form->find_input ('#description_new', 'text');
+  if (defined $input)
+    {
+      $input->value ($description);
+      return 0;
+    }
+  print_test_error ("Cannot set list description.");
+  save_page ($agent, 'new-list-description.html');
+  return 1;
+}
+
+sub visibility_idx
+{
+  return ($_[0] eq 'public')? '1': '0';
+}
+
+sub set_list_visibility
+{
+  my ($agent, $form, $visibility) = @_;
+  print_test_log ("Setting list visibility '$visibility'.");
+  my $val = visibility_idx ($visibility);
+  my $input = $form->find_input ("is_public[new]", 'radio');
+  if (defined $input)
+    {
+      $input->value ($val);
+      return 0;
+    }
+  print_test_error ("Cannot set visibility.");
+  save_page ($agent, 'new-list-description.html');
+  return 1;
+}
+
+sub templated_list_name
+{
+  my ($list, $format, $group) = @_;
+  my %formats = (0 => "$group-$list", 1 => "info-$group", 2 => "bug-$group");
+  return $formats{$format} if exists $formats{$format};
+  return $list;
+}
+
+sub find_modification_form
+{
+  my $agent = shift;
+  my $pref = shift;
+  my $form = $agent->form_with_fields ("post_changes");
+  return $form if defined $form;
+  print_test_error ("Cannot find form with field 'post_changes'.");
+  save_page ($agent, "$pref-no-post-changes.html");
+  return undef;
+}
+
+sub find_list_params
+{
+  my ($agent, $list) = @_;
+  my $id = find_list_id ($agent, $list);
+  return (undef, undef) unless defined $id;
+  my $form = find_modification_form ($agent, 'find-list');
+  return ($form, $id) if defined $form;
+  return (undef, undef);
+}
+
+sub check_list_description
+{
+  my ($agent, $id, $form, $description) = @_;
+  my $input = $form->find_input ("#description[$id]", 'text');
+  unless (defined $input)
+    {
+      print_test_error ("No description found.", $agent, "no-desc-$id.html");
+      return 1;
+    }
+  my $val = $input->value;
+  if ($val eq $description)
+    {
+      print_test_result ("Descriptions are equal ('$description').");
+      return 0;
+    }
+  print_test_error ("Description '$val' does not match '$description'.");
+  save_page ($agent, "wrong-description-$id.html");
+  return 1;
+}
+
+sub check_list_visibility
+{
+  my ($agent, $id, $form, $visibility) = @_;
+  my $input = $form->find_input ("is_public[$id]", 'radio');
+  unless (defined $input)
+    {
+      print_test_error ("No visibility found.", $agent, "no-vis-$id.html");
+      return 1;
+    }
+  my $val = $input->value;
+  if ($val eq visibility_idx ($visibility))
+    {
+      print_test_result ("Visibilities are equal ('$visibility').");
+      return 0;
+    }
+   print_test_error ("Visibility '$val' does not match '$visibility'.");
+   save_page ($agent, "wrong-visibility-$id.html");
+   return 1;
+}
+
+sub check_list_params
+{
+  my ($agent, $list, $description, $visibility) = @_;
+  print_test_log ("Checking list settings.");
+  my ($form, $id) = find_list_params ($agent, $list);
+  return 1 unless defined $form;
+  my $ret = 0;
+  $ret = 1 if check_list_description ($agent, $id, $form, $description);
+  $ret = 1 if check_list_visibility ($agent, $id, $form, $visibility);
+  return $ret;
+}
+
+sub make_list
+{
+  my ($list, $description, $visibility, $format) = @_;
+  print_test_log ("Making list '$list'.");
+  visit_list_admin_page ($agent);
+  print_test_log ("Looking for new list submission form.");
+  my $form = $agent->form_with_fields ('newlist_format_index');
+  unless (defined $form)
+    {
+      print_test_error ("Cannot find submission form.");
+      save_page ($agent, 'make-list.html');
+      return 1;
+    }
+  return 1 if set_newlist_format ($agent, $form, $format);
+  return 1 if set_list_name ($agent, $form, $list, $format);
+  return 1 if set_list_description ($agent, $form, $description);
+  return 1 if set_list_visibility ($agent, $form, $visibility);
+  print_test_log ('Submitting list creation form.');
+  $list = templated_list_name ($list, $format, $group);
+  $agent->click ();
+  return 1 if check_request_status ($agent, "submitted-$list.html");
+  push @created_lists, $list;
+  return check_list_params ($agent, $list, $description, $visibility);
+}
+
+sub create_lists
+{
+  my $ret = 0;
+  while ($#_ + 1 >= $list_param_pack)
+    {
+      my $i = 0;
+      $ret = 1 if make_list (@_);
+      shift while ($i++ < $list_param_pack);
+    }
+  return $ret;
+}
+
+sub fill_list_names
+{
+  my ($agent, $form) = @_;
+  my @inputs = $form->find_input (undef, 'hidden');
+  my %ret;
+  foreach (@inputs)
+    {
+      next unless $_->name =~ /^list_name\[([0-9]+)\]/;
+      my $val = $_->value;
+      $ret{$1} = $val;
+      print_test_log ("Found list #$1 '$val'.");
+    }
+  return \%ret;
+}
+
+sub change_desc
+{
+  my ($agent, $input) = @_;
+  my $input_id = $input->id;
+  unless ($input_id =~ /^description\[([0-9]+)\]$/)
+    {
+      print_test_error ("Input id '$input_id' has a wrong form.");
+      save_page ($agent, 'wrong-input-id.html');
+      return (undef, undef);
+    }
+  my $id = $1;
+  my $val = $input->value;
+  print_test_log ("Found description field '$input_id' = '$val'.");
+  $val =~ s/(.*) (.*)/$2 $1/;
+  $input->value ($val);
+  print_test_log ("Changing to '$val'.");
+  return ($id, $input->value);
+}
+
+sub modify_descriptions
+{
+  my ($agent, $form) = @_;
+  my @inputs = $form->find_input (undef, 'text');
+  my %new_descriptions;
+  foreach (@inputs)
+    {
+      my ($id, $desc) = change_desc ($agent, $_);
+      return undef unless defined $id;
+      $new_descriptions{$id} = $desc;
+    }
+  return \%new_descriptions;
+}
+
+sub change_vis
+{
+  my ($agent, $input) = @_;
+  my $name = $input->name;
+  unless ($name =~ /^is_public\[([0-9]+)\]$/)
+    {
+      print_test_error ("Input name '$name' has a wrong form.");
+      save_page ($agent, 'wrong-input-name.html');
+      return (undef, undef);
+    }
+  my $id = $1;
+  my $val = $input->value;
+  print_test_log ("Found visibility field '$name' = '$val'.");
+  $val = $val? 'private': 'public';
+  print_test_log ("Changing to '$val'.");
+  $input->value (visibility_idx ($val));
+  return ($id, $val);
+}
+
+sub modify_visibilities
+{
+  my ($agent, $form) = @_;
+  my @inputs = $form->find_input (undef, 'radio');
+  my %new_vis;
+  foreach (@inputs)
+    {
+      my ($id, $vis) = change_vis ($agent, $_);
+      return undef unless defined $id;
+      $new_vis{$id} = $vis;
+    }
+  return \%new_vis;
+}
+
+sub check_extra_fields
+{
+  my ($desc, $field) = @_;
+  my $ret = 0;
+  foreach (keys %{$desc})
+    {
+      next unless defined $desc->{$_};
+      print_test_error ("Extra $field field found: $_ => $desc->{$_}.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
+sub check_new_settings
+{
+  my ($agent, $names, $desc, $vis) = @_;
+  print_test_log ("Checking new settings.");
+  my $ret = 0;
+  foreach (keys %{$names})
+    {
+      $ret = 1
+        if check_list_params ($agent, $names->{$_}, $desc->{$_}, $vis->{$_});
+      $desc->{$_} = $vis->{$_} = undef;
+    }
+  $ret = 1 if check_extra_fields ($desc, 'description');
+  $ret = 1 if check_extra_fields ($vis, 'visibility');
+  return $ret;
+}
+
+sub modify_lists
+{
+  my $agent = shift;
+  print_test_log ("Modifying list settings.");
+  my $form = find_modification_form ($agent, 'change-list');
+  return 1 unless defined $form;
+  my $names = fill_list_names ($agent, $form);
+  my $desc = modify_descriptions ($agent, $form);
+  return 1 unless defined $desc;
+  my $vis = modify_visibilities ($agent, $form);
+  return 1 unless defined $vis;
+  print_test_log ("Submitting new configurations.");
+  $agent->click ();
+  return 1 if check_request_status ($agent, 'submitted-changes.html');
+  return check_new_settings ($agent, $names, $desc, $vis);
+}
+
+sub find_list_id
+{
+  my ($agent, $name) = @_;
+  my $page = $agent->content (raw => 1);
+  print_test_log ("Looking for list id of '$name'.");
+  unless ($page =~ /<h2 id=\s*['"]list-([^>]*)['"][^>]*>$name<\/h2>/)
+    {
+      print_test_error ("List id not found.", $agent, "no-list-$name.html");
+      return undef;
+    }
+  print_test_result ("List id is $1");
+  return $1;
+}
+
+sub find_deletion_link
+{
+  my ($agent, $id) = @_;
+  return $agent->find_link (url_regex => qr/delete_list_id=$id($|&)/);
+}
+
+sub assert_no_list
+{
+  my ($agent, $id) = @_;
+  print_test_log ("Making sure no list #$id shows up.");
+  visit_list_admin_page ($agent);
+  unless (defined find_deletion_link (@_))
+    {
+      print_test_result ("Deletion link disappeared.");
+      return 0;
+    }
+  print_test_error ("Deletion link persists.");
+  save_page ($agent, "list-persists-$id.html");
+  return 1;
+}
+
+sub follow_deletion_link
+{
+  my ($agent, $id) = @_;
+  my $link = find_deletion_link ($agent, $id);
+  unless (defined $link)
+    {
+      print_test_error ("Cannot find deletion link", $agent, "delete-$id.html");
+      return 1;
+    }
+  $link = $link->url ();
+  print_test_log ("Visiting deletion link '$link'.");
+  $agent->get ($link);
+  return 1 if check_request_status ($agent, "deletion-$id.html");
+  print_test_result ('Passed list deletion link.');
+  return 0;
+}
+
+sub rmlist
+{
+  my ($agent, $name) = @_;
+  my $id = find_list_id ($agent, $name);
+  return 1 unless defined $id;
+  print_test_log ("Removing the list.");
+  return 1 if follow_deletion_link ($agent, $id);
+  my $form = $agent->form_with_fields (qw (confirm cancel));
+  unless (defined $form)
+    {
+      print_test_error ("Cannot find confirmation form.");
+      save_page ($agent, "confirm-$id.html");
+      return 1;
+    }
+  print_test_log ("Confirming deletion.");
+  $agent->click ('confirm');
+  return 1 if check_request_status ($agent);
+  return assert_no_list ($agent, $id);
+}
+
+sub remove_lists
+{
+  my $agent = shift;
+  my $ret = 0;
+  print_test_log ('Removing created lists.');
+  visit_list_admin_page ($agent);
+  for (@created_lists)
+    {
+      $ret = 1 if rmlist ($agent, $_);
+    }
+  return $ret;
+}
+
+$exit_code = 1 if create_lists (@list_params);
+$exit_code = 1 if modify_lists ($agent);
+$exit_code = 1 if remove_lists ($agent);
+$exit_code = 1 if log_out ($agent);
+$exit_code = 0 if $exit_code == 2;
+print_test_result ("Test done.") unless $exit_code;
+exit ($exit_code);
