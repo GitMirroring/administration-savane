@@ -43,7 +43,7 @@
 
 use strict;
 use Getopt::Long;
-use Savane;
+use Savane::Version;
 use POSIX qw(strftime);
 use Time::Local;
 
@@ -79,6 +79,7 @@ my $dry_run = 0;
 my @output_fields = ('version');
 my %ctx;
 $ctx{'version'} = 'stub Savane ' . GetVersion;
+my (%req_vars, %opt_vars);
 
 open (LOG, ">>:encoding(UTF-8)", $logfile);
 print LOG strftime "--- %c ---\n", localtime;
@@ -215,8 +216,6 @@ sub push_output_field
   $ctx{$k} = $v;
 }
 
-my %req_vars;
-
 sub fill_list
 {
   my $name = shift;
@@ -239,11 +238,18 @@ sub list_path
   return "$statedir/$list";
 }
 
-sub make_list
+sub extract_list_name
 {
   my $list = $ctx{'list_full_name'};
   my $name = $list;
   $name =~ s,@.*,,;
+  $ctx{'list_name'} = $name;
+  return $name;
+}
+
+sub make_list
+{
+  my $name = extract_list_name ();
   my $path = list_path ($name);
   print LOG "Creating list $name.\n";
   exit_error ("List $name already exists.") if -e $path;
@@ -321,6 +327,22 @@ sub change_pw
   fill_list ($ctx{'list_name'});
 }
 
+sub config_list
+{
+  my %request = %ctx;
+  extract_list_name ();
+  load_list_params ();
+  print LOG "--- configuring $ctx{'list_name'} ---\n";
+  foreach (@{$opt_vars{'config'}})
+    {
+      next unless defined $request{$_};
+      next if $request{$_} eq $ctx{$_};
+      print LOG "Changing $_: '$ctx{$_}' => '$request{$_}'\n";
+      $ctx{$_} = $request{$_};
+    }
+  fill_list ($ctx{'list_name'});
+}
+
 sub rm_list
 {
   my ($name, $path) = assert_list_exists ();
@@ -374,7 +396,7 @@ my $cmd = $ctx{'command'};
   'query' => ['list_name'],
   'version' => [],
 );
-my %opt_vars = ('config' => ['description', 'visibility']);
+%opt_vars = ('config' => ['description', 'visibility']);
 my %sanitizers = (
   'visibility' => 'check_visibility', 'description' => 'sanitize_description',
   'password' => 'make_password', 'dry_run' => 'set_dry_run'
@@ -383,7 +405,7 @@ my %sanitizers = (
 my %pre_cmds = ('version' => 'pre_version');
 my %post_cmds = (
   'newlist' => 'make_list', 'query' => 'post_query', 'rmlist' => 'rm_list',
-  'change_pw' => 'change_pw'
+  'change_pw' => 'change_pw', 'config' => 'config_list'
 );
 
 exit_error ("unknown command $cmd") unless exists $req_vars{$cmd};
