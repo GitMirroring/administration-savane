@@ -311,6 +311,44 @@ function update_list ($id, $name, $group_id)
   mailman_config_list ($id, $group_id, $name, $pub, $desc);
 }
 
+function list_description_control ($id, $row)
+{
+  return '<span class="preinput">'
+    . html_label ("description[$id]", _("Description:")) . '</span>'
+    . "\n&nbsp;&nbsp;&nbsp;"
+    . form_input (
+        "text", "description[$id]",
+         utils_specialchars_decode ($row['description'], ENT_QUOTES),
+         'maxlength="120" size="50"'
+      );
+}
+
+# Status: private or public list, or planned for deletion.
+# It may be weird to have the last one here, but that is how things
+# are in the database and it is simpler to follow the same idea.
+function list_status_control ($id, $row)
+{
+  return "<br />\n<span class='preinput'>" . _("Status:") . '</span>'
+    . "<br />\n&nbsp;&nbsp;&nbsp;"
+    . form_radio ("is_public[$id]", 1,
+       [ 'checked' =>  $row['is_public'] == "1",
+         'id' => "is_public[$id]", 'label' => _("public")])
+    . "<br />\n&nbsp;&nbsp;&nbsp;"
+    . form_radio ("is_public[$id]", 0,
+        [ 'checked' => $row['is_public'] == "0", 'id' => "is_private[$id]",
+          'label' => _("private")
+        ]);
+}
+
+function list_reset_control ($id)
+{
+   return "<br />\n&nbsp;&nbsp;&nbsp;"
+     . form_checkbox ("reset_password[$id]", 0,
+         ['label' => _("Reset list admin password")]
+       )
+     . "\n";
+}
+
 if ($post_changes)
   foreach ($list_name as $id => $name)
     update_list ($id, $name, $group_id);
@@ -344,35 +382,10 @@ print form_hidden (["post_changes" => "y", "group_id" => $group_id]);
 while ($row = db_fetch_array ($result))
   {
     $id = $row['group_list_id'];
-    print html_h (2, $row['list_name']);
-
-    print '<span class="preinput">'
-      . html_label ("description[$id]", _("Description:")) . '</span>';
-    print "\n&nbsp;&nbsp;&nbsp;"
-     . form_input (
-         "text", "description[$id]",
-          utils_specialchars_decode ($row['description'], ENT_QUOTES),
-          'maxlength="120" size="50"'
-      );
-
-    # Status: private or public list, or planned for deletion.
-    # It may be weird to have the last one here, but that is how things
-    # are in the database and it is simpler to follow the same idea.
-    print "<br />\n<span class='preinput'>" . _("Status:") . '</span>';
-    print "<br />\n&nbsp;&nbsp;&nbsp;"
-      . form_radio ("is_public[$id]", 1,
-         [ 'checked' =>  $row['is_public'] == "1",
-           'id' => "is_public[$id]", 'label' => _("public")]);
-    print "<br />\n&nbsp;&nbsp;&nbsp;"
-      . form_radio ("is_public[$id]", 0,
-          [ 'checked' => $row['is_public'] == "0", 'id' => "is_private[$id]",
-            'label' => _("private")
-          ]);
-    print "<br />\n&nbsp;&nbsp;&nbsp;"
-      . form_checkbox ("reset_password[$id]", 0,
-          ['label' => _("Reset list admin password")]
-        )
-      . "\n";
+    print html_h (2, $row['list_name'], "list-$id");
+    print list_description_control ($id, $row);
+    print list_status_control ($id, $row);
+    print list_reset_control ($id);
     print form_hidden (["list_name[$id]" => $row['list_name']]);
     print delete_list_link ($row);
     print reassign_list_link ($row);
@@ -383,7 +396,7 @@ print form_footer ();
 # New list form.
 utils_get_content ("mail/about_list_creation");
 
-print html_h (2, _('Create a new mailing list:'));
+print html_h (2, _('Create a new mailing list:'), 'list-new');
 $i = 0;
 $add_radio = count ($formats) > 1;
 if (count ($formats))
@@ -391,7 +404,7 @@ if (count ($formats))
 foreach ($formats as $fmt)
   {
     $input = form_input ('text', "new_list_name[$i]", '',
-      'title="' . _("Name of new mailing list") . '" size="25" maxlength="70"'
+      '" size="25" maxlength="70"'
     );
     $input = str_replace ('%NAME', $input, $fmt);
     $addr_line = $grp->getTypeMailingListAddress ($input);
