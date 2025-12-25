@@ -68,9 +68,9 @@ function utils_get_content_filename ($file)
 # Include site-specific content.
 function utils_get_content ($filename)
 {
-  $file = utils_get_content_filename($filename);
+  $file = utils_get_content_filename ($filename);
   if ($file != null)
-    include($file);
+    include ($file);
 }
 
 # Make sure that to avoid malicious file paths.
@@ -107,7 +107,7 @@ function utils_link (
     $return .= " title=\"$help\"";
   if ($extra)
     $return .= " $extra";
-  return "$return>$title$closing_tag";;
+  return "$return>$title$closing_tag";
 }
 
 # Make an clean email link depending on the authentication level of the user.
@@ -473,7 +473,7 @@ function show_priority_colors_key ()
 
   for ($i = 11; $i < 20; $i++)
     print '<span class="' . utils_get_priority_color ($i) . '">&nbsp;'
-      . ($i-10) . "&nbsp;</span>\n";
+      . ($i - 10) . "&nbsp;</span>\n";
   print  "</p>\n";
 }
 
@@ -652,9 +652,14 @@ function validate_email ($address)
   if (empty ($address))
     return false;
   # FIXME: this allows some characters in domain names that are not allowed.
-  return (preg_match (',^[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+'. '@'
-                      . '[-!#$%&\'*+\\/0-9=?A-Z^_`a-z{|}~]+\.'
-                      . '[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+$,', $address));
+  return preg_match (
+    ',^[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+'
+    . '@'
+    . '[-!#$%&\'*+\\/0-9=?A-Z^_`a-z{|}~]+'
+    . '\.'
+    . '[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+$,',
+    $address
+  );
 }
 
 # Verify comma-separated list of email addresses.
@@ -672,7 +677,7 @@ function utils_is_valid_filename ($file)
 {
   if (preg_match ("/[]~`! ~@#\"$%^,&*();=|[{}<>?\/]/", $file))
     return false;
-  if (strstr ($file,'..'))
+  if (strstr ($file, '..'))
     return false;
   return true;
 }

@@ -93,9 +93,8 @@ function print_group_admins ($res_admin)
       print "<li>";
       start_div ($j++);
       print utils_link (
-            "{$sys_home}users/{$row_admin['user_name']}",
-            $row_admin['realname']
-          );
+        "{$sys_home}users/{$row_admin['user_name']}", $row_admin['realname']
+      );
       end_div ();
       print "</li>\n";
     }
