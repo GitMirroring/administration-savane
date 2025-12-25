@@ -1640,7 +1640,7 @@ LOCK TABLES `group_type` WRITE;
 /*!40000 ALTER TABLE `group_type` DISABLE KEYS */;
 INSERT INTO `group_type` VALUES (
     1, 'GNU', 'This group is part of the GNU Project.\r\n',
-    'savannah-register-bar@savane.test', 'i18n.savannah.gnu.org', '', 1, 1, 1,
+    'savannah-register-bar@savane.test', '', '', 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, '', 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'savannah-gnu', 'basicdirectory',
     'basicsvn', 'basicgit', 'basichg', 'basicbzr', 'savannah-gnu',
@@ -1664,7 +1664,7 @@ INSERT INTO `group_type` VALUES (
     2, 2, 2, 5, 2, 2, 3, 5, 2, 2, 3, 5
   ), (
     2, 'NON-GNU', 'This group is not part of the GNU Project.',
-    'savannah-register-bar@savane.test', 'i18n.savannah.nongnu.org', '', 1,
+    'savannah-register-bar@savane.test', '', '', 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, '', 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'savannah-nongnu',
     'basicdirectory', 'basicsvn', 'basicgit', 'basichg', 'basicbzr',
@@ -1691,7 +1691,7 @@ INSERT INTO `group_type` VALUES (
     3, 'www.gnu.org portions',
     'This group is related to www.gnu.org webmastering. Developers are '
     'GNU webmasters. It is part of the GNU Project.',
-    'savannah-register-bar@savane.test', 'savannah.gnu.org', '', 1, 0, 0, 0, 0,
+    'savannah-register-bar@savane.test', '', '', 1, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 'cvs', 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'basiccvs', 'basicdirectory',
     'basicsvn', 'basicdirectory', 'basichg', 'basicbzr', 'savannah-gnu',
@@ -1707,7 +1707,7 @@ INSERT INTO `group_type` VALUES (
     2, 2, 3, 5
   ), (
     4, 'GUG', 'This meta-group is not part of the GNU Project.',
-    'savannah-bar@savane.test', 'savannah.nongnu.org', '', 1, 1, 0, 0, 0, 0, 0,
+    'savannah-bar@savane.test', '', '', 1, 1, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 'cvs', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'basiccvs', 'basicdirectory', 'basicsvn',
     'basicdirectory', 'basichg', 'basicbzr', 'savannah-nongnu',
@@ -1725,7 +1725,7 @@ INSERT INTO `group_type` VALUES (
   ), (
     6, 'www.gnu.org translation teams',
     'This is a www.gnu.org translation team organisational group.',
-    'savannah-bar@savane.test', 'savannah.gnu.org', '', 1, 1, 1, 1, 1, 1, 0,
+    'savannah-bar@savane.test', '', '', 1, 1, 1, 1, 1, 1, 0,
     0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 'cvs', 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'savannah-gnu', 'basicdirectory',
     'basicsvn', 'basicgit', 'basichg', 'basicbzr', 'savannah-nongnu',
@@ -1745,7 +1745,7 @@ INSERT INTO `group_type` VALUES (
     'http://lists.gnu.org/mailman/admin/%LIST', '', '', '', '%LIST@gnu.org',
     'lists.gnu.org', '%PROJECT-%NAME', 2, 2, 2, 2, 2, 5, 2, 2, 2, 5, 2, 2, 3, 5
   ), (
-    7, 'conspirations', 'certain group type', 'test@savane.test', 'i18n', '',
+    7, 'conspirations', 'certain group type', 'test@savane.test', '', '',
     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, '', 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'basiccvs',
     'basicdirectory', 'basicsvn', 'basicgit', 'basichg', 'basicbzr',
