@@ -98,14 +98,13 @@ function print_resume_cell ($user_arr, $is_squad)
       print _("This user did not enable Resume & Skills.");
       return;
     }
-  print '<a href="' . $GLOBALS['sys_home']
-    . 'people/resume.php?user_id=' . $user_arr['user_id'] . '">'
+  print '<a href="/people/resume.php?user_id=' . $user_arr['user_id'] . '">'
     . _("View Resume & Skills") . "</a>";
 }
 
 function print_email_cell ($user_arr, $is_squad)
 {
-  print "<a href=\"{$GLOBALS['sys_home']}sendmessage.php?touser="
+  print "<a href=\"/sendmessage.php?touser="
     . $user_arr['user_id'] . '&cc_me=cc_me">';
   if ($is_squad || ($user_arr['email_hide'] == "1" && !user_is_super_user ()))
     print _("Send this user a mail");
@@ -121,8 +120,8 @@ function print_gpg_row ($user_arr, $user_id)
   if (empty ($key))
     return;
   print "$tr_head<td></td><td>";
-  print "<a href=\"{$GLOBALS['sys_home']}people/viewgpg.php?user_id="
-    . $user_arr['user_id'] . '">' . _("Download GPG Key") . '</a>';
+  print "<a href=\"/people/viewgpg.php?user_id=" . $user_arr['user_id'] . '">'
+    . _("Download GPG Key") . '</a>';
   print "</td>\n</tr>\n";
 }
 
@@ -153,7 +152,7 @@ function output_group_info ($user_id)
       else
         $color = utils_altrow ($j++);
       print '<li class="' . $color . '">';
-      print "<a href=\"{$GLOBALS['sys_home']}projects/"
+      print "<a href=\"/projects/"
         . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n";
       print user_format_member_since ($v['date']);
       print "</li>\n";
@@ -255,9 +254,7 @@ if ($is_suspended)
   }
 print split_page ('end');
 if (user_isloggedin ())
-  sendmail_form_message (
-    $sys_home . 'sendmessage.php', $user_id, true, 'floatleft'
-  );
+  sendmail_form_message ('/sendmessage.php', $user_id, true, 'floatleft');
 else
   print '<p class="warn floatleft">'
     . _("You could send a message if you were logged in.") . "</p>\n";

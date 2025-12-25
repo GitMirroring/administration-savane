@@ -422,7 +422,7 @@ class Group extends savane_error
 
   function fallback_URL ($artifact)
   {
-    return "{$GLOBALS['sys_home']}$artifact/?group=" . $this->getUnixName();
+    return "/$artifact/?group=" . $this->getUnixName ();
   }
 
   function getArtifactUrl ($artifact)
@@ -789,7 +789,7 @@ function group_add_history ($field_name, $old_value, $group_id)
 # Return the standard URL for an artifact.
 function group_get_artifact_url ($artifact, $hostname = 1)
 {
-  global $project, $sys_home;
+  global $project;
   $type_urls = [
     "homepage", "download", "cvs_viewcvs", "cvs_viewcvs_homepage",
     "arch_viewcvs", "svn_viewcvs", "git_viewcvs", "hg_viewcvs", "bzr_viewcvs"
@@ -798,13 +798,13 @@ function group_get_artifact_url ($artifact, $hostname = 1)
     return $project->getTypeUrl ($artifact);
 
   if (!$hostname)
-    return "{$sys_home}$artifact/?group=" . $project->getUnixName ();
+    return "/$artifact/?group=" . $project->getUnixName ();
   if ($project->getTypeBaseHost ())
     $host = $project->getTypeBaseHost ();
   else
     $host = $_SERVER['HTTP_HOST'];
 
-  return "http://$host{$sys_home}$artifact/?group=" . $project->getUnixName ();
+  return "http://$host/$artifact/?group=" . $project->getUnixName ();
 }
 
 # Normalize preference names before feeding it to SQL.

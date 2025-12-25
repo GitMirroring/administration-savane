@@ -57,14 +57,14 @@ printf (
     . "that there's a broken link on %s that must be repaired, "
     . "<a href=\"%s\">\nfile a support request</a>, mentioning the URL you "
     . "tried to access (%s)."),
-  $sys_name, "{$sys_home}support/?group=$sys_unix_group_name",
+  $sys_name, "/support/?group=$sys_unix_group_name",
   utils_specialchars ($_SERVER['REQUEST_URI']));
 print "</p>\n<p>";
 
 # TRANSLATORS: the second argument is system name (like Savannah).
 printf (
   _("Otherwise, you can return to the <a href=\"%s\">%s main page</a>."),
-  $sys_home, $sys_name
+  '/', $sys_name
 );
 print "</p>\n";
 $HTML->footer ([]);

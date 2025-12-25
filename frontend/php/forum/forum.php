@@ -260,9 +260,8 @@ if ($forum_id)
                 # phorum-esque threaded list of messages,
                 # not showing message bodies.
                 $ret_val .= "\n<tr class=\"" . utils_altrow ($total_rows)
-                  . "\">\n<td><a href=\""
-                  . $GLOBALS['sys_home'] . 'forum/message.php?msg_id='
-                  . db_result($result, $i, 'msg_id') . '">'
+                  . "\">\n<td><a href=\"/forum/message.php?msg_id="
+                  . db_result ($result, $i, 'msg_id') . '">'
                   . html_image ('contexts/mail.png',
                       ['height' => 12, 'width' => 12]
                     );
@@ -302,9 +301,9 @@ if ($forum_id)
         $ret_val .= "</td>\n<td>&nbsp;</td><td align='right' width='50%'>";
         if (db_numrows ($result) > $i)
           {
-            $ret_val .= '<a href="' . $GLOBALS['sys_home']
-              . "forum/forum.php?max_rows=$max_rows&amp;style="
-              . $style . '&amp;offset=' . ($offset + $i)
+            $ret_val .= '<a href="'
+              . "/forum/forum.php?max_rows=$max_rows&amp;style=$style"
+              . '&amp;offset=' . ($offset + $i)
               . "&amp;forum_id=$forum_id\">"
               . '<strong>' . _('Next Messages') . '</strong>'
               . html_image ('arrows/next.png',

@@ -1,5 +1,6 @@
 <?php
-# 'Not found' error page with a Savane look&feel
+# 'Not found' error page with a Savane look & feel.
+#
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
@@ -53,7 +54,7 @@ printf (
   _("If you think that there's a broken link on %s that must be\nrepaired, "
     . "<a href=\"%s\">file a support request</a>, mentioning the URL you\n"
     . "tried to access (%s)."),
-  $sys_name, "{$sys_home}support/?group=$sys_unix_group_name",
+  $sys_name, "/support/?group=$sys_unix_group_name",
   utils_specialchars ($_SERVER['REQUEST_URI'])
 );
 
@@ -61,7 +62,7 @@ printf (
 print "</p>\n<p>";
 printf (
   _("Otherwise, you can return to the <a href=\"%s\">%s main page</a>."),
-  $sys_home, $sys_name
+  '/', $sys_name
 );
 print "</p>\n";
 $HTML->footer ([]);

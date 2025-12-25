@@ -140,7 +140,7 @@ function print_role_icon ($m, $group_id)
     . "</span></td>\n";
 }
 
-function resume_cell ($m, $sys_home)
+function resume_cell ($m)
 {
   if (is_squad ($m))
     return '&nbsp;';
@@ -148,18 +148,18 @@ function resume_cell ($m, $sys_home)
     # TRANSLATORS: this is a label shown when user's skills
     # are unavailable.
     return _("Set to private");
-  return "<a href=\"{$sys_home}people/resume.php?user_id={$m['user_id']}\">"
+  return "<a href=\"/people/resume.php?user_id={$m['user_id']}\">"
     . _("View Skills") . "</a>";
 }
 
-function watched_link ($this_user, $m, $group_id, $sys_home)
+function watched_link ($this_user, $m, $group_id)
 {
   if (is_squad ($m))
     return '&nbsp;';
   $is_watched = trackers_data_is_watched ($this_user, $m['user_id'], $group_id);
   if ($m['user_id'] == $this_user || $is_watched)
     return "---";
-  return "<a href=\"{$sys_home}my/groups.php?"
+  return "<a href=\"/my/groups.php?"
     . "func=addwatchee&amp;group_id=$group_id&amp;watchee_id="
     . $m['user_id'] . "\">" . _("Watch partner") . "</a>";
 }
@@ -193,8 +193,7 @@ else
   printf (
     _("If you would like to contribute to this project by\nbecoming a member, "
       . "use the <a href=\"%s\">request for inclusion</a> form."),
-    "{$sys_home}my/groups.php?words=" . group_getname ($group_id)
-    . '#searchgroup'
+    "/my/groups.php?words=" . group_getname ($group_id) . '#searchgroup'
   );
 print "</p>\n";
 
@@ -251,9 +250,9 @@ foreach ([1, 0] as $onduty)
         if ($detailed)
           print_in_td (role_cell ($m, $is_admin));
 
-        print_in_td (resume_cell ($m, $sys_home));
+        print_in_td (resume_cell ($m));
         if ($approved_member)
-          print_in_td (watched_link ($this_user, $m, $group_id, $sys_home));
+          print_in_td (watched_link ($this_user, $m, $group_id));
         print "\t<tr>\n";
       }
     print "\t</table>\n";

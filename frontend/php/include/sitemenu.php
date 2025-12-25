@@ -53,7 +53,7 @@ function menu_print_sidebar ($params)
 
 function sitemenu ($params)
 {
-  global $HTML, $sys_home, $sys_logo_name, $sys_name;
+  global $HTML, $sys_logo_name, $sys_name;
 
   # Define variables.
   if (!isset ($params['title']))
@@ -70,9 +70,9 @@ function sitemenu ($params)
   $img = html_image ($sys_logo_name, ['alt' => $alt_arg]);
   print "          ";
   if ($sys_logo_name)
-    print  utils_link ($sys_home, $img);
+    print  utils_link ('/', $img);
   else
-    print "<br />\n" . utils_link ($sys_home, $sys_name, 0, 1, $alt_arg);
+    print "<br />\n" . utils_link ('/', $sys_name, 0, 1, $alt_arg);
 
   print "\n</li><!-- end menulogo -->\n";
 
@@ -134,11 +134,11 @@ function menu_site_admin ()
 function sitemenu_site_admin ()
 {
   # This menu is shown whether the user is a logged as super user or not.
-  global $HTML, $sys_home, $sys_unix_group_name;
+  global $HTML, $sys_unix_group_name;
   $is_su = user_is_super_user ();
   $HTML->menuhtml_top (no_i18n ("Site Administration"));
-  $HTML->menu_entry ("{$sys_home}siteadmin/", no_i18n ("Main page"), $is_su);
-  $HTML->menu_entry ("{$sys_home}task/?group=$sys_unix_group_name"
+  $HTML->menu_entry ("/siteadmin/", no_i18n ("Main page"), $is_su);
+  $HTML->menu_entry ("/task/?group=$sys_unix_group_name"
     . '&amp;category_id=1&amp;status_id=1&amp;set=custom#results',
     no_i18n ("Pending registrations")
   );
@@ -180,22 +180,22 @@ function menu_projects ()
 # Hosted projects.
 function sitemenu_projects ()
 {
-  global $HTML, $sys_home, $sys_name;
+  global $HTML, $sys_name;
   $HTML->menuhtml_top (_("Hosted Projects"));
-  $HTML->menu_entry ("{$sys_home}register/requirements.php",
+  $HTML->menu_entry ("/register/requirements.php",
     _("Hosting requirements"));
-  $HTML->menu_entry("{$sys_home}register/", _("Register New Project"), 1,
+  $HTML->menu_entry("/register/", _("Register New Project"), 1,
     # TRANSLATORS: the argument is site name (like Savannah).
     sprintf (_("Register your project at %s"), $sys_name)
   );
   $HTML->menu_entry (
-    "{$sys_home}search/index.php?type_of_search=soft&amp;words=%%%",
+    "/search/index.php?type_of_search=soft&amp;words=%%%",
     _("Full List"), 1, _("Browse the full list of hosted projects")
   );
-  $HTML->menu_entry ("{$sys_home}people/", _("Contributors Wanted"),
+  $HTML->menu_entry ("/people/", _("Contributors Wanted"),
     1, _("Browse the list of request for contributions")
   );
-  $HTML->menu_entry ("{$sys_home}stats/", _("Statistics"), 1,
+  $HTML->menu_entry ("/stats/", _("Statistics"), 1,
     # TRANSLATORS: the argument is site name (like Savannah).
     sprintf (_("Browse statistics about %s"), $sys_name)
   );
@@ -223,14 +223,14 @@ function sitemenu_context_title ($params)
 
 function sitemenu_bookmark_entry ($page_title)
 {
-  global $HTML, $sys_home;
+  global $HTML;
   if (!empty ($_POST))
     return;
   if (!(user_isloggedin () && user_get_preference ("use_bookmarks")))
     return;
   $title =
     utils_urlencode (sitemenu_context_title (['title' => $page_title]));
-  $HTML->menu_entry ("{$sys_home}my/bookmarks.php?add=1&amp;url="
+  $HTML->menu_entry ("/my/bookmarks.php?add=1&amp;url="
     . utils_urlencode ($_SERVER['REQUEST_URI'])
     . "&amp;title=$title",
     _("Bookmark It"), 1, _("Add this page to my bookmarks")
@@ -239,7 +239,7 @@ function sitemenu_bookmark_entry ($page_title)
 
 function sitemenu_print_related_recipe ($row)
 {
-  global $sys_home, $group_id;
+  global $group_id;
   print '<div class="relatedrecipesitem">';
   # Show specific background color only for high priority item, no
   # need to disturb the eye otherwise.
@@ -251,7 +251,7 @@ function sitemenu_print_related_recipe ($row)
   # shown will be cut to 40 characters.
   # Summaries should be kept short.
   print utils_link (
-    "{$sys_home}cookbook/?{$row['bug_id']}",
+    "/cookbook/?{$row['bug_id']}",
     utils_cutstring ($row['summary'], 40), "menulink", '1', $row['summary']
   );
   if ($priority > 4)
@@ -300,13 +300,13 @@ function sitemenu_fetch_recipe_summaries ($recipe_id_result)
 
 function sitemenu_print_i18n_link ()
 {
-  global $HTML, $sys_home, $locale_names;
+  global $HTML, $locale_names;
   if (count ($locale_names) <= 1)
     return;
   $extraurl = sitemenu_extraurl (true);
   if ($extraurl)
     $extraurl = "?$extraurl";
-  $HTML->menu_entry ("{$sys_home}i18n.php?lang_uri="
+  $HTML->menu_entry ("/i18n.php?lang_uri="
     . utils_urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
     _("Language"), 1, _("Choose website language")
   );
@@ -410,7 +410,7 @@ function menu_help ()
 # Help / Docs.
 function sitemenu_help ()
 {
-  global $HTML, $sys_home, $sys_unix_group_name, $sys_name;
+  global $HTML, $sys_unix_group_name, $sys_name;
   $HTML->menuhtml_top (_("Site Help"));
 
   $HTML->menu_entry ('/maintenance/FrontPage/', _('User Docs: FAQ'));
@@ -425,11 +425,11 @@ function sitemenu_help ()
     _("Get help from the Admins of %s, when documentation is not enough"),
     $sys_name
   );
-  $HTML->menu_entry ("{$sys_home}support/?group=$sys_unix_group_name",
+  $HTML->menu_entry ("/support/?group=$sys_unix_group_name",
     _("Get Support"), 1, $msg
   );
   $HTML->menuhtml_bottom ();
-  $HTML->menu_entry ("{$sys_home}contact.php", _("Contact Savannah"), 1,
+  $HTML->menu_entry ("/contact.php", _("Contact Savannah"), 1,
     # TRANSLATORS: the argument is site name (like Savannah).
     sprintf (_("Contact address of %s Admins"), $sys_name)
   );
@@ -443,7 +443,7 @@ function menu_loggedin ($page_title, $page_toptab = 0, $page_group = 0)
 
 function sitemenu_loggedin ($page_title, $page_toptab = 0, $page_group = 0)
 {
-  global $HTML, $sys_home;
+  global $HTML;
   $uname = user_getname ();
   $req_uri = utils_urlencode ($_SERVER['REQUEST_URI']);
   # Show links appropriate for logged in people, like account maintenance, etc.
@@ -456,48 +456,48 @@ function sitemenu_loggedin ($page_title, $page_toptab = 0, $page_group = 0)
       . sprintf (_("%s logged in as superuser"), $uname) . '</span>'
     );
   if (user_can_be_super_user () && !user_is_super_user ())
-    $HTML->menu_entry ("{$sys_home}account/su.php?action=login&amp;uri="
+    $HTML->menu_entry ("/account/su.php?action=login&amp;uri="
       . utils_urlencode ($_SERVER['REQUEST_URI']), _("Become Superuser"), 1,
       _("Superuser rights are required to perform site admin tasks")
     );
   if (user_is_super_user ())
     {
-      print form_tag (['action' => "{$sys_home}account/impersonate.php"])
+      print form_tag (['action' => "/account/impersonate.php"])
         . html_label ("user_name", _("Become this user:")) . "<br/>\n";
       print form_hidden (["uri" => $req_uri]);
       print form_input ('text', "user_name", '', 'size=10') . '&nbsp;';
       print form_submit (_("Impersonate"), "impersonate") . "</form>\n";
     }
-  $HTML->menu_entry ("{$sys_home}my/", _("My Incoming Items"), 1,
+  $HTML->menu_entry ("/my/", _("My Incoming Items"), 1,
     _("What's new for me: new items I should have a look at")
   );
-  $HTML->menu_entry ("{$sys_home}my/items.php", _("My Items"), 1,
+  $HTML->menu_entry ("/my/items.php", _("My Items"), 1,
     _("Browse my items (submitted by me or assigned to me)")
   );
   if (user_use_votes ())
-    $HTML->menu_entry ("{$sys_home}my/votes.php", _("My Votes"), 1,
+    $HTML->menu_entry ("/my/votes.php", _("My Votes"), 1,
       _("Browse items I voted for")
     );
 
-  $HTML->menu_entry ("{$sys_home}my/groups.php", _("My Groups"), 1,
+  $HTML->menu_entry ("/my/groups.php", _("My Groups"), 1,
     _("List the groups I belong to")
   );
   if (user_get_preference ("use_bookmarks"))
-    $HTML->menu_entry ("{$sys_home}my/bookmarks.php", _("My Bookmarks"), 1,
+    $HTML->menu_entry ("/my/bookmarks.php", _("My Bookmarks"), 1,
       _("Show my bookmarks")
     );
 
-  $HTML->menu_entry ("{$sys_home}my/admin/", _("My Account Conf"), 1,
+  $HTML->menu_entry ("/my/admin/", _("My Account Conf"), 1,
     _("Account configuration: authentication, cosmetics preferences...")
   );
 
   if (user_is_super_user ())
     $HTML->menu_entry (
-      "{$sys_home}account/su.php?action=logout&amp;uri=$req_uri",
+      "/account/su.php?action=logout&amp;uri=$req_uri",
       _("Logout Superuser"), 1,
       _("End the Superuser session, go back to normal user session")
     );
-  $HTML->menu_entry ("{$sys_home}account/logout.php", _("Logout"), 1,
+  $HTML->menu_entry ("/account/logout.php", _("Logout"), 1,
     _("End the session, remove the session cookie")
   );
   $HTML->menuhtml_bottom ();
@@ -510,7 +510,7 @@ function menu_notloggedin ()
 
 function sitemenu_notloggedin ()
 {
-  global $HTML, $sys_home;
+  global $HTML;
   $HTML->menuhtml_top (_("Not Logged in"));
 
   # Get settings not present in REQUEST_URI in case of a POST form.
@@ -519,13 +519,13 @@ function sitemenu_notloggedin ()
     $extraurl = "?$extraurl";
 
   $HTML->menu_entry (
-    "{$sys_home}account/login.php?uri="
+    "/account/login.php?uri="
     . utils_urlencode ($_SERVER['REQUEST_URI'] . $extraurl),
     _("Login"), 1,
     _("Login page - you must have registered an account first")
   );
 
-  $HTML->menu_entry ("{$sys_home}account/register.php", _("New User"), 1,
+  $HTML->menu_entry ("/account/register.php", _("New User"), 1,
     _("Account registration form")
   );
   $HTML->menuhtml_bottom ();

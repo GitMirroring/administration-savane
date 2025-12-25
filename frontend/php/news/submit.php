@@ -75,8 +75,7 @@ if ($update)
         $feedback = _("News Posted: it will need to be approved by a news "
          . "manager of this group before it shows on the front page.");
         session_redirect (
-          "{$sys_home}news/?group=$group&feedback="
-          . utils_urlencode ($feedback)
+          "/news/?group=$group&feedback=" . utils_urlencode ($feedback)
         );
       }
     else

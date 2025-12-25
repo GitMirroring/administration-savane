@@ -56,7 +56,7 @@ $GLOBALS['int_delayspamcheck_comment_id'] = false;
 
 function spam_flag_notification ($item, $comment, $user, $reporter)
 {
-  global $sys_mail_domain, $sys_mail_admin, $sys_default_domain, $sys_home;
+  global $sys_mail_domain, $sys_mail_admin, $sys_default_domain;
 
   # No i18n: the message is sent to Savannah admins.
   $message['subject'] = 'Spam reported';
@@ -65,7 +65,7 @@ function spam_flag_notification ($item, $comment, $user, $reporter)
     $spammer = "<" . user_getname ($user) . ">";
 
   $message['body'] = "User <" . user_getname ($reporter) . "> reported spam "
-    . "posted by $spammer at\nhttps://$sys_default_domain$sys_home"
+    . "posted by $spammer at\nhttps://$sys_default_domain/"
     . ARTIFACT . "/index.php?item_id=$item"
     . "&func=viewspam&comment_internal_id=$comment#spam$comment";
   sendmail_mail (

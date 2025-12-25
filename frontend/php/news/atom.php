@@ -76,7 +76,7 @@ $result = db_execute ("
     AND news_bytes.submitted_by = user.user_id
   ORDER BY date DESC LIMIT 20", [$group_id]);
 
-$id = "http://$sys_default_domain{$sys_home}news/atom.php?group=$group";
+$id = "http://$sys_default_domain/news/atom.php?group=$group";
 # TRANSLATORS: this is page title, the argument is group name
 # (like "GNU Coreutils").
 $title = sprintf (_("%s - News"), $group_obj->getPublicName ());

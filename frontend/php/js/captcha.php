@@ -48,7 +48,6 @@ print git_agpl_notice_for_js ()
   . "document.getElementById('captcha_js_link').onclick =
 function ()
 {
-  document.getElementById('captcha').src =
-    '{$sys_home}captcha.php?' + Math.random();
+  document.getElementById('captcha').src = '/captcha.php?' + Math.random();
 }\n";
 ?>

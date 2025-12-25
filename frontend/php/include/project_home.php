@@ -80,7 +80,7 @@ function end_div ()
 $j = 1;
 function print_group_admins ($res_admin)
 {
-  global $sys_home, $j;
+  global $j;
   $adminsnum = db_numrows ($res_admin);
   if (!$adminsnum)
     return;
@@ -93,7 +93,7 @@ function print_group_admins ($res_admin)
       print "<li>";
       start_div ($j++);
       print utils_link (
-        "{$sys_home}users/{$row_admin['user_name']}", $row_admin['realname']
+        "/users/{$row_admin['user_name']}", $row_admin['realname']
       );
       end_div ();
       print "</li>\n";
@@ -125,9 +125,7 @@ end_div ();
 start_div ($j++);
 
 print '['
-  . utils_link (
-     "{$sys_home}project/memberlist.php?group=$group", _("View Members")
-    )
+  . utils_link ("/project/memberlist.php?group=$group", _("View Members"))
   . ']';
 end_div ();
 print $HTML->box_bottom (1);
@@ -176,7 +174,7 @@ else
         printf (
           _("This group hasn't submitted a short description yet. "
             . "You can <a\nhref=\"%s\">submit it</a> now."),
-          "{$sys_home}project/admin/editgroupinfo.php?group=$group"
+          "/project/admin/editgroupinfo.php?group=$group"
         );
         print "</p>\n";
       }
@@ -218,9 +216,9 @@ if ($project->Uses ("news"))
     print
       $HTML->box_top (
         html_h (2, _("Latest News") . "&nbsp;"
-          . "<a href='{$sys_home}news/atom.php?group=$group' "
+          . "<a href='/news/atom.php?group=$group' "
           . "class='inline-link'><img alt='rss feed' "
-          . "src='{$sys_home}images/common/feed16.png' /></a>"
+          . "src='/images/common/feed16.png' /></a>"
         )
       );
     print news_show_latest ($group_id, 4);
@@ -256,11 +254,11 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, MEMBER_FLAGS_ADMIN
     print $HTML->box_nextitem (utils_altrow ($odd));
     $img = proj_home_img ("contexts/admin.png");
     print utils_link (
-      "{$sys_home}siteadmin/", $img . _("Server Main Administration Page")
+      "/siteadmin/", $img . _("Server Main Administration Page")
     );
     print $HTML->box_nextitem (utils_altrow ($even));
     print utils_link (
-      "{$sys_home}task/?group={$sys_unix_group_name}"
+      "/task/?group={$sys_unix_group_name}"
       . '&amp;category_id=1&amp;status_id=1&amp;set=custom',
       $img . _("Pending Group List")
     );
@@ -290,7 +288,7 @@ if (member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
     print $HTML->box_nextitem (utils_altrow ($odd));
     $img = proj_home_img ("contexts/main.png");
     print utils_link (
-      "{$sys_home}project/admin/?group=$group",
+      "/project/admin/?group=$group",
        $img . _("Group Main Administration Page")
     );
     print $HTML->box_bottom();
@@ -364,7 +362,7 @@ if ($project->Uses ("extralink_documentation"))
 
 specific_makesep ();
 print utils_link(
-  "{$sys_home}project/memberlist.php?group=$group",
+  "/project/memberlist.php?group=$group",
   proj_home_img ("contexts/people.png") . _("Memberlist")
 );
 
@@ -379,7 +377,7 @@ if (group_get_preference ($group_id, 'gpg_keyring'))
   {
     specific_makesep ();
     print utils_link (
-      "{$sys_home}project/release-gpgkeys.php?group=$group",
+      "/project/release-gpgkeys.php?group=$group",
       proj_home_img ("contexts/keys.png") . _("Group release GPG keyring")
     );
     $i++;
@@ -465,7 +463,7 @@ if ($sys_unix_group_name == $group
       {
         specific_makesep ();
         print utils_link (
-          "{$sys_home}people/?group=$group",
+          "/people/?group=$group",
           proj_home_img ("contexts/people.png")
           . _("This group is looking for people")
         ) . ' ';
