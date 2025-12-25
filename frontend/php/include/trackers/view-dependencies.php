@@ -233,10 +233,10 @@ function tracker_dep_node_name ($tr, $i)
 }
 function trackers_print_item_list_img ($items, $dependencies)
 {
-  global $sys_home, $sys_graphviz, $php_self;
+  global $sys_graphviz, $php_self;
   if (empty ($sys_graphviz))
     return;
-  $url = "$sys_home" . ARTIFACT . "/dependencies.php?";
+  $url = "/" . ARTIFACT . "/dependencies.php?";
   $args = ['list_format=svg'];
   foreach (['group', 'include_closed', 'offset', 'max_rows'] as $var)
     {
@@ -263,7 +263,7 @@ function trackers_print_view_deps_controls ()
 function trackers_show_dep ($d)
 {
   print "<li>";
-  print "<a href=\"{$GLOBALS['sys_home']}{$d['tracker']}/?{$d['bug_id']}\">";
+  print "<a href=\"/{$d['tracker']}/?{$d['bug_id']}\">";
   print "{$d['tracker']} #{$d['bug_id']}</a>: ";
   print '<span class="'
     . utils_get_priority_color ($d['priority'], $d['status_id']) . '">';
@@ -279,7 +279,6 @@ function trackers_print_item_deps ($deps)
 }
 function trackers_print_item_link ($row)
 {
-  global $sys_home;
   if ($row['status_id'] != 1)
     {
       $img_file = 'ok.png'; $img_alt = _("Closed Item");
@@ -296,7 +295,7 @@ function trackers_print_item_link ($row)
   print '<span class="'
    . utils_get_priority_color ($row['priority'], $row['status_id'])
    . "\">$icon&nbsp; "
-   . utils_link ("$sys_home$artifact/?$item", "$artifact #$item")
+   . utils_link ("/$artifact/?$item", "$artifact #$item")
    . ": &nbsp;$summary &nbsp;</span>";
 
 }
@@ -323,11 +322,11 @@ function trackers_print_item_list_html (
 }
 function trackers_viewdep_nextprev ($total)
 {
-  global $sys_home, $group, $item_no, $include_closed;
+  global $group, $item_no, $include_closed;
   global $max_rows, $offset;
   if (empty ($offset) && $item_no <= $max_rows)
     return;
-  $url = $sys_home . ARTIFACT . "/dependencies.php?group=$group";
+  $url = '/' . ARTIFACT . "/dependencies.php?group=$group";
   if (!empty ($include_closed))
     $url .= "&amp;include_closed";
   html_nextprev ($url, $offset, $max_rows, $total);

@@ -132,7 +132,7 @@ function search_list_tracker_options ($gid, $type_of_search, $is_small)
 function search_box ($searched_words = '', $scope = null, $size = 15)
 {
   global $words, $group_id, $exact, $type_of_search, $type, $max_rows;
-  global $only_group_id, $sys_home;
+  global $only_group_id;
   $submit = form_input ("submit", 'search', _("Search"));
 
   if (!is_scalar ($searched_words))
@@ -163,7 +163,7 @@ function search_box ($searched_words = '', $scope = null, $size = 15)
   if ($words == "%%%")
     $words = "*";
 
-  $ret = form_header ("{$sys_home}search/#options", 'get');
+  $ret = form_header ("/search/#options", 'get');
   if (!$is_small)
     # If it's a big form, we want the submit button on the right.
     $ret .= "<span class='boxoptionssubmit'>$submit&nbsp;</span>\n";

@@ -809,15 +809,13 @@ function markup_substitute_underscored ($line)
 
 function markup_substitute_file_domain ($line)
 {
-  global $sys_file_domain, $sys_home;
+  global $sys_file_domain;
   if ($GLOBALS['sys_default_domain'] == $sys_file_domain)
     return $line;
   return str_replace (
-    ["<img src=\"{$sys_home}file", "<a href=\"{$sys_home}file"],
-    [
-      "<img src=\"//$sys_file_domain{$sys_home}file",
-      "<a href=\"//$sys_file_domain{$sys_home}file"
-    ], $line
+    ["<img src=\"/file", "<a href=\"/file"],
+    ["<img src=\"//$sys_file_domain/file", "<a href=\"//$sys_file_domain/file"],
+    $line
   );
 }
 
@@ -1131,7 +1129,6 @@ function markup_protocol_regex ()
 
 function markup_expand_links ($line)
 {
-  global $sys_home;
   $trackers = markup_tracker_list ();
   $artifact_regex = join ('|', array_keys ($trackers)) . '|comments?';
   list ($protocols, $protocol_relative) = markup_protocol_regex ();
@@ -1145,7 +1142,7 @@ function markup_expand_links ($line)
   $line = markup_expand_file_links ($line);
 
   foreach ($trackers as $regexp => $link)
-    $line = markup_expand_tracker_links ($line, $regexp, "$sys_home$link");
+    $line = markup_expand_tracker_links ($line, $regexp, "/$link");
 
   $line = markup_expand_comment_links ($line);
   $line = markup_expand_named_links ($line, $protocols);

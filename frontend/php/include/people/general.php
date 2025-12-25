@@ -197,7 +197,7 @@ function people_show_category_list ()
       $cat_id = $row['category_id'];
       $ret .= '<li class="' . utils_altrow ($j++)
         . '"><span class="smaller">&nbsp;&nbsp;- <a href="'
-        . $GLOBALS['sys_home'] . 'people/?categories[]=' . $cat_id . '">'
+        . '/people/?categories[]=' . $cat_id . '">'
         . $row['count'] . ' ' . $categories[$cat_id]['name']
         . "</a></span></li>\n";
     }
@@ -413,7 +413,6 @@ function people_edit_job_inventory ($job_id, $group_id)
 # Take a result set from a query and show the jobs.
 function people_show_job_list ($result, $edit = 0)
 {
-  global $sys_home;
   $title_arr = [
     _("Title"), _("Category"), _("Date Opened"), _("Group"), _("Type")
   ];
@@ -437,13 +436,13 @@ function people_show_job_list ($result, $edit = 0)
       );
       $name = gettext (db_result ($res_type, 0, 'name'));
       $return .= "<tr class=\"" . utils_altrow ($i)
-        . '"><td><a href="' . "{$sys_home}people/$page?group_id="
+        . '"><td><a href="' . "/people/$page?group_id="
         . db_result ($result, $i, 'group_id') . '&job_id='
         . db_result ($result, $i, 'job_id') . '">'
         . db_result ($result, $i, 'title') . "</a></td>\n<td>"
         . db_result ($result, $i, 'category_name') . "</td>\n<td>"
-        . utils_format_date (db_result ($result,$i,'date'), 'natural')
-        . "</td>\n<td><a href=\"{$sys_home}projects/"
+        . utils_format_date (db_result ($result, $i, 'date'), 'natural')
+        . "</td>\n<td><a href=\"/projects/"
         . strtolower (db_result ($result, $i, 'unix_group_name')) . '/">'
         . db_result ($result, $i, 'group_name') . "</a></td>\n<td>"
         . "$name</td></tr>\n";

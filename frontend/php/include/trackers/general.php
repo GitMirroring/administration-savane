@@ -148,9 +148,9 @@ function trackers_list_all_fields ($sort_func = false, $by_field_id = false)
 
 function trackers_data_description_link ($field, $label)
 {
-  global $group_id, $sys_home;
+  global $group_id;
   $is_admin = user_is_group_admin ();
-  $url = $sys_home . ARTIFACT . "/admin";
+  $url = '/' . ARTIFACT . "/admin";
   $q_str = "group_id=$group_id&field=$field";
   if (trackers_data_is_select_box ($field))
     return
@@ -913,8 +913,8 @@ function trackers_mail_fetch_followup (&$artifact, $item_id)
 
 function trackers_mail_bug_ref ($artifact, $item_id)
 {
-  global $sys_home, $sys_default_domain;
-  return "https://$sys_default_domain$sys_home$artifact/?$item_id";
+  global $sys_default_domain;
+  return "https://$sys_default_domain/$artifact/?$item_id";
 }
 
 function trackers_build_mail ($artifact, $res, $item_id, $changes)

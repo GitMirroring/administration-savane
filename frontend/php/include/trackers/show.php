@@ -356,7 +356,7 @@ function show_depend_output_bottom ($item_id, $group_id, $tracker_set)
         continue;
       $linktitle = show_depend_link_title ($tracker);
       $links[] .= utils_link (
-        $GLOBALS['sys_home'] . "$tracker/?group_id=$group_id"
+        "/$tracker/?group_id=$group_id"
           . '&amp;func=digestselectfield&amp;dependencies_of_item='
           . $item_id . '&amp;dependencies_of_tracker=' . ARTIFACT,
         $linktitle, 'noprint'
@@ -522,7 +522,7 @@ function show_dependent_single_item ($item_id, $item, $show_trash, &$access)
   print show_dependent_priority_color ($item);
   if ($show_trash)
     print show_dependent_trash_link ($item_id, $cur_item, $tracker);
-  $link_to_item = $GLOBALS['sys_home'] . "$tracker/?$cur_item";
+  $link_to_item = "/$tracker/?$cur_item";
   print "<a href=\"$link_to_item\" class='block'>";
   print html_image (
     'contexts/' . utils_get_tracker_icon ($tracker) . '.png',
