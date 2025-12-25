@@ -87,7 +87,7 @@ function utils_check_path ($path)
 # with 'unavailable' CSS class.  Unavailable "links" are written
 # with different tags to let CSS-unaware browsers distinguish them.
 function utils_link (
-  $url, $title, $defaultclass = 0, $available = 1, $help = 0, $extra = ''
+  $url, $title, $defaultclass = 0, $available = 1, $help = 0
 )
 {
   $closing_tag = '</a>';
@@ -105,8 +105,6 @@ function utils_link (
     $return .= " class=\"$defaultclass\"";
   if ($help)
     $return .= " title=\"$help\"";
-  if ($extra)
-    $return .= " $extra";
   return "$return>$title$closing_tag";
 }
 
