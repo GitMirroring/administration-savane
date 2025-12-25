@@ -102,11 +102,7 @@ function reporting_build_graph (
 # But if some specific installation need to do so for whatever reason,
 # we can make that a configuration option.
 
-# If artifact is not defined, we want statistics of all trackers.
-if (ARTIFACT == "project")
-  $artifact = join (',', utils_get_dependable_trackers ());
-else
-  $artifact = ARTIFACT;
+$artifact = ARTIFACT;
 
 # Specific function that list possible report.
 function specific_reports_list ($thisfield, $group_id)
