@@ -62,7 +62,7 @@ function forum_show_a_nested_message ($result, $row = 0)
 
   $ret_val = "\n<table border='0' width='100%'>\n<tr>\n<td class='boxitem'>"
     . '<strong>' . db_result ($result, $row, 'subject') . '</strong>'
-    . ' (' . _("posted by") . ' <a href="' . $GLOBALS['sys_home'] . 'users/'
+    . ' (' . _("posted by") . ' <a href="/users/'
     . db_result ($result, $row, 'user_name') . '/">'
     . db_result ($result, $row, 'realname') . '</a>, '
     .  utils_format_date (db_result ($result, $row, 'date')) . ')'
@@ -70,8 +70,8 @@ function forum_show_a_nested_message ($result, $row = 0)
     . markup_rich (db_result ($result, $row, 'body'));
 
   if ($GLOBALS['sys_enable_forum_comments'])
-    $ret_val .= '</p><p><a href="' . $GLOBALS['sys_home']
-      . 'forum/message.php?msg_id=' . db_result ($result, $row, 'msg_id')
+    $ret_val .= '</p><p><a href="'
+      . '/forum/message.php?msg_id=' . db_result ($result, $row, 'msg_id')
       . '#followup">[ ' . _("Reply") . ' ]</a>';
 
   $ret_val .= "</p>\n</td>\n</tr>\n</table>\n";
@@ -248,7 +248,7 @@ function show_thread ($thread_id, $et = 0)
       $total_rows++;
       $msg = '';
       if ($current_message != db_result ($result, $i, 'msg_id')) 
-        $msg = '<a href="' . $GLOBALS['sys_home'] . 'forum/message.php?msg_id='
+        $msg = '<a href="/forum/message.php?msg_id='
         . db_result ($result, $i, 'msg_id') . '">';
       $ret_val .= '<tr class="'. utils_altrow ($total_rows) . '"><td>' . $msg
         . html_image ("contexts/mail.png", ['height' => 12, 'width' => 12]);
@@ -314,8 +314,8 @@ function show_submessages ($thread_id, $msg_id, $level,$et=0)
       );
       # If this is the message being displayed, don't show a link to it.
       if ($current_message != db_result ($result, $i, 'msg_id'))
-        $ret_val .= '<a href="' . $GLOBALS['sys_home']
-          . 'forum/message.php?msg_id=' . db_result ($result, $i, 'msg_id')
+        $ret_val .= '<a href="'
+          . '/forum/message.php?msg_id=' . db_result ($result, $i, 'msg_id')
           . '">';
       if (
         get_forum_saved_date ($forum_id) < db_result ($result, $i, 'date')
@@ -476,7 +476,6 @@ function show_post_form (
   $forum_id, $thread_id = 0, $is_followup_to = 0, $subject = ""
 )
 {
-  global $sys_home;
   print "<center>";
   if (!user_isloggedin ())
     {
@@ -491,7 +490,7 @@ function show_post_form (
           if (!preg_match ('/RE:/i', $subject))
             $subject = 'RE: ' . $subject;
         }
-  print form_tag (['action' => "{$sys_home}forum/forum.php"])
+  print form_tag (['action' => "/forum/forum.php"])
     . form_hidden (
         [ 'post_message' => 'y', 'forum_id' => $forum_id,
           'thread_id' => $thread_id, 'is_followup_to' => $is_followup_to]

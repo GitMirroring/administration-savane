@@ -84,8 +84,8 @@ function project_admin_registration_info ($row_grp)
   print $spp . no_i18n ("Group Admins") . ":$spbr";
   while ($row_admin = db_fetch_array ($res_admin))
     {
-      print "<a href=\"{$GLOBALS['sys_home']}"
-        . "users/{$row_admin['user_name']}/\">{$row_admin['realname']} "
+      print "<a href=\""
+        . "/users/{$row_admin['user_name']}/\">{$row_admin['realname']} "
         . "&lt;{$row_admin['email']}&gt;</a> ; ";
     }
   $spp = "</p>\n$spp";

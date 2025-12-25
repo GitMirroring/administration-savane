@@ -435,8 +435,6 @@ function utils_result_column_to_array ($result, $col = 0, $localize = false)
 
 function utils_user_link ($username, $realname = false)
 {
-  global $sys_home;
-
   if ($username === 'None')
     # TRANSLATORS: Displayed when no user is selected.
     return _('None');
@@ -444,7 +442,7 @@ function utils_user_link ($username, $realname = false)
   if (empty ($username))
     # TRANSLATORS: anonymous user.
     return _("Anonymous");
-  $re = "<a href=\"{$sys_home}users/$username\">";
+  $re = "<a href=\"/users/$username\">";
   if ($realname)
     $re .= "$realname &lt;$username&gt;";
   else
@@ -735,8 +733,7 @@ function utils_help ($text, $explanation_array)
 
 function utils_setcookie ($name, $value, $expire, $secure = false)
 {
-  global $sys_home;
-  setcookie ($name, $value, $expire, $sys_home, '', $secure, true);
+  setcookie ($name, $value, $expire, '/', '', $secure, true);
 }
 
 function utils_set_csp_headers ()
@@ -1008,9 +1005,8 @@ function utils_disable_cache ()
 }
 function utils_public_file_url ($file)
 {
-  global $sys_home;
   $name = urlencode ($file['name']);
-  return "{$sys_home}file/$name?file_id={$file['id']}";
+  return "/file/$name?file_id={$file['id']}";
 }
 
 # Find an item in a tracker, fetch the fields listed in $fields

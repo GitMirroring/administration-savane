@@ -148,7 +148,7 @@ class Layout extends savane_error
 
   function generic_header_start ($params)
   {
-    global $sys_name, $savane_version, $sys_home, $stone_age_menu;
+    global $sys_name, $savane_version, $stone_age_menu;
 
     $url = git_get_savane_url ();
 
@@ -191,18 +191,18 @@ class Layout extends savane_error
       . "<meta http-equiv=\"Content-Script-Type\" "
       . "content=\"text/javascript\" />\n"
       . "<link rel=\"stylesheet\" type=\"text/css\" "
-      . "href=\"{$sys_home}css/$theme.css\" />\n";
+      . "href=\"/css/$theme.css\" />\n";
     # If the user want the stone age menu, we must add the appropriate
     # additional CSS.
     if (!empty ($stone_age_menu))
       print "<link rel=\"stylesheet\" type=\"text/css\" "
-        . "href=\"{$sys_home}css/internal/stone-age-menu.css\" />\n";
+        . "href=\"/css/internal/stone-age-menu.css\" />\n";
     if (!empty ($params['css']))
       print "<link rel=\"stylesheet\" type=\"text/css\" "
         . "href=\"{$params['css']}\" />\n";
 
     print "<link rel=\"icon\" type=\"image/png\" "
-      . "href=\"{$sys_home}images/$theme.theme/icon.png\" />\n";
+      . "href=\"/images/$theme.theme/icon.png\" />\n";
     utils_get_content ("page_header");
   }
   function generic_header_end ($params)

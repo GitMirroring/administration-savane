@@ -411,8 +411,8 @@ function session_logout ()
 # Check if cookies are enabled.
 function session_check_cookies ($uri, $uri_urlencoded)
 {
-  global $sys_default_domain, $sys_https_url, $sys_home;
-  $url_prefix = "$sys_https_url{$sys_home}account/login.php?uri=";
+  global $sys_default_domain, $sys_https_url;
+  $url_prefix = "$sys_https_url/account/login.php?uri=";
   if (isset ($_COOKIE["cookie_probe"]))
     return;
   extract (sane_import ('get', ['true' => 'cookie_test']));
@@ -450,7 +450,7 @@ function session_set_theme ()
 # in session_redirect ().
 function session_login_brother ($uri, $uri_urlencoded)
 {
-  global $sys_brother_domain, $sys_home;
+  global $sys_brother_domain;
   global $brotherhood, $session_hash, $cookie_for_a_year, $stay_in_ssl;
   global $from_brother;
   if (empty ($sys_brother_domain) || empty ($brotherhood))
@@ -463,7 +463,7 @@ function session_login_brother ($uri, $uri_urlencoded)
     # Redirect back after logging in the 'brother' domain.
     session_redirect ("$root_url$uri");
   # Log in the 'brother' domain.
-  session_redirect ("$root_url{$sys_home}account/login.php?"
+  session_redirect ("$root_url/account/login.php?"
     . "session_uid=" . user_getid () . "&session_hash=$session_hash"
     . "&login=1&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
     . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_urlencoded"

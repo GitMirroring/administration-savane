@@ -233,8 +233,7 @@ function pagemenu_submenu_entry_separator ()
 # Menu specific to My pages.
 function pagemenu_my ()
 {
-  global $sys_home;
-  $url = "{$sys_home}my";
+  $url = "/my";
   $titles = [
     [ _("Incoming Items"), "$url/", 'browsing', _("What's new for me?")],
     [ _("Items"), "$url/items.php", 'items',
@@ -281,7 +280,7 @@ function pagemenu_tracker_submenu ($project, $tracker, $title, $help)
 # Submenu for group admins.
 function pagemenu_group_admin ($root, $gr_n)
 {
-  global $sys_home, $group_id;
+  global $group_id;
   $ret = pagemenu_submenu_entry_separator ();
   $titles = [
     '/admin/' => '<strong>' . _("Administer:") . '</strong>',
@@ -296,7 +295,7 @@ function pagemenu_group_admin ($root, $gr_n)
   ];
   foreach ($titles as $u => $t)
     $ret .= pagemenu_submenu_entry ($t, "$root$u$gr_n");
-  $root = $sys_home . "people";
+  $root = "/people";
   $ret .=
     pagemenu_submenu_entry (_("Post&nbsp;jobs"),
       "$root/createjob.php$gr_n", 1, _("Post a request for contribution")
@@ -406,7 +405,7 @@ function pagemenu_vcs_entry ($group, &$count, $vcs, $name)
 
 function pagemenu_main ($gr_n, $uname, $url, $is_admin)
 {
-  global $sys_group_id, $sys_home, $sys_name, $project;
+  global $sys_group_id, $sys_name, $project;
   print pagemenu_submenu_title (_("Main"), $uname,
     CONTEXT == 'project', 1,
     # TRANSLATORS: the argument is site name like Savannah.
@@ -474,8 +473,7 @@ function pagemenu_cookbook_extradoc ($project)
 
 function pagemenu_mail_admin ($gr_n)
 {
-  global $sys_home;
-  $u = $sys_home . "mail";
+  $u = "/mail";
   $ret =
     pagemenu_submenu_entry (
       _("Browse"), "$u/$gr_n", _("List existing mailing lists")
@@ -573,10 +571,10 @@ function pagemenu_news_admin ($gr_n, $is_admin, $news)
 
 function pagemenu_news ($project, $gr_n, $is_admin)
 {
-  global $group_id, $sys_home;
+  global $group_id;
   if (!$project->Uses ("news"))
     return;
-  $news = $sys_home . 'news';
+  $news = '/news';
   print pagemenu_submenu_title (_("News"), "$news/$gr_n", CONTEXT == 'news', 1,
     _("Read latest News, post News")
   );
@@ -617,8 +615,8 @@ function pagemenu_fora_mail_vcs ($project, $is_admin, $gr_n, $uname)
 # Menu specific to Group pages.
 function pagemenu_group ()
 {
-  global $group_id, $sys_group_id, $project, $sys_home;
-  $url = $sys_home . 'project';
+  global $group_id, $sys_group_id, $project;
+  $url = '/project';
   $project = project_get_object ($group_id);
   if ($project->isError ())
     return;
@@ -758,10 +756,10 @@ function pagemenu_group_trackers_admin_links ($root, $gr)
 # Menu specific to tracker pages.
 function pagemenu_group_trackers ($tracker)
 {
-  global $project, $group_id, $sys_group_id, $sys_home;
+  global $project, $group_id, $sys_group_id;
 
   $is_admin = member_check (0, $group_id, 'A');
-  $root = "$sys_home$tracker";
+  $root = "/$tracker";
   $gr_n = "?group=" . $project->getUnixName ();
   $write_access = group_restrictions_check ($group_id, $tracker);
   $export_check = member_check (0, $group_id);
@@ -782,15 +780,15 @@ function pagemenu_group_trackers ($tracker)
 # Menu specific to the site admin pages; no i18n.
 function pagemenu_siteadmin ()
 {
-  global $sys_home, $group_name, $sys_unix_group_name;
-  $root = $sys_home . "siteadmin";
+  global $group_name, $sys_unix_group_name;
+  $root = "/siteadmin";
   print pagemenu_submenu_title ("Configuration", "$root/?func=configure",
     SUBCONTEXT == 'configure'
   );
   $titles = [
     "$root/retestconfig.php" => "Test system configuration",
     "$root/group_type.php" => "Configure group types",
-    "{$sys_home}people/admin/" => "Configure people area",
+    "/people/admin/" => "Configure people area",
     "$root/mailman.php" => "Assign mailing lists"];
   $txt = "";
   foreach ($titles as $u => $t)
@@ -805,7 +803,7 @@ function pagemenu_siteadmin ()
   $extralinks = '';
   if (SUBCONTEXT == 'manage' && !empty ($group_name))
     {
-      $root = $sys_home . "project/admin";
+      $root = "/project/admin";
       $gr_n = "?group=$group_name";
       $titles = [
         ["#" => "<strong>Currently shown group:</strong>"],
@@ -822,12 +820,9 @@ function pagemenu_siteadmin ()
   $uname = "?group=$sys_unix_group_name";
   $txt =
     pagemenu_submenu_entry ("Pending registrations",
-      "{$sys_home}task/$uname&amp;category_id=1"
-      . "&amp;status_id=1&amp;go_report=Apply"
+      "/task/$uname&amp;category_id=1&amp;status_id=1&amp;go_report=Apply"
     )
-    . pagemenu_submenu_entry ("Approve news",
-       "{$sys_home}news/approve.php$uname"
-      )
+    . pagemenu_submenu_entry ("Approve news", "/news/approve.php$uname")
     . pagemenu_submenu_entry_separator ()
     . pagemenu_submenu_entry ("Group list", "$root/grouplist.php")
     . pagemenu_submenu_entry ("User list", "$root/userlist.php");

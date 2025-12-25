@@ -166,8 +166,7 @@ function html_splitpage ($how, $swap = false)
 
 function html_image_dir ($theme, $suffix = null)
 {
-  global $sys_home;
-  $ret = "{$sys_home}images$theme.theme/";
+  $ret = "/images$theme.theme/";
   if ($suffix)
     $ret .= "$suffix/";
   return $ret;
@@ -438,7 +437,7 @@ function html_image_get_size ($src, $path)
 # Compile attributes for <img /> and <input type="image" />.
 function html_image_attributes ($src, $args)
 {
-  global $sys_home, $sys_www_topdir;
+  global $sys_www_topdir;
   $base = "images/" . SV_THEME . ".theme/$src";
   $path = "$sys_www_topdir/$base";
 
@@ -448,7 +447,7 @@ function html_image_attributes ($src, $args)
   if (empty ($args['border']))
     $args['border'] = 0;
 
-  $args['src'] = "$sys_home$base";
+  $args['src'] = "/$base";
   $return = html_attr_str ($args, '"');
   # If there is neither height nor width tag, insert them both.
   if (empty ($args['height']) && empty ($args['width']))

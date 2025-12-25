@@ -81,14 +81,14 @@ function exit_permission_denied ($text = '')
 function exit_not_logged_in ()
 {
   # Instead of a simple error page, take user to the login page.
-  global $REQUEST_URI, $sys_https_host, $sys_default_domain, $sys_home;
+  global $REQUEST_URI, $sys_https_host, $sys_default_domain;
 
   $uri = utils_urlencode ($REQUEST_URI);
   $domain = "http://$sys_default_domain";
   if (!empty ($sys_https_host))
     $domain = "https://$sys_https_host";
 
-  session_redirect ("$domain{$sys_home}account/login.php?uri=$uri");
+  session_redirect ("$domain/account/login.php?uri=$uri");
 }
 
 function exit_no_group ()

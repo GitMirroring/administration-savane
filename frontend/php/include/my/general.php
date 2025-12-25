@@ -425,7 +425,7 @@ function my_item_list_extractdata ($sql_result, $tracker)
 
 function my_item_print_item ($item, $gid, $openclosed)
 {
-  global $group_data, $sys_home, $item_data;
+  global $group_data, $item_data;
   if (!isset ($item_data[$item]))
     return;
   $it = $item_data[$item]; $it_id = $it['item_id']; $tracker = $it['tracker'];
@@ -439,7 +439,7 @@ function my_item_print_item ($item, $gid, $openclosed)
   # Print directly, to avoid putting too much things in memory
   print '<div class="'
     . utils_get_priority_color ($it['priority'], $openclosed) . '">'
-    . "<a href=\"$sys_home$tracker/?$it_id\" class='block'>"
+    . "<a href=\"/$tracker/?$it_id\" class='block'>"
     . html_image ("contexts/$icon.png",
         ['class' => 'icon', 'alt' => $tracker]
       )

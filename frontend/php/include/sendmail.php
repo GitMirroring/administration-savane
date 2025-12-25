@@ -46,14 +46,14 @@ foreach (['utils', 'gpg', 'parsemail', 'savane-git'] as $h)
 # Return the common signature for all messages, in a list.
 function sendmail_signature ()
 {
-  global $int_delayspamcheck, $sys_default_domain, $sys_home, $sys_name;
+  global $int_delayspamcheck, $sys_default_domain, $sys_name;
 
   if (!empty ($int_delayspamcheck))
     return [];
   return ["\n\n_______________________________________________\n"
     # TRANSLATORS: the argument is site name (like Savannah).
     . sprintf (_("Message sent via %s"), $sys_name)
-    . "\nhttps://$sys_default_domain$sys_home\n"];
+    . "\nhttps://$sys_default_domain/\n"];
 }
 
 function sendmail_wrap_commented ($lines, $length)

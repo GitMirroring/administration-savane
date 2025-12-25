@@ -50,8 +50,8 @@
 
 function news_format_atom_entry ($row)
 {
-  global $sys_default_domain, $sys_home;
-  $id = "https://$sys_default_domain{$sys_home}news/?id={$row['id']}";
+  global $sys_default_domain;
+  $id = "https://$sys_default_domain/news/?id={$row['id']}";
   $title = $row['summary'];
   $updated = date ('c', $row['date']);
   $author = $row['realname'];
@@ -316,10 +316,10 @@ function news_item_url ($rows, $replies)
     {
       $reply = $replies[$row['forum_id']];
       if ($reply === '')
-        $url = "news/?id={$row['id']}";
+        $url = "/news/?id={$row['id']}";
       else
-        $url = "forum/forum.php?forum_id={$row['forum_id']}";
-      $ret[] = $GLOBALS['sys_home'] . $url;
+        $url = "/forum/forum.php?forum_id={$row['forum_id']}";
+      $ret[] = $url;
     }
   return $ret;
 }
@@ -332,7 +332,6 @@ function news_link ($row, $reply)
 
 function news_format_details ($row, $reply)
 {
-  global $sys_home;
   $story = trim ($row['details']);
   $truncate = news_break_details ($story);
   if ($truncate < 0)
@@ -382,7 +381,6 @@ function news_list_forum_ids ($rows)
 
 function news_format_item ($row, $link, $reply, $show_details)
 {
-  global $sys_home;
   $ret = "<a href=\"$link\"><b>{$row['summary']}</b></a>";
   $det = '';
   if ($show_details)
@@ -392,7 +390,7 @@ function news_format_item ($row, $link, $reply, $show_details)
     }
   $uname = $row['user_name'];
   $ret .= ' <span class="smaller"><em>' . _("posted by")
-    . " <a href=\"{$sys_home}users/$uname\">$uname</a>, "
+    . " <a href=\"/users/$uname\">$uname</a>, "
     . utils_format_date ($row['date']) . "$reply</em></span>\n$det";
   return $ret;
 }
@@ -417,9 +415,7 @@ function news_list_items ($result, $show_details)
 
 function news_bottom_link ($group_id, $news_n)
 {
-  global $sys_home;
-  return "<a href=\"{$sys_home}news/?group_id=$group_id"
-    . '"><span class="smaller">['
+  return "<a href=\"/news/?group_id=$group_id" . '"><span class="smaller">['
     . sprintf (
         ngettext ("%d news in archive", "%d news in archive", $news_n),
         $news_n

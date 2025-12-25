@@ -88,7 +88,7 @@ function git_get_tarball_name ()
 
 function git_get_tarball_url ($force_git = false)
 {
-  global $sys_default_domain, $sys_www_topdir, $sys_home, $sys_savane_cgit;
+  global $sys_default_domain, $sys_www_topdir, $sys_savane_cgit;
   $tarball_name = git_get_tarball_name ();
   $prot = 'http';
   if (isset ($GLOBALS['sys_https_host']))
@@ -96,7 +96,7 @@ function git_get_tarball_url ($force_git = false)
   $base = "$sys_savane_cgit/snapshot";
   $src_dir = 'source';
   if (file_exists ("$sys_www_topdir/$src_dir/$tarball_name") && !$force_git)
-    $base = "//$sys_default_domain$sys_home$src_dir";
+    $base = "//$sys_default_domain/$src_dir";
   return "$prot:$base/$tarball_name";
 }
 
