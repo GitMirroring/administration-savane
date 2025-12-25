@@ -51,7 +51,7 @@ function show_general_stats ()
   global $HTML;
   $ret = $HTML->box_top (
     utils_link (
-      $GLOBALS['sys_home'] . "stats/",
+      "/stats/",
       # TRANSLATORS: the argument is site name (like Savannah).
       sprintf(_("%s Statistics"), $GLOBALS['sys_name']), "sortbutton"
     )
@@ -82,7 +82,7 @@ function show_popular_items ()
 
 function show_group_type ($type, $groupdata)
 {
-  global $HTML, $j, $sys_home;
+  global $HTML, $j;
   # TRANSLATORS: the argument is group type like Official GNU software
   # or www.gnu.org translation teams; for the full list, check
   # frontend/site-specific/gnu/admin/groupedit_grouptype.php.
@@ -91,7 +91,7 @@ function show_group_type ($type, $groupdata)
   $ret .= $HTML->box_top (sprintf (_("Newest %s"), $lname), '', 1);
   $ret .= $groupdata;
   $ret .= show_altrow ($j) . '<a href="'
-    . "{$sys_home}search/?type_of_search=soft&amp;words=%%%&amp;type="
+    . "/search/?type_of_search=soft&amp;words=%%%&amp;type="
     . $type['type_id'] . '">[';
   # TRANSLATORS: the argument is group type like Official GNU software
   # or www.gnu.org translation teams.
@@ -147,11 +147,10 @@ function show_active_groups ()
 
 function show_active_groups_per_type ($eachtype)
 {
-  global $sys_home;
   $n = stats_get_active_groups ($eachtype['type_id']);
   if ($n < 1)
     return null;
-  $ret = "&nbsp;&nbsp;- <a href=\"{$sys_home}search/"
+  $ret = "&nbsp;&nbsp;- <a href=\"/search/"
     . '?type_of_search=soft&amp;words=%%%&amp;type='
     . $eachtype['type_id'] . '" class="center">';
   $ret .= ' ' . gettext ($eachtype['name']) . ": $n</a></span></div>\n";
@@ -234,7 +233,7 @@ function fetch_base_hosts ()
 # Show groups that were added less than 2 months ago.
 function show_newest_groups ($group_type)
 {
-  global $j, $sys_home;
+  global $j;
   $newest_groups = fetch_newest_groups ();
   if (empty ($newest_groups[$group_type]))
     return false;
@@ -246,7 +245,7 @@ function show_newest_groups ($group_type)
   foreach ($newest_groups[$group_type] as $row)
     if ($row['register_time'])
       $ret .= show_altrow ($j++) . '&nbsp;&nbsp;- <a href="'
-        . "$base_url{$sys_home}projects/$row[unix_group_name]/\">"
+        . "$base_url/projects/$row[unix_group_name]/\">"
         . $row['group_name'] . '</a>, '
         . utils_format_date ($row['register_time'], 'minimal')
         . '</span></div>';
@@ -280,13 +279,12 @@ function trim_summary ($summary)
 
 function format_vote_item ($count, $v)
 {
-  global $sys_home;
   $tracker = $v['tracker'];
   $item_id = $v['bug_id'];
   $prefix = utils_get_tracker_prefix ($tracker);
   $summary = trim_summary ($v['summary']);
 
-  $url = "$sys_home$tracker/?$item_id";
+  $url = "/$tracker/?$item_id";
   return show_altrow ($count) . '&nbsp;&nbsp;- '
     . "<a href=\"$url\">$prefix #$item_id</a>: &nbsp;"
     . "<a href=\"$url\">$summary</a>,&nbsp;"

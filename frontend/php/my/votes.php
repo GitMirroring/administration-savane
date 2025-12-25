@@ -144,11 +144,8 @@ if ($remaining_votes < 100)
           . "\" name=\"new_votes[{$row['vote_id']}]\" "
           . 'size="3" maxlength="3" value="' . "{$row['howmuch']}\" />\n/ "
           . ($row['howmuch'] + $remaining_votes) . '&nbsp;&nbsp;&nbsp;&nbsp;'
-          . "<a href=\"{$GLOBALS['sys_home']}$tr"
-          . "/?func=detailitem&amp;item_id={$row['item_id']}\">\n"
-          . html_image ("contexts/$icon.png",
-              ['class' => "icon", 'alt' => $tr]
-            )
+          . "<a href=\"/$tr/?func=detailitem&amp;item_id={$row['item_id']}\">\n"
+          . html_image ("contexts/$icon.png", ['class' => "icon", 'alt' => $tr])
           . $res_row['summary'] . ', '
           . sprintf (ngettext ("%s vote", "%s votes", $vote), $vote)
           . "&nbsp;<span class=\"xsmall\">($prefix #{$row['item_id']}, "

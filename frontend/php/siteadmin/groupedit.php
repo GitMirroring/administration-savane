@@ -185,7 +185,7 @@ else
       no_i18n ("This group has associated mailing lists;\n"
         . "<a href='%s'>unlink or remove them</a>\n"
         . "before discarding the group."),
-      "{$sys_home}mail/admin/?group={$row_grp['unix_group_name']}"
+      "/mail/admin/?group={$row_grp['unix_group_name']}"
     );
     print "<br />\n$msg<br />\n";
   }

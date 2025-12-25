@@ -275,7 +275,7 @@ $message = confirmation_gen_email (
 $message_user = $message;
 
 $group_admin_url =
-  "$sys_https_url{$sys_home}siteadmin/groupedit.php?group_id=$group_id";
+  "$sys_https_url/siteadmin/groupedit.php?group_id=$group_id";
 
 $message_admin = "A new group has been registered at $sys_name.
 This group will remain inactive until a site admin approves

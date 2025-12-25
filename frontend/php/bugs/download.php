@@ -74,7 +74,7 @@ if (!db_numrows ($result))
 # this name, so all browsers will propose its name as filename when
 # saving it.
 session_redirect (
-  session_protocol () . "://$sys_file_domain{$sys_home}file/"
+  session_protocol () . "://$sys_file_domain/file/"
   . rawurlencode (db_result ($result, 0, 'filename')) . "?file_id=$file_id"
 );
 ?>

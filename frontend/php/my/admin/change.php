@@ -182,13 +182,12 @@ function update_gpgkey ()
 
 function confirm_hash_url ($confirm_hash, $func = 'email')
 {
-  global $sys_https_host, $sys_home, $sys_default_domain;
+  global $sys_https_host, $sys_default_domain;
   if (!empty ($sys_https_host))
     $url = "https://$sys_https_host";
   else
     $url = "http://$sys_default_domain";
-  return "$url{$sys_home}my/admin/change.php?"
-    . "item=$func&confirm_hash=$confirm_hash";
+  return "$url/my/admin/change.php?item=$func&confirm_hash=$confirm_hash";
 }
 
 function email_step0_message ($url)
@@ -625,9 +624,7 @@ if ($update)
     $f = page_option ($update_func);
     if ($f !== false)
       if ($f ())
-        session_redirect (
-          "{$sys_home}my/admin/?feedback=" . rawurlencode ($feedback)
-        );
+        session_redirect ("/my/admin/?feedback=" . rawurlencode ($feedback));
   } # if ($update).
 
 site_user_header (['title' => page_option ($titles), 'context' => 'account']);

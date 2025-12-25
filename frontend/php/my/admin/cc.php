@@ -148,7 +148,7 @@ foreach ($groups_with_cc as $thisunixname => $thisname)
     );
     print '</span>';
     print
-      "<a href=\"{$sys_home}projects/$thisunixname/\">$thisname</a><br />\n";
+      "<a href=\"/projects/$thisunixname/\">$thisname</a><br />\n";
   }
 
 # Allow to kill sessions apart the current one,

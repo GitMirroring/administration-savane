@@ -65,7 +65,7 @@ if (isset ($sys_https_host) && !session_issecure ())
 
 # Logged users have no business here.
 if (user_isloggedin ())
-  session_redirect ($sys_home . 'my/');
+  session_redirect ('/my/');
 
 $login_is_valid = false;
 $pw_is_valid = false;
@@ -172,7 +172,7 @@ function create_user ()
 
 function notify_user ($user_id, $confirm_hash)
 {
-  global $sys_name, $sys_https_url, $sys_home, $form_email;
+  global $sys_name, $sys_https_url, $form_email;
   # TRANSLATORS: the argument is the name of the system (like "Savannah").
   $message_head = sprintf (
     _("Thank you for registering on the %s web site.\n"
@@ -181,8 +181,7 @@ function notify_user ($user_id, $confirm_hash)
       . "In order to complete your registration, visit the following URL:"),
    $sys_name
   );
-  $message_head .=  "\n$sys_https_url{$sys_home}"
-    . "account/verify.php?confirm_hash=";
+  $message_head .=  "\n$sys_https_url/account/verify.php?confirm_hash=";
   $message_tail = "\n\n" . _("Enjoy the site.") . "\n\n"
     . utils_team_signature ();
   $message = "$message_head$confirm_hash$message_tail";
@@ -266,7 +265,7 @@ if ($sys_registration_text_spam_test)
   }
 if ($sys_registration_captcha)
   {
-    $url = "{$sys_home}captcha.php";
+    $url = "/captcha.php";
     print "<img id='captcha' height='80' width='215' src=\"$url\" "
       . "alt='" . _('CAPTCHA') . "' /><br />\n";
     print "[ <a href='#' id='captcha_js_link'>" . _("Try another image")

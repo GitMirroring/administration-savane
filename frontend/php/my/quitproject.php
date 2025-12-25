@@ -60,7 +60,7 @@ if (!$pending && !member_check (0, $quitting_group_id))
   exit_error (_("You are not member of this group."));
 
 if ($cancel)
-  session_redirect ($GLOBALS['sys_home'] . "my/groups.php");
+  session_redirect ("/my/groups.php");
 
 # Mail the changes so the admins know what happened.
 function notify_admins ($quitting_group_id)
@@ -111,7 +111,7 @@ if ($confirm || $pending)
     member_remove (user_getid (), $quitting_group_id);
     if (!$pending)
       notify_admins ($quitting_group_id);
-    session_redirect ($GLOBALS['sys_home'] . "my/groups.php");
+    session_redirect ("/my/groups.php");
     exit (0);
   }
 site_user_header (['title' => _("Quit a group"), 'context' => 'mygroups']);

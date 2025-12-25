@@ -183,8 +183,7 @@ function output_user ($usr, $class)
   print "<td>" . uidNumber_label ($usr) . "</td>\n";
   print "<td>" . status_label ($usr['status']) . "</td>\n";
   if ($usr['people_view_skills'] == 1)
-    print '<td><a href="' . $GLOBALS['sys_home']
-      . "people/resume.php?user_id=$usr_id\">["
+    print "<td><a href=\"/people/resume.php?user_id=$usr_id\">["
       . no_i18n ("View") . "]</a></td>\n";
   else
     print '<td>(' . no_i18n ("Private") . ")</td>\n";

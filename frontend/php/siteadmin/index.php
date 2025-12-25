@@ -91,7 +91,7 @@ if (!$func || $func == "configure")
     $path = '/admin/editqueryforms.php?group_id=' . GROUP_NONE;
     $links = [];
     foreach (utils_get_tracker_list () as $tracker)
-      $links[] = "<a href='$sys_home$tracker$path'>$tracker</a>";
+      $links[] = "<a href='/$tracker$path'>$tracker</a>";
     print join ("\n", $links) . ".</p>\n";
     print '<p class="smaller">'
       . no_i18n ("Add, edit and remove query forms common for all groups.")
@@ -122,8 +122,7 @@ if (!$func || $func == "manage")
 
     print $HTML->box_top (no_i18n ("Current items"));
 
-    print '<a href="' . $GLOBALS['sys_home'] . 'task/?group='
-      . $GLOBALS['sys_unix_group_name']
+    print '<a href="/task/?group=' . $GLOBALS['sys_unix_group_name']
       . '&amp;category_id=1&amp;status_id=1&amp;set=custom#results">'
       . no_i18n ("Browse pending registrations") . '</a>';
     print '<p class="smaller">'
@@ -132,7 +131,7 @@ if (!$func || $func == "manage")
     print "</p>\n";
 
     print $HTML->box_nextitem ($even);
-    print '<a href="' . $GLOBALS['sys_home'] . 'news/approve.php?group='
+    print '<a href="/news/approve.php?group='
       . $GLOBALS['sys_unix_group_name'] . '">'
       . no_i18n ("Approve news") . '</a>';
     print '<p class="smaller">';

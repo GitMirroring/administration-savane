@@ -61,8 +61,7 @@ $message =
   sprintf (_("Thank you for registering on the %s web site."), $sys_name)
   . "\n"
   . _("In order to complete your registration, visit the following URL:")
-  . "\n\n$sys_https_url$sys_home"
-  . "account/verify.php?confirm_hash=$confirm_hash\n\n"
+  . "\n\n$sys_https_url/account/verify.php?confirm_hash=$confirm_hash\n\n"
   . _("Enjoy the site.") . "\n\n";
 $message .= utils_team_signature ();
 sendmail_mail (
@@ -77,7 +76,6 @@ print '<p>'
   . _("Your email confirmation has been resent. Visit the link in this\n"
       . "email to complete the registration process.")
   . "</p>\n";
-print '<p><a href="'
-  . $GLOBALS['sys_home'] . '">[' . _("Return to Home Page") . "]</a></p>\n";
+print '<p><a href="/' . '">[' . _("Return to Home Page") . "]</a></p>\n";
 $HTML->footer ([]);
 ?>

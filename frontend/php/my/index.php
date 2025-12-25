@@ -84,9 +84,8 @@ function fetch_news ($date_limit, $gids, $cond)
 
 function output_news_entry ($row, $j)
 {
-  global $sys_home;
   print '<div class="' . utils_altrow ($j) . '">';
-  print "<a href=\"{$sys_home}news/approve.php?approve=1&amp;id="
+  print "<a href=\"/news/approve.php?approve=1&amp;id="
     . $row['id'] . '&amp;group=' . group_getunixname ($row['group_id']) . '">'
     . $row['summary'] . "</a><br />\n";
   print '<span class="smaller">';

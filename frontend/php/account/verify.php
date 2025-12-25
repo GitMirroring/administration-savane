@@ -54,11 +54,11 @@ form_check ('update');
 
 # Logged users have no business here.
 if (user_isloggedin ())
-  session_redirect ("{$sys_home}my/");
+  session_redirect ("/my/");
 
 function run_update ()
 {
-  global $update, $form_loginname, $sys_home, $form_pw, $confirm_hash;
+  global $update, $form_loginname, $form_pw, $confirm_hash;
   if (empty ($update))
     return;
   $uid = user_getid ($form_loginname);
@@ -72,7 +72,7 @@ function run_update ()
     DB_AUTOQUERY_UPDATE, 'user_name = ?', [$form_loginname]
   );
   account_clear_confirm_hash ($form_loginname);
-  session_redirect ("{$sys_home}account/first.php");
+  session_redirect ("/account/first.php");
 }
 
 run_update ();

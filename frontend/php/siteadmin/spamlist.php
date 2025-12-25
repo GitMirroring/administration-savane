@@ -74,8 +74,8 @@ function wash_user ()
 
 function format_user_data ($entry, $i)
 {
-  global $php_self, $sys_home;
-  $url = "{$sys_home}siteadmin/usergroup.php?user_id={$entry['user_id']}";
+  global $php_self;
+  $url = "/siteadmin/usergroup.php?user_id={$entry['user_id']}";
 
   return '<td>'
     . utils_link ($url, "{$entry['realname']} &lt;{$entry['user_name']}&gt;")
@@ -99,7 +99,6 @@ function fetch_incriminated_posts ($user_id)
 
 function get_incriminated_posts ($user_id)
 {
-  global $sys_home;
   $flagged_by = $incriminated_posts = [];
   $res = fetch_incriminated_posts ($user_id);
   while ($ent = db_fetch_array ($res))
@@ -107,7 +106,7 @@ function get_incriminated_posts ($user_id)
       $flagged_by[$ent['user_name']] = true;
       $idx = $ent['artifact'] . $ent['item_id'] . 'C' . $ent['comment_id'];
       $incriminated_posts[$idx] = utils_link (
-        $sys_home . $ent['artifact'] . '/?item_id=' . $ent['item_id']
+        '/' . $ent['artifact'] . '/?item_id=' . $ent['item_id']
         . '&amp;func=viewspam&amp;comment_internal_id='
         . $ent['comment_id'] . '#spam' . $ent['comment_id'],
         utils_get_tracker_prefix ($ent['artifact']) . " #" . $ent['item_id']

@@ -59,12 +59,10 @@ if (!empty ($confirm))
 
 function group_link ($row)
 {
-  global $sys_home;
-
   $name = $row['unix_group_name'];
   return sprintf (
     no_i18n ('&lt;%3$s&gt; <a href="%1$s">%2$s</a>'),
-    "{$sys_home}mail/admin/?group=$name", $row['group_name'], $name
+    "/mail/admin/?group=$name", $row['group_name'], $name
   );
 }
 

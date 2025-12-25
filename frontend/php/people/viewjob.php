@@ -77,7 +77,7 @@ site_project_header (
 $project = project_get_object ($group_id);
 $row = db_fetch_array ($result);
 $user_name = $row['user_name'];
-$group_link = "<a href=\"{$GLOBALS['sys_home']}projects/"
+$group_link = "<a href=\"/projects/"
   . $row['unix_group_name'] . '">' . $row['group_name'] . '</a>';
 # TRANSLATORS: the first argument is job title (like Tester or Developer),
 # the second argument is group name (like GNU Coreutils).
@@ -86,10 +86,10 @@ $msg = sprintf (
 );
 print html_h (1, $msg);
 print "<p><span class='preinput'>" . _("Category:")
-  . "</span> <a href=\"{$GLOBALS['sys_home']}people/?categories[]="
+  . "</span> <a href=\"/people/?categories[]="
   . $row['category_id'] . '">' . $row['category_name'] . "</a><br />\n"
   . '<span class="preinput">' . _("Submitter:") . '</span> '
-  . "<a href='{$GLOBALS['sys_home']}users/$user_name'>$user_name</a><br />\n"
+  . "<a href='/users/$user_name'>$user_name</a><br />\n"
   . '<span class="preinput">' . _("Date:") . '</span> '
   . utils_format_date ($row['date'])
   . "<br />\n<span class=\"preinput\">" . _("Status:") . '</span> '

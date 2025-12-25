@@ -62,7 +62,7 @@ function gpg_name ()
 {
   return "'{$GLOBALS['sys_gpg_name']}'";
 }
-# Form a gpg command line using $sys_home and ending with $tail.
+# Form a gpg command line using $sys_gpg_home and ending with $tail.
 function gpg_batch_home ($tail = '')
 {
   global $sys_gpg_home;

@@ -929,8 +929,7 @@ $form_query_type = html_build_select_box (
 );
 
 # Start building the URL that we use to for hyperlink in the form.
-$url = "$sys_home$art/?group="
-  . "$group&amp;func=$func&amp;set=$set&amp;msort=$msort";
+$url = "/$art/?group=$group&amp;func=$func&amp;set=$set&amp;msort=$msort";
 if ($set == 'custom')
   $url .= $pref_stg;
 else

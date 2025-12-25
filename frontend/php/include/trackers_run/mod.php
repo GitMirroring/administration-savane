@@ -441,7 +441,6 @@ function print_comment_types ($group_id, $comment_type_id, $comment_types)
 
 function print_canned_box ($group_id, $canned, $size, $res_canned)
 {
-  global $sys_home;
   $group_admin = user_is_group_admin ($group_id);
   print "<span class='preinput'>";
   print html_label ('canned_response[]', _("Canned response:"))
@@ -450,7 +449,7 @@ function print_canned_box ($group_id, $canned, $size, $res_canned)
     . "<br />\n";
   if (!$group_admin)
     return;
-  print "&nbsp;&nbsp;&nbsp;<a class='smaller' href=\"$sys_home"
+  print "&nbsp;&nbsp;&nbsp;<a class='smaller' href=\"/"
     . ARTIFACT . "/admin/field_values.php?group_id=$group_id"
     . '&amp;create_canned=1">' . _("Define a new canned response") . '</a>';
 }
@@ -459,7 +458,6 @@ function print_comment_type_and_canned (
   $group_id, $canned_response, $ct_id, $res_canned
 )
 {
-  global $sys_home;
   if (!user_ismember ($group_id))
     return;
   $canned_num = db_numrows ($res_canned);

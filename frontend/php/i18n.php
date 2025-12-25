@@ -72,7 +72,7 @@ if (!isset ($_COOKIE["cookie_probe"]))
     $msg = sprintf (_("Savane thinks your cookies are not activated for %s.\n"
       . "Please activate cookies in your web browser for this website\n"
       . "and [%s try again]."), $sys_default_domain,
-      "$sys_https_url$sys_home/i18n.php?lang_uri=$lang_uri");
+      "$sys_https_url/i18n.php?lang_uri=$lang_uri");
     fb ($msg, 1);
   }
 

@@ -54,7 +54,7 @@ site_project_header (
 
 utils_get_content ("people/createjob");
 
-print form_tag (['action' => $GLOBALS['sys_home'] . 'people/editjob.php'])
+print form_tag (['action' => '/people/editjob.php'])
   . form_hidden (['group_id' => $group_id])
   . '<b>' . _("Category:") . "</b><br />\n"
   .  people_job_category_box ('category_id')

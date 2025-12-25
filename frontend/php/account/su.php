@@ -61,11 +61,9 @@ if (!empty ($GLOBALS['sys_brother_domain']))
 
 $hdr = [
   1 => $brother_domain . $uri,
-  2 => $brother_domain . $GLOBALS['sys_home']
-    . "account/su.php?action=login&from_brother=1&uri="
+  2 => "$brother_domain/account/su.php?action=login&from_brother=1&uri="
     . utils_urlencode ($uri),
-  3 => $brother_domain . $GLOBALS['sys_home']
-    . "account/su.php?action=logout&from_brother=1&uri="
+  3 => "$brother_domain/account/su.php?action=logout&from_brother=1&uri="
     . utils_urlencode ($uri)
 ];
 $prot = session_protocol ();

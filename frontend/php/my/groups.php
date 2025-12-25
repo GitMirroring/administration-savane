@@ -362,7 +362,7 @@ foreach ($titles as $k => $t)
           . html_image_trash (['alt' => $t[2]])
           . "</a><br /></span>\n";
 
-        $text .= "<a href=\"{$sys_home}projects/"
+        $text .= "<a href=\"/projects/"
           . $v['unix_group_name'] . '/">' . $v['group_name'] . "</a><br />\n"
           . user_format_member_since ($v['date']);
         $text .= "</li>\n";
