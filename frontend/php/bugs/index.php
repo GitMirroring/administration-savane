@@ -165,7 +165,7 @@ if ($is_trackeradmin)
           [
             'depends_search_only_artifact',
             'reassign_change_artifact',
-            ['all', 'support', 'bugs', 'task', 'patch']
+            array_merge (['all'], utils_get_dependable_trackers ())
           ],
           [
             'depends_search_only_group',

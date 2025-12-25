@@ -104,7 +104,7 @@ function reporting_build_graph (
 
 # If artifact is not defined, we want statistics of all trackers.
 if (ARTIFACT == "project")
-  $artifact = "bugs,task,patch,support";
+  $artifact = join (',', utils_get_dependable_trackers ());
 else
   $artifact = ARTIFACT;
 

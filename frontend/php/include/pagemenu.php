@@ -699,7 +699,7 @@ function pagemenu_group_trackers_links ($tracker, $write_access, $export)
           )
           . pagemenu_submenu_entry_separator ();
     }
-  if (in_array ($tracker, ["bugs", "support", "patch", "task", 'cookbook']))
+  if (in_array ($tracker, utils_get_tracker_list ()))
     $ret .= pagemenu_group_trackers_entries ($tracker, $write_access, $export);
   return $ret;
 }

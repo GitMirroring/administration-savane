@@ -47,10 +47,12 @@ require_once ('../../include/sane.php');
 session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
 
 $vcs = ['cvs', 'arch', 'svn', 'git', 'hg', 'bzr'];
-$use_url = [
-  'bugs', 'support', 'patch', 'task', 'mail', 'download', 'homepage',
-  'forum', 'extralink_documentation', 'cookbook'
-];
+$use_url = array_merge (
+  utils_get_dependable_trackers (), [
+    'mail', 'download', 'homepage',
+    'forum', 'extralink_documentation', 'cookbook'
+  ]
+);
 $pref_vars = ['cookbook' => 1];
 $use_ = array_merge ($vcs, $use_url, ['news']);
 

@@ -256,7 +256,7 @@ function show_newest_groups ($group_type)
 function get_top_votes ($limit)
 {
   $tables = [];
-  foreach (["bugs", "task", "support", "patch"] as $tracker)
+  foreach (utils_get_dependable_trackers () as $tracker)
     {
       $tables[] = "
         (SELECT '$tracker' AS tracker, bug_id, group_id, summary, vote
