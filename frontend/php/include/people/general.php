@@ -410,6 +410,19 @@ function people_edit_job_inventory ($job_id, $group_id)
   people_draw_skill_box ($result, $job_id, $group_id);
 }
 
+function people_job_line ($row, $i, $page)
+{
+  $name = gettext ($row['type_name']);
+  return "<tr class=\"" . utils_altrow ($i)
+    . '"><td><a href="' . "/people/$page?group_id="
+    . $row['group_id'] . '&job_id=' . $row['job_id'] . '">'
+    . $row['title'] . "</a></td>\n<td>" . $row['category_name'] . "</td>\n<td>"
+    . utils_format_date ($row['date'], 'natural')
+    . "</td>\n<td><a href=\"/projects/"
+    . strtolower ($row['unix_group_name']) . '/">'
+    . $row['group_name'] . "</a></td>\n<td>$name</td></tr>\n";
+}
+
 # Take a result set from a query and show the jobs.
 function people_show_job_list ($result, $edit = 0)
 {
@@ -428,63 +441,56 @@ function people_show_job_list ($result, $edit = 0)
     return $return . '<tr><td colspan="3"><strong>'
       . _("None found") . '</strong>' . db_error () . "</td></tr>\n" . $tail;
 
-  for ($i = 0; $i < $rows; $i++)
-    {
-      $res_type = db_execute (
-        "SELECT name FROM group_type WHERE type_id = ?",
-        [db_result ($result, $i, 'type')]
-      );
-      $name = gettext (db_result ($res_type, 0, 'name'));
-      $return .= "<tr class=\"" . utils_altrow ($i)
-        . '"><td><a href="' . "/people/$page?group_id="
-        . db_result ($result, $i, 'group_id') . '&job_id='
-        . db_result ($result, $i, 'job_id') . '">'
-        . db_result ($result, $i, 'title') . "</a></td>\n<td>"
-        . db_result ($result, $i, 'category_name') . "</td>\n<td>"
-        . utils_format_date (db_result ($result, $i, 'date'), 'natural')
-        . "</td>\n<td><a href=\"/projects/"
-        . strtolower (db_result ($result, $i, 'unix_group_name')) . '/">'
-        . db_result ($result, $i, 'group_name') . "</a></td>\n<td>"
-        . "$name</td></tr>\n";
-    }
+  $i = 0;
+  while ($row = db_fetch_array ($result))
+    $return .= people_job_line ($row, $i++, $page);
   return $return . $tail;
 }
 
-# Show open jobs for this project.
+function people_job_sql ()
+{
+  return "
+  SELECT
+    `j`.`group_id`, `j`.`job_id`, `j`.`title`, `j`.`date`,
+    `g`.`unix_group_name`, `g`.`group_name`, `g`.`type`,
+    `c`.`name` AS `category_name`, `gt`.`name` AS `type_name`
+  FROM
+    (`people_job` `j` JOIN `people_job_category` `c`
+     ON `j`.`category_id` = `c`.`category_id`)
+    JOIN `groups` `g` ON `j`.`group_id` = `g`.`group_id`
+    JOIN `group_type` `gt` ON `gt`.`type_id` = `g`.`type`
+ ";
+}
+
+# Show open jobs for this group.
 function people_show_project_jobs ($group_id, $edit = 0)
 {
-  $result = db_execute ("
-    SELECT
-      j.group_id, j.job_id, g.group_name, g.unix_group_name, g.type, j.title,
-      j.date, c.name AS category_name
-    FROM people_job j, people_job_category c, groups g
+  $result = db_execute (
+    people_job_sql () . "
     WHERE
-      j.group_id = ?  AND j.group_id = g.group_id
-      AND j.category_id = c.category_id AND j.status_id = 1
-    ORDER BY date DESC",
+      `j`.`group_id` = ? AND `j`.`group_id` = `g`.`group_id`
+      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = 1
+    ORDER BY `date` DESC",
     [$group_id]
   );
   return people_show_job_list ($result, $edit);
 }
 
-# Show open jobs for this project.
+# Number of open jobs for this group.
 function people_project_jobs_rows ($group_id)
 {
   $result = db_execute ("
-    SELECT
-      j.group_id, j.job_id, g.group_name,
-      j.title, j.date, c.name AS category_name
-    FROM people_job j, people_job_category c, groups g
+    SELECT `j`.`job_id`
+    FROM `people_job` `j`, `people_job_category` `c`, `groups` `g`
     WHERE
-      j.group_id = ?  AND j.group_id = g.group_id
-      AND j.category_id = c.category_id AND j.status_id = 1
-    ORDER BY date DESC",
+      `j`.`group_id` = ?  AND `j`.`group_id` = `g`.`group_id`
+      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = 1",
     [$group_id]
   );
   return db_numrows ($result);
 }
 
-# Show open jobs for the given job categories and types of projects,
+# Show open jobs for the given job categories and types of groups,
 # or all open jobs when $categories and $types are empty.
 function people_show_jobs ($categories, $types)
 {
@@ -494,28 +500,15 @@ function people_show_jobs ($categories, $types)
     {
       if (empty ($id_arr))
         return '';
-      $ids = $pref = '';
-      foreach ($id_arr as $cat)
-        {
-          $ids .= $pref . $field . ' = ?';
-          $pref = ' OR ';
-          $sql_args[] = $cat;
-        }
-      return 'AND (' . $ids . ')';
+      $ret = "$field " . utils_in_placeholders ($id_arr);
+      $sql_args = array_merge ($sql_args, $id_arr);
+      return "AND $ret";
     };
-  $cat_ids = $enum_ids ($categories, 'j.category_id');
-  $type_ids = $enum_ids ($types, 'groups.type');
-  $result = db_execute ("
-    SELECT
-      j.group_id, j.job_id, j.title, j.date,
-      groups.unix_group_name, groups.group_name, groups.type,
-      c.name AS category_name
-    FROM
-      (people_job j JOIN people_job_category c
-       ON j.category_id = c.category_id)
-      JOIN groups ON j.group_id = groups.group_id
-    WHERE groups.is_public = 1 AND j.status_id = 1
-    {$cat_ids} {$type_ids} ORDER BY date DESC",
+  $cat_ids = $enum_ids ($categories, '`j`.`category_id`');
+  $type_ids = $enum_ids ($types, '`g`.`type`');
+  $result = db_execute (people_job_sql () . "
+    WHERE `g`.`is_public` = 1 AND `j`.`status_id` = 1
+    $cat_ids $type_ids ORDER BY `date` DESC",
     $sql_args
   );
   return people_show_job_list ($result);
