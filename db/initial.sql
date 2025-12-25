@@ -4339,12 +4339,12 @@ LOCK TABLES `user` WRITE;
 -- 'Zero user': user_id = 100 is a magic number that may be used in code.
 INSERT INTO `user` SET
   user_id = 100, user_name = 'None', realname = 'None',
-  email = '_@localhost', status = 'S';
+  email = '_@savane.test', status = 'S';
 -- First user: default admin.  Born active, with the password
 -- equal to user_name.
 INSERT INTO `user` SET
   user_id = 101, user_name = '-', realname = 'Admin Savane',
-  email = '_@localhost', user_pw = '00WKk4u6PmmLA', status = 'A',
+  email = '_@savane.test', user_pw = '00WKk4u6PmmLA', status = 'A',
   add_date = UNIX_TIMESTAMP ();
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
