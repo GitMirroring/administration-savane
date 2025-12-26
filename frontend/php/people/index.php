@@ -56,7 +56,7 @@ if (!isset ($types))
 if (!isset ($categories))
   $categories = [];
 
-$finish_page = function ()
+function finish_page ()
 {
   site_project_footer ([]);
   exit (0);
@@ -72,7 +72,7 @@ if ($group_id)
     );
     utils_get_content ("people/index_group");
     print people_show_project_jobs ($group_id);
-    $finish_page ();
+    finish_page ();
   }
 
 site_header (['title' => _('Groups Needing Help'), 'context' => 'people']);
@@ -81,21 +81,21 @@ if (!($categories || $types || $submit))
   {
     utils_get_content ("people/index");
     print people_show_table ();
-    $finish_page ();
+    finish_page ();
   }
 
 foreach ($categories as $cat)
-  if (people_get_category_name ($cat) == 'Invalid ID')
+  if (people_get_category_name ($cat) === NULL)
     {
       fb (sprintf (_("Job category #%s does not exist"), $cat), 1);
-      $finish_page ();
+      finish_page ();
     }
 foreach ($types as $ty)
-  if (people_get_type_name ($ty) == 'Invalid ID')
+  if (people_get_type_name ($ty) === NULL)
     {
       fb (sprintf (_("Group type #%s does not exist"), $ty), 1);
-      $finish_page ();
+      finish_page ();
     }
 print people_show_jobs ($categories, $types);
-$finish_page ();
+finish_page ();
 ?>

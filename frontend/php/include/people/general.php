@@ -41,25 +41,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+function people_fetch_name ($table, $id_field, $id)
+{
+  static $names = [];
+  if (array_key_exists ($table, $names))
+    return $names[$table];
+  $result = db_execute ("SELECT `name`, `$id_field` AS `id` FROM `$table`");
+  while ($row = db_fetch_array ($result))
+    $names[$table][$row['id']] = $row['name'];
+  if (!array_key_exists ($id, $names[$table]))
+    return NULL;
+  return $names[$table][$id];
+}
+
 function people_get_type_name ($type_id)
 {
-  $result = db_execute (
-    "SELECT name FROM group_type WHERE type_id = ?", [$type_id]
-  );
-  if (db_numrows ($result) < 1)
-    return 'Invalid ID';
-  return gettext (db_result ($result, 0, 'name'));
+  return people_fetch_name ('group_type', 'type_id', $type_id);
 }
 
 function people_get_category_name ($category_id)
 {
-  $result = db_execute (
-    "SELECT name FROM people_job_category WHERE category_id = ?",
-    [$category_id]
-  );
-  if (db_numrows ($result) < 1)
-    return 'Invalid ID';
-  return db_result ($result, 0, 'name');
+  return people_fetch_name ('people_job_category', 'category_id', $category_id);
 }
 
 function people_fetch_counts_by_category ()
