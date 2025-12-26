@@ -69,11 +69,10 @@ if (!$words || !is_scalar ($words))
 
 function finish_page ()
 {
-  global $sys_home, $only_group_id, $words, $type_of_search;
+  global $only_group_id, $words, $type_of_search;
   global $type, $exact, $search_total_rows, $offset, $max_rows;
 
-  $nextprev_url =
-    "{$sys_home}search/?type_of_search=$type_of_search&amp;words="
+  $nextprev_url = "/search/?type_of_search=$type_of_search&amp;words="
     . utils_urlencode ($words);
   if (isset ($type))
     $nextprev_url .= "&amp;type=$type";
@@ -143,7 +142,7 @@ if ($type_of_search == "people")
     if ($rows == 1 && $offset == 0)
       {
         $user = db_result ($result, 0, 'user_name');
-        Header ("Location: {$sys_home}users/$user");
+        Header ("Location: /users/$user");
       }
     else
       {
@@ -178,7 +177,7 @@ if ($rows == 1 && $offset == 0 && db_result ($result, 0, 'privacy') != "2")
     # No automatic redirection for private item, use the usual listing.
     $bug = db_result ($result, 0, 'bug_id');
     Header (
-      "Location: $sys_home$type_of_search/?func=detailitem&item_id=$bug"
+      "Location: /$type_of_search/?func=detailitem&item_id=$bug"
     );
     finish_page ();
   }
@@ -202,7 +201,7 @@ while ($i < $rows && $row = db_fetch_array ($result))
         && $row['user_name'] != user_getname ()
     )
       continue;
-    $url = "$sys_home$type_of_search/?func=detailitem&amp;item_id="
+    $url = "/$type_of_search/?func=detailitem&amp;item_id="
       . $row["bug_id"];
 
     print '<tr class="' . html_get_alt_row_color ($i) . '">'

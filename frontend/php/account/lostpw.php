@@ -45,7 +45,7 @@ require_once ('../include/init.php');
 
 # Logged users have no business here.
 if (user_isloggedin ())
-  session_redirect ("{$sys_home}my/");
+  session_redirect ("/my/");
 
 $HTML->header (['title' => _("Lost Account Password")]);
 print '<p><strong>' . _("Lost your password?") . "</strong></p>\n";

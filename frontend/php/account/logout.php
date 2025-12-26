@@ -47,5 +47,5 @@ require_once ('../include/session.php');
 if (user_isloggedin ())
   session_logout ();
 
-session_redirect ($sys_home);
+session_redirect ('/');
 ?>

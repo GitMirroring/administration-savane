@@ -71,7 +71,6 @@ foreach ($filenames as $id => $n)
 
 $sys_default_domain = 'example.org';
 $sys_file_domain = "test.org";
-$sys_home = '/';
 function user_isloggedin () { return true; }
 function session_issecure () { return true; }
 function format_file_url_path ($file, $public)

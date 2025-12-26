@@ -124,12 +124,11 @@ if ($post_changes)
 
 function jump_to_values_link ($field, $group)
 {
-  global $sys_home;
   if (!trackers_data_is_select_box ($field))
     # Only select boxes can have values configured.
     return '';
   return '<p><span class="smaller">'
-    . utils_link ($sys_home . ARTIFACT . "/admin/field_values.php?group=$group"
+    . utils_link ('/' . ARTIFACT . "/admin/field_values.php?group=$group"
        . "&amp;list_value=1&amp;field=$field", _("Jump to this field values")
       )
     . "</span></p>\n";

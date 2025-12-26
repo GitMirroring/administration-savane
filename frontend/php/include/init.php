@@ -128,11 +128,6 @@ if (empty ($sys_dbsocket))
 
 init_detect_topdir ();
 
-# Add a trailing slash.
-$sys_home = $GLOBALS['sys_url_topdir'];
-if (!preg_match ('|/$|', $GLOBALS['sys_url_topdir']))
-  $sys_home = $GLOBALS['sys_url_topdir'] . '/';
-
 if (empty ($sys_savane_cgit))
   $sys_savane_cgit =
     "//git.savannah.nongnu.org/cgit/administration/savane.git";
@@ -156,17 +151,13 @@ utils_update_decimal_separator ();
 # Detect where we are unless explicitly specified in the configuration file.
 function init_detect_topdir ()
 {
-  global $sys_www_topdir, $sys_url_topdir;
+  global $sys_www_topdir;
   if (!empty ($sys_www_topdir))
     return;
   $sys_www_topdir = getcwd ();
-  $sys_url_topdir = dirname ($_SERVER['SCRIPT_NAME']);
   $test = 'testconfig.php';
   while ($sys_www_topdir != '/' && !file_exists ("$sys_www_topdir/$test"))
-    {
-      $sys_www_topdir = dirname ($sys_www_topdir);
-      $sys_url_topdir = dirname ($sys_url_topdir);
-    }
+    $sys_www_topdir = dirname ($sys_www_topdir);
   if (!file_exists ("$sys_www_topdir/$test"))
     die ("Could not find Savane's top directory (missing $test)");
 }

@@ -52,7 +52,7 @@ trackers_init ($group_id);
 if (!$field)
   exit_missing_param ();
 
-$redraw_url = $sys_home . ARTIFACT
+$redraw_url = '/' . ARTIFACT
   . "/admin/field_values.php?group_id=$group_id&field=$field&list_value=1";
 
 if ($cancel)

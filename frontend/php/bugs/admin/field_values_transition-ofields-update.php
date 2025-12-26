@@ -123,7 +123,7 @@ if ($update)
           }
       }
     session_redirect (
-      $sys_home . ARTIFACT . "/admin/field_values.php?group=$group"
+      '/' . ARTIFACT . "/admin/field_values.php?group=$group"
       . "&list_value=1&field=$field#registered"
     );
   }

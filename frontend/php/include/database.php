@@ -57,7 +57,7 @@ function db_check_mysqli ()
     return;
   print "<p>Please install the mysqli extension for PHP:
     <code>aptitude install php-mysqli</code> (Debian-based)</p>
-    <p>Check the <a href='{$GLOBALS['sys_url_topdir']}/testconfig.php'>
+    <p>Check the <a href='/testconfig.php'>
     configuration page</a> and the <a href='https://www.php.net'>PHP
     website</a> for more information.</p>
     <p>Once the extension is installed, restart Apache.</p>\n";

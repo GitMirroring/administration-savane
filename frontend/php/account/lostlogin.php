@@ -69,7 +69,7 @@ if ($update && $form_pw)
     elseif (account_pwvalid ($form_pw))
       {
         account_set_pw ($user_id, $form_pw, ['confirm_hash' => null]);
-        session_redirect ("{$sys_home}account/login.php");
+        session_redirect ("/account/login.php");
       }
   }
 

@@ -51,7 +51,7 @@ our $version = 1;
 
 sub format_message
 {
-  my $url = GetConf ("sys_default_domain") . GetConf ("sys_url_topdir");
+  my $url = GetConf ("sys_default_domain") . '/';
   return "$_[0]\n\n-- \n"
     .  "Message sent by " . GetConf ("sys_name") . "\nhttps://$url\n";
 }

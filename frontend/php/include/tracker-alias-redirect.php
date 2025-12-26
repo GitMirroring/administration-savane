@@ -46,13 +46,13 @@ $aliases = [
   'docs' => 'cookbook'
 ];
 $url = $_SERVER['REQUEST_URI'];
-$pref = preg_replace ('#//*#', '/', "$sys_url_topdir/");
-if (strpos ($url, $pref) !== 0)
+$root = '/';
+if (strpos ($url, $root) !== 0)
   exit_error ();
-$url = substr ($url, strlen ($pref));
+$url = substr ($url, strlen ($root));
 if (!preg_match ('#^(.*)(/.*)#', $url, $matches))
   exit_error ();
 if (empty ($aliases[$matches[1]]))
   exit_error ();
-session_redirect ($pref . $aliases[$matches[1]] . $matches[2]);
+session_redirect ($root . $aliases[$matches[1]] . $matches[2]);
 ?>

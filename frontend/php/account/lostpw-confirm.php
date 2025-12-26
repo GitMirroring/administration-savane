@@ -50,7 +50,7 @@ form_check ();
 
 # Logged users have no business here.
 if (user_isloggedin ())
-  session_redirect ("{$sys_home}my/");
+  session_redirect ("/my/");
 
 # Account check.
 $sql = "SELECT * FROM user WHERE user_name = ? AND status = ?";
@@ -128,8 +128,8 @@ $message .= "\n\n"
   . _("If you requested this verification, visit this URL to change your "
       . "password:")
   . "\n\n";
-$message .= "$sys_https_url$sys_home"
-  . "account/lostlogin.php?user_id=$uid&confirm_hash=$confirm_hash\n\n";
+$message .= "$sys_https_url/account/lostlogin.php?"
+  . "user_id=$uid&confirm_hash=$confirm_hash\n\n";
 # FIXME: There should be a discard procedure.
 $message .=
   _("In any case make sure that you do not disclose this URL to\n"

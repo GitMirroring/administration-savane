@@ -50,7 +50,6 @@ use Time::Local 'timegm_nocheck';
 our $sys_name;
 our $sys_https_host;
 our $sys_default_domain;
-our $sys_url_topdir;
 our $dbd;
 
 my $script = "sv_reminder";
@@ -285,15 +284,13 @@ foreach my $tracker (@trackers)
 my $count = 0;
 my $basepath;
 
-$sys_url_topdir .= "/" unless $sys_url_topdir =~ m,/$,;
-
 if ($sys_https_host)
   {
-    $basepath = "https://$sys_https_host$sys_url_topdir";
+    $basepath = "https://$sys_https_host/";
   }
 else
   {
-    $basepath = "http://$sys_default_domain$sys_url_topdir";
+    $basepath = "http://$sys_default_domain/";
   }
 
 foreach my $user_id (keys %items)

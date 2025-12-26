@@ -49,7 +49,7 @@ extract (sane_import ('get', ['true' => 'from_brother']));
 
 # Logged users have no business here.
 if (user_isloggedin () && !$from_brother)
-  session_redirect ("{$sys_home}my/");
+  session_redirect ("/my/");
 
 # Input checks.
 extract (sane_import ('request',
@@ -107,13 +107,13 @@ function validate_login ($from_brother, $form_loginname, $form_pw)
 
 function arrange_session ($uri, $uri_enc, $name)
 {
-  global $sys_home, $stay_in_ssl, $sys_https_url;
+  global $stay_in_ssl, $sys_https_url;
   session_set_theme ();
   # We return to our brother 'my', where we login originally,
   # unless we are request to go to an uri.
   if (!$uri)
     {
-      $uri = "{$sys_home}my/";
+      $uri = "/my/";
       $uri_enc = utils_urlencode ($uri);
     }
   session_login_brother ($uri, $uri_enc);
@@ -167,7 +167,7 @@ if (!empty ($login) && empty ($success))
           . "</li>\n"
           .'<li class="boxitemalt">' . _("Still having trouble?") . "<br />\n"
           . utils_link (
-              "{$sys_home}support/?group=$sys_unix_group_name",
+              "/support/?group=$sys_unix_group_name",
               _("Fill a support request.")
             )
           . "</li>\n";
@@ -177,7 +177,7 @@ if (!empty ($login) && empty ($success))
 
 if (isset ($sys_https_host))
   utils_get_content ("account/login");
-print form_tag (['action' => "$sys_https_url{$sys_home}account/login.php"]);
+print form_tag (['action' => "$sys_https_url/account/login.php"]);
 print form_hidden (['uri' => $uri]);
 
 # Shortcuts to New Account and Lost Password have a tabindex superior to

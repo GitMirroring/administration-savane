@@ -198,7 +198,7 @@ function list_predefined_values ($field)
 
 function print_field_header ($field, $title, $group)
 {
-  global $sys_home, $is_admin;
+  global $is_admin;
   # TRANSLATORS: the argument is field label.
   $title =
     sprintf (_("Field values for '%s'"), trackers_data_get_label ($field));
@@ -207,7 +207,7 @@ function print_field_header ($field, $title, $group)
   $url = "field_values.php?group=$group";
   # TRANSLATORS: this is a link.
   print utils_link ($url, _("Field list")) . "\n";
-  $url = $sys_home . ARTIFACT . "/admin/field_usage.php?group=$group"
+  $url = '/' . ARTIFACT . "/admin/field_usage.php?group=$group"
     . "&amp;update_field=1&amp;field=$field";
   if ($is_admin)
     # TRANSLATORS: this is a link.
@@ -534,7 +534,7 @@ function list_transition_registered_fields ($registered)
 
 function print_transition_update ($transition)
 {
-  global $sys_home, $php_self, $group;
+  global $php_self, $group;
   if ($transition['is_allowed'] != TRANSITION_ALLOWED)
     {
       print "<td align='center'>---------</td>\n"
@@ -547,7 +547,7 @@ function print_transition_update ($transition)
 
   print '<td align="center">';
   print utils_link (
-    $sys_home . ARTIFACT
+    '/' . ARTIFACT
     . "/admin/field_values_transition-ofields-update.php?"
     . "group=$group&amp;transition_id={$transition['transition_id']}",
     $fields

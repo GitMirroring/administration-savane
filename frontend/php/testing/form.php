@@ -93,7 +93,6 @@ $expected = '<input type="hidden" name="h0" value="v0" /> '
   . '<input type="hidden" name="h1" value="v1" />';
 compare (form_hidden (['h0' => 'v0', 'h1' => 'v1']), $expected);
 
-$sys_home = '/';
 $sys_www_topdir = '.';
 define ('SV_THEME', 'Savannah');
 $expected = '<input type="image" id="firefly" name="firefly" '
