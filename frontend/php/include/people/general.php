@@ -62,39 +62,43 @@ function people_get_category_name ($category_id)
   return db_result ($result, 0, 'name');
 }
 
+function people_fetch_counts_by_category ()
+{
+  return db_execute ("
+    SELECT `c`.`name`, `c`.`category_id`, `count`
+    FROM
+      `people_job_category` `c` LEFT JOIN
+      (
+        SELECT `category_id`, COUNT(`job_id`) AS `count`
+        FROM `people_job` WHERE `status_id` = 1
+        GROUP BY `category_id`
+      ) `j`
+      ON `c`.`category_id` = `j`.`category_id`
+    ORDER BY `c`.`category_id`"
+  );
+}
+
 function people_list_categories ()
 {
   global $php_self;
 
-  $result = db_execute (
-    "SELECT * FROM people_job_category ORDER BY category_id"
-  );
-  $rows = db_numrows ($result);
-  if ($rows < 1)
+  $result = people_fetch_counts_by_category ();
+  if (!db_numrows ($result))
     return false;
-  $return = "";
-  for ($i = 0; $i < $rows; $i++)
+  $ret = [];
+  while ($row = db_fetch_array ($result))
     {
-      $count_res = db_execute ("
-        SELECT count(*) AS count FROM people_job
-        WHERE category_id = ? AND status_id = 1",
-        [db_result ($result, $i, 'category_id')]
-      );
-      print db_error ();
-      $return .=
+      if (empty ($row['count']))
+        $row['count'] = 0;
+      $ret[] =
         form_checkbox (
           'categories[]', 0,
-          [
-            'title' => db_result ($result, $i, 'name'),
-            'value' => db_result ($result, $i, 'category_id'),
-          ]
+          ['title' => $row['name'], 'value' => $row['category_id']]
         )
-        . "<a href=\"$php_self?categories[]="
-        . db_result ($result, $i, 'category_id') . '">'
-        . db_result ($result, $i, 'name') . ' ('
-        . db_result ($count_res, 0, 'count') . ")</a><br />\n";
+        . "<a href=\"$php_self?categories[]={$row['category_id']}\">"
+        . "{$row['name']} ({$row['count']})</a>";
     }
-  return $return;
+  return join ("<br />\n", $ret);
 }
 
 function people_list_project_type ()
