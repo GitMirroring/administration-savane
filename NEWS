@@ -22,6 +22,8 @@
 ** The checked attribute of radio buttons was set incorrectly since 1ed5905db
    (2025-10).  Reported by Luis Falcon on sv-hackers-public@.
 
+** Tracker configuration copying was broken since 2025-09 (0983822b3).
+
 [BACKEND]
 
 * sv_launch_db.pl checks if the server process exists; if not, it cleans up
