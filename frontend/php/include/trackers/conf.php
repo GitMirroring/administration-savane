@@ -372,10 +372,11 @@ function groups_with_artifact ($artifact)
   if ($artifact === 'cookbook')
     return groups_with_cookbook ();
   return "
-    SELECT g.group_name, g.group_id FROM groups g, user_group u
+    SELECT `g`.`group_name`, `g`.`group_id` FROM `groups` `g`, `user_group` `u`
     WHERE
-      g.group_id = u.group_id AND u.user_id = ? AND g.group_id != ?
-      AND g.status = '" . GROUP_STATUS_ACTIVE . "' AND g.use_{$artifact} = '1'";
+      `g`.`group_id` = `u`.`group_id` AND `u`.`user_id` = ?
+      AND `g`.`group_id` != ?  AND `g`.`status` = '" . GROUP_STATUS_ACTIVE . "'
+      AND `g`.`use_{$artifact}` = '1'";
 }
 } # namespace trackers_conf
 
