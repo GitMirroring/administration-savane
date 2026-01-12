@@ -122,7 +122,9 @@ function conf_form ($group_id, $artifact, $result)
     . form_hidden (['group_id' => $group_id, 'artifact' => $artifact])
     . '<span class="preinput">' . html_label ("from_group_id", _("Groups:"))
     . "</span>&nbsp;&nbsp;&nbsp;\n";
-  print html_build_select_box_from_arrays ($vals, $texts, 'from_group_id');
+  print html_build_select_box_from_arrays (
+    $vals, $texts, 'from_group_id', $vals[0], false
+  );
   print form_footer ();
 }
 function cp_notif_settings ($group_id, $artifact, $from_group_id)
