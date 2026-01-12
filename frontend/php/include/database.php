@@ -8,7 +8,7 @@
 # Copyright (C) 2007 Cliss XXI (GCourrier)
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
-# Copyright (C) 2013, 2014, 2017-2025 Ineiev
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
 #
 # This file is part of Savane.
 #
