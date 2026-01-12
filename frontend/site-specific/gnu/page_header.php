@@ -4,7 +4,7 @@
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon
 # Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
 # Copyright (C) 2008-2017, 2020 Karl Berry
-# Copyright (C) 2013, 2014, 2017-2025 Ineiev <ineiev@gnu.org>
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #
@@ -41,7 +41,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 print '<meta name="Author" content="'
- . "Copyright 2025 Free Software Foundation, Inc.\n"
+ . "Copyright 2026 Free Software Foundation, Inc.\n"
  . _("Verbatim copying and distribution of this entire article\n"
      . "is permitted in any medium, provided this notice is preserved.")
  . "\" />\n<meta name=\"description\" content=\""
