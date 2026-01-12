@@ -1,0 +1,97 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test copying tracker configuration.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use Savane::Test::Group;
+use Savane::Test::Membership;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test copying tracker configuration.");
+
+my $group = 'proba';
+my $user = 'alice';
+my $exit_code = 2;
+
+sub copy_conf
+{
+  my ($agent, $group) = @_;
+  print_test_log ("Copying configuration.");
+  print_test_log ('Visiting configuration copy page.');
+  $agent->get (make_url ("task/admin/conf-copy.php?group=$group"));
+  unless (defined $agent->form_with_fields (qw (form_id artifact from_group_id)))
+    {
+      print_test_error ('Cannot find copying form.');
+      return 1;
+    }
+  print_test_log ('Requesting copying.');
+  $agent->click ();
+  return 1 if check_request_status ($agent, 'conf-copy.html');
+  print_test_result ('Successfully copied the configuration.');
+  return 0;
+}
+
+my $agent = make_agent () or exit (1);
+my $group_id = register_group ($agent, $user, $group);
+exit (1) if $group_id < 0;
+
+log_in ($agent, '-');
+$agent->get (group_admin_url ());
+my $id = add_user_to_group ($agent, $user);
+log_out ($agent);
+if ($id < 0)
+  {
+    $exit_code = 1;
+  }
+else
+  {
+    log_in ($agent, $user);
+    $exit_code = 1 if copy_conf ($agent, $group);
+    log_out ($agent);
+    $exit_code = 1 if quit_group ($agent, $user, group_default_name ());
+  }
+$exit_code = 1 if remove_group ($group_id, $group);
+$exit_code = 0 if $exit_code == 2;
+print_test_result ("Test done.") unless $exit_code;
+exit ($exit_code);
