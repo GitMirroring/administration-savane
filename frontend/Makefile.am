@@ -445,7 +445,6 @@ ordinary_files = \
   php/include/parsemail.php \
   php/include/people/general.php \
   php/include/project/admin.php \
-  php/include/project_home.php \
   php/include/proj_email.php \
   php/include/pwqcheck.php \
   php/include/random-bytes.php \
