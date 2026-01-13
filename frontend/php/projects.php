@@ -82,29 +82,33 @@ $res_admin = member_admin_flags_query (
 );
 print "\n<div class='indexright'>\n";
 print $HTML->box_top (html_h (2, _("Membership Info")), "", 1);
-function start_div ($j)
+function start_div ($restart = null)
 {
-  print "<div class=\"" . utils_altrow ($j) . '"><span class="smaller">';
+  static $j = 1;
+  if ($restart !== NULL)
+    {
+      $j = $restart;
+      return;
+    }
+  print "<div class=\"" . utils_altrow ($j++) . '"><span class="smaller">';
 };
 function end_div ()
 {
   print "</span></div>\n";
 };
-$j = 1;
 function print_group_admins ($res_admin)
 {
-  global $j;
   $adminsnum = db_numrows ($res_admin);
   if (!$adminsnum)
     return;
-  start_div ($j++);
+  start_div ();
   print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
   end_div ();
   print "\n<ul class='group-page-admins'>\n";
   while ($row_admin = db_fetch_array ($res_admin))
     {
       print "<li>";
-      start_div ($j++);
+      start_div ();
       print utils_link (
         "/users/{$row_admin['user_name']}", $row_admin['realname']
       );
@@ -124,7 +128,7 @@ $membersnum = db_fetch_array (db_execute ("
 
 $membersnum = $membersnum['count'];
 
-start_div ($j++);
+start_div ();
 printf (
   ngettext ("%s active member", "%s active members", $membersnum),
   "<b>$membersnum</b>"
@@ -135,7 +139,7 @@ end_div ();
 # If there's no admin, we need to get access to the list.
 # But we show it anyway: this page can be used for request for membership,
 # provide more info that the little infobox.
-start_div ($j++);
+start_div ();
 
 print '['
   . utils_link ("/project/memberlist.php?group=$group", _("View Members"))
@@ -144,7 +148,7 @@ end_div ();
 print $HTML->box_bottom (1);
 print "<br />\n";
 print $HTML->box_top (html_h (2, _("Group identification")), "", 1);
-$j = 0;
+start_div (0);
 
 $item_arr = [
    # TRANSLATORS: the group id (a number) will follow.
@@ -156,7 +160,7 @@ $item_arr = [
 
 foreach ($item_arr as $key => $val)
   {
-    start_div ($j++);
+    start_div ();
     print "$key <b>$val</b>";
     end_div ();
   }
