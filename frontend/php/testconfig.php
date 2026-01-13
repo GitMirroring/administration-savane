@@ -1577,19 +1577,19 @@ function savane_settings ()
   return $page . test_sysconfigs ();
 }
 
-$page = page_start ($inside_siteadmin);
-$page .= check_source_code ();
-$page .= basic_php_config ();
-$page .= optional_php_config ();
-$page .= php_extensions ();
-$page .= php_functions ();
-$page .= apache_envv ();
-$page .= savane_conf_file ();
-$page .= savane_settings ();
-$page .= get_test_summaries ();
-$page .= '<pre>' . utils_specialchars (utils_debug_footer ())
+$head = page_start ($inside_siteadmin);
+$tail = check_source_code ();
+$tail .= basic_php_config ();
+$tail .= optional_php_config ();
+$tail .= php_extensions ();
+$tail .= php_functions ();
+$tail .= apache_envv ();
+$tail .= savane_conf_file ();
+$tail .= savane_settings ();
+$summ = get_test_summaries ();
+$tail .= '<pre>' . utils_specialchars (utils_debug_footer ())
   . "</pre>\n</body>\n</html>\n";
-print $page;
+print "$head$summ$tail";
 $sys_debug_footer = $saved_sys_debug_footer;
 utils_output_debug_footer ();
 ?>
