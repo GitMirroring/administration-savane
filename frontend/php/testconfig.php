@@ -725,10 +725,24 @@ function php_conf_table_header ($summary)
     . "<th>Suggested value</th></tr>\n";
 }
 
+function check_php_self ()
+{
+  $str = $_SERVER['PHP_SELF'];
+  $ret = '<code>' . utils_specialchars ($str) . '</code>';
+  if (substr ($str, 0, 1) === '/')
+    return $ret;
+  $msg = '<strong>PHP_SELF does not start with "/". '
+    . '  Probably the HTTP server is misconfigured.</strong>';
+  add_summary ($msg);
+  return "$ret<br />$msg";
+}
+
 function basic_php_conf_start ()
 {
   $ret = test_h (2, "Basic PHP configuration", 'basic-php');
-  $ret .= "<p>PHP version: " . phpversion () . "</p>\n";
+  $defs['PHP version'] = phpversion ();
+  $defs['PHP_SELF'] = check_php_self ();
+  $ret .= html_dl ($defs);
   $ret .= php_conf_table_header ('PHP configuration');
 
   # Define missing constant to interpret the 'access' field.
