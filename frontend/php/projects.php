@@ -74,7 +74,6 @@ if (
     $prot = session_protocol () . '://';
     session_redirect ("$prot$host{$_SERVER['PHP_SELF']}");
   }
-$project = group_get_object ($group_id);
 site_project_header ([]);
 
 # Members of this group (little box on the right).
@@ -548,8 +547,6 @@ if ($uses_dev)
     print $HTML->box_top (
       "<div id='devtools'>" . html_h (2, _("Development Tools")) . "</div>"
     );
-    $i = 1;
-
 
     $vcses = [
       # TRANSLATORS: the string is used as the argument of "%s Repository".
