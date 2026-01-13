@@ -64,11 +64,10 @@ $group_id = db_result ($res_grp, 0, 'group_id');
 
 $project = group_get_object ($group_id);
 
-# If we are at wrong url, redirect.
+# If we are at wrong URL, redirect to the brother domain.
 $host = $project->getTypeBaseHost ();
 if (
-    $host && !$sys_debug_nobasehost
-    && strcasecmp ($_SERVER['HTTP_HOST'], $host)
+  $host && !$sys_debug_nobasehost && strcasecmp ($_SERVER['HTTP_HOST'], $host)
 )
   {
     $prot = session_protocol () . '://';
@@ -135,7 +134,7 @@ printf (
 );
 end_div ();
 
-# If member = 1, it's obviously (or it should be) the group admin.
+# If $membersnum == 1, it's obviously (or it should be) the group admin.
 # If there's no admin, we need to get access to the list.
 # But we show it anyway: this page can be used for request for membership,
 # provide more info that the little infobox.
@@ -283,7 +282,7 @@ if ($sys_group_id == $group_id && member_check (0, $group_id, MEMBER_FLAGS_ADMIN
     print ' ';
     printf (
       ngettext (
-         "(%s registration pending)", "(%s registrations pending)", $reg_count
+        "(%s registration pending)", "(%s registrations pending)", $reg_count
       ),
       "<b>$reg_count</b>"
     );
@@ -295,7 +294,7 @@ if (member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   {
     print $HTML->box_top (
       # TRANSLATORS: the argument is group name (like GNU Coreutils).
-      html_h (2, sprintf (_("Administration: %s group"), $project->getName()))
+      html_h (2, sprintf (_("Administration: %s group"), $project->getName ()))
     );
     print '<div class="justify">'
       . _("As administrator of this group, you can manage members and\n"
@@ -306,9 +305,9 @@ if (member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
     $img = proj_home_img ("contexts/main.png");
     print utils_link (
       "/project/admin/?group=$group",
-       $img . _("Group Main Administration Page")
+      $img . _("Group Main Administration Page")
     );
-    print $HTML->box_bottom();
+    print $HTML->box_bottom ();
     print "<br />\n";
   }
 
@@ -378,7 +377,7 @@ if ($project->Uses ("extralink_documentation"))
   }
 
 specific_makesep ();
-print utils_link(
+print utils_link (
   "/project/memberlist.php?group=$group",
   proj_home_img ("contexts/people.png") . _("Memberlist")
 );
@@ -407,15 +406,15 @@ function open_vs_total_items ($url, $group_id, $artifact)
 {
   $res_count = db_execute ("
     SELECT count(*) AS count FROM $artifact
-    WHERE group_id = ? AND status_id != 3",
-    [$group_id]);
-  $row_count = db_fetch_array($res_count)['count'];
+    WHERE group_id = ? AND status_id != 3", [$group_id]
+  );
+  $row_count = db_fetch_array ($res_count)['count'];
   $open_num = "<b>$row_count</b>";
   $res_count = db_execute (
     "SELECT count(*) AS count FROM $artifact WHERE group_id = ?",
     [$group_id]
   );
-  $row_count = db_fetch_array($res_count)['count'];
+  $row_count = db_fetch_array ($res_count)['count'];
   $total_num = "<b>$row_count</b>";
   print ' ';
   # TRANSLATORS: the arguments are numbers of items.
@@ -425,8 +424,8 @@ function open_vs_total_items ($url, $group_id, $artifact)
     . utils_link ("$url&amp;func=browse&amp;set=open", _("Browse open items"));
   print "</li>\n<li>"
     . utils_link (
-       "$url&amp;func=additem", _("Submit a new item"),
-       0, group_restrictions_check ($group_id, $artifact)
+        "$url&amp;func=additem", _("Submit a new item"),
+        0, group_restrictions_check ($group_id, $artifact)
       );
   print "</li>\n</ul>\n";
 }
@@ -443,7 +442,7 @@ if ($sys_unix_group_name == $group
     if ($project->Uses ("support"))
       {
         specific_makesep ();
-        $url = $project->getArtifactUrl("support");
+        $url = $project->getArtifactUrl ("support");
 
         print utils_link (
           $url, proj_home_img ("contexts/help.png") . _("Tech Support Manager")
@@ -576,10 +575,10 @@ if ($uses_dev)
             open_vs_total_items ($url, $group_id, $k);
           $i++;
         }
-    print $HTML->box_bottom();
+    print $HTML->box_bottom ();
   } # $uses_dev
 
 if ($project->Uses ("news"))
   print "\n</div><!-- end splitleft -->\n";
-site_project_footer ([]);
+site_project_footer ();
 ?>
