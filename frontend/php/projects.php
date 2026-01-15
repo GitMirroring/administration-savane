@@ -75,10 +75,6 @@ if (
   }
 site_project_header ([]);
 
-# Members of this group (little box on the right).
-$res_admin = member_admin_flags_query (
-  $group_id, '= ? AND onduty = 1', MEMBER_FLAGS_ADMIN
-);
 print "\n<div class='indexright'>\n";
 print $HTML->box_top (html_h (2, _("Membership Info")), "", 1);
 function start_div ($restart = null)
@@ -95,28 +91,30 @@ function end_div ()
 {
   print "</span></div>\n";
 };
-function print_group_admins ($res_admin)
+# Members of this group (little box on the right).
+function print_group_admins ($group_id)
 {
-  $adminsnum = db_numrows ($res_admin);
+  $res = member_admin_flags_query (
+    $group_id, '= ? AND onduty = 1', MEMBER_FLAGS_ADMIN
+  );
+  $adminsnum = db_numrows ($res);
   if (!$adminsnum)
     return;
   start_div ();
   print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
   end_div ();
   print "\n<ul class='group-page-admins'>\n";
-  while ($row_admin = db_fetch_array ($res_admin))
+  while ($row = db_fetch_array ($res))
     {
       print "<li>";
       start_div ();
-      print utils_link (
-        "/users/{$row_admin['user_name']}", $row_admin['realname']
-      );
+      print utils_link ("/users/{$row['user_name']}", $row['realname']);
       end_div ();
       print "</li>\n";
     }
   print "</ul>\n";
 }
-print_group_admins ($res_admin);
+print_group_admins ($group_id);
 
 # Count of members on this group.
 $membersnum = db_fetch_array (db_execute ("
