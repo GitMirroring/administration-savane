@@ -3,7 +3,7 @@
 # Copyright (C) 2004, 2005 Dmitri I GOULIAEV <dig@telkel.net>
 # Copyright (C) 2010 Roman Pominov <Roman.Pominov@ihep.ru>
 # Copyright (C) 2017, 2018, 2019, 2020, 2021, 2022, 2023,
-#   2024, 2025 Ineiev <ineiev@gnu.org>
+#   2024, 2025, 2026 Ineiev <ineiev@gnu.org>
 #
 # This file is part of Savane.
 #
@@ -41,14 +41,15 @@
 #
 # Dmitri I GOULIAEV <dig@telkel.net>, 2004, 2005
 # Roman Pominov <Roman.Pominov@ihep.ru>, 2010
-# Ineiev <ineiev@gnu.org>, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
+# Ineiev <ineiev@gnu.org>, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,
+#   2025, 2026
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.15\n"
+"Project-Id-Version: savane 3.16\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-10-26 13:20+0000\n"
-"PO-Revision-Date: 2025-11-10 15:44+0000\n"
+"POT-Creation-Date: 2026-01-15 07:47+0000\n"
+"PO-Revision-Date: 2026-01-15 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -1927,6 +1928,20 @@ msgid ""
 msgstr ""
 "Списки рассылки неверно настроены. Подайте заявку на поддержку, чтобы "
 "попросить администратора сайта пересмотреть настройки типа группы."
+
+#: frontend/php/mail/admin/index.php:122
+#, php-format
+msgid "Delete %s (this cannot be undone!)"
+msgstr "Удалить %s (это действие необратимо!)"
+
+#: frontend/php/mail/admin/index.php:131
+msgid "Mailing list not found."
+msgstr "Список рассылки не найден."
+
+#: frontend/php/mail/admin/index.php:154
+#, php-format
+msgid "You are about to delete the mailing list %s, please confirm:"
+msgstr "Вы собираетесь удалить список рассылки %s, подтвердите:"
 
 #, php-format
 msgid "You must provide list name that is two or more characters long: %s"
@@ -6702,11 +6717,11 @@ msgstr ""
 msgid "Membership Info"
 msgstr "Информация об участниках"
 
-msgid "Group Admin:"
-msgstr "Администратор группы:"
-
-msgid "Group Admins:"
-msgstr "Администраторы группы:"
+msgid "Group admin"
+msgid_plural "Group admins"
+msgstr[0] "Администратор группы"
+msgstr[1] "Администраторы группы"
+msgstr[2] "Администраторы группы"
 
 #, php-format
 msgid "%s active member"
@@ -9053,3 +9068,9 @@ msgstr "Эта группа содержит дополнения к офици�
 
 #~ msgid "Jump to this field usage"
 #~ msgstr "Применение этого поля"
+
+#~ msgid "Group Admin:"
+#~ msgstr "Администратор группы:"
+
+#~ msgid "Group Admins:"
+#~ msgstr "Администраторы группы:"
