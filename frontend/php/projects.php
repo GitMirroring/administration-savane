@@ -97,11 +97,12 @@ function print_group_admins ($group_id)
   $res = member_admin_flags_query (
     $group_id, '= ? AND onduty = 1', MEMBER_FLAGS_ADMIN
   );
-  $adminsnum = db_numrows ($res);
-  if (!$adminsnum)
+  $n = db_numrows ($res);
+  if (!$n)
     return;
   start_div ();
-  print $adminsnum < 2? _("Group Admin:"): _("Group Admins:");
+  # TRANSLATORS: range 1..4.
+  print ngettext ("Group admin", "Group admins", $n < 4? $n: 4);
   end_div ();
   print "\n<ul class='group-page-admins'>\n";
   while ($row = db_fetch_array ($res))
