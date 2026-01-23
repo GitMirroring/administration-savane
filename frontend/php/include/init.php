@@ -255,7 +255,7 @@ if (!session_issecure () && isset ($_COOKIE['redirect_to_https'])
 extract (sane_import ('get', ['digits' => 'comingfrom']));
 extract (sane_import ('request',
   [
-    'name' => 'group',
+    'name' => [['group', ['allow_first_digit' => true]]],
     'digits' => ['group_id', 'item_id', 'forum_id']
   ]));
 

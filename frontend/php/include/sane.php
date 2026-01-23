@@ -143,23 +143,27 @@ $sane_sanitizers['xdigits'] = function ($in, &$out, $i, $arg)
 
 function parse_name_arg ($arg)
 {
-  $ret = ['min_len' => 1, 'max_len' => 34, 'allow_dots' => false];
+  $ret = [
+     'min_len' => 1, 'max_len' => 34,
+     'allow_dots' => false, 'allow_first_digit' => false
+  ];
 
   if ($arg === null)
     $arg = $ret['max_len'];
 
-  if (is_array ($arg))
-    {
-      if (isset ($arg['min_len']))
-        $ret['min_len'] = $arg['min_len'];
-      if (isset ($arg['max_len']))
-        $ret['max_len'] = $arg['max_len'];
-      if (isset ($arg['allow_dots']))
-        $ret['allow_dots'] = $arg['allow_dots'];
-    }
-  else
+  if (!is_array ($arg))
     $ret['max_len'] = $arg;
+  else
+    foreach (array_keys ($ret) as $k)
+      if (array_key_exists ($k, $arg))
+        $ret[$k] = $arg[$k];
   return $ret;
+}
+
+function name_first_char_regexp ($allow_first_digit)
+{
+  return
+    '/^[_' . ($allow_first_digit? '[:alnum:]': 'a-zA-Z') . '-]';
 }
 
 # Account name is expected.
@@ -173,7 +177,7 @@ $sane_sanitizers['name'] = function ($in, &$out, $i, $arg)
   if (!is_scalar ($n))
     return 1;
   extract (parse_name_arg ($arg));
-  $reg_exp = "/^[_a-zA-Z-][";
+  $reg_exp = name_first_char_regexp ($allow_first_digit) . '[';
   if ($allow_dots)
     $reg_exp .= '.';
   $reg_exp .= "_[:alnum:]-]*$/";

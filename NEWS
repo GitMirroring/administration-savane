@@ -9,6 +9,9 @@
 
 * Bug fixes:
 
+** Many group pages like /git/?group=3dldf didn't work for groups whose
+   name starts in a digit, Savannah sr #111372.
+
 ** Notifications for new items listed incorrect values for zero value_id, e.g.
    'Unlocked' discussion_lock was output as 'Any'.  Savannah sr #111348.
 

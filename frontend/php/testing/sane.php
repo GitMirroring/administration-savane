@@ -579,7 +579,7 @@ $reference = 'include/init.php';
   test_sane_import ($in, $names, $out);
 
   $names = [
-    'name' => 'group',
+    'name' => [['group', ['allow_first_digit' => true]]],
     'digits' => ['group_id', 'item_id', 'forum_id']
   ];
 
@@ -601,7 +601,12 @@ $reference = 'include/init.php';
   $in['forum_id'] = 12;
   $out['forum_id'] = '12';
 
-  $in['group'] = '1savane';
+  $in['group'] = '3dldf';
+  $out['group'] = '3dldf';
+
+  test_sane_import ($in, $names, $out);
+
+  $in['group'] = '.savane';
   $out['group'] = null;
 
   test_sane_import ($in, $names, $out);
