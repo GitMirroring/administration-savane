@@ -141,6 +141,27 @@ $sane_sanitizers['xdigits'] = function ($in, &$out, $i, $arg)
   return 0;
 };
 
+function parse_name_arg ($arg)
+{
+  $ret = ['min_len' => 1, 'max_len' => 34, 'allow_dots' => false];
+
+  if ($arg === null)
+    $arg = $ret['max_len'];
+
+  if (is_array ($arg))
+    {
+      if (isset ($arg['min_len']))
+        $ret['min_len'] = $arg['min_len'];
+      if (isset ($arg['max_len']))
+        $ret['max_len'] = $arg['max_len'];
+      if (isset ($arg['allow_dots']))
+        $ret['allow_dots'] = $arg['allow_dots'];
+    }
+  else
+    $ret['max_len'] = $arg;
+  return $ret;
+}
+
 # Account name is expected.
 # when $arg is a scalar, it's maximum name length (34 by default),
 # when it's an array, $arg['max_len'] is maximum name length,
@@ -151,25 +172,7 @@ $sane_sanitizers['name'] = function ($in, &$out, $i, $arg)
 
   if (!is_scalar ($n))
     return 1;
-
-  $min_len = 1;
-  $max_len = 34;
-  $allow_dots = false;
-
-  if ($arg === null)
-    $arg = $max_len;
-
-  if (is_array ($arg))
-    {
-      if (isset ($arg['min_len']))
-        $min_len = $arg['min_len'];
-      if (isset ($arg['max_len']))
-        $max_len = $arg['max_len'];
-      if (isset ($arg['allow_dots']))
-        $allow_dots = $arg['allow_dots'];
-    }
-  else
-    $max_len = $arg;
+  extract (parse_name_arg ($arg));
   $reg_exp = "/^[_a-zA-Z-][";
   if ($allow_dots)
     $reg_exp .= '.';
