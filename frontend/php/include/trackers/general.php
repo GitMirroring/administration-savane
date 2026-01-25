@@ -253,7 +253,7 @@ function trackers_field_display_ta ($field_name, $value, $group_id, $args)
 function trackers_field_display_unknown ($field_name, $value, $group_id, $args)
 {
   $display_type = trackers_data_get_display_type ($field_name);
-  $output .= 'Unknown ' . ARTIFACT . ' field display type '
+  return 'Unknown ' . ARTIFACT . ' field display type '
     . '"' . utils_specialchars ($display_type) . '"';
 }
 
