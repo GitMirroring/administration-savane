@@ -41,11 +41,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# Invocation:
+# For details and options, run
 #
-#   php testing/sane.php
-#
-# In case of fail, diagnostic text is output to stdout.
+#   php testing/sane.php -h
 
 require_once('include/sane.php');
 
@@ -54,6 +52,43 @@ $reference = 'testing/sane.php';
 $reference = 'include/sane.php';
 
 $reference = null;
+$exit_code = 0;
+
+$options = getopt ('hg:', ['help']);
+if (false === $options)
+  {
+    print "wrong options\n";
+    exit (1);
+  }
+
+$help_string = '
+  Test sanitizing functions.
+
+  In case of fail, diagnostic text is output to stdout and exit
+  with a non-zero code.
+
+  Usage:
+
+    php testing/sane.php
+    php testing/sane.php -h
+    php testing/sane.php -g "UNIX_GROUP_NAMES"
+
+  When no options are given, the testsuite is run.
+
+  Options:
+
+    -h, --help             diplay this help and exit
+    -g "UNIX_GROUP_NAMES"  instead of running the testsuite, validate
+                             the specified space-separated strings against
+                             the rules applied to group names in init.php';
+
+$group_name_rule = ['group', ['allow_first_digit' => true]];
+
+function help ()
+{
+  $h = preg_replace ("/\n  /", "\n", $GLOBALS['help_string']);
+  print substr ($h, 1) . "\n";
+}
 
 function htmlspec ($x)
 {
@@ -70,14 +105,16 @@ function print_reference ()
 }
 
 # Basic test routine.
-function test_sane_import ($in, $names, $out)
+function test_sane_import ($in, $names, $out, $quiet = false)
 {
   global $sane_test_input;
 
   $sane_test_input = $in;
   $res = sane_import ($sane_test_input, $names);
   if ($res == $out)
-    return;
+    return 0;
+  if ($quiet)
+    return 1;
   print_reference ();
   print "in:\n";
   print_r ($in);
@@ -87,7 +124,32 @@ function test_sane_import ($in, $names, $out)
   print_r ($out);
   print "result:\n";
   print_r ($res);
+  return 1;
 }
+
+function test_group_name ($unix_group_names)
+{
+  $exit_code = 0;
+  $names = ['name' => [$GLOBALS['group_name_rule']]];
+  foreach (preg_split ('/\s/', $unix_group_names) as $name)
+    {
+      $in = $out = ['group' => $name];
+      if (!test_sane_import ($in, $names, $out, true))
+        continue;
+      $exit_code = 1;
+      print "Group name '$name' doesn't pass the rules.\n";
+    }
+  exit ($exit_code);
+}
+
+if (array_key_exists ('h', $options) || array_key_exists ('help', $options))
+  {
+    help ();
+    exit (0);
+  }
+
+if (array_key_exists ('g', $options))
+  test_group_name ($options['g']);
 
 # Preliminary tests.
 {
@@ -579,7 +641,7 @@ $reference = 'include/init.php';
   test_sane_import ($in, $names, $out);
 
   $names = [
-    'name' => [['group', ['allow_first_digit' => true]]],
+    'name' => [$group_name_rule],
     'digits' => ['group_id', 'item_id', 'forum_id']
   ];
 
@@ -2284,4 +2346,6 @@ $reference = 'stats/index.php';
     $in[$n] = $out[$n] = 83521;
   test_sane_import ($in, $names, $out);
 }
+
+exit ($exit_code);
 ?>
