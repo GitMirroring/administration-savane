@@ -105,7 +105,7 @@ function validate_login ($from_brother, $form_loginname, $form_pw)
   return session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
 }
 
-function arrange_session ($uri, $uri_enc, $name)
+function arrange_session ($uri, $uri_enc)
 {
   global $stay_in_ssl, $sys_https_url;
   session_set_theme ();
@@ -129,7 +129,7 @@ if (!empty ($login))
   {
     $success = validate_login ($from_brother, $form_loginname, $form_pw);
     if ($success)
-      arrange_session ($uri, $uri_enc, $form_loginname);
+      arrange_session ($uri, $uri_enc);
   }
 
 site_header (['title' => _("Login")]);
