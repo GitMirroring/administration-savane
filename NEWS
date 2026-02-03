@@ -9,6 +9,8 @@
 
 * Bug fixes:
 
+** The number of latest changes wasn't displayed correctly, Savannah sr #111378.
+
 ** Many group pages like /git/?group=3dldf didn't work for groups whose
    name starts in a digit, Savannah sr #111372.
 

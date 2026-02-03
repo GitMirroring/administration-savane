@@ -200,9 +200,9 @@ function show_history_top ($rows, $no_limit)
 {
   if (show_history_check_rows ($rows))
     return -1;
-  show_history_title ($rows, $no_limit);
   if (!$no_limit && $rows > 25)
     $rows = 25;
+  show_history_title ($rows, $no_limit);
   print html_build_list_table_top (
     [
       _("Date"), _("Changed by"), _("Updated Field"), _("Previous Value"),
