@@ -767,7 +767,8 @@ function user_list_groups_with_history ($uid, $skip)
           GROUP BY `u`.`group_id`, `u`.`admin_flags` ORDER BY `u`.`group_id`
       ) `ug`
       JOIN `groups` `g` ON `g`.`group_id` = `ug`.`group_id`
-    ORDER BY `ug`.`group_id`", [$uid]
+    WHERE `g`.`status` = ?
+    ORDER BY `ug`.`group_id`", [$uid, GROUP_STATUS_ACTIVE]
   );
 }
 

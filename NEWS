@@ -9,6 +9,8 @@
 
 * Bug fixes:
 
+** Inactive groups were listed in user's profile since 2024-09 (41f3fa4b6).
+
 ** The number of latest changes wasn't displayed correctly, Savannah sr #111378.
 
 ** Many group pages like /git/?group=3dldf didn't work for groups whose
