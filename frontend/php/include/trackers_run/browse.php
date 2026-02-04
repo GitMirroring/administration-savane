@@ -1000,7 +1000,7 @@ if (($details_search == 1) && ($summary_search == 1))
     $form .=
       # TRANSLATORS: the first argument is operator (AND or OR),
       # the second argument is label for 'summary' field,
-      # the third argument is label for 'details field.
+      # the third argument is label for 'details' field.
       sprintf (
         _('Use logical %1$s between \'%2$s\' and \'%3$s\' searches.'),
         $conj, $sum, $det
