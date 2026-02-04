@@ -448,16 +448,15 @@ function trackers_field_box (
 
       # First check if group has defined transitions for this field.
       $res = db_execute ("
-        SELECT transition_default_auth
-        FROM " . ARTIFACT . "_field_usage
+        SELECT transition_default_auth FROM " . ARTIFACT . "_field_usage
         WHERE group_id = ? AND bug_field_id = ?",
         [$group_id, $field_id]
       );
       $default_auth = TRANSITION_ALLOWED;
       if (db_numrows ($res) > 1)
         $default_auth = db_result ($res, 0, 'transition_default_auth');
-      # Avoid corrupted database content, if its not F, it must be A.
-      if ($default_auth != "F")
+      # Avoid corrupted database records, if its not forbidden, allow.
+      if ($default_auth != TRANSITION_FORBIDDEN)
         $default_auth = TRANSITION_ALLOWED;
 
       $trans_result = db_execute (
@@ -469,10 +468,10 @@ function trackers_field_box (
       );
       $forbidden_to_id = $allowed_to_id = [];
       $rows = db_numrows ($trans_result);
-      if ($trans_result && $rows > 0 || $default_auth == "F")
+      if ($trans_result && $rows > 0 || $default_auth == TRANSITION_FORBIDDEN)
         {
           while ($transition = db_fetch_array ($trans_result))
-            if ($transition['is_allowed'] == 'F')
+            if ($transition['is_allowed'] == TRANSITION_FORBIDDEN)
               $forbidden_to_id[$transition['to_value_id']] = 0;
             else
               $allowed_to_id[$transition['to_value_id']] = 0;
@@ -490,7 +489,7 @@ function trackers_field_box (
                   if ((($default_auth == TRANSITION_ALLOWED)
                         && (!array_key_exists($value_id, $forbidden_to_id)))
                       ||
-                      (($default_auth == 'F')
+                      (($default_auth == TRANSITION_FORBIDDEN)
                         && (array_key_exists($value_id, $allowed_to_id)))
                       ||
                       ($value_id == $checked))
@@ -504,8 +503,8 @@ function trackers_field_box (
                 $show_unknown, $title
               );
             }
-        } # if ($trans_result && $rows > 0 || $default_auth == "F")
-    } # if ($allowed_transition_only)
+        } # $trans_result && $rows > 0 || $default_auth == TRANSITION_FORBIDDEN
+    } # $allowed_transition_only
 
   # If no transition is defined, use 'normal' code.
   return html_build_select_box (
