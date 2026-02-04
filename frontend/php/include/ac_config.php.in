@@ -69,7 +69,7 @@ $sys_etc_dir .= '/savane/';
 
 function ac_conf_lookup ($d)
 {
-  foreach (['savane.conf.php', '.savane.conf.php'] as $name)
+  foreach (['savane.conf.php'] as $name)
     {
       $conf_file = "$d$name";
       if (file_exists ($conf_file) && is_readable ($conf_file))
@@ -79,7 +79,7 @@ function ac_conf_lookup ($d)
 }
 
 foreach (
-  [getenv ('SAVANE_CONF'), getenv ('SV_LOCAL_INC_PREFIX'), $sys_etc_dir] as $d
+  [getenv ('SAVANE_CONF'), $sys_etc_dir] as $d
 )
   {
     if (!$d)

@@ -7,6 +7,10 @@
 * A confirmation step is added for mailing list deletion and unlinking
   in /mail/admin/index.php.
 
+* When looking for configuration files, SV_LOCAL_INC_PREFIX isn't tried
+  any more, and only 'savane.conf.php' is checked ('.savane.conf.php' is
+  ignored).
+
 * Bug fixes:
 
 ** Inactive groups were listed in user's profile since 2024-09 (41f3fa4b6).
