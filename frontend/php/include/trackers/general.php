@@ -420,6 +420,39 @@ function trackers_field_textarea (
     . "\" rows=\"$rows\" cols=\"$cols\" wrap='soft'>$value</textarea>";
 }
 
+function trackers_transition_field_values (
+  $field_name, $group_id, $checked, $result
+)
+{
+  $field_id = trackers_data_get_field_id ($field_name);
+  $default_auth =
+    trackers_data_get_default_transition_auth ($group_id, $field_id);
+
+  list ($trans_no, $forbidden_to_id, $allowed_to_id) =
+    trackers_data_get_tracker_field_transitions (
+      $group_id, $field_id, $checked
+    );
+  if ($default_auth != TRANSITION_FORBIDDEN && !$trans_no)
+    return [null, null];
+
+  # Get all the predefined values for this field.
+  $val_label = [];
+  while ($val_row = db_fetch_array ($result))
+    {
+      $value_id = $val_row['value_id'];
+      $value = $val_row['value'];
+      if ((($default_auth == TRANSITION_ALLOWED)
+            && (!array_key_exists ($value_id, $forbidden_to_id)))
+          ||
+          (($default_auth == TRANSITION_FORBIDDEN)
+            && (array_key_exists ($value_id, $allowed_to_id)))
+          ||
+          ($value_id == $checked))
+        $val_label[$value_id] = $value;
+    }
+  return [array_keys ($val_label), array_values ($val_label)];
+}
+
 # Return a select box populated with field values for this group.
 # If box_name is given, then impose this name in the select box
 # of the  HTML form otherwise use the field_name.
@@ -432,80 +465,26 @@ function trackers_field_box (
   if (!$group_id)
     return _('Error: no group defined');
 
+  if ($box_name == '')
+    $box_name = $field_name;
   $title = trackers_data_get_description ($field_name);
   if ($title == '')
-    $title= trackers_data_get_label ($field_name);
+    $title = trackers_data_get_label ($field_name);
 
   $result = trackers_data_get_field_predefined_values (
     $field_name, $group_id, $checked
   );
-  if ($box_name == '')
-    $box_name = $field_name;
-
   if ($allowed_transition_only)
     {
-      $field_id = trackers_data_get_field_id ($field_name);
-
-      # First check if group has defined transitions for this field.
-      $res = db_execute ("
-        SELECT transition_default_auth FROM " . ARTIFACT . "_field_usage
-        WHERE group_id = ? AND bug_field_id = ?",
-        [$group_id, $field_id]
+      list ($keys, $vals) = trackers_transition_field_values (
+         $field_name, $group_id, $checked, $result
       );
-      $default_auth = TRANSITION_ALLOWED;
-      if (db_numrows ($res) > 1)
-        $default_auth = db_result ($res, 0, 'transition_default_auth');
-      # Avoid corrupted database records, if its not forbidden, allow.
-      if ($default_auth != TRANSITION_FORBIDDEN)
-        $default_auth = TRANSITION_ALLOWED;
-
-      $trans_result = db_execute (
-        "SELECT from_value_id,to_value_id,is_allowed,notification_list
-         FROM trackers_field_transition
-         WHERE group_id = ? AND artifact = ? AND field_id = ?
-         AND (from_value_id = ? OR from_value_id = '0')",
-        [$group_id, ARTIFACT, $field_id, $checked]
-      );
-      $forbidden_to_id = $allowed_to_id = [];
-      $rows = db_numrows ($trans_result);
-      if ($trans_result && $rows > 0 || $default_auth == TRANSITION_FORBIDDEN)
-        {
-          while ($transition = db_fetch_array ($trans_result))
-            if ($transition['is_allowed'] == TRANSITION_FORBIDDEN)
-              $forbidden_to_id[$transition['to_value_id']] = 0;
-            else
-              $allowed_to_id[$transition['to_value_id']] = 0;
-
-          # Get all the predefined values for this field.
-          $rows = db_numrows ($result);
-
-          if ($rows > 0)
-            {
-              $val_label = [];
-              while ($val_row = db_fetch_array ($result))
-                {
-                  $value_id = $val_row['value_id'];
-                  $value = $val_row['value'];
-                  if ((($default_auth == TRANSITION_ALLOWED)
-                        && (!array_key_exists($value_id, $forbidden_to_id)))
-                      ||
-                      (($default_auth == TRANSITION_FORBIDDEN)
-                        && (array_key_exists($value_id, $allowed_to_id)))
-                      ||
-                      ($value_id == $checked))
-                    $val_label[$value_id] = $value;
-                }
-
-              # Always add the any values cases.
-              return html_build_select_box_from_arrays (
-                array_keys ($val_label), array_values ($val_label), $box_name,
-                $checked, $show_none, $text_none, $show_any, $text_any,
-                $show_unknown, $title
-              );
-            }
-        } # $trans_result && $rows > 0 || $default_auth == TRANSITION_FORBIDDEN
-    } # $allowed_transition_only
-
+      if (null !== $keys)
+         return html_build_select_box_from_arrays (
+            $keys, $vals, $box_name, $checked, $show_none, $text_none,
+            $show_any, $text_any, $show_unknown, $title
+          );
+    }
   # If no transition is defined, use 'normal' code.
   return html_build_select_box (
     $result, $box_name, $checked, $show_none, $text_none, $show_any, $text_any,

@@ -2798,5 +2798,44 @@ function trackers_data_quote_comment ($item_id, $quote_no)
   $quote = "\n\n[comment #$quote_no $label]\n$quote";
   return $quote;
 }
+
+function trackers_data_get_default_transition_auth ($group_id, $field_id)
+{
+  # First check if group has defined transitions for this field.
+  $res = db_execute ("
+    SELECT `transition_default_auth` FROM `" . ARTIFACT . "_field_usage`
+    WHERE `group_id` = ? AND `bug_field_id` = ?", [$group_id, $field_id]
+  );
+  $ret = TRANSITION_ALLOWED;
+  if (db_numrows ($res) > 1)
+    $ret = db_result ($res, 0, 'transition_default_auth');
+  # Avoid corrupted database records, if its not forbidden, allow.
+  if ($ret != TRANSITION_FORBIDDEN)
+    $ret = TRANSITION_ALLOWED;
+  return $ret;
+}
+function trackers_data_get_tracker_field_transitions (
+  $group_id, $field_id, $checked
+)
+{
+  $res = db_execute (
+    "SELECT `from_value_id`, `to_value_id`, `is_allowed`, `notification_list`
+     FROM `trackers_field_transition`
+     WHERE `group_id` = ? AND `artifact` = ? AND `field_id` = ?
+     AND (`from_value_id` = ? OR `from_value_id` = '0')",
+    [$group_id, ARTIFACT, $field_id, $checked]
+  );
+  $rows = db_numrows ($res);
+  if (!$rows)
+    return [0, [], []];
+  $forbidden_to_id = $allowed_to_id = [];
+
+  while ($transition = db_fetch_array ($res))
+    if ($transition['is_allowed'] == TRANSITION_FORBIDDEN)
+      $forbidden_to_id[$transition['to_value_id']] = 0;
+    else
+      $allowed_to_id[$transition['to_value_id']] = 0;
+  return [$rows, $forbidden_to_id, $allowed_to_id];
+}
 } # namespace {
 ?>
