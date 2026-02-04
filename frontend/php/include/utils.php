@@ -1150,12 +1150,25 @@ function utils_debug_output_db_queries ($list_includes)
   return "$ret$head[0]\n$footer\n\n";
 }
 
+function utils_list_config ()
+{
+  global $sys_etc_dir, $sys_conf_file;
+  $ret = "  " . utils_no_i18n ("Configuration sources:") . "\n";
+  $ret .= "SAVANE_CONF: '" . getenv ('SAVANE_CONF') . "'\n";
+  $ret .= "\$sys_etc_dir: '$sys_etc_dir'\n";
+  $ret .= "\$sys_conf_file: '$sys_conf_file'\n";
+  return $ret;
+}
+
 function utils_debug_footer ($list_includes = false)
 {
-  $ts = utils_format_timestamp (error_timestamp () - $GLOBALS['TIMESTAMP_START']);
+  $ts = utils_format_timestamp (
+    error_timestamp () - $GLOBALS['TIMESTAMP_START']
+  );
   $ru = getrusage ();
-  $msg = utils_no_i18n ("PHP run summary") . "\n  "
-    . "Elapsed time: $ts\n";
+  $msg = utils_no_i18n ("PHP run summary") . "\n";
+  $msg .= utils_list_config ();
+  $msg .= "  " . sprintf (utils_no_i18n ("Elapsed time: %s"), $ts) . "\n";
   if ($list_includes)
     {
       $msg .= "  " . utils_no_i18n ("Included files:") . "\n";
