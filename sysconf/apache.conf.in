@@ -50,11 +50,20 @@ Group ${APACHE_RUN_GROUP}
 HostnameLookups Off
 ErrorLog ${APACHE_LOG_DIR}/error.log
 LogLevel warn
-IncludeOptional mods-enabled/*.load
-IncludeOptional mods-enabled/*.conf
+IncludeOptional mods-available/authz_core.load
+IncludeOptional mods-available/alias.load
+IncludeOptional mods-available/dir.load
+IncludeOptional mods-available/env.load
+IncludeOptional mods-available/mpm_prefork.load
+IncludeOptional mods-available/php*.load
+IncludeOptional mods-available/rewrite.load
+IncludeOptional mods-available/alias.conf
+IncludeOptional mods-available/dir.conf
+IncludeOptional mods-available/mpm_prefork.conf
+IncludeOptional mods-available/php*.conf
+IncludeOptional mods-available/rewrite.conf
 Listen @WWW_HOST@
 Listen @FILE_HOST@
-IncludeOptional conf-enabled/*.conf
 ServerName @WWW_SERVER_HOST@
 <VirtualHost @WWW_HOST@ @FILE_HOST@>
   ServerName @WWW_SERVER_HOST@

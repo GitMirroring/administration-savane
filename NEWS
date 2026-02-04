@@ -15,6 +15,10 @@
 
 ** Inactive groups were listed in user's profile since 2024-09 (41f3fa4b6).
 
+** The Apache configuration used in sv_frontendctl.pl was broken when
+   the system-wide configuration enabled the php-fpm module (the latter
+   reads from a socket only typically accessible to the www-data user).
+
 ** The number of latest changes wasn't displayed correctly, Savannah sr #111378.
 
 ** Many group pages like /git/?group=3dldf didn't work for groups whose
