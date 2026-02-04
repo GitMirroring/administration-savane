@@ -581,13 +581,95 @@ if ($sumORdet == 1)
 # Loop through the list of used fields to define label and fields/boxes
 # used as search criteria.
 
-$ib = $is = 0;
-$load_cal = false;
+function make_select_field ($url_params, $field, $advsrch)
+{
+  global $group_id;
+  $fval = null;
+  if ($advsrch)
+    {
+      if (isset ($url_params[$field]))
+        $fval = $url_params[$field];
+    }
+  elseif (isset ($url_params[$field][0]))
+    $fval = $url_params[$field][0];
+  return trackers_field_display (
+    $field, $group_id, $fval, false, false, false, false, true, 'None', true
+  );
+}
+
+function make_date_field ($url_params, $field, $advsrch)
+{
+  $end_value = '';
+  if (isset ($url_params["{$field}_end"]))
+    $end_value = $url_params["{$field}_end"];
+
+  $op_value = '';
+  if (isset ($url_params["{$field}_op"])
+      && isset ($url_params["{$field}_op"][0]))
+    $op_value = $url_params["{$field}_op"][0];
+
+  $value = '';
+  if (isset ($url_params[$field]) && isset ($url_params[$field][0]))
+    $value = $url_params[$field][0];
+
+  if ($advsrch)
+    return trackers_multiple_field_date ($field, $value, $end_value);
+  return trackers_field_date_operator ($field, $op_value)
+    . trackers_field_date ($field, $value);
+}
+
+function make_text_field ($url_params, $field, $advsrch)
+{
+  global $summary_search, $details_search;
+  if ($field == 'summary')
+    $summary_search = 1;
+  if ($field == 'details')
+    $details_search = 1;
+
+  if (!isset ($url_params[$field]))
+    # Not passed as parameter yet, field just appeared due to
+    # a change of the query form.
+    $url_params[$field] = [null];
+
+  $txt = $url_params[$field][0];
+  return trackers_field_text ($field, $txt, 15, 80);
+}
+
+function make_field ($url_params, $field, $advsrch)
+{
+  $ret = '<td><span class="smaller">';
+  if (trackers_data_is_select_box ($field))
+    $ret .= make_select_field ($url_params, $field, $advsrch);
+  elseif (trackers_data_is_date_field ($field))
+    $ret .= make_date_field ($url_params, $field, $advsrch);
+  elseif (trackers_data_is_text ($field))
+    $ret .= make_text_field ($url_params, $field, $advsrch);
+  return "$ret</span></td>\n";
+}
+
+function start_new_row ()
+{
+  return [
+    "\n<tr align='center' valign='top'>", "\n<tr align='center' valign='top'>"
+  ];
+}
+
+function make_label ($field, $group_id)
+{
+  return '<td><span class="smaller">'
+    . trackers_field_label_display ($field, $group_id)
+    . "</span></td>\n";
+}
+
+function make_row ($labels, $boxes)
+{
+  return "$labels</tr>\n$boxes</tr>\n";
+}
 
 # Check if summary and original submission are criteria.
 $summary_search = $details_search = 0;
 
-$labels = $boxes = $html_select = '';
+$field_in_row =  0; $html_select = '';
 while ($field = trackers_list_all_fields ('cmp_place_query'))
   {
     if (!trackers_data_is_used ($field))
@@ -596,83 +678,20 @@ while ($field = trackers_list_all_fields ('cmp_place_query'))
     if (!trackers_data_is_showed_on_query ($field))
       continue;
 
-    # Beginning of a new row.
-    if ($ib % $fields_per_line == 0)
-      {
-        $align = "center";
-        $labels .= "\n<tr align=\"$align\" valign='top'>";
-        $boxes .= "\n<tr align=\"$align\" valign='top'>";
-      }
+    if ($field_in_row == 0)
+      list ($labels, $boxes) = start_new_row ();
 
-    $labels .= '<td><span class="smaller">'
-      . trackers_field_label_display ($field, $group_id)
-      . "</span></td>\n";
-    $boxes .= '<td><span class="smaller">';
-
-    if (trackers_data_is_select_box ($field))
-      {
-        $fval = null;
-        if ($advsrch)
-          {
-            if (isset ($url_params[$field]))
-              $fval = $url_params[$field];
-          }
-        elseif (isset ($url_params[$field][0]))
-          $fval = $url_params[$field][0];
-        $boxes .=
-          trackers_field_display (
-            $field, $group_id, $fval, false, false, false, false, true,
-            'None', true
-          );
-      }
-    elseif (trackers_data_is_date_field ($field))
-      {
-        $end_value = '';
-        if (isset ($url_params["{$field}_end"]))
-          $end_value = $url_params["{$field}_end"];
-
-        $op_value = '';
-        if (isset ($url_params["{$field}_op"])
-            && isset ($url_params["{$field}_op"][0]))
-          $op_value = $url_params["{$field}_op"][0];
-
-        $value = '';
-        if (isset ($url_params[$field]) && isset ($url_params[$field][0]))
-          $value = $url_params[$field][0];
-
-        if ($advsrch)
-          $boxes .= trackers_multiple_field_date ($field, $value, $end_value);
-        else
-          $boxes .= trackers_field_date_operator ($field, $op_value)
-            . trackers_field_date ($field, $value);
-      }
-    elseif (trackers_data_is_text ($field))
-      {
-        if ($field == 'summary')
-          $summary_search = 1;
-        if ($field == 'details')
-          $details_search = 1;
-
-        if (!isset ($url_params[$field]))
-          # Not passed as parameter yet, field just appeared due to
-          # a change of the query form.
-          $url_params[$field] = [null];
-
-        $txt = $url_params[$field][0];
-        $boxes .= trackers_field_text ($field, $txt, 15, 80);
-      }
-    $boxes .= "</span></td>\n";
-    $ib++;
-    if ($ib % $fields_per_line == 0)
-      {
-        $html_select .= "$labels</tr>\n$boxes</tr>\n";
-        $labels = $boxes = '';
-      }
+    $labels .= make_label ($field, $group_id);
+    $boxes .= make_field ($url_params, $field, $advsrch);
+    if (++$field_in_row < $fields_per_line)
+      continue;
+    $html_select .= make_row ($labels, $boxes);
+    $field_in_row = 0;
   } # while ($field = trackers_list_all_fields ('cmp_place_query'))
 
 # Make sure the last few cells are in the table.
-if ($labels)
-  $html_select .= "$labels</tr>\n$boxes</tr>\n";
+if ($field_in_row)
+  $html_select .= make_row ($labels, $boxes);
 
 # Fill the relevant SQL bit to be used later.
 # Sensible default case: order by item_id from the recent to the older
