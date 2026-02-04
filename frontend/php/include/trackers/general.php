@@ -302,10 +302,6 @@ function trackers_field_display (
   $args = [];
   foreach ($arg_names as $a)
     $args[$a] = $$a;
-  $display = [
-    'SB' => 'trackers_field_display_sb', 'DF' => 'trackers_field_display_df',
-    'TF' => 'trackers_field_display_tf', 'TA' => 'trackers_field_display_ta'
-  ];
   $display_type = trackers_data_get_display_type ($field_name);
 
   if ($label)
