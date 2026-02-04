@@ -15,6 +15,9 @@
 
 ** Inactive groups were listed in user's profile since 2024-09 (41f3fa4b6).
 
+** The list in submitters selection box was truncated since 2025-09 (0d5e070c),
+   Savannah sr #111379.
+
 ** The Apache configuration used in sv_frontendctl.pl was broken when
    the system-wide configuration enabled the php-fpm module (the latter
    reads from a socket only typically accessible to the www-data user).

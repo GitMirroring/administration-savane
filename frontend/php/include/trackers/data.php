@@ -538,15 +538,10 @@ function trackers_data_predefined_special_fields ($field_name, $group_id)
   return null;
 }
 
-function trackers_data_predefined_value_order ()
+function trackers_data_predefined_value_order (&$params)
 {
-  global $offset, $max_rows, $limit_predefined_values;
-  $ret = "\nORDER BY `section`, `order_id`, `value` ASC";
-  if (empty ($limit_predefined_values))
-    return $ret;
-  $off = intval ($offset);
-  $rows = $max_rows + 1;
-  return "$ret\nLIMIT $off, $rows";
+  return "\nORDER BY `section`, `order_id`, `value` ASC"
+    . trackers_data_limit_predef_values ($params);
 }
 
 function trackers_data_predefined_value_sql ($status_cond)
@@ -565,17 +560,17 @@ function trackers_data_predefined_value_sql ($status_cond)
 
 function trackers_data_fetch_active_values ($checked, $prm)
 {
-  $status_cond = "`status` IN (?, ?)";
-  $params = $GLOBALS['FIELD_STATUS_ENABLED'];
+  $status_cond = "`status` "
+    . utils_in_placeholders ($GLOBALS['FIELD_STATUS_ENABLED']);
+  $prm = array_merge ($prm, $GLOBALS['FIELD_STATUS_ENABLED']);
   if ($checked && !is_array ($checked))
     {
       $status_cond = "($status_cond OR `value_id` = ?)";
-      $params[] = $checked;
+      $prm[] = $checked;
     }
+  $order_limit = trackers_data_predefined_value_order ($prm);
   return db_execute (
-    trackers_data_predefined_value_sql ($status_cond)
-    . trackers_data_predefined_value_order (),
-    array_merge ($prm, $params)
+    trackers_data_predefined_value_sql ($status_cond) . $order_limit, $prm
   );
 }
 
@@ -633,9 +628,8 @@ function trackers_data_fetch_predefined_values (
     . ' ('
     . trackers_data_predefined_value_sql ('`status` = ?')
     . ')';
-  return db_execute (
-    $sql . trackers_data_predefined_value_order (), $params
-  );
+  $sql .= trackers_data_predefined_value_order ($params);
+  return db_execute ($sql, $params);
 }
 
 # Return all possible values for a select box field.
@@ -1347,14 +1341,14 @@ function trackers_data_get_technician_count ($group_id)
   return count ($uids);
 }
 
-function trackers_data_limit_technicians (&$uids)
+function trackers_data_limit_predef_values (&$sql_args)
 {
   global $offset, $max_rows, $limit_predefined_values;
   if (empty ($limit_predefined_values))
     return '';
   $off = intval ($offset);
   $rows = intval ($max_rows);
-  array_push ($uids, $off, $rows);
+  array_push ($sql_args, $off, $rows);
   return " LIMIT ?, ?";
 }
 
@@ -1375,7 +1369,7 @@ function trackers_data_get_technicians ($group_id)
     $sql .= '`user_id` ' . utils_in_placeholders ($uids);
   $sql .= " ORDER BY `user_name`";
   array_unshift ($uids, $group_id);
-  $sql .= trackers_data_limit_technicians ($uids);
+  $sql .= trackers_data_limit_predef_values ($uids);
   return db_execute ($sql, $uids);
 }
 
@@ -1394,9 +1388,8 @@ function trackers_data_get_submitter_count ($group_id)
 
 function trackers_data_get_submitters ($group_id)
 {
-  global $offset, $max_rows;
-  $off = intval ($offset);
-  $rows = intval ($max_rows);
+  $args = [$group_id, FIELD_STATUS_PERMANENT, $group_id];
+  $limit = trackers_data_limit_predef_values ($args);
 
   $art = ARTIFACT;
   return db_execute ("
@@ -1405,8 +1398,7 @@ function trackers_data_get_submitters ($group_id)
       0 AS `order_id`, ? AS `status`
     FROM `user` JOIN `$art` `a` ON `user`.`user_id` = `a`.`submitted_by`
     WHERE `a`.`group_id` = ?
-    ORDER BY `user`.`user_name` LIMIT ?, ?",
-    [$group_id, FIELD_STATUS_PERMANENT, $group_id, $off, $rows]
+    ORDER BY `user`.`user_name` $limit", $args
   );
 }
 
