@@ -118,18 +118,12 @@ ServerName @WWW_SERVER_HOST@
 
   # Uploads for new group registrations and tracker attachments.
   # This directory must be writable by Apache user.
-  # NOTE: Ensure this directory matches the '$sys_upload_dir' value
-  #       in the custom savanne configuration file
-  #       ($SAVANE_CONF/savane.conf.php).
+  # NOTE: Make sure this directory matches the '$sys_upload_dir' value
+  #   in the custom savanne configuration file ($SAVANE_CONF/savane.conf.php).
   Alias /submissions_uploads @pkgstatedir@/submissions_uploads/
   <Directory "@pkgstatedir@/submissions_uploads/">
-    Options Indexes
     AllowOverride None
     php_admin_flag engine off
-
-    <FilesMatch ".">
-      SetHandler default-handler
-    </FilesMatch>
   </Directory>
 
   ErrorLog ${APACHE_LOG_DIR}/error.log
