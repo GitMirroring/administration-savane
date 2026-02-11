@@ -420,8 +420,7 @@ function show_create_field_value ($field, $have_hidden)
   print "<p><span class='preinput'>"
     . html_label ('description', _("Description (optional):"))
     . "</span><br />\n"
-    . form_textarea ('description', '',
-       "rows='4' cols='65' wrap='hard'")
+    . form_textarea ('description', '', "rows='4' cols='65'")
     . "</p>\n" . form_footer (_("Update"), 'submit');
 }
 
@@ -736,9 +735,7 @@ function print_update_value_status ($row)
     . "</select>\n<p>\n<span class='preinput'>"
     . html_label ('description', _("Description (optional):"))
     . "</span><br />\n"
-    . form_textarea ('description', $row['description'],
-        'rows="4" cols="65" wrap="soft"'
-      )
+    . form_textarea ('description', $row['description'], 'rows="4" cols="65"')
     . "</p>\n";
 }
 
@@ -813,7 +810,7 @@ function print_form_canned ($row = null)
   print_value_rank ($row, _("Title:"));
   print "<br />\n<span class='preinput'>"
     . html_label ("body", _("Message Body:")) . "</span><br />\n&nbsp;&nbsp;"
-    . form_textarea ('body', $row['body'], "rows='20' cols='65' wrap='hard'")
+    . form_textarea ('body', $row['body'], "rows='20' cols='65'")
     . form_footer (_("Submit"), 'submit');
 }
 
