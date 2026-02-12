@@ -153,6 +153,8 @@ Perl module,
 
 * WWW::Mechanize (libwww-mechanize-perl in Trisquel)
 
+Also, French locales are expected to be installed (at least, fr_FR).
+
 Documentation
 =============
 

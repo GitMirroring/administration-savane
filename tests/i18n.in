@@ -1,0 +1,224 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test language negotiation.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+
+PrintVersionOrHelp ('Test language negotiation.');
+
+my $agent = make_agent () or exit (1);
+my $initial_page = 'support/?group=administration';
+my $linguas = <<'EOF';
+  # Set 'fr' as the only active non-default localization.
+  $sys_linguas = 'fr';
+EOF
+exit (1) if append_savane_conf ($linguas);
+my $exit_code = 2;
+
+sub check_content_language
+{
+  my ($agent, $lang) = (shift, shift);
+  my $response = $agent->get (make_url (''));
+  my $res = $response->header ('Content-Language');
+  $res = '<undef>' unless defined $res;
+  if ($lang eq $res)
+    {
+      print_test_result ("Content-Language is $lang.");
+      return 0;
+    }
+  print_test_error ("Content-Language is '$res', '$lang' is expected.");
+  return 1;
+}
+
+sub check_lang
+{
+  my ($agent, $lang) = (shift, shift);
+  my (@headers_set, @comment, $ret);
+  unless (@_)
+    {
+      print_test_log ('Checking response with plain request.');
+      return check_content_language ($agent, $lang);
+    }
+  push @comment, 'Checking response with headers set:';
+  while (@_)
+    {
+      my ($h, $v) = (shift, shift);
+      push @comment, "  $h => $v";
+      $agent->add_header ($h => $v);
+      push @headers_set, $h;
+    }
+  print_test_log (join ("\n", @comment));
+  $ret = check_content_language ($agent, $lang);
+  $agent->delete_header ($_) foreach @headers_set;
+  return $ret;
+}
+
+sub check_i18n_requests
+{
+  my $agent = shift;
+  my $ret;
+  $ret = 1 if check_lang ($agent, 'en');
+  foreach ('es', 'es;q=0.2,en;q=0.3,fr;q=0.25', 'es,en;q=0.3')
+    {
+      $ret = 1 if check_lang ($agent, 'en', 'Accept-Language', $_);
+      $ret = 1 if check_lang (
+        $agent, 'fr', 'Accept-Language', $_, 'Cookie', 'LANGUAGE=fr'
+      );
+    }
+  foreach ('fr', 'en;q=0.3,fr;q=0.35', 'es;q=0.4,fr;q=0.35')
+    {
+      $ret = 1 if check_lang ($agent, 'fr', 'Accept-Language', $_);
+      $ret = 1 if check_lang (
+        $agent, 'en', 'Accept-Language', $_, 'Cookie', 'LANGUAGE=en'
+      );
+    }
+  return $ret;
+}
+
+sub find_i18n_form
+{
+  my $agent = shift;
+  print_test_log ('Looking for i18n control form.');
+  my $form = $agent->form_with_fields (qw (lang_uri form_id language));
+  print_test_error ('i18n control form not found.') unless (defined $form);
+  return $form;
+}
+
+sub check_language_value
+{
+  my ($vals, $key, $ret) = @_;
+  if (exists $vals->{$key})
+    {
+      if ($vals->{$key})
+        {
+          print_test_result ("Expected value $key found.");
+          $vals->{$key} = 0;
+          return $ret;
+        }
+      print_test_error ("Duplicate value $key found.");
+      return undef;
+    }
+  print_test_error ("Unexpected value $key found.");
+  return undef;
+}
+
+sub check_language_input
+{
+  my $form = shift;
+  my $input = $form->find_input ('language');
+  print_test_log ('Checking language options.');
+  if ($input->type ne 'option')
+    {
+      print_test_error ('Wrong input type: ' . $input->type . '.');
+      return undef;
+    }
+  my $ret = $input;
+  my %vals = ('100' => 1, 'en' => 1, 'fr' => 1);
+  $ret = check_language_value (\%vals, $_, $ret)
+    foreach ($input->possible_values ());
+  foreach (keys %vals)
+    {
+      next unless $vals{$_};
+      $ret = undef;
+      print_test_error ("Expected value $_ is missing.");
+    }
+  print_test_result ('Language select box looks reasonable.') if defined $ret;
+  return $ret;
+}
+
+sub assert_initial_uri
+{
+  my $agent = shift;
+  return 0 if $agent->uri () eq make_url ($initial_page);
+  print_test_error (
+    'The agent has not returned to ' . make_url ($initial_page) . '; '
+    . 'the current URI is ' . $agent->uri ()
+  );
+  return 1;
+}
+
+sub try_set_language
+{
+  my ($agent, $input, $language) = @_;
+  my $ret = 0;
+  my $lang = $language;
+  print_test_log ("Setting language: $language.");
+  $input->value ($language);
+  $agent->click ();
+  $ret = 1 if assert_initial_uri ($agent);
+  $lang = 'en' if ($language eq '100');
+  $ret = 1 if check_lang ($agent, $lang);
+  foreach ('fr', 'en')
+    {
+      $lang = $_ if $language eq '100';
+      $ret = 1 if check_lang ($agent, $lang, 'Accept-Language', $_);
+    }
+  return $ret;
+}
+
+sub test_i18n_page
+{
+  my ($agent, $language) = @_;
+  print_test_log ("Testing language '$language'.");
+  print_test_log ('Visiting initial page.');
+  $agent->get (make_url ($initial_page));
+  print_test_log ('Visiting i18n page.');
+  $agent->follow_link (url_regex => qr@^/i18n.php@);
+  my $form = find_i18n_form ($agent);
+  return 1 unless (defined $form);
+  my $input = check_language_input ($form);
+  return 1 unless defined ($input);
+  return try_set_language ($agent, $input, $language);
+}
+
+$exit_code = 1 if check_i18n_requests ($agent);
+foreach ('fr', 'en', '100')
+  {
+    $exit_code = 1 if test_i18n_page ($agent, $_);
+  }
+
+$exit_code = 0 if $exit_code == 2;
+
+print_test_result ("Test done.") unless $exit_code;
+exit ($exit_code);

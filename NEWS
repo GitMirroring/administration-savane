@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* The Content-Language header is set when serving pages.
+
 * Support for PHP 8.5 is declared.
 
 * A confirmation step is added for mailing list deletion and unlinking
@@ -63,7 +65,7 @@
 
 [TESTS]
 
-* New tests, 'testconfig' and 'mailman'.
+* New tests, 'i18n', 'mailman', 'testconfig', 'tracker-conf-copy'.
 
 2025-10-31 3.16
 

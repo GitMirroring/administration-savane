@@ -193,5 +193,12 @@ function i18n_setup ($locale)
     $err[] = no_i18n ('Failed to set text domain.');
   return $err;
 }
-i18n_setup  ($locale);
+function set_content_language ($err)
+{
+  $lang = $GLOBALS['best_lang'];
+  if (count ($err))
+    $lang = 'en';
+  header ("Content-Language: $lang");
+}
+set_content_language (i18n_setup  ($locale));
 ?>
