@@ -77,6 +77,64 @@ function register_language ($code, $locale, $name = "")
     $locale_names[$code] = $name;
 }
 
+# Parse language and quality factor.
+function parse_single_pref ($lng)
+{
+  $q = 1;
+  $arr = explode (';', $lng);
+  if (isset ($arr[1]))
+    {
+      $lng = $arr[0];
+      $arr[1] = $arr[1];
+      if (substr ($arr[1], 0, 2) === 'q=')
+        $q = substr ($arr[1], 2);
+      else return ['', 0]; # The second half doesn't define quality; skip the item.
+      if ($q > 1 || $q <= 0)
+        return ['', 0]; # Unusable quality value.
+    }
+  return [$lng, $q];
+}
+
+# Find the best language available.
+function find_best_language ($browser_preferences, $best_lang)
+{
+  $quality = 0;
+  foreach ($browser_preferences as $lng)
+    {
+      list ($cur_lang, $q) = parse_single_pref ($lng);
+      # Check language code.
+      $lang_len = strpos ($cur_lang, '-');
+      if ($lang_len === FALSE)
+        $lang_len = strlen ($cur_lang);
+      if ($lang_len < 2)
+        continue; # Language code must be at least 2 characters long.
+
+      if (empty ($GLOBALS['locale_list'][$cur_lang]))
+        continue; # No such locale; skip the item.
+      if ($q <= $quality)
+        continue;
+      # Best item available so far: select.
+      $quality = $q;
+      $best_lang = $cur_lang;
+    } # foreach ($browser_preferences as $lng)
+  return $best_lang;
+}
+
+# Get user's preferred languages from UA headers.
+function get_browser_preferences ()
+{
+  $accept_lang = getenv ("HTTP_ACCEPT_LANGUAGE");
+  if (empty ($accept_lang))
+    {
+      # No environment variable; this may be the case in PHP built-in server.
+      $headers = apache_request_headers ();
+      if (array_key_exists ('Accept-Language', $headers))
+        $accept_lang = $headers['Accept-Language'];
+    }
+  $accept_lang = str_replace ([' ', "\t"], '', $accept_lang);
+  return explode (",", strtolower ($accept_lang));
+}
+
 register_language ("ca", "ca_ES", "català");
 register_language ("de", "de_DE", "Deutsch");
 register_language ("en", "en_US", "English");
@@ -103,47 +161,12 @@ $accept_lang =  str_replace ([' ', "\t"], '', getenv ("HTTP_ACCEPT_LANGUAGE"));
 $browser_preferences = explode (",", strtolower ($accept_lang));
 
 # Set the default locale.
-$quality = 0;
 $best_lang = "en";
 
 if (isset ($sys_default_locale))
   $best_lang = $sys_default_locale;
 
-# Find the best language available.
-foreach ($browser_preferences as $lng)
-  {
-    # Parse language and quality factor.
-    $q = 1;
-    $arr = explode (';', $lng);
-    if (isset ($arr[1]))
-      {
-        $lng = $arr[0];
-        $arr[1] = $arr[1];
-        if (substr ($arr[1], 0, 2) === 'q=')
-          $q = substr ($arr[1], 2);
-        else continue; # The second half doesn't define quality; skip the item.
-        if ($q > 1 || $q <= 0)
-          continue; # Unusable quality value.
-      }
-    $cur_lang = $lng;
-
-    # Check language code.
-    $lang_len = strpos ($cur_lang, '-');
-    if ($lang_len === FALSE)
-      $lang_len = strlen ($cur_lang);
-    if ($lang_len < 2)
-      continue; # Language code must be at least 2 characters long.
-
-    if (empty ($locale_list[$cur_lang]))
-      continue; # No such locale; skip the item.
-
-    if ($q <= $quality)
-      continue;
-
-    # Best item available so far: select.
-    $quality = $q;
-    $best_lang = $cur_lang;
-  } # foreach ($browser_preferences as $lng)
+$best_lang = find_best_language ($browser_preferences, $best_lang);
 
 if (isset ($_COOKIE['LANGUAGE']) && isset ($locale_list[$_COOKIE['LANGUAGE']]))
   $best_lang = $_COOKIE['LANGUAGE'];
