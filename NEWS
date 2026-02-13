@@ -11,6 +11,9 @@
   any more, and only 'savane.conf.php' is checked ('.savane.conf.php' is
   ignored).
 
+* A few sources are tested when looking for the Accept-Language header:
+  $_SERVER, environment variable, apache_request_headers ().
+
 * Bug fixes:
 
 ** Inactive groups were listed in user's profile since 2024-09 (41f3fa4b6).

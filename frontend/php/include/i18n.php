@@ -123,10 +123,14 @@ function find_best_language ($browser_preferences, $best_lang)
 # Get user's preferred languages from UA headers.
 function get_browser_preferences ()
 {
-  $accept_lang = getenv ("HTTP_ACCEPT_LANGUAGE");
-  if (empty ($accept_lang))
+  # Look for the Accept-Language header in various sources.
+  $var = 'HTTP_ACCEPT_LANGUAGE';
+  if (array_key_exists ($var, $_SERVER))
+    $accept_lang = $_SERVER[$var];
+  else
+    $accept_lang = getenv ($var);
+  if (empty ($accept_lang) && function_exists ('apache_request_headers'))
     {
-      # No environment variable; this may be the case in PHP built-in server.
       $headers = apache_request_headers ();
       if (array_key_exists ('Accept-Language', $headers))
         $accept_lang = $headers['Accept-Language'];
@@ -157,8 +161,7 @@ register_language ("zh", "zh_CN", "简体中文");
 #register_language ("zh-cn", "zh_CN");
 
 # Get user's preferred languages from UA headers.
-$accept_lang =  str_replace ([' ', "\t"], '', getenv ("HTTP_ACCEPT_LANGUAGE"));
-$browser_preferences = explode (",", strtolower ($accept_lang));
+$browser_preferences = get_browser_preferences ();
 
 # Set the default locale.
 $best_lang = "en";
