@@ -472,11 +472,11 @@ function error_handler_function ($errno, $errstr, $file = null, $line = null)
     $location .= $line;
   if (!is_string ($errstr))
     $errstr = print_r ($errstr, true);
-  $title = "$location: [" . error_level_name ($errno) . "] $errstr";
-  $msg =  "$title\nbacktrace:\n{\n" . error_format_backtrace ();
-  $msg .= "\n}\n" . error_format_request ();
+  $title = "$location: [" . error_level_name ($errno) . "]";
+  $msg =  "$title\n" . error_format_request ();
+  $msg .= "$errstr\nbacktrace:\n{\n" . error_format_backtrace () . "\n}";
   error_log ($msg);
-  error_cc_log ($location, $title, $msg);
+  error_cc_log ($location, "$title$errstr", $msg);
   return true;
 }
 
