@@ -51,16 +51,6 @@ function no_i18n ($x)
   return $x;
 }
 
-# Table of supported languages:
-# "language variant" => "associated preferred locale"
-$locale_list = [];
-
-# Locale names offered for selection in /i18n.php.
-$locale_names = [];
-
-# Table of languages supported by Savane: $code => [$locale, $name].
-$languages_available = [];
-
 # Add language to arrays:
 # $code - language code
 # $locale - locale to use
@@ -139,6 +129,41 @@ function get_browser_preferences ()
   return explode (",", strtolower ($accept_lang));
 }
 
+function i18n_setup ($locale)
+{
+  global $sys_localedir;
+  $err = [];
+  # The LANGUAGE variable would override our settings, so we unset it.
+  putenv ("LANGUAGE=");
+  if (setlocale (LC_ALL, $locale) === false)
+    $err[] = no_i18n ('Failed to set locale.');
+  utils_update_decimal_separator ();
+  if (!empty ($sys_localedir))
+    if (bindtextdomain ('savane', $sys_localedir) == false)
+      $err[] = no_i18n ('Failed to bind text domain.');
+  if (textdomain ('savane') != 'savane')
+    $err[] = no_i18n ('Failed to set text domain.');
+  return $err;
+}
+
+function set_content_language ($err)
+{
+  $lang = $GLOBALS['best_lang'];
+  if (count ($err))
+    $lang = 'en';
+  header ("Content-Language: $lang");
+}
+
+# Table of supported languages:
+# "language variant" => "associated preferred locale"
+$locale_list = [];
+
+# Locale names offered for selection in /i18n.php.
+$locale_names = [];
+
+# Table of languages supported by Savane: $code => [$locale, $name].
+$languages_available = [];
+
 register_language ("ca", "ca_ES", "català");
 register_language ("de", "de_DE", "Deutsch");
 register_language ("en", "en_US", "English");
@@ -177,28 +202,5 @@ if (isset ($_COOKIE['LANGUAGE']) && isset ($locale_list[$_COOKIE['LANGUAGE']]))
 $locale = $locale_list[$best_lang];
 define ('SV_LANG', $best_lang);
 
-function i18n_setup ($locale)
-{
-  global $sys_localedir;
-  $err = [];
-  # The LANGUAGE variable would override our settings, so we unset it.
-  putenv ("LANGUAGE=");
-  if (setlocale (LC_ALL, $locale) === false)
-    $err[] = no_i18n ('Failed to set locale.');
-  utils_update_decimal_separator ();
-  if (!empty ($sys_localedir))
-    if (bindtextdomain ('savane', $sys_localedir) == false)
-      $err[] = no_i18n ('Failed to bind text domain.');
-  if (textdomain ('savane') != 'savane')
-    $err[] = no_i18n ('Failed to set text domain.');
-  return $err;
-}
-function set_content_language ($err)
-{
-  $lang = $GLOBALS['best_lang'];
-  if (count ($err))
-    $lang = 'en';
-  header ("Content-Language: $lang");
-}
 set_content_language (i18n_setup  ($locale));
 ?>
