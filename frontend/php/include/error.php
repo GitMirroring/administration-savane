@@ -460,6 +460,30 @@ function error_cc_log ($location, $title, $msg)
     }
 }
 
+function error_request_headers ()
+{
+  if (function_exists ('apache_request_headers'))
+    return apache_request_headers ();
+  $ret = [];
+  foreach ($_SERVER as $k => $v)
+    if (!strncmp ($k, 'HTTP_', strlen ('HTTP_')))
+      $ret[$k] = $v;
+  return $ret;
+}
+
+function error_response_headers ()
+{
+  if (function_exists ('apache_response_headers'))
+    return apache_response_headers ();
+  return headers_list ();
+}
+
+function error_format_headers ()
+{
+  return "request headers:\n" . error_print_r (error_request_headers ())
+    . "response headers:\n" . error_print_r (error_response_headers ());
+}
+
 function error_handler_function ($errno, $errstr, $file = null, $line = null)
 {
   if (!($errno & error_reporting ()))
@@ -473,7 +497,7 @@ function error_handler_function ($errno, $errstr, $file = null, $line = null)
   if (!is_string ($errstr))
     $errstr = print_r ($errstr, true);
   $title = "$location: [" . error_level_name ($errno) . "]";
-  $msg =  "$title\n" . error_format_request ();
+  $msg = "$title\n" . error_format_request () . error_format_headers ();
   $msg .= "$errstr\nbacktrace:\n{\n" . error_format_backtrace () . "\n}";
   error_log ($msg);
   error_cc_log ($location, "$title$errstr", $msg);
