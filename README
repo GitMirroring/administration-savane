@@ -17,7 +17,7 @@ of listing individual years ("2002, 2003, 2004, 2005, 2006").
 Introduction
 ============
 
-Savane is a free software hosting system.  As of 2023, it powers
+Savane is a free software hosting system.  As of 2026, it powers
 Puszcza and GNU Savannah: each site runs its own version of Savane;
 this tarball distributes the version of GNU Savannah.  For the exact
 release number, see the NEWS file.
