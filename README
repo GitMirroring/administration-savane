@@ -70,9 +70,9 @@ the "administration" group of GNU Savannah,
 
 https://savannah.nongnu.org/git/?group=administration
 
-Generally, Savane instances are updated at each host of GNU Savannah when needed
-to a recent commit from that repository, typically the head of either the i18n
-or the frontend branch; master is a fast-forward-only branch that follows
+Generally, Savane instances are updated when needed at each host of GNU Savannah
+to a recent commit from that repository, typically the head of either the 'i18n'
+or the 'frontend' branch; master is a fast-forward-only branch that follows
 the development; for more info, see
 https://savannah.nongnu.org/maintenance/SavaneReleases/.
 
