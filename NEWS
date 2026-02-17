@@ -67,6 +67,12 @@
 
 * New tests, 'i18n', 'mailman', 'testconfig', 'tracker-conf-copy'.
 
+* New check in frontend/php/testing, form.php.
+
+* Initially add command line parsing in frontend/php/testing/sane.php;
+  the script accepts the -g option to check 'unix group names' against
+  Savane rules and the -h option to show help.
+
 2025-10-31 3.16
 
 [FRONTEND]
