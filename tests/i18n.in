@@ -49,12 +49,25 @@ PrintVersionOrHelp ('Test language negotiation.');
 
 my $agent = make_agent () or exit (1);
 my $initial_page = 'support/?group=administration';
+my $default_language = 'en';
 my $linguas = <<'EOF';
   # Set 'fr' as the only active non-default localization.
+  # Note: 'en' is always implied.
   $sys_linguas = 'fr';
 EOF
+
 exit (1) if append_savane_conf ($linguas);
 my $exit_code = 2;
+
+sub set_default_language
+{
+  my $lang = shift;
+  $default_language = $lang;
+  return 1 if append_savane_conf (<<"  EOF");
+    # Set default language.
+    \$sys_default_language = '$lang';
+  EOF
+}
 
 sub check_content_language
 {
@@ -94,24 +107,33 @@ sub check_lang
   return $ret;
 }
 
+sub check_accept_language
+{
+  my ($agent, $al, $accept, $cookie) = @_;
+  my $ret = check_lang ($agent, $al, 'Accept-Language', $accept);
+  $ret = 1 if check_lang (
+    $agent, $cookie, 'Accept-Language', $accept, 'Cookie', "LANGUAGE=$cookie"
+  );
+  return $ret;
+}
+
 sub check_i18n_requests
 {
   my $agent = shift;
   my $ret;
-  $ret = 1 if check_lang ($agent, 'en');
-  foreach ('es', 'es;q=0.2,en;q=0.3,fr;q=0.25', 'es,en;q=0.3')
+  my $dl = $default_language;
+  $ret = 1 if check_lang ($agent, $dl);
+  foreach ('es', "es;q=0.2,$dl;q=0.3,fr;q=0.25", "es,$dl;q=0.3")
     {
-      $ret = 1 if check_lang ($agent, 'en', 'Accept-Language', $_);
-      $ret = 1 if check_lang (
-        $agent, 'fr', 'Accept-Language', $_, 'Cookie', 'LANGUAGE=fr'
-      );
+      $ret = 1 if check_accept_language ($agent, $dl, $_, 'fr');
     }
   foreach ('fr', 'en;q=0.3,fr;q=0.35', 'es;q=0.4,fr;q=0.35')
     {
-      $ret = 1 if check_lang ($agent, 'fr', 'Accept-Language', $_);
-      $ret = 1 if check_lang (
-        $agent, 'en', 'Accept-Language', $_, 'Cookie', 'LANGUAGE=en'
-      );
+      $ret = 1 if check_accept_language ($agent, 'fr', $_, 'en');
+    }
+  foreach ('en', "en;q=0.3,fr;q=0.25,es", "es,en;q=0.3")
+    {
+      $ret = 1 if check_accept_language ($agent, 'en', $_, 'fr');
     }
   return $ret;
 }
@@ -187,7 +209,7 @@ sub try_set_language
   $input->value ($language);
   $agent->click ();
   $ret = 1 if assert_initial_uri ($agent);
-  $lang = 'en' if ($language eq '100');
+  $lang = $default_language if ($language eq '100');
   $ret = 1 if check_lang ($agent, $lang);
   foreach ('fr', 'en')
     {
@@ -212,11 +234,23 @@ sub test_i18n_page
   return try_set_language ($agent, $input, $language);
 }
 
-$exit_code = 1 if check_i18n_requests ($agent);
-foreach ('fr', 'en', '100')
-  {
-    $exit_code = 1 if test_i18n_page ($agent, $_);
-  }
+sub run_tests
+{
+  my $agent = shift;
+  my $ret;
+  $ret = 1 if check_i18n_requests ($agent);
+  foreach ('fr', 'en', '100')
+    {
+      $ret = 1 if test_i18n_page ($agent, $_);
+    }
+  return $ret;
+}
+
+$exit_code = 1 if run_tests ($agent);
+set_default_language ('fr');
+$exit_code = 1 if run_tests ($agent);
+set_default_language ('en');
+$exit_code = 1 if run_tests ($agent);
 
 $exit_code = 0 if $exit_code == 2;
 

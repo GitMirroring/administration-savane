@@ -191,8 +191,8 @@ $browser_preferences = get_browser_preferences ();
 # Set the default locale.
 $best_lang = "en";
 
-if (isset ($sys_default_locale))
-  $best_lang = $sys_default_locale;
+if (isset ($sys_default_language))
+  $best_lang = $sys_default_language;
 
 $best_lang = find_best_language ($browser_preferences, $best_lang);
 

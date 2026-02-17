@@ -197,4 +197,7 @@ $sys_ignore_deployed = true;
 # Log exits on errors like 'permission denied' and 'filled the spam trap
 # special field', disabled by default.
 $sys_log_exits = true;
+# The default language used when no preferences from the browser are set,
+# 'en' by default.
+$sys_default_language = 'en';
 ?>

@@ -3,7 +3,9 @@ This file discusses how to configure the languages availble to the user
 in Savane.  These procedures were tested on Trisquel 11.0.
 
 In order to enable localization, assign a colon-separated list of language
-codes to the $sys_linguas variable in savane.conf.php.
+codes to the $sys_linguas variable in savane.conf.php.  English ('en')
+is always implied, it's appended to the variable in include/init.php
+when absent.
 
 Run 'locale -a' and see if locales for all languages you selected are
 present.  When some languages are absent, you can either install
