@@ -158,5 +158,7 @@ Also, French locales are expected to be installed (at least, fr_FR).
 Documentation
 =============
 
-For more info, see Savannah wiki,
+Savane documentation is located in the doc/ directory.
+
+For more info on how Savane is used, see Savannah wiki,
 https://savannah.gnu.org/maintenance/back-page/
