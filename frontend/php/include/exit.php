@@ -72,11 +72,9 @@ function exit_error ($title = '', $text = null, $status = false)
   exit;
 }
 
-function exit_permission_denied ($text = '')
+function exit_permission_denied ($text = null)
 {
   $status = EXIT_403;
-  if ($text)
-    $status .= ": $text";
   exit_log ("permission denied");
   exit_error (_("Permission Denied"), $text, $status);
 }
