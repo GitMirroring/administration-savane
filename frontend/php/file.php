@@ -47,12 +47,12 @@ $GLOBALS['skip_csp_headers'] = 1;
 foreach (['init', 'http', 'form-check'] as $i)
   require_once ("include/$i.php");
 
-function exit_file_missing_param ($param, $text, $status)
+function file_missing_param ($param, $text, $status)
 {
   exit_missing_param ($param);
 }
 
-function exit_file_permission_denied ($param, $text, $status)
+function file_permission_denied ($param, $text, $status)
 {
   exit_permission_denied ($param);
 }
@@ -61,13 +61,12 @@ function file_exit ($func, $param, $status = false)
 {
   unset ($GLOBALS['skip_csp_headers']);
   utils_set_csp_headers ();
-  $func = "exit_$func";
   $func ($param, null, $status);
 }
 
 function file_exit_error ($str, $status = false)
 {
-  file_exit ('error', $str, $status);
+  file_exit ('exit_error', $str, $status);
 }
 
 extract (sane_import ('request',
