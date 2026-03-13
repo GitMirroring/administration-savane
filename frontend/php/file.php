@@ -126,15 +126,20 @@ function assert_file_access ($item_fields, $file_uid)
     # any files in any case.
     return;
   $group_id = $item_fields['group_id'];
-  if (!member_check_private ($file_uid, $group_id))
+  if (member_check_private ($file_uid, $group_id))
+    {
+      form_check_id ();
+      return;
+    }
+  if ($file_uid != $item_fields['submitted_by'])
     file_exit ('file_permission_denied',
-      _("Non-authorized access to file attached to private item")
+      _("Non-authorized access to file attached to private item"),
     );
   form_check_id ();
 }
 
 $item_fields = utils_find_item (
-  $artifact, $item_id, ['privacy'], 'file_exit_error'
+  $artifact, $item_id, ['privacy', 'submitted_by'], 'file_exit_error'
 );
 assert_file_access ($item_fields, $file_uid);
 
