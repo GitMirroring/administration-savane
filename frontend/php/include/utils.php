@@ -1018,9 +1018,9 @@ function utils_find_item (
 {
   if (!in_array ('group_id', $fields))
     $fields[] = 'group_id';
-  $field_list = join (', ', $fields);
+  $field_list = '`' . join ('`, `', $fields) . '`';
   $result = db_execute (
-    "SELECT $field_list FROM $tracker WHERE bug_id = ?", [$item_id]
+    "SELECT $field_list FROM `$tracker` WHERE `bug_id` = ?", [$item_id]
   );
   if (!db_numrows ($result))
     return $error_handler (sprintf (_("Item #%s not found."), $item_id));
