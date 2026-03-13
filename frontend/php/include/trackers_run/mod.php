@@ -112,7 +112,7 @@ if ($privacy == "2")
         _("This item is private. However, you are allowed to read it "
           . "as you submitted it.");
     else
-      exit_error (
+      exit_permission_denied (
         _("This item is private. You are not listed as member\n"
           . "allowed to read private items.")
       );
