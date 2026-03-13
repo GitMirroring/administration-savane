@@ -47,17 +47,27 @@ $GLOBALS['skip_csp_headers'] = 1;
 foreach (['init', 'http', 'form-check'] as $i)
   require_once ("include/$i.php");
 
-function file_exit ($func, $param)
+function exit_file_missing_param ($param, $text, $status)
+{
+  exit_missing_param ($param);
+}
+
+function exit_file_permission_denied ($param, $text, $status)
+{
+  exit_permission_denied ($param);
+}
+
+function file_exit ($func, $param, $status = false)
 {
   unset ($GLOBALS['skip_csp_headers']);
   utils_set_csp_headers ();
   $func = "exit_$func";
-  $func ($param);
+  $func ($param, null, $status);
 }
 
-function file_exit_error ($str)
+function file_exit_error ($str, $status = false)
 {
-  file_exit ('error', $str);
+  file_exit ('error', $str, $status);
 }
 
 extract (sane_import ('request',
@@ -67,7 +77,7 @@ extract (sane_import ('request',
 ));
 
 if (!$file_id)
-  file_exit ('missing_param', ['file_id']);
+  file_exit ('file_missing_param', ['file_id']);
 
 if ($file_id == 'test.png')
   {
@@ -117,7 +127,7 @@ function assert_file_access ($item_fields, $file_uid)
     return;
   $group_id = $item_fields['group_id'];
   if (!member_check_private ($file_uid, $group_id))
-    file_exit_error (
+    file_exit ('file_permission_denied',
       _("Non-authorized access to file attached to private item")
     );
   form_check_id ();
