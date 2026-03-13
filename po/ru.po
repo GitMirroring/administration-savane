@@ -42,14 +42,14 @@
 # Dmitri I GOULIAEV <dig@telkel.net>, 2004, 2005
 # Roman Pominov <Roman.Pominov@ihep.ru>, 2010
 # Ineiev <ineiev@gnu.org>, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,
-#   2025, 2026
+#   2025, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.16\n"
+"Project-Id-Version: savane 3.17\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2026-01-15 07:47+0000\n"
-"PO-Revision-Date: 2026-01-15 15:44+0000\n"
+"POT-Creation-Date: 2026-03-13 06:31+0000\n"
+"PO-Revision-Date: 2026-03-13 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -688,12 +688,6 @@ msgid ""
 "This action will not be undoable, please confirm:"
 msgstr "Вы собираетесь сбросить значения поля %s. Это необратимо, подтвердите:"
 
-msgid "Confirm"
-msgstr "Подтвердить"
-
-msgid "Cancel"
-msgstr "Отмена"
-
 msgid "Copy Configuration"
 msgstr "Копировать настройки"
 
@@ -897,17 +891,16 @@ msgstr "Сохранить изменения"
 
 #. TRANSLATORS: the argument is file id (a number).
 #, php-format
-msgid "File #%s not found"
-msgstr "Файл №%s не найден"
+msgid "File #%s not found."
+msgstr "Файл №%s не найден."
 
-#. TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
-#. TRANSLATORS: the argument is name of artifact (like bugs or patches).
+#. TRANSLATORS: the argument is artifact name (instead of 'bugs', 'task' etc.)
 #, php-format
-msgid "Invalid artifact %s"
-msgstr "Недопустимый журнал %s"
+msgid "Invalid artifact %s."
+msgstr "Недопустимый журнал %s."
 
-msgid "Non-authorized access to file attached to private item"
-msgstr "Несанкционированный доступ к файлу, прилагающемуся к скрытой заявке"
+msgid "Non-authorized access to file attached to private item."
+msgstr "Несанкционированный доступ к файлу, прилагающемуся к скрытой заявке."
 
 #, php-format
 msgid "Couldn't find attached file #%s."
@@ -923,9 +916,10 @@ msgstr "Атрибуты файла: имя '%s', размер %s, тип '%s', 
 
 msgid ""
 "The filename in the URL does not match the filename registered in the "
-"database"
+"database."
 msgstr ""
-"Имя файла в URL не соответсвует имени файла, зарегистрированное в базе данных"
+"Имя файла в URL не соответсвует имени файла, зарегистрированное в базе "
+"данных."
 
 msgid "No access to the file."
 msgstr "К файлу нет доступа."
@@ -1407,6 +1401,223 @@ msgstr "Неверное имя группы '%s'."
 #, php-format
 msgid "Group '%s' does not exist."
 msgstr "Группа '%s' не существует."
+
+msgid "Membership Info"
+msgstr "Информация об участниках"
+
+#. TRANSLATORS: range 1..4.
+msgid "Group admin"
+msgid_plural "Group admins"
+msgstr[0] "Администратор группы"
+msgstr[1] "Администраторы группы"
+msgstr[2] "Администраторы группы"
+
+#, php-format
+msgid "%s active member"
+msgid_plural "%s active members"
+msgstr[0] "%s активный участник"
+msgstr[1] "%s активных участника"
+msgstr[2] "%s активных участников"
+
+msgid "View Members"
+msgstr "Просмотреть участников"
+
+msgid "Group identification"
+msgstr "Параметры группы"
+
+#. TRANSLATORS: the group id (a number) will follow.
+#. TRANSLATORS: user's id (a number) shall follow this message.
+msgid "Id:"
+msgstr "Номер:"
+
+msgid "System Name:"
+msgstr "Системное имя:"
+
+msgid "Group Type:"
+msgstr "Тип группы:"
+
+msgid "Search in this group"
+msgstr "Поиск в этой группе"
+
+#, php-format
+msgid ""
+"This group hasn't submitted a short description yet. You can <a\n"
+"href=\"%s\">submit it</a> now."
+msgstr ""
+"Краткого описания этой группы еще нет. Можно <a\n"
+"href=\"%s\">написать его</a> сейчас."
+
+msgid "Registration Date:"
+msgstr "Дата регистрации:"
+
+msgid "License:"
+msgstr "Лицензия:"
+
+msgid "License is unknown!"
+msgstr "Лицензия неизвестна!"
+
+msgid "Development Status:"
+msgstr "Состояние разработки:"
+
+msgid "Latest News"
+msgstr "Последние новости"
+
+#. TRANSLATORS: the argument is site name (like Savannah).
+#, php-format
+msgid "Administration: %s server"
+msgstr "Администрация: сервер %s"
+
+#, php-format
+msgid ""
+"Since you are administrator of this group, which one is\n"
+"the &ldquo;system group,&rdquo; you are administrator of the whole %s server."
+msgstr ""
+"Поскольку вы администратор этой группы, а это &ldquo;системная\n"
+"группа&rdquo;, вы являетесь администратором всего сервера %s."
+
+msgid "Server Main Administration Page"
+msgstr "Главная страница управления сервером"
+
+msgid "Pending Group List"
+msgstr "Список групп на рассмотрении"
+
+#, php-format
+msgid "(%s registration pending)"
+msgid_plural "(%s registrations pending)"
+msgstr[0] "(%s регистрация в процессе рассмотрения)"
+msgstr[1] "(%s регистрации в процессе рассмотрения)"
+msgstr[2] "(%s регистраций в процессе рассмотрения)"
+
+#. TRANSLATORS: the argument is group name (like GNU Coreutils).
+#, php-format
+msgid "Administration: %s group"
+msgstr "Администрация: группа %s"
+
+msgid ""
+"As administrator of this group, you can manage members and\n"
+"activate, deactivate and configure tools used in your group."
+msgstr ""
+"Как администратор этой группы вы можете изменять состав участников группы, а "
+"также выбирать и настраивать инструментарий, используемый в группе."
+
+msgid "Group Main Administration Page"
+msgstr "Главная страница управления группой"
+
+msgid "Quick Overview"
+msgstr "Обзор"
+
+msgid "Group Homepage"
+msgstr "Домашняя страница группы"
+
+msgid "Download Area"
+msgstr "Область выпущенных файлов"
+
+msgid "Docs"
+msgstr "Документация"
+
+msgid "Browse docs (external to Savane)"
+msgstr "Просмотреть документацию (вне сайта)"
+
+msgid "Browse the cookbook"
+msgstr "Просмотреть рецепты"
+
+msgid "Memberlist"
+msgstr "Список участников"
+
+#, php-format
+msgid "(%s member)"
+msgid_plural "(%s members)"
+msgstr[0] "(%s участник)"
+msgstr[1] "(%s участника)"
+msgstr[2] "(%s участников)"
+
+msgid "Group release GPG keyring"
+msgstr "Связка ключей GPG для выпусков группы"
+
+#. TRANSLATORS: the arguments are numbers of items.
+#, php-format
+msgid "(open items: %1$s, total: %2$s)"
+msgstr "(открытых заявок: %1$s, всего: %2$s)"
+
+msgid "Browse open items"
+msgstr "Просмотреть открытые заявки"
+
+msgid "Submit a new item"
+msgstr "Добавить новую заявку"
+
+msgid "Communication Tools"
+msgstr "Инструменты общения"
+
+msgid "Tech Support Manager"
+msgstr "Журнал технической поддержки"
+
+msgid "Mailing Lists"
+msgstr "Рассылки"
+
+#, php-format
+msgid "(%s public mailing list)"
+msgid_plural "(%s public mailing lists)"
+msgstr[0] "(%s открытый список рассылки)"
+msgstr[1] "(%s открытых списока рассылки)"
+msgstr[2] "(%s открытых списков рассылки)"
+
+msgid "This group is looking for people"
+msgstr "Эта группа нуждается в людях"
+
+#, php-format
+msgid "(%s contributor wanted)"
+msgid_plural "(%s contributors wanted)"
+msgstr[0] "(требуется %s помощник)"
+msgstr[1] "(требуется %s помощника)"
+msgstr[2] "(требуется %s помощников)"
+
+#. TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
+#. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
+#, php-format
+msgid "%s Repository"
+msgstr "Репозиторий %s"
+
+msgid "Administer"
+msgstr "Администрирование"
+
+msgid "Browse Sources Repository"
+msgstr "Просмотреть репозиторий исходных текстов"
+
+msgid "Browse Web Pages Repository"
+msgstr "Просмотреть репозиторий страниц сайта"
+
+msgid "Development Tools"
+msgstr "Инструменты разработки"
+
+#. TRANSLATORS: the string is used as the argument of "%s Repository".
+msgid "Git"
+msgstr "Git"
+
+msgid "Mercurial"
+msgstr "Mercurial"
+
+msgid "Bazaar"
+msgstr "Bazaar"
+
+msgid "Subversion"
+msgstr "Subversion"
+
+msgid "GNU Arch"
+msgstr "GNU Arch"
+
+#. TRANSLATORS: this string is used as argument in messages 'Use %s'
+#. and '%s Repository'.
+msgid "CVS"
+msgstr "CVS"
+
+msgid "Bug Tracker"
+msgstr "Журнал ошибок"
+
+msgid "Task Manager"
+msgstr "Журнал задач"
+
+msgid "Patch Manager"
+msgstr "Управление заплатками"
 
 #. TRANSLATORS: the first argument is a domain (like "savannah.gnu.org"
 #. vs. "savannah.nongnu.org"); the second argument
@@ -1929,16 +2140,13 @@ msgstr ""
 "Списки рассылки неверно настроены. Подайте заявку на поддержку, чтобы "
 "попросить администратора сайта пересмотреть настройки типа группы."
 
-#: frontend/php/mail/admin/index.php:122
 #, php-format
 msgid "Delete %s (this cannot be undone!)"
 msgstr "Удалить %s (это действие необратимо!)"
 
-#: frontend/php/mail/admin/index.php:131
 msgid "Mailing list not found."
 msgstr "Список рассылки не найден."
 
-#: frontend/php/mail/admin/index.php:154
 #, php-format
 msgid "You are about to delete the mailing list %s, please confirm:"
 msgstr "Вы собираетесь удалить список рассылки %s, подтвердите:"
@@ -1963,6 +2171,15 @@ msgstr ""
 msgid "The list %s already exists."
 msgstr "Рассылка %s уже существует."
 
+msgid "public"
+msgstr "публичный"
+
+msgid "private"
+msgstr "скрытый"
+
+msgid "Reset list admin password"
+msgstr "Сбросить пароль администратора рассылки"
+
 msgid "Update Mailing List"
 msgstr "Обновить список рассылки"
 
@@ -1981,23 +2198,8 @@ msgstr ""
 "Обратите внимание, что изменения, внесенные через сайт Mailman, здесь не "
 "отражаются."
 
-msgid "public"
-msgstr "публичный"
-
-msgid "private"
-msgstr "скрытый"
-
-msgid "Delete (this cannot be undone!)"
-msgstr "Удалить (это действие необратимо!)"
-
-msgid "Reset list admin password"
-msgstr "Сбросить пароль администратора рассылки"
-
 msgid "Create a new mailing list:"
 msgstr "Создать новый список рассылки:"
-
-msgid "Name of new mailing list"
-msgstr "Имя нового списка рассылки"
 
 msgid "Hosting requirements"
 msgstr "Требования по размещению"
@@ -2026,9 +2228,6 @@ msgstr "Связаться с нами"
 
 msgid "Welcome"
 msgstr "Добро пожаловать"
-
-msgid "Latest News"
-msgstr "Последние новости"
 
 msgid "Always"
 msgstr "Всегда"
@@ -3321,14 +3520,8 @@ msgstr "Управление новостями"
 msgid "Mailing Lists Administration"
 msgstr "Управление списками рассылки"
 
-msgid "Mailing Lists"
-msgstr "Рассылки"
-
 msgid "Administration Summary"
 msgstr "Меню администрирования"
-
-msgid "Search in this group"
-msgstr "Поиск в этой группе"
 
 msgid "Search in this Group"
 msgstr "Поиск в этой группе"
@@ -3889,15 +4082,6 @@ msgstr ""
 "Ничего не найдено. Учтите, что в поиске участвуют только слова, в которых "
 "более трех символов."
 
-msgid ""
-"Please enter the title of <a\n"
-"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a>'s "
-"famous\n"
-"dystopian book (it's a date):"
-msgstr ""
-"Введите название знаменитой антиутопии <a href=\"https://en.wikipedia.org/"
-"wiki/George_Orwell\">Джорджа Оруэлла</a> (это дата):"
-
 msgid "History"
 msgstr "История"
 
@@ -4317,32 +4501,8 @@ msgstr ""
 "текущим состоянием файлов исходного текста. Можно просматривать также полные "
 "истории всех файлов в репозитории, а также различия между двумя версиями."
 
-msgid "Browse Sources Repository"
-msgstr "Просмотреть репозиторий исходных текстов"
-
 msgid "Arch"
 msgstr "Arch"
-
-msgid "Bazaar"
-msgstr "Bazaar"
-
-#. TRANSLATORS: this string is used as argument in messages 'Use %s'
-#. and '%s Repository'.
-msgid "CVS"
-msgstr "CVS"
-
-#. TRANSLATORS: the string is used as the argument of "%s Repository".
-msgid "Git"
-msgstr "Git"
-
-msgid "Mercurial"
-msgstr "Mercurial"
-
-msgid "Subversion"
-msgstr "Subversion"
-
-msgid "Browse Web Pages Repository"
-msgstr "Просмотреть репозиторий страниц сайта"
 
 msgid "This group doesn't use this tool."
 msgstr "Эта группа не пользуется этим средством."
@@ -4488,20 +4648,8 @@ msgstr "Участники-секретари"
 msgid "Group Main Pages"
 msgstr "Главные страницы группы"
 
-msgid "Group Homepage"
-msgstr "Домашняя страница группы"
-
-msgid "Download Area"
-msgstr "Область выпущенных файлов"
-
 msgid "Support Tracker"
 msgstr "Журнал поддержки"
-
-msgid "Bug Tracker"
-msgstr "Журнал ошибок"
-
-msgid "Task Manager"
-msgstr "Журнал задач"
 
 msgid "Patch Tracker"
 msgstr "Журнал заплаток"
@@ -4637,6 +4785,11 @@ msgstr ""
 "Поле %s обязательно. Оно сброшено в предыдущее значение. Проверьте его и "
 "отправьте форму снова."
 
+#. TRANSLATORS: the argument is name of artifact (like bugs or patches).
+#, php-format
+msgid "Invalid artifact %s"
+msgstr "Недопустимый журнал %s"
+
 msgid "Presumed spam: no mail will be sent"
 msgstr "Предполагается спам: сообщение не будет отправлено"
 
@@ -4762,6 +4915,15 @@ msgid ""
 "of '%s' in the database:"
 msgstr ""
 "Выберите зависимость, которую нужно добавить, из результата поиска по '%s':"
+
+msgid ""
+"Please enter the title of <a\n"
+"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a>'s "
+"famous\n"
+"dystopian book (it's a date):"
+msgstr ""
+"Введите название знаменитой антиутопии <a href=\"https://en.wikipedia.org/"
+"wiki/George_Orwell\">Джорджа Оруэлла</a> (это дата):"
 
 msgid "Automatic update due to transitions settings"
 msgstr "Автоматическое обновление согласно настройкам переходов"
@@ -5037,6 +5199,10 @@ msgstr "Заявка №%s не принадлежит этой группе"
 #, php-format
 msgid "File #%1$s doesn't belong to item #%2$s"
 msgstr "Файл №%s не принадлежит заявке №%s"
+
+#, php-format
+msgid "File #%s not found"
+msgstr "Файл №%s не найден"
 
 msgid "File successfully deleted"
 msgstr "Файл успешно удален"
@@ -6167,12 +6333,6 @@ msgstr "Править ранее размещенные запросы на п�
 msgid "Use %s"
 msgstr "Пользование %s"
 
-#. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
-#. TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
-#, php-format
-msgid "%s Repository"
-msgstr "Репозиторий %s"
-
 #, php-format
 msgid "Browse %s repository"
 msgstr "Просмотр репозитория %s"
@@ -6180,9 +6340,6 @@ msgstr "Просмотр репозитория %s"
 #, php-format
 msgid "Browse %s repositories"
 msgstr "Просмотр репозиториев %s"
-
-msgid "Administer"
-msgstr "Администрирование"
 
 msgid "Main"
 msgstr "Главная"
@@ -6207,9 +6364,6 @@ msgstr "Выпуски"
 msgid "Visit download area: files released"
 msgstr "Каталог выпущенных файлов"
 
-msgid "Docs"
-msgstr "Документация"
-
 msgid "Docs: Cookbook, etc"
 msgstr "Документация: рецепты и пр."
 
@@ -6224,9 +6378,6 @@ msgstr "Настроить:"
 
 msgid "Mailing lists"
 msgstr "Рассылки"
-
-msgid "GNU Arch"
-msgstr "GNU Arch"
 
 msgid "Source code"
 msgstr "Исходный текст"
@@ -6572,6 +6723,12 @@ msgstr "Регистрация учетной записи"
 msgid "System error while creating the form, report it to admins"
 msgstr "Системная ошибка при создании формы, сообщите администраторам"
 
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Cancel"
+msgstr "Отмена"
+
 msgid "Form ID is absent in the database"
 msgstr "Идентификатор формы в базе данных отсутствует"
 
@@ -6713,162 +6870,6 @@ msgid ""
 msgstr ""
 "Счетчик спама для вашего комментария временно устанавливается в %s до "
 "проверки фильтрами спама"
-
-msgid "Membership Info"
-msgstr "Информация об участниках"
-
-msgid "Group admin"
-msgid_plural "Group admins"
-msgstr[0] "Администратор группы"
-msgstr[1] "Администраторы группы"
-msgstr[2] "Администраторы группы"
-
-#, php-format
-msgid "%s active member"
-msgid_plural "%s active members"
-msgstr[0] "%s активный участник"
-msgstr[1] "%s активных участника"
-msgstr[2] "%s активных участников"
-
-msgid "View Members"
-msgstr "Просмотреть участников"
-
-msgid "Group identification"
-msgstr "Параметры группы"
-
-#. TRANSLATORS: the group id (a number) will follow.
-#. TRANSLATORS: user's id (a number) shall follow this message.
-msgid "Id:"
-msgstr "Номер:"
-
-msgid "System Name:"
-msgstr "Системное имя:"
-
-msgid "Group Type:"
-msgstr "Тип группы:"
-
-#, php-format
-msgid ""
-"This group hasn't submitted a short description yet. You can <a\n"
-"href=\"%s\">submit it</a> now."
-msgstr ""
-"Краткого описания этой группы еще нет. Можно <a\n"
-"href=\"%s\">написать его</a> сейчас."
-
-msgid "Registration Date:"
-msgstr "Дата регистрации:"
-
-msgid "License:"
-msgstr "Лицензия:"
-
-msgid "License is unknown!"
-msgstr "Лицензия неизвестна!"
-
-msgid "Development Status:"
-msgstr "Состояние разработки:"
-
-#. TRANSLATORS: the argument is site name (like Savannah).
-#, php-format
-msgid "Administration: %s server"
-msgstr "Администрация: сервер %s"
-
-#, php-format
-msgid ""
-"Since you are administrator of this group, which one is\n"
-"the &ldquo;system group,&rdquo; you are administrator of the whole %s server."
-msgstr ""
-"Поскольку вы администратор этой группы, а это &ldquo;системная\n"
-"группа&rdquo;, вы являетесь администратором всего сервера %s."
-
-msgid "Server Main Administration Page"
-msgstr "Главная страница управления сервером"
-
-msgid "Pending Group List"
-msgstr "Список групп на рассмотрении"
-
-#, php-format
-msgid "(%s registration pending)"
-msgid_plural "(%s registrations pending)"
-msgstr[0] "(%s регистрация в процессе рассмотрения)"
-msgstr[1] "(%s регистрации в процессе рассмотрения)"
-msgstr[2] "(%s регистраций в процессе рассмотрения)"
-
-#. TRANSLATORS: the argument is group name (like GNU Coreutils).
-#, php-format
-msgid "Administration: %s group"
-msgstr "Администрация: группа %s"
-
-msgid ""
-"As administrator of this group, you can manage members and\n"
-"activate, deactivate and configure tools used in your group."
-msgstr ""
-"Как администратор этой группы вы можете изменять состав участников группы, а "
-"также выбирать и настраивать инструментарий, используемый в группе."
-
-msgid "Group Main Administration Page"
-msgstr "Главная страница управления группой"
-
-msgid "Quick Overview"
-msgstr "Обзор"
-
-msgid "Browse docs (external to Savane)"
-msgstr "Просмотреть документацию (вне сайта)"
-
-msgid "Browse the cookbook"
-msgstr "Просмотреть рецепты"
-
-msgid "Memberlist"
-msgstr "Список участников"
-
-#, php-format
-msgid "(%s member)"
-msgid_plural "(%s members)"
-msgstr[0] "(%s участник)"
-msgstr[1] "(%s участника)"
-msgstr[2] "(%s участников)"
-
-msgid "Group release GPG keyring"
-msgstr "Связка ключей GPG для выпусков группы"
-
-#. TRANSLATORS: the arguments are numbers of items.
-#, php-format
-msgid "(open items: %1$s, total: %2$s)"
-msgstr "(открытых заявок: %1$s, всего: %2$s)"
-
-msgid "Browse open items"
-msgstr "Просмотреть открытые заявки"
-
-msgid "Submit a new item"
-msgstr "Добавить новую заявку"
-
-msgid "Communication Tools"
-msgstr "Инструменты общения"
-
-msgid "Tech Support Manager"
-msgstr "Журнал технической поддержки"
-
-#, php-format
-msgid "(%s public mailing list)"
-msgid_plural "(%s public mailing lists)"
-msgstr[0] "(%s открытый список рассылки)"
-msgstr[1] "(%s открытых списока рассылки)"
-msgstr[2] "(%s открытых списков рассылки)"
-
-msgid "This group is looking for people"
-msgstr "Эта группа нуждается в людях"
-
-#, php-format
-msgid "(%s contributor wanted)"
-msgid_plural "(%s contributors wanted)"
-msgstr[0] "(требуется %s помощник)"
-msgstr[1] "(требуется %s помощника)"
-msgstr[2] "(требуется %s помощников)"
-
-msgid "Development Tools"
-msgstr "Инструменты разработки"
-
-msgid "Patch Manager"
-msgstr "Управление заплатками"
 
 msgid "Member Keyring is empty, no keys were registered"
 msgstr "Связка ключей GPG участников пуста, ни один ключ не зарегистрирован"
@@ -9025,6 +9026,12 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#~ msgid "Delete (this cannot be undone!)"
+#~ msgstr "Удалить (это действие необратимо!)"
+
+#~ msgid "Name of new mailing list"
+#~ msgstr "Имя нового списка рассылки"
 
 #~ msgid "File to attach"
 #~ msgstr "Файл для присоединения"
