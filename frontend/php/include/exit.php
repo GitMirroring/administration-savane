@@ -55,15 +55,13 @@ function exit_error ($title = '', $text = null, $status = false)
 
   exit_header ($status);
   init_ensure_constants ();
-  $msg = $title;
-  if ($msg === null)
-    $msg = $text;
-  elseif ($text)
-    # TRANSLATORS: this string separates error title from further description,
-    # like _("Invalid User") . _(': ') . _("That user does not exist.")
-    $msg .= _(': ') . $text;
+  $msg = '';
+  if ($title === null)
+    $title = _("Error");
+  if ($text !== null)
+    $msg = "<p>$text</p>\n";
   if ($title !== null)
-    $msg = html_h (1, _("Error")) . "<p>$msg</p>\n";
+    $msg = html_h (1, $title) . $msg;
 
   $HTML->header (['title' => _("Exiting with Error"), 'notopmenu' => 1]);
   html_feedback_top ();
