@@ -42,7 +42,7 @@
 
 # Use a version without trailing '-gamma' for releases; with '-gamma',
 # a short commit ID is appended to the displayed Savane version.
-AC_INIT([Savane], [3.17], [savannah-hackers-public@gnu.org], [savane],
+AC_INIT([Savane], [3.17-gamma], [savannah-hackers-public@gnu.org], [savane],
   [https://savannah.gnu.org/projects/administration]
 )
 
