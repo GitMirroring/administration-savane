@@ -441,6 +441,7 @@ sub make_session_set
 {
   my @users = (undef, 'alice', '-', $admin, '*');
   push @users, map { name_to_login ($_) } keys %private_names;
+  push @users, 'bis', 'eve';
   my %ret;
   my $fail = 0;
   print_test_log ('Making a set of sessions.');
@@ -589,7 +590,7 @@ sub remove_attachment
   return check_if_deletion_is_absent ($agent, $file_id, $fn);
 }
 
-sub try_attach
+sub run_attachment
 {
   my ($agent, $fn, $item_id, $name) = @_;
   my $text = make_test_file ($fn, "$fn-make-test.html");
@@ -607,6 +608,18 @@ sub try_attach
   return check_if_deletion_is_absent ($agent, $file_id, $fn)
     unless (defined ($user) and $tracker_admins{$user});
   return remove_attachment ($agent, $fn, $item_id, $file_id);
+}
+
+sub try_attach
+{
+  my ($agent, $fn, $item_id, $name) = @_;
+  my $access = $private_items{$item_id}? 'private': 'public';
+  my $submitter = $submitters_by_item_id{$item_id};
+  $submitter = '(anonymous)' unless defined $submitter;
+  return run_attachment (@_)
+    if (should_have_access (name_to_login ($name), $item_id));
+  print_test_error ('Access should be denied.');
+  return 1;
 }
 
 sub test_item_page_access
@@ -664,7 +677,6 @@ sub test_user_access
       $ret = 1 if $item_access > 1;
       next if $item_access;
       $ret = 1 if try_comment ($agent, $filename, $_, $name);
-      next if $private_items{$_};
       print_test_log ('Attaching a file.');
       $ret = 1 if try_attach ($agent, $filename, $_, $name);
       unlink ($filename) if -f $filename;
