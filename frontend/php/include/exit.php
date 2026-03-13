@@ -43,6 +43,9 @@
 
 require_once (dirname (__FILE__) . "/utils.php");
 
+define ('EXIT_403', '403 Forbidden');
+define ('EXIT_404', '404 Not Found');
+
 # Base function. The alternatives below should be used whenever relevant,
 # as they may wrap this one with additional useful things
 # (set HTTP response, etc).
@@ -71,7 +74,7 @@ function exit_error ($title = '', $text = null, $status = false)
 
 function exit_permission_denied ($text = '')
 {
-  $status = "403 Forbidden";
+  $status = EXIT_403;
   if ($text)
     $status .= ": $text";
   exit_log ("permission denied");
@@ -148,7 +151,7 @@ function exit_header ($status = false)
     return false;
 
   if (!$status)
-    $status = "404 Not Found";
+    $status = EXIT_404;
 
   header("{$_SERVER['SERVER_PROTOCOL']} $status");
 }
