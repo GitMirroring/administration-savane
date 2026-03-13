@@ -103,15 +103,15 @@ if (db_numrows ($result) > 0)
   }
 else
   # TRANSLATORS: the argument is file id (a number).
-  file_exit_error (sprintf (_("File #%s not found"), $file_id));
+  file_exit_error (sprintf (_('File #%s not found.'), $file_id));
 
 $in = [0 => $artifact];
 $out = [];
 
 if ($sane_sanitizers['artifact'] ($in, $out, 0, null))
   {
-    # TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
-    $str = sprintf (_('Invalid artifact %s'), "<em>$artifact</em>");
+    # TRANSLATORS: the argument is artifact name (instead of 'bugs', 'task' etc.)
+    $str = sprintf (_('Invalid artifact %s.'), "<em>$artifact</em>");
     unset ($artifact);
     file_exit_error ($str);
   }
@@ -133,7 +133,7 @@ function assert_file_access ($item_fields, $file_uid)
     }
   if ($file_uid != $item_fields['submitted_by'])
     file_exit ('file_permission_denied',
-      _("Non-authorized access to file attached to private item"),
+      _("Non-authorized access to file attached to private item."),
     );
   form_check_id ();
 }
@@ -174,8 +174,8 @@ header ('Last-Modified: ' . date ('r', $mtime));
 # something completely different like "mystupidvirus.scr".
 if ($row['filename'] != basename (rawurldecode ($_SERVER['PHP_SELF'])))
   file_exit_error (
-    _("The filename in the URL does not match the filename "
-      . "registered in the database")
+    _('The filename in the URL does not match the filename '
+      . 'registered in the database.')
   );
 
 $path = "$sys_trackers_attachments_dir/$file_id";
