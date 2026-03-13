@@ -1,9 +1,9 @@
 # Romanian translation for savane.
 # Mesajele în limba română pentru pachetul savane.
-# Copyright © 2024, 2025 Collective (msgids)
+# Copyright © 2024, 2025, 2026 Collective (msgids)
 # This file is distributed under the same license as the savane package.
 #
-# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2024, 2025.
+# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2024, 2025, 2026.
 #
 # Cronologia traducerii fișierului „savane”:
 # Traducerea inițială, făcută de R-GC, pentru versiunea savane-3.14, (55% - tradus), oct-2024.
@@ -11,14 +11,15 @@
 # Completare traducere, făcută de R-GC, pentru versiunea 3.14, (100% - tradus), mar-2025.
 # Actualizare a traducerii pentru versiunea 3.15, făcută de R-GC, mai-2025.
 # Actualizare a traducerii pentru versiunea 3.16, făcută de R-GC, noi-2025.
+# Actualizare a traducerii pentru versiunea 3.17, făcută de R-GC, mar-2026.
 # Actualizare a traducerii pentru versiunea Y, făcută de X, Z(luna-anul).
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.16\n"
+"Project-Id-Version: savane 3.17\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-10-31 15:00+0000\n"
-"PO-Revision-Date: 2025-11-02 11:26+0100\n"
+"POT-Creation-Date: 2026-03-07 05:15+0000\n"
+"PO-Revision-Date: 2026-03-08 14:57+0100\n"
 "Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
 "Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
 "Language: ro\n"
@@ -27,7 +28,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n==0 || (n!=1 && n%100>=1 && n%100<=19) ? 1 : 2);\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.8\n"
 
 #: frontend/php/git/admin/index.php:54 frontend/php/cvs/admin/index.php:65
 #: frontend/php/project/admin/index.php:52
@@ -81,9 +82,9 @@ msgid "don't provide links to snapshot tarballs"
 msgstr "nu furnizează legături către instantanee de arhive comprimate de pachete (snapshot tarballs)"
 
 #: frontend/php/git/admin/index.php:210
-#: frontend/php/bugs/admin/field_usage.php:143
+#: frontend/php/bugs/admin/field_usage.php:142
 #: frontend/php/bugs/admin/editqueryforms.php:479
-#: frontend/php/mail/admin/index.php:255 frontend/php/mail/admin/index.php:329
+#: frontend/php/mail/admin/index.php:317 frontend/php/mail/admin/index.php:421
 msgid "Description:"
 msgstr "Descriere:"
 
@@ -96,14 +97,14 @@ msgid "README file:"
 msgstr "Fișierul README:"
 
 #: frontend/php/git/admin/index.php:230
-#: frontend/php/bugs/admin/field_values.php:425
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:211
-#: frontend/php/bugs/admin/field_usage.php:385
-#: frontend/php/my/admin/change.php:642
+#: frontend/php/bugs/admin/field_values.php:424
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:210
+#: frontend/php/bugs/admin/field_usage.php:384
+#: frontend/php/my/admin/change.php:639
 #: frontend/php/my/admin/editsshkeys.php:126
 #: frontend/php/my/admin/change_notifications.php:206
 #: frontend/php/my/admin/index.php:194
-#: frontend/php/include/people/general.php:379
+#: frontend/php/include/people/general.php:385
 #: frontend/php/include/my/bookmarks.php:88
 #: frontend/php/project/admin/editgroupnotifications.php:103
 #: frontend/php/project/admin/editgroupinfo.php:210
@@ -113,7 +114,7 @@ msgstr "Fișierul README:"
 msgid "Update"
 msgstr "Actualizare"
 
-#: frontend/php/bugs/item.php:60 frontend/php/include/utils.php:1027
+#: frontend/php/bugs/item.php:60 frontend/php/include/utils.php:1026
 #, php-format
 msgid "Item #%s not found."
 msgstr "Elementul nr.%s nu a fost găsit."
@@ -194,72 +195,72 @@ msgstr ""
 msgid "%1$s to %2$s"
 msgstr "%1$s la %2$s"
 
-#: frontend/php/bugs/reporting.php:115
+#: frontend/php/bugs/reporting.php:111
 msgid "Other statistics:"
 msgstr "Alte statistici:"
 
 #. TRANSLATORS: aging statistics is statistics by date.
-#: frontend/php/bugs/reporting.php:121
+#: frontend/php/bugs/reporting.php:117
 msgid "Aging Statistics"
 msgstr "Statistici după dată"
 
 #. TRANSLATORS: the argument is field label.
-#: frontend/php/bugs/reporting.php:133
+#: frontend/php/bugs/reporting.php:129
 #, php-format
 msgid "Statistics by '%s'"
 msgstr "Statistici după „%s”"
 
-#: frontend/php/bugs/reporting.php:155 frontend/php/stats/index.php:405
+#: frontend/php/bugs/reporting.php:151 frontend/php/stats/index.php:405
 #: frontend/php/include/sitemenu.php:198
 msgid "Statistics"
 msgstr "Statistici"
 
 #. TRANSLATORS: aging statistics is statistics by date.
-#: frontend/php/bugs/reporting.php:170
+#: frontend/php/bugs/reporting.php:166
 msgid "Aging statistics:"
 msgstr "Statistici după dată:"
 
-#: frontend/php/bugs/reporting.php:180
+#: frontend/php/bugs/reporting.php:176
 msgid "Average Turnaround Time for Closed Items"
 msgstr "Timpul mediu de răspuns pentru elementele închise"
 
-#: frontend/php/bugs/reporting.php:188
+#: frontend/php/bugs/reporting.php:184
 msgid "Number of Items Opened"
 msgstr "Numărul de elemente deschise"
 
-#: frontend/php/bugs/reporting.php:201
+#: frontend/php/bugs/reporting.php:197
 msgid "Number of Items Still Open"
 msgstr "Numărul de elemente încă deschise"
 
 #. TRANSLATORS: the argument is field label.
-#: frontend/php/bugs/reporting.php:213
+#: frontend/php/bugs/reporting.php:209
 #, php-format
 msgid "Statistics by '%s':"
 msgstr "Statistici după „%s”:"
 
-#: frontend/php/bugs/reporting.php:214
+#: frontend/php/bugs/reporting.php:210
 msgid "Field Description:"
 msgstr "Descriere câmp:"
 
-#: frontend/php/bugs/reporting.php:223
+#: frontend/php/bugs/reporting.php:219
 #, php-format
 msgid "Can't generate report for field %s"
 msgstr "Nu se poate genera raportul pentru câmpul %s"
 
-#: frontend/php/bugs/reporting.php:233
+#: frontend/php/bugs/reporting.php:229
 msgid "Open Items"
 msgstr "Elemente deschise"
 
-#: frontend/php/bugs/reporting.php:273
-#: frontend/php/include/trackers/view-dependencies.php:309
+#: frontend/php/bugs/reporting.php:269
+#: frontend/php/include/trackers/view-dependencies.php:308
 msgid "No item found."
 msgstr "Nu s-a găsit niciun element."
 
-#: frontend/php/bugs/reporting.php:278
+#: frontend/php/bugs/reporting.php:274
 msgid "All Items"
 msgstr "Toate elementele"
 
-#: frontend/php/bugs/reporting.php:315
+#: frontend/php/bugs/reporting.php:311
 msgid "No item found. This field is probably unused"
 msgstr "Nu s-a găsit niciun element. Acest câmp este probabil neutilizat"
 
@@ -322,22 +323,22 @@ msgid "Value label"
 msgstr "Etichetă valoare"
 
 #: frontend/php/bugs/admin/field_values.php:244
-#: frontend/php/bugs/admin/field_values.php:912
-#: frontend/php/bugs/admin/field_usage.php:423
+#: frontend/php/bugs/admin/field_values.php:909
+#: frontend/php/bugs/admin/field_usage.php:422
 #: frontend/php/bugs/admin/editqueryforms.php:604
 #: frontend/php/bugs/admin/editqueryforms.php:646
-#: frontend/php/search/index.php:112
+#: frontend/php/search/index.php:111
 #: frontend/php/include/search/general.php:535
 msgid "Description"
 msgstr "Descriere"
 
 #: frontend/php/bugs/admin/field_values.php:246
-#: frontend/php/bugs/admin/field_values.php:853
+#: frontend/php/bugs/admin/field_values.php:850
 msgid "Rank"
 msgstr "Clasament"
 
 #: frontend/php/bugs/admin/field_values.php:246
-#: frontend/php/bugs/admin/field_usage.php:424
+#: frontend/php/bugs/admin/field_usage.php:423
 #: frontend/php/people/editjob.php:210
 msgid "Status"
 msgstr "Stare"
@@ -383,150 +384,150 @@ msgid "(must be &gt; %s)"
 msgstr "(trebuie să fie &gt; %s)"
 
 #: frontend/php/bugs/admin/field_values.php:414
-#: frontend/php/bugs/admin/field_values.php:773
+#: frontend/php/bugs/admin/field_values.php:770
 msgid "Value:"
 msgstr "Valoare:"
 
 #: frontend/php/bugs/admin/field_values.php:417
-#: frontend/php/bugs/admin/field_values.php:705
+#: frontend/php/bugs/admin/field_values.php:704
 msgid "Rank:"
 msgstr "Clasament:"
 
 #: frontend/php/bugs/admin/field_values.php:421
-#: frontend/php/bugs/admin/field_values.php:737
+#: frontend/php/bugs/admin/field_values.php:736
 msgid "Description (optional):"
 msgstr "Descriere (opțională):"
 
-#: frontend/php/bugs/admin/field_values.php:431
-#: frontend/php/bugs/admin/field_values.php:441
+#: frontend/php/bugs/admin/field_values.php:430
+#: frontend/php/bugs/admin/field_values.php:440
 msgid "Reset values"
 msgstr "Reinițializare valori"
 
-#: frontend/php/bugs/admin/field_values.php:433
+#: frontend/php/bugs/admin/field_values.php:432
 msgid ""
 "You are currently using custom values. If you want to reset values to the\n"
 "default ones, use the following form:"
 msgstr "În prezent, utilizați valori personalizate. Dacă doriți să restabiliți valorile la cele implicite, utilizați următorul formular:"
 
-#: frontend/php/bugs/admin/field_values.php:442
+#: frontend/php/bugs/admin/field_values.php:441
 msgid "For your information, the default active values are:"
 msgstr "Pentru informarea dumneavoastră, valorile active implicite sunt:"
 
 #. TRANSLATORS: the argument is field name.
-#: frontend/php/bugs/admin/field_values.php:488
+#: frontend/php/bugs/admin/field_values.php:487
 #, php-format
 msgid "No transition defined yet for %s"
 msgstr "Nicio tranziție definită încă pentru %s"
 
 #. TRANSLATORS: this refers to transitions.
-#: frontend/php/bugs/admin/field_values.php:498
-#: frontend/php/bugs/admin/field_values.php:634
+#: frontend/php/bugs/admin/field_values.php:497
+#: frontend/php/bugs/admin/field_values.php:633
 msgid "* - Any"
 msgstr "* - Oricare"
 
-#: frontend/php/bugs/admin/field_values.php:507
+#: frontend/php/bugs/admin/field_values.php:506
 #: frontend/php/my/admin/resume.php:171
 msgid "Yes"
 msgstr "Da"
 
-#: frontend/php/bugs/admin/field_values.php:509
+#: frontend/php/bugs/admin/field_values.php:508
 #: frontend/php/my/admin/resume.php:171
 msgid "No"
 msgstr "Nu"
 
-#: frontend/php/bugs/admin/field_values.php:520
+#: frontend/php/bugs/admin/field_values.php:519
 msgid "Edit other fields update"
 msgstr "Editează actualizarea altor câmpuri"
 
-#: frontend/php/bugs/admin/field_values.php:567
+#: frontend/php/bugs/admin/field_values.php:566
 msgid "Delete this transition"
 msgstr "Șterge această tranziție"
 
-#: frontend/php/bugs/admin/field_values.php:577
+#: frontend/php/bugs/admin/field_values.php:576
 msgid "Registered Transitions"
 msgstr "Tranziții înregistarate"
 
-#: frontend/php/bugs/admin/field_values.php:579
-#: frontend/php/bugs/admin/field_values.php:628
+#: frontend/php/bugs/admin/field_values.php:578
+#: frontend/php/bugs/admin/field_values.php:627
 msgid "From"
 msgstr "Din"
 
-#: frontend/php/bugs/admin/field_values.php:579
-#: frontend/php/bugs/admin/field_values.php:628
+#: frontend/php/bugs/admin/field_values.php:578
+#: frontend/php/bugs/admin/field_values.php:627
 msgid "To"
 msgstr "La"
 
-#: frontend/php/bugs/admin/field_values.php:579
-#: frontend/php/bugs/admin/field_values.php:628
+#: frontend/php/bugs/admin/field_values.php:578
+#: frontend/php/bugs/admin/field_values.php:627
 msgid "Is Allowed"
 msgstr "Este permis"
 
-#: frontend/php/bugs/admin/field_values.php:580
+#: frontend/php/bugs/admin/field_values.php:579
 msgid "Other Field Update"
 msgstr "Actualizarea altui câmp"
 
-#: frontend/php/bugs/admin/field_values.php:580
-#: frontend/php/bugs/admin/field_values.php:628
-#: frontend/php/bugs/admin/field_values.php:647
+#: frontend/php/bugs/admin/field_values.php:579
+#: frontend/php/bugs/admin/field_values.php:627
+#: frontend/php/bugs/admin/field_values.php:646
 #: frontend/php/include/trackers/format.php:701
 msgid "Carbon-Copy List"
 msgstr "Listă la indigo"
 
-#: frontend/php/bugs/admin/field_values.php:580
-#: frontend/php/bugs/admin/field_values.php:853
+#: frontend/php/bugs/admin/field_values.php:579
+#: frontend/php/bugs/admin/field_values.php:850
 #: frontend/php/bugs/admin/editqueryforms.php:604
-#: frontend/php/include/people/general.php:380
-#: frontend/php/include/html.php:471 frontend/php/include/news/general.php:218
-#: frontend/php/include/form.php:214
+#: frontend/php/include/people/general.php:386
+#: frontend/php/include/html.php:472 frontend/php/include/news/general.php:218
+#: frontend/php/include/form.php:216
 msgid "Delete"
 msgstr "Șterge"
 
-#: frontend/php/bugs/admin/field_values.php:606
+#: frontend/php/bugs/admin/field_values.php:605
 msgid ""
 "By default, for this field, the\n"
 "transitions not registered are forbidden. This setting can be changed when\n"
 "managing this field usage."
 msgstr "În mod implicit, pentru acest câmp, tranzițiile neînregistrate sunt interzise. Această opțiune poate fi modificată atunci când se gestionează utilizarea acestui câmp."
 
-#: frontend/php/bugs/admin/field_values.php:609
+#: frontend/php/bugs/admin/field_values.php:608
 msgid ""
 "By default, for this field, the\n"
 "transitions not registered are allowed. This setting can be changed when\n"
 "managing this field usage."
 msgstr "În mod implicit, pentru acest câmp, tranzițiile neînregistrate sunt permise. Această opțiune poate fi modificată atunci când se gestionează utilizarea acestui câmp."
 
-#: frontend/php/bugs/admin/field_values.php:622
+#: frontend/php/bugs/admin/field_values.php:621
 msgid "Create a transition"
 msgstr "Creează o tranziție"
 
-#: frontend/php/bugs/admin/field_values.php:643
+#: frontend/php/bugs/admin/field_values.php:642
 msgid "allowed or not"
 msgstr "permis sau nu"
 
-#: frontend/php/bugs/admin/field_values.php:657
+#: frontend/php/bugs/admin/field_values.php:656
 msgid ""
 "Once a transition created, it will be possible to set &ldquo;Other Field\n"
 "Update&rdquo; for this transition."
 msgstr "Odată creată o tranziție, va fi posibil să se stabilească «Actualizarea altui câmp» pentru această tranziție."
 
-#: frontend/php/bugs/admin/field_values.php:661
+#: frontend/php/bugs/admin/field_values.php:660
 msgid "Update Transition"
 msgstr "Actualizare tranziție"
 
-#: frontend/php/bugs/admin/field_values.php:713
-#: frontend/php/bugs/admin/field_values.php:907
-#: frontend/php/include/pagemenu.php:656
+#: frontend/php/bugs/admin/field_values.php:712
+#: frontend/php/bugs/admin/field_values.php:904
+#: frontend/php/include/pagemenu.php:659
 msgid "Field values"
 msgstr "Valorile câmpului"
 
-#: frontend/php/bugs/admin/field_values.php:732
-#: frontend/php/bugs/admin/field_usage.php:193
-#: frontend/php/people/viewjob.php:95 frontend/php/mail/admin/index.php:266
-#: frontend/php/mail/admin/index.php:332
+#: frontend/php/bugs/admin/field_values.php:731
+#: frontend/php/bugs/admin/field_usage.php:192
+#: frontend/php/people/viewjob.php:95 frontend/php/mail/admin/index.php:331
+#: frontend/php/mail/admin/index.php:424
 msgid "Status:"
 msgstr "Stare:"
 
-#: frontend/php/bugs/admin/field_values.php:755
+#: frontend/php/bugs/admin/field_values.php:752
 #, php-format
 msgid "This field value applies to %s item of your tracker."
 msgid_plural "This field value applies to %s items of your tracker."
@@ -534,111 +535,111 @@ msgstr[0] "Valoarea acestui câmp se aplică la %s element din gestionarul dvs. 
 msgstr[1] "Valoarea acestui câmp se aplică la %s elemente din gestionarul dvs. de monitorizare."
 msgstr[2] "Valoarea acestui câmp se aplică la %s de elemente din gestionarul dvs. de monitorizare."
 
-#: frontend/php/bugs/admin/field_values.php:762
+#: frontend/php/bugs/admin/field_values.php:759
 #, php-format
 msgid ""
 "If you hide this field value, the related items will have no value in the\n"
 "field '%s'."
 msgstr "Dacă ascundeți valoarea acestui câmp, elementele aferente nu vor avea nicio valoare în câmpul „%s”."
 
-#: frontend/php/bugs/admin/field_values.php:777
-#: frontend/php/bugs/admin/field_values.php:817
+#: frontend/php/bugs/admin/field_values.php:774
+#: frontend/php/bugs/admin/field_values.php:814
 #: frontend/php/include/trackers_run/digest.php:183
-#: frontend/php/include/pagemenu.php:580
-#: frontend/php/include/news/general.php:249 frontend/php/include/form.php:189
+#: frontend/php/include/pagemenu.php:583
+#: frontend/php/include/news/general.php:249 frontend/php/include/form.php:191
 msgid "Submit"
 msgstr "Trimite"
 
-#: frontend/php/bugs/admin/field_values.php:813
+#: frontend/php/bugs/admin/field_values.php:810
 #: frontend/php/include/my/bookmarks.php:81
 msgid "Title:"
 msgstr "Titlu:"
 
-#: frontend/php/bugs/admin/field_values.php:815
+#: frontend/php/bugs/admin/field_values.php:812
 msgid "Message Body:"
 msgstr "Corpul mesajului:"
 
-#: frontend/php/bugs/admin/field_values.php:841
+#: frontend/php/bugs/admin/field_values.php:838
 msgid "Modify Canned Responses"
 msgstr "Modificarea răspunsurilor prestabilite"
 
-#: frontend/php/bugs/admin/field_values.php:851
+#: frontend/php/bugs/admin/field_values.php:848
 msgid "Existing Responses:"
 msgstr "Răspunsuri existente:"
 
-#: frontend/php/bugs/admin/field_values.php:853
-#: frontend/php/include/people/general.php:418
+#: frontend/php/bugs/admin/field_values.php:850
+#: frontend/php/include/people/general.php:436
 #: frontend/php/include/markup.php:86 frontend/php/include/markup.php:151
 msgid "Title"
 msgstr "Titlu"
 
-#: frontend/php/bugs/admin/field_values.php:853
+#: frontend/php/bugs/admin/field_values.php:850
 msgid "Body (abstract)"
 msgstr "Corp (abstract)"
 
-#: frontend/php/bugs/admin/field_values.php:862
+#: frontend/php/bugs/admin/field_values.php:859
 msgid "No canned bug responses set up yet"
 msgstr "Încă nu sunt configurate răspunsuri prestabilite la erori"
 
-#: frontend/php/bugs/admin/field_values.php:863
+#: frontend/php/bugs/admin/field_values.php:860
 msgid "Create a new response"
 msgstr "Creează un răspuns nou"
 
-#: frontend/php/bugs/admin/field_values.php:864
+#: frontend/php/bugs/admin/field_values.php:861
 msgid ""
 "Creating generic quick responses can save a lot of time when giving common\n"
 "responses."
 msgstr "Crearea de răspunsuri rapide generice poate economisi mult timp atunci când se dau răspunsuri uzuale."
 
-#: frontend/php/bugs/admin/field_values.php:874
+#: frontend/php/bugs/admin/field_values.php:871
 msgid "Modify Canned Response"
 msgstr "Modificarea răspunsului prestabilit"
 
-#: frontend/php/bugs/admin/field_values.php:884
+#: frontend/php/bugs/admin/field_values.php:881
 msgid "No such response!"
 msgstr "Nu există un astfel de răspuns!"
 
-#: frontend/php/bugs/admin/field_values.php:888
+#: frontend/php/bugs/admin/field_values.php:885
 msgid ""
 "Creating generic messages can save you a lot of time when giving\n"
 "common responses."
 msgstr "Crearea de mesaje generice vă poate economisi mult timp atunci când dați răspunsuri uzuale."
 
-#: frontend/php/bugs/admin/field_values.php:901
-#: frontend/php/bugs/admin/field_usage.php:449
+#: frontend/php/bugs/admin/field_values.php:898
+#: frontend/php/bugs/admin/field_usage.php:448
 #: frontend/php/include/trackers/data.php:87
 msgid "System"
 msgstr "Sistem"
 
-#: frontend/php/bugs/admin/field_values.php:903
-#: frontend/php/bugs/admin/field_values.php:942
-#: frontend/php/bugs/admin/field_usage.php:449
-#: frontend/php/search/index.php:112 frontend/php/search/index.php:191
-#: frontend/php/include/people/general.php:418
+#: frontend/php/bugs/admin/field_values.php:900
+#: frontend/php/bugs/admin/field_values.php:939
+#: frontend/php/bugs/admin/field_usage.php:448
+#: frontend/php/search/index.php:111 frontend/php/search/index.php:190
+#: frontend/php/include/people/general.php:436
 #: frontend/php/include/trackers/data.php:86
 #: frontend/php/include/search/general.php:535
-#: frontend/php/include/pagemenu.php:83
+#: frontend/php/include/pagemenu.php:88
 msgid "Group"
 msgstr "Grup"
 
-#: frontend/php/bugs/admin/field_values.php:912
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:172
-#: frontend/php/bugs/admin/field_usage.php:423
+#: frontend/php/bugs/admin/field_values.php:909
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:171
+#: frontend/php/bugs/admin/field_usage.php:422
 #: frontend/php/bugs/admin/editqueryforms.php:646
 msgid "Field Label"
 msgstr "Eticheta câmpului"
 
-#: frontend/php/bugs/admin/field_values.php:914
-#: frontend/php/bugs/admin/field_usage.php:424
+#: frontend/php/bugs/admin/field_values.php:911
+#: frontend/php/bugs/admin/field_usage.php:423
 #: frontend/php/bugs/admin/editqueryforms.php:604
 msgid "Scope"
 msgstr "Obiectivul"
 
-#: frontend/php/bugs/admin/field_values.php:936
+#: frontend/php/bugs/admin/field_values.php:933
 msgid "Canned Responses"
 msgstr "Răspunsuri prestabilite"
 
-#: frontend/php/bugs/admin/field_values.php:938
+#: frontend/php/bugs/admin/field_values.php:935
 msgid ""
 "Create or change generic quick response messages for this issue tracker.\n"
 "These pre-written messages can then be used to quickly reply to item\n"
@@ -654,17 +655,17 @@ msgstr "Tranziția nu a fost găsită"
 #. TRANSLATORS: this string is a job category.
 #. TRANSLATORS: Displayed when no user is selected.
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:132
-#: frontend/php/include/trackers_run/mod.php:353
-#: frontend/php/include/people/general.php:230
-#: frontend/php/include/trackers/general.php:247
-#: frontend/php/include/utils.php:444 frontend/php/include/html.php:645
-#: frontend/php/include/html.php:776
+#: frontend/php/include/trackers_run/mod.php:322
+#: frontend/php/include/people/general.php:236
+#: frontend/php/include/trackers/general.php:212
+#: frontend/php/include/utils.php:440 frontend/php/include/html.php:646
+#: frontend/php/include/html.php:777
 msgid "None"
 msgstr "Niciunul"
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:134
-#: frontend/php/include/trackers_run/mod.php:353
-#: frontend/php/include/html.php:647
+#: frontend/php/include/trackers_run/mod.php:322
+#: frontend/php/include/html.php:648
 msgid "Any"
 msgstr "Oricare"
 
@@ -672,14 +673,14 @@ msgstr "Oricare"
 msgid "Field Value Transitions: Update Other Fields"
 msgstr "Tranziții ale valorii câmpului: Actualizarea altor câmpuri"
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:148
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:147
 #, php-format
 msgid ""
 "Other Fields to update when &ldquo;%1$s&rdquo; changes\n"
 "from &ldquo;%2$s&rdquo; to &ldquo;%3$s&rdquo;:"
 msgstr "Alte câmpuri de actualizat atunci când „%1$s” se modifică de la „%2$s” la „%3$s”:"
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:156
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:155
 #, php-format
 msgid ""
 "Note that if you set an automatic update of the field %1$s,\n"
@@ -687,7 +688,7 @@ msgid ""
 "%2$s."
 msgstr "Rețineți că, dacă definiți o actualizare automată a câmpului %1$s, tehnicienii vor putea închide elemente prin modificarea valorii câmpului %2$s."
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:162
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:161
 msgid ""
 "Note also the automatic update process will not override field values\n"
 "specifically filled in forms. It means that if someone was able (depending on\n"
@@ -695,171 +696,171 @@ msgid ""
 "update supposed to apply to this field will be disregarded."
 msgstr "Rețineți, de asemenea, că procesul de actualizare automată nu va înlocui valorile câmpurilor completate în mod specific în formulare. Aceasta înseamnă că, dacă cineva a putut (în funcție de rolul său în cadrul proiectului) să modifice valoarea unui anumit câmp, orice actualizare automată care ar trebui să se aplice acestui câmp nu va fi luată în considerare."
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:172
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:171
 msgid "New Value"
 msgstr "Valoare nouă"
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:204
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:203
 msgid "No automatic update"
 msgstr "Fără actualizare automată"
 
-#: frontend/php/bugs/admin/field_usage.php:133
+#: frontend/php/bugs/admin/field_usage.php:132
 msgid "Jump to this field values"
 msgstr "Salt la valorile acestui câmp"
 
-#: frontend/php/bugs/admin/field_usage.php:140
-#: frontend/php/bugs/admin/field_usage.php:156
+#: frontend/php/bugs/admin/field_usage.php:139
+#: frontend/php/bugs/admin/field_usage.php:155
 msgid "Field Label:"
 msgstr "Eticheta câmpului:"
 
-#: frontend/php/bugs/admin/field_usage.php:151
+#: frontend/php/bugs/admin/field_usage.php:150
 msgid "Modify Field Usage"
 msgstr "Modificarea utilizării câmpului"
 
-#: frontend/php/bugs/admin/field_usage.php:171
+#: frontend/php/bugs/admin/field_usage.php:170
 msgid "whether to keep in history"
 msgstr "dacă să se păstreze în istoric"
 
-#: frontend/php/bugs/admin/field_usage.php:175
+#: frontend/php/bugs/admin/field_usage.php:174
 msgid "Keep field value changes in history"
 msgstr "Păstrează modificările valorii câmpului în istoric"
 
-#: frontend/php/bugs/admin/field_usage.php:178
+#: frontend/php/bugs/admin/field_usage.php:177
 msgid "Ignore field value changes in history"
 msgstr "Ignoră modificările valorii câmpului în istoric"
 
-#: frontend/php/bugs/admin/field_usage.php:181
+#: frontend/php/bugs/admin/field_usage.php:180
 msgid "Item History:"
 msgstr "Istoricul elementului:"
 
-#: frontend/php/bugs/admin/field_usage.php:188
-#: frontend/php/bugs/admin/field_usage.php:446
+#: frontend/php/bugs/admin/field_usage.php:187
+#: frontend/php/bugs/admin/field_usage.php:445
 msgid "Required"
 msgstr "Necesar"
 
-#: frontend/php/bugs/admin/field_usage.php:191
-#: frontend/php/bugs/admin/field_usage.php:446
+#: frontend/php/bugs/admin/field_usage.php:190
+#: frontend/php/bugs/admin/field_usage.php:445
 msgid "Used"
 msgstr "Utilizat"
 
-#: frontend/php/bugs/admin/field_usage.php:208
+#: frontend/php/bugs/admin/field_usage.php:207
 msgid "whether the field is mandatory"
 msgstr "dacă câmpul este obligatoriu"
 
-#: frontend/php/bugs/admin/field_usage.php:210
+#: frontend/php/bugs/admin/field_usage.php:209
 msgid "Optional (empty values are accepted)"
 msgstr "Opțional (sunt acceptate valori goale)"
 
-#: frontend/php/bugs/admin/field_usage.php:211
+#: frontend/php/bugs/admin/field_usage.php:210
 msgid "Mandatory"
 msgstr "Obligatoriu"
 
-#: frontend/php/bugs/admin/field_usage.php:213
+#: frontend/php/bugs/admin/field_usage.php:212
 msgid "Mandatory only if it was presented to the original submitter"
 msgstr "Obligatoriu numai dacă acesta a fost prezentat autorului inițial al cererii (publicării)"
 
-#: frontend/php/bugs/admin/field_usage.php:216
+#: frontend/php/bugs/admin/field_usage.php:215
 msgid "This field is:"
 msgstr "Acest câmp este:"
 
-#: frontend/php/bugs/admin/field_usage.php:279
+#: frontend/php/bugs/admin/field_usage.php:278
 msgid "Show field to anonymous users"
 msgstr "Afișează câmpul pentru utilizatorii anonimi"
 
-#: frontend/php/bugs/admin/field_usage.php:280
+#: frontend/php/bugs/admin/field_usage.php:279
 msgid "Show field to logged-in users"
 msgstr "Afișează câmpul pentru utilizatorii autentificați"
 
-#: frontend/php/bugs/admin/field_usage.php:281
+#: frontend/php/bugs/admin/field_usage.php:280
 msgid "Show field to members"
 msgstr "Afișează câmpul membrilor"
 
-#: frontend/php/bugs/admin/field_usage.php:299
+#: frontend/php/bugs/admin/field_usage.php:298
 msgid "Display:"
 msgstr "Afișare:"
 
-#: frontend/php/bugs/admin/field_usage.php:301
+#: frontend/php/bugs/admin/field_usage.php:300
 msgid "Rank on page:"
 msgstr "Clasamentul pe pagină:"
 
-#: frontend/php/bugs/admin/field_usage.php:312
+#: frontend/php/bugs/admin/field_usage.php:311
 msgid "Visible size of the field:"
 msgstr "Dimensiunea vizibilă a câmpului:"
 
-#: frontend/php/bugs/admin/field_usage.php:316
+#: frontend/php/bugs/admin/field_usage.php:315
 msgid "Maximum size of field text (up to 255):"
 msgstr "Dimensiunea maximă a textului câmpului (până la 255 de caractere):"
 
-#: frontend/php/bugs/admin/field_usage.php:329
+#: frontend/php/bugs/admin/field_usage.php:328
 msgid "Number of columns of the field:"
 msgstr "Numărul de coloane ale câmpului:"
 
-#: frontend/php/bugs/admin/field_usage.php:332
+#: frontend/php/bugs/admin/field_usage.php:331
 msgid "Number of rows  of the field:"
 msgstr "Numărul de rânduri ale câmpului:"
 
-#: frontend/php/bugs/admin/field_usage.php:368
+#: frontend/php/bugs/admin/field_usage.php:367
 msgid "By default, transitions (from one value to another) are:"
 msgstr "În mod implicit, tranzițiile (de la o valoare la alta) sunt:"
 
-#: frontend/php/bugs/admin/field_usage.php:371
+#: frontend/php/bugs/admin/field_usage.php:370
 msgid "Allowed"
 msgstr "Permise"
 
-#: frontend/php/bugs/admin/field_usage.php:376
+#: frontend/php/bugs/admin/field_usage.php:375
 msgid "Forbidden"
 msgstr "Interzise"
 
-#: frontend/php/bugs/admin/field_usage.php:386
+#: frontend/php/bugs/admin/field_usage.php:385
 msgid "Reset to defaults"
 msgstr "Restabilirea valorilor implicite"
 
-#: frontend/php/bugs/admin/field_usage.php:397
+#: frontend/php/bugs/admin/field_usage.php:396
 #, php-format
 msgid "No field '%s' found."
 msgstr "Câmpul „%s” nu a fost găsit."
 
-#: frontend/php/bugs/admin/field_usage.php:400
+#: frontend/php/bugs/admin/field_usage.php:399
 msgid "Access:"
 msgstr "Acces:"
 
-#: frontend/php/bugs/admin/field_usage.php:403
+#: frontend/php/bugs/admin/field_usage.php:402
 msgid "On new item submission:"
 msgstr "La trimiterea (publicarea) unui element nou:"
 
-#: frontend/php/bugs/admin/field_usage.php:416
+#: frontend/php/bugs/admin/field_usage.php:415
 #: frontend/php/bugs/admin/index.php:100
 msgid "Select Fields"
 msgstr "Selectează câmpurile"
 
-#: frontend/php/bugs/admin/field_usage.php:423
-#: frontend/php/search/index.php:112
-#: frontend/php/include/people/general.php:418
+#: frontend/php/bugs/admin/field_usage.php:422
+#: frontend/php/search/index.php:111
+#: frontend/php/include/people/general.php:436
 #: frontend/php/include/search/general.php:535
 msgid "Type"
 msgstr "Tip"
 
-#: frontend/php/bugs/admin/field_usage.php:423
+#: frontend/php/bugs/admin/field_usage.php:422
 msgid "Rank on page"
 msgstr "Clasamentul pe pagină"
 
-#: frontend/php/bugs/admin/field_usage.php:446
+#: frontend/php/bugs/admin/field_usage.php:445
 msgid "Unused"
 msgstr "Nefolosit"
 
-#: frontend/php/bugs/admin/field_usage.php:457
+#: frontend/php/bugs/admin/field_usage.php:456
 msgid "Custom Field"
 msgstr "Câmp personalizat"
 
-#: frontend/php/bugs/admin/field_usage.php:474
+#: frontend/php/bugs/admin/field_usage.php:473
 msgid "USED FIELDS"
 msgstr "CÂMPURI UTILIZATE"
 
-#: frontend/php/bugs/admin/field_usage.php:476
+#: frontend/php/bugs/admin/field_usage.php:475
 msgid "UNUSED STANDARD FIELDS"
 msgstr "CÂMPURI STANDARD NEUTILIZATE"
 
-#: frontend/php/bugs/admin/field_usage.php:479
+#: frontend/php/bugs/admin/field_usage.php:478
 msgid "UNUSED CUSTOM FIELDS"
 msgstr "CÂMPURI PERSONALIZATE NEUTILIZATE"
 
@@ -876,17 +877,6 @@ msgid ""
 msgstr ""
 "Sunteți pe punctul de a restabili valorile câmpului %s.\n"
 "Această acțiune nu va putea fi anulată, vă rugăm să confirmați:"
-
-#: frontend/php/bugs/admin/field_values_reset.php:83
-#: frontend/php/my/quitproject.php:126
-msgid "Confirm"
-msgstr "Confirmare"
-
-#: frontend/php/bugs/admin/field_values_reset.php:84
-#: frontend/php/my/quitproject.php:127
-#: frontend/php/project/admin/editgroupinfo.php:209
-msgid "Cancel"
-msgstr "Anulare"
 
 #: frontend/php/bugs/admin/conf-copy.php:58
 #: frontend/php/bugs/admin/index.php:88
@@ -1072,7 +1062,7 @@ msgstr "Lățimea coloanei (opțional)"
 #. TRANSLATORS: this string is as argument in
 #. "Browse with the %s query form".
 #: frontend/php/bugs/admin/editqueryforms.php:257
-#: frontend/php/include/trackers_run/browse.php:928
+#: frontend/php/include/trackers_run/browse.php:947
 msgid "Basic"
 msgstr "de bază"
 
@@ -1083,9 +1073,9 @@ msgstr "Răsfoiește implicit cu formularul de interogare %s."
 
 #: frontend/php/bugs/admin/editqueryforms.php:260
 #: frontend/php/stats/index.php:88 frontend/php/my/items.php:114
-#: frontend/php/include/trackers_run/browse.php:963
+#: frontend/php/include/trackers_run/browse.php:981
 #: frontend/php/include/trackers/view-dependencies.php:261
-#: frontend/php/project/memberlist.php:209 frontend/php/news/index.php:93
+#: frontend/php/project/memberlist.php:208 frontend/php/news/index.php:93
 msgid "Apply"
 msgstr "Aplică"
 
@@ -1115,8 +1105,7 @@ msgstr "Actualizarea formularului de interogare „%s” a eșuat"
 msgid "Unknown Report ID (%s)"
 msgstr "ID de raport necunoscut (%s)"
 
-#: frontend/php/bugs/admin/editqueryforms.php:475
-#: frontend/php/include/project_home.php:143
+#: frontend/php/bugs/admin/editqueryforms.php:475 frontend/php/projects.php:155
 msgid "Name:"
 msgstr "Nume:"
 
@@ -1161,19 +1150,19 @@ msgid "Set Notifications"
 msgstr "Configurează notificările"
 
 #: frontend/php/bugs/admin/notification_settings.php:118
-#: frontend/php/my/votes.php:159
+#: frontend/php/my/votes.php:156
 msgid "Submit Changes"
 msgstr "Trimite (publică) modificările"
 
 #. TRANSLATORS: the argument is file id (a number).
-#: frontend/php/file.php:96 frontend/php/include/trackers/data.php:2720
+#: frontend/php/file.php:96 frontend/php/include/trackers/data.php:2715
 #, php-format
 msgid "File #%s not found"
 msgstr "Fișierul „#%s” nu a fost găsit"
 
 #. TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
 #. TRANSLATORS: the argument is name of artifact (like bugs or patches).
-#: frontend/php/file.php:104 frontend/php/include/trackers/general.php:714
+#: frontend/php/file.php:104 frontend/php/include/trackers/general.php:709
 #, php-format
 msgid "Invalid artifact %s"
 msgstr "Artifact nevalid %s"
@@ -1283,7 +1272,7 @@ msgstr[1] "inclusiv %s deja închise<!-- cereri de asistență -->"
 msgstr[2] "inclusiv %s deja închise<!-- cereri de asistență -->"
 
 #: frontend/php/stats/index.php:185 frontend/php/stats/index.php:298
-#: frontend/php/include/context.php:202 frontend/php/include/pagemenu.php:629
+#: frontend/php/include/context.php:202 frontend/php/include/pagemenu.php:632
 msgid "Bugs"
 msgstr "Erori/probleme"
 
@@ -1304,7 +1293,7 @@ msgstr[1] "inclusiv %s deja închise<!-- erori -->"
 msgstr[2] "inclusiv %s deja închise<!-- erori -->"
 
 #: frontend/php/stats/index.php:193 frontend/php/stats/index.php:306
-#: frontend/php/include/context.php:203 frontend/php/include/pagemenu.php:631
+#: frontend/php/include/context.php:203 frontend/php/include/pagemenu.php:634
 msgid "Tasks"
 msgstr "Sarcini"
 
@@ -1325,7 +1314,7 @@ msgstr[1] "inclusiv %s deja închise<!-- sarcini -->"
 msgstr[2] "inclusiv %s deja închise<!-- sarcini -->"
 
 #: frontend/php/stats/index.php:201 frontend/php/stats/index.php:314
-#: frontend/php/include/context.php:204 frontend/php/include/pagemenu.php:633
+#: frontend/php/include/context.php:204 frontend/php/include/pagemenu.php:636
 msgid "Patches"
 msgstr "Plasturi (corecții)"
 
@@ -1760,7 +1749,7 @@ msgid "%1$s for %2$s"
 msgstr "%1$s pentru %2$s"
 
 #: frontend/php/people/viewjob.php:91
-#: frontend/php/include/trackers_run/mod.php:222
+#: frontend/php/include/trackers_run/mod.php:220
 #: frontend/php/include/news/general.php:201
 msgid "Submitter:"
 msgstr "Expeditor:"
@@ -1799,15 +1788,311 @@ msgstr "Acest utilizator nu a înregistrat o cheie GPG."
 msgid "GPG Key of the user %s"
 msgstr "Cheia GPG a utilizatorului %s"
 
-#: frontend/php/projects.php:49
+#: frontend/php/projects.php:52
 #, php-format
 msgid "Wrong group name '%s'."
 msgstr "Nume de grup greșit: „%s”."
 
-#: frontend/php/projects.php:54
+#: frontend/php/projects.php:57
 #, php-format
 msgid "Group '%s' does not exist."
 msgstr "Grupul „%s” nu există."
+
+#: frontend/php/projects.php:79
+msgid "Membership Info"
+msgstr "Informații privind membrii"
+
+#. TRANSLATORS: range 1..4.
+#: frontend/php/projects.php:105
+msgid "Group admin"
+msgid_plural "Group admins"
+msgstr[0] "Administratorul grupului"
+msgstr[1] "Administratorii grupului"
+msgstr[2] "Administratorii grupului"
+
+#: frontend/php/projects.php:131
+#, php-format
+msgid "%s active member"
+msgid_plural "%s active members"
+msgstr[0] "%s membru activ"
+msgstr[1] "%s membri activi"
+msgstr[2] "%s de membri activi"
+
+#: frontend/php/projects.php:143
+msgid "View Members"
+msgstr "Vezi membrii"
+
+#: frontend/php/projects.php:148
+msgid "Group identification"
+msgstr "Identificarea grupului"
+
+#. TRANSLATORS: the group id (a number) will follow.
+#. TRANSLATORS: user's id (a number) shall follow this message.
+#: frontend/php/projects.php:153 frontend/php/users.php:219
+msgid "Id:"
+msgstr "Id:"
+
+#: frontend/php/projects.php:154
+msgid "System Name:"
+msgstr "Numele sistemului:"
+
+#: frontend/php/projects.php:156
+msgid "Group Type:"
+msgstr "Tipul de grup:"
+
+#: frontend/php/projects.php:169
+msgid "Search in this group"
+msgstr "Caută în acest grup"
+
+#: frontend/php/projects.php:190
+#, php-format
+msgid ""
+"This group hasn't submitted a short description yet. You can <a\n"
+"href=\"%s\">submit it</a> now."
+msgstr ""
+"Acest grup nu a publicat încă o scurtă descriere. Puteți <a\n"
+"href=\"%s\">publica una</a> acum."
+
+#: frontend/php/projects.php:198
+msgid "Registration Date:"
+msgstr "Data înregistrării:"
+
+#: frontend/php/projects.php:204
+#: frontend/php/project/admin/editgroupinfo.php:180
+msgid "License:"
+msgstr "Licență:"
+
+#: frontend/php/projects.php:212
+msgid "License is unknown!"
+msgstr "Licența este necunoscută!"
+
+#: frontend/php/projects.php:221
+#: frontend/php/project/admin/editgroupinfo.php:171
+msgid "Development Status:"
+msgstr "Stadiul de dezvoltare:"
+
+#: frontend/php/projects.php:233 frontend/php/index.php:59
+#: frontend/php/include/news/forum.php:156
+msgid "Latest News"
+msgstr "Ultimele noutăți"
+
+#. TRANSLATORS: the argument is site name (like Savannah).
+#: frontend/php/projects.php:257
+#, php-format
+msgid "Administration: %s server"
+msgstr "Administrare: server %s"
+
+#: frontend/php/projects.php:262
+#, php-format
+msgid ""
+"Since you are administrator of this group, which one is\n"
+"the &ldquo;system group,&rdquo; you are administrator of the whole %s server."
+msgstr ""
+"Deoarece sunteți administrator al acestui grup, care este „grupul de sistem”,\n"
+"sunteți administrator al întregului server %s."
+
+#: frontend/php/projects.php:272
+msgid "Server Main Administration Page"
+msgstr "Pagina principală de administrare a serverului"
+
+#: frontend/php/projects.php:278
+msgid "Pending Group List"
+msgstr "Lista grupurilor aflate în așteptare"
+
+#: frontend/php/projects.php:284
+#, php-format
+msgid "(%s registration pending)"
+msgid_plural "(%s registrations pending)"
+msgstr[0] "(%s înregistrare în așteptare)"
+msgstr[1] "(%s înregistrări în așteptare)"
+msgstr[2] "(%s de înregistrări în așteptare)"
+
+#. TRANSLATORS: the argument is group name (like GNU Coreutils).
+#: frontend/php/projects.php:296
+#, php-format
+msgid "Administration: %s group"
+msgstr "Administrare: %s grup"
+
+#: frontend/php/projects.php:299
+msgid ""
+"As administrator of this group, you can manage members and\n"
+"activate, deactivate and configure tools used in your group."
+msgstr ""
+"În calitate de administrator al acestui grup, puteți gestiona membrii și\n"
+"activa, dezactiva și configura instrumentele utilizate în grupul dvs."
+
+#: frontend/php/projects.php:307
+msgid "Group Main Administration Page"
+msgstr "Pagina principală de administrare a grupului"
+
+#: frontend/php/projects.php:326
+msgid "Quick Overview"
+msgstr "Privire de ansamblu rapidă"
+
+#: frontend/php/projects.php:335 frontend/php/include/trackers/cookbook.php:62
+msgid "Group Homepage"
+msgstr "Pagina principală a grupului"
+
+#: frontend/php/projects.php:348 frontend/php/include/trackers/cookbook.php:63
+#: frontend/php/project/admin/editgroupfeatures.php:314
+msgid "Download Area"
+msgstr "Zona de descărcare"
+
+#: frontend/php/projects.php:362 frontend/php/include/pagemenu.php:464
+msgid "Docs"
+msgstr "Documente"
+
+#: frontend/php/projects.php:369
+msgid "Browse docs (external to Savane)"
+msgstr "Răsfoiește documentele (extern față de Savane)"
+
+#: frontend/php/projects.php:370
+msgid "Browse the cookbook"
+msgstr "Răsfoiește cartea de rețete"
+
+#: frontend/php/projects.php:381
+msgid "Memberlist"
+msgstr "Lista de membri"
+
+#: frontend/php/projects.php:386
+#, php-format
+msgid "(%s member)"
+msgid_plural "(%s members)"
+msgstr[0] "(%s membru)"
+msgstr[1] "(%s membri)"
+msgstr[2] "(%s de membri)"
+
+#: frontend/php/projects.php:396
+msgid "Group release GPG keyring"
+msgstr "Inelul de chei GPG pentru publicare de grup"
+
+#. TRANSLATORS: the arguments are numbers of items.
+#: frontend/php/projects.php:420
+#, php-format
+msgid "(open items: %1$s, total: %2$s)"
+msgstr "(elemente deschise: %1$s, total: %2$s)"
+
+#: frontend/php/projects.php:423
+msgid "Browse open items"
+msgstr "Răsfoiește elementele deschise"
+
+#: frontend/php/projects.php:426
+msgid "Submit a new item"
+msgstr "Publică un element nou"
+
+#: frontend/php/projects.php:439
+msgid "Communication Tools"
+msgstr "Instrumente de comunicare"
+
+#: frontend/php/projects.php:447
+msgid "Tech Support Manager"
+msgstr "Responsabil asistență tehnică"
+
+#: frontend/php/projects.php:459 frontend/php/include/context.php:206
+#: frontend/php/include/trackers/cookbook.php:66
+#: frontend/php/project/admin/index.php:85
+#: frontend/php/project/admin/editgroupfeatures.php:359
+msgid "Mailing Lists"
+msgstr "Liste de corespondență"
+
+#: frontend/php/projects.php:470
+#, php-format
+msgid "(%s public mailing list)"
+msgid_plural "(%s public mailing lists)"
+msgstr[0] "(%s listă publică de discuții)"
+msgstr[1] "(%s liste publice de discuții)"
+msgstr[2] "(%s de liste publice de discuții)"
+
+#: frontend/php/projects.php:483
+msgid "This group is looking for people"
+msgstr "Acest grup este în căutare de persoane"
+
+#: frontend/php/projects.php:487
+#, php-format
+msgid "(%s contributor wanted)"
+msgid_plural "(%s contributors wanted)"
+msgstr[0] "(%s colaborator dorit)"
+msgstr[1] "(%s colaboratori doriți)"
+msgstr[2] "(%s de colaboratori doriți)"
+
+#. TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
+#. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
+#: frontend/php/projects.php:509 frontend/php/include/pagemenu.php:327
+#, php-format
+msgid "%s Repository"
+msgstr "Depozitul %s"
+
+#: frontend/php/projects.php:513 frontend/php/include/pagemenu.php:384
+msgid "Administer"
+msgstr "Administrează"
+
+#: frontend/php/projects.php:524 frontend/php/projects.php:527
+#: frontend/php/include/vcs.php:215
+msgid "Browse Sources Repository"
+msgstr "Consultați depozitul de cod-sursă"
+
+#: frontend/php/projects.php:534 frontend/php/include/vcs.php:257
+#: frontend/php/include/pagemenu.php:366
+msgid "Browse Web Pages Repository"
+msgstr "Consultați depozitul de cod-sursă al paginilor web"
+
+#: frontend/php/projects.php:550
+msgid "Development Tools"
+msgstr "Instrumente de dezvoltare"
+
+#. TRANSLATORS: the string is used as the argument of "%s Repository".
+#: frontend/php/projects.php:555 frontend/php/include/vcs.php:234
+#: frontend/php/include/pagemenu.php:506
+#: frontend/php/project/admin/editgroupfeatures.php:346
+msgid "Git"
+msgstr "Git"
+
+#: frontend/php/projects.php:555 frontend/php/include/vcs.php:234
+#: frontend/php/include/pagemenu.php:506
+#: frontend/php/project/admin/editgroupfeatures.php:347
+msgid "Mercurial"
+msgstr "Mercurial"
+
+#: frontend/php/projects.php:555 frontend/php/include/vcs.php:233
+#: frontend/php/include/pagemenu.php:507
+#: frontend/php/project/admin/editgroupfeatures.php:348
+msgid "Bazaar"
+msgstr "Bazaar"
+
+#: frontend/php/projects.php:556 frontend/php/include/vcs.php:234
+#: frontend/php/include/pagemenu.php:505
+#: frontend/php/project/admin/editgroupfeatures.php:345
+msgid "Subversion"
+msgstr "Subversion"
+
+#: frontend/php/projects.php:556 frontend/php/include/pagemenu.php:506
+#: frontend/php/project/admin/editgroupfeatures.php:344
+msgid "GNU Arch"
+msgstr "GNU Arch"
+
+#. TRANSLATORS: this string is used as argument in messages 'Use %s'
+#. and '%s Repository'.
+#: frontend/php/projects.php:556 frontend/php/include/vcs.php:233
+#: frontend/php/include/pagemenu.php:505
+#: frontend/php/project/admin/editgroupfeatures.php:339
+msgid "CVS"
+msgstr "CVS"
+
+#: frontend/php/projects.php:562 frontend/php/include/trackers/cookbook.php:64
+#: frontend/php/project/admin/index.php:83
+#: frontend/php/project/admin/userperms.php:677
+#: frontend/php/project/admin/editgroupfeatures.php:361
+msgid "Bug Tracker"
+msgstr "Monitorizare a erorilor/problemelor"
+
+#: frontend/php/projects.php:563 frontend/php/include/trackers/cookbook.php:65
+#: frontend/php/project/admin/index.php:83
+msgid "Task Manager"
+msgstr "Gestionar de sarcini"
+
+#: frontend/php/projects.php:564
+msgid "Patch Manager"
+msgstr "Gestionar de plasturi(corecții)"
 
 #. TRANSLATORS: the first argument is a domain (like "savannah.gnu.org"
 #. vs. "savannah.nongnu.org"); the second argument
@@ -1884,45 +2169,45 @@ msgstr "Vă rugăm să răspundeți corect la captcha antispam!"
 msgid "Enter your search words above."
 msgstr "Introduceți cuvintele de căutare mai sus."
 
-#: frontend/php/search/index.php:136
+#: frontend/php/search/index.php:135
 msgid "Note that <strong>private</strong> groups are not shown on this page."
 msgstr "Rețineți că grupurile <strong>private</strong> nu sunt afișate pe această pagină."
 
-#: frontend/php/search/index.php:153 frontend/php/account/login.php:135
+#: frontend/php/search/index.php:152 frontend/php/account/login.php:135
 #: frontend/php/account/login.php:230 frontend/php/account/verify.php:79
 #: frontend/php/account/verify.php:100 frontend/php/include/sitemenu.php:524
 msgid "Login"
 msgstr "Autentificare"
 
-#: frontend/php/search/index.php:153
+#: frontend/php/search/index.php:152
 msgid "Name"
 msgstr "Nume"
 
-#: frontend/php/search/index.php:171 frontend/php/account/pending-resend.php:55
+#: frontend/php/search/index.php:170 frontend/php/account/pending-resend.php:55
 #: frontend/php/include/stats/general.php:49 frontend/php/include/utils.php:80
 #: frontend/php/include/exit.php:63 frontend/php/include/exit.php:161
-#: frontend/php/include/news/forum.php:351 frontend/php/forum/forum.php:332
+#: frontend/php/include/news/forum.php:351 frontend/php/forum/forum.php:331
 #: frontend/php/news/admin/index.php:60
 msgid "Error"
 msgstr "Eroare"
 
-#: frontend/php/search/index.php:171
+#: frontend/php/search/index.php:170
 msgid "Invalid Search!!"
 msgstr "Căutare nevalidă!!!"
 
-#: frontend/php/search/index.php:189
+#: frontend/php/search/index.php:188
 msgid "Item Id"
 msgstr "Id element"
 
-#: frontend/php/search/index.php:189
+#: frontend/php/search/index.php:188
 msgid "Item Summary"
 msgstr "Subiectul elementului"
 
-#: frontend/php/search/index.php:192
+#: frontend/php/search/index.php:191
 msgid "Submitter"
 msgstr "Expeditor"
 
-#: frontend/php/search/index.php:192 frontend/php/include/trackers/show.php:208
+#: frontend/php/search/index.php:191 frontend/php/include/trackers/show.php:208
 #: frontend/php/include/project/admin.php:56
 #: frontend/php/include/news/forum.php:233 frontend/php/forum/forum.php:232
 msgid "Date"
@@ -2010,7 +2295,7 @@ msgid "Note that it was encrypted with your registered GPG key."
 msgstr "Rețineți că acesta a fost criptat cu cheia GPG înregistrată."
 
 #: frontend/php/account/login.php:140
-#: frontend/php/account/pending-resend.php:75
+#: frontend/php/account/pending-resend.php:74
 msgid "Pending Account"
 msgstr "Cont în așteptarea confirmării"
 
@@ -2055,8 +2340,8 @@ msgid "Fill a support request."
 msgstr "Completați o cerere de asistență."
 
 #: frontend/php/account/login.php:187 frontend/php/account/lostpw.php:68
-#: frontend/php/account/verify.php:89 frontend/php/account/register.php:240
-#: frontend/php/users.php:225
+#: frontend/php/account/verify.php:89 frontend/php/account/register.php:239
+#: frontend/php/users.php:224
 msgid "Login name:"
 msgstr "Nume de utilizator:"
 
@@ -2149,7 +2434,7 @@ msgstr "Bine ați venit, %s."
 msgid "You may now change your passphrase."
 msgstr "Acum vă puteți schimba parola."
 
-#: frontend/php/account/lostlogin.php:84 frontend/php/my/admin/change.php:491
+#: frontend/php/account/lostlogin.php:84 frontend/php/my/admin/change.php:490
 msgid "New passphrase:"
 msgstr "Parola nouă:"
 
@@ -2180,8 +2465,8 @@ msgstr ""
 "probleme în %s, să vă înscrieți ca membru al unui proiect sau chiar să\n"
 "începeți propriul dvs. proiect."
 
-#: frontend/php/account/first.php:67 frontend/php/account/pending-resend.php:66
-#: frontend/php/account/register.php:186
+#: frontend/php/account/first.php:67 frontend/php/account/pending-resend.php:65
+#: frontend/php/account/register.php:185
 msgid "Enjoy the site."
 msgstr "Bucurați-vă de acest sit web."
 
@@ -2216,15 +2501,15 @@ msgstr "Vă mulțumim pentru înregistrarea pe situl web %s."
 msgid "In order to complete your registration, visit the following URL:"
 msgstr "Pentru a finaliza înregistrarea, vizitați următoarea adresă URL:"
 
-#: frontend/php/account/pending-resend.php:70
+#: frontend/php/account/pending-resend.php:69
 msgid "Account Registration"
 msgstr "Înregistrarea contului"
 
-#: frontend/php/account/pending-resend.php:73
+#: frontend/php/account/pending-resend.php:72
 msgid "Account Pending Verification"
 msgstr "Cont în așteptarea verificării"
 
-#: frontend/php/account/pending-resend.php:77
+#: frontend/php/account/pending-resend.php:76
 msgid ""
 "Your email confirmation has been resent. Visit the link in this\n"
 "email to complete the registration process."
@@ -2232,7 +2517,7 @@ msgstr ""
 "Confirmarea dvs. prin poșta electronică a fost trimisă din nou. Accesați\n"
 "legătura din acest mesaj pentru a finaliza procesul de înregistrare."
 
-#: frontend/php/account/pending-resend.php:81
+#: frontend/php/account/pending-resend.php:79
 msgid "Return to Home Page"
 msgstr "Înapoi la pagina principală"
 
@@ -2278,31 +2563,31 @@ msgstr ""
 "Pentru a finaliza înregistrarea, vizitați următoarea adresă URL:"
 
 #. TRANSLATORS: the argument is the name of the system (like "Savannah").
-#: frontend/php/account/register.php:192
+#: frontend/php/account/register.php:191
 #, php-format
 msgid "%s account registration"
 msgstr "Înregistrarea contului %s"
 
-#: frontend/php/account/register.php:201
+#: frontend/php/account/register.php:200
 msgid "Register Confirmation"
 msgstr "Confirmarea înregistrării"
 
-#: frontend/php/account/register.php:202
+#: frontend/php/account/register.php:201
 msgid "New Account Registration Confirmation"
 msgstr "Confirmarea înregistrării contului nou"
 
 #. TRANSLATORS: the argument is the name of the system (like "Savannah").
-#: frontend/php/account/register.php:204
+#: frontend/php/account/register.php:203
 #, php-format
 msgid "Congratulations. You have registered on %s."
 msgstr "Felicitări. V-ați înregistrat la %s."
 
-#: frontend/php/account/register.php:206 frontend/php/my/admin/index.php:202
+#: frontend/php/account/register.php:205 frontend/php/my/admin/index.php:202
 #, php-format
 msgid "Your login is %s."
 msgstr "Numele dvs. de utilizator este %s."
 
-#: frontend/php/account/register.php:209
+#: frontend/php/account/register.php:208
 #, php-format
 msgid ""
 "You are now being sent a confirmation email to verify your\n"
@@ -2313,55 +2598,55 @@ msgstr ""
 "poștă electronică. Vizitarea legăturii trimise în acest mesaj vă va activa\n"
 "contul. Mesajul este trimis de la &lt;%s&gt; și conține un text ca acesta:"
 
-#: frontend/php/account/register.php:216
+#: frontend/php/account/register.php:215
 msgid ""
 "If you don't receive it within a reasonable time, contact website\n"
 "administration."
 msgstr "Dacă nu o primiți într-un termen rezonabil, contactați administrația sitului web."
 
-#: frontend/php/account/register.php:235
+#: frontend/php/account/register.php:234
 msgid "User account registration"
 msgstr "Înregistrarea contului de utilizator"
 
-#: frontend/php/account/register.php:243
+#: frontend/php/account/register.php:242
 msgid "Passphrase:"
 msgstr "Parola:"
 
-#: frontend/php/account/register.php:245
+#: frontend/php/account/register.php:244
 msgid "Re-type passphrase:"
 msgstr "Reintroduceți parola:"
 
-#: frontend/php/account/register.php:247
-#: frontend/php/project/admin/squadadmin.php:169 frontend/php/users.php:223
+#: frontend/php/account/register.php:246
+#: frontend/php/project/admin/squadadmin.php:169 frontend/php/users.php:222
 msgid "Display name:"
 msgstr "Afișează numele:"
 
-#: frontend/php/account/register.php:250 frontend/php/users.php:230
+#: frontend/php/account/register.php:249 frontend/php/users.php:229
 msgid "Email address:"
 msgstr "Adresă de poștă electronică:"
 
-#: frontend/php/account/register.php:253
+#: frontend/php/account/register.php:252
 msgid "This email address will be verified before account activation."
 msgstr "Această adresă de poștă electronică va fi verificată înainte de activarea contului."
 
-#: frontend/php/account/register.php:258 frontend/php/account/register.php:277
+#: frontend/php/account/register.php:257 frontend/php/account/register.php:276
 msgid "Antispam test:"
 msgstr "Test antispam:"
 
-#: frontend/php/account/register.php:262
+#: frontend/php/account/register.php:261
 #, php-format
 msgid "In what year was the GNU project announced? [<a href='%s'>hint</a>]"
 msgstr "În ce an a fost anunțat proiectul GNU? [<a href='%s'>indiciu</a>]"
 
-#: frontend/php/account/register.php:271
+#: frontend/php/account/register.php:270
 msgid "CAPTCHA"
 msgstr "CAPTCHA"
 
-#: frontend/php/account/register.php:272
+#: frontend/php/account/register.php:271
 msgid "Try another image"
 msgstr "Încercați cu o altă imagine"
 
-#: frontend/php/account/register.php:275
+#: frontend/php/account/register.php:274
 msgid "Play captcha"
 msgstr "Redare captcha"
 
@@ -2369,7 +2654,7 @@ msgstr "Redare captcha"
 msgid "You need to be site administrator to use this feature."
 msgstr "Trebuie să fiți administrator al sitului pentru a utiliza această funcție."
 
-#: frontend/php/account/su.php:100
+#: frontend/php/account/su.php:98
 msgid "You shouldn't have come to this page."
 msgstr "Nu ar fi trebuit să ajungeți la această pagină."
 
@@ -2431,39 +2716,65 @@ msgid ""
 "<a href=\"%s\">administrative interface</a> to manage the list."
 msgstr "Administratorii grupului pot utiliza <a href=\"%s\">interfața administrativă</a> pentru a gestiona lista."
 
-#: frontend/php/mail/admin/index.php:91
+#: frontend/php/mail/admin/index.php:88
 msgid ""
 "Mailing lists are misconfigured. Post a support request to ask\n"
 "your site administrator to review group type setup."
 msgstr "Listele de corespondență sunt configurate greșit. Trimiteți o cerere de asistență pentru a solicita administratorului sitului dvs. să revizuiască configurarea tipului de grup."
 
-#: frontend/php/mail/admin/index.php:134
+#: frontend/php/mail/admin/index.php:122
+#, php-format
+msgid "Delete %s (this cannot be undone!)"
+msgstr "Șterge %s (această acțiune nu poate fi anulată!)"
+
+#: frontend/php/mail/admin/index.php:131
+msgid "Mailing list not found."
+msgstr "Lista de discuții nu a fost găsită."
+
+#: frontend/php/mail/admin/index.php:154
+#, php-format
+msgid "You are about to delete the mailing list %s, please confirm:"
+msgstr "Sunteți pe cale să ștergeți lista de discuții %s, vă rugăm să confirmați acțiunea:"
+
+#: frontend/php/mail/admin/index.php:238
 #, php-format
 msgid "You must provide list name that is two or more characters long: %s"
 msgstr "Trebuie să furnizați un nume de listă care să conțină două sau mai multe caractere: %s"
 
 #. TRANSLATORS: the argument is the new mailing list name
 #. entered by the user.
-#: frontend/php/mail/admin/index.php:151
+#: frontend/php/mail/admin/index.php:255
 #, php-format
 msgid "Invalid list name: %s"
 msgstr "Nume de listă nevalid: %s"
 
-#: frontend/php/mail/admin/index.php:162
+#: frontend/php/mail/admin/index.php:266
 #, php-format
 msgid "List name %s is reserved to avoid conflicts with user accounts."
 msgstr "Numele de listă %s, este rezervat pentru a evita conflictele cu conturile de utilizator."
 
-#: frontend/php/mail/admin/index.php:175
+#: frontend/php/mail/admin/index.php:279
 #, php-format
 msgid "The list %s already exists."
 msgstr "Lista %s există deja."
 
-#: frontend/php/mail/admin/index.php:232
+#: frontend/php/mail/admin/index.php:335 frontend/php/mail/admin/index.php:426
+msgid "public"
+msgstr "public"
+
+#: frontend/php/mail/admin/index.php:339 frontend/php/mail/admin/index.php:430
+msgid "private"
+msgstr "privat"
+
+#: frontend/php/mail/admin/index.php:347
+msgid "Reset list admin password"
+msgstr "Restabilește parola de administrare a listei"
+
+#: frontend/php/mail/admin/index.php:363
 msgid "Update Mailing List"
 msgstr "Actualizarea listei de corespondență"
 
-#: frontend/php/mail/admin/index.php:237
+#: frontend/php/mail/admin/index.php:370
 msgid ""
 "You can administer list information from here.\n"
 "Public lists are visible to non-members; private lists\n"
@@ -2472,33 +2783,13 @@ msgstr ""
 "Puteți administra informațiile despre liste de aici.\n"
 "Listele publice sunt vizibile pentru non-membri; listele private nu sunt afișate, abonarea necesită aprobare."
 
-#: frontend/php/mail/admin/index.php:242
+#: frontend/php/mail/admin/index.php:375
 msgid "Note that changes made with Mailman web interface are not reflected here."
 msgstr "Rețineți că modificările efectuate cu interfața web Mailman nu sunt reflectate aici."
 
-#: frontend/php/mail/admin/index.php:270 frontend/php/mail/admin/index.php:334
-msgid "public"
-msgstr "public"
-
-#: frontend/php/mail/admin/index.php:274 frontend/php/mail/admin/index.php:338
-msgid "private"
-msgstr "privat"
-
-#: frontend/php/mail/admin/index.php:280
-msgid "Delete (this cannot be undone!)"
-msgstr "Șterge (această acțiune nu poate fi anulată!)"
-
-#: frontend/php/mail/admin/index.php:298
-msgid "Reset list admin password"
-msgstr "Restabilește parola de administrare a listei"
-
-#: frontend/php/mail/admin/index.php:307
+#: frontend/php/mail/admin/index.php:399
 msgid "Create a new mailing list:"
 msgstr "Creează o nouă listă de corespondență:"
-
-#: frontend/php/mail/admin/index.php:315
-msgid "Name of new mailing list"
-msgstr "Numele noii liste de corespondență"
 
 #: frontend/php/register/requirements.php:46
 #: frontend/php/include/sitemenu.php:186
@@ -2538,11 +2829,6 @@ msgstr "Contactați-ne"
 #: frontend/php/index.php:49
 msgid "Welcome"
 msgstr "Bine ați venit"
-
-#: frontend/php/index.php:59 frontend/php/include/news/forum.php:156
-#: frontend/php/include/project_home.php:221
-msgid "Latest News"
-msgstr "Ultimele noutăți"
 
 #: frontend/php/cvs/admin/index.php:55
 msgid "Always"
@@ -2825,8 +3111,8 @@ msgid "Requests for inclusion waiting for approval"
 msgstr "Cereri de includere în așteptarea aprobării"
 
 #. TRANSLATORS: it means, no approved news.
-#: frontend/php/my/groups.php:347 frontend/php/my/index.php:138
-#: frontend/php/include/people/general.php:430
+#: frontend/php/my/groups.php:347 frontend/php/my/index.php:137
+#: frontend/php/include/people/general.php:448
 #: frontend/php/include/my/general.php:456
 #: frontend/php/project/admin/squadadmin.php:204
 #: frontend/php/project/admin/squadadmin.php:340
@@ -2937,26 +3223,26 @@ msgid ""
 msgstr "Iată o listă de articole recente (mai puțin de 16 zile) pe care credem că ar trebui să le vedeți. Acestea sunt articole publicate recent la gestionarii de monitorizare pe care îi administrați și care sunt încă neatribuite sau atribuite dvs. și știri publicate în grupurile din care sunteți membru."
 
 #. TRANSLATORS: the first argument is group name, the second is date.
-#: frontend/php/my/index.php:94
+#: frontend/php/my/index.php:93
 #, php-format
 msgid "Group %1$s, %2$s"
 msgstr "Grupul %1$s, %2$s"
 
-#: frontend/php/my/index.php:117
+#: frontend/php/my/index.php:116
 msgid "News Waiting for Approval"
 msgstr "Noutăți în așteptarea aprobării"
 
-#: frontend/php/my/index.php:125 frontend/php/include/context.php:187
-#: frontend/php/include/context.php:205 frontend/php/include/pagemenu.php:575
-#: frontend/php/project/admin/editgroupfeatures.php:357
+#: frontend/php/my/index.php:124 frontend/php/include/context.php:187
+#: frontend/php/include/context.php:205 frontend/php/include/pagemenu.php:578
+#: frontend/php/project/admin/editgroupfeatures.php:359
 msgid "News"
 msgstr "Noutăți"
 
-#: frontend/php/my/index.php:149
+#: frontend/php/my/index.php:148
 msgid "New and Unassigned Items"
 msgstr "Articole noi și neatribuite"
 
-#: frontend/php/my/index.php:155
+#: frontend/php/my/index.php:154
 msgid "New and Assigned Items"
 msgstr "Articole noi și atribuite"
 
@@ -3054,7 +3340,7 @@ msgstr "Vă rugăm să furnizați un nume nou."
 
 #: frontend/php/my/admin/change.php:105 frontend/php/my/admin/change.php:125
 #: frontend/php/my/admin/change.php:168 frontend/php/my/admin/change.php:176
-#: frontend/php/my/admin/change.php:304 frontend/php/include/account.php:573
+#: frontend/php/my/admin/change.php:303 frontend/php/include/account.php:573
 #: frontend/php/include/user.php:711
 msgid "Failed to update the database."
 msgstr "Actualizarea bazei de date a eșuat."
@@ -3084,7 +3370,7 @@ msgid "GPG Key updated."
 msgstr "Cheie GPG actualizată."
 
 #. TRANSLATORS: the argument is site name (like Savannah).
-#: frontend/php/my/admin/change.php:199
+#: frontend/php/my/admin/change.php:198
 #, php-format
 msgid ""
 "You have requested a change of email address on %s.\n"
@@ -3093,7 +3379,7 @@ msgstr ""
 "Ați solicitat o schimbare a adresei de poștă electronică pe %s.\n"
 "Vă rugăm să vizitați următoarea adresă URL pentru a finaliza schimbarea adresei de poștă electronică:"
 
-#: frontend/php/my/admin/change.php:212
+#: frontend/php/my/admin/change.php:211
 #, php-format
 msgid ""
 "Someone, presumably you, has requested a change of email address on %s.\n"
@@ -3102,64 +3388,64 @@ msgstr ""
 "Cineva, probabil tu, a solicitat o schimbare a adresei de poștă electronică pe %s.\n"
 "Dacă nu ați fost dumneavoastră, poate că cineva încearcă să vă fure contul..."
 
-#: frontend/php/my/admin/change.php:218
+#: frontend/php/my/admin/change.php:217
 #, php-format
 msgid "Your current address is %1$s, the supposedly new address is %2$s."
 msgstr "Adresa dvs. actuală este %1$s, presupusa adresă nouă este %2$s."
 
-#: frontend/php/my/admin/change.php:223
+#: frontend/php/my/admin/change.php:222
 msgid ""
 "If you did not request that change, please visit the following URL\n"
 "to discard the email change and report the problem to us:"
 msgstr "Dacă nu ați solicitat această modificare, vă rugăm să vizitați următoarea adresă URL pentru a renunța la modificarea adresei de poștă electronică și pentru a ne raporta problema:"
 
-#: frontend/php/my/admin/change.php:236 frontend/php/my/admin/change.php:380
+#: frontend/php/my/admin/change.php:235 frontend/php/my/admin/change.php:379
 msgid "Verification"
 msgstr "Verificare"
 
 #. TRANSLATORS: the argument is email address.
-#: frontend/php/my/admin/change.php:255
+#: frontend/php/my/admin/change.php:254
 #, php-format
 msgid "Confirmation mailed to %s."
 msgstr "Confirmarea a fost trimisă la %s."
 
-#: frontend/php/my/admin/change.php:256
+#: frontend/php/my/admin/change.php:255
 msgid "Follow the instructions in the email to complete the email change."
 msgstr "Urmați instrucțiunile din mesaj pentru a finaliza schimbarea adresei de poștă electronică."
 
-#: frontend/php/my/admin/change.php:259 frontend/php/my/admin/change.php:387
+#: frontend/php/my/admin/change.php:258 frontend/php/my/admin/change.php:386
 msgid ""
 "The system reported a failure when trying to send\n"
 "the confirmation mail. Please retry and report that problem to\n"
 "administrators."
 msgstr "Sistemul a raportat un eșec atunci când a încercat să trimită mesajul de confirmare. Vă rugăm să încercați din nou și să raportați această problemă administratorilor."
 
-#: frontend/php/my/admin/change.php:268
+#: frontend/php/my/admin/change.php:267
 #, php-format
 msgid "*%s* is already your registered email."
 msgstr "*%s* este deja adresa dvs.. de poștă electronică înregistrată."
 
-#: frontend/php/my/admin/change.php:302
+#: frontend/php/my/admin/change.php:301
 msgid "Email address updated."
 msgstr "Adresa de poștă electronică a fost actualizată."
 
-#: frontend/php/my/admin/change.php:310
+#: frontend/php/my/admin/change.php:309
 msgid "Address change process discarded."
 msgstr "Procesul de schimbare a adresei a fost abandonat."
 
-#: frontend/php/my/admin/change.php:311
+#: frontend/php/my/admin/change.php:310
 msgid ""
 "Failed to discard the address change process, please contact\n"
 "administrators."
 msgstr "Înlăturarea procesului de schimbare a adresei a eșuat, vă rugăm să contactați administratorii."
 
-#: frontend/php/my/admin/change.php:344
+#: frontend/php/my/admin/change.php:343
 msgid ""
 "You must quit all groups before requesting account deletion. If you registered a group that is still pending,\n"
 "please ask site admins to cancel that registration."
 msgstr "Trebuie să părăsiți toate grupurile înainte de a solicita ștergerea contului. Dacă ați înregistrat un grup care este încă în așteptare, vă rugăm să solicitați administratorilor sitului să anuleze înregistrarea respectivă."
 
-#: frontend/php/my/admin/change.php:354
+#: frontend/php/my/admin/change.php:353
 #, php-format
 msgid ""
 "Someone, presumably you, has requested your %s account deletion.\n"
@@ -3168,143 +3454,143 @@ msgstr ""
 "Cineva, probabil tu, a solicitat ștergerea contului tău %s.\n"
 "Dacă nu ai fost tu, înseamnă probabil că cineva ți-a furat contul."
 
-#: frontend/php/my/admin/change.php:361
+#: frontend/php/my/admin/change.php:360
 #, php-format
 msgid ""
 "If you did request your %s account deletion, visit the following URL to finish\n"
 "the deletion process:"
 msgstr "Dacă ați solicitat ștergerea contului %s, vizitați următoarea adresă URL pentru a finaliza procesul de ștergere:"
 
-#: frontend/php/my/admin/change.php:366
+#: frontend/php/my/admin/change.php:365
 msgid ""
 "If you did not request that change, please visit the following URL to discard\n"
 "the process and report ASAP the problem to us:"
 msgstr "Dacă nu ați solicitat această modificare, vă rugăm să vizitați următoarea adresă URL pentru a anula procesul și să ne raportați imediat problema:"
 
-#: frontend/php/my/admin/change.php:391
+#: frontend/php/my/admin/change.php:390
 msgid "Follow the instructions in the email to complete the account deletion."
 msgstr "Urmați instrucțiunile din mesaj pentru a finaliza ștergerea contului."
 
-#: frontend/php/my/admin/change.php:432
+#: frontend/php/my/admin/change.php:431
 msgid "Failed to discard account deletion process, please contact administrators."
 msgstr "Anularea procesului de ștergere a contului a eșuat, vă rugăm să contactați administratorii."
 
-#: frontend/php/my/admin/change.php:472
+#: frontend/php/my/admin/change.php:471
 msgid "New display name:"
 msgstr "Nume nou de afișare:"
 
-#: frontend/php/my/admin/change.php:479 frontend/php/my/admin/index.php:319
+#: frontend/php/my/admin/change.php:478 frontend/php/my/admin/index.php:319
 msgid ""
 "No matter where you live, you can see all dates and times as if it were in\n"
 "your neighborhood."
 msgstr "Indiferent unde locuiți, puteți vedea toate datele și orele ca și cum ar fi în apropierea dumneavoastră."
 
-#: frontend/php/my/admin/change.php:484 frontend/php/my/admin/index.php:315
+#: frontend/php/my/admin/change.php:483 frontend/php/my/admin/index.php:315
 #: frontend/php/my/admin/index.php:317
 msgid "Timezone"
 msgstr "Fusul orar"
 
-#: frontend/php/my/admin/change.php:490
+#: frontend/php/my/admin/change.php:489
 msgid "Current passphrase:"
 msgstr "Parola curentă:"
 
-#: frontend/php/my/admin/change.php:492
+#: frontend/php/my/admin/change.php:491
 msgid "Re-type new passphrase:"
 msgstr "Reintroduceți parola nouă:"
 
-#: frontend/php/my/admin/change.php:509
+#: frontend/php/my/admin/change.php:508
 msgid "New GPG keys"
 msgstr "Chei GPG noi"
 
-#: frontend/php/my/admin/change.php:514
+#: frontend/php/my/admin/change.php:513
 #: frontend/php/project/admin/editgroupinfo.php:208
 msgid "Test GPG keys"
 msgstr "Testare chei GPG"
 
-#: frontend/php/my/admin/change.php:515
+#: frontend/php/my/admin/change.php:514
 msgid "(Testing is recommended before updating.)"
 msgstr "Se recomandă testarea înainte de actualizare."
 
-#: frontend/php/my/admin/change.php:523
+#: frontend/php/my/admin/change.php:522
 msgid "New email address:"
 msgstr "Noua adresă de poștă electronică:"
 
-#: frontend/php/my/admin/change.php:529
+#: frontend/php/my/admin/change.php:528
 msgid "Confirmation hash:"
 msgstr "Suma de control pentru confirmare:"
 
-#: frontend/php/my/admin/change.php:537
+#: frontend/php/my/admin/change.php:536
 msgid "Discard hash:"
 msgstr "Elimină suma de control:"
 
-#: frontend/php/my/admin/change.php:544
+#: frontend/php/my/admin/change.php:543
 msgid "Do you really want to delete your user account?"
 msgstr "Chiar doriți să vă ștergeți contul de utilizator?"
 
-#: frontend/php/my/admin/change.php:547
+#: frontend/php/my/admin/change.php:546
 msgid "Delete account"
 msgstr "Șterge contul"
 
-#: frontend/php/my/admin/change.php:549
+#: frontend/php/my/admin/change.php:548
 #: frontend/php/project/admin/squadadmin.php:111
 msgid "Yes, I really do"
 msgstr "Da, chiar vreau"
 
-#: frontend/php/my/admin/change.php:553
+#: frontend/php/my/admin/change.php:552
 msgid "Change Display Name"
 msgstr "Schimbă numele de afișare"
 
-#: frontend/php/my/admin/change.php:553
+#: frontend/php/my/admin/change.php:552
 msgid "Change Timezone"
 msgstr "Schimbă fusui orar"
 
-#: frontend/php/my/admin/change.php:554
+#: frontend/php/my/admin/change.php:553
 msgid "Change Password"
 msgstr "Schimbă parola"
 
-#: frontend/php/my/admin/change.php:554
+#: frontend/php/my/admin/change.php:553
 msgid "Change GPG Keys"
 msgstr "Schimbă cheile GPG"
 
-#: frontend/php/my/admin/change.php:556
+#: frontend/php/my/admin/change.php:555
 msgid "Change Email Address"
 msgstr "Schimbă adresa de poștă electronică"
 
-#: frontend/php/my/admin/change.php:556
+#: frontend/php/my/admin/change.php:555
 msgid "Confirm Email Change"
 msgstr "Confirmă schimbarea adresei de poștă electronică"
 
-#: frontend/php/my/admin/change.php:557
+#: frontend/php/my/admin/change.php:556
 msgid "Discard Email Change"
 msgstr "Anulează schimbarea adresei de poștă electronică"
 
-#: frontend/php/my/admin/change.php:560 frontend/php/my/admin/index.php:404
+#: frontend/php/my/admin/change.php:559 frontend/php/my/admin/index.php:404
 msgid "Delete Account"
 msgstr "Șterge contul"
 
-#: frontend/php/my/admin/change.php:560
+#: frontend/php/my/admin/change.php:559
 msgid "Confirm account deletion"
 msgstr "Confirmă ștergerea contului"
 
-#: frontend/php/my/admin/change.php:561
+#: frontend/php/my/admin/change.php:560
 msgid "Discard account deletion"
 msgstr "Anulează ștergerea contului"
 
-#: frontend/php/my/admin/change.php:569
+#: frontend/php/my/admin/change.php:568
 msgid ""
 "Changing your email address will require confirmation from\n"
 "your new email address, so that we can ensure we have a good email address on\n"
 "file."
 msgstr "Schimbarea adresei dvs. de poștă electronică va necesita o confirmare din partea noii adrese de poștă electronică, astfel încât să ne putem asigura că avem o adresă de poștă electronică valabilă înregistrată."
 
-#: frontend/php/my/admin/change.php:573
+#: frontend/php/my/admin/change.php:572
 msgid ""
 "We need to maintain an accurate email address for each user due to the\n"
 "level of access we grant via this account. If we need to reach a user for\n"
 "issues related to this server, it is important that we be able to do so."
 msgstr "Trebuie să menținem o adresă de poștă electronică corectă pentru fiecare utilizator datorită nivelului de acces pe care îl acordăm prin intermediul acestui cont. Dacă trebuie să contactăm un utilizator pentru probleme legate de acest server, este important să putem face acest lucru."
 
-#: frontend/php/my/admin/change.php:578
+#: frontend/php/my/admin/change.php:577
 msgid ""
 "Submitting the form below will mail a confirmation URL to the new email\n"
 "address; visiting this link will complete the email change. The old address\n"
@@ -3312,15 +3598,15 @@ msgid ""
 "request."
 msgstr "Trimiterea formularului de mai jos va trimite un mesaj cu o adresă URL de confirmare la noua adresă de poștă electronică; vizitarea acestei legături va finaliza schimbarea adresei de poștă electronică. Vechea adresă va primi, de asemenea, un mesaj, cu o adresă URL de anulare a cererii."
 
-#: frontend/php/my/admin/change.php:583
+#: frontend/php/my/admin/change.php:582
 msgid "Push &ldquo;Update&rdquo; to confirm your email change"
 msgstr "Apăsați «Actualizează» pentru a confirma schimbarea adresei de poștă electronică"
 
-#: frontend/php/my/admin/change.php:586
+#: frontend/php/my/admin/change.php:585
 msgid "This process will require email confirmation."
 msgstr "Acest proces va necesita confirmarea prin poșta electronică."
 
-#: frontend/php/my/admin/change.php:588
+#: frontend/php/my/admin/change.php:587
 msgid "Push &ldquo;Update&rdquo; to confirm your account deletion"
 msgstr "Apăsați «Actualizează» pentru a confirma ștergerea contului dvs."
 
@@ -3831,7 +4117,7 @@ msgstr "Nume de monitorizare nevalid: %s"
 msgid "Vote number"
 msgstr "Numărul de voturi"
 
-#: frontend/php/my/votes.php:153 frontend/php/include/features_boxes.php:293
+#: frontend/php/my/votes.php:150 frontend/php/include/features_boxes.php:291
 #, php-format
 msgid "%s vote"
 msgid_plural "%s votes"
@@ -3871,7 +4157,7 @@ msgstr "Dimensiunea originală a cheii"
 msgid "Minified key size"
 msgstr "Dimensiunea cheii minificate"
 
-#: frontend/php/include/gpg.php:126 frontend/php/include/gpg.php:469
+#: frontend/php/include/gpg.php:126 frontend/php/include/gpg.php:470
 msgid "Can't create temporary directory."
 msgstr "Nu se poate crea directorul temporar."
 
@@ -3928,7 +4214,7 @@ msgstr "Nu se pot crea fișiere temporare."
 msgid "Extracted GPG key ID is invalid."
 msgstr "ID-ul cheii GPG extrase nu este valid."
 
-#: frontend/php/include/gpg.php:459
+#: frontend/php/include/gpg.php:460
 msgid "GnuPG version"
 msgstr "Versiunea GnuPG"
 
@@ -3962,13 +4248,13 @@ msgid "Mercurial Repositories"
 msgstr "Depozite Mercurial"
 
 #: frontend/php/include/context.php:184
-#: frontend/php/include/trackers_run/mod.php:652
-#: frontend/php/include/trackers_run/mod.php:801
+#: frontend/php/include/trackers_run/mod.php:634
+#: frontend/php/include/trackers_run/mod.php:783
 #: frontend/php/include/trackers_run/search.php:45
-#: frontend/php/include/people/general.php:157
+#: frontend/php/include/people/general.php:163
 #: frontend/php/include/search/general.php:136
 #: frontend/php/include/search/general.php:262
-#: frontend/php/include/pagemenu.php:412 frontend/php/include/pagemenu.php:652
+#: frontend/php/include/pagemenu.php:416 frontend/php/include/pagemenu.php:655
 #: frontend/php/include/sitemenu.php:156
 msgid "Search"
 msgstr "Caută"
@@ -3993,9 +4279,9 @@ msgstr "Administrarea rețetarului"
 
 #: frontend/php/include/context.php:200
 #: frontend/php/include/trackers/cookbook.php:63
-#: frontend/php/include/pagemenu.php:456
+#: frontend/php/include/pagemenu.php:460
 #: frontend/php/project/admin/index.php:82
-#: frontend/php/project/admin/editgroupfeatures.php:358
+#: frontend/php/project/admin/editgroupfeatures.php:360
 msgid "Cookbook"
 msgstr "Rețetarul"
 
@@ -4003,7 +4289,7 @@ msgstr "Rețetarul"
 msgid "Support Tracker Administration"
 msgstr "Administrarea gestionarului de monitorizare a asistenței"
 
-#: frontend/php/include/context.php:201 frontend/php/include/pagemenu.php:626
+#: frontend/php/include/context.php:201 frontend/php/include/pagemenu.php:629
 msgid "Support"
 msgstr "Asistență"
 
@@ -4026,14 +4312,6 @@ msgstr "Administrarea gestionarului de noutăți/știri"
 #: frontend/php/include/context.php:206
 msgid "Mailing Lists Administration"
 msgstr "Administrarea listelor de corespondență"
-
-#: frontend/php/include/context.php:206
-#: frontend/php/include/trackers/cookbook.php:66
-#: frontend/php/include/project_home.php:447
-#: frontend/php/project/admin/index.php:85
-#: frontend/php/project/admin/editgroupfeatures.php:357
-msgid "Mailing Lists"
-msgstr "Liste de corespondență"
 
 #: frontend/php/include/context.php:219
 msgid "Administration Summary"
@@ -4181,7 +4459,7 @@ msgstr[0] "%s grup găzduit"
 msgstr[1] "%s grupuri găzduite"
 msgstr[2] "%s de grupuri găzduite"
 
-#: frontend/php/include/features_boxes.php:165
+#: frontend/php/include/features_boxes.php:164
 #, php-format
 msgid "+ %s registration pending"
 msgid_plural "+ %s registrations pending"
@@ -4408,207 +4686,207 @@ msgstr "Eroare la actualizarea listei %s"
 msgid "List %s not found in the database"
 msgstr "Lista %s nu a fost găsită în baza de date"
 
-#: frontend/php/include/trackers_run/mod.php:114
+#: frontend/php/include/trackers_run/mod.php:112
 msgid "This item is private. However, you are allowed to read it as you submitted it."
 msgstr "Acest articol este privat. Cu toate acestea, vi se permite să îl citiți așa cum l-ați trimis."
 
-#: frontend/php/include/trackers_run/mod.php:118
+#: frontend/php/include/trackers_run/mod.php:116
 msgid ""
 "This item is private. You are not listed as member\n"
 "allowed to read private items."
 msgstr "Acest articol este privat. Nu sunteți listat ca membru cu permisiunea de a citi articole private."
 
-#: frontend/php/include/trackers_run/mod.php:126
+#: frontend/php/include/trackers_run/mod.php:124
 msgid ""
 "You are not allowed to post comments on this tracker with your current\n"
 "authentication level."
 msgstr "Nu vi se permite să publicați comentarii la acest gestionar de monitorizare cu nivelul dvs. actual de autentificare."
 
-#: frontend/php/include/trackers_run/mod.php:147
+#: frontend/php/include/trackers_run/mod.php:145
 msgid "You are both technician and manager for this tracker."
 msgstr "Sunteți atât tehnician, cât și administrator pentru acest gestionar de monitorizare."
 
-#: frontend/php/include/trackers_run/mod.php:149
-#: frontend/php/include/trackers_run/mod.php:158
+#: frontend/php/include/trackers_run/mod.php:147
+#: frontend/php/include/trackers_run/mod.php:156
 #: frontend/php/project/memberlist.php:86
 msgid "technician"
 msgstr "tehnician"
 
-#: frontend/php/include/trackers_run/mod.php:150
+#: frontend/php/include/trackers_run/mod.php:148
 msgid "can be assigned items, cannot change status or priority"
 msgstr "poate atribui elemente, nu le poate schimba starea sau prioritatea"
 
-#: frontend/php/include/trackers_run/mod.php:151
-#: frontend/php/include/trackers_run/mod.php:167
+#: frontend/php/include/trackers_run/mod.php:149
+#: frontend/php/include/trackers_run/mod.php:165
 #: frontend/php/project/memberlist.php:86
 msgid "manager"
 msgstr "administrator"
 
-#: frontend/php/include/trackers_run/mod.php:151
+#: frontend/php/include/trackers_run/mod.php:149
 msgid "fully manage the items"
 msgstr "gestionează complet elementele"
 
-#: frontend/php/include/trackers_run/mod.php:156
+#: frontend/php/include/trackers_run/mod.php:154
 msgid "You are technician for this tracker."
 msgstr "Sunteți tehnician pentru acest gestionar de monitorizare."
 
-#: frontend/php/include/trackers_run/mod.php:159
+#: frontend/php/include/trackers_run/mod.php:157
 msgid "you can be assigned tracker's items, but you cannot reassign items, change priority, open nor close"
 msgstr "vă pot fi atribuite elemente ale gestionarului de monitorizare, dar nu puteți realoca elemente, schimba prioritatea, deschide sau închide"
 
-#: frontend/php/include/trackers_run/mod.php:165
+#: frontend/php/include/trackers_run/mod.php:163
 msgid "You are manager for this tracker."
 msgstr "Sunteți administratorul acestui gestionar de monitorizare."
 
-#: frontend/php/include/trackers_run/mod.php:168
+#: frontend/php/include/trackers_run/mod.php:166
 msgid "you can fully manage the trackers items, including assigning items to technicians, reassigning items over trackers and groups, changing priority, opening and closing items"
 msgstr "puteți gestiona complet elementele gestionarilor de monitorizare, inclusiv atribuirea elementelor tehnicienilor, realocarea elementelor pe gestionarii de monitorizare și grupuri, modificarea priorității, deschiderea și închiderea elementelor"
 
-#: frontend/php/include/trackers_run/mod.php:225
-#: frontend/php/include/trackers_run/mod.php:514
+#: frontend/php/include/trackers_run/mod.php:223
+#: frontend/php/include/trackers_run/mod.php:496
 msgid "Submit changes and browse items"
 msgstr "Trimiteți modificări și răsfoiți elemente"
 
 #. TRANSLATORS: This is a label for dates.
-#: frontend/php/include/trackers_run/mod.php:228
+#: frontend/php/include/trackers_run/mod.php:226
 msgid "Submitted:"
 msgstr "Trimis:"
 
-#: frontend/php/include/trackers_run/mod.php:231
-#: frontend/php/include/trackers_run/mod.php:516
+#: frontend/php/include/trackers_run/mod.php:229
+#: frontend/php/include/trackers_run/mod.php:498
 msgid "Submit changes and return to this item"
 msgstr "Trimiteți modificările și reveniți la acest articol"
 
-#: frontend/php/include/trackers_run/mod.php:236
+#: frontend/php/include/trackers_run/mod.php:234
 msgid "Votes:"
 msgstr "Voturi:"
 
-#: frontend/php/include/trackers_run/mod.php:241
-#: frontend/php/include/trackers_run/mod.php:502
-#: frontend/php/include/trackers_run/mod.php:513
+#: frontend/php/include/trackers_run/mod.php:239
+#: frontend/php/include/trackers_run/mod.php:484
+#: frontend/php/include/trackers_run/mod.php:495
 #: frontend/php/include/trackers_run/add.php:128
-#: frontend/php/include/trackers_run/add.php:215
-#: frontend/php/include/trackers_run/add.php:266
+#: frontend/php/include/trackers_run/add.php:175
+#: frontend/php/include/trackers_run/add.php:222
 #: frontend/php/include/news/general.php:250
 msgid "Preview"
 msgstr "Previzualizare"
 
-#: frontend/php/include/trackers_run/mod.php:392
-#: frontend/php/include/trackers_run/add.php:211
+#: frontend/php/include/trackers_run/mod.php:376
+#: frontend/php/include/trackers_run/add.php:171
 msgid "Mandatory Fields"
 msgstr "Câmpuri obligatorii"
 
-#: frontend/php/include/trackers_run/mod.php:448
+#: frontend/php/include/trackers_run/mod.php:432
 msgid "Comment type:"
 msgstr "Tip de comentariu:"
 
-#: frontend/php/include/trackers_run/mod.php:463
+#: frontend/php/include/trackers_run/mod.php:446
 msgid "Canned response:"
 msgstr "Răspuns prestabilit:"
 
-#: frontend/php/include/trackers_run/mod.php:471
+#: frontend/php/include/trackers_run/mod.php:454
 msgid "Define a new canned response"
 msgstr "Definiți un nou răspuns predefinit"
 
-#: frontend/php/include/trackers_run/mod.php:501
+#: frontend/php/include/trackers_run/mod.php:483
 msgid "Add a New Comment"
 msgstr "Adăugați un comentariu nou"
 
-#: frontend/php/include/trackers_run/mod.php:505
+#: frontend/php/include/trackers_run/mod.php:487
 msgid "New comment"
 msgstr "Comentariu nou"
 
-#: frontend/php/include/trackers_run/mod.php:523
+#: frontend/php/include/trackers_run/mod.php:505
 msgid "Post a Comment"
 msgstr "Publică un comentariu"
 
-#: frontend/php/include/trackers_run/mod.php:538
+#: frontend/php/include/trackers_run/mod.php:520
 msgid "Discussion locked!"
 msgstr "Discuție blocată!"
 
-#: frontend/php/include/trackers_run/mod.php:541
+#: frontend/php/include/trackers_run/mod.php:523
 msgid "Your privileges however allow to override the lock."
 msgstr "Cu toate acestea, privilegiile dvs. vă permit să treceți peste blocare."
 
-#: frontend/php/include/trackers_run/mod.php:544
+#: frontend/php/include/trackers_run/mod.php:526
 msgid "Discussion"
 msgstr "Discuție"
 
-#: frontend/php/include/trackers_run/mod.php:575
-#: frontend/php/include/trackers_run/add.php:222
+#: frontend/php/include/trackers_run/mod.php:557
+#: frontend/php/include/trackers_run/add.php:182
 #: frontend/php/include/trackers/format.php:620
 msgid "Attached Files"
 msgstr "Fișiere atașate"
 
-#: frontend/php/include/trackers_run/mod.php:597
+#: frontend/php/include/trackers_run/mod.php:579
 msgid ""
 "New search, in case the previous one was not satisfactory (to\n"
 "fill a dependency against):"
 msgstr "Noua căutare, în cazul în care cea anterioară nu a fost satisfăcătoare (pentru a completa o dependență):"
 
-#: frontend/php/include/trackers_run/mod.php:599
+#: frontend/php/include/trackers_run/mod.php:581
 msgid "Search an item (to fill a dependency against):"
 msgstr "Căutați un element (pentru a completa o dependență):"
 
-#: frontend/php/include/trackers_run/mod.php:609
+#: frontend/php/include/trackers_run/mod.php:591
 msgid "Tracker to search in:"
 msgstr "Gestionar de monitorizare de căutat în:"
 
-#: frontend/php/include/trackers_run/mod.php:612
+#: frontend/php/include/trackers_run/mod.php:594
 msgid "any tracker"
 msgstr "orice gestionar de monitorizare"
 
-#: frontend/php/include/trackers_run/mod.php:613
+#: frontend/php/include/trackers_run/mod.php:595
 msgid "the support tracker only"
 msgstr "doar gestionarul de monitorizare a asistenței"
 
-#: frontend/php/include/trackers_run/mod.php:614
+#: frontend/php/include/trackers_run/mod.php:596
 msgid "the bug tracker only"
 msgstr "doar gestionarul de monitorizare a erorilor/problemelor"
 
-#: frontend/php/include/trackers_run/mod.php:615
+#: frontend/php/include/trackers_run/mod.php:597
 msgid "the task manager only"
 msgstr "doar gestionarul de monitorizare a sarcinii/funcției"
 
-#: frontend/php/include/trackers_run/mod.php:616
+#: frontend/php/include/trackers_run/mod.php:598
 msgid "the patch manager only"
 msgstr "doar gestionarul de monitorizare a plasturilor/corecțiilor"
 
-#: frontend/php/include/trackers_run/mod.php:627
+#: frontend/php/include/trackers_run/mod.php:609
 msgid "Search in groups:"
 msgstr "Căutare grupuri:"
 
 #. TRANSLATORS: this string is used in the context like
 #. "Search in groups: [this group only]".
-#: frontend/php/include/trackers_run/mod.php:636
+#: frontend/php/include/trackers_run/mod.php:618
 msgid "any group"
 msgstr "orice grup"
 
 #. TRANSLATORS: this string is used in the context like
 #. "Search in groups: [this group only]".
-#: frontend/php/include/trackers_run/mod.php:642
+#: frontend/php/include/trackers_run/mod.php:624
 msgid "this group only"
 msgstr "acest grup doar"
 
-#: frontend/php/include/trackers_run/mod.php:646
+#: frontend/php/include/trackers_run/mod.php:628
 #: frontend/php/include/trackers_run/digest.php:167
 #: frontend/php/include/trackers_run/digest.php:209
-#: frontend/php/include/trackers/view-dependencies.php:339
-#: frontend/php/include/pagemenu.php:649
+#: frontend/php/include/trackers/view-dependencies.php:338
+#: frontend/php/include/pagemenu.php:652
 msgid "Dependencies"
 msgstr "Dependenţe"
 
-#: frontend/php/include/trackers_run/mod.php:652
-#: frontend/php/include/trackers_run/mod.php:799
+#: frontend/php/include/trackers_run/mod.php:634
+#: frontend/php/include/trackers_run/mod.php:781
 msgid "New search"
 msgstr "Căutare nouă"
 
-#: frontend/php/include/trackers_run/mod.php:665
+#: frontend/php/include/trackers_run/mod.php:647
 msgid "Mail Notification Carbon-Copy List"
 msgstr "Lista de copie la indigo (CC) pentru notificarea prin poștă"
 
-#: frontend/php/include/trackers_run/mod.php:671
-#: frontend/php/include/trackers_run/add.php:235
+#: frontend/php/include/trackers_run/mod.php:653
+#: frontend/php/include/trackers_run/add.php:195
 #, php-format
 msgid ""
 "(Note: for %s users, you can use their login name\n"
@@ -4617,22 +4895,22 @@ msgstr ""
 "Notă: pentru utilizatorii %s, puteți utiliza numele lor de\n"
 "autentificare în loc de adresele lor de poștă electronică."
 
-#: frontend/php/include/trackers_run/mod.php:678
+#: frontend/php/include/trackers_run/mod.php:660
 msgid "Add Email Addresses (comma as separator):"
 msgstr "Adăugați adrese de poștă electronică (virgulă ca separator):"
 
-#: frontend/php/include/trackers_run/mod.php:682
-#: frontend/php/include/trackers_run/add.php:246
+#: frontend/php/include/trackers_run/mod.php:664
+#: frontend/php/include/trackers_run/add.php:206
 #: frontend/php/include/trackers/show.php:320
 msgid "Comment:"
 msgstr "Comentariu:"
 
-#: frontend/php/include/trackers_run/mod.php:697
-#: frontend/php/include/pagemenu.php:239
+#: frontend/php/include/trackers_run/mod.php:679
+#: frontend/php/include/pagemenu.php:243
 msgid "Votes"
 msgstr "Voturi"
 
-#: frontend/php/include/trackers_run/mod.php:702
+#: frontend/php/include/trackers_run/mod.php:684
 #, php-format
 msgid "There is %s vote so far."
 msgid_plural "There are %s votes so far."
@@ -4640,26 +4918,26 @@ msgstr[0] "Există %s vot până acum."
 msgstr[1] "Există %s voturi până acum."
 msgstr[2] "Există %s de voturi până acum."
 
-#: frontend/php/include/trackers_run/mod.php:708
+#: frontend/php/include/trackers_run/mod.php:690
 msgid ""
 "Votes easily highlight which items people would like to see resolved\n"
 "in priority, independently of the priority of the item set by tracker\n"
 "managers."
 msgstr "Voturile evidențiază cu ușurință elementele pe care oamenii ar dori să le vadă rezolvate cu prioritate, independent de prioritatea elementului stabilită de administratorii de gestionari de monitorizare."
 
-#: frontend/php/include/trackers_run/mod.php:721
+#: frontend/php/include/trackers_run/mod.php:703
 msgid "Only group members can vote."
 msgstr "Doar membrii grupului pot să voteze."
 
-#: frontend/php/include/trackers_run/mod.php:727
+#: frontend/php/include/trackers_run/mod.php:709
 msgid "Only logged-in users can vote."
 msgstr "Doar utilizatorii autentificați pot să voteze."
 
-#: frontend/php/include/trackers_run/mod.php:739
+#: frontend/php/include/trackers_run/mod.php:721
 msgid "Your vote:"
 msgstr "Votul dvs.:"
 
-#: frontend/php/include/trackers_run/mod.php:745
+#: frontend/php/include/trackers_run/mod.php:727
 #, php-format
 msgid "/ %s remaining vote"
 msgid_plural "/ %s remaining votes"
@@ -4667,63 +4945,63 @@ msgstr[0] "/ %s vot restant"
 msgstr[1] "/ %s voturi restante"
 msgstr[2] "/ %s de voturi restante"
 
-#: frontend/php/include/trackers_run/mod.php:769
+#: frontend/php/include/trackers_run/mod.php:751
 msgid "Reassign this item"
 msgstr "Reatribuiți acest element"
 
-#: frontend/php/include/trackers_run/mod.php:771
+#: frontend/php/include/trackers_run/mod.php:753
 msgid "Tracker to reassign to"
 msgstr "Gestionarul de monitorizare care urmează să fie reatribuit la"
 
 #. TRANSLATORS: this string is used in the context of
 #. "Move to the %s".
-#: frontend/php/include/trackers_run/mod.php:776
+#: frontend/php/include/trackers_run/mod.php:758
 msgid "<!-- Move to the -->Support Tracker"
 msgstr "<!-- Mutați la -->Gestionar de monitorizare a asistenței"
 
-#: frontend/php/include/trackers_run/mod.php:777
+#: frontend/php/include/trackers_run/mod.php:759
 msgid "<!-- Move to the -->Bug Tracker"
 msgstr "<!-- Mutați la -->Gestionar de monitorizare a erorilor/problemelor"
 
-#: frontend/php/include/trackers_run/mod.php:778
+#: frontend/php/include/trackers_run/mod.php:760
 msgid "<!-- Move to the -->Task Tracker"
 msgstr "<!-- Mutați la -->Gestionar de monitorizare a sarcinii/funcției"
 
-#: frontend/php/include/trackers_run/mod.php:779
+#: frontend/php/include/trackers_run/mod.php:761
 msgid "<!-- Move to the -->Patch Tracker"
 msgstr "<!-- Mutați la -->Gestionar de monitorizare a plasturilor/corecțiilor"
 
-#: frontend/php/include/trackers_run/mod.php:785
+#: frontend/php/include/trackers_run/mod.php:767
 #, php-format
 msgid "Move to the %s"
 msgstr "Mutați la %s"
 
-#: frontend/php/include/trackers_run/mod.php:790
+#: frontend/php/include/trackers_run/mod.php:772
 msgid ""
 "New search, in case the previous one was not satisfactory\n"
 "(to reassign the item to another group):"
 msgstr "O nouă căutare, în cazul în care cea anterioară nu a fost satisfăcătoare (pentru a reatribui elementul unui alt grup):"
 
-#: frontend/php/include/trackers_run/mod.php:793
+#: frontend/php/include/trackers_run/mod.php:775
 msgid "Move to the group:"
 msgstr "Mutați la grupul:"
 
-#: frontend/php/include/trackers_run/mod.php:796
+#: frontend/php/include/trackers_run/mod.php:778
 msgid "Group to reassign item to"
 msgstr "Grup pentru realocarea elementului la"
 
-#: frontend/php/include/trackers_run/mod.php:808
+#: frontend/php/include/trackers_run/mod.php:790
 #, php-format
 msgid ""
 "To which group this bug should be reassigned to? This is\n"
 "the result of your search of '%s' in the database:"
 msgstr "Cărui grup ar trebui să fie redistribuită această eroare/problemă? Acesta este rezultatul căutării dvs. a „%s” în baza de date:"
 
-#: frontend/php/include/trackers_run/mod.php:818
+#: frontend/php/include/trackers_run/mod.php:800
 msgid "Do not reassign to another group."
 msgstr "Nu realocați la un alt grup."
 
-#: frontend/php/include/trackers_run/mod.php:836
+#: frontend/php/include/trackers_run/mod.php:818
 msgid ""
 "None found. Please note that only search words of more\n"
 "than three characters are valid."
@@ -4731,17 +5009,7 @@ msgstr ""
 "Nu s-a găsit nimic. Vă rugăm să rețineți că numai cuvintele\n"
 "de căutare cu mai mult de trei caractere sunt valide."
 
-#: frontend/php/include/trackers_run/mod.php:850
-#: frontend/php/include/trackers_run/add.php:259
-msgid ""
-"Please enter the title of <a\n"
-"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a>'s famous\n"
-"dystopian book (it's a date):"
-msgstr ""
-"Introduceți titlul celebrei cărți distopice a lui George Orwell <a\n"
-"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a> (este o dată):"
-
-#: frontend/php/include/trackers_run/mod.php:859
+#: frontend/php/include/trackers_run/mod.php:833
 msgid "History"
 msgstr "Istoric"
 
@@ -4771,15 +5039,15 @@ msgid "Preamble"
 msgstr "Preambul"
 
 #: frontend/php/include/trackers_run/add.php:77
-#: frontend/php/include/news/general.php:233 frontend/php/news/submit.php:98
+#: frontend/php/include/news/general.php:233 frontend/php/news/submit.php:97
 msgid "Details"
 msgstr "Detalii"
 
-#: frontend/php/include/trackers_run/add.php:230
+#: frontend/php/include/trackers_run/add.php:190
 msgid "Mail Notification CC"
 msgstr "Lista destinatarilor copiilor la indigo „CC” pentru notificarea poștală"
 
-#: frontend/php/include/trackers_run/add.php:242
+#: frontend/php/include/trackers_run/add.php:202
 msgid "Add Email Addresses (use comma as separator):"
 msgstr "Adăugați adrese de poștă electronică (utilizați virgula ca separator):"
 
@@ -4797,120 +5065,120 @@ msgstr "Formularul de interogare nr.%s nu există"
 msgid "Wrong parameter"
 msgstr "Parametru greșit"
 
-#: frontend/php/include/trackers_run/browse.php:713
+#: frontend/php/include/trackers_run/browse.php:732
 #: frontend/php/include/trackers_run/digest.php:198
-#: frontend/php/include/pagemenu.php:648
+#: frontend/php/include/pagemenu.php:651
 msgid "Digest"
 msgstr "Rezumat"
 
-#: frontend/php/include/trackers_run/browse.php:928
+#: frontend/php/include/trackers_run/browse.php:947
 msgid "query form"
 msgstr "formular de interogare"
 
-#: frontend/php/include/trackers_run/browse.php:947
+#: frontend/php/include/trackers_run/browse.php:965
 msgid "Simple Search"
 msgstr "Căutare simplă"
 
-#: frontend/php/include/trackers_run/browse.php:953
+#: frontend/php/include/trackers_run/browse.php:971
 msgid "Advanced Search"
 msgstr "Căutare avansată"
 
-#: frontend/php/include/trackers_run/browse.php:957
+#: frontend/php/include/trackers_run/browse.php:975
 msgid "type of search"
 msgstr "tipul de căutare"
 
 #. TRANSLATORS: this string is used to specify kind of selection.
-#: frontend/php/include/trackers_run/browse.php:959
+#: frontend/php/include/trackers_run/browse.php:977
 msgid "Simple"
 msgstr "Simplă"
 
 #. TRANSLATORS: this string is used to specify kind of selection.
-#: frontend/php/include/trackers_run/browse.php:961
+#: frontend/php/include/trackers_run/browse.php:979
 msgid "Multiple"
 msgstr "Multiplă"
 
 #. TRANSLATORS: the first argument is kind of query form (like Basic),
 #. the second argument is kind of selection (Simple or Multiple).
-#: frontend/php/include/trackers_run/browse.php:971
+#: frontend/php/include/trackers_run/browse.php:989
 #, php-format
 msgid "Browse with the %1$s query form and %2$s selection."
 msgstr "Răsfoiți cu formularul de interogare %1$s și selecția %2$s."
 
-#: frontend/php/include/trackers_run/browse.php:991
+#: frontend/php/include/trackers_run/browse.php:1009
 msgid "logical operation to apply"
 msgstr "operația logică de aplicat"
 
 #. TRANSLATORS: this is a logical operator, used in string
 #. "Use logical %s between '%s' and '%s' searches.
-#: frontend/php/include/trackers_run/browse.php:995
+#: frontend/php/include/trackers_run/browse.php:1013
 msgid "AND"
 msgstr "ȘI"
 
 #. TRANSLATORS: this is a logical operator, used in string
 #. "Use logical %s between '%s' and '%s' searches.
-#: frontend/php/include/trackers_run/browse.php:998
+#: frontend/php/include/trackers_run/browse.php:1016
 msgid "OR"
 msgstr "SAU"
 
-#: frontend/php/include/trackers_run/browse.php:1006
+#: frontend/php/include/trackers_run/browse.php:1024
 #, php-format
 msgid "Use logical %1$s between '%2$s' and '%3$s' searches."
 msgstr "Utilizați %1$s logic între căutările „%2$s” și „%3$s”."
 
 #. TRANSLATORS: the string is used like "<field-name> %s since <date>"
-#: frontend/php/include/trackers_run/browse.php:1043
+#: frontend/php/include/trackers_run/browse.php:1061
 msgid "modified"
 msgstr "modificat"
 
-#: frontend/php/include/trackers_run/browse.php:1043
+#: frontend/php/include/trackers_run/browse.php:1061
 msgid "not modified"
 msgstr "nemodificat"
 
-#: frontend/php/include/trackers_run/browse.php:1047
+#: frontend/php/include/trackers_run/browse.php:1065
 msgid "whether additional constraint is activated"
 msgstr "dacă este activată constrângerea suplimentară"
 
 #. TRANSLATORS: this string is used as the argument in
 #. 'Additional constraint %s'.
-#: frontend/php/include/trackers_run/browse.php:1051
+#: frontend/php/include/trackers_run/browse.php:1069
 msgid "deactivated"
 msgstr "dezactivată"
 
 #. TRANSLATORS: this string is used as the argument in
 #. 'Additional constraint %s'.
-#: frontend/php/include/trackers_run/browse.php:1054
+#: frontend/php/include/trackers_run/browse.php:1072
 msgid "activated"
 msgstr "activată"
 
-#: frontend/php/include/trackers_run/browse.php:1059
+#: frontend/php/include/trackers_run/browse.php:1077
 msgid "Field for criteria"
 msgstr "Câmp pentru criterii"
 
-#: frontend/php/include/trackers_run/browse.php:1063
+#: frontend/php/include/trackers_run/browse.php:1081
 msgid "modified or not"
 msgstr "modificat sau nemodificat"
 
 #. TRANSLATORS: the argument is 'activated' or 'deactivated'.
-#: frontend/php/include/trackers_run/browse.php:1068
+#: frontend/php/include/trackers_run/browse.php:1086
 #, php-format
 msgid "Additional constraint %1$s:"
 msgstr "Constrângerea suplimentară %1$s:"
 
-#: frontend/php/include/trackers_run/browse.php:1073
+#: frontend/php/include/trackers_run/browse.php:1091
 #, php-format
 msgid "%1$s %2$s since %3$s"
 msgstr "%1$s %2$s de la %3$s"
 
-#: frontend/php/include/trackers_run/browse.php:1088
+#: frontend/php/include/trackers_run/browse.php:1106
 #, php-format
 msgid "Show items with a spam score lower than %s."
 msgstr "Afișează elementele cu un punctaj de spam mai mic decât %s."
 
-#: frontend/php/include/trackers_run/browse.php:1091
+#: frontend/php/include/trackers_run/browse.php:1109
 msgid "Spam level of items to hide"
 msgstr "Nivelul de spam al elementelor de ascuns"
 
-#: frontend/php/include/trackers_run/browse.php:1096
+#: frontend/php/include/trackers_run/browse.php:1114
 #, php-format
 msgid "Warning: only %s item can be shown at once."
 msgid_plural "Warning: only %s items can be shown at once."
@@ -4918,7 +5186,7 @@ msgstr[0] "Atenție: numai %s element poate fi afișat odată."
 msgstr[1] "Atenție: numai %s elemente pot fi afișate simultan."
 msgstr[2] "Atenție: numai %s de elemente pot fi afișate simultan."
 
-#: frontend/php/include/trackers_run/browse.php:1109
+#: frontend/php/include/trackers_run/browse.php:1127
 #, php-format
 msgid ""
 "Column heading links sort results (up or\n"
@@ -4926,26 +5194,26 @@ msgid ""
 "sort</a>."
 msgstr "Legăturile cu titlul coloanelor sortează rezultatele (ascendent sau descendent), puteți, de asemenea, <a href=\"%1$s\">sortează după prioritate</a> sau <a href=\"%2$s\">reinițializează sortarea</a>."
 
-#: frontend/php/include/trackers_run/browse.php:1120
+#: frontend/php/include/trackers_run/browse.php:1138
 #, php-format
 msgid "You can also <a href=\"%s\">deactivate multicolumn sort</a>."
 msgstr "De asemenea, puteți <a href=\"%s\">dezactiva sortarea pe mai multe coloane</a>."
 
-#: frontend/php/include/trackers_run/browse.php:1129
+#: frontend/php/include/trackers_run/browse.php:1147
 #, php-format
 msgid "You can also <a href=\"%s\">activate multicolumn sort</a>."
 msgstr "De asemenea, puteți <a href=\"%s\">activa sortarea pe mai multe coloane</a>."
 
-#: frontend/php/include/trackers_run/browse.php:1136
+#: frontend/php/include/trackers_run/browse.php:1154
 #, php-format
 msgid "Currently, results are sorted by %s."
 msgstr "În prezent, rezultatele sunt sortate după %s."
 
-#: frontend/php/include/trackers_run/browse.php:1152
+#: frontend/php/include/trackers_run/browse.php:1170
 msgid "Proceed to Digest next step"
 msgstr "Treceți la pasul următor de procesare din Rezumat"
 
-#: frontend/php/include/trackers_run/browse.php:1158
+#: frontend/php/include/trackers_run/browse.php:1176
 msgid "No matching items found. The display criteria may be too restrictive."
 msgstr "Nu s-au găsit elemente corespunzătoare. Criteriile de afișare pot fi mult prea restrictive."
 
@@ -5001,7 +5269,7 @@ msgstr "Niciun câmp selectat pentru rezumat"
 
 #. TRANSLATORS: anonymous user.
 #: frontend/php/include/trackers_run/digest.php:327
-#: frontend/php/include/utils.php:448 frontend/php/include/html.php:856
+#: frontend/php/include/utils.php:444 frontend/php/include/html.php:857
 msgid "Anonymous"
 msgstr "Anonim"
 
@@ -5014,240 +5282,240 @@ msgstr "Ultimul comentariu publicat (de %s):"
 msgid "This user is already member of the group."
 msgstr "Acest utilizator este deja membru al grupului."
 
-#: frontend/php/include/people/general.php:145
-#: frontend/php/include/people/general.php:418
+#: frontend/php/include/people/general.php:151
+#: frontend/php/include/people/general.php:436
 msgid "Category"
 msgstr "Categorie"
 
-#: frontend/php/include/people/general.php:147
-#: frontend/php/include/people/general.php:191
+#: frontend/php/include/people/general.php:153
+#: frontend/php/include/people/general.php:197
 msgid "No categories found"
 msgstr "Nu s-au găsit categorii"
 
-#: frontend/php/include/people/general.php:150
-#: frontend/php/include/html.php:1051
+#: frontend/php/include/people/general.php:156
+#: frontend/php/include/html.php:1052
 msgid "Group type"
 msgstr "Tipul de grup"
 
-#: frontend/php/include/people/general.php:152
+#: frontend/php/include/people/general.php:158
 msgid "No jobs found"
 msgstr "Nu s-au găsit sarcinii"
 
 #. TRANSLATORS: this string is a job status.
-#: frontend/php/include/people/general.php:212
+#: frontend/php/include/people/general.php:218
 msgid "Open"
 msgstr "Deschide"
 
 #. TRANSLATORS: this string is a job status.
-#: frontend/php/include/people/general.php:214
+#: frontend/php/include/people/general.php:220
 msgid "Filled"
 msgstr "Umplut"
 
 #. TRANSLATORS: this string is a job status.
-#: frontend/php/include/people/general.php:216
+#: frontend/php/include/people/general.php:222
 msgid "Deleted"
 msgstr "Șters"
 
-#: frontend/php/include/people/general.php:221
+#: frontend/php/include/people/general.php:227
 msgid "job status"
 msgstr "stare sarcină"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:232
+#: frontend/php/include/people/general.php:238
 msgid "Developer"
 msgstr "Dezvoltator"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:234
+#: frontend/php/include/people/general.php:240
 msgid "Group Manager"
 msgstr "Administrator de grup"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:236
+#: frontend/php/include/people/general.php:242
 msgid "Unix Admin"
 msgstr "Administrator Unix"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:238
+#: frontend/php/include/people/general.php:244
 msgid "Doc Writer"
 msgstr "Redactor de documente"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:240
+#: frontend/php/include/people/general.php:246
 msgid "Tester"
 msgstr "Persoană pentru testarea software"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:242
+#: frontend/php/include/people/general.php:248
 msgid "Support Manager"
 msgstr "Responsabil de asistență tehnică"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:244
+#: frontend/php/include/people/general.php:250
 msgid "Graphic/Other Designer"
 msgstr "Desenator grafic/alt desenator"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:246
+#: frontend/php/include/people/general.php:252
 msgid "Translator"
 msgstr "Traducător"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:248
+#: frontend/php/include/people/general.php:254
 msgid "Other"
 msgstr "Alta"
 
-#: frontend/php/include/people/general.php:254
+#: frontend/php/include/people/general.php:260
 msgid "job category"
 msgstr "categorie de post"
 
-#: frontend/php/include/people/general.php:264
-#: frontend/php/include/people/general.php:597
+#: frontend/php/include/people/general.php:270
+#: frontend/php/include/people/general.php:595
 msgid "You must be logged in first"
 msgstr "Trebuie să vă autentificați mai întâi"
 
-#: frontend/php/include/people/general.php:274
+#: frontend/php/include/people/general.php:280
 msgid "Skill already in your inventory"
 msgstr "Competență aflată deja în portofoliul dvs."
 
-#: frontend/php/include/people/general.php:289
-#: frontend/php/include/people/general.php:619
+#: frontend/php/include/people/general.php:295
+#: frontend/php/include/people/general.php:617
 msgid "Added to skill inventory"
 msgstr "Adăugată la portofoliul de competențe"
 
 #. TRANSLATORS: this is an error message.
-#: frontend/php/include/people/general.php:294
+#: frontend/php/include/people/general.php:300
 msgid "Inserting into skill inventory"
 msgstr "Se include în portofoliul de competențe"
 
-#: frontend/php/include/people/general.php:312
-#: frontend/php/include/people/general.php:353
-#: frontend/php/include/people/general.php:628
+#: frontend/php/include/people/general.php:318
+#: frontend/php/include/people/general.php:359
+#: frontend/php/include/people/general.php:626
 msgid "Skill"
 msgstr "Competență"
 
-#: frontend/php/include/people/general.php:312
-#: frontend/php/include/people/general.php:353
-#: frontend/php/include/people/general.php:628
+#: frontend/php/include/people/general.php:318
+#: frontend/php/include/people/general.php:359
+#: frontend/php/include/people/general.php:626
 msgid "Level"
 msgstr "Nivel"
 
-#: frontend/php/include/people/general.php:312
-#: frontend/php/include/people/general.php:353
-#: frontend/php/include/people/general.php:628
+#: frontend/php/include/people/general.php:318
+#: frontend/php/include/people/general.php:359
+#: frontend/php/include/people/general.php:626
 msgid "Experience"
 msgstr "Experiență"
 
-#: frontend/php/include/people/general.php:317
-#: frontend/php/include/people/general.php:655
+#: frontend/php/include/people/general.php:323
+#: frontend/php/include/people/general.php:653
 msgid "SQL Error:"
 msgstr "Eroare SQL:"
 
-#: frontend/php/include/people/general.php:324
-#: frontend/php/include/people/general.php:358
-#: frontend/php/include/people/general.php:661
+#: frontend/php/include/people/general.php:330
+#: frontend/php/include/people/general.php:364
+#: frontend/php/include/people/general.php:659
 msgid "No skill inventory set up"
 msgstr "Niciun portofoliu de competențe definit"
 
-#: frontend/php/include/people/general.php:353
+#: frontend/php/include/people/general.php:359
 msgid "Action"
 msgstr "Acțiune"
 
-#: frontend/php/include/people/general.php:384
+#: frontend/php/include/people/general.php:390
 msgid "Add a New Skill"
 msgstr "Adăugați o competență nouă"
 
-#: frontend/php/include/people/general.php:398
+#: frontend/php/include/people/general.php:404
 msgid "Add Skill"
 msgstr "Adaugă competență"
 
-#: frontend/php/include/people/general.php:418
+#: frontend/php/include/people/general.php:436
 msgid "Date Opened"
 msgstr "Data deschiderii"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:541
+#: frontend/php/include/people/general.php:539
 msgid "Base Knowledge"
 msgstr "Cunoștințe de bază"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:543
+#: frontend/php/include/people/general.php:541
 msgid "Good Knowledge"
 msgstr "Bune cunoștințe"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:545
+#: frontend/php/include/people/general.php:543
 msgid "Master"
 msgstr "Maestru"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:547
+#: frontend/php/include/people/general.php:545
 msgid "Master Apprentice"
 msgstr "Ucenic de maestru"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:549
+#: frontend/php/include/people/general.php:547
 msgid "Expert"
 msgstr "Expert"
 
-#: frontend/php/include/people/general.php:555
+#: frontend/php/include/people/general.php:553
 msgid "skill level"
 msgstr "nivel de competență"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:564
+#: frontend/php/include/people/general.php:562
 msgid "< 6 Months"
 msgstr "< 6 luni"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:566
+#: frontend/php/include/people/general.php:564
 msgid "6 Mo - 2 yr"
 msgstr "6 luni - 2 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:568
+#: frontend/php/include/people/general.php:566
 msgid "2 yr - 5 yr"
 msgstr "2 ani - 5 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:570
+#: frontend/php/include/people/general.php:568
 msgid "5 yr - 10 yr"
 msgstr "5 ani - 10 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:572
+#: frontend/php/include/people/general.php:570
 msgid "> 10 years"
 msgstr "> 10 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:574
+#: frontend/php/include/people/general.php:572
 msgid "10 yr - 20 yr"
 msgstr "10 ani - 20 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:576
+#: frontend/php/include/people/general.php:574
 msgid "20 yr - 40 yr"
 msgstr "20 ani - 40 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:578
+#: frontend/php/include/people/general.php:576
 msgid "40 yr - 80 yr"
 msgstr "40 ani - 80 ani"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:580
+#: frontend/php/include/people/general.php:578
 msgid "> 80 years"
 msgstr "> 80 ani"
 
-#: frontend/php/include/people/general.php:586
+#: frontend/php/include/people/general.php:584
 msgid "experience level"
 msgstr "nivelul de experiență"
 
-#: frontend/php/include/people/general.php:607
+#: frontend/php/include/people/general.php:605
 msgid "ERROR - skill already in your inventory"
 msgstr "EROARE - competență deja în portofoliul dvs."
 
-#: frontend/php/include/people/general.php:622
+#: frontend/php/include/people/general.php:620
 msgid "ERROR inserting into skill inventory"
 msgstr "EROARE la includerea în portofoliul de competențe"
 
@@ -5267,52 +5535,9 @@ msgid ""
 "repository as well as differences among two versions."
 msgstr "Puteți consulta depozitul %s al acestui grup cu navigatorul dvs. web. Acest lucru vă oferă o imagine bună a stării actuale a fișierelor sursă. De asemenea, puteți vizualiza istoricul complet al oricărui fișier din depozit, precum și diferențele dintre două versiuni."
 
-#: frontend/php/include/vcs.php:215 frontend/php/include/project_home.php:512
-#: frontend/php/include/project_home.php:515
-msgid "Browse Sources Repository"
-msgstr "Consultați depozitul de cod-sursă"
-
 #: frontend/php/include/vcs.php:233
 msgid "Arch"
 msgstr "Arch"
-
-#: frontend/php/include/vcs.php:233 frontend/php/include/pagemenu.php:504
-#: frontend/php/include/project_home.php:545
-#: frontend/php/project/admin/editgroupfeatures.php:346
-msgid "Bazaar"
-msgstr "Bazaar"
-
-#. TRANSLATORS: this string is used as argument in messages 'Use %s'
-#. and '%s Repository'.
-#: frontend/php/include/vcs.php:233 frontend/php/include/pagemenu.php:502
-#: frontend/php/include/project_home.php:546
-#: frontend/php/project/admin/editgroupfeatures.php:337
-msgid "CVS"
-msgstr "CVS"
-
-#. TRANSLATORS: the string is used as the argument of "%s Repository".
-#: frontend/php/include/vcs.php:234 frontend/php/include/pagemenu.php:503
-#: frontend/php/include/project_home.php:545
-#: frontend/php/project/admin/editgroupfeatures.php:344
-msgid "Git"
-msgstr "Git"
-
-#: frontend/php/include/vcs.php:234 frontend/php/include/pagemenu.php:503
-#: frontend/php/include/project_home.php:545
-#: frontend/php/project/admin/editgroupfeatures.php:345
-msgid "Mercurial"
-msgstr "Mercurial"
-
-#: frontend/php/include/vcs.php:234 frontend/php/include/pagemenu.php:502
-#: frontend/php/include/project_home.php:546
-#: frontend/php/project/admin/editgroupfeatures.php:343
-msgid "Subversion"
-msgstr "Subversion"
-
-#: frontend/php/include/vcs.php:257 frontend/php/include/pagemenu.php:362
-#: frontend/php/include/project_home.php:522
-msgid "Browse Web Pages Repository"
-msgstr "Consultați depozitul de cod-sursă al paginilor web"
 
 #: frontend/php/include/vcs.php:270
 msgid "This group doesn't use this tool."
@@ -5371,7 +5596,7 @@ msgid "Group administrator"
 msgstr "Administrator grup"
 
 #: frontend/php/include/trackers/format.php:249
-#: frontend/php/include/html.php:855
+#: frontend/php/include/html.php:856
 msgid "Group Member"
 msgstr "Membru grup"
 
@@ -5384,13 +5609,13 @@ msgid "This is a preview"
 msgstr "Acesta este o previzualizare"
 
 #: frontend/php/include/trackers/format.php:279
-#: frontend/php/include/trackers/data.php:2780 frontend/php/markup-test.php:94
+#: frontend/php/include/trackers/data.php:2775 frontend/php/markup-test.php:94
 #, php-format
 msgid "comment #%s:"
 msgstr "comentariu nr.%s:"
 
 #: frontend/php/include/trackers/format.php:282
-#: frontend/php/include/trackers/data.php:2789
+#: frontend/php/include/trackers/data.php:2784
 msgid "original submission:"
 msgstr "trimiterea originală:"
 
@@ -5503,42 +5728,17 @@ msgstr "Membrii grupului care sunt administratori"
 msgid "Group Main Pages"
 msgstr "Pagini principale ale grupului"
 
-#: frontend/php/include/trackers/cookbook.php:62
-#: frontend/php/include/project_home.php:323
-msgid "Group Homepage"
-msgstr "Pagina principală a grupului"
-
-#: frontend/php/include/trackers/cookbook.php:63
-#: frontend/php/include/project_home.php:336
-#: frontend/php/project/admin/editgroupfeatures.php:312
-msgid "Download Area"
-msgstr "Zona de descărcare"
-
 #: frontend/php/include/trackers/cookbook.php:64
 #: frontend/php/project/admin/index.php:82
 #: frontend/php/project/admin/userperms.php:677
-#: frontend/php/project/admin/editgroupfeatures.php:359
+#: frontend/php/project/admin/editgroupfeatures.php:361
 msgid "Support Tracker"
 msgstr "Monitorizare a asistenței"
-
-#: frontend/php/include/trackers/cookbook.php:64
-#: frontend/php/include/project_home.php:552
-#: frontend/php/project/admin/index.php:83
-#: frontend/php/project/admin/userperms.php:677
-#: frontend/php/project/admin/editgroupfeatures.php:359
-msgid "Bug Tracker"
-msgstr "Monitorizare a erorilor/problemelor"
-
-#: frontend/php/include/trackers/cookbook.php:65
-#: frontend/php/include/project_home.php:553
-#: frontend/php/project/admin/index.php:83
-msgid "Task Manager"
-msgstr "Gestionar de sarcini"
 
 #: frontend/php/include/trackers/cookbook.php:65
 #: frontend/php/project/admin/index.php:84
 #: frontend/php/project/admin/userperms.php:678
-#: frontend/php/project/admin/editgroupfeatures.php:360
+#: frontend/php/project/admin/editgroupfeatures.php:362
 msgid "Patch Tracker"
 msgstr "Monitorizare a plasturilor/corecțiilor"
 
@@ -5629,42 +5829,42 @@ msgstr "Audiență/Caracteristică/Acțiune actualizată"
 msgid "This group has turned off this tracker."
 msgstr "Acest grup a dezactivat acest monitor."
 
-#: frontend/php/include/trackers/general.php:331
-#: frontend/php/include/trackers/general.php:338
+#: frontend/php/include/trackers/general.php:348
+#: frontend/php/include/trackers/general.php:355
 msgid "Start:"
 msgstr "Start:"
 
-#: frontend/php/include/trackers/general.php:331
-#: frontend/php/include/trackers/general.php:342
+#: frontend/php/include/trackers/general.php:348
+#: frontend/php/include/trackers/general.php:359
 msgid "End:"
 msgstr "Final:"
 
-#: frontend/php/include/trackers/general.php:333
+#: frontend/php/include/trackers/general.php:350
 msgid "Any time"
 msgstr "În orice moment"
 
-#: frontend/php/include/trackers/general.php:341
-#: frontend/php/include/trackers/general.php:345
+#: frontend/php/include/trackers/general.php:358
+#: frontend/php/include/trackers/general.php:362
 msgid "(yyyy-mm-dd)"
 msgstr "(AAAA-LL-ZZ)"
 
-#: frontend/php/include/trackers/general.php:362
+#: frontend/php/include/trackers/general.php:379
 msgid "comparison operator"
 msgstr "operator comparare"
 
-#: frontend/php/include/trackers/general.php:369
+#: frontend/php/include/trackers/general.php:386
 msgid "Items to show at once:"
 msgstr "Elemente de afișat simultan:"
 
-#: frontend/php/include/trackers/general.php:416
+#: frontend/php/include/trackers/general.php:466
 msgid "Error: no group defined"
 msgstr "Eroare: nu a fost definit niciun grup"
 
-#: frontend/php/include/trackers/general.php:510
+#: frontend/php/include/trackers/general.php:505
 msgid "Internal error: no group id"
 msgstr "Eroare internă: niciun id de grup"
 
-#: frontend/php/include/trackers/general.php:624
+#: frontend/php/include/trackers/general.php:619
 #, php-format
 msgid ""
 "These fields are mandatory: %s.\n"
@@ -5673,7 +5873,7 @@ msgstr ""
 "Aceste câmpuri sunt obligatorii: %s.\n"
 "Completați-le și retrimiteți formularul."
 
-#: frontend/php/include/trackers/general.php:630
+#: frontend/php/include/trackers/general.php:625
 #, php-format
 msgid ""
 "The field %s is mandatory.\n"
@@ -5682,7 +5882,7 @@ msgstr ""
 "Câmpul %s este obligatoriu.\n"
 "Completați-l și retrimiteți formularul."
 
-#: frontend/php/include/trackers/general.php:640
+#: frontend/php/include/trackers/general.php:635
 #, php-format
 msgid ""
 "These fields are mandatory: %s.\n"
@@ -5693,7 +5893,7 @@ msgstr ""
 "Acestea au fost readuse la valoarea lor anterioară.\n"
 "Verificați-le și retrimiteți formularul."
 
-#: frontend/php/include/trackers/general.php:647
+#: frontend/php/include/trackers/general.php:642
 #, php-format
 msgid ""
 "The field %s is mandatory.\n"
@@ -5704,59 +5904,59 @@ msgstr ""
 "Acesta a fost readus la valoarea sa anterioară.\n"
 "Verificați-l și retrimiteți formularul."
 
-#: frontend/php/include/trackers/general.php:876
+#: frontend/php/include/trackers/general.php:871
 msgid "Presumed spam: no mail will be sent"
 msgstr "Se presupune că este spam: nu va fi trimis niciun mesaj"
 
-#: frontend/php/include/trackers/general.php:889
+#: frontend/php/include/trackers/general.php:884
 msgid "Could not send item update."
 msgstr "Nu s-a putut trimite actualizarea elementului."
 
-#: frontend/php/include/trackers/general.php:1024
+#: frontend/php/include/trackers/general.php:1019
 msgid "Uploaded file size exceeds configured value."
 msgstr "Dimensiunea fișierului încărcat depășește valoarea configurată."
 
-#: frontend/php/include/trackers/general.php:1030
+#: frontend/php/include/trackers/general.php:1025
 #, php-format
 msgid "Maximum upload file size is %s."
 msgstr "Dimensiunea maximă a fișierului încărcat este %s."
 
-#: frontend/php/include/trackers/general.php:1040
+#: frontend/php/include/trackers/general.php:1035
 #, php-format
 msgid "Error while uploading file '%s':"
 msgstr "Eroare la încărcarea fișierului „%s”:"
 
-#: frontend/php/include/trackers/general.php:1041
+#: frontend/php/include/trackers/general.php:1036
 #, php-format
 msgid "Unknown file upload error code: %s."
 msgstr "Cod eroare necunoscut la încărcarea fișierului: %s."
 
-#: frontend/php/include/trackers/general.php:1046
+#: frontend/php/include/trackers/general.php:1041
 msgid "The file was only partially uploaded."
 msgstr "Fișierul a fost încărcat doar parțial."
 
-#: frontend/php/include/trackers/general.php:1047
+#: frontend/php/include/trackers/general.php:1042
 msgid "No file was uploaded."
 msgstr "Nu a fost încărcat niciun fișier."
 
-#: frontend/php/include/trackers/general.php:1048
+#: frontend/php/include/trackers/general.php:1043
 msgid "Missing temporary directory."
 msgstr "Lipsește directorul temporar."
 
-#: frontend/php/include/trackers/general.php:1049
+#: frontend/php/include/trackers/general.php:1044
 msgid "Failed to write file to disk."
 msgstr "Scrierea fișierului pe disc a eșuat."
 
-#: frontend/php/include/trackers/general.php:1050
+#: frontend/php/include/trackers/general.php:1045
 msgid "Upload was stopped by some PHP extension."
 msgstr "Încărcarea a fost oprită de o extensie PHP."
 
-#: frontend/php/include/trackers/general.php:1110
+#: frontend/php/include/trackers/general.php:1105
 #, php-format
 msgid "Unexpected error, disregarding file %s attachment"
 msgstr "Eroare neașteptată, nu se ia în considerare fișierul %s atașat"
 
-#: frontend/php/include/trackers/general.php:1125
+#: frontend/php/include/trackers/general.php:1120
 #, php-format
 msgid "You already uploaded %s kilobyte."
 msgid_plural "You already uploaded %s kilobytes."
@@ -5764,17 +5964,17 @@ msgstr[0] "Ați încărcat deja %s kilooctet."
 msgstr[1] "Ați încărcat deja %s kiloocteți."
 msgstr[2] "Ați încărcat deja %s de kiloocteți."
 
-#: frontend/php/include/trackers/general.php:1137
+#: frontend/php/include/trackers/general.php:1132
 #, php-format
 msgid "The upload directory '%s' is not writable."
 msgstr "Directorul de încărcare „%s” nu este inscriptibil."
 
-#: frontend/php/include/trackers/general.php:1149
+#: frontend/php/include/trackers/general.php:1144
 #, php-format
 msgid "File %s not attached: unable to open it"
 msgstr "Fișierul %s nu este atașat: nu poate fi deschis"
 
-#: frontend/php/include/trackers/general.php:1164
+#: frontend/php/include/trackers/general.php:1159
 #, php-format
 msgid ""
 "(Note: upload size limit is set to %s, after insertion of\n"
@@ -5783,81 +5983,90 @@ msgstr ""
 "Notă: limita de dimensiune a încărcării este stabilită la %s,\n"
 "după introducerea caracterelor de eludare necesare."
 
-#: frontend/php/include/trackers/general.php:1191
+#: frontend/php/include/trackers/general.php:1186
 #, php-format
 msgid "File %s is empty."
 msgstr "Fișierul %s este gol."
 
-#: frontend/php/include/trackers/general.php:1227
+#: frontend/php/include/trackers/general.php:1222
 #, php-format
 msgid "Error while attaching file %s"
 msgstr "Eroare în timpul atașării fișierului %s"
 
-#: frontend/php/include/trackers/general.php:1236
+#: frontend/php/include/trackers/general.php:1231
 #, php-format
 msgid "Error while saving file %s on disk"
 msgstr "Eroare în timpul salvării fișierului %s pe disc"
 
 #. TRANSLATORS: the argument is file id (a number).
-#: frontend/php/include/trackers/general.php:1243
+#: frontend/php/include/trackers/general.php:1238
 #, php-format
 msgid "file #%s attached"
 msgstr "fișierul nr.%s atașat"
 
-#: frontend/php/include/trackers/general.php:1318
+#: frontend/php/include/trackers/general.php:1313
 msgid "CC added."
 msgstr "Destinatar de copie la indigo „CC” adăugat."
 
-#: frontend/php/include/trackers/general.php:1321
+#: frontend/php/include/trackers/general.php:1316
 msgid "CC addition failed."
 msgstr "Adăugarea destinatarului copiei la indigo „CC” a eșuat."
 
-#: frontend/php/include/trackers/general.php:1364
+#: frontend/php/include/trackers/general.php:1359
 msgid "CC Removed"
 msgstr "Destinatar de copie la indigo „CC” eliminat"
 
-#: frontend/php/include/trackers/general.php:1408
+#: frontend/php/include/trackers/general.php:1403
 msgid "Removing CC is not allowed"
 msgstr "Eliminarea destinatarului copiei la indigo „CC” nu este permisă"
 
-#: frontend/php/include/trackers/general.php:1420
+#: frontend/php/include/trackers/general.php:1415
 msgid "Failed to remove CC"
 msgstr "Eliminarea destinatarului copiei la indigo „CC”a eșuat"
 
-#: frontend/php/include/trackers/general.php:1464
+#: frontend/php/include/trackers/general.php:1459
 msgid "Failed to delete dependency."
 msgstr "Eșec la ștergerea dependenței."
 
-#: frontend/php/include/trackers/general.php:1467
+#: frontend/php/include/trackers/general.php:1462
 msgid "Dependency Removed."
 msgstr "Dependență eliminată."
 
 #. TRANSLATORS: this string specifies sorting order.
-#: frontend/php/include/trackers/general.php:1571
+#: frontend/php/include/trackers/general.php:1566
 msgid "up"
 msgstr "sus"
 
 #. TRANSLATORS: this string specifies sorting order.
-#: frontend/php/include/trackers/general.php:1574
+#: frontend/php/include/trackers/general.php:1569
 msgid "down"
 msgstr "jos"
 
-#: frontend/php/include/trackers/general.php:1752
+#: frontend/php/include/trackers/general.php:1747
 msgid ""
 "None found. Please note that only search words of more than\n"
 "three characters are valid."
 msgstr "Nu s-a găsit nimic. Vă rugăm să rețineți că numai cuvintele de căutare cu mai mult de trei caractere sunt valide."
 
-#: frontend/php/include/trackers/general.php:1768
+#: frontend/php/include/trackers/general.php:1763
 msgid "group"
 msgstr "grup"
 
-#: frontend/php/include/trackers/general.php:1792
+#: frontend/php/include/trackers/general.php:1787
 #, php-format
 msgid ""
 "Please select a dependency to add in the result of your search\n"
 "of '%s' in the database:"
 msgstr "Vă rugăm să selectați o dependență pentru a o adăuga în rezultatul căutării „%s” în baza de date:"
+
+#: frontend/php/include/trackers/general.php:1904
+msgid ""
+"Please enter the title of <a\n"
+"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a>'s famous\n"
+"dystopian book (it's a date):"
+msgstr ""
+"Introduceți titlul celebrei cărți distopice a lui George Orwell <a\n"
+"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a> (este o dată):"
 
 #: frontend/php/include/trackers/show.php:154
 msgid "Automatic update due to transitions settings"
@@ -6030,104 +6239,104 @@ msgstr "Lista de excluderi:"
 msgid "%s table Update failed:"
 msgstr "Actualizarea tabelului %s a eșuat:"
 
-#: frontend/php/include/trackers/data.php:967
+#: frontend/php/include/trackers/data.php:961
 msgid "Insert of default value failed."
 msgstr "Inserarea valorii implicite a eșuat."
 
-#: frontend/php/include/trackers/data.php:1054
-#: frontend/php/include/trackers/data.php:1136
+#: frontend/php/include/trackers/data.php:1048
+#: frontend/php/include/trackers/data.php:1130
 msgid "Empty field value not allowed"
 msgstr "Valoarea goală a câmpului nu este permisă"
 
-#: frontend/php/include/trackers/data.php:1092
+#: frontend/php/include/trackers/data.php:1086
 msgid "Insert failed."
 msgstr "Inserare eșuată."
 
-#: frontend/php/include/trackers/data.php:1094
+#: frontend/php/include/trackers/data.php:1088
 msgid "New field value inserted."
 msgstr "Noua valoare a câmpului este introdusă."
 
-#: frontend/php/include/trackers/data.php:1123
+#: frontend/php/include/trackers/data.php:1117
 msgid "Update of field value failed."
 msgstr "Actualizarea valorii câmpului a eșuat."
 
-#: frontend/php/include/trackers/data.php:1125
+#: frontend/php/include/trackers/data.php:1119
 msgid "New field value updated."
 msgstr "Noua valoare a câmpului este actualizată."
 
-#: frontend/php/include/trackers/data.php:1164
+#: frontend/php/include/trackers/data.php:1158
 msgid "Canned bug response inserted"
 msgstr "Se inserează răspunsul prestabilit pentru erori"
 
-#: frontend/php/include/trackers/data.php:1166
+#: frontend/php/include/trackers/data.php:1160
 msgid "Error inserting canned bug response"
 msgstr "Eroare la inserarea răspunsului prestabilit pentru erori"
 
-#: frontend/php/include/trackers/data.php:1179
+#: frontend/php/include/trackers/data.php:1173
 msgid "Canned bug response updated"
 msgstr "S-a actualizat răspunsul prestabilit pentru erori"
 
-#: frontend/php/include/trackers/data.php:1181
+#: frontend/php/include/trackers/data.php:1175
 msgid "Error updating canned bug response"
 msgstr "Eroare la actualizarea răspunsului prestabilit pentru erori"
 
-#: frontend/php/include/trackers/data.php:1214
+#: frontend/php/include/trackers/data.php:1208
 msgid "Update of transition failed"
 msgstr "Actualizarea tranziției a eșuat"
 
-#: frontend/php/include/trackers/data.php:1216
+#: frontend/php/include/trackers/data.php:1210
 msgid "Transition updated"
 msgstr "Tranziție actualizată"
 
-#: frontend/php/include/trackers/data.php:1236
+#: frontend/php/include/trackers/data.php:1230
 msgid "Insert failed"
 msgstr "Inserare eșuată"
 
-#: frontend/php/include/trackers/data.php:1238
+#: frontend/php/include/trackers/data.php:1232
 msgid "New transition inserted"
 msgstr "Tranziție nouă inserată"
 
-#: frontend/php/include/trackers/data.php:1255
+#: frontend/php/include/trackers/data.php:1249
 msgid "Field value successfully reset to defaults."
 msgstr "Valoarea câmpului a fost restabilită cu succes la valorile implicite."
 
-#: frontend/php/include/trackers/data.php:1295
+#: frontend/php/include/trackers/data.php:1289
 msgid "Update of field usage failed."
 msgstr "Actualizarea utilizării câmpului a eșuat."
 
-#: frontend/php/include/trackers/data.php:1297
+#: frontend/php/include/trackers/data.php:1291
 msgid "Field usage updated."
 msgstr "Utilizarea câmpului a fost actualizată."
 
-#: frontend/php/include/trackers/data.php:1615
+#: frontend/php/include/trackers/data.php:1607
 msgid "Unable to use canned response"
 msgstr "Nu se poate utiliza un răspuns predefinit"
 
-#: frontend/php/include/trackers/data.php:1623
+#: frontend/php/include/trackers/data.php:1615
 msgid "Canned response used"
 msgstr "Se utilizează un răspuns predefinit"
 
-#: frontend/php/include/trackers/data.php:1734
+#: frontend/php/include/trackers/data.php:1726
 msgid "Comment added"
 msgstr "Comentariu adăugat"
 
-#: frontend/php/include/trackers/data.php:1808
+#: frontend/php/include/trackers/data.php:1800
 msgid "No field to update"
 msgstr "Niciun câmp de actualizat"
 
-#: frontend/php/include/trackers/data.php:1818
+#: frontend/php/include/trackers/data.php:1810
 msgid "Item update failed"
 msgstr "Actualizarea elementului a eșuat"
 
-#: frontend/php/include/trackers/data.php:1820
+#: frontend/php/include/trackers/data.php:1812
 msgid "Item successfully updated"
 msgstr "Element actualizat cu succes"
 
-#: frontend/php/include/trackers/data.php:1969
+#: frontend/php/include/trackers/data.php:1961
 msgid "No reassignation required or possible."
 msgstr "Nu este necesară sau posibilă nicio reasignare."
 
-#: frontend/php/include/trackers/data.php:1974
+#: frontend/php/include/trackers/data.php:1966
 msgid ""
 "Unable to find out to which artifact the item is to be\n"
 "reassigned, exiting."
@@ -6135,23 +6344,23 @@ msgstr ""
 "Nu se poate afla la ce artefact trebuie să fie reasignat\n"
 "elementul, se iese."
 
-#: frontend/php/include/trackers/data.php:2003
+#: frontend/php/include/trackers/data.php:1995
 msgid "Unable to create a new item."
 msgstr "Nu se poate crea un element nou."
 
-#: frontend/php/include/trackers/data.php:2006
+#: frontend/php/include/trackers/data.php:1998
 msgid "New item created."
 msgstr "S-a creat un element nou."
 
-#: frontend/php/include/trackers/data.php:2010
+#: frontend/php/include/trackers/data.php:2002
 msgid "Unable to find the ID of the new item."
 msgstr "Nu se poate afla id-ul elementului nou."
 
-#: frontend/php/include/trackers/data.php:2031
+#: frontend/php/include/trackers/data.php:2023
 msgid "Unable to duplicate a comment from the original item."
 msgstr "Nu se poate duplica un comentariu din elementul original."
 
-#: frontend/php/include/trackers/data.php:2100
+#: frontend/php/include/trackers/data.php:2092
 msgid ""
 "Unable to add a comment with the original item report\n"
 "information."
@@ -6159,7 +6368,7 @@ msgstr ""
 "Nu se poate adăuga un comentariu cu informațiile raportului\n"
 "elementului original."
 
-#: frontend/php/include/trackers/data.php:2113
+#: frontend/php/include/trackers/data.php:2105
 #, php-format
 msgid ""
 "Unable to duplicate an attached file (%s) from the\n"
@@ -6168,7 +6377,7 @@ msgstr ""
 "Nu a fost posibilă duplicarea unui fișier atașat (%s) din\n"
 "elementul original."
 
-#: frontend/php/include/trackers/data.php:2132
+#: frontend/php/include/trackers/data.php:2124
 #, php-format
 msgid ""
 "Unable to duplicate a CC address (%s) from the\n"
@@ -6177,28 +6386,28 @@ msgstr ""
 "Nu a fost posibilă duplicarea unei adrese „CC” (%s) din\n"
 "elementul original."
 
-#: frontend/php/include/trackers/data.php:2182
+#: frontend/php/include/trackers/data.php:2174
 msgid "Original item is now closed."
 msgstr "Elementul original este acum închis."
 
-#: frontend/php/include/trackers/data.php:2184
+#: frontend/php/include/trackers/data.php:2176
 msgid "Unable to close the original item report."
 msgstr "Nu este posibilă închiderea raportului elementului original."
 
-#: frontend/php/include/trackers/data.php:2263
+#: frontend/php/include/trackers/data.php:2255
 msgid "Error inserting dependency"
 msgstr "Eroare la inserarea dependenței"
 
-#: frontend/php/include/trackers/data.php:2266
+#: frontend/php/include/trackers/data.php:2258
 msgid "Dependency added"
 msgstr "Dependență adăugată"
 
-#: frontend/php/include/trackers/data.php:2335
+#: frontend/php/include/trackers/data.php:2327
 #, php-format
 msgid "New item posted (%1$s #%2$s)"
 msgstr "Element nou publicat (%1$s #%2$s)"
 
-#: frontend/php/include/trackers/data.php:2341
+#: frontend/php/include/trackers/data.php:2333
 msgid ""
 "New item insertion failed, please report this issue to the\n"
 "administrator"
@@ -6206,28 +6415,28 @@ msgstr ""
 "Introducerea unui element nou a eșuat, vă rugăm să raportați\n"
 "această problemă administratorului"
 
-#: frontend/php/include/trackers/data.php:2468
+#: frontend/php/include/trackers/data.php:2463
 msgid "(Error - Not Found)"
 msgstr "(Eroare - Nu a fost găsit)"
 
 #. TRANSLATORS: the argument is item id (a number).
-#: frontend/php/include/trackers/data.php:2695
+#: frontend/php/include/trackers/data.php:2690
 #, php-format
 msgid "Item #%s doesn't belong to group"
 msgstr "Elementul nr.%s nu face parte din grup"
 
-#: frontend/php/include/trackers/data.php:2708
+#: frontend/php/include/trackers/data.php:2703
 #, php-format
 msgid "File #%1$s doesn't belong to item #%2$s"
 msgstr "Fișierul #%1$s nu aparține elementului #%2$s"
 
-#: frontend/php/include/trackers/data.php:2732
+#: frontend/php/include/trackers/data.php:2727
 msgid "File successfully deleted"
 msgstr "Fișier șters cu succes"
 
 #. TRANSLATORS: the argument is file id (a number); the string
 #. shall be followed by database error message.
-#: frontend/php/include/trackers/data.php:2740
+#: frontend/php/include/trackers/data.php:2735
 #, php-format
 msgid "Can't delete attachment #%s:"
 msgstr "Nu se poate șterge atașamentul nr.%s:"
@@ -6270,11 +6479,11 @@ msgstr "Graficul de dependență"
 msgid "Include closed items"
 msgstr "Include elementele închise"
 
-#: frontend/php/include/trackers/view-dependencies.php:285
+#: frontend/php/include/trackers/view-dependencies.php:284
 msgid "Closed Item"
 msgstr "Element închis"
 
-#: frontend/php/include/trackers/view-dependencies.php:289
+#: frontend/php/include/trackers/view-dependencies.php:288
 msgid "Open Item"
 msgstr "Element deschis"
 
@@ -6324,74 +6533,74 @@ msgstr "Atenție, configurația dvs. curentă va fi iremediabil pierdută."
 msgid "Groups:"
 msgstr "Grupuri:"
 
-#: frontend/php/include/trackers/conf.php:146
+#: frontend/php/include/trackers/conf.php:148
 msgid "Notification settings copied"
 msgstr "Configurări de notificare copiate"
 
-#: frontend/php/include/trackers/conf.php:167
+#: frontend/php/include/trackers/conf.php:169
 msgid "Previous field values deleted"
 msgstr "Valorile anterioare ale câmpului șterse"
 
-#: frontend/php/include/trackers/conf.php:174
+#: frontend/php/include/trackers/conf.php:176
 msgid "Previous field usage deleted"
 msgstr "Utilizarea anterioară a câmpului ștearsă"
 
-#: frontend/php/include/trackers/conf.php:180
+#: frontend/php/include/trackers/conf.php:182
 msgid "Previous canned responses deleted"
 msgstr "Răspunsuri predefinite anterioare șterse"
 
-#: frontend/php/include/trackers/conf.php:201
+#: frontend/php/include/trackers/conf.php:203
 msgid "Previous query forms deleted"
 msgstr "Formulare de interogare anterioare șterse"
 
-#: frontend/php/include/trackers/conf.php:214
+#: frontend/php/include/trackers/conf.php:216
 msgid "Previous field transitions deleted"
 msgstr "Tranzițiile anterioare ale câmpului șterse"
 
 #. TRANSLATORS: the argument is space-separated list of field ids.
-#: frontend/php/include/trackers/conf.php:229
+#: frontend/php/include/trackers/conf.php:231
 #, php-format
 msgid "Field usages %s copied"
 msgstr "Utilizările câmpului %s au fost copiate"
 
 #. TRANSLATORS: the argument is space-separated list of value ids.
-#: frontend/php/include/trackers/conf.php:242
+#: frontend/php/include/trackers/conf.php:244
 #, php-format
 msgid "Field values %s copied"
 msgstr "Valorile câmpului %s au fost copiate"
 
 #. TRANSLATORS: the argument is space-separated list of response ids.
-#: frontend/php/include/trackers/conf.php:257
+#: frontend/php/include/trackers/conf.php:259
 #, php-format
 msgid "Canned responses %s copied"
 msgstr "Răspunsurile predefinite %s au fost copiate"
 
 #. TRANSLATORS: the argument is space-separated list of report ids.
-#: frontend/php/include/trackers/conf.php:295
+#: frontend/php/include/trackers/conf.php:297
 #, php-format
 msgid "Query forms %s copied"
 msgstr "Formularele de interogare %s au fost copiate"
 
 #. TRANSLATORS: the argument is space-separated list of transition ids.
-#: frontend/php/include/trackers/conf.php:334
+#: frontend/php/include/trackers/conf.php:336
 #, php-format
 msgid "Transitions %s copied"
 msgstr "Tranzițiile %s au fost copiate"
 
 #. TRANSLATORS: the first argument is group id (a number),
 #. the second argument is previously defined string (bug|patch|task|...)
-#: frontend/php/include/trackers/conf.php:345
+#: frontend/php/include/trackers/conf.php:347
 #, php-format
 msgid "Start copying configuration of group #%1$s %2$s tracker"
 msgstr "Începe copierea configurației grupului nr.%1$s al monitorului %2$s"
 
-#: frontend/php/include/trackers/conf.php:356
+#: frontend/php/include/trackers/conf.php:358
 msgid "Configuration copy finished"
 msgstr "Copierea configurației a fost finalizată"
 
 #. TRANSLATORS: the argument is previously defined string
 #. (bug|patch|task|...)
-#: frontend/php/include/trackers/conf.php:398
+#: frontend/php/include/trackers/conf.php:401
 #, php-format
 msgid "You cannot copy the configuration of other groups because you are not member of any other group that uses a %s tracker."
 msgstr "Nu puteți copia configurația altor grupuri deoarece nu sunteți membru al niciunui alt grup care utilizează un monitor %s."
@@ -6797,7 +7006,7 @@ msgstr "Fără marcare"
 msgid "No tags are available in this input field."
 msgstr "Nu sunt disponibile etichete în acest câmp de introducere."
 
-#: frontend/php/include/init.php:228
+#: frontend/php/include/init.php:219
 msgid ""
 "Your $sys_unix_group_name configuration variable refers to a\n"
 "non-existing project. Please update the configuration."
@@ -6805,20 +7014,20 @@ msgstr ""
 "Variabila dvs. de configurare $sys_unix_group_name se referă\n"
 "la un proiect inexistent. Vă rugăm să actualizați configurația."
 
-#: frontend/php/include/init.php:292
+#: frontend/php/include/init.php:283
 msgid "Invalid item ID."
 msgstr "ID de element nevalid."
 
-#: frontend/php/include/init.php:295
+#: frontend/php/include/init.php:286
 msgid "Invalid forum ID."
 msgstr "ID de forum nevalid."
 
-#: frontend/php/include/init.php:409
+#: frontend/php/include/init.php:400
 #, php-format
 msgid "Group #%s not found"
 msgstr "Grupul nr.%s nu a fost găsit"
 
-#: frontend/php/include/init.php:431
+#: frontend/php/include/init.php:422
 #, php-format
 msgid "Your account has no records of activity yet.  It will be removed unless you use it constructively.  For more details, see [%s Account lifecycle]."
 msgstr "Contul dvs. nu are încă nicio activitate înregistrată.  Acesta va fi șters dacă nu îl utilizați în mod constructiv.  Pentru mai multe detalii, consultați [%s Ciclul de viață al contului]."
@@ -6829,132 +7038,132 @@ msgstr "Contul dvs. nu are încă nicio activitate înregistrată.  Acesta va fi
 msgid "Malformed file path %s"
 msgstr "Rută de fișier prost formată %s"
 
-#: frontend/php/include/utils.php:121 frontend/php/include/utils.php:123
-#: frontend/php/include/utils.php:206 frontend/php/include/utils.php:208
+#: frontend/php/include/utils.php:119 frontend/php/include/utils.php:121
+#: frontend/php/include/utils.php:204 frontend/php/include/utils.php:206
 msgid "-email is unavailable-"
 msgstr "-poșta electronică nu este disponibilă-"
 
-#: frontend/php/include/utils.php:124 frontend/php/include/utils.php:209
+#: frontend/php/include/utils.php:122 frontend/php/include/utils.php:207
 msgid "This information is not provided to anonymous users"
 msgstr "Aceste informații nu sunt furnizate utilizatorilor anonimi"
 
-#: frontend/php/include/utils.php:156 frontend/php/include/utils.php:181
-#: frontend/php/include/utils.php:187
+#: frontend/php/include/utils.php:154 frontend/php/include/utils.php:179
+#: frontend/php/include/utils.php:185
 msgid "(address seems invalid and will probably be ignored)"
 msgstr "(adresa pare să nu fie validă și probabil va fi ignorată)"
 
-#: frontend/php/include/utils.php:163
+#: frontend/php/include/utils.php:161
 #, php-format
 msgid "(address is unknown to Savane, will fail if not valid at %s)"
 msgstr "(adresa este necunoscută pentru Savane, va eșua dacă nu este valabilă la %s)"
 
 #. TRANSLATORS: this expresses file size.
-#: frontend/php/include/utils.php:336
+#: frontend/php/include/utils.php:334
 #, php-format
 msgid "%sB"
 msgstr "%so"
 
 #. TRANSLATORS: this expresses file size.
-#: frontend/php/include/utils.php:339
+#: frontend/php/include/utils.php:337
 #, php-format
 msgid "%sKiB"
 msgstr "%sKio"
 
 #. TRANSLATORS: this expresses file size.
-#: frontend/php/include/utils.php:343
+#: frontend/php/include/utils.php:341
 #, php-format
 msgid "%sMiB"
 msgstr "%sMio"
 
 #. TRANSLATORS: this is file size unit (no prefix).
-#: frontend/php/include/utils.php:375 frontend/php/include/utils.php:385
+#: frontend/php/include/utils.php:373 frontend/php/include/utils.php:383
 msgid "B"
 msgstr "o"
 
 #. TRANSLATORS: this is file size unit (with SI prefix.)
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "kB"
 msgstr "ko"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "MB"
 msgstr "Mo"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "GB"
 msgstr "Go"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "TB"
 msgstr "To"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "PB"
 msgstr "Po"
 
 #. TRANSLATORS: this is file size unit (with binary prefix.)
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "KiB"
 msgstr "Kio"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "MiB"
 msgstr "Mio"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "GiB"
 msgstr "Gio"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "TiB"
 msgstr "Tio"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "PiB"
 msgstr "Pio"
 
-#: frontend/php/include/utils.php:465
+#: frontend/php/include/utils.php:461
 msgid "Open Items Priority Colors:"
 msgstr "Culori de prioritate pentru elementele deschise:"
 
-#: frontend/php/include/utils.php:472
+#: frontend/php/include/utils.php:468
 msgid "Closed Items Priority Colors:"
 msgstr "Culori de prioritate pentru elementele închise:"
 
-#: frontend/php/include/utils.php:517
+#: frontend/php/include/utils.php:513
 msgid "bugs"
 msgstr "erori"
 
-#: frontend/php/include/utils.php:519
+#: frontend/php/include/utils.php:515
 msgid "recipes"
 msgstr "rețete"
 
-#: frontend/php/include/utils.php:521
+#: frontend/php/include/utils.php:517
 msgid "patches"
 msgstr "plasturi (corecții)"
 
-#: frontend/php/include/utils.php:523
+#: frontend/php/include/utils.php:519
 msgid "support requests"
 msgstr "cereri de asistență"
 
-#: frontend/php/include/utils.php:525
+#: frontend/php/include/utils.php:521
 msgid "tasks"
 msgstr "sarcini"
 
-#: frontend/php/include/utils.php:555
+#: frontend/php/include/utils.php:551
 msgid "Untitled"
 msgstr "Fără titlu"
 
-#: frontend/php/include/utils.php:701
+#: frontend/php/include/utils.php:702
 msgid "Error updating database"
 msgstr "Eroare la actualizarea bazei de date"
 
-#: frontend/php/include/utils.php:707
+#: frontend/php/include/utils.php:708
 msgid "Database successfully updated"
 msgstr "Baza de date a fost actualizată cu succes"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
-#: frontend/php/include/utils.php:1203
+#: frontend/php/include/utils.php:1215
 #, php-format
 msgid "-- the %s team."
 msgstr "-- echipa %s."
@@ -7188,36 +7397,36 @@ msgid "Display Criteria"
 msgstr "Criterii de afișare"
 
 #. TRANSLATORS: The string shows a range of item numbers to display.
-#: frontend/php/include/html.php:191
+#: frontend/php/include/html.php:190
 #, php-format
 msgid "%1$s&ndash;%2$s"
 msgstr "%1$s&ndash;%2$s"
 
-#: frontend/php/include/html.php:224
+#: frontend/php/include/html.php:223
 msgid "Begin"
 msgstr "Începe"
 
-#: frontend/php/include/html.php:224
+#: frontend/php/include/html.php:223
 msgid "Previous"
 msgstr "Anterioară"
 
-#: frontend/php/include/html.php:243
+#: frontend/php/include/html.php:242
 msgid "Next"
 msgstr "Următoare"
 
-#: frontend/php/include/html.php:243
+#: frontend/php/include/html.php:242
 msgid "End"
 msgstr "Sfârșit"
 
 #. TRANSLATORS: The first argument is the number of the first item shown,
 #. the second argument is the number of the last item shown,
 #. the third argument is the total number of items.
-#: frontend/php/include/html.php:292
+#: frontend/php/include/html.php:291
 #, php-format
 msgid "%1$s&ndash;%2$s / %3$s"
 msgstr "%1$s&ndash;%2$s / %3$s"
 
-#: frontend/php/include/html.php:301
+#: frontend/php/include/html.php:300
 #, php-format
 msgid "%d matching item"
 msgid_plural "%d matching items"
@@ -7225,97 +7434,97 @@ msgstr[0] "%d element care se potrivește"
 msgstr[1] "%d elemente care se potrivesc"
 msgstr[2] "%d de elemente care se potrivesc"
 
-#: frontend/php/include/html.php:346
+#: frontend/php/include/html.php:345
 msgid "Success:"
 msgstr "Succes:"
 
-#: frontend/php/include/html.php:359
+#: frontend/php/include/html.php:358
 msgid "Error:"
 msgstr "Eroare:"
 
-#: frontend/php/include/html.php:370
+#: frontend/php/include/html.php:369
 msgid "Some Errors:"
 msgstr "Unele erori:"
 
-#: frontend/php/include/html.php:658
+#: frontend/php/include/html.php:659
 msgid "Unknown"
 msgstr "Necunoscut"
 
-#: frontend/php/include/html.php:670
+#: frontend/php/include/html.php:671
 msgid "ERROR - number of values differs from number of texts"
 msgstr "EROARE - numărul de valori diferă de numărul de texte"
 
-#: frontend/php/include/html.php:763 frontend/php/include/html.php:836
+#: frontend/php/include/html.php:764 frontend/php/include/html.php:837
 msgid "Group Type Default"
 msgstr "Tip de grup implicit"
 
-#: frontend/php/include/html.php:768
+#: frontend/php/include/html.php:769
 msgid "Group Default"
 msgstr "Grup implicit"
 
-#: frontend/php/include/html.php:777
+#: frontend/php/include/html.php:778
 msgid "Technician"
 msgstr "Tehnician"
 
-#: frontend/php/include/html.php:778
+#: frontend/php/include/html.php:779
 msgid "Manager"
 msgstr "Administrator"
 
-#: frontend/php/include/html.php:779
+#: frontend/php/include/html.php:780
 msgid "Techn. & Manager"
 msgstr "Tehnician și administrator"
 
-#: frontend/php/include/html.php:805
+#: frontend/php/include/html.php:806
 msgid "Roles of members"
 msgstr "Rolurile membrilor"
 
-#: frontend/php/include/html.php:838
+#: frontend/php/include/html.php:839
 msgid "Same as for new items"
 msgstr "La fel ca pentru elementele noi"
 
-#: frontend/php/include/html.php:844
+#: frontend/php/include/html.php:845
 msgid "Permission level"
 msgstr "Nivelul de permisiune"
 
-#: frontend/php/include/html.php:855
+#: frontend/php/include/html.php:856
 msgid "Nobody"
 msgstr "Nimeni"
 
-#: frontend/php/include/html.php:855
+#: frontend/php/include/html.php:856
 msgid "Logged-in User"
 msgstr "Utilizator autentificat"
 
-#: frontend/php/include/html.php:914
+#: frontend/php/include/html.php:915
 msgid "Website theme"
 msgstr "Tema sitului web"
 
-#: frontend/php/include/html.php:922
+#: frontend/php/include/html.php:923
 msgid "(default)"
 msgstr "(implicit)"
 
-#: frontend/php/include/html.php:929
+#: frontend/php/include/html.php:930
 msgid "Pick theme alphabetically every day"
 msgstr "Alege tema în ordine alfabetică în fiecare zi"
 
-#: frontend/php/include/html.php:930
+#: frontend/php/include/html.php:931
 msgid "Pick random theme every day"
 msgstr "Alege o temă aleatorie în fiecare zi"
 
 #. TRANSLATORS: the argument is group id (a number).
-#: frontend/php/include/html.php:982
+#: frontend/php/include/html.php:983
 #, php-format
 msgid "Invalid Group %s"
 msgstr "Grup nevalid: %s"
 
-#: frontend/php/include/html.php:983
+#: frontend/php/include/html.php:984
 msgid "That group does not exist."
 msgstr "Grupul specificat nu există."
 
-#: frontend/php/include/html.php:1051
+#: frontend/php/include/html.php:1052
 msgid "Choose one below"
 msgstr "Alegeți una dintre următoarele opțiuni"
 
-#: frontend/php/include/html.php:1058
+#: frontend/php/include/html.php:1059
 msgid ""
 "Technicians, and only technicians, can be assigned items of trackers. They\n"
 "cannot reassign items, change the status or priority of items."
@@ -7324,7 +7533,7 @@ msgstr ""
 "monitorizare. Aceștia nu pot reasigna elemente, nu pot schimba starea\n"
 "sau prioritatea elementelor."
 
-#: frontend/php/include/html.php:1062
+#: frontend/php/include/html.php:1063
 msgid ""
 "Tracker Managers can fully manage items of trackers, including\n"
 "assigning items to technicians, reassigning items over trackers and projects,\n"
@@ -7336,7 +7545,7 @@ msgstr ""
 "de elemente între monitorizări și proiecte, modificarea priorității și a\n"
 "statutului elementelor - dar nu pot configura monitorizările."
 
-#: frontend/php/include/html.php:1067
+#: frontend/php/include/html.php:1068
 msgid ""
 "Group admins can manage members, configure the trackers, post\n"
 "jobs, and add mailing lists. They actually also have manager rights on every\n"
@@ -7373,7 +7582,7 @@ msgid "Mailer:"
 msgstr "Agentul de poștă electronică:"
 
 #: frontend/php/include/sendmail.php:816
-#: frontend/php/include/news/general.php:229 frontend/php/news/submit.php:95
+#: frontend/php/include/news/general.php:229 frontend/php/news/submit.php:94
 msgid "Subject:"
 msgstr "Subiect:"
 
@@ -7382,7 +7591,7 @@ msgid "Send me a copy"
 msgstr "Trimite-mi o copie"
 
 #: frontend/php/include/sendmail.php:822
-#: frontend/php/include/news/forum.php:502
+#: frontend/php/include/news/forum.php:501
 msgid "Message:"
 msgstr "Mesaj:"
 
@@ -7415,7 +7624,7 @@ msgstr "N/A"
 msgid "Account deleted."
 msgstr "Cont șters."
 
-#: frontend/php/include/user.php:857
+#: frontend/php/include/user.php:860
 #, php-format
 msgid "Member since %s"
 msgstr "Membru din data %s"
@@ -7481,299 +7690,275 @@ msgstr "Valoare"
 msgid "Author"
 msgstr "Autor"
 
-#: frontend/php/include/pagemenu.php:79
+#: frontend/php/include/pagemenu.php:84
 msgid "My"
 msgstr "Al meu"
 
-#: frontend/php/include/pagemenu.php:80
+#: frontend/php/include/pagemenu.php:85
 msgid "Site Admin"
 msgstr "Administrator sit"
 
-#: frontend/php/include/pagemenu.php:85
+#: frontend/php/include/pagemenu.php:90
 msgid "Site Wide"
 msgstr "Pe întreg situl"
 
 #. TRANSLATORS: the argument is context like "My", "Group", "Site Admin",
 #. "Site wide", "Submenu".
-#: frontend/php/include/pagemenu.php:91 frontend/php/include/pagemenu.php:130
+#: frontend/php/include/pagemenu.php:96 frontend/php/include/pagemenu.php:135
 #, php-format
 msgid "%s Scope"
 msgstr "Domeniul de aplicare %s"
 
-#: frontend/php/include/pagemenu.php:124
+#: frontend/php/include/pagemenu.php:129
 msgid "Submenu"
 msgstr "Submeniu"
 
-#: frontend/php/include/pagemenu.php:234
+#: frontend/php/include/pagemenu.php:238
 msgid "Incoming Items"
 msgstr "Elemente primite"
 
-#: frontend/php/include/pagemenu.php:234
+#: frontend/php/include/pagemenu.php:238
 msgid "What's new for me?"
 msgstr "Ce este nou pentru mine?"
 
-#: frontend/php/include/pagemenu.php:235
+#: frontend/php/include/pagemenu.php:239
 msgid "Items"
 msgstr "Elemente"
 
-#: frontend/php/include/pagemenu.php:236
+#: frontend/php/include/pagemenu.php:240
 msgid "Browse my items (bugs, tasks, bookmarks...)"
 msgstr "Consultați elementele mele (erori, sarcini, semne de carte...)"
 
-#: frontend/php/include/pagemenu.php:240 frontend/php/include/sitemenu.php:479
+#: frontend/php/include/pagemenu.php:244 frontend/php/include/sitemenu.php:479
 msgid "Browse items I voted for"
 msgstr "Consultați elementele pentru care am votat"
 
-#: frontend/php/include/pagemenu.php:242
+#: frontend/php/include/pagemenu.php:246
 msgid "Group Membership"
 msgstr "Apartenența la grup"
 
-#: frontend/php/include/pagemenu.php:243 frontend/php/include/sitemenu.php:483
+#: frontend/php/include/pagemenu.php:247 frontend/php/include/sitemenu.php:483
 msgid "List the groups I belong to"
 msgstr "Lista grupurilor din care fac parte"
 
-#: frontend/php/include/pagemenu.php:246
+#: frontend/php/include/pagemenu.php:250
 msgid "Bookmarks"
 msgstr "Semne de carte"
 
-#: frontend/php/include/pagemenu.php:247
+#: frontend/php/include/pagemenu.php:251
 msgid "List my bookmarks"
 msgstr "Lista semnelor mele de carte"
 
-#: frontend/php/include/pagemenu.php:249
+#: frontend/php/include/pagemenu.php:253
 msgid "Account Configuration"
 msgstr "Configurarea contului"
 
-#: frontend/php/include/pagemenu.php:250 frontend/php/include/sitemenu.php:491
+#: frontend/php/include/pagemenu.php:254 frontend/php/include/sitemenu.php:491
 msgid "Account configuration: authentication, cosmetics preferences..."
 msgstr "Configurarea contului: autentificare, preferințe estetice..."
 
-#: frontend/php/include/pagemenu.php:282
+#: frontend/php/include/pagemenu.php:286
 msgid "Administer:"
 msgstr "Administrează:"
 
-#: frontend/php/include/pagemenu.php:283
+#: frontend/php/include/pagemenu.php:287
 msgid "Edit public info"
 msgstr "Editează informațiile publice"
 
-#: frontend/php/include/pagemenu.php:284
+#: frontend/php/include/pagemenu.php:288
 msgid "Select features"
 msgstr "Selectează caracteristicile"
 
-#: frontend/php/include/pagemenu.php:285
+#: frontend/php/include/pagemenu.php:289
 msgid "Manage&nbsp;members"
 msgstr "Gestionează&nbsp;membrii"
 
-#: frontend/php/include/pagemenu.php:286
+#: frontend/php/include/pagemenu.php:290
 msgid "Manage&nbsp;squads"
 msgstr "Gestionează&nbsp;echipele"
 
-#: frontend/php/include/pagemenu.php:287 frontend/php/include/pagemenu.php:725
+#: frontend/php/include/pagemenu.php:291 frontend/php/include/pagemenu.php:728
 msgid "Set&nbsp;permissions"
 msgstr "Stabilește&nbsp;permisiunile"
 
-#: frontend/php/include/pagemenu.php:288 frontend/php/include/pagemenu.php:729
+#: frontend/php/include/pagemenu.php:292 frontend/php/include/pagemenu.php:732
 msgid "Set&nbsp;notifications"
 msgstr "Stabilește&nbsp;notificările"
 
-#: frontend/php/include/pagemenu.php:289
+#: frontend/php/include/pagemenu.php:293
 msgid "Show&nbsp;history"
 msgstr "Afișează&nbsp; istoricul"
 
-#: frontend/php/include/pagemenu.php:290 frontend/php/include/pagemenu.php:732
+#: frontend/php/include/pagemenu.php:294 frontend/php/include/pagemenu.php:735
 msgid "Copy&nbsp;configuration"
 msgstr "Copiază&nbsp;configurarea"
 
-#: frontend/php/include/pagemenu.php:296
+#: frontend/php/include/pagemenu.php:300
 msgid "Post&nbsp;jobs"
 msgstr "Publicare&nbsp;sarcini"
 
-#: frontend/php/include/pagemenu.php:297
+#: frontend/php/include/pagemenu.php:301
 msgid "Post a request for contribution"
 msgstr "Publică o cerere de contribuție"
 
-#: frontend/php/include/pagemenu.php:299
+#: frontend/php/include/pagemenu.php:303
 msgid "Edit jobs"
 msgstr "Editează sarcinile"
 
-#: frontend/php/include/pagemenu.php:300
+#: frontend/php/include/pagemenu.php:304
 msgid "Edit previously posted request for contribution"
 msgstr "Editează cererea de contribuție publicată anterior"
 
 #. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
-#: frontend/php/include/pagemenu.php:321
+#: frontend/php/include/pagemenu.php:325
 #, php-format
 msgid "Use %s"
 msgstr "Utilizează %s"
 
-#. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
-#. TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
-#: frontend/php/include/pagemenu.php:323
-#: frontend/php/include/project_home.php:497
-#, php-format
-msgid "%s Repository"
-msgstr "Depozitul %s"
-
-#: frontend/php/include/pagemenu.php:338
+#: frontend/php/include/pagemenu.php:342
 #, php-format
 msgid "Browse %s repository"
 msgstr "Consultă depozitul %s"
 
-#: frontend/php/include/pagemenu.php:341
+#: frontend/php/include/pagemenu.php:345
 #, php-format
 msgid "Browse %s repositories"
 msgstr "Consultă depozitele %s"
 
-#: frontend/php/include/pagemenu.php:380
-#: frontend/php/include/project_home.php:501
-msgid "Administer"
-msgstr "Administrează"
-
-#: frontend/php/include/pagemenu.php:405 frontend/php/include/pagemenu.php:410
+#: frontend/php/include/pagemenu.php:409 frontend/php/include/pagemenu.php:414
 msgid "Main"
 msgstr "Principal"
 
 #. TRANSLATORS: the argument is site name like Savannah.
-#: frontend/php/include/pagemenu.php:408
+#: frontend/php/include/pagemenu.php:412
 #, php-format
 msgid "Group main page at %s"
 msgstr "Pagina principală a grupului la %s"
 
-#: frontend/php/include/pagemenu.php:411
+#: frontend/php/include/pagemenu.php:415
 msgid "View members"
 msgstr "Vezi membrii"
 
-#: frontend/php/include/pagemenu.php:424
-#: frontend/php/project/admin/editgroupfeatures.php:296
+#: frontend/php/include/pagemenu.php:428
+#: frontend/php/project/admin/editgroupfeatures.php:298
 msgid "Homepage"
 msgstr "Pagină principală"
 
-#: frontend/php/include/pagemenu.php:426
+#: frontend/php/include/pagemenu.php:430
 msgid "Browse group home page (outside of Savane)"
 msgstr "Răsfoiți pagina principală a grupului (în afara Savane)"
 
-#: frontend/php/include/pagemenu.php:435
+#: frontend/php/include/pagemenu.php:439
 msgid "Download"
 msgstr "Descarcă"
 
-#: frontend/php/include/pagemenu.php:437
+#: frontend/php/include/pagemenu.php:441
 msgid "Visit download area: files released"
 msgstr "Vizitați zona de descărcare: fișiere publicate"
 
-#: frontend/php/include/pagemenu.php:460
-#: frontend/php/include/project_home.php:350
-msgid "Docs"
-msgstr "Documente"
-
-#: frontend/php/include/pagemenu.php:463
+#: frontend/php/include/pagemenu.php:467
 msgid "Docs: Cookbook, etc"
 msgstr "Documente: rețetare, etc."
 
-#: frontend/php/include/pagemenu.php:476 frontend/php/include/pagemenu.php:578
-#: frontend/php/include/pagemenu.php:641
+#: frontend/php/include/pagemenu.php:479 frontend/php/include/pagemenu.php:581
+#: frontend/php/include/pagemenu.php:644
 msgid "Browse"
 msgstr "Răsfoire"
 
-#: frontend/php/include/pagemenu.php:476 frontend/php/include/pagemenu.php:491
+#: frontend/php/include/pagemenu.php:479 frontend/php/include/pagemenu.php:494
 msgid "List existing mailing lists"
 msgstr "Listează listele de corespondență existente"
 
-#: frontend/php/include/pagemenu.php:480 frontend/php/include/pagemenu.php:713
+#: frontend/php/include/pagemenu.php:483 frontend/php/include/pagemenu.php:716
 msgid "Configure:"
 msgstr "Configurează:"
 
-#: frontend/php/include/pagemenu.php:489
+#: frontend/php/include/pagemenu.php:492
 msgid "Mailing lists"
 msgstr "Liste de corespondență"
 
-#: frontend/php/include/pagemenu.php:503
-#: frontend/php/include/project_home.php:546
-#: frontend/php/project/admin/editgroupfeatures.php:342
-msgid "GNU Arch"
-msgstr "GNU Arch"
-
-#: frontend/php/include/pagemenu.php:527 frontend/php/include/pagemenu.php:531
+#: frontend/php/include/pagemenu.php:530 frontend/php/include/pagemenu.php:534
 msgid "Source code"
 msgstr "Cod sursă"
 
-#: frontend/php/include/pagemenu.php:529 frontend/php/include/pagemenu.php:532
+#: frontend/php/include/pagemenu.php:532 frontend/php/include/pagemenu.php:535
 msgid "Source code management"
 msgstr "Gestionarea codului sursă"
 
-#: frontend/php/include/pagemenu.php:564
+#: frontend/php/include/pagemenu.php:567
 msgid "Configure"
 msgstr "Configurează"
 
-#: frontend/php/include/pagemenu.php:565
+#: frontend/php/include/pagemenu.php:568
 msgid "News Manager: edit notifications"
 msgstr "Gestionar de știri/noutăți: editare notificări"
 
-#: frontend/php/include/pagemenu.php:576
+#: frontend/php/include/pagemenu.php:579
 msgid "Read latest News, post News"
 msgstr "Citește ultimele știri, publică știri"
 
-#: frontend/php/include/pagemenu.php:579
+#: frontend/php/include/pagemenu.php:582
 msgid "Atom feed"
 msgstr "Flux de știri"
 
-#: frontend/php/include/pagemenu.php:583 frontend/php/news/approve.php:70
+#: frontend/php/include/pagemenu.php:586 frontend/php/news/approve.php:70
 msgid "Manage"
 msgstr "Gestionează"
 
-#: frontend/php/include/pagemenu.php:607
-#: frontend/php/project/admin/editgroupfeatures.php:357
+#: frontend/php/include/pagemenu.php:610
+#: frontend/php/project/admin/editgroupfeatures.php:359
 msgid "Forum"
 msgstr "Forum"
 
-#: frontend/php/include/pagemenu.php:627
+#: frontend/php/include/pagemenu.php:630
 msgid "Tech Support Tracker: post, search and manage support requests"
 msgstr "Monitorul de asistență tehnică: publică, caută și gestionează cererile de asistență"
 
-#: frontend/php/include/pagemenu.php:630
+#: frontend/php/include/pagemenu.php:633
 msgid "Bug Tracker: report, search and track bugs"
 msgstr "Monitorul de erori: raportează, caută și urmărește erorile"
 
-#: frontend/php/include/pagemenu.php:632
+#: frontend/php/include/pagemenu.php:635
 msgid "Task Manager: post, search and manage tasks"
 msgstr "Gestionar de sarcini: publică, caută și gestionează sarcini"
 
-#: frontend/php/include/pagemenu.php:634
+#: frontend/php/include/pagemenu.php:637
 msgid "Patch Manager: post, search and manage patches"
 msgstr "Gestionarul de plasturi(corecții): publică, caută și gestionează corecțiile"
 
-#: frontend/php/include/pagemenu.php:644
+#: frontend/php/include/pagemenu.php:647
 msgid "Submit new"
 msgstr "Publică noutate"
 
-#: frontend/php/include/pagemenu.php:646
+#: frontend/php/include/pagemenu.php:649
 msgid "Reset to open"
 msgstr "Redefiniți pentru a deschide"
 
-#: frontend/php/include/pagemenu.php:647
+#: frontend/php/include/pagemenu.php:650
 msgid "Edit"
 msgstr "Editare"
 
-#: frontend/php/include/pagemenu.php:650
+#: frontend/php/include/pagemenu.php:653
 msgid "Export"
 msgstr "Exportare"
 
-#: frontend/php/include/pagemenu.php:651
+#: frontend/php/include/pagemenu.php:654
 msgid "Get statistics"
 msgstr "Obține statistici"
 
-#: frontend/php/include/pagemenu.php:691
+#: frontend/php/include/pagemenu.php:694
 msgid "Browse (External to Savane)"
 msgstr "Consultați (extern față de Savane)"
 
-#: frontend/php/include/pagemenu.php:693
+#: frontend/php/include/pagemenu.php:696
 msgid "Browse Documentation that is located outside of Savane"
 msgstr "Consultați documentația care se află în afara Savane"
 
-#: frontend/php/include/pagemenu.php:704
+#: frontend/php/include/pagemenu.php:707
 msgid "Edit query forms"
 msgstr "Editează formularele de consultare"
 
-#: frontend/php/include/pagemenu.php:705
+#: frontend/php/include/pagemenu.php:708
 msgid ""
 "Define query forms: what search criteria to use and what item\n"
 "fields to show in the query form table"
@@ -7781,19 +7966,19 @@ msgstr ""
 "Definește formularele de consultare: ce criterii de căutare să utilizați și\n"
 "ce câmpuri de elemente să fie afișate în tabelul formularului de consultare"
 
-#: frontend/php/include/pagemenu.php:715
+#: frontend/php/include/pagemenu.php:718
 msgid "Select fields"
 msgstr "Selectează câmpurile"
 
-#: frontend/php/include/pagemenu.php:716
+#: frontend/php/include/pagemenu.php:719
 msgid "Define what fields you want to use in this tracker"
 msgstr "Definiți ce câmpuri doriți să utilizați în acest monitor"
 
-#: frontend/php/include/pagemenu.php:719
+#: frontend/php/include/pagemenu.php:722
 msgid "Edit field values"
 msgstr "Editează valorile câmpului"
 
-#: frontend/php/include/pagemenu.php:720
+#: frontend/php/include/pagemenu.php:723
 msgid ""
 "Define the set of possible values for the fields you have decided to use in\n"
 "this tracker"
@@ -7801,24 +7986,24 @@ msgstr ""
 "Definește setul de valori posibile pentru câmpurile pe care ați decis să le utilizați\n"
 "în acest gestionar de monitorizare"
 
-#: frontend/php/include/pagemenu.php:726
+#: frontend/php/include/pagemenu.php:729
 msgid "Define posting restrictions"
 msgstr "Definirea restricțiilor de publicare"
 
-#: frontend/php/include/pagemenu.php:733
+#: frontend/php/include/pagemenu.php:736
 msgid "Copy the configuration of another tracker"
 msgstr "Copiați configurația unui alt monitor."
 
-#: frontend/php/include/pagemenu.php:736
+#: frontend/php/include/pagemenu.php:739
 msgid "Other settings"
 msgstr "Alte opțiuni"
 
-#: frontend/php/include/pagemenu.php:737
+#: frontend/php/include/pagemenu.php:740
 msgid "Modify the preamble shown on the item submission form"
 msgstr "Modificarea preambulului afișat pe formularul de publicare a elementului"
 
 #: frontend/php/include/news/forum.php:65
-#: frontend/php/include/news/general.php:394
+#: frontend/php/include/news/general.php:392
 msgid "posted by"
 msgstr "publicat de"
 
@@ -7843,7 +8028,7 @@ msgid "Posting has been disabled."
 msgstr "Publicarea a fost dezactivată."
 
 #: frontend/php/include/news/forum.php:388
-#: frontend/php/include/news/forum.php:484
+#: frontend/php/include/news/forum.php:483
 msgid "You could post if you were logged in"
 msgstr "Ai putea publica dacă ai fi autentificat"
 
@@ -7871,11 +8056,11 @@ msgstr "Se încearcă urmărirea unui mesaj care nu există."
 msgid "No followup ID present when trying to post to an existing thread."
 msgstr "Nu există niciun ID de urmărire atunci când încercați să publicați un mesaj la un subiect existent."
 
-#: frontend/php/include/news/forum.php:499
+#: frontend/php/include/news/forum.php:498
 msgid "Subject"
 msgstr "Subiect"
 
-#: frontend/php/include/news/forum.php:507
+#: frontend/php/include/news/forum.php:506
 msgid "Post Comment"
 msgstr "Publică un comentariu"
 
@@ -7923,7 +8108,7 @@ msgstr "Afișare"
 msgid "Approve later"
 msgstr "Aprobă mai târziu"
 
-#: frontend/php/include/news/general.php:370
+#: frontend/php/include/news/general.php:369
 #, php-format
 msgid "%s reply"
 msgid_plural "%s replies"
@@ -7931,11 +8116,11 @@ msgstr[0] "%s răspuns"
 msgstr[1] "%s răspunsuri"
 msgstr[2] "%s de răspunsuri"
 
-#: frontend/php/include/news/general.php:403
+#: frontend/php/include/news/general.php:401
 msgid "No news found"
 msgstr "Nu s-au găsit știri"
 
-#: frontend/php/include/news/general.php:424
+#: frontend/php/include/news/general.php:420
 #, php-format
 msgid "%d news in archive"
 msgid_plural "%d news in archive"
@@ -7943,7 +8128,7 @@ msgstr[0] "%d știre în arhivă"
 msgstr[1] "%d știri în arhivă"
 msgstr[2] "%d de știri în arhivă"
 
-#: frontend/php/include/news/general.php:465
+#: frontend/php/include/news/general.php:461
 msgid "Not found"
 msgstr "Nu s-a găsit"
 
@@ -8135,6 +8320,15 @@ msgstr "Formular de înregistrare a contului"
 msgid "System error while creating the form, report it to admins"
 msgstr "Eroare de sistem în timpul creării formularului, raportați-o administratorilor"
 
+#: frontend/php/include/form.php:230
+msgid "Confirm"
+msgstr "Confirmare"
+
+#: frontend/php/include/form.php:231
+#: frontend/php/project/admin/editgroupinfo.php:209
+msgid "Cancel"
+msgstr "Anulare"
+
 #: frontend/php/include/form-check.php:82
 msgid "Form ID is absent in the database"
 msgstr "ID-ul formularului este absent în baza de date"
@@ -8301,206 +8495,6 @@ msgid ""
 "filters"
 msgstr "Punctajul spam al publicării dvs. este definit temporar la %s, până când este verificat de filtrele de spam"
 
-#: frontend/php/include/project_home.php:71
-msgid "Membership Info"
-msgstr "Informații privind membrii"
-
-#: frontend/php/include/project_home.php:88
-msgid "Group Admin:"
-msgstr "Administrator grup:"
-
-#: frontend/php/include/project_home.php:88
-msgid "Group Admins:"
-msgstr "Administratori grup:"
-
-#: frontend/php/include/project_home.php:117
-#, php-format
-msgid "%s active member"
-msgid_plural "%s active members"
-msgstr[0] "%s membru activ"
-msgstr[1] "%s membri activi"
-msgstr[2] "%s de membri activi"
-
-#: frontend/php/include/project_home.php:130
-msgid "View Members"
-msgstr "Vezi membrii"
-
-#: frontend/php/include/project_home.php:136
-msgid "Group identification"
-msgstr "Identificarea grupului"
-
-#. TRANSLATORS: the group id (a number) will follow.
-#. TRANSLATORS: user's id (a number) shall follow this message.
-#: frontend/php/include/project_home.php:141 frontend/php/users.php:220
-msgid "Id:"
-msgstr "Id:"
-
-#: frontend/php/include/project_home.php:142
-msgid "System Name:"
-msgstr "Numele sistemului:"
-
-#: frontend/php/include/project_home.php:144
-msgid "Group Type:"
-msgstr "Tipul de grup:"
-
-#: frontend/php/include/project_home.php:157
-msgid "Search in this group"
-msgstr "Caută în acest grup"
-
-#: frontend/php/include/project_home.php:178
-#, php-format
-msgid ""
-"This group hasn't submitted a short description yet. You can <a\n"
-"href=\"%s\">submit it</a> now."
-msgstr ""
-"Acest grup nu a publicat încă o scurtă descriere. Puteți <a\n"
-"href=\"%s\">publica una</a> acum."
-
-#: frontend/php/include/project_home.php:186
-msgid "Registration Date:"
-msgstr "Data înregistrării:"
-
-#: frontend/php/include/project_home.php:192
-#: frontend/php/project/admin/editgroupinfo.php:180
-msgid "License:"
-msgstr "Licență:"
-
-#: frontend/php/include/project_home.php:200
-msgid "License is unknown!"
-msgstr "Licența este necunoscută!"
-
-#: frontend/php/include/project_home.php:209
-#: frontend/php/project/admin/editgroupinfo.php:171
-msgid "Development Status:"
-msgstr "Stadiul de dezvoltare:"
-
-#. TRANSLATORS: the argument is site name (like Savannah).
-#: frontend/php/include/project_home.php:245
-#, php-format
-msgid "Administration: %s server"
-msgstr "Administrare: server %s"
-
-#: frontend/php/include/project_home.php:250
-#, php-format
-msgid ""
-"Since you are administrator of this group, which one is\n"
-"the &ldquo;system group,&rdquo; you are administrator of the whole %s server."
-msgstr ""
-"Deoarece sunteți administrator al acestui grup, care este „grupul de sistem”,\n"
-"sunteți administrator al întregului server %s."
-
-#: frontend/php/include/project_home.php:260
-msgid "Server Main Administration Page"
-msgstr "Pagina principală de administrare a serverului"
-
-#: frontend/php/include/project_home.php:266
-msgid "Pending Group List"
-msgstr "Lista grupurilor aflate în așteptare"
-
-#: frontend/php/include/project_home.php:272
-#, php-format
-msgid "(%s registration pending)"
-msgid_plural "(%s registrations pending)"
-msgstr[0] "(%s înregistrare în așteptare)"
-msgstr[1] "(%s înregistrări în așteptare)"
-msgstr[2] "(%s de înregistrări în așteptare)"
-
-#. TRANSLATORS: the argument is group name (like GNU Coreutils).
-#: frontend/php/include/project_home.php:284
-#, php-format
-msgid "Administration: %s group"
-msgstr "Administrare: %s grup"
-
-#: frontend/php/include/project_home.php:287
-msgid ""
-"As administrator of this group, you can manage members and\n"
-"activate, deactivate and configure tools used in your group."
-msgstr ""
-"În calitate de administrator al acestui grup, puteți gestiona membrii și\n"
-"activa, dezactiva și configura instrumentele utilizate în grupul dvs."
-
-#: frontend/php/include/project_home.php:295
-msgid "Group Main Administration Page"
-msgstr "Pagina principală de administrare a grupului"
-
-#: frontend/php/include/project_home.php:314
-msgid "Quick Overview"
-msgstr "Privire de ansamblu rapidă"
-
-#: frontend/php/include/project_home.php:357
-msgid "Browse docs (external to Savane)"
-msgstr "Răsfoiește documentele (extern față de Savane)"
-
-#: frontend/php/include/project_home.php:358
-msgid "Browse the cookbook"
-msgstr "Răsfoiește cartea de rețete"
-
-#: frontend/php/include/project_home.php:369
-msgid "Memberlist"
-msgstr "Lista de membri"
-
-#: frontend/php/include/project_home.php:374
-#, php-format
-msgid "(%s member)"
-msgid_plural "(%s members)"
-msgstr[0] "(%s membru)"
-msgstr[1] "(%s membri)"
-msgstr[2] "(%s de membri)"
-
-#: frontend/php/include/project_home.php:384
-msgid "Group release GPG keyring"
-msgstr "Inelul de chei GPG pentru publicare de grup"
-
-#. TRANSLATORS: the arguments are numbers of items.
-#: frontend/php/include/project_home.php:408
-#, php-format
-msgid "(open items: %1$s, total: %2$s)"
-msgstr "(elemente deschise: %1$s, total: %2$s)"
-
-#: frontend/php/include/project_home.php:411
-msgid "Browse open items"
-msgstr "Răsfoiește elementele deschise"
-
-#: frontend/php/include/project_home.php:414
-msgid "Submit a new item"
-msgstr "Publică un element nou"
-
-#: frontend/php/include/project_home.php:427
-msgid "Communication Tools"
-msgstr "Instrumente de comunicare"
-
-#: frontend/php/include/project_home.php:435
-msgid "Tech Support Manager"
-msgstr "Responsabil asistență tehnică"
-
-#: frontend/php/include/project_home.php:458
-#, php-format
-msgid "(%s public mailing list)"
-msgid_plural "(%s public mailing lists)"
-msgstr[0] "(%s listă publică de discuții)"
-msgstr[1] "(%s liste publice de discuții)"
-msgstr[2] "(%s de liste publice de discuții)"
-
-#: frontend/php/include/project_home.php:471
-msgid "This group is looking for people"
-msgstr "Acest grup este în căutare de persoane"
-
-#: frontend/php/include/project_home.php:475
-#, php-format
-msgid "(%s contributor wanted)"
-msgid_plural "(%s contributors wanted)"
-msgstr[0] "(%s colaborator dorit)"
-msgstr[1] "(%s colaboratori doriți)"
-msgstr[2] "(%s de colaboratori doriți)"
-
-#: frontend/php/include/project_home.php:538
-msgid "Development Tools"
-msgstr "Instrumente de dezvoltare"
-
-#: frontend/php/include/project_home.php:554
-msgid "Patch Manager"
-msgstr "Gestionar de plasturi(corecții)"
-
 #: frontend/php/project/memberlist-gpgkeys.php:52
 msgid "Member Keyring is empty, no keys were registered"
 msgstr "Inelul de chei al membrului este gol, nu au fost înregistrate chei"
@@ -8633,7 +8627,7 @@ msgstr ""
 "Dacă doriți să contribuiți la acest proiect devenind membru,\n"
 "utilizați formularul <a href=\"%s\">cerere de includere</a>."
 
-#: frontend/php/project/memberlist.php:203
+#: frontend/php/project/memberlist.php:202
 msgid ""
 "On this page are only presented specific roles, roles\n"
 "which are not attributed by default when joining this project."
@@ -8641,51 +8635,51 @@ msgstr ""
 "Pe această pagină sunt prezentate doar roluri specifice, roluri care nu\n"
 "sunt atribuite în mod implicit atunci când vă alăturați acestui proiect."
 
-#: frontend/php/project/memberlist.php:210
+#: frontend/php/project/memberlist.php:209
 msgid "basic or detailed"
 msgstr "basică sau detaliată"
 
 #. TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-#: frontend/php/project/memberlist.php:212
+#: frontend/php/project/memberlist.php:211
 msgid "basic"
 msgstr "basică"
 
 #. TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-#: frontend/php/project/memberlist.php:214
+#: frontend/php/project/memberlist.php:213
 msgid "detailed"
 msgstr "detaliată"
 
-#: frontend/php/project/memberlist.php:218
+#: frontend/php/project/memberlist.php:217
 #, php-format
 msgid "Browse with the %s memberlist."
 msgstr "Consultați lista de membri %s."
 
-#: frontend/php/project/memberlist.php:223
+#: frontend/php/project/memberlist.php:222
 #: frontend/php/project/admin/userperms.php:590
 msgid "Member"
 msgstr "Membru"
 
-#: frontend/php/project/memberlist.php:225
+#: frontend/php/project/memberlist.php:224
 msgid "Specific Role"
 msgstr "Rol specific"
 
-#: frontend/php/project/memberlist.php:226
+#: frontend/php/project/memberlist.php:225
 msgid "Resume and Skills"
 msgstr "CV și competențe(abilități)"
 
-#: frontend/php/project/memberlist.php:228
+#: frontend/php/project/memberlist.php:227
 msgid "Watch"
 msgstr "Urmărește"
 
-#: frontend/php/project/memberlist.php:231
+#: frontend/php/project/memberlist.php:230
 msgid "Currently inactive members"
 msgstr "Membri inactivi în prezent"
 
-#: frontend/php/project/memberlist.php:231
+#: frontend/php/project/memberlist.php:230
 msgid "Active members on duty"
 msgstr "Membri activi în serviciu"
 
-#: frontend/php/project/memberlist.php:266
+#: frontend/php/project/memberlist.php:265
 #, php-format
 msgid ""
 "You may also be interested in the <a href=\"%s\">GPG Keys of\n"
@@ -8742,7 +8736,7 @@ msgstr "Lista destinatarilor copiei la indigo (CC):"
 
 #: frontend/php/project/admin/editgroupinfo.php:94
 #: frontend/php/project/admin/editgroupinfo.php:114
-#: frontend/php/project/admin/editgroupfeatures.php:172
+#: frontend/php/project/admin/editgroupfeatures.php:174
 msgid "Update failed."
 msgstr "Actualizarea a eșuat."
 
@@ -8946,7 +8940,7 @@ msgid "Features"
 msgstr "Caracteristici"
 
 #: frontend/php/project/admin/index.php:70
-#: frontend/php/project/admin/editgroupfeatures.php:203
+#: frontend/php/project/admin/editgroupfeatures.php:205
 msgid "Select Features"
 msgstr "Selectează caracteristicile"
 
@@ -9007,7 +9001,7 @@ msgstr ""
 "Acest lucru vă permite să țineți evidența modificărilor importante care au\n"
 "loc în configurația grupului dvs."
 
-#: frontend/php/project/admin/index.php:145 frontend/php/users.php:168
+#: frontend/php/project/admin/index.php:145 frontend/php/users.php:167
 msgid "Members"
 msgstr "Membri"
 
@@ -9243,7 +9237,7 @@ msgid "Group Default Permissions"
 msgstr "Permisiunile implicite ale grupului"
 
 #: frontend/php/project/admin/userperms.php:678
-#: frontend/php/project/admin/editgroupfeatures.php:360
+#: frontend/php/project/admin/editgroupfeatures.php:362
 msgid "Task Tracker"
 msgstr "Monitor de sarcini"
 
@@ -9251,68 +9245,68 @@ msgstr "Monitor de sarcini"
 msgid "Cookbook Manager"
 msgstr "Gestionarul de rețete"
 
-#: frontend/php/project/admin/editgroupfeatures.php:170
+#: frontend/php/project/admin/editgroupfeatures.php:172
 msgid "Update successful."
 msgstr "Actualizare efectuată cu succes."
 
-#: frontend/php/project/admin/editgroupfeatures.php:189
+#: frontend/php/project/admin/editgroupfeatures.php:191
 msgid "Nothing to update."
 msgstr "Nimic de actualizat."
 
-#: frontend/php/project/admin/editgroupfeatures.php:265
-#: frontend/php/project/admin/editgroupfeatures.php:290
+#: frontend/php/project/admin/editgroupfeatures.php:267
+#: frontend/php/project/admin/editgroupfeatures.php:292
 msgid "Alternative Address"
 msgstr "Adresă alternativă"
 
-#: frontend/php/project/admin/editgroupfeatures.php:279
+#: frontend/php/project/admin/editgroupfeatures.php:281
 msgid "You can activate or deactivate feature for your group. In some cases, depending on the system administrator's choices, you can even use change the URL for a feature. If the field &ldquo;alternative address&rdquo; is empty, the standard is used."
 msgstr "Puteți activa sau dezactiva funcția pentru grupul dvs. În unele cazuri, în funcție de opțiunile administratorului de sistem, puteți utiliza chiar și modificarea adresei URL pentru o caracteristică. Dacă câmpul &ldquo; adresa alternativă&rdquo; este gol, se utilizează adresa standard."
 
-#: frontend/php/project/admin/editgroupfeatures.php:289
+#: frontend/php/project/admin/editgroupfeatures.php:291
 msgid "Feature, Artifact"
 msgstr "Caracteristică, artefact"
 
-#: frontend/php/project/admin/editgroupfeatures.php:289
+#: frontend/php/project/admin/editgroupfeatures.php:291
 msgid "Activated"
 msgstr "Activat"
 
-#: frontend/php/project/admin/editgroupfeatures.php:290
+#: frontend/php/project/admin/editgroupfeatures.php:292
 msgid "Standard Address"
 msgstr "Adresă standard"
 
-#: frontend/php/project/admin/editgroupfeatures.php:298
+#: frontend/php/project/admin/editgroupfeatures.php:300
 msgid "Homepage Source Code Web Browsing"
 msgstr "Răsfoind codul sursă al paginii principale"
 
-#: frontend/php/project/admin/editgroupfeatures.php:303
+#: frontend/php/project/admin/editgroupfeatures.php:305
 msgid "Documentation"
 msgstr "Documentație"
 
-#: frontend/php/project/admin/editgroupfeatures.php:319
+#: frontend/php/project/admin/editgroupfeatures.php:321
 msgid "Download Area Directory"
 msgstr "Directorul ariei de descărcare"
 
-#: frontend/php/project/admin/editgroupfeatures.php:338
+#: frontend/php/project/admin/editgroupfeatures.php:340
 msgid "CVS Web Browsing"
 msgstr "Navigare web prin depozitul CVS"
 
-#: frontend/php/project/admin/editgroupfeatures.php:342
+#: frontend/php/project/admin/editgroupfeatures.php:344
 msgid "Arch Web Browsing"
 msgstr "Navigare web prin depozitul Arch"
 
-#: frontend/php/project/admin/editgroupfeatures.php:343
+#: frontend/php/project/admin/editgroupfeatures.php:345
 msgid "Subversion Web Browsing"
 msgstr "Navigare web prin depozitul Subversion"
 
-#: frontend/php/project/admin/editgroupfeatures.php:344
+#: frontend/php/project/admin/editgroupfeatures.php:346
 msgid "Git Web Browsing"
 msgstr "Navigare web prin depozitul Git"
 
-#: frontend/php/project/admin/editgroupfeatures.php:345
+#: frontend/php/project/admin/editgroupfeatures.php:347
 msgid "Mercurial Web Browsing"
 msgstr "Navigare web prin depozitul Mercurial"
 
-#: frontend/php/project/admin/editgroupfeatures.php:346
+#: frontend/php/project/admin/editgroupfeatures.php:348
 msgid "Bazaar Web Browsing"
 msgstr "Navigare web prin depozitul Bazaar"
 
@@ -9372,19 +9366,19 @@ msgstr "rânduri pe pagină"
 msgid "Change View"
 msgstr "Schimbă vizualizarea"
 
-#: frontend/php/forum/forum.php:299
+#: frontend/php/forum/forum.php:298
 msgid "Previous Messages"
 msgstr "Mesajele anterioare"
 
-#: frontend/php/forum/forum.php:309
+#: frontend/php/forum/forum.php:308
 msgid "Next Messages"
 msgstr "Mesajele următoare"
 
-#: frontend/php/forum/forum.php:324
+#: frontend/php/forum/forum.php:323
 msgid "Start a New Thread:"
 msgstr "Începeți un nou fir de discuție:"
 
-#: frontend/php/forum/forum.php:333
+#: frontend/php/forum/forum.php:332
 msgid "Error - choose a forum first"
 msgstr "Eroare - alegeți mai întâi un forum"
 
@@ -9438,7 +9432,7 @@ msgstr ""
 "care trebuie reparată, <a href=\"%s\"> depuneți o cerere de asistență</a>,\n"
 "menționând adresa URL pe care ați încercat să o accesați (%s)."
 
-#: frontend/php/404-export.php:66 frontend/php/404.php:63
+#: frontend/php/404-export.php:66 frontend/php/404.php:64
 #, php-format
 msgid "Otherwise, you can return to the <a href=\"%s\">%s main page</a>."
 msgstr "În caz contrar, vă puteți întoarce la <a href=\"%s\">pagina principală a %s</a>."
@@ -9451,15 +9445,15 @@ msgstr "Lipsește titlul"
 msgid "News Posted: it will need to be approved by a news manager of this group before it shows on the front page."
 msgstr "Știri publicate: va trebui să fie aprobate de un responsabil de știri al acestui grup înainte de a fi afișate pe prima pagină."
 
-#: frontend/php/news/submit.php:83
+#: frontend/php/news/submit.php:82
 msgid "Error doing insert"
 msgstr "Eroare la inserare"
 
-#: frontend/php/news/submit.php:89
+#: frontend/php/news/submit.php:88
 msgid "Submit News"
 msgstr "Trimiteți știri"
 
-#: frontend/php/news/submit.php:92
+#: frontend/php/news/submit.php:91
 msgid "A news manager of this group will have to review and approve the news."
 msgstr "Un responsabil de știri al acestui grup va trebui să revizuiască și să aprobe știrile."
 
@@ -9528,33 +9522,33 @@ msgstr "Deschideți elementele trimise de %s"
 msgid "This user did not enable Resume & Skills."
 msgstr "Acest utilizator nu a activat CV-ul și competențele."
 
-#: frontend/php/users.php:103
+#: frontend/php/users.php:102
 msgid "View Resume & Skills"
 msgstr "Vizualizare CV și competențe"
 
-#: frontend/php/users.php:111
+#: frontend/php/users.php:110
 msgid "Send this user a mail"
 msgstr "Trimiteți un e-mail acestui utilizator"
 
-#: frontend/php/users.php:125
+#: frontend/php/users.php:124
 msgid "Download GPG Key"
 msgstr "Descarcă cheia GPG"
 
-#: frontend/php/users.php:146
+#: frontend/php/users.php:145
 msgid "Group membership"
 msgstr "Membrii grupului"
 
-#: frontend/php/users.php:184
+#: frontend/php/users.php:183
 msgid "No member found"
 msgstr "Nu s-a găsit niciun membru"
 
 #. TRANSLATORS: the argument is user's name (like J. Random Hacker).
-#: frontend/php/users.php:197
+#: frontend/php/users.php:196
 #, php-format
 msgid "%s profile"
 msgstr "Profil %s"
 
-#: frontend/php/users.php:201
+#: frontend/php/users.php:200
 msgid ""
 "It is not a normal user account but a squad: it unites several\n"
 "users as if they were one (notifications, privileges, etc)."
@@ -9562,19 +9556,19 @@ msgstr ""
 "Nu este un cont de utilizator normal, ci un cont de echipă: acesta reunește\n"
 "mai mulți utilizatori ca și cum ar fi unul singur (notificări, privilegii, etc.)."
 
-#: frontend/php/users.php:207
+#: frontend/php/users.php:206
 msgid "General information"
 msgstr "Informații generale"
 
-#: frontend/php/users.php:216
+#: frontend/php/users.php:215
 msgid "Note:"
 msgstr "Notă:"
 
-#: frontend/php/users.php:233
+#: frontend/php/users.php:232
 msgid "Site member since:"
 msgstr "Membru al sitului de la data de:"
 
-#: frontend/php/users.php:263
+#: frontend/php/users.php:260
 msgid "You could send a message if you were logged in."
 msgstr "Puteați trimite un mesaj dacă erați autentificat."
 
@@ -9607,16 +9601,16 @@ msgstr "Afișați comentariile din nou"
 msgid "Message Sent"
 msgstr "Mesaj trimis"
 
-#: frontend/php/404.php:44
+#: frontend/php/404.php:45
 msgid "Requested Page not Found (Error 404)"
 msgstr "Pagina solicitată nu a fost găsită (eroare 404)"
 
-#: frontend/php/404.php:48
+#: frontend/php/404.php:49
 #, php-format
 msgid "The web page you are trying to access doesn't exist on %s."
 msgstr "Pagina web pe care încercați să o accesați nu există pe %s."
 
-#: frontend/php/404.php:53
+#: frontend/php/404.php:54
 #, php-format
 msgid ""
 "If you think that there's a broken link on %s that must be\n"
@@ -11029,6 +11023,12 @@ msgstr "Aceasta este o echipă de traducători de la www.gnu.org."
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:73
 msgid "This group contains extras for official GNU software."
 msgstr "Acest grup conține extra pentru software-ul GNU oficial."
+
+#~ msgid "Name of new mailing list"
+#~ msgstr "Numele noii liste de corespondență"
+
+#~ msgid "Group Admins:"
+#~ msgstr "Administratori grup:"
 
 #~ msgid "Empty field value is not allowed"
 #~ msgstr "Valoarea goală a câmpului nu este permisă"

@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.16\n"
+"Project-Id-Version: savane 3.17\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2025-10-31 15:00+0000\n"
-"PO-Revision-Date: 2025-11-01 17:44+0200\n"
+"POT-Creation-Date: 2026-03-07 05:15+0000\n"
+"PO-Revision-Date: 2026-03-08 14:14+0200\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <heb-bugzap@hamakor.org.il>\n"
 "Language: he\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? 2 : 3);\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
-"X-Generator: Poedit 3.7\n"
+"X-Generator: Poedit 3.8\n"
 "X-Poedit-Basepath: ../savane\n"
 "X-Poedit-SearchPath-0: .\n"
 
@@ -74,9 +74,9 @@ msgid "don't provide links to snapshot tarballs"
 msgstr "לא לספק קישורים לתמונות מצב בתוך tarballs (קובצי ארכיון)"
 
 #: frontend/php/git/admin/index.php:210
-#: frontend/php/bugs/admin/field_usage.php:143
+#: frontend/php/bugs/admin/field_usage.php:142
 #: frontend/php/bugs/admin/editqueryforms.php:479
-#: frontend/php/mail/admin/index.php:255 frontend/php/mail/admin/index.php:329
+#: frontend/php/mail/admin/index.php:317 frontend/php/mail/admin/index.php:421
 msgid "Description:"
 msgstr "תיאור:"
 
@@ -89,14 +89,14 @@ msgid "README file:"
 msgstr "קובץ README (הסבר):"
 
 #: frontend/php/git/admin/index.php:230
-#: frontend/php/bugs/admin/field_values.php:425
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:211
-#: frontend/php/bugs/admin/field_usage.php:385
-#: frontend/php/my/admin/change.php:642
+#: frontend/php/bugs/admin/field_values.php:424
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:210
+#: frontend/php/bugs/admin/field_usage.php:384
+#: frontend/php/my/admin/change.php:639
 #: frontend/php/my/admin/editsshkeys.php:126
 #: frontend/php/my/admin/change_notifications.php:206
 #: frontend/php/my/admin/index.php:194
-#: frontend/php/include/people/general.php:379
+#: frontend/php/include/people/general.php:385
 #: frontend/php/include/my/bookmarks.php:88
 #: frontend/php/project/admin/editgroupnotifications.php:103
 #: frontend/php/project/admin/editgroupinfo.php:210
@@ -106,7 +106,7 @@ msgstr "קובץ README (הסבר):"
 msgid "Update"
 msgstr "עדכון"
 
-#: frontend/php/bugs/item.php:60 frontend/php/include/utils.php:1027
+#: frontend/php/bugs/item.php:60 frontend/php/include/utils.php:1026
 #, php-format
 msgid "Item #%s not found."
 msgstr "פריט מס׳ %s לא נמצא."
@@ -187,72 +187,72 @@ msgstr ""
 msgid "%1$s to %2$s"
 msgstr "‫%1$s עד %2$s"
 
-#: frontend/php/bugs/reporting.php:115
+#: frontend/php/bugs/reporting.php:111
 msgid "Other statistics:"
 msgstr "סטטיסטיקה אחרת:"
 
 #. TRANSLATORS: aging statistics is statistics by date.
-#: frontend/php/bugs/reporting.php:121
+#: frontend/php/bugs/reporting.php:117
 msgid "Aging Statistics"
 msgstr "סטטיסטיקת לפי זמן"
 
 #. TRANSLATORS: the argument is field label.
-#: frontend/php/bugs/reporting.php:133
+#: frontend/php/bugs/reporting.php:129
 #, php-format
 msgid "Statistics by '%s'"
 msgstr "סטטיסטיקה לפי ‚%s’"
 
-#: frontend/php/bugs/reporting.php:155 frontend/php/stats/index.php:405
+#: frontend/php/bugs/reporting.php:151 frontend/php/stats/index.php:405
 #: frontend/php/include/sitemenu.php:198
 msgid "Statistics"
 msgstr "סטטיסטיקה"
 
 #. TRANSLATORS: aging statistics is statistics by date.
-#: frontend/php/bugs/reporting.php:170
+#: frontend/php/bugs/reporting.php:166
 msgid "Aging statistics:"
 msgstr "סטטיסטיקה לפי זמן:"
 
-#: frontend/php/bugs/reporting.php:180
+#: frontend/php/bugs/reporting.php:176
 msgid "Average Turnaround Time for Closed Items"
 msgstr "זמן השלמה ממוצע לפריטים שנסגרו"
 
-#: frontend/php/bugs/reporting.php:188
+#: frontend/php/bugs/reporting.php:184
 msgid "Number of Items Opened"
 msgstr "מספר הפריטים הפתוחים"
 
-#: frontend/php/bugs/reporting.php:201
+#: frontend/php/bugs/reporting.php:197
 msgid "Number of Items Still Open"
 msgstr "מספר הפריטים שעדיין פתוחים"
 
 #. TRANSLATORS: the argument is field label.
-#: frontend/php/bugs/reporting.php:213
+#: frontend/php/bugs/reporting.php:209
 #, php-format
 msgid "Statistics by '%s':"
 msgstr "סטטיסטיקה לפי ‚%s’:"
 
-#: frontend/php/bugs/reporting.php:214
+#: frontend/php/bugs/reporting.php:210
 msgid "Field Description:"
 msgstr "תיאור שדה:"
 
-#: frontend/php/bugs/reporting.php:223
+#: frontend/php/bugs/reporting.php:219
 #, php-format
 msgid "Can't generate report for field %s"
 msgstr "אי אפשר לייצר דוח לשדה %s"
 
-#: frontend/php/bugs/reporting.php:233
+#: frontend/php/bugs/reporting.php:229
 msgid "Open Items"
 msgstr "פריטים פתוחים"
 
-#: frontend/php/bugs/reporting.php:273
-#: frontend/php/include/trackers/view-dependencies.php:309
+#: frontend/php/bugs/reporting.php:269
+#: frontend/php/include/trackers/view-dependencies.php:308
 msgid "No item found."
 msgstr "לא נמצאו פריטים."
 
-#: frontend/php/bugs/reporting.php:278
+#: frontend/php/bugs/reporting.php:274
 msgid "All Items"
 msgstr "כל הפריטים"
 
-#: frontend/php/bugs/reporting.php:315
+#: frontend/php/bugs/reporting.php:311
 msgid "No item found. This field is probably unused"
 msgstr "לא נמצא פריט. כנראה שהשדה הזה אינו בשימוש"
 
@@ -319,22 +319,22 @@ msgid "Value label"
 msgstr "תווית ערך"
 
 #: frontend/php/bugs/admin/field_values.php:244
-#: frontend/php/bugs/admin/field_values.php:912
-#: frontend/php/bugs/admin/field_usage.php:423
+#: frontend/php/bugs/admin/field_values.php:909
+#: frontend/php/bugs/admin/field_usage.php:422
 #: frontend/php/bugs/admin/editqueryforms.php:604
 #: frontend/php/bugs/admin/editqueryforms.php:646
-#: frontend/php/search/index.php:112
+#: frontend/php/search/index.php:111
 #: frontend/php/include/search/general.php:535
 msgid "Description"
 msgstr "תיאור"
 
 #: frontend/php/bugs/admin/field_values.php:246
-#: frontend/php/bugs/admin/field_values.php:853
+#: frontend/php/bugs/admin/field_values.php:850
 msgid "Rank"
 msgstr "דירוג"
 
 #: frontend/php/bugs/admin/field_values.php:246
-#: frontend/php/bugs/admin/field_usage.php:424
+#: frontend/php/bugs/admin/field_usage.php:423
 #: frontend/php/people/editjob.php:210
 msgid "Status"
 msgstr "מצב"
@@ -384,26 +384,26 @@ msgid "(must be &gt; %s)"
 msgstr "(חייב להיות &gt; %s)"
 
 #: frontend/php/bugs/admin/field_values.php:414
-#: frontend/php/bugs/admin/field_values.php:773
+#: frontend/php/bugs/admin/field_values.php:770
 msgid "Value:"
 msgstr "ערך:"
 
 #: frontend/php/bugs/admin/field_values.php:417
-#: frontend/php/bugs/admin/field_values.php:705
+#: frontend/php/bugs/admin/field_values.php:704
 msgid "Rank:"
 msgstr "דירוג:"
 
 #: frontend/php/bugs/admin/field_values.php:421
-#: frontend/php/bugs/admin/field_values.php:737
+#: frontend/php/bugs/admin/field_values.php:736
 msgid "Description (optional):"
 msgstr "תיאור (רשות):"
 
-#: frontend/php/bugs/admin/field_values.php:431
-#: frontend/php/bugs/admin/field_values.php:441
+#: frontend/php/bugs/admin/field_values.php:430
+#: frontend/php/bugs/admin/field_values.php:440
 msgid "Reset values"
 msgstr "איפוס ערכים"
 
-#: frontend/php/bugs/admin/field_values.php:433
+#: frontend/php/bugs/admin/field_values.php:432
 msgid ""
 "You are currently using custom values. If you want to reset values to the\n"
 "default ones, use the following form:"
@@ -411,80 +411,80 @@ msgstr ""
 "הערכים שבשימוש כרגע מותאמים אישית. כדי לאפס את ערכים לברירות המחדל\n"
 "יש להשתמש בטופס הבא:"
 
-#: frontend/php/bugs/admin/field_values.php:442
+#: frontend/php/bugs/admin/field_values.php:441
 msgid "For your information, the default active values are:"
 msgstr "לידיעתך, הערכים הפעילים כברירת מחדל הם:"
 
 #. TRANSLATORS: the argument is field name.
-#: frontend/php/bugs/admin/field_values.php:488
+#: frontend/php/bugs/admin/field_values.php:487
 #, php-format
 msgid "No transition defined yet for %s"
 msgstr "לא הוגדרו עדיין מעברונים עבור %s"
 
 #. TRANSLATORS: this refers to transitions.
-#: frontend/php/bugs/admin/field_values.php:498
-#: frontend/php/bugs/admin/field_values.php:634
+#: frontend/php/bugs/admin/field_values.php:497
+#: frontend/php/bugs/admin/field_values.php:633
 msgid "* - Any"
 msgstr "* - כלשהם"
 
-#: frontend/php/bugs/admin/field_values.php:507
+#: frontend/php/bugs/admin/field_values.php:506
 #: frontend/php/my/admin/resume.php:171
 msgid "Yes"
 msgstr "כן"
 
-#: frontend/php/bugs/admin/field_values.php:509
+#: frontend/php/bugs/admin/field_values.php:508
 #: frontend/php/my/admin/resume.php:171
 msgid "No"
 msgstr "לא"
 
-#: frontend/php/bugs/admin/field_values.php:520
+#: frontend/php/bugs/admin/field_values.php:519
 msgid "Edit other fields update"
 msgstr "עריכת עדכון של שדות אחרים"
 
-#: frontend/php/bugs/admin/field_values.php:567
+#: frontend/php/bugs/admin/field_values.php:566
 msgid "Delete this transition"
 msgstr "מחיקת המעברון הזה"
 
-#: frontend/php/bugs/admin/field_values.php:577
+#: frontend/php/bugs/admin/field_values.php:576
 msgid "Registered Transitions"
 msgstr "מעברונים רשומים"
 
-#: frontend/php/bugs/admin/field_values.php:579
-#: frontend/php/bugs/admin/field_values.php:628
+#: frontend/php/bugs/admin/field_values.php:578
+#: frontend/php/bugs/admin/field_values.php:627
 msgid "From"
 msgstr "מאת"
 
-#: frontend/php/bugs/admin/field_values.php:579
-#: frontend/php/bugs/admin/field_values.php:628
+#: frontend/php/bugs/admin/field_values.php:578
+#: frontend/php/bugs/admin/field_values.php:627
 msgid "To"
 msgstr "אל"
 
-#: frontend/php/bugs/admin/field_values.php:579
-#: frontend/php/bugs/admin/field_values.php:628
+#: frontend/php/bugs/admin/field_values.php:578
+#: frontend/php/bugs/admin/field_values.php:627
 msgid "Is Allowed"
 msgstr "מורשה"
 
-#: frontend/php/bugs/admin/field_values.php:580
+#: frontend/php/bugs/admin/field_values.php:579
 msgid "Other Field Update"
 msgstr "עדכון של שדה אחר"
 
-#: frontend/php/bugs/admin/field_values.php:580
-#: frontend/php/bugs/admin/field_values.php:628
-#: frontend/php/bugs/admin/field_values.php:647
+#: frontend/php/bugs/admin/field_values.php:579
+#: frontend/php/bugs/admin/field_values.php:627
+#: frontend/php/bugs/admin/field_values.php:646
 #: frontend/php/include/trackers/format.php:701
 msgid "Carbon-Copy List"
 msgstr "רשימת עותק"
 
-#: frontend/php/bugs/admin/field_values.php:580
-#: frontend/php/bugs/admin/field_values.php:853
+#: frontend/php/bugs/admin/field_values.php:579
+#: frontend/php/bugs/admin/field_values.php:850
 #: frontend/php/bugs/admin/editqueryforms.php:604
-#: frontend/php/include/people/general.php:380
-#: frontend/php/include/html.php:471 frontend/php/include/news/general.php:218
-#: frontend/php/include/form.php:214
+#: frontend/php/include/people/general.php:386
+#: frontend/php/include/html.php:472 frontend/php/include/news/general.php:218
+#: frontend/php/include/form.php:216
 msgid "Delete"
 msgstr "מחיקה"
 
-#: frontend/php/bugs/admin/field_values.php:606
+#: frontend/php/bugs/admin/field_values.php:605
 msgid ""
 "By default, for this field, the\n"
 "transitions not registered are forbidden. This setting can be changed when\n"
@@ -493,7 +493,7 @@ msgstr ""
 "כברירת המחדל, לשדה הזה, אי רישום מעברונים אסור.\n"
 "‫אפשר לשנות את ההגדרה הזאת בעת ניהול השימוש בשדה הזה."
 
-#: frontend/php/bugs/admin/field_values.php:609
+#: frontend/php/bugs/admin/field_values.php:608
 msgid ""
 "By default, for this field, the\n"
 "transitions not registered are allowed. This setting can be changed when\n"
@@ -502,15 +502,15 @@ msgstr ""
 "כברירת המחדל, לשדה הזה, אי רישום מעברונים מותר.\n"
 "‫‫אפשר לשנות את ההגדרה הזאת בעת ניהול השימוש בשדה הזה."
 
-#: frontend/php/bugs/admin/field_values.php:622
+#: frontend/php/bugs/admin/field_values.php:621
 msgid "Create a transition"
 msgstr "יצירת מעברון"
 
-#: frontend/php/bugs/admin/field_values.php:643
+#: frontend/php/bugs/admin/field_values.php:642
 msgid "allowed or not"
 msgstr "מורשה או לא"
 
-#: frontend/php/bugs/admin/field_values.php:657
+#: frontend/php/bugs/admin/field_values.php:656
 msgid ""
 "Once a transition created, it will be possible to set &ldquo;Other Field\n"
 "Update&rdquo; for this transition."
@@ -518,24 +518,24 @@ msgstr ""
 "לאחר יצירת מעברון, אפשר להגדיר „עדכון שדה אחר” למעברון\n"
 "הזה."
 
-#: frontend/php/bugs/admin/field_values.php:661
+#: frontend/php/bugs/admin/field_values.php:660
 msgid "Update Transition"
 msgstr "עדכון מעברון"
 
-#: frontend/php/bugs/admin/field_values.php:713
-#: frontend/php/bugs/admin/field_values.php:907
-#: frontend/php/include/pagemenu.php:656
+#: frontend/php/bugs/admin/field_values.php:712
+#: frontend/php/bugs/admin/field_values.php:904
+#: frontend/php/include/pagemenu.php:659
 msgid "Field values"
 msgstr "ערכי שדות"
 
-#: frontend/php/bugs/admin/field_values.php:732
-#: frontend/php/bugs/admin/field_usage.php:193
-#: frontend/php/people/viewjob.php:95 frontend/php/mail/admin/index.php:266
-#: frontend/php/mail/admin/index.php:332
+#: frontend/php/bugs/admin/field_values.php:731
+#: frontend/php/bugs/admin/field_usage.php:192
+#: frontend/php/people/viewjob.php:95 frontend/php/mail/admin/index.php:331
+#: frontend/php/mail/admin/index.php:424
 msgid "Status:"
 msgstr "מצב:"
 
-#: frontend/php/bugs/admin/field_values.php:755
+#: frontend/php/bugs/admin/field_values.php:752
 #, php-format
 msgid "This field value applies to %s item of your tracker."
 msgid_plural "This field value applies to %s items of your tracker."
@@ -544,7 +544,7 @@ msgstr[1] "ערך שדה זה חל על %s פריטים בעוקב שלך."
 msgstr[2] "ערך שדה זה חל על %s פריטים בעוקב שלך."
 msgstr[3] "ערך שדה זה חל על %s פריטים בעוקב שלך."
 
-#: frontend/php/bugs/admin/field_values.php:762
+#: frontend/php/bugs/admin/field_values.php:759
 #, php-format
 msgid ""
 "If you hide this field value, the related items will have no value in the\n"
@@ -553,50 +553,50 @@ msgstr ""
 "הסתרת ערך שדה זה תוביל לכך שלפריטים קשורים לא יהיה ערך\n"
 "‫בשדה ‚%s’."
 
-#: frontend/php/bugs/admin/field_values.php:777
-#: frontend/php/bugs/admin/field_values.php:817
+#: frontend/php/bugs/admin/field_values.php:774
+#: frontend/php/bugs/admin/field_values.php:814
 #: frontend/php/include/trackers_run/digest.php:183
-#: frontend/php/include/pagemenu.php:580
-#: frontend/php/include/news/general.php:249 frontend/php/include/form.php:189
+#: frontend/php/include/pagemenu.php:583
+#: frontend/php/include/news/general.php:249 frontend/php/include/form.php:191
 msgid "Submit"
 msgstr "הגשה"
 
-#: frontend/php/bugs/admin/field_values.php:813
+#: frontend/php/bugs/admin/field_values.php:810
 #: frontend/php/include/my/bookmarks.php:81
 msgid "Title:"
 msgstr "כותרת:"
 
-#: frontend/php/bugs/admin/field_values.php:815
+#: frontend/php/bugs/admin/field_values.php:812
 msgid "Message Body:"
 msgstr "תוכן ההודעה:"
 
-#: frontend/php/bugs/admin/field_values.php:841
+#: frontend/php/bugs/admin/field_values.php:838
 msgid "Modify Canned Responses"
 msgstr "שינוי תגובות מראש"
 
-#: frontend/php/bugs/admin/field_values.php:851
+#: frontend/php/bugs/admin/field_values.php:848
 msgid "Existing Responses:"
 msgstr "תגובות קיימות:"
 
-#: frontend/php/bugs/admin/field_values.php:853
-#: frontend/php/include/people/general.php:418
+#: frontend/php/bugs/admin/field_values.php:850
+#: frontend/php/include/people/general.php:436
 #: frontend/php/include/markup.php:86 frontend/php/include/markup.php:151
 msgid "Title"
 msgstr "כותרת"
 
-#: frontend/php/bugs/admin/field_values.php:853
+#: frontend/php/bugs/admin/field_values.php:850
 msgid "Body (abstract)"
 msgstr "תוכן (מופשט)"
 
-#: frontend/php/bugs/admin/field_values.php:862
+#: frontend/php/bugs/admin/field_values.php:859
 msgid "No canned bug responses set up yet"
 msgstr "לא הוקמו עדיין תגובות מראש לתקלות"
 
-#: frontend/php/bugs/admin/field_values.php:863
+#: frontend/php/bugs/admin/field_values.php:860
 msgid "Create a new response"
 msgstr "יצירת תגובה חדשה"
 
-#: frontend/php/bugs/admin/field_values.php:864
+#: frontend/php/bugs/admin/field_values.php:861
 msgid ""
 "Creating generic quick responses can save a lot of time when giving common\n"
 "responses."
@@ -604,15 +604,15 @@ msgstr ""
 "יצירת תגובות חדשות כוללניות יכולה לחסוך זמן רב\n"
 "בכתיבת תגובות נפוצות."
 
-#: frontend/php/bugs/admin/field_values.php:874
+#: frontend/php/bugs/admin/field_values.php:871
 msgid "Modify Canned Response"
 msgstr "עריכת תגובות מראש"
 
-#: frontend/php/bugs/admin/field_values.php:884
+#: frontend/php/bugs/admin/field_values.php:881
 msgid "No such response!"
 msgstr "אין תגובה כזאת!"
 
-#: frontend/php/bugs/admin/field_values.php:888
+#: frontend/php/bugs/admin/field_values.php:885
 msgid ""
 "Creating generic messages can save you a lot of time when giving\n"
 "common responses."
@@ -620,41 +620,41 @@ msgstr ""
 "יצירת הודעות גנריות יכולה לחסוך לך זמן רב בעת\n"
 "מתן מענה עם תגובות נפוצות."
 
-#: frontend/php/bugs/admin/field_values.php:901
-#: frontend/php/bugs/admin/field_usage.php:449
+#: frontend/php/bugs/admin/field_values.php:898
+#: frontend/php/bugs/admin/field_usage.php:448
 #: frontend/php/include/trackers/data.php:87
 msgid "System"
 msgstr "מערכת"
 
-#: frontend/php/bugs/admin/field_values.php:903
-#: frontend/php/bugs/admin/field_values.php:942
-#: frontend/php/bugs/admin/field_usage.php:449
-#: frontend/php/search/index.php:112 frontend/php/search/index.php:191
-#: frontend/php/include/people/general.php:418
+#: frontend/php/bugs/admin/field_values.php:900
+#: frontend/php/bugs/admin/field_values.php:939
+#: frontend/php/bugs/admin/field_usage.php:448
+#: frontend/php/search/index.php:111 frontend/php/search/index.php:190
+#: frontend/php/include/people/general.php:436
 #: frontend/php/include/trackers/data.php:86
 #: frontend/php/include/search/general.php:535
-#: frontend/php/include/pagemenu.php:83
+#: frontend/php/include/pagemenu.php:88
 msgid "Group"
 msgstr "קבוצה"
 
-#: frontend/php/bugs/admin/field_values.php:912
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:172
-#: frontend/php/bugs/admin/field_usage.php:423
+#: frontend/php/bugs/admin/field_values.php:909
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:171
+#: frontend/php/bugs/admin/field_usage.php:422
 #: frontend/php/bugs/admin/editqueryforms.php:646
 msgid "Field Label"
 msgstr "תווית שדה"
 
-#: frontend/php/bugs/admin/field_values.php:914
-#: frontend/php/bugs/admin/field_usage.php:424
+#: frontend/php/bugs/admin/field_values.php:911
+#: frontend/php/bugs/admin/field_usage.php:423
 #: frontend/php/bugs/admin/editqueryforms.php:604
 msgid "Scope"
 msgstr "היקף"
 
-#: frontend/php/bugs/admin/field_values.php:936
+#: frontend/php/bugs/admin/field_values.php:933
 msgid "Canned Responses"
 msgstr "תגובות מראש"
 
-#: frontend/php/bugs/admin/field_values.php:938
+#: frontend/php/bugs/admin/field_values.php:935
 msgid ""
 "Create or change generic quick response messages for this issue tracker.\n"
 "These pre-written messages can then be used to quickly reply to item\n"
@@ -671,17 +671,17 @@ msgstr "לא נמצא מעברון"
 #. TRANSLATORS: this string is a job category.
 #. TRANSLATORS: Displayed when no user is selected.
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:132
-#: frontend/php/include/trackers_run/mod.php:353
-#: frontend/php/include/people/general.php:230
-#: frontend/php/include/trackers/general.php:247
-#: frontend/php/include/utils.php:444 frontend/php/include/html.php:645
-#: frontend/php/include/html.php:776
+#: frontend/php/include/trackers_run/mod.php:322
+#: frontend/php/include/people/general.php:236
+#: frontend/php/include/trackers/general.php:212
+#: frontend/php/include/utils.php:440 frontend/php/include/html.php:646
+#: frontend/php/include/html.php:777
 msgid "None"
 msgstr "ללא"
 
 #: frontend/php/bugs/admin/field_values_transition-ofields-update.php:134
-#: frontend/php/include/trackers_run/mod.php:353
-#: frontend/php/include/html.php:647
+#: frontend/php/include/trackers_run/mod.php:322
+#: frontend/php/include/html.php:648
 msgid "Any"
 msgstr "כלשהו"
 
@@ -689,7 +689,7 @@ msgstr "כלשהו"
 msgid "Field Value Transitions: Update Other Fields"
 msgstr "מעברון ערך שדה: עדכון שדות אחרים"
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:148
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:147
 #, php-format
 msgid ""
 "Other Fields to update when &ldquo;%1$s&rdquo; changes\n"
@@ -698,7 +698,7 @@ msgstr ""
 "שדות אחרים לעדכון כאשר „%1$s”\n"
 "משתנה מהערך „%2$s” לכדי „%3$s”:"
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:156
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:155
 #, php-format
 msgid ""
 "Note that if you set an automatic update of the field %1$s,\n"
@@ -708,7 +708,7 @@ msgstr ""
 "נא לשים לב שאם הגדרת עדכון אוטומטי של השדה %1$s,\n"
 "טכנאים יוכלו לסגור פריטים על ידי שינוי ערך השדה %2$s."
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:162
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:161
 msgid ""
 "Note also the automatic update process will not override field values\n"
 "specifically filled in forms. It means that if someone was able (depending on\n"
@@ -720,171 +720,171 @@ msgstr ""
 "‫אפשרות (בהתאם לתפקיד ולמיזם) לשנות ערך שדה מסוים, כל עדכון\n"
 "‫אוטומטי שאמור לחול על השדה הזה לא יפעל."
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:172
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:171
 msgid "New Value"
 msgstr "ערך חדש"
 
-#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:204
+#: frontend/php/bugs/admin/field_values_transition-ofields-update.php:203
 msgid "No automatic update"
 msgstr "אין עדכון אוטומטי"
 
-#: frontend/php/bugs/admin/field_usage.php:133
+#: frontend/php/bugs/admin/field_usage.php:132
 msgid "Jump to this field values"
 msgstr "מעבר לערכי השדה הזה"
 
-#: frontend/php/bugs/admin/field_usage.php:140
-#: frontend/php/bugs/admin/field_usage.php:156
+#: frontend/php/bugs/admin/field_usage.php:139
+#: frontend/php/bugs/admin/field_usage.php:155
 msgid "Field Label:"
 msgstr "תווית שדה:"
 
-#: frontend/php/bugs/admin/field_usage.php:151
+#: frontend/php/bugs/admin/field_usage.php:150
 msgid "Modify Field Usage"
 msgstr "שינוי שימוש בשדה"
 
-#: frontend/php/bugs/admin/field_usage.php:171
+#: frontend/php/bugs/admin/field_usage.php:170
 msgid "whether to keep in history"
 msgstr "האם לשמור בהיסטוריה"
 
-#: frontend/php/bugs/admin/field_usage.php:175
+#: frontend/php/bugs/admin/field_usage.php:174
 msgid "Keep field value changes in history"
 msgstr "לשמור את שינויי ערך השדה בהיסטוריה"
 
-#: frontend/php/bugs/admin/field_usage.php:178
+#: frontend/php/bugs/admin/field_usage.php:177
 msgid "Ignore field value changes in history"
 msgstr "להתעלם משינויי ערך השדה בהיסטוריה"
 
-#: frontend/php/bugs/admin/field_usage.php:181
+#: frontend/php/bugs/admin/field_usage.php:180
 msgid "Item History:"
 msgstr "היסטוריית פריטים:"
 
-#: frontend/php/bugs/admin/field_usage.php:188
-#: frontend/php/bugs/admin/field_usage.php:446
+#: frontend/php/bugs/admin/field_usage.php:187
+#: frontend/php/bugs/admin/field_usage.php:445
 msgid "Required"
 msgstr "דרוש"
 
-#: frontend/php/bugs/admin/field_usage.php:191
-#: frontend/php/bugs/admin/field_usage.php:446
+#: frontend/php/bugs/admin/field_usage.php:190
+#: frontend/php/bugs/admin/field_usage.php:445
 msgid "Used"
 msgstr "בשימוש"
 
-#: frontend/php/bugs/admin/field_usage.php:208
+#: frontend/php/bugs/admin/field_usage.php:207
 msgid "whether the field is mandatory"
 msgstr "האם השדה הוא בגדר חובה"
 
-#: frontend/php/bugs/admin/field_usage.php:210
+#: frontend/php/bugs/admin/field_usage.php:209
 msgid "Optional (empty values are accepted)"
 msgstr "רשות (מותר ערכים ריקים)"
 
-#: frontend/php/bugs/admin/field_usage.php:211
+#: frontend/php/bugs/admin/field_usage.php:210
 msgid "Mandatory"
 msgstr "חובה"
 
-#: frontend/php/bugs/admin/field_usage.php:213
+#: frontend/php/bugs/admin/field_usage.php:212
 msgid "Mandatory only if it was presented to the original submitter"
 msgstr "חובה רק אם הוא הוצג למגיש המקורי"
 
-#: frontend/php/bugs/admin/field_usage.php:216
+#: frontend/php/bugs/admin/field_usage.php:215
 msgid "This field is:"
 msgstr "השדה הזה הוא:"
 
-#: frontend/php/bugs/admin/field_usage.php:279
+#: frontend/php/bugs/admin/field_usage.php:278
 msgid "Show field to anonymous users"
 msgstr "הצגת שדה למשתמשים אלמוניים"
 
-#: frontend/php/bugs/admin/field_usage.php:280
+#: frontend/php/bugs/admin/field_usage.php:279
 msgid "Show field to logged-in users"
 msgstr "הצגת שדה למשתמשים שנכנסו למערכת"
 
-#: frontend/php/bugs/admin/field_usage.php:281
+#: frontend/php/bugs/admin/field_usage.php:280
 msgid "Show field to members"
 msgstr "הצגת שדה לחברים"
 
-#: frontend/php/bugs/admin/field_usage.php:299
+#: frontend/php/bugs/admin/field_usage.php:298
 msgid "Display:"
 msgstr "תצוגה:"
 
-#: frontend/php/bugs/admin/field_usage.php:301
+#: frontend/php/bugs/admin/field_usage.php:300
 msgid "Rank on page:"
 msgstr "דירוג בעמוד:"
 
-#: frontend/php/bugs/admin/field_usage.php:312
+#: frontend/php/bugs/admin/field_usage.php:311
 msgid "Visible size of the field:"
 msgstr "גודל גלוי של השדה:"
 
-#: frontend/php/bugs/admin/field_usage.php:316
+#: frontend/php/bugs/admin/field_usage.php:315
 msgid "Maximum size of field text (up to 255):"
 msgstr "הגודל המרבי של שדה הטקסט (עד 255):"
 
-#: frontend/php/bugs/admin/field_usage.php:329
+#: frontend/php/bugs/admin/field_usage.php:328
 msgid "Number of columns of the field:"
 msgstr "מספר העמודות של השדה:"
 
-#: frontend/php/bugs/admin/field_usage.php:332
+#: frontend/php/bugs/admin/field_usage.php:331
 msgid "Number of rows  of the field:"
 msgstr "מספר השורות של השדה:"
 
-#: frontend/php/bugs/admin/field_usage.php:368
+#: frontend/php/bugs/admin/field_usage.php:367
 msgid "By default, transitions (from one value to another) are:"
 msgstr "כברירת מחדל, מעברונים (מערך אחד לאחר) הם:"
 
-#: frontend/php/bugs/admin/field_usage.php:371
+#: frontend/php/bugs/admin/field_usage.php:370
 msgid "Allowed"
 msgstr "מורשים"
 
-#: frontend/php/bugs/admin/field_usage.php:376
+#: frontend/php/bugs/admin/field_usage.php:375
 msgid "Forbidden"
 msgstr "אסורים"
 
-#: frontend/php/bugs/admin/field_usage.php:386
+#: frontend/php/bugs/admin/field_usage.php:385
 msgid "Reset to defaults"
 msgstr "איפוס לברירות המחדל"
 
-#: frontend/php/bugs/admin/field_usage.php:397
+#: frontend/php/bugs/admin/field_usage.php:396
 #, php-format
 msgid "No field '%s' found."
 msgstr "לא נמצא שדה ‚%s’."
 
-#: frontend/php/bugs/admin/field_usage.php:400
+#: frontend/php/bugs/admin/field_usage.php:399
 msgid "Access:"
 msgstr "גישה:"
 
-#: frontend/php/bugs/admin/field_usage.php:403
+#: frontend/php/bugs/admin/field_usage.php:402
 msgid "On new item submission:"
 msgstr "עם הגשת פריט חדש:"
 
-#: frontend/php/bugs/admin/field_usage.php:416
+#: frontend/php/bugs/admin/field_usage.php:415
 #: frontend/php/bugs/admin/index.php:100
 msgid "Select Fields"
 msgstr "בחירת שדות"
 
-#: frontend/php/bugs/admin/field_usage.php:423
-#: frontend/php/search/index.php:112
-#: frontend/php/include/people/general.php:418
+#: frontend/php/bugs/admin/field_usage.php:422
+#: frontend/php/search/index.php:111
+#: frontend/php/include/people/general.php:436
 #: frontend/php/include/search/general.php:535
 msgid "Type"
 msgstr "סוג"
 
-#: frontend/php/bugs/admin/field_usage.php:423
+#: frontend/php/bugs/admin/field_usage.php:422
 msgid "Rank on page"
 msgstr "דירוג בעמוד"
 
-#: frontend/php/bugs/admin/field_usage.php:446
+#: frontend/php/bugs/admin/field_usage.php:445
 msgid "Unused"
 msgstr "לא בשימוש"
 
-#: frontend/php/bugs/admin/field_usage.php:457
+#: frontend/php/bugs/admin/field_usage.php:456
 msgid "Custom Field"
 msgstr "שדה משלך"
 
-#: frontend/php/bugs/admin/field_usage.php:474
+#: frontend/php/bugs/admin/field_usage.php:473
 msgid "USED FIELDS"
 msgstr "שדות בשימוש"
 
-#: frontend/php/bugs/admin/field_usage.php:476
+#: frontend/php/bugs/admin/field_usage.php:475
 msgid "UNUSED STANDARD FIELDS"
 msgstr "שדות רגילים שאינם בשימוש"
 
-#: frontend/php/bugs/admin/field_usage.php:479
+#: frontend/php/bugs/admin/field_usage.php:478
 msgid "UNUSED CUSTOM FIELDS"
 msgstr "שדות משלך שאינם בשימוש"
 
@@ -901,17 +901,6 @@ msgid ""
 msgstr ""
 "פעולה זו תאפס את ערכי השדה %s.\n"
 "פעולה זו אינה הפיכה, נא לאשר:"
-
-#: frontend/php/bugs/admin/field_values_reset.php:83
-#: frontend/php/my/quitproject.php:126
-msgid "Confirm"
-msgstr "אישור"
-
-#: frontend/php/bugs/admin/field_values_reset.php:84
-#: frontend/php/my/quitproject.php:127
-#: frontend/php/project/admin/editgroupinfo.php:209
-msgid "Cancel"
-msgstr "ביטול"
 
 #: frontend/php/bugs/admin/conf-copy.php:58
 #: frontend/php/bugs/admin/index.php:88
@@ -1105,7 +1094,7 @@ msgstr "רוחב עמודה (רשות)"
 #. TRANSLATORS: this string is as argument in
 #. "Browse with the %s query form".
 #: frontend/php/bugs/admin/editqueryforms.php:257
-#: frontend/php/include/trackers_run/browse.php:928
+#: frontend/php/include/trackers_run/browse.php:947
 msgid "Basic"
 msgstr "בסיסי"
 
@@ -1116,9 +1105,9 @@ msgstr "עיון עם טופס התשאול %s כברירת מחדל."
 
 #: frontend/php/bugs/admin/editqueryforms.php:260
 #: frontend/php/stats/index.php:88 frontend/php/my/items.php:114
-#: frontend/php/include/trackers_run/browse.php:963
+#: frontend/php/include/trackers_run/browse.php:981
 #: frontend/php/include/trackers/view-dependencies.php:261
-#: frontend/php/project/memberlist.php:209 frontend/php/news/index.php:93
+#: frontend/php/project/memberlist.php:208 frontend/php/news/index.php:93
 msgid "Apply"
 msgstr "החלה"
 
@@ -1148,8 +1137,7 @@ msgstr "עדכון טופס התשאול ‚%s’ נכשל"
 msgid "Unknown Report ID (%s)"
 msgstr "מזהה דוח (%s) לא ידוע"
 
-#: frontend/php/bugs/admin/editqueryforms.php:475
-#: frontend/php/include/project_home.php:143
+#: frontend/php/bugs/admin/editqueryforms.php:475 frontend/php/projects.php:155
 msgid "Name:"
 msgstr "שם:"
 
@@ -1194,19 +1182,19 @@ msgid "Set Notifications"
 msgstr "הגדרת התראות"
 
 #: frontend/php/bugs/admin/notification_settings.php:118
-#: frontend/php/my/votes.php:159
+#: frontend/php/my/votes.php:156
 msgid "Submit Changes"
 msgstr "הגשת השינויים"
 
 #. TRANSLATORS: the argument is file id (a number).
-#: frontend/php/file.php:96 frontend/php/include/trackers/data.php:2720
+#: frontend/php/file.php:96 frontend/php/include/trackers/data.php:2715
 #, php-format
 msgid "File #%s not found"
 msgstr "קובץ מס׳ %s לא נמצא"
 
 #. TRANSLATORS: the argument is artifact name ('bugs', 'task' etc.)
 #. TRANSLATORS: the argument is name of artifact (like bugs or patches).
-#: frontend/php/file.php:104 frontend/php/include/trackers/general.php:714
+#: frontend/php/file.php:104 frontend/php/include/trackers/general.php:709
 #, php-format
 msgid "Invalid artifact %s"
 msgstr "תוצר %s שגוי"
@@ -1320,7 +1308,7 @@ msgstr[2] "כולל %s שכבר נסגרו<!-- support requests -->"
 msgstr[3] "כולל %s שכבר נסגרו<!-- support requests -->"
 
 #: frontend/php/stats/index.php:185 frontend/php/stats/index.php:298
-#: frontend/php/include/context.php:202 frontend/php/include/pagemenu.php:629
+#: frontend/php/include/context.php:202 frontend/php/include/pagemenu.php:632
 msgid "Bugs"
 msgstr "תקלות"
 
@@ -1343,7 +1331,7 @@ msgstr[2] "כולל %s שכבר נסגרו<!-- bugs -->"
 msgstr[3] "כולל %s שכבר נסגרו<!-- bugs -->"
 
 #: frontend/php/stats/index.php:193 frontend/php/stats/index.php:306
-#: frontend/php/include/context.php:203 frontend/php/include/pagemenu.php:631
+#: frontend/php/include/context.php:203 frontend/php/include/pagemenu.php:634
 msgid "Tasks"
 msgstr "משימות"
 
@@ -1366,7 +1354,7 @@ msgstr[2] "כולל %s שכבר נסגרה<!-- tasks -->"
 msgstr[3] "כולל %s שכבר נסגרה<!-- tasks -->"
 
 #: frontend/php/stats/index.php:201 frontend/php/stats/index.php:314
-#: frontend/php/include/context.php:204 frontend/php/include/pagemenu.php:633
+#: frontend/php/include/context.php:204 frontend/php/include/pagemenu.php:636
 msgid "Patches"
 msgstr "טלאים"
 
@@ -1820,7 +1808,7 @@ msgid "%1$s for %2$s"
 msgstr "‫%1$s ב־%2$s"
 
 #: frontend/php/people/viewjob.php:91
-#: frontend/php/include/trackers_run/mod.php:222
+#: frontend/php/include/trackers_run/mod.php:220
 #: frontend/php/include/news/general.php:201
 msgid "Submitter:"
 msgstr "הוגש על ידי:"
@@ -1859,15 +1847,317 @@ msgstr "המשתמש הזה לא רשם מפתח GPG."
 msgid "GPG Key of the user %s"
 msgstr "מפתח GPG של המשתמש %s"
 
-#: frontend/php/projects.php:49
+#: frontend/php/projects.php:52
 #, php-format
 msgid "Wrong group name '%s'."
 msgstr "שם הקבוצה ‚%s’ שגוי."
 
-#: frontend/php/projects.php:54
+#: frontend/php/projects.php:57
 #, php-format
 msgid "Group '%s' does not exist."
 msgstr "הקבוצה ‚%s’ לא קיימת."
+
+#: frontend/php/projects.php:79
+msgid "Membership Info"
+msgstr "פרטי חברות"
+
+#. TRANSLATORS: range 1..4.
+#: frontend/php/projects.php:105
+msgid "Group admin"
+msgid_plural "Group admins"
+msgstr[0] "הנהלת הקבוצה"
+msgstr[1] "מנהלי הקבוצה"
+msgstr[2] "מנהלי הקבוצה"
+msgstr[3] "מנהלי הקבוצה"
+
+#: frontend/php/projects.php:131
+#, php-format
+msgid "%s active member"
+msgid_plural "%s active members"
+msgstr[0] "חבר פעיל"
+msgstr[1] "‫%s חברים פעילים"
+msgstr[2] "‫%s חברים פעילים"
+msgstr[3] "‫%s חברים פעילים"
+
+#: frontend/php/projects.php:143
+msgid "View Members"
+msgstr "הצגת חברים"
+
+#: frontend/php/projects.php:148
+msgid "Group identification"
+msgstr "זיהוי קבוצה"
+
+#. TRANSLATORS: the group id (a number) will follow.
+#. TRANSLATORS: user's id (a number) shall follow this message.
+#: frontend/php/projects.php:153 frontend/php/users.php:219
+msgid "Id:"
+msgstr "מזהה:"
+
+#: frontend/php/projects.php:154
+msgid "System Name:"
+msgstr "שם המערכת:"
+
+#: frontend/php/projects.php:156
+msgid "Group Type:"
+msgstr "סוג קבוצה:"
+
+#: frontend/php/projects.php:169
+msgid "Search in this group"
+msgstr "חיפוש בקבוצה הזאת"
+
+#: frontend/php/projects.php:190
+#, php-format
+msgid ""
+"This group hasn't submitted a short description yet. You can <a\n"
+"href=\"%s\">submit it</a> now."
+msgstr ""
+"הקבוצה הזו עדיין לא הגישה תיאור מקוצר.\n"
+"ניתן <a href=\"%s\">להגיש אותו</a> כעת."
+
+#: frontend/php/projects.php:198
+msgid "Registration Date:"
+msgstr "תאריך ההרשמה:"
+
+#: frontend/php/projects.php:204
+#: frontend/php/project/admin/editgroupinfo.php:180
+msgid "License:"
+msgstr "רישיון:"
+
+#: frontend/php/projects.php:212
+msgid "License is unknown!"
+msgstr "הרישיון אינו ידוע!"
+
+#: frontend/php/projects.php:221
+#: frontend/php/project/admin/editgroupinfo.php:171
+msgid "Development Status:"
+msgstr "מצב פיתוח:"
+
+#: frontend/php/projects.php:233 frontend/php/index.php:59
+#: frontend/php/include/news/forum.php:156
+msgid "Latest News"
+msgstr "חדשות עדכניות"
+
+#. TRANSLATORS: the argument is site name (like Savannah).
+#: frontend/php/projects.php:257
+#, php-format
+msgid "Administration: %s server"
+msgstr "ניהול: שרת %s"
+
+#: frontend/php/projects.php:262
+#, php-format
+msgid ""
+"Since you are administrator of this group, which one is\n"
+"the &ldquo;system group,&rdquo; you are administrator of the whole %s server."
+msgstr ""
+"מאחר שהנהלת הקבוצה „קבוצת המערכת” בידיך, משמעות הדבר\n"
+"‫היא שהנהלת כל שרת ה־%s בידיך."
+
+#: frontend/php/projects.php:272
+msgid "Server Main Administration Page"
+msgstr "עמוד ניהול שרת ראשי"
+
+#: frontend/php/projects.php:278
+msgid "Pending Group List"
+msgstr "רשימת קבוצות ממתינות"
+
+#: frontend/php/projects.php:284
+#, php-format
+msgid "(%s registration pending)"
+msgid_plural "(%s registrations pending)"
+msgstr[0] "(בקשת רישום ממתינה)"
+msgstr[1] "‫(%s בקשות רישום ממתינות)"
+msgstr[2] "‫(%s בקשות רישום ממתינות)"
+msgstr[3] "‫(%s בקשות רישום ממתינות)"
+
+#. TRANSLATORS: the argument is group name (like GNU Coreutils).
+#: frontend/php/projects.php:296
+#, php-format
+msgid "Administration: %s group"
+msgstr "ניהול: קבוצת %s"
+
+#: frontend/php/projects.php:299
+msgid ""
+"As administrator of this group, you can manage members and\n"
+"activate, deactivate and configure tools used in your group."
+msgstr ""
+"כחלק מהנהלת הקבוצה, אפשר לנהל את החברים\n"
+"ולהפעיל, להשבית ולהגדיר את כלי הקבוצה שלך."
+
+#: frontend/php/projects.php:307
+msgid "Group Main Administration Page"
+msgstr "עמוד ניהול קבוצה ראשי"
+
+#: frontend/php/projects.php:326
+msgid "Quick Overview"
+msgstr "סקירה מהירה"
+
+#: frontend/php/projects.php:335 frontend/php/include/trackers/cookbook.php:62
+msgid "Group Homepage"
+msgstr "דף הבית של הקבוצה"
+
+#: frontend/php/projects.php:348 frontend/php/include/trackers/cookbook.php:63
+#: frontend/php/project/admin/editgroupfeatures.php:314
+msgid "Download Area"
+msgstr "אזור הורדה"
+
+#: frontend/php/projects.php:362 frontend/php/include/pagemenu.php:464
+msgid "Docs"
+msgstr "מסמכים"
+
+#: frontend/php/projects.php:369
+msgid "Browse docs (external to Savane)"
+msgstr "עיון במסמכים (מחוץ ל־Savane)"
+
+#: frontend/php/projects.php:370
+msgid "Browse the cookbook"
+msgstr "עיון בספר המתכונים"
+
+#: frontend/php/projects.php:381
+msgid "Memberlist"
+msgstr "רשימת חברים"
+
+#: frontend/php/projects.php:386
+#, php-format
+msgid "(%s member)"
+msgid_plural "(%s members)"
+msgstr[0] "(חבר)"
+msgstr[1] "‫(%s חברים)"
+msgstr[2] "‫(%s חברים)"
+msgstr[3] "‫(%s חברים)"
+
+#: frontend/php/projects.php:396
+msgid "Group release GPG keyring"
+msgstr "מחזיק מפתחות GPG של מהדורות הקבוצה"
+
+#. TRANSLATORS: the arguments are numbers of items.
+#: frontend/php/projects.php:420
+#, php-format
+msgid "(open items: %1$s, total: %2$s)"
+msgstr "(פריטים פתוחים: %1$s, סך הכול: %2$s)"
+
+#: frontend/php/projects.php:423
+msgid "Browse open items"
+msgstr "עיון בפריטים הפתוחים"
+
+#: frontend/php/projects.php:426
+msgid "Submit a new item"
+msgstr "הגשת מיזם חדש"
+
+#: frontend/php/projects.php:439
+msgid "Communication Tools"
+msgstr "כלי תקשורת"
+
+#: frontend/php/projects.php:447
+msgid "Tech Support Manager"
+msgstr "הנהלת תמיכה טכנית"
+
+#: frontend/php/projects.php:459 frontend/php/include/context.php:206
+#: frontend/php/include/trackers/cookbook.php:66
+#: frontend/php/project/admin/index.php:85
+#: frontend/php/project/admin/editgroupfeatures.php:359
+msgid "Mailing Lists"
+msgstr "רשימות דיוור"
+
+#: frontend/php/projects.php:470
+#, php-format
+msgid "(%s public mailing list)"
+msgid_plural "(%s public mailing lists)"
+msgstr[0] "(רשימת דיוור ציבורית %s)"
+msgstr[1] "‫(%s רשימות דיוור ציבוריות)"
+msgstr[2] "‫(%s רשימות דיוור ציבוריות)"
+msgstr[3] "‫(%s רשימות דיוור ציבוריות)"
+
+#: frontend/php/projects.php:483
+msgid "This group is looking for people"
+msgstr "הקבוצה הזו מחפשת אנשים"
+
+#: frontend/php/projects.php:487
+#, php-format
+msgid "(%s contributor wanted)"
+msgid_plural "(%s contributors wanted)"
+msgstr[0] "(דרוש/ה מתנדב/ת %s)"
+msgstr[1] "(דרושים %s מתנדבים)"
+msgstr[2] "(דרושים %s מתנדבים)"
+msgstr[3] "(דרושים %s מתנדבים)"
+
+#. TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
+#. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
+#: frontend/php/projects.php:509 frontend/php/include/pagemenu.php:327
+#, php-format
+msgid "%s Repository"
+msgstr "מאגר %s"
+
+#: frontend/php/projects.php:513 frontend/php/include/pagemenu.php:384
+msgid "Administer"
+msgstr "ניהול"
+
+#: frontend/php/projects.php:524 frontend/php/projects.php:527
+#: frontend/php/include/vcs.php:215
+msgid "Browse Sources Repository"
+msgstr "עיון במאגר המקורות"
+
+#: frontend/php/projects.php:534 frontend/php/include/vcs.php:257
+#: frontend/php/include/pagemenu.php:366
+msgid "Browse Web Pages Repository"
+msgstr "עיון במאגר דפי הרשת"
+
+#: frontend/php/projects.php:550
+msgid "Development Tools"
+msgstr "כלי פיתוח"
+
+#. TRANSLATORS: the string is used as the argument of "%s Repository".
+#: frontend/php/projects.php:555 frontend/php/include/vcs.php:234
+#: frontend/php/include/pagemenu.php:506
+#: frontend/php/project/admin/editgroupfeatures.php:346
+msgid "Git"
+msgstr "Git"
+
+#: frontend/php/projects.php:555 frontend/php/include/vcs.php:234
+#: frontend/php/include/pagemenu.php:506
+#: frontend/php/project/admin/editgroupfeatures.php:347
+msgid "Mercurial"
+msgstr "Mercurial"
+
+#: frontend/php/projects.php:555 frontend/php/include/vcs.php:233
+#: frontend/php/include/pagemenu.php:507
+#: frontend/php/project/admin/editgroupfeatures.php:348
+msgid "Bazaar"
+msgstr "Bazaar"
+
+#: frontend/php/projects.php:556 frontend/php/include/vcs.php:234
+#: frontend/php/include/pagemenu.php:505
+#: frontend/php/project/admin/editgroupfeatures.php:345
+msgid "Subversion"
+msgstr "Subversion"
+
+#: frontend/php/projects.php:556 frontend/php/include/pagemenu.php:506
+#: frontend/php/project/admin/editgroupfeatures.php:344
+msgid "GNU Arch"
+msgstr "GNU Arch"
+
+#. TRANSLATORS: this string is used as argument in messages 'Use %s'
+#. and '%s Repository'.
+#: frontend/php/projects.php:556 frontend/php/include/vcs.php:233
+#: frontend/php/include/pagemenu.php:505
+#: frontend/php/project/admin/editgroupfeatures.php:339
+msgid "CVS"
+msgstr "‫CVS"
+
+#: frontend/php/projects.php:562 frontend/php/include/trackers/cookbook.php:64
+#: frontend/php/project/admin/index.php:83
+#: frontend/php/project/admin/userperms.php:677
+#: frontend/php/project/admin/editgroupfeatures.php:361
+msgid "Bug Tracker"
+msgstr "עוקב תקלות"
+
+#: frontend/php/projects.php:563 frontend/php/include/trackers/cookbook.php:65
+#: frontend/php/project/admin/index.php:83
+msgid "Task Manager"
+msgstr "מנהל משימות"
+
+#: frontend/php/projects.php:564
+msgid "Patch Manager"
+msgstr "מנהל טלאים"
 
 #. TRANSLATORS: the first argument is a domain (like "savannah.gnu.org"
 #. vs. "savannah.nongnu.org"); the second argument
@@ -1942,45 +2232,45 @@ msgstr "נא לענות כראוי על מבחן מניעת הספאם!"
 msgid "Enter your search words above."
 msgstr "נא למלא את מילות החיפוש שלך לעיל."
 
-#: frontend/php/search/index.php:136
+#: frontend/php/search/index.php:135
 msgid "Note that <strong>private</strong> groups are not shown on this page."
 msgstr "נא לשים לב שקבוצות <strong>פרטיות</strong> לא מופיעות בעמוד הזה."
 
-#: frontend/php/search/index.php:153 frontend/php/account/login.php:135
+#: frontend/php/search/index.php:152 frontend/php/account/login.php:135
 #: frontend/php/account/login.php:230 frontend/php/account/verify.php:79
 #: frontend/php/account/verify.php:100 frontend/php/include/sitemenu.php:524
 msgid "Login"
 msgstr "כניסה"
 
-#: frontend/php/search/index.php:153
+#: frontend/php/search/index.php:152
 msgid "Name"
 msgstr "שם"
 
-#: frontend/php/search/index.php:171 frontend/php/account/pending-resend.php:55
+#: frontend/php/search/index.php:170 frontend/php/account/pending-resend.php:55
 #: frontend/php/include/stats/general.php:49 frontend/php/include/utils.php:80
 #: frontend/php/include/exit.php:63 frontend/php/include/exit.php:161
-#: frontend/php/include/news/forum.php:351 frontend/php/forum/forum.php:332
+#: frontend/php/include/news/forum.php:351 frontend/php/forum/forum.php:331
 #: frontend/php/news/admin/index.php:60
 msgid "Error"
 msgstr "שגיאה"
 
-#: frontend/php/search/index.php:171
+#: frontend/php/search/index.php:170
 msgid "Invalid Search!!"
 msgstr "חיפוש שגוי!"
 
-#: frontend/php/search/index.php:189
+#: frontend/php/search/index.php:188
 msgid "Item Id"
 msgstr "מזהה פריט"
 
-#: frontend/php/search/index.php:189
+#: frontend/php/search/index.php:188
 msgid "Item Summary"
 msgstr "סיכום פריט"
 
-#: frontend/php/search/index.php:192
+#: frontend/php/search/index.php:191
 msgid "Submitter"
 msgstr "גוף מגיש"
 
-#: frontend/php/search/index.php:192 frontend/php/include/trackers/show.php:208
+#: frontend/php/search/index.php:191 frontend/php/include/trackers/show.php:208
 #: frontend/php/include/project/admin.php:56
 #: frontend/php/include/news/forum.php:233 frontend/php/forum/forum.php:232
 msgid "Date"
@@ -2069,7 +2359,7 @@ msgid "Note that it was encrypted with your registered GPG key."
 msgstr "נא לשים לב שהוא הוצפן עם מפתח ה־GPG שרשמת."
 
 #: frontend/php/account/login.php:140
-#: frontend/php/account/pending-resend.php:75
+#: frontend/php/account/pending-resend.php:74
 msgid "Pending Account"
 msgstr "חשבון ממתין"
 
@@ -2114,8 +2404,8 @@ msgid "Fill a support request."
 msgstr "מילוי בקשת תמיכה."
 
 #: frontend/php/account/login.php:187 frontend/php/account/lostpw.php:68
-#: frontend/php/account/verify.php:89 frontend/php/account/register.php:240
-#: frontend/php/users.php:225
+#: frontend/php/account/verify.php:89 frontend/php/account/register.php:239
+#: frontend/php/users.php:224
 msgid "Login name:"
 msgstr "שם משתמש:"
 
@@ -2206,7 +2496,7 @@ msgstr "ברוך בואך, %s."
 msgid "You may now change your passphrase."
 msgstr "עכשיו מותר לך להחליף את מילת הצופן שלך."
 
-#: frontend/php/account/lostlogin.php:84 frontend/php/my/admin/change.php:491
+#: frontend/php/account/lostlogin.php:84 frontend/php/my/admin/change.php:490
 msgid "New passphrase:"
 msgstr "מילת צופן חדשה:"
 
@@ -2236,8 +2526,8 @@ msgstr ""
 "מותר לך לפרסם פריטים לעוקבי התקלות תחת %s, להיכנס למערכת\n"
 "כחלק ממיזם או להקים מיזם משלך."
 
-#: frontend/php/account/first.php:67 frontend/php/account/pending-resend.php:66
-#: frontend/php/account/register.php:186
+#: frontend/php/account/first.php:67 frontend/php/account/pending-resend.php:65
+#: frontend/php/account/register.php:185
 msgid "Enjoy the site."
 msgstr "שימוש מהנה באתר."
 
@@ -2272,15 +2562,15 @@ msgstr "תודה על רישומך לאתר %s."
 msgid "In order to complete your registration, visit the following URL:"
 msgstr "כדי להשלים את הרישום שלך, יש לבקר בכתובת הבאה:"
 
-#: frontend/php/account/pending-resend.php:70
+#: frontend/php/account/pending-resend.php:69
 msgid "Account Registration"
 msgstr "רישום חשבון"
 
-#: frontend/php/account/pending-resend.php:73
+#: frontend/php/account/pending-resend.php:72
 msgid "Account Pending Verification"
 msgstr "חשבון ממתין לאימות"
 
-#: frontend/php/account/pending-resend.php:77
+#: frontend/php/account/pending-resend.php:76
 msgid ""
 "Your email confirmation has been resent. Visit the link in this\n"
 "email to complete the registration process."
@@ -2288,7 +2578,7 @@ msgstr ""
 "האישור נשלח אליך בדוא״ל מחדש. יש לבקר בקישור\n"
 "שבהודעה כדי להשלים את תהליך הרישום."
 
-#: frontend/php/account/pending-resend.php:81
+#: frontend/php/account/pending-resend.php:79
 msgid "Return to Home Page"
 msgstr "חזרה לעמוד הבית"
 
@@ -2332,31 +2622,31 @@ msgstr ""
 "‫כדי להשלים את ההרשמה, יש להיכנס לכתובת הבאה:"
 
 #. TRANSLATORS: the argument is the name of the system (like "Savannah").
-#: frontend/php/account/register.php:192
+#: frontend/php/account/register.php:191
 #, php-format
 msgid "%s account registration"
 msgstr "רישום חשבון ב־%s"
 
-#: frontend/php/account/register.php:201
+#: frontend/php/account/register.php:200
 msgid "Register Confirmation"
 msgstr "אישור רישום"
 
-#: frontend/php/account/register.php:202
+#: frontend/php/account/register.php:201
 msgid "New Account Registration Confirmation"
 msgstr "אישור רישום חשבון חדש"
 
 #. TRANSLATORS: the argument is the name of the system (like "Savannah").
-#: frontend/php/account/register.php:204
+#: frontend/php/account/register.php:203
 #, php-format
 msgid "Congratulations. You have registered on %s."
 msgstr "ברכותינו. נרשמת לאתר %s."
 
-#: frontend/php/account/register.php:206 frontend/php/my/admin/index.php:202
+#: frontend/php/account/register.php:205 frontend/php/my/admin/index.php:202
 #, php-format
 msgid "Your login is %s."
 msgstr "שם הכניסה שלך הוא %s."
 
-#: frontend/php/account/register.php:209
+#: frontend/php/account/register.php:208
 #, php-format
 msgid ""
 "You are now being sent a confirmation email to verify your\n"
@@ -2367,7 +2657,7 @@ msgstr ""
 "כתובת הדוא״ל שלך. ביקור בקישור שנשלח אליך בהודעה הזאת יפעיל את\n"
 "החשבון שלך. ההודעה נשלחת דרך „%s”, היא מכילה מלל בסגנון הזה:"
 
-#: frontend/php/account/register.php:216
+#: frontend/php/account/register.php:215
 msgid ""
 "If you don't receive it within a reasonable time, contact website\n"
 "administration."
@@ -2375,49 +2665,49 @@ msgstr ""
 "אם היא לא תישלח אליך תוך זמן סביר, יש ליצור קשר עם\n"
 "הנהלת האתר."
 
-#: frontend/php/account/register.php:235
+#: frontend/php/account/register.php:234
 msgid "User account registration"
 msgstr "רישום חשבון משתמש"
 
-#: frontend/php/account/register.php:243
+#: frontend/php/account/register.php:242
 msgid "Passphrase:"
 msgstr "מילת צופן:"
 
-#: frontend/php/account/register.php:245
+#: frontend/php/account/register.php:244
 msgid "Re-type passphrase:"
 msgstr "מילת צופן שוב:"
 
-#: frontend/php/account/register.php:247
-#: frontend/php/project/admin/squadadmin.php:169 frontend/php/users.php:223
+#: frontend/php/account/register.php:246
+#: frontend/php/project/admin/squadadmin.php:169 frontend/php/users.php:222
 msgid "Display name:"
 msgstr "שם תצוגה:"
 
-#: frontend/php/account/register.php:250 frontend/php/users.php:230
+#: frontend/php/account/register.php:249 frontend/php/users.php:229
 msgid "Email address:"
 msgstr "כתובת דוא״ל:"
 
-#: frontend/php/account/register.php:253
+#: frontend/php/account/register.php:252
 msgid "This email address will be verified before account activation."
 msgstr "כתובת הדוא״ל הזו תאומת בטרם הפעלת החשבון."
 
-#: frontend/php/account/register.php:258 frontend/php/account/register.php:277
+#: frontend/php/account/register.php:257 frontend/php/account/register.php:276
 msgid "Antispam test:"
 msgstr "בדיקת מניעת ספאם:"
 
-#: frontend/php/account/register.php:262
+#: frontend/php/account/register.php:261
 #, php-format
 msgid "In what year was the GNU project announced? [<a href='%s'>hint</a>]"
 msgstr "באיזו שנה הוכרז מיזם הגנו שלך? [<a href='%s'>רמז</a>]"
 
-#: frontend/php/account/register.php:271
+#: frontend/php/account/register.php:270
 msgid "CAPTCHA"
 msgstr "מבחן טיורינג"
 
-#: frontend/php/account/register.php:272
+#: frontend/php/account/register.php:271
 msgid "Try another image"
 msgstr "להחליף תמונה"
 
-#: frontend/php/account/register.php:275
+#: frontend/php/account/register.php:274
 msgid "Play captcha"
 msgstr "נגינת מבחן טיורינג"
 
@@ -2425,7 +2715,7 @@ msgstr "נגינת מבחן טיורינג"
 msgid "You need to be site administrator to use this feature."
 msgstr "עליך להימנות עם הנהלת האתר כדי להשתמש ביכולת הזאת."
 
-#: frontend/php/account/su.php:100
+#: frontend/php/account/su.php:98
 msgid "You shouldn't have come to this page."
 msgstr "הגעת לדף הזה בטעות."
 
@@ -2498,7 +2788,7 @@ msgstr ""
 "מנהלי הקבוצה יכולים להשתמש\n"
 "‫ב<a href=\"%s\">מנשק הניהול</a> כדי לנהל את הרשימה."
 
-#: frontend/php/mail/admin/index.php:91
+#: frontend/php/mail/admin/index.php:88
 msgid ""
 "Mailing lists are misconfigured. Post a support request to ask\n"
 "your site administrator to review group type setup."
@@ -2506,33 +2796,59 @@ msgstr ""
 "רשימות הדיוור לא מוגדרות כראוי. נא לפרסם בקשת תמיכה כדי לבקש\n"
 "מהנהלת האתר שלך לעבור שוב על הגדרות סוג הקבוצה."
 
-#: frontend/php/mail/admin/index.php:134
+#: frontend/php/mail/admin/index.php:122
+#, php-format
+msgid "Delete %s (this cannot be undone!)"
+msgstr "למחוק את %s (פעולה בלתי הפיכה!)"
+
+#: frontend/php/mail/admin/index.php:131
+msgid "Mailing list not found."
+msgstr "רשימת הדיוור לא נמצאה."
+
+#: frontend/php/mail/admin/index.php:154
+#, php-format
+msgid "You are about to delete the mailing list %s, please confirm:"
+msgstr "הפעולה הזאת תמחק את רשימת הדיוור %s, נא לאשר:"
+
+#: frontend/php/mail/admin/index.php:238
 #, php-format
 msgid "You must provide list name that is two or more characters long: %s"
 msgstr "עליך לספק לרשימה שם באורך של שני תווים ומעלה: %s"
 
 #. TRANSLATORS: the argument is the new mailing list name
 #. entered by the user.
-#: frontend/php/mail/admin/index.php:151
+#: frontend/php/mail/admin/index.php:255
 #, php-format
 msgid "Invalid list name: %s"
 msgstr "שם רשימה שגוי: %s"
 
-#: frontend/php/mail/admin/index.php:162
+#: frontend/php/mail/admin/index.php:266
 #, php-format
 msgid "List name %s is reserved to avoid conflicts with user accounts."
 msgstr "שם הרשימה %s שמור כדי להימנע מסתירות עם שמות המשתמשים."
 
-#: frontend/php/mail/admin/index.php:175
+#: frontend/php/mail/admin/index.php:279
 #, php-format
 msgid "The list %s already exists."
 msgstr "הרשימה %s כבר קיימת."
 
-#: frontend/php/mail/admin/index.php:232
+#: frontend/php/mail/admin/index.php:335 frontend/php/mail/admin/index.php:426
+msgid "public"
+msgstr "אישי"
+
+#: frontend/php/mail/admin/index.php:339 frontend/php/mail/admin/index.php:430
+msgid "private"
+msgstr "פרטי"
+
+#: frontend/php/mail/admin/index.php:347
+msgid "Reset list admin password"
+msgstr "איפוס סיסמת הנהלת הרשימה"
+
+#: frontend/php/mail/admin/index.php:363
 msgid "Update Mailing List"
 msgstr "עדכון רשימות דיוור"
 
-#: frontend/php/mail/admin/index.php:237
+#: frontend/php/mail/admin/index.php:370
 msgid ""
 "You can administer list information from here.\n"
 "Public lists are visible to non-members; private lists\n"
@@ -2542,33 +2858,13 @@ msgstr ""
 "רשימות ציבוריות חשופות בפני כאלו שאינם חברים, רשימות פרטיות\n"
 "אינן מופצות, הרישום דורש אישור."
 
-#: frontend/php/mail/admin/index.php:242
+#: frontend/php/mail/admin/index.php:375
 msgid "Note that changes made with Mailman web interface are not reflected here."
 msgstr "נא לשים לב ששינויים שנערכים במנשק המשתמש של Mailman לא משוקפים כאן."
 
-#: frontend/php/mail/admin/index.php:270 frontend/php/mail/admin/index.php:334
-msgid "public"
-msgstr "אישי"
-
-#: frontend/php/mail/admin/index.php:274 frontend/php/mail/admin/index.php:338
-msgid "private"
-msgstr "פרטי"
-
-#: frontend/php/mail/admin/index.php:280
-msgid "Delete (this cannot be undone!)"
-msgstr "מחיקה (בלתי הפיך!)"
-
-#: frontend/php/mail/admin/index.php:298
-msgid "Reset list admin password"
-msgstr "איפוס סיסמת הנהלת הרשימה"
-
-#: frontend/php/mail/admin/index.php:307
+#: frontend/php/mail/admin/index.php:399
 msgid "Create a new mailing list:"
 msgstr "יצירת רשימת דיוור חדשה:"
-
-#: frontend/php/mail/admin/index.php:315
-msgid "Name of new mailing list"
-msgstr "שם רשימת הדיוור החדשה"
 
 #: frontend/php/register/requirements.php:46
 #: frontend/php/include/sitemenu.php:186
@@ -2608,11 +2904,6 @@ msgstr "ליצירת קשר אתנו"
 #: frontend/php/index.php:49
 msgid "Welcome"
 msgstr "ברוך בואך"
-
-#: frontend/php/index.php:59 frontend/php/include/news/forum.php:156
-#: frontend/php/include/project_home.php:221
-msgid "Latest News"
-msgstr "חדשות עדכניות"
 
 #: frontend/php/cvs/admin/index.php:55
 msgid "Always"
@@ -2909,8 +3200,8 @@ msgid "Requests for inclusion waiting for approval"
 msgstr "בקשת הצירוף ממתינה לאישור"
 
 #. TRANSLATORS: it means, no approved news.
-#: frontend/php/my/groups.php:347 frontend/php/my/index.php:138
-#: frontend/php/include/people/general.php:430
+#: frontend/php/my/groups.php:347 frontend/php/my/index.php:137
+#: frontend/php/include/people/general.php:448
 #: frontend/php/include/my/general.php:456
 #: frontend/php/project/admin/squadadmin.php:204
 #: frontend/php/project/admin/squadadmin.php:340
@@ -3025,26 +3316,26 @@ msgstr ""
 "הצטרפת."
 
 #. TRANSLATORS: the first argument is group name, the second is date.
-#: frontend/php/my/index.php:94
+#: frontend/php/my/index.php:93
 #, php-format
 msgid "Group %1$s, %2$s"
 msgstr "קבוצה %1$s, %2$s"
 
-#: frontend/php/my/index.php:117
+#: frontend/php/my/index.php:116
 msgid "News Waiting for Approval"
 msgstr "חדשות ממתינות לאישור"
 
-#: frontend/php/my/index.php:125 frontend/php/include/context.php:187
-#: frontend/php/include/context.php:205 frontend/php/include/pagemenu.php:575
-#: frontend/php/project/admin/editgroupfeatures.php:357
+#: frontend/php/my/index.php:124 frontend/php/include/context.php:187
+#: frontend/php/include/context.php:205 frontend/php/include/pagemenu.php:578
+#: frontend/php/project/admin/editgroupfeatures.php:359
 msgid "News"
 msgstr "חדשות"
 
-#: frontend/php/my/index.php:149
+#: frontend/php/my/index.php:148
 msgid "New and Unassigned Items"
 msgstr "פריטים חדשים ובלתי מוקצים"
 
-#: frontend/php/my/index.php:155
+#: frontend/php/my/index.php:154
 msgid "New and Assigned Items"
 msgstr "פריטים חדשים ומוקצים"
 
@@ -3147,7 +3438,7 @@ msgstr "נא לספק שם חדש."
 
 #: frontend/php/my/admin/change.php:105 frontend/php/my/admin/change.php:125
 #: frontend/php/my/admin/change.php:168 frontend/php/my/admin/change.php:176
-#: frontend/php/my/admin/change.php:304 frontend/php/include/account.php:573
+#: frontend/php/my/admin/change.php:303 frontend/php/include/account.php:573
 #: frontend/php/include/user.php:711
 msgid "Failed to update the database."
 msgstr "עדכון מסד הנתונים נכשל."
@@ -3177,7 +3468,7 @@ msgid "GPG Key updated."
 msgstr "מפתח ה־GPG עודכן."
 
 #. TRANSLATORS: the argument is site name (like Savannah).
-#: frontend/php/my/admin/change.php:199
+#: frontend/php/my/admin/change.php:198
 #, php-format
 msgid ""
 "You have requested a change of email address on %s.\n"
@@ -3186,7 +3477,7 @@ msgstr ""
 "ביקשת להחליף כתובת דוא״ל באתר %s.\n"
 "נא לבקר בכתובת הבאה כדי להשלים את החלפת כתובת הדוא״ל:"
 
-#: frontend/php/my/admin/change.php:212
+#: frontend/php/my/admin/change.php:211
 #, php-format
 msgid ""
 "Someone, presumably you, has requested a change of email address on %s.\n"
@@ -3195,12 +3486,12 @@ msgstr ""
 "גורם כלשהו, כנראה שמדובר בך, ביקש החלפת כתובת דוא״ל באתר %s.\n"
 "אם זה לא הגיע ממך, כנראה שיש כאן ניסיון לגנוב את החשבון שלך…"
 
-#: frontend/php/my/admin/change.php:218
+#: frontend/php/my/admin/change.php:217
 #, php-format
 msgid "Your current address is %1$s, the supposedly new address is %2$s."
 msgstr "הכתובת הנוכחית שלך היא %1$s, הכתובת החדשה המיועדת היא %2$s."
 
-#: frontend/php/my/admin/change.php:223
+#: frontend/php/my/admin/change.php:222
 msgid ""
 "If you did not request that change, please visit the following URL\n"
 "to discard the email change and report the problem to us:"
@@ -3208,21 +3499,21 @@ msgstr ""
 "אם לא ביקשת את השינוי הזה, נא לבקר בכתובת הבאה\n"
 "כדי לבטל את תהליך שינוי כתובת הדוא״ל ולדווח לנו על הבעיה:"
 
-#: frontend/php/my/admin/change.php:236 frontend/php/my/admin/change.php:380
+#: frontend/php/my/admin/change.php:235 frontend/php/my/admin/change.php:379
 msgid "Verification"
 msgstr "אימות"
 
 #. TRANSLATORS: the argument is email address.
-#: frontend/php/my/admin/change.php:255
+#: frontend/php/my/admin/change.php:254
 #, php-format
 msgid "Confirmation mailed to %s."
 msgstr "נשלח אישור אל %s."
 
-#: frontend/php/my/admin/change.php:256
+#: frontend/php/my/admin/change.php:255
 msgid "Follow the instructions in the email to complete the email change."
 msgstr "יש לעקוב אחר ההנחיות בהודעה כדי להשלים את החלפת כתובת הדוא״ל."
 
-#: frontend/php/my/admin/change.php:259 frontend/php/my/admin/change.php:387
+#: frontend/php/my/admin/change.php:258 frontend/php/my/admin/change.php:386
 msgid ""
 "The system reported a failure when trying to send\n"
 "the confirmation mail. Please retry and report that problem to\n"
@@ -3232,20 +3523,20 @@ msgstr ""
 "את הודעת האימות. נא לנסות שוב ולדווח על התקלה הזאת\n"
 "להנהלה."
 
-#: frontend/php/my/admin/change.php:268
+#: frontend/php/my/admin/change.php:267
 #, php-format
 msgid "*%s* is already your registered email."
 msgstr "*%s* היא כבר כתובת הדוא״ל הרשומה שלך."
 
-#: frontend/php/my/admin/change.php:302
+#: frontend/php/my/admin/change.php:301
 msgid "Email address updated."
 msgstr "כתובת הדוא״ל עודכנה."
 
-#: frontend/php/my/admin/change.php:310
+#: frontend/php/my/admin/change.php:309
 msgid "Address change process discarded."
 msgstr "תהליך שינוי הכתובת נזנח."
 
-#: frontend/php/my/admin/change.php:311
+#: frontend/php/my/admin/change.php:310
 msgid ""
 "Failed to discard the address change process, please contact\n"
 "administrators."
@@ -3253,7 +3544,7 @@ msgstr ""
 "ביטול תהליך שינוי הכתובת נכשל, נא לפנות\n"
 "‫להנהלה."
 
-#: frontend/php/my/admin/change.php:344
+#: frontend/php/my/admin/change.php:343
 msgid ""
 "You must quit all groups before requesting account deletion. If you registered a group that is still pending,\n"
 "please ask site admins to cancel that registration."
@@ -3261,7 +3552,7 @@ msgstr ""
 "עליך לצאת מקבוצות אליהן הצטרפת בטרם בקשת מחיקת חשבון. אם רשמת קבוצה שעדיין ממתינה,\n"
 "צריך לבקש מההנהלה לבטל את הרישום הזה."
 
-#: frontend/php/my/admin/change.php:354
+#: frontend/php/my/admin/change.php:353
 #, php-format
 msgid ""
 "Someone, presumably you, has requested your %s account deletion.\n"
@@ -3270,7 +3561,7 @@ msgstr ""
 "גורם כלשהו, כנראה שמדובר בך, הגיש בקשה למחוק את החשבון שלך תחת %s.\n"
 "‫אם זה לא הגיע ממך, כנראה שהחשבון שלך נחטף."
 
-#: frontend/php/my/admin/change.php:361
+#: frontend/php/my/admin/change.php:360
 #, php-format
 msgid ""
 "If you did request your %s account deletion, visit the following URL to finish\n"
@@ -3279,7 +3570,7 @@ msgstr ""
 "אם ביקשת למחוק את החשבון שלך ב־%s, יש לבקר בכתובת הבאה\n"
 "כדי לסיים את תהליך המחיקה:"
 
-#: frontend/php/my/admin/change.php:366
+#: frontend/php/my/admin/change.php:365
 msgid ""
 "If you did not request that change, please visit the following URL to discard\n"
 "the process and report ASAP the problem to us:"
@@ -3287,19 +3578,19 @@ msgstr ""
 "אם לא ביקשת את השינוי הזה, נא לבקר בכתובת הבאה כדי\n"
 "לבטל את התהליך ולדווח לנו על הבעיה במהירות האפשרית:"
 
-#: frontend/php/my/admin/change.php:391
+#: frontend/php/my/admin/change.php:390
 msgid "Follow the instructions in the email to complete the account deletion."
 msgstr "יש לפעול לפי ההנחיות בהודעה שנשלחה בדוא״ל כדי להשלים את מחיקת החשבון."
 
-#: frontend/php/my/admin/change.php:432
+#: frontend/php/my/admin/change.php:431
 msgid "Failed to discard account deletion process, please contact administrators."
 msgstr "הזנחת תהליך מחיקת החשבון נכשלה, נא ליצור קשר עם ההנהלה."
 
-#: frontend/php/my/admin/change.php:472
+#: frontend/php/my/admin/change.php:471
 msgid "New display name:"
 msgstr "שם תצוגה חדש:"
 
-#: frontend/php/my/admin/change.php:479 frontend/php/my/admin/index.php:319
+#: frontend/php/my/admin/change.php:478 frontend/php/my/admin/index.php:319
 msgid ""
 "No matter where you live, you can see all dates and times as if it were in\n"
 "your neighborhood."
@@ -3307,98 +3598,98 @@ msgstr ""
 "לא משנה מיקום מגוריך, אנו נציג את כל התאריכים והזמנים\n"
 "כאילו כולנו אצלך בשכונה."
 
-#: frontend/php/my/admin/change.php:484 frontend/php/my/admin/index.php:315
+#: frontend/php/my/admin/change.php:483 frontend/php/my/admin/index.php:315
 #: frontend/php/my/admin/index.php:317
 msgid "Timezone"
 msgstr "אזור זמן"
 
-#: frontend/php/my/admin/change.php:490
+#: frontend/php/my/admin/change.php:489
 msgid "Current passphrase:"
 msgstr "מילת צופן נוכחית:"
 
-#: frontend/php/my/admin/change.php:492
+#: frontend/php/my/admin/change.php:491
 msgid "Re-type new passphrase:"
 msgstr "נא למלא את מילת הצופן שוב:"
 
-#: frontend/php/my/admin/change.php:509
+#: frontend/php/my/admin/change.php:508
 msgid "New GPG keys"
 msgstr "מפתחות GPG חדשים"
 
-#: frontend/php/my/admin/change.php:514
+#: frontend/php/my/admin/change.php:513
 #: frontend/php/project/admin/editgroupinfo.php:208
 msgid "Test GPG keys"
 msgstr "בדיקת מפתחות GPG"
 
-#: frontend/php/my/admin/change.php:515
+#: frontend/php/my/admin/change.php:514
 msgid "(Testing is recommended before updating.)"
 msgstr "(מומלץ לבדוק בטרם העדכון.)"
 
-#: frontend/php/my/admin/change.php:523
+#: frontend/php/my/admin/change.php:522
 msgid "New email address:"
 msgstr "כתובת דוא״ל חדשה:"
 
-#: frontend/php/my/admin/change.php:529
+#: frontend/php/my/admin/change.php:528
 msgid "Confirmation hash:"
 msgstr "גיבוב אישור:"
 
-#: frontend/php/my/admin/change.php:537
+#: frontend/php/my/admin/change.php:536
 msgid "Discard hash:"
 msgstr "גיבוב לביטול:"
 
-#: frontend/php/my/admin/change.php:544
+#: frontend/php/my/admin/change.php:543
 msgid "Do you really want to delete your user account?"
 msgstr "למחוק את חשבון המשתמש שלך?"
 
-#: frontend/php/my/admin/change.php:547
+#: frontend/php/my/admin/change.php:546
 msgid "Delete account"
 msgstr "מחיקת חשבון"
 
-#: frontend/php/my/admin/change.php:549
+#: frontend/php/my/admin/change.php:548
 #: frontend/php/project/admin/squadadmin.php:111
 msgid "Yes, I really do"
 msgstr "כן, באמת"
 
-#: frontend/php/my/admin/change.php:553
+#: frontend/php/my/admin/change.php:552
 msgid "Change Display Name"
 msgstr "החלפת שם תצוגה"
 
-#: frontend/php/my/admin/change.php:553
+#: frontend/php/my/admin/change.php:552
 msgid "Change Timezone"
 msgstr "החלפת אזור זמן"
 
-#: frontend/php/my/admin/change.php:554
+#: frontend/php/my/admin/change.php:553
 msgid "Change Password"
 msgstr "החלפת סיסמה"
 
-#: frontend/php/my/admin/change.php:554
+#: frontend/php/my/admin/change.php:553
 msgid "Change GPG Keys"
 msgstr "החלפת מפתחות GPG"
 
-#: frontend/php/my/admin/change.php:556
+#: frontend/php/my/admin/change.php:555
 msgid "Change Email Address"
 msgstr "החלפת כתובת דוא״ל"
 
-#: frontend/php/my/admin/change.php:556
+#: frontend/php/my/admin/change.php:555
 msgid "Confirm Email Change"
 msgstr "אישור החלפת דוא״ל"
 
-#: frontend/php/my/admin/change.php:557
+#: frontend/php/my/admin/change.php:556
 msgid "Discard Email Change"
 msgstr "התעלמות מהחלפת דוא״ל"
 
-#: frontend/php/my/admin/change.php:560 frontend/php/my/admin/index.php:404
+#: frontend/php/my/admin/change.php:559 frontend/php/my/admin/index.php:404
 msgid "Delete Account"
 msgstr "מחיקת חשבון"
 
-#: frontend/php/my/admin/change.php:560
+#: frontend/php/my/admin/change.php:559
 msgid "Confirm account deletion"
 msgstr "אישור מחיקת חשבון"
 
-#: frontend/php/my/admin/change.php:561
+#: frontend/php/my/admin/change.php:560
 msgid "Discard account deletion"
 msgstr "ביטול מחיקת חשבון"
 
-#: frontend/php/my/admin/change.php:569
+#: frontend/php/my/admin/change.php:568
 msgid ""
 "Changing your email address will require confirmation from\n"
 "your new email address, so that we can ensure we have a good email address on\n"
@@ -3407,7 +3698,7 @@ msgstr ""
 "החלפת כתובת הדוא״ל שלך תדרוש אישור מכתובת הדוא״ל החדשה\n"
 "שלך, כדי שנוכל לוודא שמתויקת אצלנו כתובת דוא״ל תקינה."
 
-#: frontend/php/my/admin/change.php:573
+#: frontend/php/my/admin/change.php:572
 msgid ""
 "We need to maintain an accurate email address for each user due to the\n"
 "level of access we grant via this account. If we need to reach a user for\n"
@@ -3417,7 +3708,7 @@ msgstr ""
 "רמת הגישה שאנו מעניקים דרך החשבון. אם עלינו להגיע לבעלי חשבון\n"
 "עקב תקלות שקשורות בשרת הזה, חשוב שתהיה לנו אפשרות לעשות זאת."
 
-#: frontend/php/my/admin/change.php:578
+#: frontend/php/my/admin/change.php:577
 msgid ""
 "Submitting the form below will mail a confirmation URL to the new email\n"
 "address; visiting this link will complete the email change. The old address\n"
@@ -3428,15 +3719,15 @@ msgstr ""
 "החדשה, ביקור בכתובת הזאת ישלים את שינוי כתובת הדוא״ל. הכתובת הקודמת\n"
 "תקבל הודעה גם היא, בה כתובת לבטל את הבקשה."
 
-#: frontend/php/my/admin/change.php:583
+#: frontend/php/my/admin/change.php:582
 msgid "Push &ldquo;Update&rdquo; to confirm your email change"
 msgstr "יש ללחוץ על „עדכון” כדי לאשר את עדכון הדוא״ל שלך"
 
-#: frontend/php/my/admin/change.php:586
+#: frontend/php/my/admin/change.php:585
 msgid "This process will require email confirmation."
 msgstr "התהליך הזה דורש אימות דוא״ל."
 
-#: frontend/php/my/admin/change.php:588
+#: frontend/php/my/admin/change.php:587
 msgid "Push &ldquo;Update&rdquo; to confirm your account deletion"
 msgstr "יש ללחוץ על „עדכון” כדי לאשר את מחיקת החשבון שלך"
 
@@ -4009,7 +4300,7 @@ msgstr "שם עוקב שגוי: %s"
 msgid "Vote number"
 msgstr "הצבעה מספר"
 
-#: frontend/php/my/votes.php:153 frontend/php/include/features_boxes.php:293
+#: frontend/php/my/votes.php:150 frontend/php/include/features_boxes.php:291
 #, php-format
 msgid "%s vote"
 msgid_plural "%s votes"
@@ -4050,7 +4341,7 @@ msgstr "גודל המפתח המקורי"
 msgid "Minified key size"
 msgstr "גודל המפתח לאחר עריכה"
 
-#: frontend/php/include/gpg.php:126 frontend/php/include/gpg.php:469
+#: frontend/php/include/gpg.php:126 frontend/php/include/gpg.php:470
 msgid "Can't create temporary directory."
 msgstr "לא ניתן ליצור תיקייה זמנית."
 
@@ -4109,7 +4400,7 @@ msgstr "לא ניתן ליצור קבצים זמניים."
 msgid "Extracted GPG key ID is invalid."
 msgstr "מפתח ה־GPG שחולץ שגוי."
 
-#: frontend/php/include/gpg.php:459
+#: frontend/php/include/gpg.php:460
 msgid "GnuPG version"
 msgstr "גירסת GnuPG"
 
@@ -4143,13 +4434,13 @@ msgid "Mercurial Repositories"
 msgstr "מאגרי Mercurial"
 
 #: frontend/php/include/context.php:184
-#: frontend/php/include/trackers_run/mod.php:652
-#: frontend/php/include/trackers_run/mod.php:801
+#: frontend/php/include/trackers_run/mod.php:634
+#: frontend/php/include/trackers_run/mod.php:783
 #: frontend/php/include/trackers_run/search.php:45
-#: frontend/php/include/people/general.php:157
+#: frontend/php/include/people/general.php:163
 #: frontend/php/include/search/general.php:136
 #: frontend/php/include/search/general.php:262
-#: frontend/php/include/pagemenu.php:412 frontend/php/include/pagemenu.php:652
+#: frontend/php/include/pagemenu.php:416 frontend/php/include/pagemenu.php:655
 #: frontend/php/include/sitemenu.php:156
 msgid "Search"
 msgstr "חיפוש"
@@ -4174,9 +4465,9 @@ msgstr "ניהול ספר מתכונים"
 
 #: frontend/php/include/context.php:200
 #: frontend/php/include/trackers/cookbook.php:63
-#: frontend/php/include/pagemenu.php:456
+#: frontend/php/include/pagemenu.php:460
 #: frontend/php/project/admin/index.php:82
-#: frontend/php/project/admin/editgroupfeatures.php:358
+#: frontend/php/project/admin/editgroupfeatures.php:360
 msgid "Cookbook"
 msgstr "ספר מתכונים"
 
@@ -4184,7 +4475,7 @@ msgstr "ספר מתכונים"
 msgid "Support Tracker Administration"
 msgstr "ניהול עוקב תמיכה"
 
-#: frontend/php/include/context.php:201 frontend/php/include/pagemenu.php:626
+#: frontend/php/include/context.php:201 frontend/php/include/pagemenu.php:629
 msgid "Support"
 msgstr "תמיכה"
 
@@ -4207,14 +4498,6 @@ msgstr "ניהול מנהל חדשות"
 #: frontend/php/include/context.php:206
 msgid "Mailing Lists Administration"
 msgstr "ניהול רשימות דיוור"
-
-#: frontend/php/include/context.php:206
-#: frontend/php/include/trackers/cookbook.php:66
-#: frontend/php/include/project_home.php:447
-#: frontend/php/project/admin/index.php:85
-#: frontend/php/project/admin/editgroupfeatures.php:357
-msgid "Mailing Lists"
-msgstr "רשימות דיוור"
 
 #: frontend/php/include/context.php:219
 msgid "Administration Summary"
@@ -4364,7 +4647,7 @@ msgstr[1] "%s קבוצות מתארחות"
 msgstr[2] "%s קבוצות מתארחות"
 msgstr[3] "%s קבוצות מתארחות"
 
-#: frontend/php/include/features_boxes.php:165
+#: frontend/php/include/features_boxes.php:164
 #, php-format
 msgid "+ %s registration pending"
 msgid_plural "+ %s registrations pending"
@@ -4600,11 +4883,11 @@ msgstr "עדכון הרשימה %s נכשל"
 msgid "List %s not found in the database"
 msgstr "הרשימה %s לא נמצאה במסד הנתונים"
 
-#: frontend/php/include/trackers_run/mod.php:114
+#: frontend/php/include/trackers_run/mod.php:112
 msgid "This item is private. However, you are allowed to read it as you submitted it."
 msgstr "פריט זה הוא אישי. עם זאת, מותר לך לקרוא אותו אם הגשת אותו."
 
-#: frontend/php/include/trackers_run/mod.php:118
+#: frontend/php/include/trackers_run/mod.php:116
 msgid ""
 "This item is private. You are not listed as member\n"
 "allowed to read private items."
@@ -4612,129 +4895,129 @@ msgstr ""
 "פריט זה הוא אישי. אינך ברישומי החברות למורשים לקרוא\n"
 "פריטים אישיים."
 
-#: frontend/php/include/trackers_run/mod.php:126
+#: frontend/php/include/trackers_run/mod.php:124
 msgid ""
 "You are not allowed to post comments on this tracker with your current\n"
 "authentication level."
 msgstr "אסור לך לפרסם הערות בעוקב הזה עם רמת ההרשאות הנוכחית שלך."
 
-#: frontend/php/include/trackers_run/mod.php:147
+#: frontend/php/include/trackers_run/mod.php:145
 msgid "You are both technician and manager for this tracker."
 msgstr "תפקידך בעוקב זה הוא טכנאות וניהול."
 
-#: frontend/php/include/trackers_run/mod.php:149
-#: frontend/php/include/trackers_run/mod.php:158
+#: frontend/php/include/trackers_run/mod.php:147
+#: frontend/php/include/trackers_run/mod.php:156
 #: frontend/php/project/memberlist.php:86
 msgid "technician"
 msgstr "טכנאות"
 
-#: frontend/php/include/trackers_run/mod.php:150
+#: frontend/php/include/trackers_run/mod.php:148
 msgid "can be assigned items, cannot change status or priority"
 msgstr "אפשר להקצות לתפקיד משימות, אי אפשר לשנות מצב או עדיפות"
 
-#: frontend/php/include/trackers_run/mod.php:151
-#: frontend/php/include/trackers_run/mod.php:167
+#: frontend/php/include/trackers_run/mod.php:149
+#: frontend/php/include/trackers_run/mod.php:165
 #: frontend/php/project/memberlist.php:86
 msgid "manager"
 msgstr "ניהול"
 
-#: frontend/php/include/trackers_run/mod.php:151
+#: frontend/php/include/trackers_run/mod.php:149
 msgid "fully manage the items"
 msgstr "ניהול מלא של הפריטים"
 
-#: frontend/php/include/trackers_run/mod.php:156
+#: frontend/php/include/trackers_run/mod.php:154
 msgid "You are technician for this tracker."
 msgstr "תפקידך בעוקב זה הוא טכנאות."
 
-#: frontend/php/include/trackers_run/mod.php:159
+#: frontend/php/include/trackers_run/mod.php:157
 msgid "you can be assigned tracker's items, but you cannot reassign items, change priority, open nor close"
 msgstr "אפשר להקצות אליך פריטים מהעוקב, אך לך אסור להקצות פריטים מחדש, לשנות עדיפות או לפתוח/לסגור"
 
-#: frontend/php/include/trackers_run/mod.php:165
+#: frontend/php/include/trackers_run/mod.php:163
 msgid "You are manager for this tracker."
 msgstr "תפקידך בעוקב זה הוא ניהול."
 
-#: frontend/php/include/trackers_run/mod.php:168
+#: frontend/php/include/trackers_run/mod.php:166
 msgid "you can fully manage the trackers items, including assigning items to technicians, reassigning items over trackers and groups, changing priority, opening and closing items"
 msgstr "מותר לך לנהל את פריטי העוקב באופן מלא, כולל הקצאת פריטים לטכנאים, להקצות אותם מחדש על פני עוקבים וקבוצות, לשנות את העדיפות ולפתוח/לסגור פריטים"
 
-#: frontend/php/include/trackers_run/mod.php:225
-#: frontend/php/include/trackers_run/mod.php:514
+#: frontend/php/include/trackers_run/mod.php:223
+#: frontend/php/include/trackers_run/mod.php:496
 msgid "Submit changes and browse items"
 msgstr "הגשת השינויים ועיון בפריטים"
 
 #. TRANSLATORS: This is a label for dates.
-#: frontend/php/include/trackers_run/mod.php:228
+#: frontend/php/include/trackers_run/mod.php:226
 msgid "Submitted:"
 msgstr "הוגש על ידי:"
 
-#: frontend/php/include/trackers_run/mod.php:231
-#: frontend/php/include/trackers_run/mod.php:516
+#: frontend/php/include/trackers_run/mod.php:229
+#: frontend/php/include/trackers_run/mod.php:498
 msgid "Submit changes and return to this item"
 msgstr "הגשת השינויים וחזרה לפריט זה"
 
-#: frontend/php/include/trackers_run/mod.php:236
+#: frontend/php/include/trackers_run/mod.php:234
 msgid "Votes:"
 msgstr "הצבעות:"
 
-#: frontend/php/include/trackers_run/mod.php:241
-#: frontend/php/include/trackers_run/mod.php:502
-#: frontend/php/include/trackers_run/mod.php:513
+#: frontend/php/include/trackers_run/mod.php:239
+#: frontend/php/include/trackers_run/mod.php:484
+#: frontend/php/include/trackers_run/mod.php:495
 #: frontend/php/include/trackers_run/add.php:128
-#: frontend/php/include/trackers_run/add.php:215
-#: frontend/php/include/trackers_run/add.php:266
+#: frontend/php/include/trackers_run/add.php:175
+#: frontend/php/include/trackers_run/add.php:222
 #: frontend/php/include/news/general.php:250
 msgid "Preview"
 msgstr "תצוגה מקדימה"
 
-#: frontend/php/include/trackers_run/mod.php:392
-#: frontend/php/include/trackers_run/add.php:211
+#: frontend/php/include/trackers_run/mod.php:376
+#: frontend/php/include/trackers_run/add.php:171
 msgid "Mandatory Fields"
 msgstr "שדות חובה"
 
-#: frontend/php/include/trackers_run/mod.php:448
+#: frontend/php/include/trackers_run/mod.php:432
 msgid "Comment type:"
 msgstr "סוג הערה:"
 
-#: frontend/php/include/trackers_run/mod.php:463
+#: frontend/php/include/trackers_run/mod.php:446
 msgid "Canned response:"
 msgstr "תגובה מראש:"
 
-#: frontend/php/include/trackers_run/mod.php:471
+#: frontend/php/include/trackers_run/mod.php:454
 msgid "Define a new canned response"
 msgstr "להגדיר תגובה מראש חדשה"
 
-#: frontend/php/include/trackers_run/mod.php:501
+#: frontend/php/include/trackers_run/mod.php:483
 msgid "Add a New Comment"
 msgstr "הוספת תגובה חדשה"
 
-#: frontend/php/include/trackers_run/mod.php:505
+#: frontend/php/include/trackers_run/mod.php:487
 msgid "New comment"
 msgstr "תגובה חדשה"
 
-#: frontend/php/include/trackers_run/mod.php:523
+#: frontend/php/include/trackers_run/mod.php:505
 msgid "Post a Comment"
 msgstr "פרסום תגובה"
 
-#: frontend/php/include/trackers_run/mod.php:538
+#: frontend/php/include/trackers_run/mod.php:520
 msgid "Discussion locked!"
 msgstr "דיון ננעל!"
 
-#: frontend/php/include/trackers_run/mod.php:541
+#: frontend/php/include/trackers_run/mod.php:523
 msgid "Your privileges however allow to override the lock."
 msgstr "ההרשאות שלך מאפשרות בכל מקרה לעקוף את הנעילה."
 
-#: frontend/php/include/trackers_run/mod.php:544
+#: frontend/php/include/trackers_run/mod.php:526
 msgid "Discussion"
 msgstr "דיון"
 
-#: frontend/php/include/trackers_run/mod.php:575
-#: frontend/php/include/trackers_run/add.php:222
+#: frontend/php/include/trackers_run/mod.php:557
+#: frontend/php/include/trackers_run/add.php:182
 #: frontend/php/include/trackers/format.php:620
 msgid "Attached Files"
 msgstr "קבצים מצורפים"
 
-#: frontend/php/include/trackers_run/mod.php:597
+#: frontend/php/include/trackers_run/mod.php:579
 msgid ""
 "New search, in case the previous one was not satisfactory (to\n"
 "fill a dependency against):"
@@ -4742,69 +5025,69 @@ msgstr ""
 "חיפוש חדש, במקרה שהקודם לא היה מספק,\n"
 "(כדי למלא מולו תלות):"
 
-#: frontend/php/include/trackers_run/mod.php:599
+#: frontend/php/include/trackers_run/mod.php:581
 msgid "Search an item (to fill a dependency against):"
 msgstr "חיפוש אחר פריט (כדי למלא מולו תלות):"
 
-#: frontend/php/include/trackers_run/mod.php:609
+#: frontend/php/include/trackers_run/mod.php:591
 msgid "Tracker to search in:"
 msgstr "עוקב לחיפוש:"
 
-#: frontend/php/include/trackers_run/mod.php:612
+#: frontend/php/include/trackers_run/mod.php:594
 msgid "any tracker"
 msgstr "כל עוקב שהוא"
 
-#: frontend/php/include/trackers_run/mod.php:613
+#: frontend/php/include/trackers_run/mod.php:595
 msgid "the support tracker only"
 msgstr "עוקב התמיכה בלבד"
 
-#: frontend/php/include/trackers_run/mod.php:614
+#: frontend/php/include/trackers_run/mod.php:596
 msgid "the bug tracker only"
 msgstr "עוקב התקלות בלבד"
 
-#: frontend/php/include/trackers_run/mod.php:615
+#: frontend/php/include/trackers_run/mod.php:597
 msgid "the task manager only"
 msgstr "מנהל המשימות בלבד"
 
-#: frontend/php/include/trackers_run/mod.php:616
+#: frontend/php/include/trackers_run/mod.php:598
 msgid "the patch manager only"
 msgstr "מנהל הטלאים בלבד"
 
-#: frontend/php/include/trackers_run/mod.php:627
+#: frontend/php/include/trackers_run/mod.php:609
 msgid "Search in groups:"
 msgstr "חיפוש בקבוצות:"
 
 #. TRANSLATORS: this string is used in the context like
 #. "Search in groups: [this group only]".
-#: frontend/php/include/trackers_run/mod.php:636
+#: frontend/php/include/trackers_run/mod.php:618
 msgid "any group"
 msgstr "קבוצה כלשהי"
 
 #. TRANSLATORS: this string is used in the context like
 #. "Search in groups: [this group only]".
-#: frontend/php/include/trackers_run/mod.php:642
+#: frontend/php/include/trackers_run/mod.php:624
 msgid "this group only"
 msgstr "הקבוצה הזאת בלבד"
 
-#: frontend/php/include/trackers_run/mod.php:646
+#: frontend/php/include/trackers_run/mod.php:628
 #: frontend/php/include/trackers_run/digest.php:167
 #: frontend/php/include/trackers_run/digest.php:209
-#: frontend/php/include/trackers/view-dependencies.php:339
-#: frontend/php/include/pagemenu.php:649
+#: frontend/php/include/trackers/view-dependencies.php:338
+#: frontend/php/include/pagemenu.php:652
 msgid "Dependencies"
 msgstr "תלויות"
 
-#: frontend/php/include/trackers_run/mod.php:652
-#: frontend/php/include/trackers_run/mod.php:799
+#: frontend/php/include/trackers_run/mod.php:634
+#: frontend/php/include/trackers_run/mod.php:781
 msgid "New search"
 msgstr "חיפוש"
 
-#: frontend/php/include/trackers_run/mod.php:665
+#: frontend/php/include/trackers_run/mod.php:647
 msgid "Mail Notification Carbon-Copy List"
 msgstr "רשימת עותק להתראות דוא״ל"
 
-#: frontend/php/include/trackers_run/mod.php:671
-#: frontend/php/include/trackers_run/add.php:235
+#: frontend/php/include/trackers_run/mod.php:653
+#: frontend/php/include/trackers_run/add.php:195
 #, php-format
 msgid ""
 "(Note: for %s users, you can use their login name\n"
@@ -4813,22 +5096,22 @@ msgstr ""
 "(לתשומת לבך: למשתמשי %s, אפשר להשתמש בשם המשתמש שלהם\n"
 "במקום בכתובות הדוא״ל שלהם.)"
 
-#: frontend/php/include/trackers_run/mod.php:678
+#: frontend/php/include/trackers_run/mod.php:660
 msgid "Add Email Addresses (comma as separator):"
 msgstr "הוספת כתובות דוא״ל (מופרדות בפסיקים):"
 
-#: frontend/php/include/trackers_run/mod.php:682
-#: frontend/php/include/trackers_run/add.php:246
+#: frontend/php/include/trackers_run/mod.php:664
+#: frontend/php/include/trackers_run/add.php:206
 #: frontend/php/include/trackers/show.php:320
 msgid "Comment:"
 msgstr "הערה:"
 
-#: frontend/php/include/trackers_run/mod.php:697
-#: frontend/php/include/pagemenu.php:239
+#: frontend/php/include/trackers_run/mod.php:679
+#: frontend/php/include/pagemenu.php:243
 msgid "Votes"
 msgstr "הצבעות"
 
-#: frontend/php/include/trackers_run/mod.php:702
+#: frontend/php/include/trackers_run/mod.php:684
 #, php-format
 msgid "There is %s vote so far."
 msgid_plural "There are %s votes so far."
@@ -4837,7 +5120,7 @@ msgstr[1] "יש %s הצבעות עד כה."
 msgstr[2] "יש %s הצבעות עד כה."
 msgstr[3] "יש %s הצבעות עד כה."
 
-#: frontend/php/include/trackers_run/mod.php:708
+#: frontend/php/include/trackers_run/mod.php:690
 msgid ""
 "Votes easily highlight which items people would like to see resolved\n"
 "in priority, independently of the priority of the item set by tracker\n"
@@ -4847,19 +5130,19 @@ msgstr ""
 "לפי עדיפות, ללא קשר לעדיפות הפריט שהוגדר על ידי הנהלת\n"
 "העוקב."
 
-#: frontend/php/include/trackers_run/mod.php:721
+#: frontend/php/include/trackers_run/mod.php:703
 msgid "Only group members can vote."
 msgstr "רק חברי הקבוצה יכולים להצביע."
 
-#: frontend/php/include/trackers_run/mod.php:727
+#: frontend/php/include/trackers_run/mod.php:709
 msgid "Only logged-in users can vote."
 msgstr "רק משתמשים שנכנסו יכולים להצביע."
 
-#: frontend/php/include/trackers_run/mod.php:739
+#: frontend/php/include/trackers_run/mod.php:721
 msgid "Your vote:"
 msgstr "ההצבעה שלך:"
 
-#: frontend/php/include/trackers_run/mod.php:745
+#: frontend/php/include/trackers_run/mod.php:727
 #, php-format
 msgid "/ %s remaining vote"
 msgid_plural "/ %s remaining votes"
@@ -4868,38 +5151,38 @@ msgstr[1] "‫/ %s הצבעות שנותרו"
 msgstr[2] "‫/ %s הצבעות שנותרו"
 msgstr[3] "‫/ %s הצבעות שנותרו"
 
-#: frontend/php/include/trackers_run/mod.php:769
+#: frontend/php/include/trackers_run/mod.php:751
 msgid "Reassign this item"
 msgstr "הקצאת הפריט הזה מחדש"
 
-#: frontend/php/include/trackers_run/mod.php:771
+#: frontend/php/include/trackers_run/mod.php:753
 msgid "Tracker to reassign to"
 msgstr "עוקב להקצות אליו מחדש"
 
 #. TRANSLATORS: this string is used in the context of
 #. "Move to the %s".
-#: frontend/php/include/trackers_run/mod.php:776
+#: frontend/php/include/trackers_run/mod.php:758
 msgid "<!-- Move to the -->Support Tracker"
 msgstr "עוקב התמיכה"
 
-#: frontend/php/include/trackers_run/mod.php:777
+#: frontend/php/include/trackers_run/mod.php:759
 msgid "<!-- Move to the -->Bug Tracker"
 msgstr "עוקב התקלות"
 
-#: frontend/php/include/trackers_run/mod.php:778
+#: frontend/php/include/trackers_run/mod.php:760
 msgid "<!-- Move to the -->Task Tracker"
 msgstr "עוקב המשימות"
 
-#: frontend/php/include/trackers_run/mod.php:779
+#: frontend/php/include/trackers_run/mod.php:761
 msgid "<!-- Move to the -->Patch Tracker"
 msgstr "עוקב הטלאים"
 
-#: frontend/php/include/trackers_run/mod.php:785
+#: frontend/php/include/trackers_run/mod.php:767
 #, php-format
 msgid "Move to the %s"
 msgstr "העברה אל %s"
 
-#: frontend/php/include/trackers_run/mod.php:790
+#: frontend/php/include/trackers_run/mod.php:772
 msgid ""
 "New search, in case the previous one was not satisfactory\n"
 "(to reassign the item to another group):"
@@ -4907,15 +5190,15 @@ msgstr ""
 "חיפוש חדש, במקרה שהקודם לא הספיק (כדי להקצות\n"
 "את הפריט לקבוצה אחרת):"
 
-#: frontend/php/include/trackers_run/mod.php:793
+#: frontend/php/include/trackers_run/mod.php:775
 msgid "Move to the group:"
 msgstr "העברה לקבוצה:"
 
-#: frontend/php/include/trackers_run/mod.php:796
+#: frontend/php/include/trackers_run/mod.php:778
 msgid "Group to reassign item to"
 msgstr "קבוצה אליה להקצות את הפריט מחדש"
 
-#: frontend/php/include/trackers_run/mod.php:808
+#: frontend/php/include/trackers_run/mod.php:790
 #, php-format
 msgid ""
 "To which group this bug should be reassigned to? This is\n"
@@ -4924,11 +5207,11 @@ msgstr ""
 "לאיזו קבוצה להקצות את התקלה הזאת מחדש?\n"
 "זאת התוצאה של החיפוש שלך אחר ‚%s’ במסד הנתונים:"
 
-#: frontend/php/include/trackers_run/mod.php:818
+#: frontend/php/include/trackers_run/mod.php:800
 msgid "Do not reassign to another group."
 msgstr "לא להקצות מחדש לקבוצה אחרת."
 
-#: frontend/php/include/trackers_run/mod.php:836
+#: frontend/php/include/trackers_run/mod.php:818
 msgid ""
 "None found. Please note that only search words of more\n"
 "than three characters are valid."
@@ -4936,18 +5219,7 @@ msgstr ""
 "לא נמצא אף אחד. נא לשים לב שרק מילות חיפוש שאורכן עולה על\n"
 "שלוש אותיות תקפות."
 
-#: frontend/php/include/trackers_run/mod.php:850
-#: frontend/php/include/trackers_run/add.php:259
-msgid ""
-"Please enter the title of <a\n"
-"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a>'s famous\n"
-"dystopian book (it's a date):"
-msgstr ""
-"נא להקליד את הכותרת של הספר<a\n"
-"‫הדיסטופי המפורסם של href=\"https://en.wikipedia.org/wiki/George_Orwell\">ג׳ורג׳ אורוול</a>\n"
-"‫(קבענו):"
-
-#: frontend/php/include/trackers_run/mod.php:859
+#: frontend/php/include/trackers_run/mod.php:833
 msgid "History"
 msgstr "היסטוריה"
 
@@ -4976,15 +5248,15 @@ msgid "Preamble"
 msgstr "מבוא"
 
 #: frontend/php/include/trackers_run/add.php:77
-#: frontend/php/include/news/general.php:233 frontend/php/news/submit.php:98
+#: frontend/php/include/news/general.php:233 frontend/php/news/submit.php:97
 msgid "Details"
 msgstr "פרטים"
 
-#: frontend/php/include/trackers_run/add.php:230
+#: frontend/php/include/trackers_run/add.php:190
 msgid "Mail Notification CC"
 msgstr "עותק של התראות דוא״ל"
 
-#: frontend/php/include/trackers_run/add.php:242
+#: frontend/php/include/trackers_run/add.php:202
 msgid "Add Email Addresses (use comma as separator):"
 msgstr "הוספת כתובות דוא״ל (מופרדות בפסיקים):"
 
@@ -5002,120 +5274,120 @@ msgstr "טופס תשאול מס׳ %s לא קיים"
 msgid "Wrong parameter"
 msgstr "משתנים שגויים"
 
-#: frontend/php/include/trackers_run/browse.php:713
+#: frontend/php/include/trackers_run/browse.php:732
 #: frontend/php/include/trackers_run/digest.php:198
-#: frontend/php/include/pagemenu.php:648
+#: frontend/php/include/pagemenu.php:651
 msgid "Digest"
 msgstr "תקציר"
 
-#: frontend/php/include/trackers_run/browse.php:928
+#: frontend/php/include/trackers_run/browse.php:947
 msgid "query form"
 msgstr "טופס תשאול"
 
-#: frontend/php/include/trackers_run/browse.php:947
+#: frontend/php/include/trackers_run/browse.php:965
 msgid "Simple Search"
 msgstr "חיפוש פשוט"
 
-#: frontend/php/include/trackers_run/browse.php:953
+#: frontend/php/include/trackers_run/browse.php:971
 msgid "Advanced Search"
 msgstr "חיפוש מתקדם"
 
-#: frontend/php/include/trackers_run/browse.php:957
+#: frontend/php/include/trackers_run/browse.php:975
 msgid "type of search"
 msgstr "סוג החיפוש"
 
 #. TRANSLATORS: this string is used to specify kind of selection.
-#: frontend/php/include/trackers_run/browse.php:959
+#: frontend/php/include/trackers_run/browse.php:977
 msgid "Simple"
 msgstr "פשוט"
 
 #. TRANSLATORS: this string is used to specify kind of selection.
-#: frontend/php/include/trackers_run/browse.php:961
+#: frontend/php/include/trackers_run/browse.php:979
 msgid "Multiple"
 msgstr "מגוון"
 
 #. TRANSLATORS: the first argument is kind of query form (like Basic),
 #. the second argument is kind of selection (Simple or Multiple).
-#: frontend/php/include/trackers_run/browse.php:971
+#: frontend/php/include/trackers_run/browse.php:989
 #, php-format
 msgid "Browse with the %1$s query form and %2$s selection."
 msgstr "עיון עם טופס התשאול ה%1$s ועם הבחירה בחיפוש %2$s."
 
-#: frontend/php/include/trackers_run/browse.php:991
+#: frontend/php/include/trackers_run/browse.php:1009
 msgid "logical operation to apply"
 msgstr "פעולות לוגיות להחיל"
 
 #. TRANSLATORS: this is a logical operator, used in string
 #. "Use logical %s between '%s' and '%s' searches.
-#: frontend/php/include/trackers_run/browse.php:995
+#: frontend/php/include/trackers_run/browse.php:1013
 msgid "AND"
 msgstr "וגם"
 
 #. TRANSLATORS: this is a logical operator, used in string
 #. "Use logical %s between '%s' and '%s' searches.
-#: frontend/php/include/trackers_run/browse.php:998
+#: frontend/php/include/trackers_run/browse.php:1016
 msgid "OR"
 msgstr "או"
 
-#: frontend/php/include/trackers_run/browse.php:1006
+#: frontend/php/include/trackers_run/browse.php:1024
 #, php-format
 msgid "Use logical %1$s between '%2$s' and '%3$s' searches."
 msgstr "להשתמש בפעולת %1$s לוגית בין חיפושי ‚%2$s’ לבין ‚%3$s’."
 
 #. TRANSLATORS: the string is used like "<field-name> %s since <date>"
-#: frontend/php/include/trackers_run/browse.php:1043
+#: frontend/php/include/trackers_run/browse.php:1061
 msgid "modified"
 msgstr "נערך"
 
-#: frontend/php/include/trackers_run/browse.php:1043
+#: frontend/php/include/trackers_run/browse.php:1061
 msgid "not modified"
 msgstr "לא נערך"
 
-#: frontend/php/include/trackers_run/browse.php:1047
+#: frontend/php/include/trackers_run/browse.php:1065
 msgid "whether additional constraint is activated"
 msgstr "האם מופעל אילוץ אחר"
 
 #. TRANSLATORS: this string is used as the argument in
 #. 'Additional constraint %s'.
-#: frontend/php/include/trackers_run/browse.php:1051
+#: frontend/php/include/trackers_run/browse.php:1069
 msgid "deactivated"
 msgstr "מושבת"
 
 #. TRANSLATORS: this string is used as the argument in
 #. 'Additional constraint %s'.
-#: frontend/php/include/trackers_run/browse.php:1054
+#: frontend/php/include/trackers_run/browse.php:1072
 msgid "activated"
 msgstr "מופעל"
 
-#: frontend/php/include/trackers_run/browse.php:1059
+#: frontend/php/include/trackers_run/browse.php:1077
 msgid "Field for criteria"
 msgstr "שדה לקריטריון"
 
-#: frontend/php/include/trackers_run/browse.php:1063
+#: frontend/php/include/trackers_run/browse.php:1081
 msgid "modified or not"
 msgstr "נערך או לא"
 
 #. TRANSLATORS: the argument is 'activated' or 'deactivated'.
-#: frontend/php/include/trackers_run/browse.php:1068
+#: frontend/php/include/trackers_run/browse.php:1086
 #, php-format
 msgid "Additional constraint %1$s:"
 msgstr "אילוץ נוסף %1$s:"
 
-#: frontend/php/include/trackers_run/browse.php:1073
+#: frontend/php/include/trackers_run/browse.php:1091
 #, php-format
 msgid "%1$s %2$s since %3$s"
 msgstr "‫%1$s %2$s מאז %3$s"
 
-#: frontend/php/include/trackers_run/browse.php:1088
+#: frontend/php/include/trackers_run/browse.php:1106
 #, php-format
 msgid "Show items with a spam score lower than %s."
 msgstr "להציג פריטים עם דירוג ספאם קטן מאשר %s."
 
-#: frontend/php/include/trackers_run/browse.php:1091
+#: frontend/php/include/trackers_run/browse.php:1109
 msgid "Spam level of items to hide"
 msgstr "רמת ספאם של פריטים להסתרה"
 
-#: frontend/php/include/trackers_run/browse.php:1096
+#: frontend/php/include/trackers_run/browse.php:1114
 #, php-format
 msgid "Warning: only %s item can be shown at once."
 msgid_plural "Warning: only %s items can be shown at once."
@@ -5124,7 +5396,7 @@ msgstr[1] "אזהרה: אפשר להציג רק %s פריטים כל פעם."
 msgstr[2] "אזהרה: אפשר להציג רק %s פריטים כל פעם."
 msgstr[3] "אזהרה: אפשר להציג רק %s פריטים כל פעם."
 
-#: frontend/php/include/trackers_run/browse.php:1109
+#: frontend/php/include/trackers_run/browse.php:1127
 #, php-format
 msgid ""
 "Column heading links sort results (up or\n"
@@ -5135,26 +5407,26 @@ msgstr ""
 "למטה), אפשר גם <a href=\"%1$s\">לסדר לפי עדיפות</a>\n"
 "או <a href=\"%2$s\">לאפס את הסידור</a>."
 
-#: frontend/php/include/trackers_run/browse.php:1120
+#: frontend/php/include/trackers_run/browse.php:1138
 #, php-format
 msgid "You can also <a href=\"%s\">deactivate multicolumn sort</a>."
 msgstr "ניתן גם <a href=\"%s\">להשבית מיון רב עמודתי</a>."
 
-#: frontend/php/include/trackers_run/browse.php:1129
+#: frontend/php/include/trackers_run/browse.php:1147
 #, php-format
 msgid "You can also <a href=\"%s\">activate multicolumn sort</a>."
 msgstr "ניתן גם <a href=\"%s\">להפעיל מיון רב עמודתי</a>."
 
-#: frontend/php/include/trackers_run/browse.php:1136
+#: frontend/php/include/trackers_run/browse.php:1154
 #, php-format
 msgid "Currently, results are sorted by %s."
 msgstr "נכון לעכשיו, התוצאות מסודרות לפי %s."
 
-#: frontend/php/include/trackers_run/browse.php:1152
+#: frontend/php/include/trackers_run/browse.php:1170
 msgid "Proceed to Digest next step"
 msgstr "התקדמות לשלב הבא בתקציר"
 
-#: frontend/php/include/trackers_run/browse.php:1158
+#: frontend/php/include/trackers_run/browse.php:1176
 msgid "No matching items found. The display criteria may be too restrictive."
 msgstr "לא נמצאים פריטים מתאימים. כנראה שקריטריון התצוגה יותר מדי מגביל."
 
@@ -5216,7 +5488,7 @@ msgstr "לא נבחרו שדות לתקציר"
 
 #. TRANSLATORS: anonymous user.
 #: frontend/php/include/trackers_run/digest.php:327
-#: frontend/php/include/utils.php:448 frontend/php/include/html.php:856
+#: frontend/php/include/utils.php:444 frontend/php/include/html.php:857
 msgid "Anonymous"
 msgstr "אלמוני"
 
@@ -5229,240 +5501,240 @@ msgstr "הערות אחרונות שפורסמו (מאת %s):"
 msgid "This user is already member of the group."
 msgstr "משתמש זה כבר חבר בקבוצה."
 
-#: frontend/php/include/people/general.php:145
-#: frontend/php/include/people/general.php:418
+#: frontend/php/include/people/general.php:151
+#: frontend/php/include/people/general.php:436
 msgid "Category"
 msgstr "קטגוריה"
 
-#: frontend/php/include/people/general.php:147
-#: frontend/php/include/people/general.php:191
+#: frontend/php/include/people/general.php:153
+#: frontend/php/include/people/general.php:197
 msgid "No categories found"
 msgstr "לא נמצאו קטגוריות"
 
-#: frontend/php/include/people/general.php:150
-#: frontend/php/include/html.php:1051
+#: frontend/php/include/people/general.php:156
+#: frontend/php/include/html.php:1052
 msgid "Group type"
 msgstr "סוג קבוצה"
 
-#: frontend/php/include/people/general.php:152
+#: frontend/php/include/people/general.php:158
 msgid "No jobs found"
 msgstr "לא נמצאו משימות"
 
 #. TRANSLATORS: this string is a job status.
-#: frontend/php/include/people/general.php:212
+#: frontend/php/include/people/general.php:218
 msgid "Open"
 msgstr "פתוחה"
 
 #. TRANSLATORS: this string is a job status.
-#: frontend/php/include/people/general.php:214
+#: frontend/php/include/people/general.php:220
 msgid "Filled"
 msgstr "תפוסה"
 
 #. TRANSLATORS: this string is a job status.
-#: frontend/php/include/people/general.php:216
+#: frontend/php/include/people/general.php:222
 msgid "Deleted"
 msgstr "נמחקה"
 
-#: frontend/php/include/people/general.php:221
+#: frontend/php/include/people/general.php:227
 msgid "job status"
 msgstr "מצב משרה"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:232
+#: frontend/php/include/people/general.php:238
 msgid "Developer"
 msgstr "פיתוח"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:234
+#: frontend/php/include/people/general.php:240
 msgid "Group Manager"
 msgstr "ניהול קבוצה"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:236
+#: frontend/php/include/people/general.php:242
 msgid "Unix Admin"
 msgstr "ניהול יוניקס"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:238
+#: frontend/php/include/people/general.php:244
 msgid "Doc Writer"
 msgstr "כתיבת מסמכים"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:240
+#: frontend/php/include/people/general.php:246
 msgid "Tester"
 msgstr "בדיקה"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:242
+#: frontend/php/include/people/general.php:248
 msgid "Support Manager"
 msgstr "ניהול תמיכה"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:244
+#: frontend/php/include/people/general.php:250
 msgid "Graphic/Other Designer"
 msgstr "עיצוב גרפי/אחר"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:246
+#: frontend/php/include/people/general.php:252
 msgid "Translator"
 msgstr "תרגום"
 
 #. TRANSLATORS: this string is a job category.
-#: frontend/php/include/people/general.php:248
+#: frontend/php/include/people/general.php:254
 msgid "Other"
 msgstr "אחר"
 
-#: frontend/php/include/people/general.php:254
+#: frontend/php/include/people/general.php:260
 msgid "job category"
 msgstr "קטגוריית משרה"
 
-#: frontend/php/include/people/general.php:264
-#: frontend/php/include/people/general.php:597
+#: frontend/php/include/people/general.php:270
+#: frontend/php/include/people/general.php:595
 msgid "You must be logged in first"
 msgstr "עליך להיכנס תחילה"
 
-#: frontend/php/include/people/general.php:274
+#: frontend/php/include/people/general.php:280
 msgid "Skill already in your inventory"
 msgstr "המיומנות כבר נמצאת במאגר שלך"
 
-#: frontend/php/include/people/general.php:289
-#: frontend/php/include/people/general.php:619
+#: frontend/php/include/people/general.php:295
+#: frontend/php/include/people/general.php:617
 msgid "Added to skill inventory"
 msgstr "נוסף למאגר מיומנויות"
 
 #. TRANSLATORS: this is an error message.
-#: frontend/php/include/people/general.php:294
+#: frontend/php/include/people/general.php:300
 msgid "Inserting into skill inventory"
 msgstr "מתווסף למאגר מיומנויות"
 
-#: frontend/php/include/people/general.php:312
-#: frontend/php/include/people/general.php:353
-#: frontend/php/include/people/general.php:628
+#: frontend/php/include/people/general.php:318
+#: frontend/php/include/people/general.php:359
+#: frontend/php/include/people/general.php:626
 msgid "Skill"
 msgstr "מיומנות"
 
-#: frontend/php/include/people/general.php:312
-#: frontend/php/include/people/general.php:353
-#: frontend/php/include/people/general.php:628
+#: frontend/php/include/people/general.php:318
+#: frontend/php/include/people/general.php:359
+#: frontend/php/include/people/general.php:626
 msgid "Level"
 msgstr "רמה"
 
-#: frontend/php/include/people/general.php:312
-#: frontend/php/include/people/general.php:353
-#: frontend/php/include/people/general.php:628
+#: frontend/php/include/people/general.php:318
+#: frontend/php/include/people/general.php:359
+#: frontend/php/include/people/general.php:626
 msgid "Experience"
 msgstr "ניסיון"
 
-#: frontend/php/include/people/general.php:317
-#: frontend/php/include/people/general.php:655
+#: frontend/php/include/people/general.php:323
+#: frontend/php/include/people/general.php:653
 msgid "SQL Error:"
 msgstr "שגיאת SQL:"
 
-#: frontend/php/include/people/general.php:324
-#: frontend/php/include/people/general.php:358
-#: frontend/php/include/people/general.php:661
+#: frontend/php/include/people/general.php:330
+#: frontend/php/include/people/general.php:364
+#: frontend/php/include/people/general.php:659
 msgid "No skill inventory set up"
 msgstr "לא הוקם מאגר מיומנויות"
 
-#: frontend/php/include/people/general.php:353
+#: frontend/php/include/people/general.php:359
 msgid "Action"
 msgstr "פעולה"
 
-#: frontend/php/include/people/general.php:384
+#: frontend/php/include/people/general.php:390
 msgid "Add a New Skill"
 msgstr "הוספת מיומנות חדשה"
 
-#: frontend/php/include/people/general.php:398
+#: frontend/php/include/people/general.php:404
 msgid "Add Skill"
 msgstr "הוספת מיומנות"
 
-#: frontend/php/include/people/general.php:418
+#: frontend/php/include/people/general.php:436
 msgid "Date Opened"
 msgstr "תאריך הפתיחה"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:541
+#: frontend/php/include/people/general.php:539
 msgid "Base Knowledge"
 msgstr "ידע בסיסי"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:543
+#: frontend/php/include/people/general.php:541
 msgid "Good Knowledge"
 msgstr "ידע סביר"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:545
+#: frontend/php/include/people/general.php:543
 msgid "Master"
 msgstr "במקצועיות"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:547
+#: frontend/php/include/people/general.php:545
 msgid "Master Apprentice"
 msgstr "במקצועיות רבה"
 
 #. TRANSLATORS: this string is a skill level.
-#: frontend/php/include/people/general.php:549
+#: frontend/php/include/people/general.php:547
 msgid "Expert"
 msgstr "מומחיות"
 
-#: frontend/php/include/people/general.php:555
+#: frontend/php/include/people/general.php:553
 msgid "skill level"
 msgstr "רמת מיומנות"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:564
+#: frontend/php/include/people/general.php:562
 msgid "< 6 Months"
 msgstr "< חצי שנה"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:566
+#: frontend/php/include/people/general.php:564
 msgid "6 Mo - 2 yr"
 msgstr "חצי שנה - שנתיים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:568
+#: frontend/php/include/people/general.php:566
 msgid "2 yr - 5 yr"
 msgstr "שנתיים - 5 שנים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:570
+#: frontend/php/include/people/general.php:568
 msgid "5 yr - 10 yr"
 msgstr "5 - 10 שנים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:572
+#: frontend/php/include/people/general.php:570
 msgid "> 10 years"
 msgstr "> 10 שנים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:574
+#: frontend/php/include/people/general.php:572
 msgid "10 yr - 20 yr"
 msgstr "10 - 20 שנים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:576
+#: frontend/php/include/people/general.php:574
 msgid "20 yr - 40 yr"
 msgstr "20 - 40 שנים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:578
+#: frontend/php/include/people/general.php:576
 msgid "40 yr - 80 yr"
 msgstr "40 - 80 שנים"
 
 #. TRANSLATORS: this string is an experience level.
-#: frontend/php/include/people/general.php:580
+#: frontend/php/include/people/general.php:578
 msgid "> 80 years"
 msgstr "> 80 שנים"
 
-#: frontend/php/include/people/general.php:586
+#: frontend/php/include/people/general.php:584
 msgid "experience level"
 msgstr "רמת ניסיון"
 
-#: frontend/php/include/people/general.php:607
+#: frontend/php/include/people/general.php:605
 msgid "ERROR - skill already in your inventory"
 msgstr "שגיאה - המיומנות כבר נמצאת במאגר שלך"
 
-#: frontend/php/include/people/general.php:622
+#: frontend/php/include/people/general.php:620
 msgid "ERROR inserting into skill inventory"
 msgstr "שגיאה בהוספה למאגר המיומנויות"
 
@@ -5486,52 +5758,9 @@ msgstr ""
 "ניתן לצפות גם בתיעוד ההיסטורי של כל אחד מהקבצים במאגר\n"
 "לרבות הבדלים בין שתי גרסאות."
 
-#: frontend/php/include/vcs.php:215 frontend/php/include/project_home.php:512
-#: frontend/php/include/project_home.php:515
-msgid "Browse Sources Repository"
-msgstr "עיון במאגר המקורות"
-
 #: frontend/php/include/vcs.php:233
 msgid "Arch"
 msgstr "Arch"
-
-#: frontend/php/include/vcs.php:233 frontend/php/include/pagemenu.php:504
-#: frontend/php/include/project_home.php:545
-#: frontend/php/project/admin/editgroupfeatures.php:346
-msgid "Bazaar"
-msgstr "Bazaar"
-
-#. TRANSLATORS: this string is used as argument in messages 'Use %s'
-#. and '%s Repository'.
-#: frontend/php/include/vcs.php:233 frontend/php/include/pagemenu.php:502
-#: frontend/php/include/project_home.php:546
-#: frontend/php/project/admin/editgroupfeatures.php:337
-msgid "CVS"
-msgstr "‫CVS"
-
-#. TRANSLATORS: the string is used as the argument of "%s Repository".
-#: frontend/php/include/vcs.php:234 frontend/php/include/pagemenu.php:503
-#: frontend/php/include/project_home.php:545
-#: frontend/php/project/admin/editgroupfeatures.php:344
-msgid "Git"
-msgstr "Git"
-
-#: frontend/php/include/vcs.php:234 frontend/php/include/pagemenu.php:503
-#: frontend/php/include/project_home.php:545
-#: frontend/php/project/admin/editgroupfeatures.php:345
-msgid "Mercurial"
-msgstr "Mercurial"
-
-#: frontend/php/include/vcs.php:234 frontend/php/include/pagemenu.php:502
-#: frontend/php/include/project_home.php:546
-#: frontend/php/project/admin/editgroupfeatures.php:343
-msgid "Subversion"
-msgstr "Subversion"
-
-#: frontend/php/include/vcs.php:257 frontend/php/include/pagemenu.php:362
-#: frontend/php/include/project_home.php:522
-msgid "Browse Web Pages Repository"
-msgstr "עיון במאגר דפי הרשת"
 
 #: frontend/php/include/vcs.php:270
 msgid "This group doesn't use this tool."
@@ -5590,7 +5819,7 @@ msgid "Group administrator"
 msgstr "הנהלת קבוצה"
 
 #: frontend/php/include/trackers/format.php:249
-#: frontend/php/include/html.php:855
+#: frontend/php/include/html.php:856
 msgid "Group Member"
 msgstr "חברות בקבוצה"
 
@@ -5603,13 +5832,13 @@ msgid "This is a preview"
 msgstr "זאת תצוגה מקדימה"
 
 #: frontend/php/include/trackers/format.php:279
-#: frontend/php/include/trackers/data.php:2780 frontend/php/markup-test.php:94
+#: frontend/php/include/trackers/data.php:2775 frontend/php/markup-test.php:94
 #, php-format
 msgid "comment #%s:"
 msgstr "תגובה מס׳ %s:"
 
 #: frontend/php/include/trackers/format.php:282
-#: frontend/php/include/trackers/data.php:2789
+#: frontend/php/include/trackers/data.php:2784
 msgid "original submission:"
 msgstr "הגשה מקורית:"
 
@@ -5725,42 +5954,17 @@ msgstr "חברים בקבוצה שהם מנהלים"
 msgid "Group Main Pages"
 msgstr "עמודים ראשיים של קבוצה"
 
-#: frontend/php/include/trackers/cookbook.php:62
-#: frontend/php/include/project_home.php:323
-msgid "Group Homepage"
-msgstr "דף הבית של הקבוצה"
-
-#: frontend/php/include/trackers/cookbook.php:63
-#: frontend/php/include/project_home.php:336
-#: frontend/php/project/admin/editgroupfeatures.php:312
-msgid "Download Area"
-msgstr "אזור הורדה"
-
 #: frontend/php/include/trackers/cookbook.php:64
 #: frontend/php/project/admin/index.php:82
 #: frontend/php/project/admin/userperms.php:677
-#: frontend/php/project/admin/editgroupfeatures.php:359
+#: frontend/php/project/admin/editgroupfeatures.php:361
 msgid "Support Tracker"
 msgstr "עוקב תמיכה"
-
-#: frontend/php/include/trackers/cookbook.php:64
-#: frontend/php/include/project_home.php:552
-#: frontend/php/project/admin/index.php:83
-#: frontend/php/project/admin/userperms.php:677
-#: frontend/php/project/admin/editgroupfeatures.php:359
-msgid "Bug Tracker"
-msgstr "עוקב תקלות"
-
-#: frontend/php/include/trackers/cookbook.php:65
-#: frontend/php/include/project_home.php:553
-#: frontend/php/project/admin/index.php:83
-msgid "Task Manager"
-msgstr "מנהל משימות"
 
 #: frontend/php/include/trackers/cookbook.php:65
 #: frontend/php/project/admin/index.php:84
 #: frontend/php/project/admin/userperms.php:678
-#: frontend/php/project/admin/editgroupfeatures.php:360
+#: frontend/php/project/admin/editgroupfeatures.php:362
 msgid "Patch Tracker"
 msgstr "עוקב טלאים"
 
@@ -5860,42 +6064,42 @@ msgstr "קהל/יכולת/פעולה עודכנו"
 msgid "This group has turned off this tracker."
 msgstr "הקבוצה הזאת כיבתה את העוקב הזה."
 
-#: frontend/php/include/trackers/general.php:331
-#: frontend/php/include/trackers/general.php:338
+#: frontend/php/include/trackers/general.php:348
+#: frontend/php/include/trackers/general.php:355
 msgid "Start:"
 msgstr "התחלה:"
 
-#: frontend/php/include/trackers/general.php:331
-#: frontend/php/include/trackers/general.php:342
+#: frontend/php/include/trackers/general.php:348
+#: frontend/php/include/trackers/general.php:359
 msgid "End:"
 msgstr "סיום:"
 
-#: frontend/php/include/trackers/general.php:333
+#: frontend/php/include/trackers/general.php:350
 msgid "Any time"
 msgstr "כל מועד שהוא"
 
-#: frontend/php/include/trackers/general.php:341
-#: frontend/php/include/trackers/general.php:345
+#: frontend/php/include/trackers/general.php:358
+#: frontend/php/include/trackers/general.php:362
 msgid "(yyyy-mm-dd)"
 msgstr "(yyyy-mm-dd)"
 
-#: frontend/php/include/trackers/general.php:362
+#: frontend/php/include/trackers/general.php:379
 msgid "comparison operator"
 msgstr "פעולת השוואה"
 
-#: frontend/php/include/trackers/general.php:369
+#: frontend/php/include/trackers/general.php:386
 msgid "Items to show at once:"
 msgstr "פריטים להצגה בו־זמנית:"
 
-#: frontend/php/include/trackers/general.php:416
+#: frontend/php/include/trackers/general.php:466
 msgid "Error: no group defined"
 msgstr "שגיאה: לא מוגדרת קבוצה"
 
-#: frontend/php/include/trackers/general.php:510
+#: frontend/php/include/trackers/general.php:505
 msgid "Internal error: no group id"
 msgstr "שגיאה פנימית: אין מזהה קבוצה"
 
-#: frontend/php/include/trackers/general.php:624
+#: frontend/php/include/trackers/general.php:619
 #, php-format
 msgid ""
 "These fields are mandatory: %s.\n"
@@ -5904,7 +6108,7 @@ msgstr ""
 "השדות האלו הם בגדר חובה: %s.\n"
 "‫יש למלא אותם ולהגיש את הטופס מחדש."
 
-#: frontend/php/include/trackers/general.php:630
+#: frontend/php/include/trackers/general.php:625
 #, php-format
 msgid ""
 "The field %s is mandatory.\n"
@@ -5913,7 +6117,7 @@ msgstr ""
 "השדה %s הוא בגדר חובה.\n"
 "יש למלא אותו ולהגדיר את הטופס מחדש."
 
-#: frontend/php/include/trackers/general.php:640
+#: frontend/php/include/trackers/general.php:635
 #, php-format
 msgid ""
 "These fields are mandatory: %s.\n"
@@ -5924,7 +6128,7 @@ msgstr ""
 "הם אופסו לערך הקודם שלהם.\n"
 "יש לבדוק אותם ולהגיש את הטופס מחדש."
 
-#: frontend/php/include/trackers/general.php:647
+#: frontend/php/include/trackers/general.php:642
 #, php-format
 msgid ""
 "The field %s is mandatory.\n"
@@ -5935,59 +6139,59 @@ msgstr ""
 "הוא אופס לערך הקודם שלו.\n"
 "יש לבדוק אותו ולהגיש את הטופס מחדש."
 
-#: frontend/php/include/trackers/general.php:876
+#: frontend/php/include/trackers/general.php:871
 msgid "Presumed spam: no mail will be sent"
 msgstr "חשד לספאם: לא תישלחנה הודעות"
 
-#: frontend/php/include/trackers/general.php:889
+#: frontend/php/include/trackers/general.php:884
 msgid "Could not send item update."
 msgstr "לא ניתן לשלוח עדכון פריט."
 
-#: frontend/php/include/trackers/general.php:1024
+#: frontend/php/include/trackers/general.php:1019
 msgid "Uploaded file size exceeds configured value."
 msgstr "גודל קובץ ההעלאות חורג מהערך שהוגדר."
 
-#: frontend/php/include/trackers/general.php:1030
+#: frontend/php/include/trackers/general.php:1025
 #, php-format
 msgid "Maximum upload file size is %s."
 msgstr "גודל הקובץ המרבי להעלאה הוא %s."
 
-#: frontend/php/include/trackers/general.php:1040
+#: frontend/php/include/trackers/general.php:1035
 #, php-format
 msgid "Error while uploading file '%s':"
 msgstr "שגיאה בהעלאת הקובץ ‚%s’:"
 
-#: frontend/php/include/trackers/general.php:1041
+#: frontend/php/include/trackers/general.php:1036
 #, php-format
 msgid "Unknown file upload error code: %s."
 msgstr "קוד שגיאת העלאת קובץ לא ידוע: %s."
 
-#: frontend/php/include/trackers/general.php:1046
+#: frontend/php/include/trackers/general.php:1041
 msgid "The file was only partially uploaded."
 msgstr "הקובץ הועלה חלקית."
 
-#: frontend/php/include/trackers/general.php:1047
+#: frontend/php/include/trackers/general.php:1042
 msgid "No file was uploaded."
 msgstr "לא הועלה אף קובץ."
 
-#: frontend/php/include/trackers/general.php:1048
+#: frontend/php/include/trackers/general.php:1043
 msgid "Missing temporary directory."
 msgstr "תיקייה זמנית חסרה."
 
-#: frontend/php/include/trackers/general.php:1049
+#: frontend/php/include/trackers/general.php:1044
 msgid "Failed to write file to disk."
 msgstr "הכתיבה לכונן נכשלה."
 
-#: frontend/php/include/trackers/general.php:1050
+#: frontend/php/include/trackers/general.php:1045
 msgid "Upload was stopped by some PHP extension."
 msgstr "ההעלאה נעצרה על ידי הרחבת PHP כלשהי."
 
-#: frontend/php/include/trackers/general.php:1110
+#: frontend/php/include/trackers/general.php:1105
 #, php-format
 msgid "Unexpected error, disregarding file %s attachment"
 msgstr "שגיאה לא צפויה, הקובץ המצורף %s לא יתווסף"
 
-#: frontend/php/include/trackers/general.php:1125
+#: frontend/php/include/trackers/general.php:1120
 #, php-format
 msgid "You already uploaded %s kilobyte."
 msgid_plural "You already uploaded %s kilobytes."
@@ -5996,17 +6200,17 @@ msgstr[1] "כבר שלחת %s קילובתים."
 msgstr[2] "כבר שלחת %s קילובתים."
 msgstr[3] "כבר שלחת %s קילובתים."
 
-#: frontend/php/include/trackers/general.php:1137
+#: frontend/php/include/trackers/general.php:1132
 #, php-format
 msgid "The upload directory '%s' is not writable."
 msgstr "תיקיית ההעלאה ‚%s’ נעולה לכתיבה."
 
-#: frontend/php/include/trackers/general.php:1149
+#: frontend/php/include/trackers/general.php:1144
 #, php-format
 msgid "File %s not attached: unable to open it"
 msgstr "הקובץ %s לא מצורף: לא ניתן לפתוח אותו"
 
-#: frontend/php/include/trackers/general.php:1164
+#: frontend/php/include/trackers/general.php:1159
 #, php-format
 msgid ""
 "(Note: upload size limit is set to %s, after insertion of\n"
@@ -6015,66 +6219,66 @@ msgstr ""
 "(לתשומת ליבך: מגבלת גודל ההעלאה היא %s, לאחר הוספת‬\n"
 "‫תווי המילוט הנחוצים.)"
 
-#: frontend/php/include/trackers/general.php:1191
+#: frontend/php/include/trackers/general.php:1186
 #, php-format
 msgid "File %s is empty."
 msgstr "הקובץ %s ריק."
 
-#: frontend/php/include/trackers/general.php:1227
+#: frontend/php/include/trackers/general.php:1222
 #, php-format
 msgid "Error while attaching file %s"
 msgstr "שגיאה בצירוף קובץ %s"
 
-#: frontend/php/include/trackers/general.php:1236
+#: frontend/php/include/trackers/general.php:1231
 #, php-format
 msgid "Error while saving file %s on disk"
 msgstr "שגיאה בשמירת הקובץ %s בכונן"
 
 #. TRANSLATORS: the argument is file id (a number).
-#: frontend/php/include/trackers/general.php:1243
+#: frontend/php/include/trackers/general.php:1238
 #, php-format
 msgid "file #%s attached"
 msgstr "קובץ מס׳ %s צורף"
 
-#: frontend/php/include/trackers/general.php:1318
+#: frontend/php/include/trackers/general.php:1313
 msgid "CC added."
 msgstr "נוסף עותק."
 
-#: frontend/php/include/trackers/general.php:1321
+#: frontend/php/include/trackers/general.php:1316
 msgid "CC addition failed."
 msgstr "הוספת עותק נכשלה."
 
-#: frontend/php/include/trackers/general.php:1364
+#: frontend/php/include/trackers/general.php:1359
 msgid "CC Removed"
 msgstr "עותק הוסר"
 
-#: frontend/php/include/trackers/general.php:1408
+#: frontend/php/include/trackers/general.php:1403
 msgid "Removing CC is not allowed"
 msgstr "הסרת עותק אסורה"
 
-#: frontend/php/include/trackers/general.php:1420
+#: frontend/php/include/trackers/general.php:1415
 msgid "Failed to remove CC"
 msgstr "הסרת עותק נכשלה"
 
-#: frontend/php/include/trackers/general.php:1464
+#: frontend/php/include/trackers/general.php:1459
 msgid "Failed to delete dependency."
 msgstr "מחיקת תלות נכשלה."
 
-#: frontend/php/include/trackers/general.php:1467
+#: frontend/php/include/trackers/general.php:1462
 msgid "Dependency Removed."
 msgstr "התלות הוסרה."
 
 #. TRANSLATORS: this string specifies sorting order.
-#: frontend/php/include/trackers/general.php:1571
+#: frontend/php/include/trackers/general.php:1566
 msgid "up"
 msgstr "למעלה"
 
 #. TRANSLATORS: this string specifies sorting order.
-#: frontend/php/include/trackers/general.php:1574
+#: frontend/php/include/trackers/general.php:1569
 msgid "down"
 msgstr "למטה"
 
-#: frontend/php/include/trackers/general.php:1752
+#: frontend/php/include/trackers/general.php:1747
 msgid ""
 "None found. Please note that only search words of more than\n"
 "three characters are valid."
@@ -6082,11 +6286,11 @@ msgstr ""
 "לא נמצא אף אחד. נא לשים לב שרק מילות חיפוש שאורכן עולה על\n"
 "שלוש אותיות תקפות."
 
-#: frontend/php/include/trackers/general.php:1768
+#: frontend/php/include/trackers/general.php:1763
 msgid "group"
 msgstr "קבוצה"
 
-#: frontend/php/include/trackers/general.php:1792
+#: frontend/php/include/trackers/general.php:1787
 #, php-format
 msgid ""
 "Please select a dependency to add in the result of your search\n"
@@ -6094,6 +6298,16 @@ msgid ""
 msgstr ""
 "נא לבחור תלות להוספה בתוצאות החיפוש אחר ‚%s’\n"
 "במסד הנתונים:"
+
+#: frontend/php/include/trackers/general.php:1904
+msgid ""
+"Please enter the title of <a\n"
+"href=\"https://en.wikipedia.org/wiki/George_Orwell\">George Orwell</a>'s famous\n"
+"dystopian book (it's a date):"
+msgstr ""
+"נא להקליד את הכותרת של הספר<a\n"
+"‫הדיסטופי המפורסם של href=\"https://en.wikipedia.org/wiki/George_Orwell\">ג׳ורג׳ אורוול</a>\n"
+"‫(קבענו):"
 
 #: frontend/php/include/trackers/show.php:154
 msgid "Automatic update due to transitions settings"
@@ -6267,104 +6481,104 @@ msgstr "רשימת החרגה:"
 msgid "%s table Update failed:"
 msgstr "עדכון הטבלה %s נכשל:"
 
-#: frontend/php/include/trackers/data.php:967
+#: frontend/php/include/trackers/data.php:961
 msgid "Insert of default value failed."
 msgstr "מילוי ערך בררת המחדל נכשל."
 
-#: frontend/php/include/trackers/data.php:1054
-#: frontend/php/include/trackers/data.php:1136
+#: frontend/php/include/trackers/data.php:1048
+#: frontend/php/include/trackers/data.php:1130
 msgid "Empty field value not allowed"
 msgstr "אסור ערך ריק בשדה"
 
-#: frontend/php/include/trackers/data.php:1092
+#: frontend/php/include/trackers/data.php:1086
 msgid "Insert failed."
 msgstr "מילוי נכשל."
 
-#: frontend/php/include/trackers/data.php:1094
+#: frontend/php/include/trackers/data.php:1088
 msgid "New field value inserted."
 msgstr "מולא ערך שדה חדש."
 
-#: frontend/php/include/trackers/data.php:1123
+#: frontend/php/include/trackers/data.php:1117
 msgid "Update of field value failed."
 msgstr "עדכון ערך השדה נכשל."
 
-#: frontend/php/include/trackers/data.php:1125
+#: frontend/php/include/trackers/data.php:1119
 msgid "New field value updated."
 msgstr "ערך השדה החדש עודכן."
 
-#: frontend/php/include/trackers/data.php:1164
+#: frontend/php/include/trackers/data.php:1158
 msgid "Canned bug response inserted"
 msgstr "נוספה תגובה מראש לתקלה"
 
-#: frontend/php/include/trackers/data.php:1166
+#: frontend/php/include/trackers/data.php:1160
 msgid "Error inserting canned bug response"
 msgstr "שגיאה בהוספת תגובה מראש לתקלה"
 
-#: frontend/php/include/trackers/data.php:1179
+#: frontend/php/include/trackers/data.php:1173
 msgid "Canned bug response updated"
 msgstr "עודכנה תגובה מראש לתקלה"
 
-#: frontend/php/include/trackers/data.php:1181
+#: frontend/php/include/trackers/data.php:1175
 msgid "Error updating canned bug response"
 msgstr "שגיאה בעדכון תגובה מראש לתקלה"
 
-#: frontend/php/include/trackers/data.php:1214
+#: frontend/php/include/trackers/data.php:1208
 msgid "Update of transition failed"
 msgstr "עדכון המעברון נכשל"
 
-#: frontend/php/include/trackers/data.php:1216
+#: frontend/php/include/trackers/data.php:1210
 msgid "Transition updated"
 msgstr "המעברון עודכן"
 
-#: frontend/php/include/trackers/data.php:1236
+#: frontend/php/include/trackers/data.php:1230
 msgid "Insert failed"
 msgstr "הוספה נכשלה"
 
-#: frontend/php/include/trackers/data.php:1238
+#: frontend/php/include/trackers/data.php:1232
 msgid "New transition inserted"
 msgstr "נוסף מעברון חדש"
 
-#: frontend/php/include/trackers/data.php:1255
+#: frontend/php/include/trackers/data.php:1249
 msgid "Field value successfully reset to defaults."
 msgstr "ערך השדה אופס לברירות המחדל בהצלחה."
 
-#: frontend/php/include/trackers/data.php:1295
+#: frontend/php/include/trackers/data.php:1289
 msgid "Update of field usage failed."
 msgstr "עדכון השימוש בשדה נכשל."
 
-#: frontend/php/include/trackers/data.php:1297
+#: frontend/php/include/trackers/data.php:1291
 msgid "Field usage updated."
 msgstr "השימוש בשדה עודכן."
 
-#: frontend/php/include/trackers/data.php:1615
+#: frontend/php/include/trackers/data.php:1607
 msgid "Unable to use canned response"
 msgstr "לא ניתן להשתמש בתגובה מראש"
 
-#: frontend/php/include/trackers/data.php:1623
+#: frontend/php/include/trackers/data.php:1615
 msgid "Canned response used"
 msgstr "שימוש בתגובה מראש"
 
-#: frontend/php/include/trackers/data.php:1734
+#: frontend/php/include/trackers/data.php:1726
 msgid "Comment added"
 msgstr "נוספה הערה"
 
-#: frontend/php/include/trackers/data.php:1808
+#: frontend/php/include/trackers/data.php:1800
 msgid "No field to update"
 msgstr "אין שדה לעדכון"
 
-#: frontend/php/include/trackers/data.php:1818
+#: frontend/php/include/trackers/data.php:1810
 msgid "Item update failed"
 msgstr "עדכון הפריט נכשל"
 
-#: frontend/php/include/trackers/data.php:1820
+#: frontend/php/include/trackers/data.php:1812
 msgid "Item successfully updated"
 msgstr "הפריט עודכן בהצלחה"
 
-#: frontend/php/include/trackers/data.php:1969
+#: frontend/php/include/trackers/data.php:1961
 msgid "No reassignation required or possible."
 msgstr "אין צורך או יכולת בהקצאה מחודשת."
 
-#: frontend/php/include/trackers/data.php:1974
+#: frontend/php/include/trackers/data.php:1966
 msgid ""
 "Unable to find out to which artifact the item is to be\n"
 "reassigned, exiting."
@@ -6372,36 +6586,36 @@ msgstr ""
 "לא ניתן למצוא איזה תוצר יש להקצות\n"
 "את הפריט מחדש, מתבצעת יציאה."
 
-#: frontend/php/include/trackers/data.php:2003
+#: frontend/php/include/trackers/data.php:1995
 msgid "Unable to create a new item."
 msgstr "לא ניתן ליצור פריט חדש."
 
-#: frontend/php/include/trackers/data.php:2006
+#: frontend/php/include/trackers/data.php:1998
 msgid "New item created."
 msgstr "פריט חדש נוצר."
 
-#: frontend/php/include/trackers/data.php:2010
+#: frontend/php/include/trackers/data.php:2002
 msgid "Unable to find the ID of the new item."
 msgstr "לא ניתן למצוא את מזהה הפריט החדש."
 
-#: frontend/php/include/trackers/data.php:2031
+#: frontend/php/include/trackers/data.php:2023
 msgid "Unable to duplicate a comment from the original item."
 msgstr "לא ניתן לשכפל הערה מ‫הפריט המקורי."
 
-#: frontend/php/include/trackers/data.php:2100
+#: frontend/php/include/trackers/data.php:2092
 msgid ""
 "Unable to add a comment with the original item report\n"
 "information."
 msgstr "לא ניתן להוסיף הערה לפרטי דיווח הפריט המקורי."
 
-#: frontend/php/include/trackers/data.php:2113
+#: frontend/php/include/trackers/data.php:2105
 #, php-format
 msgid ""
 "Unable to duplicate an attached file (%s) from the\n"
 "original item."
 msgstr "לא ניתן לשכפל קובץ מצורף (%s) ‫מהפריט המקורי."
 
-#: frontend/php/include/trackers/data.php:2132
+#: frontend/php/include/trackers/data.php:2124
 #, php-format
 msgid ""
 "Unable to duplicate a CC address (%s) from the\n"
@@ -6410,28 +6624,28 @@ msgstr ""
 "לא ניתן לשכפל כתובת עותק (%s)\n"
 "מהפריט המקורי."
 
-#: frontend/php/include/trackers/data.php:2182
+#: frontend/php/include/trackers/data.php:2174
 msgid "Original item is now closed."
 msgstr "הפריט המקורי סגור כעת."
 
-#: frontend/php/include/trackers/data.php:2184
+#: frontend/php/include/trackers/data.php:2176
 msgid "Unable to close the original item report."
 msgstr "לא ניתן לסגור את הדיווח על הפריט המקורי."
 
-#: frontend/php/include/trackers/data.php:2263
+#: frontend/php/include/trackers/data.php:2255
 msgid "Error inserting dependency"
 msgstr "שגיאה במילוי תלות"
 
-#: frontend/php/include/trackers/data.php:2266
+#: frontend/php/include/trackers/data.php:2258
 msgid "Dependency added"
 msgstr "נוספה תלות"
 
-#: frontend/php/include/trackers/data.php:2335
+#: frontend/php/include/trackers/data.php:2327
 #, php-format
 msgid "New item posted (%1$s #%2$s)"
 msgstr "פורסם פריט חדש (%1$s מס׳ %2$s)"
 
-#: frontend/php/include/trackers/data.php:2341
+#: frontend/php/include/trackers/data.php:2333
 msgid ""
 "New item insertion failed, please report this issue to the\n"
 "administrator"
@@ -6439,28 +6653,28 @@ msgstr ""
 "הוספת פריט חדש נכשלה, נא לדווח על התקלה הזאת\n"
 "להנהלה"
 
-#: frontend/php/include/trackers/data.php:2468
+#: frontend/php/include/trackers/data.php:2463
 msgid "(Error - Not Found)"
 msgstr "(שגיאה - לא נמצא)"
 
 #. TRANSLATORS: the argument is item id (a number).
-#: frontend/php/include/trackers/data.php:2695
+#: frontend/php/include/trackers/data.php:2690
 #, php-format
 msgid "Item #%s doesn't belong to group"
 msgstr "פריט מס׳ %s לא שייך לקבוצה"
 
-#: frontend/php/include/trackers/data.php:2708
+#: frontend/php/include/trackers/data.php:2703
 #, php-format
 msgid "File #%1$s doesn't belong to item #%2$s"
 msgstr "קובץ מס׳ %s לא שייך לפריט מס׳ %2$s"
 
-#: frontend/php/include/trackers/data.php:2732
+#: frontend/php/include/trackers/data.php:2727
 msgid "File successfully deleted"
 msgstr "הקובץ נמחק"
 
 #. TRANSLATORS: the argument is file id (a number); the string
 #. shall be followed by database error message.
-#: frontend/php/include/trackers/data.php:2740
+#: frontend/php/include/trackers/data.php:2735
 #, php-format
 msgid "Can't delete attachment #%s:"
 msgstr "לא ניתן למחוק את קובץ מצורף מס׳ %s:"
@@ -6503,11 +6717,11 @@ msgstr "תרשים תלויות"
 msgid "Include closed items"
 msgstr "לכלול פריטים שנסגרו"
 
-#: frontend/php/include/trackers/view-dependencies.php:285
+#: frontend/php/include/trackers/view-dependencies.php:284
 msgid "Closed Item"
 msgstr "פריט סגור"
 
-#: frontend/php/include/trackers/view-dependencies.php:289
+#: frontend/php/include/trackers/view-dependencies.php:288
 msgid "Open Item"
 msgstr "פריט פתוח"
 
@@ -6557,74 +6771,74 @@ msgstr "נא להיזהר, ההגדרות הנוכחיות שלך תאבדנה �
 msgid "Groups:"
 msgstr "קבוצות:"
 
-#: frontend/php/include/trackers/conf.php:146
+#: frontend/php/include/trackers/conf.php:148
 msgid "Notification settings copied"
 msgstr "הגדרות ההתראה הועתקו"
 
-#: frontend/php/include/trackers/conf.php:167
+#: frontend/php/include/trackers/conf.php:169
 msgid "Previous field values deleted"
 msgstr "ערכי השדה הקודמים נמחקו"
 
-#: frontend/php/include/trackers/conf.php:174
+#: frontend/php/include/trackers/conf.php:176
 msgid "Previous field usage deleted"
 msgstr "השימוש הקודם בשדה נמחק"
 
-#: frontend/php/include/trackers/conf.php:180
+#: frontend/php/include/trackers/conf.php:182
 msgid "Previous canned responses deleted"
 msgstr "התגובות הקודמות שנוצרו מראש נמחקו"
 
-#: frontend/php/include/trackers/conf.php:201
+#: frontend/php/include/trackers/conf.php:203
 msgid "Previous query forms deleted"
 msgstr "טופסי תשאול קודמים נמחקו"
 
-#: frontend/php/include/trackers/conf.php:214
+#: frontend/php/include/trackers/conf.php:216
 msgid "Previous field transitions deleted"
 msgstr "מעברוני שדות קודמים נמחקו"
 
 #. TRANSLATORS: the argument is space-separated list of field ids.
-#: frontend/php/include/trackers/conf.php:229
+#: frontend/php/include/trackers/conf.php:231
 #, php-format
 msgid "Field usages %s copied"
 msgstr "שימושי השדה %s הועתקו"
 
 #. TRANSLATORS: the argument is space-separated list of value ids.
-#: frontend/php/include/trackers/conf.php:242
+#: frontend/php/include/trackers/conf.php:244
 #, php-format
 msgid "Field values %s copied"
 msgstr "ערך השדה %s הועתק"
 
 #. TRANSLATORS: the argument is space-separated list of response ids.
-#: frontend/php/include/trackers/conf.php:257
+#: frontend/php/include/trackers/conf.php:259
 #, php-format
 msgid "Canned responses %s copied"
 msgstr "התגובות מראש %s הועתקו"
 
 #. TRANSLATORS: the argument is space-separated list of report ids.
-#: frontend/php/include/trackers/conf.php:295
+#: frontend/php/include/trackers/conf.php:297
 #, php-format
 msgid "Query forms %s copied"
 msgstr "טופסי תשאול %s הועתקו"
 
 #. TRANSLATORS: the argument is space-separated list of transition ids.
-#: frontend/php/include/trackers/conf.php:334
+#: frontend/php/include/trackers/conf.php:336
 #, php-format
 msgid "Transitions %s copied"
 msgstr "המעברונים %s הועתקו"
 
 #. TRANSLATORS: the first argument is group id (a number),
 #. the second argument is previously defined string (bug|patch|task|...)
-#: frontend/php/include/trackers/conf.php:345
+#: frontend/php/include/trackers/conf.php:347
 #, php-format
 msgid "Start copying configuration of group #%1$s %2$s tracker"
 msgstr "התחלת העתקת הגדרת קבוצה מס׳ %1$s לעוקב %2$s"
 
-#: frontend/php/include/trackers/conf.php:356
+#: frontend/php/include/trackers/conf.php:358
 msgid "Configuration copy finished"
 msgstr "העתקת ההגדרות הושלמה"
 
 #. TRANSLATORS: the argument is previously defined string
 #. (bug|patch|task|...)
-#: frontend/php/include/trackers/conf.php:398
+#: frontend/php/include/trackers/conf.php:401
 #, php-format
 msgid "You cannot copy the configuration of other groups because you are not member of any other group that uses a %s tracker."
 msgstr "אי אפשר להעתיק הגדרות של קבוצות אחרות כיוון שלא הצטרפת לקבוצות אחרות שמשתמשות בעוקב %s."
@@ -7029,7 +7243,7 @@ msgstr "אין סימון"
 msgid "No tags are available in this input field."
 msgstr "אין תגיות זמינות בשדה קלט זה."
 
-#: frontend/php/include/init.php:228
+#: frontend/php/include/init.php:219
 msgid ""
 "Your $sys_unix_group_name configuration variable refers to a\n"
 "non-existing project. Please update the configuration."
@@ -7037,20 +7251,20 @@ msgstr ""
 "משתנה ההגדרה שלך ‎$sys_unix_group_name מפנה למיזם\n"
 "שאינו קיים. נא לעדכן את ההגדרות."
 
-#: frontend/php/include/init.php:292
+#: frontend/php/include/init.php:283
 msgid "Invalid item ID."
 msgstr "מזהה פריט שגוי."
 
-#: frontend/php/include/init.php:295
+#: frontend/php/include/init.php:286
 msgid "Invalid forum ID."
 msgstr "מזהה פורום שגוי."
 
-#: frontend/php/include/init.php:409
+#: frontend/php/include/init.php:400
 #, php-format
 msgid "Group #%s not found"
 msgstr "קבוצה מס׳ %s לא נמצאה"
 
-#: frontend/php/include/init.php:431
+#: frontend/php/include/init.php:422
 #, php-format
 msgid "Your account has no records of activity yet.  It will be removed unless you use it constructively.  For more details, see [%s Account lifecycle]."
 msgstr "לחשבון שלך אין עדיין רשומות פעילות. הוא יוסר אם לא נעשה בו שימוש מועיל. לפרטים נוספים, ר׳ [%s מחזור חיי חשבון]."
@@ -7061,132 +7275,132 @@ msgstr "לחשבון שלך אין עדיין רשומות פעילות. הוא 
 msgid "Malformed file path %s"
 msgstr "נתיב שגוי לקובץ %s"
 
-#: frontend/php/include/utils.php:121 frontend/php/include/utils.php:123
-#: frontend/php/include/utils.php:206 frontend/php/include/utils.php:208
+#: frontend/php/include/utils.php:119 frontend/php/include/utils.php:121
+#: frontend/php/include/utils.php:204 frontend/php/include/utils.php:206
 msgid "-email is unavailable-"
 msgstr "-דוא״ל לא זמין-"
 
-#: frontend/php/include/utils.php:124 frontend/php/include/utils.php:209
+#: frontend/php/include/utils.php:122 frontend/php/include/utils.php:207
 msgid "This information is not provided to anonymous users"
 msgstr "המידע הזה לא מסופק למשתמשים אלמוניים"
 
-#: frontend/php/include/utils.php:156 frontend/php/include/utils.php:181
-#: frontend/php/include/utils.php:187
+#: frontend/php/include/utils.php:154 frontend/php/include/utils.php:179
+#: frontend/php/include/utils.php:185
 msgid "(address seems invalid and will probably be ignored)"
 msgstr "(הכתובת נראית שגויה וכנראה שלא תיכלל)"
 
-#: frontend/php/include/utils.php:163
+#: frontend/php/include/utils.php:161
 #, php-format
 msgid "(address is unknown to Savane, will fail if not valid at %s)"
 msgstr "(הכתובת אינה מוכרת ל־Savane, יחשב ככשל אם לא יהיה תקף ב־%s)"
 
 #. TRANSLATORS: this expresses file size.
-#: frontend/php/include/utils.php:336
+#: frontend/php/include/utils.php:334
 #, php-format
 msgid "%sB"
 msgstr "‫%s ב׳"
 
 #. TRANSLATORS: this expresses file size.
-#: frontend/php/include/utils.php:339
+#: frontend/php/include/utils.php:337
 #, php-format
 msgid "%sKiB"
 msgstr "%sKiB"
 
 #. TRANSLATORS: this expresses file size.
-#: frontend/php/include/utils.php:343
+#: frontend/php/include/utils.php:341
 #, php-format
 msgid "%sMiB"
 msgstr "%sMiB"
 
 #. TRANSLATORS: this is file size unit (no prefix).
-#: frontend/php/include/utils.php:375 frontend/php/include/utils.php:385
+#: frontend/php/include/utils.php:373 frontend/php/include/utils.php:383
 msgid "B"
 msgstr "ב׳"
 
 #. TRANSLATORS: this is file size unit (with SI prefix.)
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "kB"
 msgstr "ק״ב"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "MB"
 msgstr "מ״ב"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "GB"
 msgstr "ג״ב"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "TB"
 msgstr "ט״ב"
 
-#: frontend/php/include/utils.php:377
+#: frontend/php/include/utils.php:375
 msgid "PB"
 msgstr "פ״ב"
 
 #. TRANSLATORS: this is file size unit (with binary prefix.)
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "KiB"
 msgstr "KiB"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "MiB"
 msgstr "MiB"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "GiB"
 msgstr "GiB"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "TiB"
 msgstr "TiB"
 
-#: frontend/php/include/utils.php:387
+#: frontend/php/include/utils.php:385
 msgid "PiB"
 msgstr "PiB"
 
-#: frontend/php/include/utils.php:465
+#: frontend/php/include/utils.php:461
 msgid "Open Items Priority Colors:"
 msgstr "צבעי עדיפות פריטים פתוחים:"
 
-#: frontend/php/include/utils.php:472
+#: frontend/php/include/utils.php:468
 msgid "Closed Items Priority Colors:"
 msgstr "צבעי עדיפות פריטים סגורים:"
 
-#: frontend/php/include/utils.php:517
+#: frontend/php/include/utils.php:513
 msgid "bugs"
 msgstr "תקלות"
 
-#: frontend/php/include/utils.php:519
+#: frontend/php/include/utils.php:515
 msgid "recipes"
 msgstr "מתכונים"
 
-#: frontend/php/include/utils.php:521
+#: frontend/php/include/utils.php:517
 msgid "patches"
 msgstr "טלאים"
 
-#: frontend/php/include/utils.php:523
+#: frontend/php/include/utils.php:519
 msgid "support requests"
 msgstr "בקשות תמיכה"
 
-#: frontend/php/include/utils.php:525
+#: frontend/php/include/utils.php:521
 msgid "tasks"
 msgstr "משימות"
 
-#: frontend/php/include/utils.php:555
+#: frontend/php/include/utils.php:551
 msgid "Untitled"
 msgstr "ללא שם"
 
-#: frontend/php/include/utils.php:701
+#: frontend/php/include/utils.php:702
 msgid "Error updating database"
 msgstr "עדכון מסד הנתונים נכשל"
 
-#: frontend/php/include/utils.php:707
+#: frontend/php/include/utils.php:708
 msgid "Database successfully updated"
 msgstr "עדכון מסד הנתונים הצליח"
 
 #. TRANSLATORS: the argument is site name (like Savannah).
-#: frontend/php/include/utils.php:1203
+#: frontend/php/include/utils.php:1215
 #, php-format
 msgid "-- the %s team."
 msgstr "-- צוות %s."
@@ -7427,36 +7641,36 @@ msgid "Display Criteria"
 msgstr "תנאי הצגה"
 
 #. TRANSLATORS: The string shows a range of item numbers to display.
-#: frontend/php/include/html.php:191
+#: frontend/php/include/html.php:190
 #, php-format
 msgid "%1$s&ndash;%2$s"
 msgstr "%1$s%2$s"
 
-#: frontend/php/include/html.php:224
+#: frontend/php/include/html.php:223
 msgid "Begin"
 msgstr "התחלה"
 
-#: frontend/php/include/html.php:224
+#: frontend/php/include/html.php:223
 msgid "Previous"
 msgstr "הקודם"
 
-#: frontend/php/include/html.php:243
+#: frontend/php/include/html.php:242
 msgid "Next"
 msgstr "הבא"
 
-#: frontend/php/include/html.php:243
+#: frontend/php/include/html.php:242
 msgid "End"
 msgstr "סיום"
 
 #. TRANSLATORS: The first argument is the number of the first item shown,
 #. the second argument is the number of the last item shown,
 #. the third argument is the total number of items.
-#: frontend/php/include/html.php:292
+#: frontend/php/include/html.php:291
 #, php-format
 msgid "%1$s&ndash;%2$s / %3$s"
 msgstr "%1$s&ndash;%2$s / %3$s"
 
-#: frontend/php/include/html.php:301
+#: frontend/php/include/html.php:300
 #, php-format
 msgid "%d matching item"
 msgid_plural "%d matching items"
@@ -7465,97 +7679,97 @@ msgstr[1] "‫%d פריטים מתאימים"
 msgstr[2] "‫%d פריטים מתאימים"
 msgstr[3] "‫%d פריטים מתאימים"
 
-#: frontend/php/include/html.php:346
+#: frontend/php/include/html.php:345
 msgid "Success:"
 msgstr "הצלחה:"
 
-#: frontend/php/include/html.php:359
+#: frontend/php/include/html.php:358
 msgid "Error:"
 msgstr "שגיאה:"
 
-#: frontend/php/include/html.php:370
+#: frontend/php/include/html.php:369
 msgid "Some Errors:"
 msgstr "כמה שגיאות:"
 
-#: frontend/php/include/html.php:658
+#: frontend/php/include/html.php:659
 msgid "Unknown"
 msgstr "לא ידוע"
 
-#: frontend/php/include/html.php:670
+#: frontend/php/include/html.php:671
 msgid "ERROR - number of values differs from number of texts"
 msgstr "שגיאה - מספר הערכים שונה ממספר הטקסטים"
 
-#: frontend/php/include/html.php:763 frontend/php/include/html.php:836
+#: frontend/php/include/html.php:764 frontend/php/include/html.php:837
 msgid "Group Type Default"
 msgstr "ברירת מחדל של סוג קבוצה"
 
-#: frontend/php/include/html.php:768
+#: frontend/php/include/html.php:769
 msgid "Group Default"
 msgstr "ברירת מחדל של קבוצה"
 
-#: frontend/php/include/html.php:777
+#: frontend/php/include/html.php:778
 msgid "Technician"
 msgstr "טכנאות"
 
-#: frontend/php/include/html.php:778
+#: frontend/php/include/html.php:779
 msgid "Manager"
 msgstr "ניהול"
 
-#: frontend/php/include/html.php:779
+#: frontend/php/include/html.php:780
 msgid "Techn. & Manager"
 msgstr "טכנאות וניהול"
 
-#: frontend/php/include/html.php:805
+#: frontend/php/include/html.php:806
 msgid "Roles of members"
 msgstr "תפקידי חברים"
 
-#: frontend/php/include/html.php:838
+#: frontend/php/include/html.php:839
 msgid "Same as for new items"
 msgstr "כמו לפריטים חדשים"
 
-#: frontend/php/include/html.php:844
+#: frontend/php/include/html.php:845
 msgid "Permission level"
 msgstr "רמת הרשאה"
 
-#: frontend/php/include/html.php:855
+#: frontend/php/include/html.php:856
 msgid "Nobody"
 msgstr "אף אחד"
 
-#: frontend/php/include/html.php:855
+#: frontend/php/include/html.php:856
 msgid "Logged-in User"
 msgstr "משתמש שנכנס למערכת"
 
-#: frontend/php/include/html.php:914
+#: frontend/php/include/html.php:915
 msgid "Website theme"
 msgstr "ערכת עיצוב האתר"
 
-#: frontend/php/include/html.php:922
+#: frontend/php/include/html.php:923
 msgid "(default)"
 msgstr "(ברירת מחדל)"
 
-#: frontend/php/include/html.php:929
+#: frontend/php/include/html.php:930
 msgid "Pick theme alphabetically every day"
 msgstr "לבחור ערכת נושא לפי סדר האלפבית בכל יום"
 
-#: frontend/php/include/html.php:930
+#: frontend/php/include/html.php:931
 msgid "Pick random theme every day"
 msgstr "לבחור ערכת נושא אקראית בכל יום"
 
 #. TRANSLATORS: the argument is group id (a number).
-#: frontend/php/include/html.php:982
+#: frontend/php/include/html.php:983
 #, php-format
 msgid "Invalid Group %s"
 msgstr "הקבוצה %s שגויה"
 
-#: frontend/php/include/html.php:983
+#: frontend/php/include/html.php:984
 msgid "That group does not exist."
 msgstr "הקבוצה הזאת לא קיימת."
 
-#: frontend/php/include/html.php:1051
+#: frontend/php/include/html.php:1052
 msgid "Choose one below"
 msgstr "נא לבחור אחת להלן"
 
-#: frontend/php/include/html.php:1058
+#: frontend/php/include/html.php:1059
 msgid ""
 "Technicians, and only technicians, can be assigned items of trackers. They\n"
 "cannot reassign items, change the status or priority of items."
@@ -7563,7 +7777,7 @@ msgstr ""
 "אפשר להקצות פריטים בעוקבים לטכנאים ורק לטכנאים. אין להם אפשרות\n"
 "להקצות פריטים מחדש, לשנות את המצב או את העדיפות של פריטים."
 
-#: frontend/php/include/html.php:1062
+#: frontend/php/include/html.php:1063
 msgid ""
 "Tracker Managers can fully manage items of trackers, including\n"
 "assigning items to technicians, reassigning items over trackers and projects,\n"
@@ -7575,7 +7789,7 @@ msgstr ""
 "לשנות את העדיפות והמצב של פריטים &mdash; אך אינם יכולים להגדיר\n"
 "את העוקבים."
 
-#: frontend/php/include/html.php:1067
+#: frontend/php/include/html.php:1068
 msgid ""
 "Group admins can manage members, configure the trackers, post\n"
 "jobs, and add mailing lists. They actually also have manager rights on every\n"
@@ -7612,7 +7826,7 @@ msgid "Mailer:"
 msgstr "ממסר דוא״ל:"
 
 #: frontend/php/include/sendmail.php:816
-#: frontend/php/include/news/general.php:229 frontend/php/news/submit.php:95
+#: frontend/php/include/news/general.php:229 frontend/php/news/submit.php:94
 msgid "Subject:"
 msgstr "נושא:"
 
@@ -7621,7 +7835,7 @@ msgid "Send me a copy"
 msgstr "לשלוח לי עותק"
 
 #: frontend/php/include/sendmail.php:822
-#: frontend/php/include/news/forum.php:502
+#: frontend/php/include/news/forum.php:501
 msgid "Message:"
 msgstr "הודעה:"
 
@@ -7654,7 +7868,7 @@ msgstr "לא זמין"
 msgid "Account deleted."
 msgstr "החשבון נמחק."
 
-#: frontend/php/include/user.php:857
+#: frontend/php/include/user.php:860
 #, php-format
 msgid "Member since %s"
 msgstr "בחברות מאז %s"
@@ -7721,299 +7935,275 @@ msgstr "ערך"
 msgid "Author"
 msgstr "יוצר"
 
-#: frontend/php/include/pagemenu.php:79
+#: frontend/php/include/pagemenu.php:84
 msgid "My"
 msgstr "שלי"
 
-#: frontend/php/include/pagemenu.php:80
+#: frontend/php/include/pagemenu.php:85
 msgid "Site Admin"
 msgstr "הנהלת האתר"
 
-#: frontend/php/include/pagemenu.php:85
+#: frontend/php/include/pagemenu.php:90
 msgid "Site Wide"
 msgstr "כלל האתר"
 
 #. TRANSLATORS: the argument is context like "My", "Group", "Site Admin",
 #. "Site wide", "Submenu".
-#: frontend/php/include/pagemenu.php:91 frontend/php/include/pagemenu.php:130
+#: frontend/php/include/pagemenu.php:96 frontend/php/include/pagemenu.php:135
 #, php-format
 msgid "%s Scope"
 msgstr "היקף %s"
 
-#: frontend/php/include/pagemenu.php:124
+#: frontend/php/include/pagemenu.php:129
 msgid "Submenu"
 msgstr "תת־תפריט"
 
-#: frontend/php/include/pagemenu.php:234
+#: frontend/php/include/pagemenu.php:238
 msgid "Incoming Items"
 msgstr "פריטים נכנסים"
 
-#: frontend/php/include/pagemenu.php:234
+#: frontend/php/include/pagemenu.php:238
 msgid "What's new for me?"
 msgstr "מה חדש בשבילי?"
 
-#: frontend/php/include/pagemenu.php:235
+#: frontend/php/include/pagemenu.php:239
 msgid "Items"
 msgstr "פריטים"
 
-#: frontend/php/include/pagemenu.php:236
+#: frontend/php/include/pagemenu.php:240
 msgid "Browse my items (bugs, tasks, bookmarks...)"
 msgstr "עיון בפריטים שלי (תקלות, משימות, סימניות…)"
 
-#: frontend/php/include/pagemenu.php:240 frontend/php/include/sitemenu.php:479
+#: frontend/php/include/pagemenu.php:244 frontend/php/include/sitemenu.php:479
 msgid "Browse items I voted for"
 msgstr "עיון בפריטים שהצבעתי להם"
 
-#: frontend/php/include/pagemenu.php:242
+#: frontend/php/include/pagemenu.php:246
 msgid "Group Membership"
 msgstr "חברות בקבוצות"
 
-#: frontend/php/include/pagemenu.php:243 frontend/php/include/sitemenu.php:483
+#: frontend/php/include/pagemenu.php:247 frontend/php/include/sitemenu.php:483
 msgid "List the groups I belong to"
 msgstr "הצגת קבוצות אליהן יש לי שייכות"
 
-#: frontend/php/include/pagemenu.php:246
+#: frontend/php/include/pagemenu.php:250
 msgid "Bookmarks"
 msgstr "סימניות"
 
-#: frontend/php/include/pagemenu.php:247
+#: frontend/php/include/pagemenu.php:251
 msgid "List my bookmarks"
 msgstr "הצגת הסימניות שלי"
 
-#: frontend/php/include/pagemenu.php:249
+#: frontend/php/include/pagemenu.php:253
 msgid "Account Configuration"
 msgstr "הגדרות חשבון"
 
-#: frontend/php/include/pagemenu.php:250 frontend/php/include/sitemenu.php:491
+#: frontend/php/include/pagemenu.php:254 frontend/php/include/sitemenu.php:491
 msgid "Account configuration: authentication, cosmetics preferences..."
 msgstr "הגדרות חשבון: אימות, העדפות קוסמטיות…"
 
-#: frontend/php/include/pagemenu.php:282
+#: frontend/php/include/pagemenu.php:286
 msgid "Administer:"
 msgstr "ניהול:"
 
-#: frontend/php/include/pagemenu.php:283
+#: frontend/php/include/pagemenu.php:287
 msgid "Edit public info"
 msgstr "עריכת פרטים ציבוריים"
 
-#: frontend/php/include/pagemenu.php:284
+#: frontend/php/include/pagemenu.php:288
 msgid "Select features"
 msgstr "בחירת יכולות"
 
-#: frontend/php/include/pagemenu.php:285
+#: frontend/php/include/pagemenu.php:289
 msgid "Manage&nbsp;members"
 msgstr "ניהול&nbsp;חברים"
 
-#: frontend/php/include/pagemenu.php:286
+#: frontend/php/include/pagemenu.php:290
 msgid "Manage&nbsp;squads"
 msgstr "ניהול&nbsp;חוליות"
 
-#: frontend/php/include/pagemenu.php:287 frontend/php/include/pagemenu.php:725
+#: frontend/php/include/pagemenu.php:291 frontend/php/include/pagemenu.php:728
 msgid "Set&nbsp;permissions"
 msgstr "הגדרת&nbsp;הרשאות"
 
-#: frontend/php/include/pagemenu.php:288 frontend/php/include/pagemenu.php:729
+#: frontend/php/include/pagemenu.php:292 frontend/php/include/pagemenu.php:732
 msgid "Set&nbsp;notifications"
 msgstr "הגדרת&nbsp;התראות"
 
-#: frontend/php/include/pagemenu.php:289
+#: frontend/php/include/pagemenu.php:293
 msgid "Show&nbsp;history"
 msgstr "הצגת&nbsp;היסטוריה"
 
-#: frontend/php/include/pagemenu.php:290 frontend/php/include/pagemenu.php:732
+#: frontend/php/include/pagemenu.php:294 frontend/php/include/pagemenu.php:735
 msgid "Copy&nbsp;configuration"
 msgstr "העתקת&nbsp;הגדרות"
 
-#: frontend/php/include/pagemenu.php:296
+#: frontend/php/include/pagemenu.php:300
 msgid "Post&nbsp;jobs"
 msgstr "פרסום&nbsp;משרות"
 
-#: frontend/php/include/pagemenu.php:297
+#: frontend/php/include/pagemenu.php:301
 msgid "Post a request for contribution"
 msgstr "פרסום בקשת תרומה"
 
-#: frontend/php/include/pagemenu.php:299
+#: frontend/php/include/pagemenu.php:303
 msgid "Edit jobs"
 msgstr "עריכת משרות"
 
-#: frontend/php/include/pagemenu.php:300
+#: frontend/php/include/pagemenu.php:304
 msgid "Edit previously posted request for contribution"
 msgstr "עריכת בקשת תרומה קודמת שפורסמה"
 
 #. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
-#: frontend/php/include/pagemenu.php:321
+#: frontend/php/include/pagemenu.php:325
 #, php-format
 msgid "Use %s"
 msgstr "להשתמש ב־%s"
 
-#. TRANSLATORS: the argument is VCS name (like Git or Bazaar).
-#. TRANSLATORS: the argument is name of VCS (like Git or Bazaar).
-#: frontend/php/include/pagemenu.php:323
-#: frontend/php/include/project_home.php:497
-#, php-format
-msgid "%s Repository"
-msgstr "מאגר %s"
-
-#: frontend/php/include/pagemenu.php:338
+#: frontend/php/include/pagemenu.php:342
 #, php-format
 msgid "Browse %s repository"
 msgstr "עיון במאגר %s"
 
-#: frontend/php/include/pagemenu.php:341
+#: frontend/php/include/pagemenu.php:345
 #, php-format
 msgid "Browse %s repositories"
 msgstr "עיון במאגרים %s"
 
-#: frontend/php/include/pagemenu.php:380
-#: frontend/php/include/project_home.php:501
-msgid "Administer"
-msgstr "ניהול"
-
-#: frontend/php/include/pagemenu.php:405 frontend/php/include/pagemenu.php:410
+#: frontend/php/include/pagemenu.php:409 frontend/php/include/pagemenu.php:414
 msgid "Main"
 msgstr "ראשי"
 
 #. TRANSLATORS: the argument is site name like Savannah.
-#: frontend/php/include/pagemenu.php:408
+#: frontend/php/include/pagemenu.php:412
 #, php-format
 msgid "Group main page at %s"
 msgstr "עמוד ראשי של הקבוצה ב־%s"
 
-#: frontend/php/include/pagemenu.php:411
+#: frontend/php/include/pagemenu.php:415
 msgid "View members"
 msgstr "הצגת חברים"
 
-#: frontend/php/include/pagemenu.php:424
-#: frontend/php/project/admin/editgroupfeatures.php:296
+#: frontend/php/include/pagemenu.php:428
+#: frontend/php/project/admin/editgroupfeatures.php:298
 msgid "Homepage"
 msgstr "דף הבית"
 
-#: frontend/php/include/pagemenu.php:426
+#: frontend/php/include/pagemenu.php:430
 msgid "Browse group home page (outside of Savane)"
 msgstr "עיון בעמוד הבית של הקבוצה (מחוץ ל־Savane)"
 
-#: frontend/php/include/pagemenu.php:435
+#: frontend/php/include/pagemenu.php:439
 msgid "Download"
 msgstr "הורדה"
 
-#: frontend/php/include/pagemenu.php:437
+#: frontend/php/include/pagemenu.php:441
 msgid "Visit download area: files released"
 msgstr "ביקור באזור ההורדה: קבצים שיצאו לאור"
 
-#: frontend/php/include/pagemenu.php:460
-#: frontend/php/include/project_home.php:350
-msgid "Docs"
-msgstr "מסמכים"
-
-#: frontend/php/include/pagemenu.php:463
+#: frontend/php/include/pagemenu.php:467
 msgid "Docs: Cookbook, etc"
 msgstr "מסמכים: ספר מתכונים וכו׳"
 
-#: frontend/php/include/pagemenu.php:476 frontend/php/include/pagemenu.php:578
-#: frontend/php/include/pagemenu.php:641
+#: frontend/php/include/pagemenu.php:479 frontend/php/include/pagemenu.php:581
+#: frontend/php/include/pagemenu.php:644
 msgid "Browse"
 msgstr "עיון"
 
-#: frontend/php/include/pagemenu.php:476 frontend/php/include/pagemenu.php:491
+#: frontend/php/include/pagemenu.php:479 frontend/php/include/pagemenu.php:494
 msgid "List existing mailing lists"
 msgstr "הצגת רשימות הדיוור הקיימות"
 
-#: frontend/php/include/pagemenu.php:480 frontend/php/include/pagemenu.php:713
+#: frontend/php/include/pagemenu.php:483 frontend/php/include/pagemenu.php:716
 msgid "Configure:"
 msgstr "הגדרה:"
 
-#: frontend/php/include/pagemenu.php:489
+#: frontend/php/include/pagemenu.php:492
 msgid "Mailing lists"
 msgstr "רשימות דיוור"
 
-#: frontend/php/include/pagemenu.php:503
-#: frontend/php/include/project_home.php:546
-#: frontend/php/project/admin/editgroupfeatures.php:342
-msgid "GNU Arch"
-msgstr "GNU Arch"
-
-#: frontend/php/include/pagemenu.php:527 frontend/php/include/pagemenu.php:531
+#: frontend/php/include/pagemenu.php:530 frontend/php/include/pagemenu.php:534
 msgid "Source code"
 msgstr "קוד מקור"
 
-#: frontend/php/include/pagemenu.php:529 frontend/php/include/pagemenu.php:532
+#: frontend/php/include/pagemenu.php:532 frontend/php/include/pagemenu.php:535
 msgid "Source code management"
 msgstr "ניהול קוד מקור"
 
-#: frontend/php/include/pagemenu.php:564
+#: frontend/php/include/pagemenu.php:567
 msgid "Configure"
 msgstr "הגדרה"
 
-#: frontend/php/include/pagemenu.php:565
+#: frontend/php/include/pagemenu.php:568
 msgid "News Manager: edit notifications"
 msgstr "מנהל חדשות: עריכת התראות"
 
-#: frontend/php/include/pagemenu.php:576
+#: frontend/php/include/pagemenu.php:579
 msgid "Read latest News, post News"
 msgstr "קריאת החדשות העדכניות, פרסום חדשות"
 
-#: frontend/php/include/pagemenu.php:579
+#: frontend/php/include/pagemenu.php:582
 msgid "Atom feed"
 msgstr "הזנת Atom"
 
-#: frontend/php/include/pagemenu.php:583 frontend/php/news/approve.php:70
+#: frontend/php/include/pagemenu.php:586 frontend/php/news/approve.php:70
 msgid "Manage"
 msgstr "ניהול"
 
-#: frontend/php/include/pagemenu.php:607
-#: frontend/php/project/admin/editgroupfeatures.php:357
+#: frontend/php/include/pagemenu.php:610
+#: frontend/php/project/admin/editgroupfeatures.php:359
 msgid "Forum"
 msgstr "פורום"
 
-#: frontend/php/include/pagemenu.php:627
+#: frontend/php/include/pagemenu.php:630
 msgid "Tech Support Tracker: post, search and manage support requests"
 msgstr "עוקב תמיכה טכנית: פרסום, חיפוש וניהול בקשות תמיכה"
 
-#: frontend/php/include/pagemenu.php:630
+#: frontend/php/include/pagemenu.php:633
 msgid "Bug Tracker: report, search and track bugs"
 msgstr "עוקב תקלות: דיווח, חיפוש ומעקב אחר תקלות"
 
-#: frontend/php/include/pagemenu.php:632
+#: frontend/php/include/pagemenu.php:635
 msgid "Task Manager: post, search and manage tasks"
 msgstr "מנהל משימות: פרסום, חיפוש וניהול משימות"
 
-#: frontend/php/include/pagemenu.php:634
+#: frontend/php/include/pagemenu.php:637
 msgid "Patch Manager: post, search and manage patches"
 msgstr "מנהל טלאים: פרסום, חיפוש וניהול טלאים"
 
-#: frontend/php/include/pagemenu.php:644
+#: frontend/php/include/pagemenu.php:647
 msgid "Submit new"
 msgstr "הגשת חדשה"
 
-#: frontend/php/include/pagemenu.php:646
+#: frontend/php/include/pagemenu.php:649
 msgid "Reset to open"
 msgstr "איפוס לפתיחה"
 
-#: frontend/php/include/pagemenu.php:647
+#: frontend/php/include/pagemenu.php:650
 msgid "Edit"
 msgstr "עריכה"
 
-#: frontend/php/include/pagemenu.php:650
+#: frontend/php/include/pagemenu.php:653
 msgid "Export"
 msgstr "ייצוא"
 
-#: frontend/php/include/pagemenu.php:651
+#: frontend/php/include/pagemenu.php:654
 msgid "Get statistics"
 msgstr "קבלת סטטיסטיקות"
 
-#: frontend/php/include/pagemenu.php:691
+#: frontend/php/include/pagemenu.php:694
 msgid "Browse (External to Savane)"
 msgstr "עיון (מחוץ ל־Savane)"
 
-#: frontend/php/include/pagemenu.php:693
+#: frontend/php/include/pagemenu.php:696
 msgid "Browse Documentation that is located outside of Savane"
 msgstr "עיון בתיעוד שנמצא מחוץ ל־Savane"
 
-#: frontend/php/include/pagemenu.php:704
+#: frontend/php/include/pagemenu.php:707
 msgid "Edit query forms"
 msgstr "עריכת טופסי שאילתה"
 
-#: frontend/php/include/pagemenu.php:705
+#: frontend/php/include/pagemenu.php:708
 msgid ""
 "Define query forms: what search criteria to use and what item\n"
 "fields to show in the query form table"
@@ -8021,19 +8211,19 @@ msgstr ""
 "הגדרת טופס תשאול: באילו תנאי חיפוש להשתמש ואילו\n"
 "שדות פריט להציג בטבלת טופס התשאול"
 
-#: frontend/php/include/pagemenu.php:715
+#: frontend/php/include/pagemenu.php:718
 msgid "Select fields"
 msgstr "בחירת שדות"
 
-#: frontend/php/include/pagemenu.php:716
+#: frontend/php/include/pagemenu.php:719
 msgid "Define what fields you want to use in this tracker"
 msgstr "מגדיר אילו באילו שדות ברצונך להשתמש בעוקב הזה"
 
-#: frontend/php/include/pagemenu.php:719
+#: frontend/php/include/pagemenu.php:722
 msgid "Edit field values"
 msgstr "עריכת ערכי שדות"
 
-#: frontend/php/include/pagemenu.php:720
+#: frontend/php/include/pagemenu.php:723
 msgid ""
 "Define the set of possible values for the fields you have decided to use in\n"
 "this tracker"
@@ -8041,24 +8231,24 @@ msgstr ""
 "הגדרת סדרת הערכים האפשריים לשדות בהם בחרת להשתמש\n"
 "‫בעוקב הזה"
 
-#: frontend/php/include/pagemenu.php:726
+#: frontend/php/include/pagemenu.php:729
 msgid "Define posting restrictions"
 msgstr "הגדרת הגבלות פרסום"
 
-#: frontend/php/include/pagemenu.php:733
+#: frontend/php/include/pagemenu.php:736
 msgid "Copy the configuration of another tracker"
 msgstr "העתקת ההגדרות לעוקב אחר"
 
-#: frontend/php/include/pagemenu.php:736
+#: frontend/php/include/pagemenu.php:739
 msgid "Other settings"
 msgstr "הגדרות אחרות"
 
-#: frontend/php/include/pagemenu.php:737
+#: frontend/php/include/pagemenu.php:740
 msgid "Modify the preamble shown on the item submission form"
 msgstr "עריכת המבוא שמופיע בטופס הגשת הפריט"
 
 #: frontend/php/include/news/forum.php:65
-#: frontend/php/include/news/general.php:394
+#: frontend/php/include/news/general.php:392
 msgid "posted by"
 msgstr "פורסם על ידי"
 
@@ -8083,7 +8273,7 @@ msgid "Posting has been disabled."
 msgstr "פרסום הושבת."
 
 #: frontend/php/include/news/forum.php:388
-#: frontend/php/include/news/forum.php:484
+#: frontend/php/include/news/forum.php:483
 msgid "You could post if you were logged in"
 msgstr "כניסה למערכת תאפשר לך לפרסם"
 
@@ -8111,11 +8301,11 @@ msgstr "מתבצע ניסיון להשיב להודעה שאינה קיימת."
 msgid "No followup ID present when trying to post to an existing thread."
 msgstr "לא קיים מזהה תשובה בעת הניסיון לפרסם לשרשור קיים."
 
-#: frontend/php/include/news/forum.php:499
+#: frontend/php/include/news/forum.php:498
 msgid "Subject"
 msgstr "נושא"
 
-#: frontend/php/include/news/forum.php:507
+#: frontend/php/include/news/forum.php:506
 msgid "Post Comment"
 msgstr "פרסום הערה"
 
@@ -8163,7 +8353,7 @@ msgstr "להציג"
 msgid "Approve later"
 msgstr "לאשר אח״כ"
 
-#: frontend/php/include/news/general.php:370
+#: frontend/php/include/news/general.php:369
 #, php-format
 msgid "%s reply"
 msgid_plural "%s replies"
@@ -8172,11 +8362,11 @@ msgstr[1] "‫%s תגובות"
 msgstr[2] "‫%s תגובות"
 msgstr[3] "‫%s תגובות"
 
-#: frontend/php/include/news/general.php:403
+#: frontend/php/include/news/general.php:401
 msgid "No news found"
 msgstr "לא נמצאו חדשות"
 
-#: frontend/php/include/news/general.php:424
+#: frontend/php/include/news/general.php:420
 #, php-format
 msgid "%d news in archive"
 msgid_plural "%d news in archive"
@@ -8185,7 +8375,7 @@ msgstr[1] "‫%d פריטי חדשות בארכיון"
 msgstr[2] "‫%d פריטי חדשות בארכיון"
 msgstr[3] "‫%d פריטי חדשות בארכיון"
 
-#: frontend/php/include/news/general.php:465
+#: frontend/php/include/news/general.php:461
 msgid "Not found"
 msgstr "לא נמצא"
 
@@ -8377,6 +8567,15 @@ msgstr "טופס רישום חשבון"
 msgid "System error while creating the form, report it to admins"
 msgstr "שגיאת מערכת ביצירת הטופס, יש לדווח על כך למנהלים"
 
+#: frontend/php/include/form.php:230
+msgid "Confirm"
+msgstr "אישור"
+
+#: frontend/php/include/form.php:231
+#: frontend/php/project/admin/editgroupinfo.php:209
+msgid "Cancel"
+msgstr "ביטול"
+
 #: frontend/php/include/form-check.php:82
 msgid "Form ID is absent in the database"
 msgstr "מזהה הטופס חסר במסד הנתונים"
@@ -8545,211 +8744,6 @@ msgstr ""
 "ציון הספאם של הרשומה שלך מוגדר כרגע לכדי %s, עד שייבדק על ידי מסנני\n"
 "‫ספאם"
 
-#: frontend/php/include/project_home.php:71
-msgid "Membership Info"
-msgstr "פרטי חברות"
-
-#: frontend/php/include/project_home.php:88
-msgid "Group Admin:"
-msgstr "הנהלת הקבוצה:"
-
-#: frontend/php/include/project_home.php:88
-msgid "Group Admins:"
-msgstr "מנהלי הקבוצה:"
-
-#: frontend/php/include/project_home.php:117
-#, php-format
-msgid "%s active member"
-msgid_plural "%s active members"
-msgstr[0] "חבר פעיל"
-msgstr[1] "‫%s חברים פעילים"
-msgstr[2] "‫%s חברים פעילים"
-msgstr[3] "‫%s חברים פעילים"
-
-#: frontend/php/include/project_home.php:130
-msgid "View Members"
-msgstr "הצגת חברים"
-
-#: frontend/php/include/project_home.php:136
-msgid "Group identification"
-msgstr "זיהוי קבוצה"
-
-#. TRANSLATORS: the group id (a number) will follow.
-#. TRANSLATORS: user's id (a number) shall follow this message.
-#: frontend/php/include/project_home.php:141 frontend/php/users.php:220
-msgid "Id:"
-msgstr "מזהה:"
-
-#: frontend/php/include/project_home.php:142
-msgid "System Name:"
-msgstr "שם המערכת:"
-
-#: frontend/php/include/project_home.php:144
-msgid "Group Type:"
-msgstr "סוג קבוצה:"
-
-#: frontend/php/include/project_home.php:157
-msgid "Search in this group"
-msgstr "חיפוש בקבוצה הזאת"
-
-#: frontend/php/include/project_home.php:178
-#, php-format
-msgid ""
-"This group hasn't submitted a short description yet. You can <a\n"
-"href=\"%s\">submit it</a> now."
-msgstr ""
-"הקבוצה הזו עדיין לא הגישה תיאור מקוצר.\n"
-"ניתן <a href=\"%s\">להגיש אותו</a> כעת."
-
-#: frontend/php/include/project_home.php:186
-msgid "Registration Date:"
-msgstr "תאריך ההרשמה:"
-
-#: frontend/php/include/project_home.php:192
-#: frontend/php/project/admin/editgroupinfo.php:180
-msgid "License:"
-msgstr "רישיון:"
-
-#: frontend/php/include/project_home.php:200
-msgid "License is unknown!"
-msgstr "הרישיון אינו ידוע!"
-
-#: frontend/php/include/project_home.php:209
-#: frontend/php/project/admin/editgroupinfo.php:171
-msgid "Development Status:"
-msgstr "מצב פיתוח:"
-
-#. TRANSLATORS: the argument is site name (like Savannah).
-#: frontend/php/include/project_home.php:245
-#, php-format
-msgid "Administration: %s server"
-msgstr "ניהול: שרת %s"
-
-#: frontend/php/include/project_home.php:250
-#, php-format
-msgid ""
-"Since you are administrator of this group, which one is\n"
-"the &ldquo;system group,&rdquo; you are administrator of the whole %s server."
-msgstr ""
-"מאחר שהנהלת הקבוצה „קבוצת המערכת” בידיך, משמעות הדבר\n"
-"‫היא שהנהלת כל שרת ה־%s בידיך."
-
-#: frontend/php/include/project_home.php:260
-msgid "Server Main Administration Page"
-msgstr "עמוד ניהול שרת ראשי"
-
-#: frontend/php/include/project_home.php:266
-msgid "Pending Group List"
-msgstr "רשימת קבוצות ממתינות"
-
-#: frontend/php/include/project_home.php:272
-#, php-format
-msgid "(%s registration pending)"
-msgid_plural "(%s registrations pending)"
-msgstr[0] "(בקשת רישום ממתינה)"
-msgstr[1] "‫(%s בקשות רישום ממתינות)"
-msgstr[2] "‫(%s בקשות רישום ממתינות)"
-msgstr[3] "‫(%s בקשות רישום ממתינות)"
-
-#. TRANSLATORS: the argument is group name (like GNU Coreutils).
-#: frontend/php/include/project_home.php:284
-#, php-format
-msgid "Administration: %s group"
-msgstr "ניהול: קבוצת %s"
-
-#: frontend/php/include/project_home.php:287
-msgid ""
-"As administrator of this group, you can manage members and\n"
-"activate, deactivate and configure tools used in your group."
-msgstr ""
-"כחלק מהנהלת הקבוצה, אפשר לנהל את החברים\n"
-"ולהפעיל, להשבית ולהגדיר את כלי הקבוצה שלך."
-
-#: frontend/php/include/project_home.php:295
-msgid "Group Main Administration Page"
-msgstr "עמוד ניהול קבוצה ראשי"
-
-#: frontend/php/include/project_home.php:314
-msgid "Quick Overview"
-msgstr "סקירה מהירה"
-
-#: frontend/php/include/project_home.php:357
-msgid "Browse docs (external to Savane)"
-msgstr "עיון במסמכים (מחוץ ל־Savane)"
-
-#: frontend/php/include/project_home.php:358
-msgid "Browse the cookbook"
-msgstr "עיון בספר המתכונים"
-
-#: frontend/php/include/project_home.php:369
-msgid "Memberlist"
-msgstr "רשימת חברים"
-
-#: frontend/php/include/project_home.php:374
-#, php-format
-msgid "(%s member)"
-msgid_plural "(%s members)"
-msgstr[0] "(חבר)"
-msgstr[1] "‫(%s חברים)"
-msgstr[2] "‫(%s חברים)"
-msgstr[3] "‫(%s חברים)"
-
-#: frontend/php/include/project_home.php:384
-msgid "Group release GPG keyring"
-msgstr "מחזיק מפתחות GPG של מהדורות הקבוצה"
-
-#. TRANSLATORS: the arguments are numbers of items.
-#: frontend/php/include/project_home.php:408
-#, php-format
-msgid "(open items: %1$s, total: %2$s)"
-msgstr "(פריטים פתוחים: %1$s, סך הכול: %2$s)"
-
-#: frontend/php/include/project_home.php:411
-msgid "Browse open items"
-msgstr "עיון בפריטים הפתוחים"
-
-#: frontend/php/include/project_home.php:414
-msgid "Submit a new item"
-msgstr "הגשת מיזם חדש"
-
-#: frontend/php/include/project_home.php:427
-msgid "Communication Tools"
-msgstr "כלי תקשורת"
-
-#: frontend/php/include/project_home.php:435
-msgid "Tech Support Manager"
-msgstr "הנהלת תמיכה טכנית"
-
-#: frontend/php/include/project_home.php:458
-#, php-format
-msgid "(%s public mailing list)"
-msgid_plural "(%s public mailing lists)"
-msgstr[0] "(רשימת דיוור ציבורית %s)"
-msgstr[1] "‫(%s רשימות דיוור ציבוריות)"
-msgstr[2] "‫(%s רשימות דיוור ציבוריות)"
-msgstr[3] "‫(%s רשימות דיוור ציבוריות)"
-
-#: frontend/php/include/project_home.php:471
-msgid "This group is looking for people"
-msgstr "הקבוצה הזו מחפשת אנשים"
-
-#: frontend/php/include/project_home.php:475
-#, php-format
-msgid "(%s contributor wanted)"
-msgid_plural "(%s contributors wanted)"
-msgstr[0] "(דרוש/ה מתנדב/ת %s)"
-msgstr[1] "(דרושים %s מתנדבים)"
-msgstr[2] "(דרושים %s מתנדבים)"
-msgstr[3] "(דרושים %s מתנדבים)"
-
-#: frontend/php/include/project_home.php:538
-msgid "Development Tools"
-msgstr "כלי פיתוח"
-
-#: frontend/php/include/project_home.php:554
-msgid "Patch Manager"
-msgstr "מנהל טלאים"
-
 #: frontend/php/project/memberlist-gpgkeys.php:52
 msgid "Member Keyring is empty, no keys were registered"
 msgstr "מחזיק המפתחות של החבר ריק, לא נרשמו מפתחות"
@@ -8882,7 +8876,7 @@ msgstr ""
 "כדי לתרום למיזם הזה על ידי הצטרפות לחברות, יש\n"
 "להשתמש בטופס <a href=\"%s\">בקשת ההצטרפות</a>."
 
-#: frontend/php/project/memberlist.php:203
+#: frontend/php/project/memberlist.php:202
 msgid ""
 "On this page are only presented specific roles, roles\n"
 "which are not attributed by default when joining this project."
@@ -8890,51 +8884,51 @@ msgstr ""
 "בעמוד הזה מוצגים רק תפקידים מסוימים, תפקידים\n"
 "שאינם מוענקים כברירת מחדל בעת הצטרפות למיזם הזה."
 
-#: frontend/php/project/memberlist.php:210
+#: frontend/php/project/memberlist.php:209
 msgid "basic or detailed"
 msgstr "בסיסית או מפורטת"
 
 #. TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-#: frontend/php/project/memberlist.php:212
+#: frontend/php/project/memberlist.php:211
 msgid "basic"
 msgstr "בסיסית"
 
 #. TRANSLATORS: this is used in context of "Browse with the %s memberlist."
-#: frontend/php/project/memberlist.php:214
+#: frontend/php/project/memberlist.php:213
 msgid "detailed"
 msgstr "מפורטת"
 
-#: frontend/php/project/memberlist.php:218
+#: frontend/php/project/memberlist.php:217
 #, php-format
 msgid "Browse with the %s memberlist."
 msgstr "עיון עם רשימת החברים ה%s."
 
-#: frontend/php/project/memberlist.php:223
+#: frontend/php/project/memberlist.php:222
 #: frontend/php/project/admin/userperms.php:590
 msgid "Member"
 msgstr "חבר"
 
-#: frontend/php/project/memberlist.php:225
+#: frontend/php/project/memberlist.php:224
 msgid "Specific Role"
 msgstr "תפקיד מסוים"
 
-#: frontend/php/project/memberlist.php:226
+#: frontend/php/project/memberlist.php:225
 msgid "Resume and Skills"
 msgstr "קורות חיים ומיומנויות"
 
-#: frontend/php/project/memberlist.php:228
+#: frontend/php/project/memberlist.php:227
 msgid "Watch"
 msgstr "מעקב"
 
-#: frontend/php/project/memberlist.php:231
+#: frontend/php/project/memberlist.php:230
 msgid "Currently inactive members"
 msgstr "חברים שאינם פעילים כעת"
 
-#: frontend/php/project/memberlist.php:231
+#: frontend/php/project/memberlist.php:230
 msgid "Active members on duty"
 msgstr "חברים פעילים בתפקיד"
 
-#: frontend/php/project/memberlist.php:266
+#: frontend/php/project/memberlist.php:265
 #, php-format
 msgid ""
 "You may also be interested in the <a href=\"%s\">GPG Keys of\n"
@@ -8989,7 +8983,7 @@ msgstr "רשימת נמענים בעותק:"
 
 #: frontend/php/project/admin/editgroupinfo.php:94
 #: frontend/php/project/admin/editgroupinfo.php:114
-#: frontend/php/project/admin/editgroupfeatures.php:172
+#: frontend/php/project/admin/editgroupfeatures.php:174
 msgid "Update failed."
 msgstr "העדכון נכשל."
 
@@ -9192,7 +9186,7 @@ msgid "Features"
 msgstr "יכולות"
 
 #: frontend/php/project/admin/index.php:70
-#: frontend/php/project/admin/editgroupfeatures.php:203
+#: frontend/php/project/admin/editgroupfeatures.php:205
 msgid "Select Features"
 msgstr "בחירת יכולות"
 
@@ -9253,7 +9247,7 @@ msgstr ""
 "מאפשר לך לעקוב אחר שינויים חשובים שקורים בהגדרות\n"
 "הקבוצה שלך."
 
-#: frontend/php/project/admin/index.php:145 frontend/php/users.php:168
+#: frontend/php/project/admin/index.php:145 frontend/php/users.php:167
 msgid "Members"
 msgstr "חברים"
 
@@ -9488,7 +9482,7 @@ msgid "Group Default Permissions"
 msgstr "הרשאות ברירת המחדל לקבוצה"
 
 #: frontend/php/project/admin/userperms.php:678
-#: frontend/php/project/admin/editgroupfeatures.php:360
+#: frontend/php/project/admin/editgroupfeatures.php:362
 msgid "Task Tracker"
 msgstr "עוקב משימות"
 
@@ -9496,68 +9490,68 @@ msgstr "עוקב משימות"
 msgid "Cookbook Manager"
 msgstr "מנהל ספרי מתכונים"
 
-#: frontend/php/project/admin/editgroupfeatures.php:170
+#: frontend/php/project/admin/editgroupfeatures.php:172
 msgid "Update successful."
 msgstr "העדכון הצליח."
 
-#: frontend/php/project/admin/editgroupfeatures.php:189
+#: frontend/php/project/admin/editgroupfeatures.php:191
 msgid "Nothing to update."
 msgstr "אין מה לעדכן."
 
-#: frontend/php/project/admin/editgroupfeatures.php:265
-#: frontend/php/project/admin/editgroupfeatures.php:290
+#: frontend/php/project/admin/editgroupfeatures.php:267
+#: frontend/php/project/admin/editgroupfeatures.php:292
 msgid "Alternative Address"
 msgstr "כתובת חלופית"
 
-#: frontend/php/project/admin/editgroupfeatures.php:279
+#: frontend/php/project/admin/editgroupfeatures.php:281
 msgid "You can activate or deactivate feature for your group. In some cases, depending on the system administrator's choices, you can even use change the URL for a feature. If the field &ldquo;alternative address&rdquo; is empty, the standard is used."
 msgstr "אפשר להפעיל או להשבית תכונה לקבוצה שלך. בחלק מהמקרים,בהתאם לבחירת הנהלת המערכת, ניתן אפילו להחליף את הכתובת של היכולת. אם השדה „כתובת חלופית” ריק, נעשה שימוש ברגילה."
 
-#: frontend/php/project/admin/editgroupfeatures.php:289
+#: frontend/php/project/admin/editgroupfeatures.php:291
 msgid "Feature, Artifact"
 msgstr "יכולת, תוצר"
 
-#: frontend/php/project/admin/editgroupfeatures.php:289
+#: frontend/php/project/admin/editgroupfeatures.php:291
 msgid "Activated"
 msgstr "מופעלת"
 
-#: frontend/php/project/admin/editgroupfeatures.php:290
+#: frontend/php/project/admin/editgroupfeatures.php:292
 msgid "Standard Address"
 msgstr "כתובת רגילה"
 
-#: frontend/php/project/admin/editgroupfeatures.php:298
+#: frontend/php/project/admin/editgroupfeatures.php:300
 msgid "Homepage Source Code Web Browsing"
 msgstr "עיון דרך הדפדפן בקוד המקור של דף הבית"
 
-#: frontend/php/project/admin/editgroupfeatures.php:303
+#: frontend/php/project/admin/editgroupfeatures.php:305
 msgid "Documentation"
 msgstr "תיעוד"
 
-#: frontend/php/project/admin/editgroupfeatures.php:319
+#: frontend/php/project/admin/editgroupfeatures.php:321
 msgid "Download Area Directory"
 msgstr "תיקיית אזור ההורדות"
 
-#: frontend/php/project/admin/editgroupfeatures.php:338
+#: frontend/php/project/admin/editgroupfeatures.php:340
 msgid "CVS Web Browsing"
 msgstr "גלישה בדפדפן ב־CVS"
 
-#: frontend/php/project/admin/editgroupfeatures.php:342
+#: frontend/php/project/admin/editgroupfeatures.php:344
 msgid "Arch Web Browsing"
 msgstr "גלישה בדפדפן ב־Arch"
 
-#: frontend/php/project/admin/editgroupfeatures.php:343
+#: frontend/php/project/admin/editgroupfeatures.php:345
 msgid "Subversion Web Browsing"
 msgstr "גלישה דפדפן ב־Subversion"
 
-#: frontend/php/project/admin/editgroupfeatures.php:344
+#: frontend/php/project/admin/editgroupfeatures.php:346
 msgid "Git Web Browsing"
 msgstr "גלישה בדפדפן ב־Git"
 
-#: frontend/php/project/admin/editgroupfeatures.php:345
+#: frontend/php/project/admin/editgroupfeatures.php:347
 msgid "Mercurial Web Browsing"
 msgstr "גלישה בדפדפן ב־Mercurial"
 
-#: frontend/php/project/admin/editgroupfeatures.php:346
+#: frontend/php/project/admin/editgroupfeatures.php:348
 msgid "Bazaar Web Browsing"
 msgstr "גלישה בדפדפן ב־Bazaar"
 
@@ -9617,19 +9611,19 @@ msgstr "שורות בעמוד"
 msgid "Change View"
 msgstr "החלפת תצוגה"
 
-#: frontend/php/forum/forum.php:299
+#: frontend/php/forum/forum.php:298
 msgid "Previous Messages"
 msgstr "ההודעות הקודמות"
 
-#: frontend/php/forum/forum.php:309
+#: frontend/php/forum/forum.php:308
 msgid "Next Messages"
 msgstr "ההודעות הבאות"
 
-#: frontend/php/forum/forum.php:324
+#: frontend/php/forum/forum.php:323
 msgid "Start a New Thread:"
 msgstr "פתיחת שרשור חדש:"
 
-#: frontend/php/forum/forum.php:333
+#: frontend/php/forum/forum.php:332
 msgid "Error - choose a forum first"
 msgstr "שגיאה - נא לבחור פורום תחילה"
 
@@ -9682,7 +9676,7 @@ msgstr ""
 "יש קישור ב־%s שבור שיש לתקנו, <a href=\"%s\">יש להגיש בקשת תמיכה</a>,\n"
 "תוך ציון הכתובת אליה ניסית לגשת (%s)."
 
-#: frontend/php/404-export.php:66 frontend/php/404.php:63
+#: frontend/php/404-export.php:66 frontend/php/404.php:64
 #, php-format
 msgid "Otherwise, you can return to the <a href=\"%s\">%s main page</a>."
 msgstr "אחרת, ניתן לחזור <a href=\"%s\">לעמוד הראשי של %s</a>."
@@ -9695,15 +9689,15 @@ msgstr "חסרה כותרת"
 msgid "News Posted: it will need to be approved by a news manager of this group before it shows on the front page."
 msgstr "פרסום חדשות: עליהן לקבל את אישור הנהלת החדשות של הקבוצה ‫הזו בטרם תופענה בעמוד הראשי של הקבוצה."
 
-#: frontend/php/news/submit.php:83
+#: frontend/php/news/submit.php:82
 msgid "Error doing insert"
 msgstr "שגיאה בהוספה"
 
-#: frontend/php/news/submit.php:89
+#: frontend/php/news/submit.php:88
 msgid "Submit News"
 msgstr "הגשת חדשות"
 
-#: frontend/php/news/submit.php:92
+#: frontend/php/news/submit.php:91
 msgid "A news manager of this group will have to review and approve the news."
 msgstr "על הנהלת החדשות של הקבוצה הזו לסקור ולאשר את החדשות."
 
@@ -9773,33 +9767,33 @@ msgstr "פריטים פתוחים שהוגשו על ידי %s"
 msgid "This user did not enable Resume & Skills."
 msgstr "משתמש זה לא הפעיל קורות חיים ומיומנויות."
 
-#: frontend/php/users.php:103
+#: frontend/php/users.php:102
 msgid "View Resume & Skills"
 msgstr "הצגת קורות חיים ומיומנויות"
 
-#: frontend/php/users.php:111
+#: frontend/php/users.php:110
 msgid "Send this user a mail"
 msgstr "לשלוח למשתמש הזה הודעה בדוא״ל"
 
-#: frontend/php/users.php:125
+#: frontend/php/users.php:124
 msgid "Download GPG Key"
 msgstr "הורדת מפתח GPG"
 
-#: frontend/php/users.php:146
+#: frontend/php/users.php:145
 msgid "Group membership"
 msgstr "חברות בקבוצות"
 
-#: frontend/php/users.php:184
+#: frontend/php/users.php:183
 msgid "No member found"
 msgstr "לא נמצאו חברים"
 
 #. TRANSLATORS: the argument is user's name (like J. Random Hacker).
-#: frontend/php/users.php:197
+#: frontend/php/users.php:196
 #, php-format
 msgid "%s profile"
 msgstr "הפרופיל של %s"
 
-#: frontend/php/users.php:201
+#: frontend/php/users.php:200
 msgid ""
 "It is not a normal user account but a squad: it unites several\n"
 "users as if they were one (notifications, privileges, etc)."
@@ -9807,19 +9801,19 @@ msgstr ""
 "זה לא חשבון משתמש רגיל אלא חוליה: היא מאגדת\n"
 "מספר משתמשים משל היו אחד (התראות, הרשאות ועוד)."
 
-#: frontend/php/users.php:207
+#: frontend/php/users.php:206
 msgid "General information"
 msgstr "מידע כללי"
 
-#: frontend/php/users.php:216
+#: frontend/php/users.php:215
 msgid "Note:"
 msgstr "הערה:"
 
-#: frontend/php/users.php:233
+#: frontend/php/users.php:232
 msgid "Site member since:"
 msgstr "חברות באתר מאז:"
 
-#: frontend/php/users.php:263
+#: frontend/php/users.php:260
 msgid "You could send a message if you were logged in."
 msgstr "כניסה למערכת תאפשר לך לשלוח הודעות."
 
@@ -9851,16 +9845,16 @@ msgstr "הצגת המשוב שוב"
 msgid "Message Sent"
 msgstr "הודעה נשלחה"
 
-#: frontend/php/404.php:44
+#: frontend/php/404.php:45
 msgid "Requested Page not Found (Error 404)"
 msgstr "העמוד המבוקש לא נמצא (שגיאה 404)"
 
-#: frontend/php/404.php:48
+#: frontend/php/404.php:49
 #, php-format
 msgid "The web page you are trying to access doesn't exist on %s."
 msgstr "העמוד אליו ניסית לגשת לא קיים על גבי %s."
 
-#: frontend/php/404.php:53
+#: frontend/php/404.php:54
 #, php-format
 msgid ""
 "If you think that there's a broken link on %s that must be\n"
@@ -11254,6 +11248,12 @@ msgstr "זאת קבוצת תרגום של www.gnu.org."
 #: frontend/site-specific/gnu/admin/groupedit_grouptype.php:73
 msgid "This group contains extras for official GNU software."
 msgstr "הקבוצה הזאת מכילה תוספות לתוכנה רשמית של גנו."
+
+#~ msgid "Name of new mailing list"
+#~ msgstr "שם רשימת הדיוור החדשה"
+
+#~ msgid "Group Admins:"
+#~ msgstr "מנהלי הקבוצה:"
 
 #~ msgid "Empty field value is not allowed"
 #~ msgstr "ערך שדה ריק אסור"

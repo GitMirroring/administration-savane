@@ -120,7 +120,7 @@ Tobias Toedter		<t.toedter--gmx.net>
 
 [list in alphabetical order made by yeupou--gnu.org]
 -------------------------------------------------------------------------------
- 2007-2024 (since start of Git logs)
+ 2007-2025 (since start of Git logs)
 -------------------------------------------------------------------------------
 
 Amin Bandali		<bandali@gnu.org>
@@ -172,11 +172,13 @@ Tobias Toedter		<t.toedter@gmx.net>
 	Code improvements, bugfixing.
 
 + Translators:
+        Mario Blättermann <mario.blaettermann@gmail.com> (German)
 	Rafael Fontenelle <rafaelff@gnome.org> (Brazilian Portuguese)
 	Anders Jonsson <anders.jonsson@norsjovallen.se> (Swedish)
 	Joerg Kohne <joeko (AT) online (PUNKT) de> (German)
 	Frédéric Marchal <fmarchal@perso.be> (French)
 	Rene Lopez <rsl@members.fsf.org> (Spanish)
+	Daniel Nylander <info--danielnylander.se> (Swedish)
 	Sebastiano Pistore <sebastianopistore.info@protonmail.ch> (Italian)
 	Roman Pominov <Roman.Pominov@ihep.ru> (Russian)
 	Gonzalo Sebastian <gonzalop1984@gmail.com> (Spanish)
