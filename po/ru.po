@@ -48,8 +48,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: savane 3.17\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2026-03-13 06:31+0000\n"
-"PO-Revision-Date: 2026-03-13 15:44+0000\n"
+"POT-Creation-Date: 2026-03-18 07:27+0000\n"
+"PO-Revision-Date: 2026-03-18 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -5924,13 +5924,6 @@ msgstr ""
 "Длина общей подстроки, при которой считается, что пароль хотя бы частично "
 "основан на информации, найденной в строке: %s."
 
-#. TRANSLATORS: this string separates error title from further description,
-#. like _("Invalid User") . _(': ') . _("That user does not exist.")
-#. TRANSLATORS: this string is used to separate context from
-#. further description, like _("Bugs") . _(": ") . $bug_title.
-msgid ": "
-msgstr ": "
-
 msgid "Exiting with Error"
 msgstr "Выход с ошибкой"
 
@@ -6608,6 +6601,11 @@ msgstr "Список запросов помощи"
 #, php-format
 msgid "Browse statistics about %s"
 msgstr "Статистика по сайту %s"
+
+#. TRANSLATORS: this string is used to separate context from
+#. further description, like _("Bugs") . _(": ") . $bug_title.
+msgid ": "
+msgstr ": "
 
 msgid "Bookmark It"
 msgstr "Сделать закладку"
@@ -7765,6 +7763,16 @@ msgstr ""
 
 msgid "Note: this group has multiple Git repositories."
 msgstr "Замечание: в этой группе несколько репозиториев Git."
+
+#, php-format
+msgid ""
+"Note: the %s options limit the downloaded history reducing the load on our "
+"servers.  Omit them if you need the full history.  Please consider using %s "
+"if you only need the latest commit from the default branch."
+msgstr ""
+"Замечание. Параметры %s ограничивают передаваемую историю, снижая нагрузку "
+"на наши серверы. Не вводите их, если вам нужна полная история. Если вам "
+"нужна только последняя версия из основной ветви, пользуйтесь %s."
 
 msgid ""
 "The Subversion repository of this group can be checked out anonymously as "
