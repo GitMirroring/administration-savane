@@ -49,17 +49,18 @@ $n = count ($repo_list);
 if ($n > 1)
   print "<p>" . _('Note: this group has multiple Git repositories.')
     . "</p>\n";
+$cmd = "git clone";
 if ($project->isPublic ())
   {
     vcs_print_anon_access ();
+    $addr = "https://git.$base_host/git/";
     print '<pre>';
 
     for ($i = 0; $i < $n; $i++)
       {
         if ($n > 1)
           print $repo_list[$i]['desc'] . "\n";
-        print "git clone https://git.$base_host"
-          . "/git/" . $repo_list[$i]['url'] . "\n";
+        print "$cmd $addr" . $repo_list[$i]['url'] . "\n";
         if ($i < $n - 1)
           print "\n";
       }
@@ -73,8 +74,8 @@ for ($i = 0; $i < $n; $i++)
   {
     if ($n > 1)
       print $repo_list[$i]['desc'] . "\n";
-    print "git clone $username@git.$base_host:"
-      . $repo_list[$i]['path'] . "\n";
+    $addr = "$username@git.$base_host:";
+    print "$cmd $addr" . $repo_list[$i]['path'] . "\n";
     if ($i < $n - 1)
       print "\n";
   }
