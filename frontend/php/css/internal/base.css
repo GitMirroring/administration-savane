@@ -137,6 +137,7 @@ pre
 }
 
 .block { display: block; }
+.inline-block { display: inline-block; }
 
 .smaller { font-size: smaller; }
 .small { font-size: small; }

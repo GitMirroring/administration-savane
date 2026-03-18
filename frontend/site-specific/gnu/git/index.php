@@ -49,7 +49,19 @@ $n = count ($repo_list);
 if ($n > 1)
   print "<p>" . _('Note: this group has multiple Git repositories.')
     . "</p>\n";
-$cmd = "git clone";
+$depth = "--depth&nbsp;289&nbsp;--no-single-branch";
+$depth1 = "--depth&nbsp;1";
+$cmd = "git clone $depth";
+print '<p>';
+printf (
+  _('Note: the %s options limit the downloaded history reducing the load '
+    . 'on our servers.  Omit them if you need the full history.  '
+    . 'Please consider using %s if you only need the latest commit '
+    . 'from the default branch.'),
+  "<code class='inline-block'>$depth</code>",
+  "<code class='inline-block'>$depth1</code>"
+);
+print "</p>\n";
 if ($project->isPublic ())
   {
     vcs_print_anon_access ();
