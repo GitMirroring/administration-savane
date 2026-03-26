@@ -80,6 +80,19 @@ compare (form_checkbox ('box', 0), $expected);
 $expected = '<input type="checkbox" id="box" name="box" value="1" />'
   . '<label for="box">first checkbox</label>';
 compare (form_checkbox ('box', 0, ['label' => 'first checkbox']), $expected);
+$expected = '<input type="checkbox" id="box-0" name="box" value="1" />'
+  . '<label for="box-0">first checkbox</label>';
+compare (
+  form_checkbox ('box', 0, ['label' => 'first checkbox', 'id' => 'box-0']),
+  $expected
+);
+$expected =
+  '<input type="checkbox" id="box-1" name="box" value="1" checked="checked" />'
+  . '<label for="box-1">first checkbox</label>';
+compare (
+  form_checkbox ('box', 1, ['label' => 'first checkbox', 'id' => 'box-1']),
+  $expected
+);
 
 $expected = '<option value="any">any</option>';
 compare (form_option ('any'), $expected);

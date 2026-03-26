@@ -1761,10 +1761,11 @@ function tracker_list_dependency ($row, $tracker, $only_group)
   $label = "$tracker #{$row['bug_id']}: {$row['summary']}";
   if (!$only_group)
     $label .= ', ' . _("group") . ' ' . group_getname ($row['group_id']);
+  $name = "dependent_on_{$tracker}";
+  $val = $row['bug_id'];
   print '&nbsp;&nbsp;&nbsp;'
     . form_checkbox (
-        "dependent_on_{$tracker}[]", 0,
-        ['value' => $row['bug_id'], 'label' => $label]
+        "{$name}[]", 0, ['value' => $val, 'label' => $label, 'id' => "$name-$val"]
       );
   return true;
 }

@@ -31,6 +31,8 @@
 
 * Bug fixes:
 
+** Labels in dependency search results pointed at wrong checkboxes.
+
 ** Inactive groups were listed in user's profile since 2024-09 (41f3fa4b6).
 
 ** The list in submitters selection box was truncated since 2025-09 (0d5e070c),

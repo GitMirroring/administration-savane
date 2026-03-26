@@ -111,6 +111,21 @@ function form_input ($type, $name, $value = "", $extra = false)
   return "<input type=\"$type\"$id_attr name=\"$name\" $value$extra />";
 }
 
+function form_input_arr ($attr)
+{
+  $label = form_set_label_attr ($attr);
+  if (!array_key_exists ('id', $attr))
+    $attr['id'] = $attr['name'];
+  $attr_str = html_attr_str ($attr, '"');
+  $ret = "<input$attr_str />";
+  if (null === $label)
+    return $ret;
+  $name = $attr['name'];
+  if (array_key_exists ('id', $attr))
+    $name = $attr['id'];
+  return $ret . html_label ($name, $label);
+}
+
 function form_set_label_attr (&$attr)
 {
   if (!array_key_exists ('label', $attr))
@@ -138,17 +153,16 @@ function form_radio ($name, $value, $attr)
 
 function form_checkbox ($name, $is_checked = 0, $attr = [])
 {
-  $label = form_set_label_attr ($attr);
   if ($is_checked)
     $attr['checked'] = 'checked';
-  $extra = html_attr_str ($attr, '"');
   $val = '1';
   if (isset ($attr['value']))
     $val = '';
-  $ret = form_input ('checkbox', $name, $val, $extra);
-  if (null === $label)
-    return $ret;
-  return $ret . html_label ($name, $label);
+  $arr['type'] = 'checkbox';
+  $arr['name'] = $name;
+  $arr['value'] = $val;
+  $arr = array_merge ($arr, $attr);
+  return form_input_arr ($arr);
 }
 
 function form_option ($value, $selected_value = NULL, $label = NULL)

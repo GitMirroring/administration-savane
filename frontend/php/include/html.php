@@ -489,6 +489,12 @@ function html_attr_str ($attr, $quote = "'")
   $ret = '';
   if (!is_array ($attr))
     $attr = ['id' => $attr];
+  foreach (['type', 'id', 'name', 'value'] as $k)
+    if (array_key_exists ($k, $attr))
+      {
+        $ret .= " $k=$quote{$attr[$k]}$quote";
+        unset ($attr[$k]);
+      }
   foreach ($attr as $k => $v)
     $ret .= " $k=$quote$v$quote";
   return $ret;
