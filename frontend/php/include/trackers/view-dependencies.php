@@ -49,9 +49,9 @@ function trackers_list_group_items ()
   $artifact = ARTIFACT;
   $res = db_execute ("
      SELECT
-       '$artifact' AS tracker, bug_id, summary, privacy, group_id, status_id,
-       priority
-     FROM $artifact WHERE group_id = ? ORDER BY bug_id", [$group_id]
+       '$artifact' AS `tracker`, `bug_id`, `summary`, `privacy`, `group_id`,
+       `status_id`, `priority`
+     FROM `$artifact` WHERE `group_id` = ? ORDER BY `bug_id`", [$group_id]
   );
   $items_for_digest = $ret = [];
   if (!db_numrows ($res))
@@ -71,9 +71,10 @@ function trackers_fetch_summaries ($art)
     {
       $tables[] = "
         SELECT
-          '$a' AS tracker, bug_id, summary, privacy, group_id, status_id,
-          priority
-        FROM $a WHERE spamscore < 5 AND bug_id " . utils_in_placeholders ($l);
+          '$a' AS `tracker`, `bug_id`, `summary`, `privacy`, `group_id`,
+          `status_id`, `priority`
+        FROM `$a` WHERE `spamscore` < 5 AND `bug_id` "
+        . utils_in_placeholders ($l);
       $args = array_merge ($args, $l);
     }
   if (empty ($tables))
@@ -92,10 +93,10 @@ function trackers_fetch_dependencies ($items)
     return [[], []];
   $sql = "
     SELECT
-        item_id, is_dependent_on_item_id AS dep_id,
-        is_dependent_on_item_id_artifact as dep_art
-      FROM " . ARTIFACT . "_dependencies
-      WHERE item_id " . utils_in_placeholders ($items);
+        `item_id`, `is_dependent_on_item_id` AS `dep_id`,
+        `is_dependent_on_item_id_artifact` AS `dep_art`
+      FROM `" . ARTIFACT . "_dependencies`
+      WHERE `item_id` " . utils_in_placeholders ($items);
   $res = db_execute ($sql, $items);
   if (!db_numrows ($res))
     return [[], []];
