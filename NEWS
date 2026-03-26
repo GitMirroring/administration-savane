@@ -29,6 +29,10 @@
 * A few sources are tested when looking for the Accept-Language header:
   $_SERVER, environment variable, apache_request_headers ().
 
+* When building dependency graphs, the dependencies are loaded recursively
+  and from all trackers (not only the current one); previously, only
+  the direct dependencies were taken into account.
+
 * Bug fixes:
 
 ** Labels in dependency search results pointed at wrong checkboxes.

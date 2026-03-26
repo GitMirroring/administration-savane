@@ -42,10 +42,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $have_hidden_something = 0;
+if (empty ($sys_dep_max_depth))
+  $sys_dep_max_depth = 0x11;
 
 function trackers_list_group_items ()
 {
-  global $group_id;
+  global $group_id, $item_status;
   $artifact = ARTIFACT;
   $res = db_execute ("
      SELECT
@@ -60,11 +62,12 @@ function trackers_list_group_items ()
     {
       $items_for_digest[] = $row['bug_id'];
       $ret[$row['bug_id']] = $row;
+      $item_status[ARTIFACT][$row['bug_id']] = $row['status_id'];
     }
   return [$items_for_digest, $ret];
 }
 
-function trackers_fetch_summaries ($art)
+function trackers_dep_summary_sql ($art)
 {
   $tables = $args = $ret = [];
   foreach ($art as $a => $l)
@@ -78,52 +81,104 @@ function trackers_fetch_summaries ($art)
       $args = array_merge ($args, $l);
     }
   if (empty ($tables))
-    return $ret;
+    return [null, null];
   $sql = join ("UNION", $tables);
+  return [$sql, $args];
+}
+
+function trackers_fetch_summaries ($art)
+{
+  global $item_status;
+  $ret = [];
+  list ($sql, $args) = trackers_dep_summary_sql ($art);
+  if ($sql === null)
+    return $ret;
   $res = db_execute ($sql, $args);
   while ($row = db_fetch_array ($res))
     if (!trackers_item_access_denied ($row))
-      $ret[$row['tracker']][$row['bug_id']] = $row;
+      {
+        $ret[$row['tracker']][$row['bug_id']] = $row;
+        $item_status[$row['tracker']][$row['bug_id']] = $row['status_id'];
+      }
   return $ret;
 }
 
-function trackers_fetch_dependencies ($items)
+function trackers_make_dep_sql ($items)
 {
-  if (empty ($items))
-    return [[], []];
-  $sql = "
-    SELECT
-        `item_id`, `is_dependent_on_item_id` AS `dep_id`,
-        `is_dependent_on_item_id_artifact` AS `dep_art`
-      FROM `" . ARTIFACT . "_dependencies`
-      WHERE `item_id` " . utils_in_placeholders ($items);
-  $res = db_execute ($sql, $items);
-  if (!db_numrows ($res))
-    return [[], []];
-  $items = $art = [];
-  while ($l = db_fetch_array ($res))
+  $params = $selects = [];
+  foreach ($items as $art => $ids)
     {
-      $items[$l['item_id']][$l['dep_art']][] = $l['dep_id'];
-      $art[$l['dep_art']][] = $l['dep_id'];
+      if (empty ($ids))
+        continue;
+      $selects[] = "
+        SELECT
+          '$art' as `art`, `item_id`, `is_dependent_on_item_id` AS `dep_id`,
+          `is_dependent_on_item_id_artifact` AS `dep_art`
+        FROM `{$art}_dependencies`
+        WHERE `item_id` " . utils_in_placeholders ($ids);
+      $params = array_merge ($params, $ids);
     }
-  return [$items, $art];
+  if (empty ($selects))
+    return [null, null];
+  $sql = join ("UNION", $selects);
+  return [$sql, $params];
+}
+
+function trackers_run_dep_sql ($items)
+{
+  list ($sql, $params) = trackers_make_dep_sql ($items);
+  if ($sql === null)
+    return null;
+  return db_execute ($sql, $params);
+}
+
+function trackers_dep_add_to_item_set ($items, &$item_set)
+{
+  foreach ($items as $art => $ids)
+    foreach ($ids as $id)
+      $item_set[$art][$id] = true;
+}
+
+function trackers_fetch_dependencies ($missing_items)
+{
+  if (empty ($missing_items))
+    return [[], [], 0];
+  $items = $art = $item_set = []; $depth = 0;
+  do
+    {
+      trackers_dep_add_to_item_set ($missing_items, $item_set);
+      $res = trackers_run_dep_sql ($missing_items);
+      if ($res === null || !db_numrows ($res))
+        return [$items, $art, $depth];
+      $missing_items = [];
+      while ($l = db_fetch_array ($res))
+        {
+          $items[$l['art']][$l['item_id']][$l['dep_art']][] = $l['dep_id'];
+          $art[$l['dep_art']][] = $l['dep_id'];
+          if (empty ($item_set[$l['dep_art']][$l['dep_id']]))
+            $missing_items[$l['dep_art']][] = $l['dep_id'];
+        }
+    }
+  while (!empty ($missing_items) && $depth++ < $GLOBALS['sys_dep_max_depth']);
+  return [$items, $art, $depth];
 }
 
 function trackers_list_dependencies ($items)
 {
-  list ($items, $art) = trackers_fetch_dependencies ($items);
+  list ($items, $art, $d) = trackers_fetch_dependencies ([ARTIFACT => $items]);
   $summaries = trackers_fetch_summaries ($art);
   $ret = [];
-  foreach ($items as $it => $v)
-    foreach ($v as $tracker => $ids)
-      {
-        if (!array_key_exists ($tracker, $summaries))
-          continue;
-        $sum = $summaries[$tracker];
-        foreach ($ids as $i)
-          if (array_key_exists ($i, $sum))
-            $ret[$it][] = $sum[$i];
-      }
+  foreach ($items as $art => $item_list)
+    foreach ($item_list as $it => $v)
+      foreach ($v as $tracker => $ids)
+        {
+          if (!array_key_exists ($tracker, $summaries))
+            continue;
+          $sum = $summaries[$tracker];
+          foreach ($ids as $i)
+            if (array_key_exists ($i, $sum))
+              $ret[$art][$it][] = $sum[$i];
+        }
   return $ret;
 }
 
@@ -161,7 +216,9 @@ function trackers_filter_out_items (&$items_for_digest, $items, $dependencies)
       $item = $items[$it];
       if (trackers_item_access_denied ($item))
         continue;
-      if (!array_key_exists ($it, $dependencies))
+      if (empty ($dependencies[ARTIFACT]))
+        continue;
+      if (!array_key_exists ($it, $dependencies[ARTIFACT]))
         continue;
       if (empty ($include_closed) && $item['status_id'] == 3)
         continue;
@@ -198,35 +255,25 @@ function trackers_output_list_file ($text, $type, $extension, $total = 0)
   header ("Content-Disposition: attachment; filename=$name");
   print $text;
 }
+
+function trackers_dep_item_status ($tr, $i, $group_items, $deps)
+{
+  global $item_status;
+  if (!empty ($item_status[$tr][$i]))
+    return $item_status[$tr][$i];
+  return null;
+}
+
 function trackers_label_items ($listed, $group_items, $deps)
 {
   $ret = "  node [ style = filled, fontcolor = white, fillcolor = black ]\n";
   foreach ($listed as $tr => $items)
     foreach ($items as $i => $ignored)
       {
-        $status = null;
-        if (ARTIFACT == $tr && !empty ($group_items[$i]))
-          $status = $group_items[$i]['status_id'];
-        if ($status === null && !empty ($deps))
-          {
-            foreach ($deps as $l)
-              foreach ($l as $d)
-                if ($d['tracker'] == $tr && $d['bug_id'] == $i)
-                  $status = $d['status_id'];
-          }
+        $status = trackers_dep_item_status ($tr, $i, $group_items, $deps);
         $ret .= tracker_item_label ($tr, $i, $status);
       }
   return $ret;
-}
-function trackers_list_text_head ()
-{
-  global $group;
-  $head = "digraph {$group}_" . ARTIFACT . "\n{\n  label = \"\n$group ";
-  $head .= ARTIFACT . "\n\n" . trackers_warn_about_hidden (false);
-  $notice = git_agpl_notice ("This graph was generated with Savane.");
-  $notice = preg_replace ('/\n/', '\l', $notice);
-  $head .= "$notice\"\n\n";
-  return $head;
 }
 function tracker_dep_node_name ($tr, $i)
 {
@@ -342,8 +389,10 @@ function trackers_output_list_html (
   trackers_viewdep_nextprev ($total);
   if (!empty ($items_for_digest))
     trackers_print_item_list_img ($items, $dependencies);
+  if (empty ($dependencies[ARTIFACT]))
+    $dependencies[ARTIFACT] = [];
   trackers_print_item_list_html (
-    $items_for_digest, $items, $dependencies, $total
+    $items_for_digest, $items, $dependencies[ARTIFACT], $total
   );
   print trackers_warn_about_hidden ();
   trackers_viewdep_nextprev ($total);
@@ -352,32 +401,64 @@ function trackers_output_list_html (
 }
 function tracker_item_label ($tr, $i, $status)
 {
-  if ($status === null)
-    return '';
   $ret = "  " . tracker_dep_node_name ($tr, $i) . " [ label = \"$tr $i\", ";
   if ($status == 3)
     $ret .= "fillcolor = \"#006000\"";
+  elseif ($status === null)
+    $ret .= 'fillcolor = \"#303030\", shape = diamond';
   else
     $ret .= "fillcolor = \"#800000\", shape = box";
   return "$ret ]\n";
 }
-function trackers_gen_list_text ($items_for_digest, $group_items, $deps)
+function trackers_text_link ($art0, $id0, $d)
+{
+  static $listed;
+  $idx = "$art0-$id0-{$d['tracker']}-{$d['bug_id']}";
+  if (!empty ($listed[$idx]))
+    return null;
+  $listed[$idx] = true;
+  return '  ' . tracker_dep_node_name ($art0, $id0)
+    . " -> " . tracker_dep_node_name ($d['tracker'], $d['bug_id']) . "\n";
+}
+function trackers_deps_format_text_list ($labels, $links)
 {
   global $group;
-  $head =  trackers_list_text_head ();
-  $listed = [];
-  $links = '';
-  foreach ($items_for_digest as $it)
+  $head = "digraph {$group}_" . ARTIFACT . "\n{\n  label = \"\n$group ";
+  $head .= ARTIFACT . "\n\n" . trackers_warn_about_hidden (false);
+  $notice = git_agpl_notice ("This graph was generated with Savane.");
+  $notice = preg_replace ('/\n/', '\l', $notice);
+  $head .= "$notice\"\n\n";
+  $links = array_filter ($links, function ($x) { return $x !== null; });
+  return $head . $labels . join ('', $links) . "}\n";
+}
+function trackers_gen_list_text ($items_for_digest, $group_items, $deps)
+{
+  $missing_items = [ARTIFACT => $items_for_digest];
+  $links = $listed = [];
+  $depth = 0; 
+  do
     {
-      $listed[ARTIFACT][$it] = 1;
-      foreach ($deps[$it] as $d)
-        {
-          $links .= "  " . tracker_dep_node_name (ARTIFACT, $it) . " -> "
-            . tracker_dep_node_name ($d['tracker'], $d['bug_id']) . "\n";
-          $listed[$d['tracker']][$d['bug_id']] = 1;
-        }
+      $next_items = [];
+      foreach ($missing_items as $digest_artifact => $items)
+        foreach ($items as $it)
+          {
+            $listed[$digest_artifact][$it] = 1;
+            if (empty ($deps[$digest_artifact][$it]))
+              continue;
+            foreach ($deps[$digest_artifact][$it] as $d)
+              {
+                $links[] = trackers_text_link ($digest_artifact, $it, $d);
+                if (empty ($listed[$d['tracker']][$d['bug_id']]))
+                  $next_items[$d['tracker']][] = $d['bug_id'];
+                $listed[$d['tracker']][$d['bug_id']] = 1;
+              }
+          }
+       $missing_items = $next_items;
     }
-  return $head . trackers_label_items ($listed, $group_items, $deps) . $links . "}\n";
+  while (!empty ($missing_items) && $depth++ < $GLOBALS['sys_dep_max_depth']);
+  return trackers_deps_format_text_list (
+    trackers_label_items ($listed, $group_items, $deps), $links
+  );
 }
 function trackers_output_list_text ($items_for_digest, $items, $deps, $total)
 {
