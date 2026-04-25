@@ -343,7 +343,9 @@ function trackers_print_item_link ($row)
   print '<span class="'
    . utils_get_priority_color ($row['priority'], $row['status_id'])
    . "\">$icon&nbsp; "
-   . utils_link ("/$artifact/?$item", "$artifact #$item")
+   . utils_link ("/$artifact/?$item",
+       utils_get_tracker_prefix ($artifact) . " #$item"
+     )
    . ": &nbsp;$summary &nbsp;</span>";
 
 }
@@ -401,7 +403,8 @@ function trackers_output_list_html (
 }
 function tracker_item_label ($tr, $i, $status)
 {
-  $ret = "  " . tracker_dep_node_name ($tr, $i) . " [ label = \"$tr $i\", ";
+  $ret = "  " . tracker_dep_node_name ($tr, $i)
+    . " [ label = \"" . utils_get_tracker_prefix ($tr) . " $i\", ";
   if ($status == 3)
     $ret .= "fillcolor = \"#006000\"";
   elseif ($status === null)
