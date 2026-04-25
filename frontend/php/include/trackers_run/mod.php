@@ -94,7 +94,7 @@ $fill_fields_from_request = $preview || !empty ($form_check_submit);
 
 # Item name, converting bugs to bug.
 # (Ideally, the artifact bugs should be named bug).
-$item_name = utils_get_tracker_prefix (ARTIFACT) . " #$item_id";
+$item_name = utils_tracker_item_label (ARTIFACT, $item_id);
 $item_link = utils_link ("?$item_id", $item_name);
 
 $privacy = $res_arr['privacy'];

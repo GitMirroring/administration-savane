@@ -2031,9 +2031,9 @@ function trackers_data_reassign_add_history (
   global $group_id;
 
   $grp_item = group_getname ($group_id) . ', '
-    . utils_get_tracker_prefix (ARTIFACT) . " #$item_id";
+    . utils_tracker_item_label (ARTIFACT, $item_id);
   $new_grp_item = group_getname ($new_group_id) . ', '
-    . utils_get_tracker_prefix ($new_artifact) . " #$new_item_id";
+    . utils_tracker_item_label ($new_artifact, $new_item_id);
 
   trackers_data_add_history (
     'Reassign Item', $grp_item, $new_grp_item, $item_id, false, ARTIFACT, 1
@@ -2133,8 +2133,8 @@ function trackers_data_reassign_string (
 )
 {
   return 'THIS ITEM WAS REASSIGNED TO '
-    . strtoupper (utils_get_tracker_prefix ($new_artifact))
-    . " #$new_item_id\n";
+    . strtoupper (utils_tracker_item_label ($new_artifact, $new_item_id))
+    . "\n";
 }
 
 function  trackers_data_reassign_close_add_history (
@@ -2321,11 +2321,10 @@ function trackers_data_create_try_insert ($insert_fields)
   $item_id = db_insertid ($result);
   if ($item_id)
     {
-      # TANSLATORS: the first argument is tracker type (like sr, bug or recipe);
-      # the second argument is item id (number).
+      # TANSLATORS: the argument identifies the item (like recipe #17, bug #289
+      # or sr #4913).
       $msg = sprintf (
-        _('New item posted (%1$s #%2$s)'),
-        utils_get_tracker_prefix (ARTIFACT), $item_id
+        _('New item posted (%s)'), utils_tracker_item_label (ARTIFACT, $item_id)
       );
       fb ($msg);
       return $item_id;

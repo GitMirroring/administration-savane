@@ -594,7 +594,7 @@ function format_item_changes ($changes, $item_id, $res)
 {
   $group_id = $res['group_id'];
   $public = trackers_item_is_public ($res['privacy'], $group_id);
-  $item_group = utils_get_tracker_prefix (ARTIFACT) . " #$item_id"
+  $item_group = utils_tracker_item_label (ARTIFACT, $item_id)
     . " (group " . group_getunixname ($group_id) . ")";
   $out = format_change_fields ($changes);
 

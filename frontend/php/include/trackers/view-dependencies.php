@@ -312,7 +312,8 @@ function trackers_show_dep ($d)
 {
   print "<li>";
   print "<a href=\"/{$d['tracker']}/?{$d['bug_id']}\">";
-  print "{$d['tracker']} #{$d['bug_id']}</a>: ";
+  print utils_tracker_item_label ($d['tracker'], $d['bug_id']);
+  print "</a>: ";
   print '<span class="'
     . utils_get_priority_color ($d['priority'], $d['status_id']) . '">';
   print "{$d['summary']}</span></li>\n";
@@ -344,7 +345,7 @@ function trackers_print_item_link ($row)
    . utils_get_priority_color ($row['priority'], $row['status_id'])
    . "\">$icon&nbsp; "
    . utils_link ("/$artifact/?$item",
-       utils_get_tracker_prefix ($artifact) . " #$item"
+       utils_tracker_item_label ($artifact, $item)
      )
    . ": &nbsp;$summary &nbsp;</span>";
 
@@ -404,7 +405,7 @@ function trackers_output_list_html (
 function tracker_item_label ($tr, $i, $status)
 {
   $ret = "  " . tracker_dep_node_name ($tr, $i)
-    . " [ label = \"" . utils_get_tracker_prefix ($tr) . " $i\", ";
+    . " [ label = \"" . utils_tracker_item_label ($tr, $i) . "\", ";
   if ($status == 3)
     $ret .= "fillcolor = \"#006000\"";
   elseif ($status === null)

@@ -281,12 +281,12 @@ function format_vote_item ($count, $v)
 {
   $tracker = $v['tracker'];
   $item_id = $v['bug_id'];
-  $prefix = utils_get_tracker_prefix ($tracker);
+  $item_label = utils_tracker_item_label ($tracker, $item_id);
   $summary = trim_summary ($v['summary']);
 
   $url = "/$tracker/?$item_id";
   return show_altrow ($count) . '&nbsp;&nbsp;- '
-    . "<a href=\"$url\">$prefix #$item_id</a>: &nbsp;"
+    . "<a href=\"$url\">$item_label</a>: &nbsp;"
     . "<a href=\"$url\">$summary</a>,&nbsp;"
     . sprintf (ngettext ("%s vote", "%s votes", $v['vote']), $v['vote'])
     . "</span></div>\n";

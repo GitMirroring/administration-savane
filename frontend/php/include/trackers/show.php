@@ -510,8 +510,9 @@ function show_dependent_from_group ($grp_id, $item_id, $status, $tracker)
   $from_group = '';
   if ($grp_id != $group_id)
     $from_group = group_getname ($grp_id) . ', ';
-  print '&nbsp;<span class="xsmall">(' . utils_get_tracker_prefix ($tracker)
-    . " #$item_id, $from_group$status)</span></a>";
+  print '&nbsp;<span class="xsmall">('
+    . utils_tracker_item_label ($tracker, $item_id)
+    . ", $from_group$status)</span></a>";
 }
 
 function show_dependent_single_item ($item_id, $item, $show_trash, &$access)

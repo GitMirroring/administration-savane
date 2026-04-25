@@ -132,7 +132,7 @@ if ($remaining_votes < 100)
         );
         $res_row = db_fetch_array ($res_item);
 
-        $prefix = utils_get_tracker_prefix ($tr);
+        $item_label = utils_tracker_item_label ($tr, $row['item_id']);
         $icon = utils_get_tracker_icon ($tr);
         $vote = $res_row['vote'];
         $color = utils_get_priority_color (
@@ -148,7 +148,7 @@ if ($remaining_votes < 100)
           . html_image ("contexts/$icon.png", ['class' => "icon", 'alt' => $tr])
           . $res_row['summary'] . ', '
           . sprintf (ngettext ("%s vote", "%s votes", $vote), $vote)
-          . "&nbsp;<span class=\"xsmall\">($prefix #{$row['item_id']}, "
+          . "&nbsp;<span class=\"xsmall\">$item_label, "
           . group_getname ($res_row['group_id']) . ")</span></a></div>\n";
       }
 

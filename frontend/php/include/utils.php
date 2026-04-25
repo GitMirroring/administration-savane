@@ -505,6 +505,11 @@ function utils_get_tracker_prefix ($tracker)
   return $tracker;
 }
 
+function utils_tracker_item_label ($tracker, $item_id)
+{
+  return utils_get_tracker_prefix ($tracker) . " #$item_id";
+}
+
 # Return the localized name for the given tracker, if available.
 # Otherwise, return the input string.
 function utils_get_tracker_name ($tracker)

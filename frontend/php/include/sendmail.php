@@ -669,8 +669,9 @@ function sendmail_add_context_to_subject ($message, $context)
   $subject = $message['subject'];
   if (empty ($context['tracker']) || empty ($context['item']))
     return $subject;
-  return "[" . utils_get_tracker_prefix ($context['tracker'])
-    . " #{$context['item']}] $subject";
+  return "["
+   . utils_tracker_item_label ($context['tracker'], $context['item'])
+   . "] $subject";
 }
 
 function sendmail_make_subjects ($to, $message, &$context)

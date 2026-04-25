@@ -429,7 +429,7 @@ function my_item_print_item ($item, $gid, $openclosed)
   if (!isset ($item_data[$item]))
     return;
   $it = $item_data[$item]; $it_id = $it['item_id']; $tracker = $it['tracker'];
-  $prefix = utils_get_tracker_prefix ($tracker);
+  $item_label = utils_tracker_item_label ($tracker, $it_id);
   $icon = utils_get_tracker_icon ($tracker);
 
   # Find out the status full text name: this is group-specific.
@@ -444,7 +444,7 @@ function my_item_print_item ($item, $gid, $openclosed)
         ['class' => 'icon', 'alt' => $tracker]
       )
     . $it['summary'] . "&nbsp;<span class='xsmall'>"
-    . "($prefix #$it_id, $status)</span></a></div>\n";
+    . "($item_label, $status)</span></a></div>\n";
 }
 
 function my_item_list_header ($condensed)
