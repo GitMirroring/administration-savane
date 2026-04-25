@@ -431,30 +431,36 @@ function trackers_deps_format_text_list ($labels, $links)
   $links = array_filter ($links, function ($x) { return $x !== null; });
   return $head . $labels . join ('', $links) . "}\n";
 }
+function trackers_gen_list_text_next_level (
+  $missing_items, $deps, &$listed, &$links
+)
+{
+  $next_items = [];
+  foreach ($missing_items as $digest_artifact => $items)
+    foreach ($items as $it)
+      {
+        $listed[$digest_artifact][$it] = 1;
+        if (empty ($deps[$digest_artifact][$it]))
+          continue;
+        foreach ($deps[$digest_artifact][$it] as $d)
+          {
+            $links[] = trackers_text_link ($digest_artifact, $it, $d);
+            if (empty ($listed[$d['tracker']][$d['bug_id']]))
+              $next_items[$d['tracker']][] = $d['bug_id'];
+            $listed[$d['tracker']][$d['bug_id']] = 1;
+          }
+      }
+  return $next_items;
+}
 function trackers_gen_list_text ($items_for_digest, $group_items, $deps)
 {
   $missing_items = [ARTIFACT => $items_for_digest];
   $links = $listed = [];
   $depth = 0; 
   do
-    {
-      $next_items = [];
-      foreach ($missing_items as $digest_artifact => $items)
-        foreach ($items as $it)
-          {
-            $listed[$digest_artifact][$it] = 1;
-            if (empty ($deps[$digest_artifact][$it]))
-              continue;
-            foreach ($deps[$digest_artifact][$it] as $d)
-              {
-                $links[] = trackers_text_link ($digest_artifact, $it, $d);
-                if (empty ($listed[$d['tracker']][$d['bug_id']]))
-                  $next_items[$d['tracker']][] = $d['bug_id'];
-                $listed[$d['tracker']][$d['bug_id']] = 1;
-              }
-          }
-       $missing_items = $next_items;
-    }
+    $mising_items = trackers_gen_list_text_next_level (
+      $missing_items, $deps, $listed, $links
+    );
   while (!empty ($missing_items) && $depth++ < $GLOBALS['sys_dep_max_depth']);
   return trackers_deps_format_text_list (
     trackers_label_items ($listed, $group_items, $deps), $links
