@@ -953,7 +953,7 @@ function utils_mktemp ($template, $type = 'file')
 
 function utils_rm_fr ($dir)
 {
-  exec ("rm -fr $dir");
+  utils_run_proc (['rm', '-fr', $dir], $out, $err);
 }
 
 # Make a file with a name based on $tarball_name in $sys_upload_dir without

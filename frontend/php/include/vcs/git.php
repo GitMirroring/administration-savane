@@ -78,10 +78,12 @@ function git_make_entry ($git_dir, $repo_dir, $clone_path)
 function git_get_list_from_cgitrepos ($group_name)
 {
   global $sys_etc_dir;
-
-  exec (
-    "grep -A 3 '^repo\.url=$group_name\(/\|\.git$\)' $sys_etc_dir/cgitrepos",
-    $output
+  utils_run_proc (
+    [
+      'grep', '-A', '3', "^repo\.url=$group_name\(/\|\.git$\)",
+      "$sys_etc_dir/cgitrepos"
+    ],
+    $output, $stderr
   );
   $n = intval ((count ($output) + 1) / 5);
   $ret = [];

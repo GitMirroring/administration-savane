@@ -56,10 +56,7 @@ function account_password_help ()
       . "symbols, digits (0-9), upper and lower case letters.");
   if (!$use_pwqcheck)
     return $help;
-  $out = null;
-  $pwqgen = utils_run_proc ([pwqcheck_path ('pwqgen')], $out, $err);
-  if ($out !== null)
-    $out = trim ($out);
+  list ($pwqgen, ) = pwqgen ();
   # TRANSLATORS: the argument is an example of passphrase.
   $help .= " " . sprintf (_("For instance: %s."), utils_specialchars ($pwqgen));
   $help .= " <br />\n"
