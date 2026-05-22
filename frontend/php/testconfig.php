@@ -119,7 +119,7 @@ function check_gpg_executable ()
   if (!isset ($sys_gpg_name))
     return gpg_unset ($ret);
   $gpg_result = utils_run_proc  (
-    gpg\gpg_name () . " --version", $gpg_output, $gpg_stderr
+    [gpg\gpg_name (), '--version'], $gpg_output, $gpg_stderr
   );
   $defs = [
     'GPG command' => "<code>$sys_gpg_name</code>",
@@ -151,9 +151,9 @@ function read_test_key ($algo)
   return [join ("\n", $keys), ''];
 }
 
-function run_gpg ($command, $msg, $input)
+function run_gpg ($cmd, $msg, $input)
 {
-  $cmd = gpg\gpg_name () . " $command";
+  array_unshift ($cmd, gpg\gpg_name ());
   $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
   if (!$res)
     return [$out, $res, ''];
@@ -165,7 +165,7 @@ function run_gpg ($command, $msg, $input)
 function gen_signature ($key_id, $home, $option, $input)
 {
   list ($out, $res, $msg) = run_gpg (
-    "--batch --home '$home' -u '$key_id' $option",
+    array_merge (['--batch', '--home', $home, '-u', $key_id], $option),
     'generate test signature', $input
   );
   return [[$out], $res, $msg];
@@ -184,9 +184,9 @@ function run_gpg_verify ($home, $signature, $input)
 function run_gpg_sign ($key_id, $home, $algo, &$defs)
 {
   $input = gpg\test_message ();
-  foreach (['-a --sign', '--clearsign', '--detach-sign'] as $option)
+  foreach ([['-a', '--sign'], ['--clearsign'], ['--detach-sign']] as $option)
     {
-      $term = "$algo, $option";
+      $term = "$algo, " . join (', ', $option);
       list ($signature, $error, $msg) =
         gen_signature ($key_id, $home, $option, $input);
       if ($error)
@@ -195,7 +195,7 @@ function run_gpg_sign ($key_id, $home, $algo, &$defs)
           $defs[$term] = $msg;
           continue;
         }
-      if ($option == '--detach-sign')
+      if (in_array ('--detach-sign', $option))
         $signature[] = $input;
       $msg = run_gpg_verify ($home, $signature, $input);
       $defs[$term] = $msg;
@@ -212,14 +212,17 @@ function test_gpg_algo_list ()
 function encrypt_test ($key_id, $home, $input)
 {
   return run_gpg (
-    "--batch --trust-model always --home '$home' -r '$key_id' --encrypt",
+    [
+      '--batch', '--trust-model', 'always', '--home', $home, '-r', $key_id,
+      '--encrypt'
+    ],
     'encrypt', $input
   );
 }
 
 function decrypt_test ($key_id, $home, $input)
 {
-  return run_gpg ("--batch --home '$home' --decrypt", 'decrypt', $input);
+  return run_gpg (['--batch', '--home', $home, '--decrypt'], 'decrypt', $input);
 }
 
 function run_gpg_encrypt ($key_id, $home, $algo, &$defs)

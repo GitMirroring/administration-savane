@@ -57,23 +57,25 @@ define ('GNUPG_SIGN_CAPABILITY', 'S');
 }
 
 namespace gpg {
-# Path to gpg, quoted just in case for using in command line.
 function gpg_name ()
 {
-  return "'{$GLOBALS['sys_gpg_name']}'";
+  return $GLOBALS['sys_gpg_name'];
 }
 # Form a gpg command line using $sys_gpg_home and ending with $tail.
-function gpg_batch_home ($tail = '')
+function gpg_batch_home ($tail = [])
 {
   global $sys_gpg_home;
   if (empty ($sys_gpg_home))
     return [null, expand_error (true, GPG_ERROR_NO_USABLE_KEY)];
-  return [gpg_name () . " --batch --home '$sys_gpg_home' $tail", null];
+  $cmd = array_merge (
+    [gpg_name (), '--batch', '--home', $sys_gpg_home], $tail
+  );
+  return [$cmd, null];
 }
 
 function gpg_version ()
 {
-  utils_run_proc (gpg_name () . " --version", $output, $err);
+  utils_run_proc ([gpg_name (), '--version'], $output, $err);
   return $output;
 }
 
@@ -106,7 +108,7 @@ function minified_tests ($key, $home, $level, &$ret)
   if ($res)
     return $res;
   $ret .= html_h ($level, _('Listing minified key'));
-  return test_gpg_command ($home, '--list-sigs --fingerprint', $ret);
+  return test_gpg_command ($home, ['--list-sigs', '--fingerprint'], $ret);
 }
 
 function test_minify ($key, $temp_dir, $level, &$ret)
@@ -141,7 +143,7 @@ function no_i18n_env ()
 
 function test_gpg_command ($temp_dir, $command, &$ret, $in = null)
 {
-  $cmd = gpg_name () . " --home '$temp_dir' $command";
+  $cmd = array_merge ([gpg_name (), '--home', $temp_dir], $command);
   $aux = ['env' => no_i18n_env ()];
   if ($in !== null)
     $aux['in'] = $in;
@@ -161,9 +163,9 @@ function test_listing ($temp_dir, $level, &$ret, $test_against_email = false)
       $label = sprintf (_("Listing keys for %s"), $email_string);
     }
   $ret .= html_h ($level, $label);
-  $options = '--list-keys --fingerprint';
+  $options = ['--list-keys', '--fingerprint'];
   if ($test_against_email)
-    $options .= " $email";
+    $options[] .= $email;
   $res = test_gpg_command ($temp_dir, $options, $ret);
   if (!$test_against_email || !$res)
     return $res;
@@ -177,7 +179,7 @@ function test_listing ($temp_dir, $level, &$ret, $test_against_email = false)
 
 function test_import ($key, $temp_dir, &$output)
 {
-  return test_gpg_command ($temp_dir, '--batch --import', $output, $key);
+  return test_gpg_command ($temp_dir, ['--batch', '--import'], $output, $key);
 }
 
 # The message is a slightly modified ASCII art
@@ -241,7 +243,7 @@ function import_key ($key, $home = null)
     $temp_dir = utils_mktemp ("sv-gpg", 'dir');
   if (empty ($temp_dir))
     return [$temp_dir, GPG_ERROR_NO_TEMP_DIR];
-  $cmd = gpg_name () . " --home '$temp_dir' --batch -q --import";
+  $cmd = [gpg_name (), '--home', $temp_dir, '--batch', '-q', '--import'];
   if (utils_run_proc ($cmd, $out, $err, ['in' => $key]))
     $error = GPG_ERROR_NO_USABLE_KEY;
   return [$temp_dir, $error];
@@ -249,7 +251,7 @@ function import_key ($key, $home = null)
 
 function list_keys ($home)
 {
-  $cmd = gpg_name () . " --home='$home' --list-keys --with-colons";
+  $cmd = [gpg_name (), '--home', $home, '--list-keys', '--with-colons'];
   $res = utils_run_proc ($cmd, $out, $err);
   if ($res)
     return null;
@@ -333,8 +335,10 @@ function expand_error ($res, $e_code, $out = null, $err = null)
 
 function run_encryption ($key, $message, $home)
 {
-  $cmd = gpg_name () . " --home='$home' --trust-model always --batch "
-    . "-a --encrypt -r $key";
+  $cmd = [
+    gpg_name (), '--home', $home, '--trust-model', 'always', '--batch',
+    '-a', '--encrypt', '-r', $key
+  ];
   $res = utils_run_proc ($cmd, $encrypted, $err, ['in' => $message]);
   list ($error_code, $error_msg) =
     expand_error ($res, GPG_ERROR_GPG_FAILED);
@@ -367,13 +371,14 @@ function make_verify_input ($input)
 
 function verify ($home, $input)
 {
-  $cmd = gpg_name () . " --home='$home' --batch --trust-model always";
+  $cmd = [gpg_name (), '--home', $home, '--batch', '--trust-model', 'always'];
   $op = count ($input) > 1? 'verify': 'decrypt';
   $in_files = make_verify_input ($input);
   if (empty ($in_files))
     return [GPG_ERROR_NO_TEMP_DIR, error_str (GPG_ERROR_NO_TEMP_DIR), ''];
-  $files = join (' ', $in_files);
-  $res = utils_run_proc ("$cmd --$op $files", $out, $err);
+  $cmd[] = "--$op";
+  $cmd = array_merge ($cmd, $in_files);
+  $res = utils_run_proc ($cmd, $out, $err);
   list ($error_code, $error_msg) =
     expand_error ($res, GPG_ERROR_VERIFY_FAILED);
   $decrypted = $op == 'decrypt'? $out: $input[1];
@@ -410,8 +415,10 @@ function export_minified ($temp_dir)
   # As of 2024-06, Savannah has the registered GPG keys as long as 2M
   # due to a big photo id, and as long as 300K due to hundreds of other
   # people's signatures.  Don't include that data in the minimized version.
-  $cmd = gpg_name () . " --home='$temp_dir' --batch -a --export "
-    . "--export-options=export-minimal,no-export-attributes";
+  $cmd = [
+    gpg_name (), '--home', $temp_dir, '--batch', '-a', '--export',
+    '--export-options=export-minimal,no-export-attributes'
+  ];
   $res = utils_run_proc ($cmd, $out, $err, ['env' => no_i18n_env ()]);
   if ($res)
     {
@@ -510,7 +517,7 @@ function gpg_minify_key ($key)
 }
 function gpg_sign ($input)
 {
-  list ($cmd, $error) = gpg\gpg_batch_home ('-a -b -v');
+  list ($cmd, $error) = gpg\gpg_batch_home (['-a', '-b', '-v']);
   if (empty ($cmd))
     return ['', true, $error, null];
   $res = utils_run_proc ($cmd, $out, $err, ['in' => $input]);
@@ -519,7 +526,7 @@ function gpg_sign ($input)
 }
 function gpg_get_sys_key ()
 {
-  list ($cmd, $error) = gpg\gpg_batch_home ('-a --export');
+  list ($cmd, $error) = gpg\gpg_batch_home (['-a', '--export']);
   if (empty ($cmd))
     return '';
   $res = utils_run_proc ($cmd, $out, $err);
@@ -538,8 +545,7 @@ function gpg_decrypt_and_verify ($input, $user_id)
     return $error;
   $temp_dir = utils_mktemp ("sv-gpg-decrypt", 'dir');
   $home = "$temp_dir/gpg";
-  $cmd = "cp -a '$sys_gpg_home' '$home'";
-  $res = utils_run_proc ($cmd, $out, $err);
+  $res = utils_run_proc (['cp', '-a', $sys_gpg_home, $home], $out, $err);
   if ($res)
     return gpg\expand_error ($res, GPG_ERROR_NO_TEMP_DIR);
   $ret = gpg\verify_for ($user_id, [$input], $home);
