@@ -139,7 +139,7 @@ function error_print_r ($val)
     }
   if (is_string ($val))
     {
-      $val = str_replace ('\\', '\\\\', $val);
+      $val = str_replace (['\\', "\0"], ['\\\\', '<\\0>'], $val);
       return "'" . str_replace ("'", "\\'", $val) . "'";
     }
   if (is_scalar ($val))
