@@ -795,14 +795,55 @@ function close_pipes ($pipes, $proc)
   proc_close ($proc);
 }
 
+function proc_popen_accepts_array ()
+{
+  static $ret = null;
+  if ($ret !== null)
+    return $ret;
+  $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+  $state = utils_disable_warnings (E_WARNING);
+  $proc = proc_open (['which', 'which'], $d_spec, $pipes);
+  utils_restore_warnings ($state);
+  $ret = $proc !== false;
+  if ($ret)
+    {
+      for ($i = 0; $i < 3; $i++)
+        fclose ($pipes[$i]);
+      proc_close ($proc);
+    }
+  return $ret;
+}
+
+function make_proc_open_cmd ($cmd)
+{
+  $ret = [];
+  foreach ($cmd as $c)
+    $ret[] = escapeshellarg ($c);
+  return join (' ', $ret);
+}
+
+function cmd_string ($cmd)
+{
+  if (!is_array ($cmd))
+    return '"' . str_replace ('"', '\"', $cmd) . '"';
+  $cmd = array_map (
+    function ($x) { return '"' . str_replace ('"', '\"', $x) . '"'; },
+    $cmd
+  );
+  return '[' . join (', ', $cmd) . ']';
+}
+
 function p_open ($cmd, $env, $log_error)
 {
   $d_spec = [0 => ["pipe", "r"], 1 => ["pipe", "w"], 2 => ["pipe", "w"]];
+  if (is_array ($cmd) && !proc_popen_accepts_array ())
+    $cmd = make_proc_open_cmd ($cmd);
   $proc = proc_open ($cmd, $d_spec, $pipes, NULL, $env);
   if ($proc !== false)
     return [null, '', $pipes, $proc];
-  $err = "can't run $cmd\n";
-  dispatch_error ($cmd, -1, $err, $log_error);
+  $cmd_str = cmd_string ($cmd);
+  $err = "can't run $cmd_str\n";
+  dispatch_error ($cmd_str, -1, $err, $log_error);
   return ['fail', $err, null, null];
 }
 
@@ -814,6 +855,8 @@ function write ($fd, $in, $cmd, $log_error)
   $len = strlen ($in);
   if ($ns === $len)
     return [null, ''];
+  if (is_array ($cmd))
+    $cmd = join (' ', $cmd);
   if ($ns === false)
     $err = "$cmd: can't pass input data\n";
   else
