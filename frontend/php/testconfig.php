@@ -1366,7 +1366,7 @@ function list_sysvar ($tag, &$defs)
   $var = "sys_$tag";
   $value = '<>';
   if (isset ($GLOBALS[$var]))
-    $value = utils_specialchars (print_r ($GLOBALS[$var], true));
+    $value = nl2br (utils_specialchars (print_r ($GLOBALS[$var], true)));
   if ($flags['must_be_hidden'])
     $value = "**************";
   $defs[$var] = list_unset_val ($flags['must_be_unset'], $value);
