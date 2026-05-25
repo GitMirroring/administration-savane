@@ -64,6 +64,10 @@ $sys_unix_group_name = "administration";
 $sys_themedefault = "Savannah";
 # The path to Graphviz executable.
 $sys_graphviz = "/usr/bin/dot";
+# The directory where pwqcheck and pwqgen binaries are located; when
+# the variable doesn't exist, the executables are searched according to the PATH
+# environment variable.
+$sys_pwqcheck_path = '/usr/local/bin';
 # Template for the Reply-To: header in tracker follow-up notifications,
 # see doc/comments-via-email.
 $sys_reply_to = '%UID-%TRACKER-sv-dev <savane-trackers@example.org>';
@@ -110,7 +114,7 @@ $sys_upload_max = 16384;
 $sys_etc_dir = "/etc/savane";
 
 # Command to connect mailman.
-$sys_mailman_wrapper = "ssh -T list@lists.gnu.org";
+$sys_mailman_wrapper = ['ssh', '-T', 'list@lists.gnu.org'];
 
 # Send a copy of anonymous comments to $sys_mail_admin.
 $sys_watch_anon_posts = true;

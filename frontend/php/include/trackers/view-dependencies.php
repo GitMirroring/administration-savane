@@ -483,7 +483,7 @@ function trackers_gen_list_svg ($items_for_digest, $items, $deps, $total = 0)
   if (empty ($sys_graphviz))
     return '';
   $list_text = trackers_gen_list_text ($items_for_digest, $items, $deps);
-  utils_run_proc ("$sys_graphviz -Tsvg", $out, $err, ['in' => $list_text]);
+  utils_run_proc ([$sys_graphviz, '-Tsvg'], $out, $err, ['in' => $list_text]);
   return $out;
 }
 function trackers_output_list_svg ($items_for_digest, $items, $deps, $total)

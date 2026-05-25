@@ -186,7 +186,7 @@ function hash_try_sv_crypt ($plainpw, $salt)
   for ($i = 0; $i < 5; $i++)
     {
       $exit_code = utils_run_proc (
-        "$bindir/sv_crypt", $out, $err, ['in' => "$salt\n$plainpw\n"]
+        ["$bindir/sv_crypt"], $out, $err, ['in' => "$salt\n$plainpw\n"]
       );
       if (!$exit_code)
         return substr ($out, 0, -1);

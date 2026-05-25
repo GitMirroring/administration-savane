@@ -61,7 +61,7 @@ my @list_params = (
 
 my $exit_code = 2;
 my @created_lists;
-append_savane_conf ("\$sys_mailman_wrapper = '$wrapper';") or exit (1);
+append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
 my $agent = make_agent () or exit (1);
 log_in_su ($agent);
 

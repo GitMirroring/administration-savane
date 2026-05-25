@@ -47,6 +47,18 @@ require_once ("sendmail.php");
 }
 
 namespace mm_ns {
+# For backwards compatibility: when the command is a string, transform it in
+# an array.
+function split_command_line ($cmd)
+{
+  if (is_array ($cmd))
+    return $cmd;
+  $cmd = explode (' ', $cmd);
+  $ret = [];
+  foreach ($cmd as $c)
+    $ret[] = preg_replace ("/^'(.*)'$/", '$1', $c);
+  return $ret;
+}
 function send_request ($cmd, $args)
 {
   $in = "command=$cmd\n";
@@ -54,7 +66,8 @@ function send_request ($cmd, $args)
     $in .= "$k=$v\n";
 
   $ret = utils_run_proc (
-    $GLOBALS['sys_mailman_wrapper'], $output, $error, ['in' => $in]
+    split_command_line ($GLOBALS['sys_mailman_wrapper']),
+    $output, $error, ['in' => $in]
   );
   if ($ret === 'fail')
     $error = "Error: $error\n";

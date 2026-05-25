@@ -247,7 +247,7 @@ function utils_strftime ($timestamp, $format)
     return "date-based$timestamp";
   $env['LC_ALL'] = setlocale (LC_TIME, 0);
   $env['TZ'] = getenv ('TZ');
-  $cmd = "date +$format -d @$timestamp";
+  $cmd = ['date', "+$format", '-d', "@$timestamp"];
   utils_run_proc ($cmd, $output, $error, ['env' => $env]);
   if ($output !== null)
     return substr ($output, 0, -1); # Drop trailing "\n".
@@ -921,26 +921,26 @@ function utils_try_move ($tmp_path, $path)
 
 function utils_mktemp ($template, $type = 'file')
 {
-  $cmd = "mktemp --tmpdir ";
+  $cmd = ['mktemp', '--tmpdir'];
   if ($type !== 'file')
     {
       $type = 'dir';
-      $cmd .= "-d ";
+      $cmd[] = '-d';
     }
   if (substr ($template, -3) !== 'XXX')
     $template .= '.XXXXXXXXX';
-  $cmd .= $template;
+  $cmd[] = $template;
   $res = utils_run_proc ($cmd, $out, $err);
   if ($res)
     {
-      trigger_error ("'$cmd' failed, $res: $err");
+      trigger_error ("'" . join (' ', $cmd) . "' failed, $res: $err");
       return null;
     }
   $out = trim ($out);
   $is_func = "is_$type";
   if ($is_func ($out))
     return $out;
-  trigger_error ("'$cmd' failed: no $out $type");
+  trigger_error ("'" . join (' ', $cmd) . "' failed: no $out $type");
   return null;
 }
 
@@ -962,7 +962,8 @@ function utils_make_upload_file ($tarball_name, &$errors)
   # It might be easier to use tempnam (), but it has no --suffix feature.
   $name = strtr ($name, "'/", ".-");
   $res = utils_run_proc (
-    "mktemp -p \"$sys_upload_dir\" --suffix='-$name' XXXXXX", $out, $err
+    ['mktemp', '-p', $sys_upload_dir, '--suffix', "-$name", 'XXXXXX'],
+    $out, $err
   );
   if ($res)
     {

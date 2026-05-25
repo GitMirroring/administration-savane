@@ -103,12 +103,12 @@ $use_pwqcheck = TRUE;
 # checks has 27 bits of entropy, the same as 22 characters long
 # user-chosen password composed from 10-character alphabet with no checks
 # implied, so we can safely admit any 24 characters long passwords.
-$pwqcheck_args = 'match=0 max=256 min=24,24,11,8,7';
+$pwqcheck_args = ['match=0', 'max=256', 'min=24,24,11,8,7'];
 
 # Default uploads directory for './register2/upload.html'.
 $sys_upload_dir = "/var/www/submissions_uploads" ;
 
-$sys_mailman_wrapper = "$bindir/sv_mailman-wrapper.pl";
+$sys_mailman_wrapper = ["$bindir/sv_mailman-wrapper.pl"];
 
 if (!empty ($sys_conf_file))
   include ("$sys_conf_file");

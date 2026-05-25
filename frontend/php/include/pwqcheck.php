@@ -54,7 +54,7 @@
 #
 # Author: Alexander Peslyak (original pwqcheck())
 # Author: Ineiev (i18n).
-# 2023, Ineiev: rewrite with utils_run_proc.
+# 2023, 2026 Ineiev: rewrite with utils_run_proc.
 
 # The original pwqcheck is not internationalized. Strings to localize
 # are taken from passwdqc_check.c (the 1.3.1 release); they are copyrighted
@@ -97,7 +97,14 @@ $pwqcheck_messages_for_i18n = [
   _("Bad passphrase (appears to be in a database)"),
 ];
 
-function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = '')
+function pwqcheck_path ($bin = '')
+{
+  if (array_key_exists ('sys_pwqcheck_path', $GLOBALS))
+    return $GLOBALS['sys_pwqcheck_path'] . "/$bin";
+  return $bin;
+}
+
+function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = [])
 {
   # pwqcheck(1) itself returns the same message on internal error.
   $retval = 'Bad passphrase (check failed)';
@@ -112,12 +119,10 @@ function pwqcheck ($newpass, $oldpass = '', $user = '', $aux = '', $args = '')
   if (!$newpass && !$oldpass)
     $oldpass = '.';
 
-  if ($args)
-    $args = " $args";
   if (!$user)
-    $args = " -2 $args"; # passwdqc 1.2.0+
-
-  $command = "pwqcheck$args";
+    array_unshift ($args, '-2'); # passwdqc 1.2.0+
+  array_unshift ($args, pwqcheck_path ('pwqcheck'));
+  $command = $args;
   $err = 0;
   $in = "$newpass\n$oldpass\n";
   if ($user)
@@ -232,7 +237,7 @@ function pwqcheck_explain_match ($args, &$help)
 # Return a string explaining current pwcheck requirements.
 function pwqcheck_explain_options ($pwqcheck_args)
 {
-  $args = "$pwqcheck_args ";
+  $args = join (' ', $pwqcheck_args) . ' ';
   $help = [];
   $sep = "<br />\n";
 
@@ -241,5 +246,14 @@ function pwqcheck_explain_options ($pwqcheck_args)
   pwqcheck_explain_match ($args, $help);
   pwqcheck_explain_min_numbers ($args, $help);
   return $sep . join ($help);
+}
+
+function pwqgen ()
+{
+  $out = null;
+  $ret = utils_run_proc ([pwqcheck_path ('pwqgen')], $out, $err);
+  if ($out !== null)
+    $out = trim ($out);
+  return [$out, $err, $ret];
 }
 ?>

@@ -966,7 +966,7 @@ function test_disabled_languages ($loc_list)
 function get_locales ()
 {
   $h = test_h (3, "Locales defined", 'locales-defined');
-  $res = utils_run_proc ('locale -a', $out, $err);
+  $res = utils_run_proc (['locale', '-a'], $out, $err);
   if ($res)
     return "<p>Can't get locales defined: </p>\n<pre>$err</pre>\n";
   $out = str_replace ("\n", ', ', substr ($out, 0, -1));
@@ -1378,7 +1378,7 @@ function output_sysvars ()
     'dbcharset',
     'dbhost', 'dbname', '*dbpasswd', 'dbport', 'dbsocket', 'dbuser',
     'default_domain', 'brother_domain', 'file_domain', 'https_host',
-    'gpg_name', 'gpg_home', 'graphviz',
+    'gpg_name', 'gpg_home', 'graphviz', 'pwqcheck_path',
     'etc_dir', 'incdir', 'upload_dir', 'www_topdir', 'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
     'min_gidNumber', 'min_uidNumber', 'group_file', 'passwd_file',

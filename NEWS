@@ -2,6 +2,8 @@
 
 [FRONTEND]
 
+* New configuration variable, $sys_pwqcheck_path, see doc/savane.conf.php.
+
 * Bug fixes:
 
 ** User-supplied addresses needed an escaping when running GnuPG tests since
