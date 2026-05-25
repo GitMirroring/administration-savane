@@ -863,6 +863,28 @@ function write ($fd, $in, $cmd, $log_error)
     $err = "$cmd: can't pass input data; wrote $ns of $len bytes\n";
   return ['fail', $err];
 }
+
+function run_proc ($cmd, &$out, &$err, $aux)
+{
+  list ($in, $env, $log_error) = init_aux ($aux);
+  $out = null;
+  list ($ret, $err, $pipes, $proc) = p_open ($cmd, $env, $log_error);
+  if (!empty ($ret))
+    return $ret;
+  list ($ret, $err) = write ($pipes[0], $in, $cmd, $log_error);
+  if (!empty ($ret))
+    {
+      close_pipes ($pipes, $proc);
+      return $ret;
+    }
+  fclose ($pipes[0]);
+  $out = stream_get_contents ($pipes[1]);
+  $err = stream_get_contents ($pipes[2]);
+  fclose ($pipes[1]); fclose ($pipes[2]);
+  $res = proc_close ($proc);
+  dispatch_error ($cmd, $res, $err, $log_error, $in);
+  return $res;
+}
 } # namespace utils_run_proc_ns
 
 namespace {
@@ -871,26 +893,11 @@ namespace {
 # the environment, if ['log_error'], errors are logged.
 function utils_run_proc ($cmd, &$out, &$err, $aux = [])
 {
-  list ($in, $env, $log_error) = utils_run_proc_ns\init_aux ($aux);
-  $out = null;
-  list ($ret, $err, $pipes, $proc) =
-    utils_run_proc_ns\p_open ($cmd, $env, $log_error);
-  if (!empty ($ret))
-    return $ret;
-  list ($ret, $err) =
-    utils_run_proc_ns\write ($pipes[0], $in, $cmd, $log_error);
-  if (!empty ($ret))
-    {
-      utils_run_proc_ns\close_pipes ($pipes, $proc);
-      return $ret;
-    }
-  fclose ($pipes[0]);
-  $out = stream_get_contents ($pipes[1]);
-  $err = stream_get_contents ($pipes[2]);
-  fclose ($pipes[1]); fclose ($pipes[2]);
-  $res = proc_close ($proc);
-  utils_run_proc_ns\dispatch_error ($cmd, $res, $err, $log_error, $in);
-  return $res;
+  if (is_array ($cmd))
+    return utils_run_proc_ns\run_proc ($cmd, $out, $err, $aux);
+  trigger_error ('$cmd should be an array');
+  $out = $err = '';
+  return -1;
 }
 
 function utils_disable_warnings ($level = E_ALL, $dry_run = false)
