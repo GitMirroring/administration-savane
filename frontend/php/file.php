@@ -135,7 +135,7 @@ function assert_file_access ($item_fields, $file_uid)
     }
   if ($file_uid != $item_fields['submitted_by'])
     file_exit ('file_permission_denied',
-      _("Non-authorized access to file attached to private item."),
+      _("Non-authorized access to file attached to private item.")
     );
   form_check_id ();
 }
