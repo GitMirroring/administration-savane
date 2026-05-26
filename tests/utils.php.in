@@ -1,0 +1,211 @@
+<?php
+# Test internal functions.
+# This file is only installed when running 'make test'.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Tobias Toedter <t.toedter--gmx.net>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2015-2020, 2022, 2024 Bob Proulx
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Simulate testconfig.php for the purpose of configuration.
+$testconfig_php = true;
+require_once ("include/ac_config.php");
+$sys_file_domain = '';
+foreach (['pwqcheck', 'utils', 'error'] as $inc)
+  require_once ("include/$inc.php");
+$indent = '';
+function inc_indent ($inc = 1)
+{
+  global $indent;
+  $step = '  ';
+  if ($inc >= 0)
+    {
+      while ($inc--)
+        $indent .= $step;
+      return;
+    }
+  $len = strlen ($indent) + $inc * strlen ($step);
+  if ($len <= 0)
+    {
+      $indent = '';
+      return;
+    }
+  $indent = substr ($indent, 0, $len);
+}
+function dec_indent ($dec = 1)
+{
+  inc_indent (-$dec);
+}
+function output ($str, $prefix = ' ')
+{
+  global $indent;
+  print "$prefix$indent$str\n";
+}
+function print_error ($err)
+{
+  output ($err, '!');
+}
+
+function test_utils_mktemp ($type)
+{
+  output ("Making temporary $type.");
+  $path = utils_mktemp ('test', $type);
+  if (null === $path)
+    {
+      print_error ('utils_mktemp returned null.');
+      return;
+    }
+  output ("utils_mktemp returned $path.");
+  if (!file_exists ($path))
+    {
+      print_error ("$path doesn't exist.");
+      return;
+    }
+  output ("$path exists.");
+  output ("Removing temporary $type.");
+  utils_rm_fr ($path);
+  if (file_exists ($path))
+    print_error ("$path still exists.");
+  else
+    output ("Successfully removed $path.");
+}
+
+function test_mktemp ()
+{
+  foreach (['dir', 'file'] as $type)
+    test_utils_mktemp ($type);
+}
+
+function run_strftime ()
+{
+  global $sys_use_strftime;
+  $timestamp = 1779800000;
+  $t = utils_strftime ($timestamp, '%c');
+  $d = 'Tue May 26 12:53:20 2026';
+  output (
+    '$sys_use_strftime = ' . intval ($sys_use_strftime)
+    . '; ' . utils_strftime (" $timestamp", null) . '.'
+  );
+  if ($t === $d)
+    {
+      output ("utils_strftime returned $t.");
+      return;
+    }
+  print_error ("utils_strftime returned $t ($d expected).");
+}
+
+function report_strftime_existence ()
+{
+  $str = function_exists ('strftime')?
+    'strftime exists.': 'strftime does not exist.';
+  output ($str);
+}
+
+function test_strftime ()
+{
+  global $sys_use_strftime;
+  putenv ('TZ=UTC');
+  putenv ('LC_ALL=C');
+  $saved = !empty ($sys_use_strftime);
+  report_strftime_existence ();
+  foreach ([true, false] as $use)
+    {
+      $sys_use_strftime = $use;
+      run_strftime ();
+    }
+  $sys_use_strftime = $saved;
+}
+
+function test_pwqgen_result ($out, $err, $exit_code)
+{
+  $ret = false;
+  if (!empty ($exit_code))
+    {
+      print_error ("pwqgen exit code is $exit_code.");
+      $ret = true;
+    }
+  if (!empty ($err))
+    {
+      print_error ("pwqgen produced an error message,");
+      inc_indent ();
+      print_error ($err);
+      dec_indent ();
+      $ret = true;
+    }
+  if (empty ($out))
+    {
+      print_error ("pwqgen output is empty.");
+      $ret = true;
+    }
+  return $ret;
+}
+
+function test_pwqcheck ()
+{
+  $ret = pwqcheck ('a');
+  if ($ret === 0)
+    print_error ("pwqcheck('a') is unexpectedly zero.");
+  else
+    output ("pwqcheck('a') returned '$ret'.");
+  list ($out, $err, $exit_code) = pwqgen ();
+  if (test_pwqgen_result ($out, $err, $exit_code))
+    return;
+  output ("pwqgen generated '$out'.");
+  $ret = pwqcheck ($out);
+  if ($ret !== 0)
+    print_error ("pwqcheck('$out') is non-zero: '$ret'.");
+  else
+    output ("pwqcheck('$out') is zero.");
+}
+
+$tests = [
+  'utils_mktemp' => 'test_mktemp',
+  'utils_strftime' => 'test_strftime',
+  'pwqcheck' => 'test_pwqcheck'
+];
+
+foreach ($tests as $name => $func)
+  {
+    output ("Testing $name.");
+    inc_indent ();
+    $func ();
+    dec_indent ();
+  }
+?>
