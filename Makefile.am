@@ -75,7 +75,9 @@ all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 build_time_scripts = db/init-database.pl
 test_scripts = tests/field-usage tests/i18n tests/mail-pm tests/log-exits \
   tests/mailman tests/membership tests/register-group tests/register-user \
-  tests/repos tests/testconfig tests/tracker-conf-copy tests/trackers
+  tests/repos tests/testconfig tests/tracker-conf-copy tests/trackers \
+  tests/utils
+test_data_files = tests/utils.php
 all_test_scripts = ${test_scripts} tests/run-tests
 
 common_conf = savane.conf.pl membersh-conf.pl
@@ -109,7 +111,8 @@ modules = \
   lib/Savane/Version.pm
 
 sbin_SCRIPTS = $(backend_sbin_scripts)
-noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built) $(all_test_scripts)
+noinst_SCRIPTS = $(build_time_scripts) $(frontend_php_built) \
+  $(all_test_scripts) $(test_data_files)
 nobase_pkgdata_DATA += $(modules)
 confdir = $(sysconfdir)/$(PACKAGE)
 pkgstatedir = $(localstatedir)/lib/$(PACKAGE)
@@ -217,7 +220,7 @@ subst_in_files = \
 
 substituted = \
   $(all_scripts) $(build_time_scripts) $(conf_all:%=sysconf/%) $(modules) \
-  $(frontend_php_built)
+  $(frontend_php_built) $(test_data_files)
 
 dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
 
