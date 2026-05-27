@@ -518,7 +518,7 @@ function trackers_extract_date_field (&$vfl, $key, $val)
 {
   if (!preg_match ("/^(.*)_(day|month|year)fd$/", $key, $found))
     return false;
-  trim ($val);
+  $val = trim ($val);
   if (!is_numeric ($val))
     return true;
   list ($ignore, $field_name, $field_name_part) = $found;
