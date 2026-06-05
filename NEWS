@@ -6,10 +6,16 @@
 
 * Bug fixes:
 
+** Files attached to private items were not accessible for submitters, see
+   Savannah bug #68140 (private as of 2026-03-13).
+
 ** User-supplied addresses needed an escaping when running GnuPG tests since
    2025-03 (508a675ddd6d5e0); reported on 2025-05-11 to sv-hackers-private@,
    <CAJoK3rhmRkFBobOY4h-8rRDEYq2pL-92_7=imzfm5wAiPVRrTQ@mail.gmail.com>,
    HCK-001.
+
+** siteadmin/triggercreation.php had a wrong exception in checking
+   privileges (HCK-002).
 
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
