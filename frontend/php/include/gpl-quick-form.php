@@ -172,7 +172,7 @@ class GPLQuickForm_Element
     print '<p>';
     print "<b><label $for_attr>{$this->title}</label></b>&nbsp;\n&nbsp;";
     if ($this->frozen)
-      print "$value<input type='hidden' $name_attr value=\"$esc_val\" />\n";
+      print "$esc_val<input type='hidden' $name_attr value=\"$esc_val\" />\n";
     else
       print "<input type='text' " . $this->title_attr ()
         . "$name_attr value=\"$esc_val\" />\n";
@@ -239,7 +239,7 @@ class GPLQuickForm_Element
             if ($value == NULL)
               break;
             print $this->select_options[$value];
-            print "<input type='hidden' $name_attr value='$value' />\n";
+            print "<input type='hidden' $name_attr value='$esc_val' />\n";
             break;
           }
         print "<select $name_attr " . $this->title_attr () . ">\n";
