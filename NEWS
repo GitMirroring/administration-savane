@@ -29,6 +29,8 @@
 ** Access to private tracker item attachments wasn't correctly checked
    (HCK-008).
 
+** Access to news atom feeds of private groups was not restricted (HCK-009).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 

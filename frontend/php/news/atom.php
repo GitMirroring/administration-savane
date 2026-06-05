@@ -53,6 +53,9 @@ if (empty ($group_id))
   exit;
 }
 
+if (!(group_get_object ($group_id)->isPublic ()))
+  session_require (['group' => $group_id]);
+
 # Cache control
 $result = db_execute ("
   SELECT date_last_edit FROM news_bytes
