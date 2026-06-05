@@ -307,6 +307,8 @@ function trackers_data_show_notification_settings ($group_id, $tracker)
 
 function trackers_data_post_notification_settings ($group_id, $tracker)
 {
+  if (!user_is_group_admin ())
+    exit_permission_denied ();
   $local_feedback = "";
   # Build the variable names related to elements always present in the form
   # and get their values.
