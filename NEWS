@@ -37,6 +37,9 @@
 ** When tracker field transitions were deleted, it wasn't checked
    if they belong to the current group (HCK-011, HCK-020, HCK-023).
 
+** When tracker CC was deleted, it wasn't checked if it belong to
+   the current group (HCK-013).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 
