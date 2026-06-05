@@ -1366,7 +1366,11 @@ function trackers_delete_cc ($group_id, $item_id, $item_cc_id)
 {
   # Extract data about the CC.
   $res1 = db_execute ("
-    SELECT * FROM " . ARTIFACT . "_cc WHERE bug_cc_id = ?", [$item_cc_id]
+    SELECT `cc`.*
+    FROM
+      `" . ARTIFACT . "_cc` `cc` JOIN `" . ARTIFACT . "` `a`
+      ON `a`.`bug_id` = `cc`.`bug_id`
+    WHERE `bug_cc_id` = ? AND `group_id` = ?", [$item_cc_id, $group_id]
   );
   if  (!db_numrows ($res1))
     {
