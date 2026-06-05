@@ -120,10 +120,13 @@ function assert_file_access ($item_fields, $file_uid)
   if ($item_fields['privacy'] != '2')
     return;
   if (user_can_be_super_user ($file_uid))
-    # We are in the file domain and have no access to cookies, so we can't tell
-    # if the user has become a superuser; therefore, we let site admins access
-    # any files in any case.
-    return;
+    {
+      # We are in the file domain and have no access to cookies, so we can't
+      # tell if the user has become a superuser; therefore, we let site admins
+      # access any files in any case.
+      form_check_id ();
+      return;
+    }
   $group_id = $item_fields['group_id'];
   if (member_check_private ($file_uid, $group_id))
     {
