@@ -66,7 +66,7 @@ form_check ($submit_buttons);
 
 exit_if_no_group ();
 
-if (!member_check (0, $group_id))
+if (!member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
   exit_permission_denied ();
 
 exit_test_usesmail ($group_id);

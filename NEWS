@@ -17,6 +17,9 @@
 ** siteadmin/triggercreation.php had a wrong exception in checking
    privileges (HCK-002).
 
+** Mailing list administration was accessible for members who were not
+   group admins (HCK-003, HCK-006).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 
