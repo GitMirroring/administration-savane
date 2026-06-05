@@ -92,11 +92,12 @@ $delete_canned = $func === 'delcanned';
 
 trackers_init ($group_id);
 
-function delete_transition ($transition_id)
+function delete_transition ($group_id, $transition_id)
 {
   $result = db_execute ("
-    DELETE FROM trackers_field_transition WHERE transition_id = ? LIMIT 1",
-    [$transition_id]
+    DELETE FROM `trackers_field_transition`
+    WHERE `transition_id` = ? AND `group_id` = ?  LIMIT 1
+    ", [$transition_id, $group_id]
   );
   if ($result)
     fb (_("Transition deleted"));
@@ -118,7 +119,7 @@ function delete_response ($group_id, $item_canned_id)
 }
 
 if ($func == "deltransition")
-  delete_transition ($transition_id);
+  delete_transition ($group_id, $transition_id);
 elseif ($delete_canned)
   delete_response ($group_id, $item_canned_id);
 elseif ($post_changes)

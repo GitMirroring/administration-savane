@@ -34,6 +34,9 @@
 ** When logging into the 'brother' website, a one-time token is used
    in URL instead of the session hash (HCK-010).
 
+** When tracker field transitions were deleted, it wasn't checked
+   if they belong to the current group (HCK-011, HCK-020, HCK-023).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 
