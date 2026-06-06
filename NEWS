@@ -46,6 +46,9 @@
 ** Posting restrictions weren't checked when processing the 'postadditem'
    action (HCK-021).
 
+** The length of regular expressions used in tracker item selection
+   is limited (HCK-022).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 

@@ -1607,6 +1607,14 @@ function trackers_criteria_list_to_text ($criteria_list, $url)
   return join (' &gt; ', $links);
 }
 
+function trackers_limit_rlike ($str)
+{
+  $limit = 51;
+  if (strlen ($str) <= $limit)
+    return $str;
+  return substr ($str, 0, $limit);
+}
+
 function trackers_build_match_text ($field, &$to_match)
 {
   $to_match = utils_specialchars ($to_match);
@@ -1614,7 +1622,9 @@ function trackers_build_match_text ($field, &$to_match)
   # If it is sourrounded by /.../ the assume a regexp
   # else transform into a series of LIKE %word%.
   if (preg_match ('/^\s*\/(.*)\/\s*$/', $to_match, $matches))
-    return [" $field RLIKE ? ", [$matches[1]]];
+    return [
+      " $field RLIKE ? ", [trackers_limit_rlike ($matches[1])]
+    ];
   $words = preg_split ('/\s+/', $to_match);
   foreach ($words as $i => $w)
     {
@@ -1653,7 +1663,7 @@ function trackers_build_match_int ($field, &$to_match)
   # If it is sourrounded by /.../ then assume a regexp
   # else assume an equality.
   if (preg_match ('/\/(.*)\#/', $to_match, $matches))
-    return [" $field RLIKE ? ", $matches[1]];
+    return [" $field RLIKE ? ", trackers_limit_rlike ($matches[1])];
   $int_reg = '[+\-]*[0-9]+';
   if (preg_match ("/\s*(<|>|>=|<=)\s*($int_reg)/", $to_match, $matches))
     return trackers_build_match_int_cmp ($field, $to_match, $matches);
