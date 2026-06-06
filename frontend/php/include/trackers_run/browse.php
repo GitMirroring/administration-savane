@@ -887,12 +887,14 @@ $select = join (",\n    ", $sel);
 # capabilities of MySQL.
 $sql = "SELECT count(DISTINCT a.bug_id) AS count\n  $from\n  $where";
 $params = array_merge ($from_params, $where_params);
-$result = db_execute ($sql, $params);
+$result = db_execute_with_fb ($sql, $params);
+$request_error = db_handle_is_empty ($result);
 $totalrows = db_result ($result, 0, 'count');
 
 $select = "SELECT DISTINCT\n    $select";
 $sql = "$select\n  $from\n  $where\n  $group_order_limit";
-$result = db_execute ($sql, array_merge ($params, $limit_params));
+$result = db_execute_with_fb ($sql, array_merge ($params, $limit_params));
+$request_error |= db_handle_is_empty ($result);
 
 # Build the array that will be given to the function that make the item
 # list. We cannot simply return the SQL results, since we have to remove
@@ -1171,7 +1173,7 @@ if ($totalrows > 0)
     print $nav_bar;
     show_priority_colors_key ();
   }
-else
+elseif (!$request_error)
   {
     $msg = _("No matching items found. The display criteria may be "
       . "too restrictive.");
