@@ -300,6 +300,21 @@ function db_execute ($sql, $inputarr = null, $multi_query = 0)
   return db_query ($expanded_sql, $multi_query);
 }
 
+function db_execute_with_fb ($sql, $inputarr = null, $multi_query = 0)
+{
+  global $db_last_error;
+  $state = db_query_prevent_die (true);
+  $res = db_execute ($sql, $inputarr, $multi_query);
+  db_query_prevent_die ($state);
+  if ($res !== false)
+    return $res;
+  $str = empty ($db_last_error)? 'Unknown SQL error': $db_last_error;
+  $str = preg_replace ('/<\/?i>/', '_', $str);
+  $str = preg_replace ('/^db_query: /' ,'', $str);
+  fb ($str, 1);
+  return $res;
+}
+
 function db_query_prevent_die ($disable = null)
 {
   static $die_disabled = false;
@@ -311,12 +326,14 @@ function db_query_prevent_die ($disable = null)
 
 function db_query_die ($qstring, $errors = null)
 {
+  global $db_last_error;
   $str = "db_query: SQL query error in [$qstring]";
   if (empty ($errors))
     $str .= ' <i>' . db_error () . '</i>';
   else
     foreach ($errors as $idx => $err)
       $str .= "<br />\n<b>query $idx:</b> <i>$err</i>";
+  $db_last_error = $str;
   if (!db_query_prevent_die ())
     util_die ($str);
   return false;
@@ -386,13 +403,27 @@ function db_free_result ($qhandle)
   return mysqli_free_result ($qhandle);
 }
 
-function db_result ($qhandle, $row, $field)
+function db_handle_is_empty ($qhandle)
 {
+  return $qhandle === NULL || $qhandle === false;
+}
+
+function db_fetch_row ($qhandle, $row)
+{
+  if (db_handle_is_empty ($qhandle))
+    return NULL;
   if (!mysqli_data_seek ($qhandle, $row))
     return NULL;
-
   $row_data = mysqli_fetch_row ($qhandle);
   if ($row_data === false)
+    return NULL;
+  return $row_data;
+}
+
+function db_result ($qhandle, $row, $field)
+{
+  $row_data = db_fetch_row ($qhandle, $row);
+  if ($row_data === NULL)
     return NULL;
 
   $field_num = mysqli_num_fields ($qhandle);
@@ -440,8 +471,12 @@ define ('DB_FETCH_NUM', MYSQLI_NUM);
 
 function db_fetch_array ($qhandle = 0, $mode = MYSQLI_BOTH)
 {
-  if ($qhandle)
-    return mysqli_fetch_array ($qhandle, $mode);
+  if ($qhandle !== 0)
+    {
+      if (db_handle_is_empty ($qhandle))
+        return [];
+      return mysqli_fetch_array ($qhandle, $mode);
+    }
   if (isset ($GLOBALS['db_qhandle']))
     return mysqli_fetch_array ($GLOBALS['db_qhandle'], $mode);
   return [];
