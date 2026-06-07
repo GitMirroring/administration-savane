@@ -88,9 +88,27 @@ function session_stay_in_ssl ()
   return isset ($GLOBALS['sys_https_host']);
 }
 
-function session_login_is_sane ($name, $password)
+function session_list_sessions ($uid)
 {
-  if ($password === '')
+  $ret = [];
+  $res = db_execute ('
+     SELECT * FROM `session` WHERE `user_id` = ?
+     ORDER BY `time`, `session_hash`',
+    [$uid]
+  );
+  while ($row = db_fetch_array ($res))
+    {
+      $ticket = session_hash_ticket ($row['session_hash']);
+      $time = $row['time'];
+      $ret["$ticket$time"] = $row;
+    }
+  return $ret;
+}
+
+function session_login_is_sane ($name)
+{
+  global $form_pw;
+  if ($form_pw === '')
     {
       fb (_('Missing password'), 1);
       return false;
@@ -137,28 +155,26 @@ function session_fetch_login_data ($name)
   return $ret;
 }
 
-function session_login_valid (
-  $name, $password, $cookie_for_a_year = 0, $allowpending = 0
-)
+function session_login_valid ($cookie_for_a_year, $allowpending = 0)
 {
-  if (!session_login_is_sane ($name, $password))
+  global $form_loginname, $form_pw;
+  if (!session_login_is_sane ($form_loginname))
     return false;
 
-  $usr = session_fetch_login_data ($name);
+  $usr = session_fetch_login_data ($form_loginname);
   if (empty ($usr))
     return false;
 
   if (session_login_is_disallowed ($usr['status'], $allowpending))
     return false;
 
-  if (!account_validpw ($usr['user_pw'], $password))
+  if (!account_validpw ($usr['user_pw'], $form_pw))
     {
       fb (_('Invalid password'), 1);
       return false;
     }
-  account_upgrade_pw ($usr['user_pw'], $password, $usr['user_id']);
-  session_set_new ($usr['user_id'], $cookie_for_a_year);
-  return true;
+  account_upgrade_pw ($usr['user_pw'], $form_pw, $usr['user_id']);
+  return !session_set_new ($usr['user_id'], $cookie_for_a_year);
 }
 
 function session_issecure ()
@@ -261,15 +277,26 @@ function session_hash_parts ($hash)
   return [$hash, null];
 }
 
-function session_fetch_data ($uid, $hash)
+function session_hash_ticket ($hash)
 {
-  list ($clean_hash, $param) = session_hash_parts ($hash);
-  if (empty ($param))
+  list (, $ticket) = session_hash_parts ($hash);
+  return $ticket;
+}
+
+function session_fetch_data ($uid, $hash, $time = null)
+{
+  list ($clean_hash, $ticket) = session_hash_parts ($hash);
+  if (empty ($ticket))
     return null;
-  $res = db_execute (
-    'SELECT * FROM session WHERE user_id = ? AND session_hash LIKE ?',
-    [$uid, "$param%"]
-  );
+  $arg = [$uid, "$ticket%"];
+  $sql =
+    'SELECT * FROM `session` WHERE `user_id` = ? AND `session_hash` LIKE ?';
+  if ($time !== null)
+    {
+      $sql .= ' AND `time` = ?';
+      $arg[] = $time;
+    }
+  $res = db_execute ($sql, $arg);
   while ($row = db_fetch_array ($res))
     if (session_valid_hash ($row['session_hash'], $clean_hash))
       {
@@ -285,10 +312,10 @@ function session_fetch_data ($uid, $hash)
 # when $tries_left is zero, the error shows up in the browser and terminates
 # the further output (it would be more user-friendly to explain what happened,
 # but the event is unlikely enough to cut the corners).
-function session_try_insert_hash ($user_id, $hash, $tries_left)
+function session_try_insert_hash ($user_id, $time, $hash, $tries_left)
 {
   $vals = ['session_hash' => $hash, 'user_id' => $user_id,
-    'ip_addr' => $_SERVER['REMOTE_ADDR'], 'time' => time (),
+    'ip_addr' => $_SERVER['REMOTE_ADDR'], 'time' => $time,
     'stay_in_ssl' => session_stay_in_ssl ()
   ];
   $saved = utils_disable_warnings (E_ALL, !$tries_left);
@@ -301,22 +328,55 @@ function session_try_insert_hash ($user_id, $hash, $tries_left)
   return $vals;
 }
 
-function session_generate_ticket ()
+function session_fetch_tickets ($user_id, $time)
 {
-  $ret = microtime (true);
-  $ret -= floor ($ret);
-  return (int)($ret * 10000);
+  $res = db_execute (
+    'SELECT * FROM `session` WHERE `user_id` = ? AND `time` = ?',
+    [$user_id, $time]
+  );
+  $ret = [];
+  while ($row = db_fetch_array ($res))
+    {
+      $ticket = session_hash_ticket ($row['session_hash']);
+      $ret[$ticket] = 1;
+    }
+  return $ret;
 }
 
-function session_generate_hash ($user_id)
+function session_generate_ticket ($user_id, $brother_data)
+{
+  if ($brother_data !== null)
+    return [$brother_data['time'], $brother_data['ticket']];
+  # For this to actually work, the session table could be locked; without such
+  # kind of arrangement, the same time:ticket can be assigned to more sessions,
+  # then they will be removed simultaneously when logging out; however, it isn't
+  # likely that people will create more than one session at the same second.
+  $time = time ();
+  $tickets = session_fetch_tickets ($user_id, $time);
+  $ret = microtime (true);
+  $ret -= floor ($ret);
+  $ret0 = $ret = (int)($ret * 10000);
+  while (!empty ($tickets[$ret]))
+    {
+      if (++$ret >= 10000)
+        $ret = 0;
+      if ($ret0 != $ret)
+        continue;
+      trigger_error ("Ticket space seems exhausted.");
+      break;
+    }
+  return [$time, $ret];
+}
+
+function session_generate_hash ($user_id, $brother_data)
 {
   $tries = 17;
   while ($tries--)
     {
       $hash = random_hash ();
-      $ticket = session_generate_ticket ();
+      list ($time, $ticket) = session_generate_ticket ($user_id, $brother_data);
       $hhash = "$ticket;" . hash_encryptpw ($hash, true);
-      $vals = session_try_insert_hash ($user_id, $hhash, $tries);
+      $vals = session_try_insert_hash ($user_id, $time, $hhash, $tries);
       if (empty ($vals))
         {
           trigger_error ("duplicate hash $hhash detected, tries left: $tries");
@@ -329,50 +389,70 @@ function session_generate_hash ($user_id)
   return false;
 }
 
-function session_set_new ($user_id, $cookie_for_a_year)
+# Delete all sessions except the current one.
+function session_delete_other_sessions ($user_id = null)
+{
+  global $G_SESSION;
+  $ticket = session_hash_ticket ($G_SESSION['hash_enc']);
+  $time = $G_SESSION['time'];
+  if ($user_id === null)
+    $user_id = user_getid ();
+  return db_execute ('
+    DELETE FROM `session`
+    WHERE `user_id` = ? AND (`time` != ? OR `session_hash` NOT LIKE ?)',
+    [$user_id, $time, "$ticket%"]
+  );
+}
+
+function session_set_new ($user_id, $cookie_for_a_year, $brother_data = null)
 {
   global $G_SESSION, $session_hash;
-  $G_SESSION = session_generate_hash ($user_id);
+  $G_SESSION = session_generate_hash ($user_id, $brother_data);
   if (empty ($G_SESSION))
-    return;
+    return true;
   session_setglobals ($G_SESSION['user_id']);
   $session_hash = $G_SESSION['session_hash'];
 
   # If the user specified he wants only one session to be opened at a time,
   # kill all other sessions.
   if (user_get_preference ("keep_only_one_session"))
-    db_execute ("DELETE FROM session WHERE session_hash <> ? AND user_id = ?",
-      [$G_SESSION['hash_enc'], $user_id]
-    );
-  session_set_new_cookies ($user_id, $cookie_for_a_year);
+    session_delete_other_sessions ($user_id);
+  session_set_new_cookies ($user_id, $cookie_for_a_year, $G_SESSION['time']);
+  return false;
 }
 
 # Set session cookies.
-function session_set_new_cookies ($user_id, $cookie_for_a_year = 0)
+function session_set_new_cookies ($user_id, $cookie_for_a_year, $time)
 {
   $stay_in_ssl = session_stay_in_ssl ();
   # Set a non-secure cookie so that Savane automatically redirects to HTTPS.
   if ($stay_in_ssl)
     session_cookie ('redirect_to_https', 1, $cookie_for_a_year, 0);
-
-  session_cookie ('session_uid', $user_id, $cookie_for_a_year, $stay_in_ssl);
-  session_cookie ('session_hash', $GLOBALS['session_hash'], $cookie_for_a_year,
-    $stay_in_ssl);
-  $_COOKIE['session_uid'] = $user_id;
-  $_COOKIE['session_hash'] = $GLOBALS['session_hash'];
+  $cookies = [
+    'session_uid' => $user_id, 'session_hash' => $GLOBALS['session_hash']
+  ];
+  if (!empty ($G_SESSION['time']))
+    $cookies['session_time'] = $G_SESSION['time'];
+  foreach ($cookies as $k => $v)
+    {
+      session_cookie ($k, $v, $cookie_for_a_year, $stay_in_ssl);
+      $_COOKIE[$k] = $v;
+    }
   session_delete_cookie ('cookie_probe');
-  session_set ();
+  session_set ($time);
 }
 
-function session_set ()
+function session_set ($time = null)
 {
   global $G_SESSION, $G_USER;
   extract (sane_import ('cookie',
-    ['hash' => 'session_hash', 'digits' => 'session_uid'])
+    ['hash' => 'session_hash', 'digits' => ['session_uid', 'session_time']])
   );
   if (!($session_hash && $session_uid))
     return;
-  $G_SESSION = session_fetch_data ($session_uid, $session_hash);
+  if ($time == null && !empty ($session_time))
+    $time = $session_time;
+  $G_SESSION = session_fetch_data ($session_uid, $session_hash, $time);
 
   if (empty ($G_SESSION['session_hash']))
     unset ($G_SESSION, $G_USER);
@@ -382,9 +462,7 @@ function session_set ()
 
 function session_count ($uid)
 {
-  return db_numrows (db_execute (
-    "SELECT ip_addr FROM session WHERE user_id = ?", [$uid]
-  ));
+  return count (session_list_sessions ($uid));
 }
 
 function session_valid_hash ($stored_hash, $hash)
@@ -393,15 +471,15 @@ function session_valid_hash ($stored_hash, $hash)
   return account_validpw ($clean_hash, $hash);
 }
 
-function session_exists ($uid, $hash)
-{
-  return session_fetch_data ($uid, $hash) !== null;
-}
-
 function session_logout ()
 {
-  db_execute ("DELETE FROM session WHERE session_hash = ?",
-    [$GLOBALS['G_SESSION']['hash_enc']]
+  global $G_SESSION;
+  $uid = user_getid ();
+  $ticket = session_hash_ticket ($G_SESSION['hash_enc']);
+  db_execute ('
+    DELETE FROM `session`
+    WHERE `user_id` = ? AND `time` = ? AND `session_hash` LIKE ?',
+    [$uid, $G_SESSION['time'], "$ticket%"]
   );
   session_delete_cookie ('redirect_to_https');
   session_delete_cookie ('session_hash');
@@ -445,14 +523,34 @@ function session_set_theme ()
     utils_setcookie ('SV_THEME', $theme, time () + 60 * 60 * 24);
 }
 
+# Log in the 'brother' domain.
+function session_redirect_to_brother ($root_url, $uri_urlencoded)
+{
+  global $G_SESSION, $cookie_for_a_year, $stay_in_ssl;
+  if (empty ($G_SESSION))
+    {
+      trigger_error ('Empty $G_SESSION.');
+      return;
+    }
+  $ticket = session_hash_ticket ($G_SESSION['hash_enc']);
+  $time = $G_SESSION['time'];
+  $uid = user_getid ();
+  $ticket = str_replace (';', '', $ticket);
+  $form_id = form_get_id (';');
+  session_redirect (
+    "$root_url/account/login.php?time=$time&ticket=$ticket"
+    . "&session_uid=$uid&form_id=$form_id"
+    . "&login=1&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
+    . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_urlencoded"
+  );
+}
+
 # Log in the 'brother' domain if needed, and return back.
 # Only returns when the action isn't needed; otherwise exits
 # in session_redirect ().
 function session_login_brother ($uri, $uri_urlencoded)
 {
-  global $sys_brother_domain;
-  global $brotherhood, $session_hash, $cookie_for_a_year, $stay_in_ssl;
-  global $from_brother;
+  global $sys_brother_domain, $brotherhood, $from_brother;
   if (empty ($sys_brother_domain) || empty ($brotherhood))
     return;
   # If a brother server exists, login there too, if we are not
@@ -462,11 +560,6 @@ function session_login_brother ($uri, $uri_urlencoded)
   if ($from_brother)
     # Redirect back after logging in the 'brother' domain.
     session_redirect ("$root_url$uri");
-  # Log in the 'brother' domain.
-  session_redirect ("$root_url/account/login.php?"
-    . "session_uid=" . user_getid () . "&session_hash=$session_hash"
-    . "&login=1&cookie_for_a_year=$cookie_for_a_year&from_brother=1"
-    . "&stay_in_ssl=$stay_in_ssl&brotherhood=1&uri=$uri_urlencoded"
-  );
+  session_redirect_to_brother ($root_url, $uri_urlencoded);
 }
 ?>

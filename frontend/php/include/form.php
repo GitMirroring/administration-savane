@@ -45,13 +45,15 @@ $dir_name = dirname (__FILE__);
 foreach (['spam', 'random-bytes', 'form-check'] as $i)
   require_once ("$dir_name/$i.php");
 
-function form_get_id ()
+function form_get_id ($prefix = null)
 {
   static $form_id = null;
   if (!empty ($form_id))
     return $form_id;
   $uid = user_getid ();
   $form_id = random_hash ($uid);
+  if ($prefix !== null)
+    $form_id = $prefix . substr ($form_id, strlen ($prefix));
   $result = db_autoexecute ('form',
     ['form_id' => $form_id, 'timestamp' => time (), 'user_id' => $uid],
     DB_AUTOQUERY_INSERT

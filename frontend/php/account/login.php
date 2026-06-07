@@ -90,19 +90,24 @@ function mark_idleness ($name, $url)
   return $url . 'idle=1';
 }
 
-function validate_login ($from_brother, $form_loginname, $form_pw)
+function validate_login ($from_brother, $form_loginname)
 {
-  global $sesion_uid, $session_hash, $cookie_for_a_year;
+  global $session_uid, $session_hash, $cookie_for_a_year, $form_pw;
   if ($from_brother)
     extract (sane_import ('get',
-      ['digits' => 'session_uid', 'hash' => 'session_hash']
+      ['digits' => ['session_uid', 'ticket', 'time'], 'hash' => 'form_id']
     ));
-  if (isset ($session_uid) && session_exists ($session_uid, $session_hash))
+  if (isset ($session_uid))
     {
-      session_set_new_cookies ($session_uid, $cookie_for_a_year);
-      return true;
+      if (form_reset_form_id ($form_id, $session_uid))
+        return false;
+      if (empty ($time))
+        trigger_error ('Time is empty.');
+      return !session_set_new (
+        $session_uid, $cookie_for_a_year, ['time' => $time, 'ticket' => $ticket]
+      );
     }
-  return session_login_valid ($form_loginname, $form_pw, $cookie_for_a_year);
+  return session_login_valid ($cookie_for_a_year);
 }
 
 function arrange_session ($uri, $uri_enc)
@@ -127,7 +132,7 @@ function arrange_session ($uri, $uri_enc)
 
 if (!empty ($login))
   {
-    $success = validate_login ($from_brother, $form_loginname, $form_pw);
+    $success = validate_login ($from_brother, $form_loginname);
     if ($success)
       arrange_session ($uri, $uri_enc);
   }

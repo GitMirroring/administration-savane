@@ -84,9 +84,11 @@ function form_check_id ($assert_uid = false)
 
 # Remove form_id from the database; make sure it belongs to the current
 # user.  Return 0 in case of success, else 1.
-function form_reset_form_id ($form_id)
+function form_reset_form_id ($form_id, $user_id = null)
 {
-  $result = form_check_query ("DELETE", [user_getid (), $form_id]);
+  if ($user_id === null)
+    $user_id = user_getid ();
+  $result = form_check_query ("DELETE", [$user_id, $form_id]);
   if (db_affected_rows ($result))
     return 0;
   fb (_("Duplicate Post: this form was already submitted."), 1);
