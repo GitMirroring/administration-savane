@@ -40,7 +40,81 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-require_once('../../include/init.php');
+require_once ('../../include/init.php');
+
+function cmp_against_current_session ($row)
+{
+  global $G_SESSION;
+  if ($row['time'] != $G_SESSION['time'])
+    return 1;
+  list ($h, $ticket) = session_hash_parts ($G_SESSION['hash_enc']);
+  list ($h, $rticket) = session_hash_parts ($row['session_hash']);
+  return $ticket != $rticket;
+}
+
+function print_session ($row, $i)
+{
+  global $HTML, $php_self;
+  if ($i)
+    print $HTML->box_nextitem (utils_altrow ($i));
+  $dsession_hash = "..." . substr ($row['session_hash'], -8);
+  print '<span class="trash">';
+  if (cmp_against_current_session ($row))
+    print utils_link (
+      "$php_self?func=del&amp;dsession_hash=$dsession_hash&amp;"
+      . "dip_addr={$row['ip_addr']}&amp;dtime={$row['time']}",
+      html_image_trash (['alt' => _("Kill this session")])
+    );
+  else
+    print _("Current session") . ' ';
+  print '</span>';
+
+  # TRANSLATORS: The variables are session identifier, time, remote host.
+  printf (_('Session %1$s opened on %2$s from %3$s'), $dsession_hash,
+    utils_format_date ($row['time']), gethostbyaddr ($row['ip_addr'])
+  );
+  print "<br />\n&nbsp;";
+}
+
+# Delete one session.  Hopefully 8 digits of $dsession_hash are sufficient
+# to filter out other sessions made by the same user in the same second.
+function delete_single_session ($dsession_hash, $dip_addr, $dtime)
+{
+  $dsession_hash = "%" . substr ($dsession_hash, 3);
+  $res = db_execute ("
+    DELETE FROM `session`
+    WHERE
+      `session_hash` LIKE ? AND `ip_addr` = ? AND `time` = ?
+      AND `user_id` = ?
+    LIMIT 1", [$dsession_hash, $dip_addr, $dtime, user_getid ()]
+  );
+  if ($res)
+    # TRANSLATORS: this is a report of a successful action.
+    fb (_("Old session deleted"));
+  else
+    fb(_("Failed to delete old session"), 1);
+  return 0;
+}
+
+function keep_one ()
+{
+  $res = session_delete_other_sessions ();
+  if ($res)
+    # TRANSLATORS: this is a report of a successful action.
+    fb (_("Old sessions deleted"));
+  else
+    fb (_("Failed to delete old sessions"), 1);
+  return 0;
+}
+
+function kill_sessions ($dsession_hash, $dip_addr, $dtime, $dkeep_one)
+{
+  if ($dsession_hash && $dip_addr && $dtime)
+    return delete_single_session ($dsession_hash, $dip_addr, $dtime);
+  if ($dkeep_one)
+    return keep_one ();
+  fb (_("Parameters missing, update canceled"), 1);
+}
 
 # Check if the user is logged in.
 session_require (['isloggedin' => '1']);
@@ -57,70 +131,17 @@ extract (sane_import ('get',
 extract (sane_import ('cookie', ['hash' => 'session_hash']));
 
 if ($func == 'del')
-  {
-    if ($dsession_hash && $dip_addr && $dtime)
-      {
-        # Delete one session.
-        $dsession_hash = "%" . substr ($dsession_hash, 3);
-        $res = db_execute ("
-          DELETE FROM session
-          WHERE session_hash LIKE ? AND ip_addr = ? AND time = ? AND user_id = ?
-          LIMIT 1", [$dsession_hash, $dip_addr, $dtime, user_getid ()]
-        );
-        if ($res)
-          # TRANSLATORS: this is a report of a successful action.
-          fb (_("Old session deleted"));
-        else
-          fb(_("Failed to delete old session"), 1);
-      }
-    elseif ($dkeep_one)
-      {
-        # Delete all sessions apart from the current one.
-        $res = db_execute ("
-          DELETE FROM session WHERE session_hash <> ? AND user_id = ?",
-          [$G_SESSION['hash_enc'], user_getid ()]
-        );
-        if ($res)
-          # TRANSLATORS: this is a report of a successful action.
-          fb (_("Old sessions deleted"));
-        else
-          fb (_("Failed to delete old sessions"), 1);
-      }
-    else
-      fb (_("Parameters missing, update canceled"), 1);
-  }
+  kill_sessions ($dsession_hash, $dip_addr, $dtime, $dkeep_one);
+
 site_user_header (['title' => _("Manage sessions"), 'context' => 'account']);
-$res = db_execute ("
-  SELECT session_hash, ip_addr, time FROM session
-  WHERE user_id = ? ORDER BY time DESC", [user_getid()]
-);
-if (db_numrows ($res) < 1)
+$sessions = session_list_sessions (user_getid ());
+if (empty ($sessions))
   exit_error (_("No session found."));
 
 print $HTML->box_top (_("Opened Sessions"));
 $i = 0;
-list ($clean_hash) = session_hash_parts ($session_hash);
-for ($i = 0; $row = db_fetch_array ($res); $i++)
-  {
-    if ($i)
-      print $HTML->box_nextitem (utils_altrow ($i));
-    $dsession_hash = "..." . substr ($row['session_hash'], -8);
-    print '<span class="trash">';
-    if ($row['session_hash'] === $G_SESSION['hash_enc'])
-      print _("Current session") . ' ';
-    else
-      print utils_link (
-        "$php_self?func=del&amp;dsession_hash=$dsession_hash&amp;"
-        . "dip_addr={$row['ip_addr']}&amp;dtime={$row['time']}",
-        html_image_trash (['alt' => _("Kill this session")])
-      );
-    print '</span>';
-
-    # TRANSLATORS: The variables are session identifier, time, remote host.
-    printf (_('Session %1$s opened on %2$s from %3$s'), $dsession_hash,
-      utils_format_date ($row['time']), gethostbyaddr ($row['ip_addr']));
-    print "<br />\n&nbsp;";
-  }
+foreach ($sessions as $row)
+  print_session ($row, $i++);
 
 if ($i > 3)
   {

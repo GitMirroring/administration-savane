@@ -1397,19 +1397,36 @@ function output_sysvars ()
   return html_dl ($defs);
 }
 
+function test_sys_file_domain ()
+{
+  global $sys_file_domain, $sys_default_domain;
+  if ($sys_file_domain !== $sys_default_domain)
+    return '';
+  add_summary ('sys_file_domain and sys_default_domain coincide.');
+  return "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
+    . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
+}
+
+function test_sys_brother_domain ()
+{
+  global $sys_default_domain, $sys_brother_domain;
+  if (empty ($sys_brother_domain))
+    return '';
+  if ($sys_default_domain !== $sys_brother_domain)
+    return '';
+  add_summary ('sys_brother_domain and sys_default_domain coincide.');
+  return "<p><strong>Note: sys_brother_domain and sys_default_domain coincide.\n"
+    . "Such setup is pointless and unsupported.</strong></p>\n";
+}
+
 function test_sysvars ()
 {
-  global $sys_file_domain, $sys_default_domain, $inside_siteadmin;
+  global $inside_siteadmin;
   if (empty ($inside_siteadmin))
     utils_set_csp_headers ();
   $page = output_sysvars ();
-  if ($sys_file_domain === $sys_default_domain)
-    {
-      $page .=
-        "<p><strong>Note: sys_file_domain and sys_default_domain coincide.\n"
-        . "This setup is vulnerable to cross-site scripting.</strong></p>\n";
-      add_summary ('sys_file_domain and sys_default_domain coincide.');
-    }
+  $page .= test_sys_file_domain ();
+  $page .= test_sys_brother_domain ();
   return "$page<p>Savane generally uses safe default values when variables\n"
     . "are not set in the configuration file.</p>\n";
 }
