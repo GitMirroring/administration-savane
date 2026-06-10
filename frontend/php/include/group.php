@@ -731,6 +731,16 @@ function group_restrictions_check (
   return false;
 }
 
+function group_enforce_restrictions ($group_id, $artifact)
+{
+  if (group_restrictions_check ($group_id, ARTIFACT))
+    return;
+  $help = group_getrestrictions_explained ($group_id, ARTIFACT);
+  # TRANSLATORS: the argument is a string that explains why the action is
+  # unavailable.
+  exit_error (sprintf (_("Action Unavailable: %s"), $help));
+}
+
 function group_get_history ($group_id = false)
 {
   return db_execute ("

@@ -43,6 +43,9 @@
 ** Copying tracker configuration is only allowed from the groups the user
    is admin of (HCK-014, HCK-015, HCK-018, HCK-019).
 
+** Posting restrictions weren't checked when processing the 'postadditem'
+   action (HCK-021).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 
