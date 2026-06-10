@@ -1444,25 +1444,11 @@ function trackers_delete_dependency (
   $group_id, $item_id, $item_depends_on, $item_depends_on_artifact, &$changes
 )
 {
-  # Can be done only by at least technicians.
-  # Note that is it possible to fake the system by providing a false group_id.
-  # But well, consequences would be small an it will be easy to identify
-  # the criminal.
-
-  if (member_check (0, $group_id, 1))
-    $result = db_execute ("
-      DELETE FROM " . ARTIFACT . "_dependencies
-      WHERE
-        item_id = ? AND is_dependent_on_item_id = ?
-        AND is_dependent_on_item_id_artifact = ?",
-      [$item_id, $item_depends_on, $item_depends_on_artifact]
-    );
-
-  if (!$result)
-    {
-      fb (_("Failed to delete dependency.") . db_error ($result), 0);
-      return false;
-    }
+  $failed = trackers_data_rm_dependency (
+    $group_id, $item_id, $item_depends_on, $item_depends_on_artifact
+  );
+  if ($failed)
+    return false;
   fb (_("Dependency Removed."));
   trackers_data_add_history (
     "Dependencies",

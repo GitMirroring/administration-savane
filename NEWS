@@ -49,6 +49,8 @@
 ** The length of regular expressions used in tracker item selection
    is limited (HCK-022).
 
+** The group of the deleted item wasn't checked (HCK-024).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 
