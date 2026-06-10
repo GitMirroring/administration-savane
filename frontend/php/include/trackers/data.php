@@ -155,9 +155,11 @@ function trackers_data_get_all_fields ($group_id, $reload = false)
 function trackers_data_get_item_group ($item_id)
 {
   $res = db_execute (
-    "SELECT group_id FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
+    "SELECT `group_id` FROM `" . ARTIFACT . "` WHERE `bug_id` = ?", [$item_id]
   );
-  return db_result ($res, 0, 'group_id');
+  if (db_numrows ($res))
+    return db_result ($res, 0, 'group_id');
+  return null;
 }
 
 function trackers_data_get_notification_settings ($group_id, $tracker)
@@ -2829,6 +2831,30 @@ function trackers_data_get_tracker_field_transitions (
     else
       $allowed_to_id[$transition['to_value_id']] = 0;
   return [$rows, $forbidden_to_id, $allowed_to_id];
+}
+
+function trackers_data_rm_dependency (
+  $group_id, $item_id, $item_depends_on, $item_depends_on_artifact
+)
+{
+  if (empty ($group_id))
+    return true;
+  if (!member_check (0, $group_id, MEMBER_ROLE_TECHNICIAN))
+    return true;
+  if ($group_id != trackers_data_get_item_group ($item_id))
+    return true;
+  $deps = ARTIFACT . '_dependencies';
+  $result = db_execute ("
+    DELETE FROM `deps`
+    WHERE
+      `item_id` = ? AND `is_dependent_on_item_id` = ?
+      AND `is_dependent_on_item_id_artifact` = ?",
+    [$item_id, $item_depends_on, $item_depends_on_artifact]
+  );
+  if ($result)
+    return false;
+  fb (_("Failed to delete dependency.") . db_error ($result), 0);
+  return true;
 }
 } # namespace {
 ?>
