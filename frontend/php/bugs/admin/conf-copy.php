@@ -52,7 +52,7 @@ form_check ('update');
 user_check_group_admin ();
 trackers_init ($group_id);
 
-if ($update && !in_array ($from_group_id, [0, 100]))
+if ($update)
   trackers_conf_copy ($group_id, ARTIFACT, $from_group_id);
 
 trackers_header_admin (['title' => _("Copy Configuration")]);

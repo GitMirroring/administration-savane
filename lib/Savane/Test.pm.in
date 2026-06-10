@@ -102,8 +102,9 @@ sub check_request_status
 {
   my $agent = shift;
   my $page = @_? shift: undef;
+  my $expected = @_? shift: 200;
   my $status = $agent->status ();
-  return 0 if $status eq '200';
+  return 0 if $status eq $expected;
   save_page ($agent, $page) if defined $page;
   print_test_error ("Unexpected request status $status.");
   return 1;

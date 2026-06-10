@@ -91,6 +91,8 @@ if ($id < 0)
 else
   {
     $agent->get (group_user_perm_url ());
+    make_user_admin ($agent, $user);
+    make_user_admin ($agent, $user, 0);
     $agent->get (group_admin_url ());
     $exit_code = 1 if remove_user_from_group ($agent, $user, $id);
   }

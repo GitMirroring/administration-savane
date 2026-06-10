@@ -50,7 +50,7 @@ extract (sane_import ('post',
 
 user_check_group_admin ();
 
-if ($update && !in_array ($from_group_id, [0, 100]))
+if ($update)
   {
     exit_if_missing ('artifact');
     trackers_conf_copy ($group_id, $artifact, $from_group_id);
