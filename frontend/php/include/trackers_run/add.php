@@ -48,14 +48,7 @@ extract (sane_import ('request',
   ['array' => [['prefill', [null, 'specialchars']]]]
 ));
 
-if (!group_restrictions_check ($group_id, ARTIFACT))
-  {
-    $help = group_getrestrictions_explained ($group_id, ARTIFACT);
-    # TRANSLATORS: the argument is a string that explains why the action is
-    # unavailable.
-    exit_error (sprintf (_("Action Unavailable: %s"), $help));
-  }
-
+group_enforce_restrictions ($group_id, ARTIFACT);
 trackers_header (['title' => _("Submit Item")]);
 $fields_per_line = 2;
 $max_size = 40;

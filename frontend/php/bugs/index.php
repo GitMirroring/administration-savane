@@ -263,6 +263,7 @@ switch ($func)
       $anon_check_failed = empty ($fields['check']);
 
     form_check ();
+    group_enforce_restrictions ($group_id, ARTIFACT);
     # Get the list of bug fields used in the form.
     $vfl = trackers_extract_field_list ();
 
