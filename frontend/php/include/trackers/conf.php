@@ -342,6 +342,11 @@ function cp_entity ($e, $artifact, $gid, $from_gid)
 }
 function conf_copy ($group_id, $artifact, $from_group_id)
 {
+  exit_if_missing (['from_group_id']);
+  if (in_array ($from_group_id, [0, 100]))
+    return;
+  if (!user_ismember ($from_group_id, MEMBER_FLAGS_ADMIN))
+    exit_permission_denied ();
   # TRANSLATORS: the first argument is group id (a number),
   # the second argument is previously defined string (bug|patch|task|...)
   $msg = sprintf (_('Start copying configuration of group #%1$s %2$s tracker'),
@@ -374,9 +379,10 @@ function groups_with_artifact ($artifact)
   if ($artifact === 'cookbook')
     return groups_with_cookbook ();
   return "
-    SELECT `g`.`group_name`, `g`.`group_id` FROM `groups` `g`, `user_group` `u`
+    SELECT `g`.`group_name`, `g`.`group_id`
+    FROM `groups` `g` JOIN `user_group` `u` ON `g`.`group_id` = `u`.`group_id`
     WHERE
-      `g`.`group_id` = `u`.`group_id` AND `u`.`user_id` = ?
+      `u`.`admin_flags` = '" . MEMBER_FLAGS_ADMIN . "' AND `u`.`user_id` = ?
       AND `g`.`group_id` != ?  AND `g`.`status` = '" . GROUP_STATUS_ACTIVE . "'
       AND `g`.`use_{$artifact}` = '1'";
 }
@@ -399,7 +405,7 @@ function trackers_conf_form ($group_id, $artifact)
       # TRANSLATORS: the argument is previously defined string
       # (bug|patch|task|...)
       printf (_("You cannot copy the configuration of other "
-        . "groups because you are not member of any other group "
+        . "groups because you are not an administrator of any other group "
         . "that uses a %s tracker."),
         trackers_conf\artifact_name ($artifact)
       );

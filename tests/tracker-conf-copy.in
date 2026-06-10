@@ -53,41 +53,65 @@ PrintVersionOrHelp ("Test copying tracker configuration.");
 my $group = 'proba';
 my $user = 'alice';
 my $exit_code = 2;
+my $agent;
+
+sub visit_conf_page
+{
+  my ($agent, $group, $should_fail) = @_;
+  print_test_log ('Visiting configuration copy page.');
+  $agent->get (make_url ("task/admin/conf-copy.php?group=$group"));
+  return 0
+    if (defined $agent->form_with_fields (qw (form_id artifact from_group_id)));
+  save_page ($agent, 'no-conf-copy-form.html');
+  print_test_error ('Cannot find copying form.');
+  return 1;
+}
+
+sub set_admin_flags
+{
+  my ($user, $set) = @_;
+  $agent->get (group_user_perm_url ());
+  return make_user_admin ($agent, $user, $set);
+}
 
 sub copy_conf
 {
-  my ($agent, $group) = @_;
-  print_test_log ("Copying configuration.");
-  print_test_log ('Visiting configuration copy page.');
-  $agent->get (make_url ("task/admin/conf-copy.php?group=$group"));
-  unless (defined $agent->form_with_fields (qw (form_id artifact from_group_id)))
-    {
-      print_test_error ('Cannot find copying form.');
-      return 1;
-    }
+  my ($agent, $group, $should_fail) = @_;
+  return 1 if visit_conf_page (@_);
+  set_admin_flags ($user, !$should_fail);
   print_test_log ('Requesting copying.');
   $agent->click ();
-  return 1 if check_request_status ($agent, 'conf-copy.html');
-  print_test_result ('Successfully copied the configuration.');
+  my $status = $should_fail? '403': '200';
+  return 1 if check_request_status ($agent, "conf-copy-$status.html", $status);
+  print_test_result ("Request result is $status as expected.");
+  print_test_result ('Successfully copied the configuration.')
+    unless $should_fail;
   return 0;
 }
 
-my $agent = make_agent () or exit (1);
+$agent = make_agent () or exit (1);
 my $group_id = register_group ($agent, $user, $group);
 exit (1) if $group_id < 0;
 
 log_in ($agent, '-');
 $agent->get (group_admin_url ());
 my $id = add_user_to_group ($agent, $user);
-log_out ($agent);
+$agent->get (group_user_perm_url ());
+$exit_code = 1 if make_user_admin ($agent, $user);
 if ($id < 0)
   {
     $exit_code = 1;
   }
 else
   {
-    log_in ($agent, $user);
-    $exit_code = 1 if copy_conf ($agent, $group);
+    my $agent_nocheck = make_agent (0);
+    log_in ($agent_nocheck, $user);
+    print_test_log ("Copying configuration.");
+    $exit_code = 1 if copy_conf ($agent_nocheck, $group, 0);
+    print_test_log (
+      "Trying to copy from a group the user is not an admin of."
+    );
+    $exit_code = 1 if copy_conf ($agent_nocheck, $group, 1);
     log_out ($agent);
     $exit_code = 1 if quit_group ($agent, $user, group_default_name ());
   }

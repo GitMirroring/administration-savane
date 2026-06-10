@@ -40,6 +40,9 @@
 ** When tracker CC was deleted, it wasn't checked if it belong to
    the current group (HCK-013).
 
+** Copying tracker configuration is only allowed from the groups the user
+   is admin of (HCK-014, HCK-015, HCK-018, HCK-019).
+
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 

@@ -51,19 +51,26 @@ my $default_group_name = 'administration';
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
   group_admin_url group_user_perm_url group_default_name
-  add_user_to_group remove_user_from_group quit_group
+  add_user_to_group make_user_admin remove_user_from_group quit_group
   user_id_is_removable request_inclusion approve_user
 );
 
 sub group_admin_url
 {
-  my $group_name = @_? shift: $default_group_name;
+  my $group_name = @_? shift: group_default_name ();
   return make_url ("project/admin/useradmin.php?group=$group_name");
 }
 
 sub group_default_name
 {
   return $default_group_name;
+}
+
+sub group_resolved_name
+{
+  my $name = shift;
+  return $name if defined $name;
+  return group_default_name ();
 }
 
 sub group_user_perm_url
@@ -301,12 +308,44 @@ sub approve_user
   return -1 if check_approval_email ($user);
   return $id;
 }
+sub visit_user_perm_url
+{
+  my ($agent, $group, $page) = @_;
+  print_test_log ("Visiting $group user permission page.");
+  $agent->get (group_user_perm_url ($group));
+  return 0 unless check_request_status ($agent, $page);
+  print_test_error ("Cannot access $group user permission page.");
+  return 1;
+}
+sub make_user_admin
+{
+  my ($agent, $user, $val, $group) = @_;
+  $group = group_resolved_name ($group);
+  $val = 1 unless defined $val;
+  return 1 if visit_user_perm_url ($agent, $group, 'make-admin.html');
+  print_test_log (
+    $val? "Making <$user> an admin.": "Clearing <$user> admin flag."
+  );
+  my $id = get_user_id ($user);
+  return 1 if $id < 0;
+  my $field = "admin_user_$id";
+  unless (defined $agent->form_with_fields ('form_id', 'group', $field))
+    {
+      save_page ($agent, "user-perm-$group-$user-absent.html");
+      print_test_error ("User #$id <$user> not found on the permission page.");
+      return 1;
+    }
+  $agent->tick ($field, 'A', $val);
+  print_test_log ("Sending request to update <$user> status.");
+  $agent->click ();
+  return check_request_status ($agent, "user-perm-$group-$user.html");
+}
 sub quit_link_re
 {
   my $group_id = shift;
   return qr,my/quitproject[.]php\b, if $group_id < 0;
   $group_id .= '$';
-  return qr,my/quitproject[.]php[?]quitting_group_id=$group_id,
+  return qr,my/quitproject[.]php[?]quitting_group_id=$group_id,;
 }
 sub quit_cancel
 {
