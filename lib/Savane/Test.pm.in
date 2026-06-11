@@ -52,8 +52,8 @@ our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
   print_test_log print_test_error print_test_result save_page save_text
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
-  get_group_id append_savane_conf reset_savane_conf register_user
-  remove_user speed_up_crypt run_cleanup check_request_status try_mkdir
+  get_group_id append_savane_conf reset_savane_conf
+  speed_up_crypt run_cleanup check_request_status try_mkdir
 );
 
 my $bindir = '@bindir@';
@@ -369,98 +369,6 @@ sub log_out
   my $ret = check_request_status ($agent);
   print_test_result ("Logged out.") unless $ret;
   return $ret;
-}
-
-sub get_password
-{
-  my $agent = shift;
-  my $passwd = $agent->text ();
-  $passwd =~ s/.*For instance: ([^.]*).*/$1/;
-  $passwd = "merge&tragic-Maxim#$passwd^Detest2new*mutiny";
-  print_test_result ("Password: $passwd");
-  return $passwd;
-}
-
-sub request_account
-{
-  my $agent = shift;
-  my $login = shift;
-  my $name = @_? shift: $login;
-  $agent->get (make_url ('account/register.php'));
-  my $passwd = get_password ($agent);
-  $agent->form_with_fields (qw (form_id));
-  $agent->set_fields (
-    'form_loginname' => $login, 'form_realname' => $name,
-    'form_pw' => $passwd, 'form_pw2' => $passwd,
-    'form_email' => $login . '@savane.test',
-  );
-  $agent->click ('update');
-  print_test_result ("Account requested.");
-  return $passwd;
-}
-
-sub get_confirmation_url
-{
-  my $url = get_mbox ();
-  return make_url ('no-such-page') if $url eq '';
-  clear_mbox ();
-  $url =~ s/^.*?visit the following URL[^:]*:\n+//s;
-  $url =~ s/\n.*$//s;
-  print_test_result ("Confirmation URL: $url.");
-  return $url;
-}
-
-sub confirm_account
-{
-  my ($agent, $login, $passwd) = @_;
-  my $url = get_confirmation_url ();
-  $agent->get ($url);
-  $agent->form_with_fields (qw (form_id));
-  $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
-  $agent->click ('update');
-  print_test_result ("Account confirmed.");
-}
-
-sub register_user
-{
-  my ($agent, $login) = @_;
-  print_test_log ("Checking for <$login> existence.");
-  return undef if check_inaccessibility ("users/$login");
-  my $passwd = request_account ($agent, $login);
-  confirm_account ($agent, $login, $passwd);
-  log_out ($agent);
-  $agent->get (make_url ("users/$login"));
-  print_test_result ("Account exists.");
-  return $passwd;
-}
-
-sub request_user_removal
-{
-  my $agent = shift;
-  $agent->get (make_url ('my/admin/change.php?item=delete'));
-  $agent->form_with_fields (qw (form_id));
-  $agent->tick ('newvalue', 'deletionconfirmed');
-  $agent->click ('update');
-  print_test_result ("Deletion requested.");
-}
-
-sub confirm_user_deletion
-{
-  my $agent = shift;
-  my $url = get_confirmation_url ();
-  $agent->get ($url);
-  $agent->form_with_fields (qw (form_id));
-  $agent->click ('update');
-  print_test_result ("Deletion confirmed.");
-}
-
-sub remove_user
-{
-  my ($agent, $login, $passwd) = @_;
-  log_in ($agent, $login, $passwd);
-  request_user_removal ($agent);
-  confirm_user_deletion ($agent);
-  return check_inaccessibility ("users/$login");
 }
 
 sub savane_conf_start_marker
