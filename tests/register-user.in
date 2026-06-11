@@ -44,6 +44,7 @@ use strict;
 use warnings;
 use Savane::Version;
 use Savane::Test;
+use Savane::Test::User;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test user account creation and removal.");

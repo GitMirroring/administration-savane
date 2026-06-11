@@ -45,6 +45,7 @@ use warnings;
 use Savane::Version;
 use Savane::Test;
 use Savane::Test::Group;
+use Savane::Test::User;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test tracker operations.");
