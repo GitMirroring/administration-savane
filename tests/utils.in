@@ -49,30 +49,16 @@ use WWW::Mechanize;
 PrintVersionOrHelp ("Test internal functions.");
 
 my $unix_group_name = 'administration';
-my $frontenddir = '@frontenddir@/php';
 my $exit_code = 2;
 
-my $agent = make_agent ()
-  or exit (1);
+my $agent = make_agent () or exit (1);
 
 sub install_test_php
 {
-  return unless (system ('cp', 'utils.php', "$frontenddir/test.php"));
-  print_test_error ("Cannot install test.php: $?");
+  my $text = `cat utils.php`;
+  return unless write_test_php ('test.php', $text);
+  print_test_error ("Cannot install test.php.");
   exit (1);
-}
-
-sub try_unlink
-{
-  my $file = shift;
-  return 0 if unlink ($file);
-  print_test_error ("Can't remove $file: $!.");
-  return 1;
-}
-
-sub clear_frontend
-{
-  return try_unlink ("$frontenddir/test.php");
 }
 
 sub inspect_test_page
@@ -92,7 +78,6 @@ sub inspect_test_page
 
 install_test_php ();
 $exit_code = 1 if inspect_test_page ();
-$exit_code = 1 if clear_frontend ();
 $exit_code = 0 if $exit_code == 2;
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);
