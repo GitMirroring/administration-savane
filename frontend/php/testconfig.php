@@ -830,7 +830,7 @@ function optional_php_config_start ()
 function optional_php_check_tags (&$have_unset)
 {
   $phptags = [
-    'disable_functions' => 'passthru,popen,shell_exec,system',
+    'disable_functions' => 'exec,passthru,popen,shell_exec,system',
     'display_errors' => '1', 'error_reporting' => (string)(E_ALL),
     'log_errors' => '1',
   ];
