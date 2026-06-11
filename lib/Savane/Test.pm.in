@@ -54,9 +54,11 @@ our @EXPORT = qw (
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   get_group_id append_savane_conf reset_savane_conf
   speed_up_crypt run_cleanup check_request_status try_mkdir
+  write_test_php rm_test_php
 );
 
 my $bindir = '@bindir@';
+my $phpdir = '@frontenddir@/php';
 
 sub try_mkdir
 {
@@ -448,8 +450,62 @@ sub speed_up_crypt
   EOF
 }
 
+my %test_php_paths;
+
+sub write_test_php
+{
+  my ($path, $text) = @_;
+  my $fd;
+  print_test_log ("Writing test PHP file to $path.");
+  unless (open ($fd, '>', "$phpdir/$path"))
+    {
+      print_test_error ("Cannot write test PHP file: $!");
+      return 1;
+    }
+  $test_php_paths{$path} = 1;
+  print { $fd } $text;
+  close ($fd);
+  print_test_result ("Successfully written the test PHP file.");
+  return 0;
+}
+
+sub rm_test_php
+{
+  my $f = shift;
+  my $verbose = @_? shift: 0;
+  print_test_log ("Removing test PHP file $f.") if $verbose > 0;
+  delete %test_php_paths{$f} if exists $test_php_paths{$f};
+  unless (-f "$phpdir/$f")
+    {
+      print_test_result ("No $phpdir/$f exists.") if $verbose > 1;
+      return 0;
+    }
+  if (unlink ("$phpdir/$f"))
+    {
+      print_test_result ("Successfully removed $phpdir/$f.") if $verbose > 0;
+      return 0;
+    }
+  print_test_error ("Cannot remove $phpdir/$f: $!.");
+  return 1;
+}
+
+sub remove_test_php_files
+{
+  return 0 unless keys %test_php_paths;
+  print_test_log ("Removing test PHP files.");
+  my $ret = 0;
+  foreach (keys %test_php_paths)
+    {
+      $ret = 1 if rm_test_php ("$phpdir/$_");
+    }
+  print_test_result ("Successfully removed test PHP files.")
+    unless $ret;
+  return $ret;
+}
+
 END
 {
+  remove_test_php_files ();
   reset_savane_conf ();
   my $name = script_name ();
   print_test_log ("== Test $name end.");

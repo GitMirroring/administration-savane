@@ -1,5 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
-# Test user account creation and removal.
+# Test user account creation, removal and other account-related actions.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
@@ -46,12 +46,26 @@ use Savane::Version;
 use Savane::Test;
 use Savane::Test::User;
 use WWW::Mechanize;
+use File::Temp qw (tempfile);
 
-PrintVersionOrHelp ("Test user account creation and removal.");
+PrintVersionOrHelp ("Test user account-related actions.");
 
-my $agent = make_agent ()
-  or exit (1);
+my $agent = make_agent () or exit (1);
 my $login = 'test_user';
+my $exit_code = 2;
+my $test_php = <<'EOF';
+  <?php
+    require_once ('include/init.php');
+    $email = user_getemail (user_getid ($_GET['login']));
+    $d_spec = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+    $proc = proc_open ("echo $email", $d_spec, $pipes, NULL);
+    fclose ($pipes[0]);
+    print trim (stream_get_contents ($pipes[1]));
+    fclose ($pipes[1]); fclose ($pipes[2]);
+    proc_close ($proc);
+  ?>
+EOF
+$test_php =~ s/^  //gm;
 
 sub have_idle_warning
 {
@@ -76,12 +90,81 @@ sub check_for_idle_warning
   return 0;
 }
 
+sub check_est_in_file
+{
+  my $file = shift;
+  print_test_log ("Checking for the contents of temporary file $file.");
+  unless (-f $file)
+    {
+      print_test_error ("File $file does not exist.");
+      return 1;
+    }
+  my $text = `cat "$file"`;
+  my $should_be = 'est';
+  if ($text eq $should_be)
+    {
+      unlink $file;
+      print_test_result ("The file expectedly contains '$should_be'.");
+      return 0;
+    }
+  print_test_error (
+    "The file unexpectedly contains '$text' instead of '$should_be'."
+  );
+  return 1;
+}
+
+sub check_email_in_cmd_results
+{
+  my ($agent, $file) = @_;
+  my $text = $agent->content (raw => 1);
+  my $ret = check_est_in_file ($file);
+  my $should_be = 'test@savane.test';
+  if ($text eq $should_be)
+    {
+      print_test_result ("The test page expectedly says, '$text'.");
+    }
+  else
+    {
+      $ret = 1;
+      print_test_error (
+        "The test page says, '$text' (should be '$should_be')."
+      );
+    }
+  $ret = 1 if rm_test_php ('test.php', 1);
+  return $ret;
+}
+
+sub try_email_in_cmd
+{
+  my $file = shift;
+  if ($file =~ /\s/)
+    {
+      print_test_error ("Internal error: space in temp filename '$file'.");
+      return 1;
+    }
+  my $email =
+    't`echo${IFS}-n${IFS}est|tee${IFS}' . $file . '`@savane.test';
+  print_test_log ("Trying command line with unescaped email.");
+  return 1 if set_email ($agent, $email);
+  return 1 if write_test_php ('test.php', $test_php);
+  $agent->get (make_url ("test.php?login=$login"));
+  return 1 if check_email_in_cmd_results ($agent, $file);
+  return check_request_status ($agent);
+}
+
 my $passwd = register_user ($agent, $login, 'Test User');
 exit (1) unless defined $passwd;
+my ($fh, $filename) = tempfile (UNLINK => 1);
+close $fh;
 log_in ($agent, $login, $passwd);
-my $exit_code = check_for_idle_warning ();
-save_page ($agent, 'idle-warning.html') if $exit_code;
+if (check_for_idle_warning ())
+  {
+    $exit_code = 1;
+    save_page ($agent, 'idle-warning.html');
+  }
+$exit_code = 1 if try_email_in_cmd ($filename);
 log_out ($agent);
 remove_user ($agent, $login, $passwd);
-print_test_result ("Test done.");
+$exit_code = 0 if $exit_code == 2;
+print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);

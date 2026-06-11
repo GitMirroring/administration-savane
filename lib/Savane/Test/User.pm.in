@@ -46,7 +46,7 @@ use WWW::Mechanize;
 require Exporter;
 
 our @ISA = qw (Exporter);
-our @EXPORT = qw (register_user remove_user);
+our @EXPORT = qw (register_user remove_user set_email);
 
 sub get_password
 {
@@ -138,4 +138,64 @@ sub remove_user
   request_user_removal ($agent);
   confirm_user_deletion ($agent);
   return check_inaccessibility ("users/$login");
+}
+
+sub request_email_change
+{
+  my ($agent, $email) = @_;
+  clear_mbox (1);
+  $agent->get (make_url ('my/admin/change.php?item=email'));
+  return 1 if check_request_status ($agent, 'requesting-change.html');
+  $agent->form_with_fields (qw (form_id newvalue update));
+  $agent->set_fields ('newvalue' => $email);
+  $agent->click ('update');
+  return 1 if check_request_status ($agent, 'request-change.html');
+  my $txt = $agent->content (raw => 1);
+  if ($txt =~ /Supplied string .* doesn't look like an email address/)
+    {
+      print_test_error ('Request seems rejected.');
+      save_page ($agent, 'req-rejected.html');
+      return 1;
+    }
+  print_test_result ('Successfully requested change.');
+  return 0;
+}
+
+sub check_email
+{
+  my ($agent, $email) = @_;
+  print_test_log ('Checking if the new email is correct.');
+  print_test_log ('Visiting account configuration.');
+  $agent->get (make_url ('my/admin/'));
+  return 1 if check_request_status ($agent, 'cke-conf.html');
+  my $text = $agent->content (raw => 1);
+  $text =~ s#^.*?Mail Setup</div>##s;
+  $text =~ s#^.*?<b>##s;
+  $text =~ s#</b>.*##s;
+  if ($text eq $email)
+    {
+      print_test_result ("New email is '$email' as expected.");
+      return 0;
+    }
+  print_test_error ("New email is '$text', expected '$email'.");
+  save_page ($agent, 'cke-res.html');
+  return 1;
+}
+
+sub set_email
+{
+  my ($agent, $email) = @_;
+  print_test_log ("Changing email to $email.");
+  return 1 if request_email_change ($agent, $email);
+  my $url = get_confirmation_url ();
+  $url =~ s/step=discard$/step=confirm/;
+  print_test_log ('Visiting confirmation URL.');
+  $agent->get ($url);
+  $agent->form_with_fields (qw (form_id confirm_hash step));
+  print_test_log ('Confirming the change.');
+  $agent->click ('update');
+  return 1 if check_request_status ($agent, 'change-url.html');
+  return 1 if check_email ($agent, $email);
+  print_test_result ('Successfully changed email.');
+  return 0;
 }
