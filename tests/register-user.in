@@ -66,6 +66,7 @@ my $test_php = <<'EOF';
   ?>
 EOF
 $test_php =~ s/^  //gm;
+my $phpdir = '@frontenddir@/php';
 
 sub have_idle_warning
 {
@@ -134,22 +135,90 @@ sub check_email_in_cmd_results
   return $ret;
 }
 
+sub get_email_string
+{
+  my $file = shift;
+  return 't`echo${IFS}-n${IFS}est|tee${IFS}' . $file . '`@savane.test';
+}
+
 sub try_email_in_cmd
 {
   my $file = shift;
-  if ($file =~ /\s/)
-    {
-      print_test_error ("Internal error: space in temp filename '$file'.");
-      return 1;
-    }
-  my $email =
-    't`echo${IFS}-n${IFS}est|tee${IFS}' . $file . '`@savane.test';
+  my $email = get_email_string ($file);
   print_test_log ("Trying command line with unescaped email.");
   return 1 if set_email ($agent, $email);
   return 1 if write_test_php ('test.php', $test_php);
   $agent->get (make_url ("test.php?login=$login"));
   return 1 if check_email_in_cmd_results ($agent, $file);
   return check_request_status ($agent);
+}
+
+sub load_rsa
+{
+  print_test_log ('Loading GnuPG key.');
+  my $file = "$phpdir/testing/gpg/rsa-pub.asc";
+  my $ret = `cat "$file"`;
+  if ($ret eq '')
+    {
+      print_test_error ("Cannot load $file.");
+      return undef;
+    }
+  print_test_result ("Loaded $file.");
+  return $ret;
+}
+
+sub check_tmp_file
+{
+  print_test_log ('Checking temporary file contents (HCK-001).');
+  my $file = shift;
+  my $text = `cat $file`;
+  if ($text eq '')
+    {
+      print_test_result ('Temporary file is empty as expected.');
+      return 0;
+    }
+  print_test_error ("Temporary file unexpectedly contains '$text'.");
+  return 1;
+}
+
+sub parse_gpg_result
+{
+  my $file = shift;
+  print_test_log ('Checking GnuPG results.');
+  return 1 if check_tmp_file ($file);
+  print_test_log ('Checking GnuPG test output.');
+  my $text = $agent->content (raw => 1);
+  $text =~ s/^.*<h2>Listing keys for &lt;//s;
+  $text =~ s/&gt;.*//s;
+  my $email = get_email_string ($file);
+  if ($text eq  $email)
+    {
+      print_test_result ("Email on the page is '$email' as expected.");
+      return 0;
+    }
+  print_test_error ("Email on the page is '$email' ('$text' is expected).");
+  save_page ($agent, 'test-gpg.html');
+  return 1;
+}
+
+sub test_gpg
+{
+  my $filename = shift;
+  print_test_log ("Clearing file $filename.");
+  `cat /dev/null > $filename`;
+  print_test_log ('Testing GnuPG operations.');
+  my $key = load_rsa ();
+  return 1 unless defined $key;
+  print_test_log ('Visiting GnuPG key page.');
+  $agent->get (make_url ('my/admin/change.php?item=gpgkey'));
+  return 1 if check_request_status ($agent);
+  $agent->form_with_fields (qw (form_id newvalue test_gpg_key));
+  $agent->set_fields ('newvalue' => $key);
+  print_test_log ('Submitting key for test.');
+  $agent->click ('test_gpg_key');
+  return parse_gpg_result ($filename) unless check_request_status ($agent);
+  print_test_error ('Cannot test key.');
+  return 1;
 }
 
 my $passwd = register_user ($agent, $login, 'Test User');
@@ -162,7 +231,18 @@ if (check_for_idle_warning ())
     $exit_code = 1;
     save_page ($agent, 'idle-warning.html');
   }
-$exit_code = 1 if try_email_in_cmd ($filename);
+
+if ($filename =~ /\s/)
+  {
+    print_test_error ("Internal error: space in temp filename '$filename'.");
+    $exit_code = 1;
+  }
+else
+  {
+    $exit_code = 1 if try_email_in_cmd ($filename);
+    $exit_code = 1 if test_gpg ($filename);
+  }
+
 log_out ($agent);
 remove_user ($agent, $login, $passwd);
 $exit_code = 0 if $exit_code == 2;
