@@ -1,0 +1,203 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test siteadmin/ area.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use Savane::Test::Group;
+use Savane::Test::Membership;
+use Savane::Test::User;
+use WWW::Mechanize;
+use File::Temp qw (tempfile);
+
+PrintVersionOrHelp ("Test siteadmin/ area.");
+
+my %page_status = ('triggercreation.php' => '404');
+my $admin_group_id = get_group_id ('administration');
+exit (1) if $admin_group_id < 0;
+my %page_args = ('groupedit.php' => "group_id=$admin_group_id");
+
+sub list_siteadmin_pages
+{
+  my $siteadmin_dir = '@frontenddir@/php/siteadmin';
+  print_test_log ("Listing pages in $siteadmin_dir.");
+  my $h;
+  unless (opendir ($h, $siteadmin_dir))
+    {
+      print_test_error ("Cannot open the directory: $!.");
+      return ();
+    }
+  my @pages = grep { /\.php$/ && -f "$siteadmin_dir/$_" } readdir($h);
+  unless (@pages)
+    {
+      print_test_error ("No pages found.");
+      return ();
+    }
+  print_test_result ("Pages found:\n  " . join ("\n  ", @pages));
+  return @pages;
+}
+
+sub set_admin_flags
+{
+  my ($agent, $user, $set) = @_;
+  $agent->get (group_user_perm_url ());
+  return make_user_admin ($agent, $user, $set);
+}
+
+sub page_expected_code
+{
+  my ($page, $login) = @_;
+  return '403' unless have_su_flag ($login);
+  return $page_status{$page} if exists $page_status{$page};
+  return '200';
+}
+
+sub page_url
+{
+  my $p = shift;
+  $p .= '?' . $page_args{$p} if exists $page_args{$p};
+  return "siteadmin/$p";
+}
+
+sub test_double_trigger
+{
+  my ($login, $group_id) = @_;
+  print_test_log ('Checking for the possibility of double trigger.');
+  my $ret = check_status_code (
+    page_url ("triggercreation.php?group_id=$group_id"), 404, "*$login"
+  );
+  return $ret;
+}
+
+sub have_su_flag
+{
+  my $login = shift;
+  return $login =~ /[*]/;
+}
+
+sub drop_su_flag
+{
+  my $ret = shift;
+  $ret =~ s/[*]//;
+  return $ret;
+}
+
+sub log_in_for_access
+{
+  my ($agent, $login) = @_;
+  my $have_access = have_su_flag ($login);
+  $login = drop_su_flag ($login);
+  return 1 if log_in ($agent, $login);
+  return 0 unless $have_access;
+  return become_su ($agent);
+}
+
+sub test_hck002
+{
+  my ($agent, $login) = @_;
+  my $have_access = have_su_flag ($login);
+  my $url = page_url ("triggercreation.php?group_id=$admin_group_id");
+  my $code = $have_access? '(200|404)': '403';
+  print_test_log ("Checking HCK-002, user <$login>.");
+  return check_status_code ($url, $code, undef, $agent);
+}
+
+sub test_access
+{
+  my $login = shift;
+  my $ret = 0;
+  my $agent = make_agent (0);
+  return 1 if log_in_for_access ($agent, $login);
+  foreach (@_)
+    {
+      my $page = page_url ($_);
+      my $code = page_expected_code ($_, $login);
+      print_test_log ("Checking access for $page.");
+      $ret = 1 if check_status_code ($page, $code, undef, $agent);
+    }
+  $ret = 1 if test_hck002 ($agent, $login);
+  $ret = 1 if log_out ($agent);
+  return $ret;
+}
+
+sub run_checks
+{
+  my ($agent, $login, $group_id) = @_;
+  my $ret = 0;
+  my @pages = list_siteadmin_pages ();
+  return 1 unless @pages;
+  log_in ($agent);
+  $agent->get (group_admin_url ());
+  return 1 if (add_user_to_group ($agent, $login) < 0);
+  return 1 if set_admin_flags ($agent, $login, 1);
+  $ret = 1 if test_access ($login, @pages);
+  $ret = 1 if test_access ("*$login", @pages);
+  $ret = 1 if test_double_trigger ($login, $group_id);
+  return 1 if set_admin_flags ($agent, $login, 0);
+  $ret = 1 if test_access ($login, @pages);
+  return $ret;
+}
+
+my $exit_code = 2;
+speed_up_crypt ();
+my $agent = make_agent () or exit (1);
+my $login = 'site_admin';
+my $group = 'siteadmin-test';
+my $passwd = register_user ($agent, $login, 'Site Admin');
+exit (1) unless defined $passwd;
+my $group_id = register_group ($agent, $login, $group);
+$exit_code = 1 if $group_id < 0;
+$exit_code = 1 if run_checks ($agent, $login, $group_id);
+log_out ($agent);
+unless ($group_id < 0)
+  {
+    print_test_log ("Removing >$group<.");
+    $exit_code = 1 if remove_group ($group_id, $group);
+  }
+print_test_log ("Removing <$login>.");
+$exit_code = 1 if quit_group ($agent, $login);
+log_out ($agent);
+$exit_code = 1 if remove_user ($agent, $login);
+$exit_code = 0 if $exit_code == 2;
+print_test_result ("Test done.") unless $exit_code;
+exit ($exit_code);
