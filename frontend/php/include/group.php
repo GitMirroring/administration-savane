@@ -61,6 +61,37 @@ define ('GROUP_STATUS_PENDING', 'P');
 define ('GROUP_STATUS_DELETED', 'D');
 define ('GROUP_STATUS_SPECIAL', 'X');
 
+define ('GHIST_ADD_USER', 'Added User');
+define ('GHIST_REQ_JOIN', 'User Requested Membership');
+define ('GHIST_RM_USER', 'Removed User');
+define ('GHIST_APPROVE_USER', 'Approved User');
+define ('GHIST_CHANGE_PERM', 'Changed User Permissions');
+define ('GHIST_INIT_FEATURES',
+  'Set Active Features to the default for the Group Type'
+);
+define ('GHIST_INIT_NOTIF', 'Set Mail Notification to a sensible default');
+
+define ('GHIST_CHANGE_SQUAD_PERM', 'Changed Squad Permissions');
+define ('GHIST_EMAIL_NOTIF', 'Changed Notification Email Settings');
+define ('GHIST_PUB_INFO', 'Changed Public Info');
+define ('GHIST_GPG', 'Updated Release GPG Keyring');
+define ('GHIST_GROUP_NOTIF', 'Changed Group Notification Settings');
+define ('GHIST_POST_PERM', 'Changed Posting Restrictions');
+define ('GHIST_RM_QUERY', 'Deleted query form');
+define ('GHIST_TRACKER', 'Changed Tracking System Settings');
+define ('GHIST_SQUAD_NAME', 'Squad name update');
+define ('GHIST_FEATURES', 'Changed Activated Features');
+define ('GHIST_STATUS', 'status');
+define ('GHIST_IS_PUBLIC', 'is_public');
+define ('GHIST_TYPE', 'type');
+define ('GHIST_NAME', 'unix_group_name');
+define ('GHIST_RM_SQUAD', 'Deleted Squad');
+
+$GROUP_USER_HISTORY_FIELDS = [
+  GHIST_ADD_USER, GHIST_REQ_JOIN, GHIST_RM_USER, GHIST_APPROVE_USER,
+  GHIST_CHANGE_PERM, GHIST_INIT_NOTIF, GHIST_INIT_FEATURES
+];
+
 $GROUP_STATUS_EDITABLE = [GROUP_STATUS_ACTIVE => 1, GROUP_STATUS_PENDING => 1];
 
 function group_get_object ($group_id)

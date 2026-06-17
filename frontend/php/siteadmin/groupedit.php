@@ -101,15 +101,13 @@ if (!form_vars_empty ($submit_buttons))
           $form_status = $row['status'];
 
         if ($row['status'] != $form_status)
-          group_add_history ('status', $row['status'], $group_id);
+          group_add_history (GHIST_STATUS, $row['status'], $group_id);
         if ($row['is_public'] != $form_public)
-          group_add_history ('is_public', $row['is_public'], $group_id);
+          group_add_history (GHIST_IS_PUBLIC, $row['is_public'], $group_id);
         if ($row['type'] != $group_type)
-          group_add_history ('type', $row['type'], $group_id);
+          group_add_history (GHIST_TYPE, $row['type'], $group_id);
         if ($row['unix_group_name'] != $form_name)
-          group_add_history (
-            'unix_group_name', $row['unix_group_name'], $group_id
-          );
+          group_add_history (GHIST_NAME, $row['unix_group_name'], $group_id);
         db_autoexecute ('groups',
           [ 'is_public' => $form_public, 'status' => $form_status,
             'license' => $form_license, 'license_other' => $form_license_other,

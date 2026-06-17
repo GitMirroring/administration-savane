@@ -79,7 +79,7 @@ if ($reset_keyring)
 
 if ($update)
   {
-    group_add_history ('Changed Public Info', '', $group_id);
+    group_add_history (GHIST_PUB_INFO, '', $group_id);
 
     $result = db_autoexecute('groups',
       [
@@ -107,7 +107,7 @@ if ($update_keyring)
   {
     if (group_set_preference ($group_id, 'gpg_keyring', $new_keyring))
       {
-        group_add_history ('Updated Release GPG Keyring', '', $group_id);
+        group_add_history (GHIST_GPG, '', $group_id);
         $keyring = $new_keyring;
       }
     else

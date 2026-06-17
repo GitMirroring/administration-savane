@@ -69,7 +69,7 @@ $artifacts = [
 
 if ($update)
   {
-    group_add_history ('Changed Group Notification Settings', '', $group_id);
+    group_add_history (GHIST_GROUP_NOTIF, '', $group_id);
     foreach ($artifacts as $art => $label)
       trackers_data_post_notification_settings ($group_id, $art);
     db_execute (

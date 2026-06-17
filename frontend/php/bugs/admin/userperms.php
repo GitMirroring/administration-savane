@@ -87,7 +87,7 @@ if ($update)
     );
     if ($result)
       {
-        group_add_history ('Changed Posting Restrictions', '', $group_id);
+        group_add_history (GHIST_POST_PERM, '', $group_id);
         fb (_("Posting restrictions updated."));
       }
     else

@@ -532,16 +532,11 @@ function user_guess ()
 }
 
 $user_history_field_names = "(
-  field_name IN (
-    'Added User', 'User Requested Membership', 'Removed User', 'Approved User',
-    'Changed User Permissions',
-    'Set Active Features to the default for the Group Type',
-    'Set Mail Notification to a sensible default',
-    'Set Active Features to the default for the Group Type',
-    'Set Mail Notification to a sensible default'
+  `field_name` IN (
+    '" . join ("',\n    '", $GROUP_USER_HISTORY_FIELDS) . "'
   )
-  OR field_name LIKE 'Added User to Squad %'
-  OR field_name LIKE 'Removed User from Squad %'
+  OR `field_name` LIKE 'Added User to Squad %'
+  OR `field_name` LIKE 'Removed User from Squad %'
 )";
 
 # Return true when account has any traces in the trackers and group_history,
@@ -762,13 +757,13 @@ function user_list_groups_with_history ($uid, $skip)
           JOIN `user_group` `u`
             ON `h`.`group_id` = `u`.`group_id` AND `u`.`user_id` = `a`.`user_id`
         WHERE
-          `u`.`user_id` = ? $skip
-          AND `h`.`field_name` IN ('Added User', 'Approved User')
+          `u`.`user_id` = ? $skip AND `h`.`field_name` IN (?, ?)
           GROUP BY `u`.`group_id`, `u`.`admin_flags` ORDER BY `u`.`group_id`
       ) `ug`
       JOIN `groups` `g` ON `g`.`group_id` = `ug`.`group_id`
     WHERE `g`.`status` = ?
-    ORDER BY `ug`.`group_id`", [$uid, GROUP_STATUS_ACTIVE]
+    ORDER BY `ug`.`group_id`",
+    [$uid, GHIST_ADD_USER, GHIST_APPROVE_USER, GROUP_STATUS_ACTIVE]
   );
 }
 

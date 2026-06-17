@@ -89,7 +89,7 @@ function update_squad_name ($new_name, $squad_id, $group_id, &$current_name)
     return;
 
   fb (_("Squad name updated"));
-  group_add_history ('Squad name update', $current_name, $group_id);
+  group_add_history (GHIST_SQUAD_NAME, $current_name, $group_id);
   $current_name = $new_name;
 }
 

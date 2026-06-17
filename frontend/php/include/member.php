@@ -64,10 +64,10 @@ function member_status_is_active ($status)
 function member_history_label_on_add ($status)
 {
   if ($status === MEMBER_FLAGS_PENDING)
-    return 'User Requested Membership';
+    return GHIST_REQ_JOIN;
   if ($status === MEMBER_FLAGS_SQUAD)
     return 'Created Squad';
-  return 'Added User';
+  return GHIST_ADD_USER;
 }
 
 # Assign user.uidNumber (invoked whenever a user joins a group);
@@ -318,7 +318,7 @@ function member_approve ($user_id, $group_id)
   if (!$result)
     return $result;
   member_update_file ($group_id, 'group');
-  group_add_history ('Approved User', user_getname ($user_id), $group_id);
+  group_add_history (GHIST_APPROVE_USER, user_getname ($user_id), $group_id);
   return $result;
 }
 
@@ -364,10 +364,10 @@ function member_remove ($user_id, $group_id)
   if (!$result)
     return $result;
   if ($admin_flags == MEMBER_FLAGS_SQUAD)
-    group_add_history ('Deleted Squad', user_getname ($user_id), $group_id);
+    group_add_history (GHIST_RM_SQUAD, user_getname ($user_id), $group_id);
   else
     {
-      group_add_history ('Removed User', user_getname ($user_id), $group_id);
+      group_add_history (GHIST_RM_USER, user_getname ($user_id), $group_id);
       member_update_file ($group_id, 'group');
     }
   return member_purge_from_user_squad ($user_id, $group_id, $admin_flags);

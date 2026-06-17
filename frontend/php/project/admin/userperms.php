@@ -149,12 +149,12 @@ function update_member_permissions (
     return $ret;
   if ($is_squad)
     {
-      $string = 'Changed Squad Permissions';
+      $string = GHIST_CHANGE_SQUAD_PERM;
       $msg = sprintf (_('Changed Squad %s Permissions'), $name);
     }
   else
     {
-      $string = 'Changed User Permissions';
+      $string = GHIST_CHANGE_PERM;
       $msg = sprintf (_('Changed User %s Permissions'), $name);
     }
   group_add_history ($string, $name, $group_id);
