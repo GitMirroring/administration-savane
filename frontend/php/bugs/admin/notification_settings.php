@@ -99,9 +99,7 @@ if ($submit)
     if ($res_new == 1)
       {
         fb (_("Changed notification email settings"));
-        group_add_history (
-          'Changed Notification Email Settings', '', $group_id
-        );
+        group_add_history (GHIST_EMAIL_NOTIF, '', $group_id);
       }
     else
       fb (_("Update failed"), 1);

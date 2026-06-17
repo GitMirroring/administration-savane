@@ -269,7 +269,7 @@ function delete_report ($report_id)
   $a = ARTIFACT;
 
   group_add_history (
-   'Deleted query form', "$a, form #$report_id \"$rep_name\"", $group_id
+    GHIST_RM_QUERY, "$a, form #$report_id \"$rep_name\"", $group_id
   );
   db_execute  ("DELETE FROM {$a}_report WHERE report_id = ?", [$report_id]);
   db_execute (

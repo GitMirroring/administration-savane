@@ -191,7 +191,7 @@ function update_db ()
       fb (_("Nothing to update."));
       return;
     }
-  group_add_history ('Changed Activated Features', '', $group_id);
+  group_add_history (GHIST_FEATURES, '', $group_id);
   $error = update_groups ($upd_list, $group_id)
     || update_prefs ($upd_pref, $group_id);
   update_db_redirect ($error);

@@ -135,11 +135,10 @@ function inclusion_requests_query ($user_name, $summarize)
 {
   $fields = inclusion_requiests_fields ($summarize);
   return "
-    SELECT $fields
-    FROM group_history h, groups g
+    SELECT $fields FROM `group_history` `h`, `groups` `g`
     WHERE
-      h.old_value = \"$user_name\" AND g.group_id = h.group_id
-      AND h.field_name = \"User Requested Membership\"";
+      `h`.`old_value` = \"$user_name\" AND `g`.`group_id` = `h`.`group_id`
+      AND `h`.`field_name` = '" . GHIST_REQ_JOIN . "'";
 }
 
 function contribution_query ($user_id, $user_name, $offset = -1, $max_rows = -1)

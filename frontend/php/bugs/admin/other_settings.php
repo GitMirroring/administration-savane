@@ -125,7 +125,7 @@ $pref_changed = !empty ($new_pref_keys);
 
 if ($update && ($changed || $pref_changed))
   {
-    group_add_history ('Changed Tracking System Settings', '', $group_id);
+    group_add_history (GHIST_TRACKER, '', $group_id);
     $update_failed = false;
     if ($changed)
       {

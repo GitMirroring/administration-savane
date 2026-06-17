@@ -92,8 +92,7 @@ if ($upd_list)
       {
         fb_dbsuccess ();
         group_add_history (
-          'Set Active Features to the default for the Group Type',
-          user_getname ($user_id), $group_id
+          GHIST_INIT_FEATURES, user_getname ($user_id), $group_id
         );
       }
     else
@@ -138,8 +137,8 @@ if ($upd_list)
     if ($result)
       {
         fb_dbsuccess ();
-        group_add_history ('Set Mail Notification to a sensible default',
-          user_getname ($user_id), $group_id
+        group_add_history (
+          GHIST_INIT_NOTIF, user_getname ($user_id), $group_id
         );
       }
     else
