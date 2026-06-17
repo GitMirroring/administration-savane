@@ -48,6 +48,17 @@ require_once ('../include/init.php');
 require_once ('../include/proj_email.php');
 
 session_require (['group' => SESSION_ADMIN_GROUP]);
+exit_if_no_group ();
+
+function check_group_history ($group_id)
+{
+  $res = group_get_history ($group_id);
+  while ($row = db_fetch_array ($res))
+    if ($row['field_name'] == GHIST_INIT_FEATURES)
+      exit_error (no_i18n ('This group has already been initialized.'));
+}
+
+check_group_history ($group_id);
 
 # Configure the group according to group type settings.
 # If a group can use a feature for its group type, assume he would
