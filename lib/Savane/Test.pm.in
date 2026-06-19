@@ -153,7 +153,7 @@ sub check_status_code
   my $url = shift;
   my $expected = shift;
   my $user = @_? shift: undef;
-  my $agent = @_? shift: make_agent (0);
+  my $agent = defined ($_[0])? shift: make_agent (0);
   print_test_log ("Asserting status /^$expected\$/ for $url.");
   log_in_for_accessibility ($agent, $user);
   $agent->get (make_url ($url));
@@ -172,7 +172,8 @@ sub check_inaccessibility
 {
   my $url = shift;
   my $user = @_? shift: undef;
-  return check_status_code ($url, '40\d', $user);
+  my $agent = @_? shift: undef;
+  return check_status_code ($url, '40\d', $user, $agent);
 }
 
 sub make_agent
