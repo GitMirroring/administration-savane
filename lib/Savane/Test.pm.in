@@ -366,22 +366,78 @@ sub become_su
   return $ret;
 }
 
-sub log_in
+my %passphrases;
+
+sub default_passphrase
+{
+  return '-';
+}
+
+sub lookup_passphrase
+{
+  my $login = shift;
+  my $ret;
+  print_test_log ("Looking for saved passphrase for <$login>.");
+  if (exists $passphrases{$login})
+    {
+      $ret = $passphrases{$login};
+      print_test_result ("Found passphrase: >$ret<.");
+      return $ret;
+    }
+  $ret = default_passphrase ();
+  print_test_result ("No passphrase found; using >$ret<.");
+  return $ret;
+}
+
+sub save_passphrase
+{
+  my ($login, $passwd) = @_;
+  return 0 if $passwd eq default_passphrase ();
+  return 0 if (exists $passphrases{$login} && $passwd eq $passphrases{$login});
+  print_test_log ("Saving passphrase >$passwd< for <$login>.");
+  $passphrases{$login} = $passwd;
+  return 0;
+}
+
+sub log_in_parse_args
 {
   my $agent = shift;
   my $login = @_? shift: '-';
-  my $passwd = @_? shift: '-';
-  my $ret = 0;
+  my $passwd = shift;
+  $passwd = lookup_passphrase ($login) unless defined $passwd;
   my $su = $login eq '*';
   print_test_log ("Logging in as <$login>, passphrase >$passwd<.");
   $login = '-' if $su;
+  return ($agent, $login, $passwd, $su);
+}
+
+sub find_log_in_form
+{
+  my ($agent, $login) = @_;
+  print_test_log ('Looking for login form.');
+  if (defined $agent->form_with_fields (qw (form_id form_pw)))
+    {
+      print_test_result ('Form found.');
+      return 0;
+    }
+  print_test_error ("Form not found.");
+  save_page ($agent, "no-login-$login.html");
+  return 1;
+}
+
+sub log_in
+{
+  my ($agent, $login, $passwd, $su) = log_in_parse_args (@_);
+  print_test_log ('Visiting login page.');
   $agent->get (make_url ('account/login.php'));
   return 1 if check_request_status ($agent);
-  $agent->form_with_fields (qw (form_id));
+  return 1 if find_log_in_form ($agent, $login);
   $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
+  print_test_log ('Sending credentials.');
   $agent->click ('login');
   return 1 if check_request_status ($agent);
   print_test_result ("Logged in as <$login>.");
+  save_passphrase ($login, $passwd);
   return 0 unless $su;
   return become_su ($agent);
 }
