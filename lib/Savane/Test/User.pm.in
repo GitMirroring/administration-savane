@@ -108,6 +108,8 @@ sub register_user
   log_out ($agent);
   $agent->get (make_url ("users/$login"));
   print_test_result ("Account exists.");
+  log_in ($agent, $login, $passwd);
+  log_out ($agent);
   return $passwd;
 }
 
