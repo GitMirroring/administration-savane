@@ -143,13 +143,9 @@ sub init_root_url
 sub log_in_for_accessibility
 {
   my ($agent, $user) = @_;
-  return unless defined $user;
-  if ($user eq '*')
-    {
-      log_in_su ($agent);
-      return;
-    }
-  log_in ($agent, $user);
+  return 0 unless defined $user;
+  return log_in ($agent, $user) if $user !~ s/^[*]//;
+  return log_in_su ($agent, $user);
 }
 
 sub check_status_code
@@ -159,7 +155,7 @@ sub check_status_code
   my $user = @_? shift: undef;
   my $agent = defined ($_[0])? shift: make_agent (0);
   print_test_log ("Asserting status /^$expected\$/ for $url.");
-  log_in_for_accessibility ($agent, $user);
+  return 1 if log_in_for_accessibility ($agent, $user);
   $agent->get (make_url ($url));
   my $status = $agent->status ();
   unless ($status =~ /^$expected$/)
@@ -363,8 +359,10 @@ sub log_in
 
 sub log_in_su
 {
-  my $agent = shift;
-  return 1 if log_in ($agent, '-');
+  my ($agent, $user) = @_;
+  $user = '-' unless defined $user;
+  $user = '-' if $user eq '';
+  return 1 if log_in ($agent, $user);
   return become_su ($agent);
 }
 
