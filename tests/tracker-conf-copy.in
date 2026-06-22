@@ -83,7 +83,6 @@ sub copy_conf
   $agent->click ();
   my $status = $should_fail? '403': '200';
   return 1 if check_request_status ($agent, "conf-copy-$status.html", $status);
-  print_test_result ("Request result is $status as expected.");
   print_test_result ('Successfully copied the configuration.')
     unless $should_fail;
   return 0;

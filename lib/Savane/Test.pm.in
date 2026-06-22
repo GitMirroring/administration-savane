@@ -106,7 +106,11 @@ sub check_request_status
   my $page = @_? shift: undef;
   my $expected = @_? shift: 200;
   my $status = $agent->status ();
-  return 0 if $status eq $expected;
+  if ($status eq $expected)
+    {
+      print_test_result ("Request status is $expected as expected.");
+      return 0;
+    }
   save_page ($agent, $page) if defined $page;
   print_test_error ("Unexpected request status $status.");
   return 1;
