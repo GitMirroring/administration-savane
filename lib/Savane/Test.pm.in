@@ -328,12 +328,41 @@ sub get_mbox
   return join '', @ret;
 }
 
+sub find_su_link
+{
+  my $agent = shift;
+  my $error_on_fail = @_? shift: 1;
+  my $link = $agent->find_link (url_regex => qr,/account/su\.php[?],);
+  print_test_log ('Looking for superuser link.');
+  unless (defined $link)
+    {
+      print_test_result ('Cannot find superuser link.', $error_on_fail);
+      save_page ($agent, 'no-su.html') if $error_on_fail;
+      return undef;
+    }
+  print_test_result ("Found superuser link ". $link->url . ".");
+  return $link;
+}
+
 sub become_su
 {
   my $agent = shift;
-  $agent->follow_link (url_regex => qr,^/account/su\.php[?],);
+  my $link = find_su_link ($agent);
+  if ($link->url =~ /action=logout/)
+    {
+      print_test_result ('Already in superuser mode.');
+      return 0;
+    }
+  unless ($link->url =~ /action=login/)
+    {
+      print_test_result ("Unexpected 'action' string.");
+      return 1;
+    }
+  print_test_log ('Following superuser link.');
+  $agent->get ($link->url);
   my $ret = check_request_status ($agent);
   print_test_result ('Acquired superuser privileges.') unless $ret;
+  save_page ($agent, 'su-priv.html') if $ret;
   return $ret;
 }
 
@@ -365,11 +394,33 @@ sub log_in_su
   return 1 if log_in ($agent, $user);
   return become_su ($agent);
 }
+sub drop_privileges_if_su
+{
+  my $agent = shift;
+  print_test_log ('Dropping superuser privileges (if any).');
+  print_test_log ('Visiting a page accessible for all.');
+  $agent->get ('/');
+  return 1 if check_request_status ($agent);
+  my $su_link = find_su_link ($agent, 0);
+  return 0 unless defined $su_link;
+  if ($su_link->url =~ /[?]action=login/)
+    {
+      print_test_result ("Already in non-superuser mode.");
+      return 0;
+    }
+  print_test_log ('Following superuser link.');
+  $agent->get ($su_link->url);
+  my $ret = check_request_status ($agent);
+  print_test_result ('Dropped privileges.') unless $ret;;
+  return $ret;
+}
 
 sub log_out
 {
   my $agent = shift;
+  my $keep_su = shift;
   print_test_log ("Logging out.");
+  drop_privileges_if_su ($agent) unless $keep_su;
   $agent->get (make_url ("account/logout.php"));
   my $ret = check_request_status ($agent);
   print_test_result ("Logged out.") unless $ret;
