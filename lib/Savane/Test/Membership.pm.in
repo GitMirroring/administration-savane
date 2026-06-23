@@ -317,6 +317,53 @@ sub visit_user_perm_url
   print_test_error ("Cannot access $group user permission page.");
   return 1;
 }
+sub find_user_perm_form
+{
+  my ($agent, $id) = @_;
+  my $field = "admin_user_$id";
+  unless (defined $agent->form_with_fields ('form_id', 'group', $field))
+    {
+      save_page ($agent, "user-perm-$id-absent.html");
+      print_test_error ("User #$id not found on the permission page.");
+      return undef;
+    }
+  return $field;
+}
+my $admin_flag = 'A';
+sub user_is_admin
+{
+  my ($agent, $id, $group) = @_;
+  return -1
+    if visit_user_perm_url ($agent, $group, "check-admin-$group-$id.html");
+  my $field = find_user_perm_form ($agent, $id);
+  return -1 unless defined $field;
+  my $val = $agent->value ($field);
+  $val = '' unless defined $val;
+  return $val eq $admin_flag;
+}
+sub report_admin_status
+{
+  my ($agent, $id, $is_admin, $expected) = @_;
+  if ($is_admin)
+    {
+      if ($expected)
+        {
+          print_test_result ("User #$id is an admin as expected.");
+          return 0;
+        }
+      print_test_error ("User #$id is an admin unlike expected.");
+      save_page ($agent, "admin-status-$id.html");
+      return 1;
+    }
+  if ($expected)
+    {
+      print_test_error ("User #$id is not an admin unlike expected.");
+      save_page ($agent, "admin-status-$id.html");
+      return 1;
+    }
+  print_test_result ("User #$id is not an admin like expected.");
+  return 0;
+}
 sub make_user_admin
 {
   my ($agent, $user, $val, $group) = @_;
@@ -328,17 +375,16 @@ sub make_user_admin
   );
   my $id = get_user_id ($user);
   return 1 if $id < 0;
-  my $field = "admin_user_$id";
-  unless (defined $agent->form_with_fields ('form_id', 'group', $field))
-    {
-      save_page ($agent, "user-perm-$group-$user-absent.html");
-      print_test_error ("User #$id <$user> not found on the permission page.");
-      return 1;
-    }
-  $agent->tick ($field, 'A', $val);
+  my $field = find_user_perm_form ($agent, $id);
+  return 1 unless defined $field;
+  $agent->tick ($field, $admin_flag, $val);
   print_test_log ("Sending request to update <$user> status.");
   $agent->click ();
-  return check_request_status ($agent, "user-perm-$group-$user.html");
+  return 1 if check_request_status ($agent, "user-perm-$group-$user.html");
+  print_test_log ("Checking if user #$id is an admin of >$group<.");
+  my $is_admin = user_is_admin ($agent, $id, $group);
+  return 1 unless $is_admin >= 0;
+  return report_admin_status ($agent, $id, $is_admin, $val);
 }
 sub quit_link_re
 {
