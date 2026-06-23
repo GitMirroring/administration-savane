@@ -155,6 +155,10 @@ AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
   [have_perl_modules=yes], [have_perl_modules=no]
 )
 
+AX_PERL_MODULE_VERSION([LWP::Simple 5.69],
+  [have_recent_libwww_perl=yes], [have_recent_libwww_perl=no]
+)
+
 AX_PERL_MODULE_VERSION([WWW::Mechanize 0],
   [have_mechanize=yes], [have_mechanize=no]
 )
@@ -397,6 +401,16 @@ AS_CASE(["$have_mirror_perl.$enable_mirror"], [no.yes],
 AS_CASE([$have_mechanize], [no],
   [
     AS_ECHO(["Note: The Perl module WWW::Mechanize is missing."])
+    AS_ECHO(["      The test and distcheck targets will fail."])
+  ]
+)
+
+AS_CASE([$have_mechanize-$have_recent_libwww_perl], [yes-no],
+  [
+    AS_ECHO(["Note: The Perl module WWW::Mechanize is present,"])
+    AS_ECHO(["      but no recent libwww-perl is available"])
+    AS_ECHO(["      to support some functions used in tests."])
+    AS_ECHO([""])
     AS_ECHO(["      The test and distcheck targets will fail."])
   ]
 )
