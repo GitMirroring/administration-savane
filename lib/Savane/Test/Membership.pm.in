@@ -360,7 +360,7 @@ sub quit_group
 {
   my ($agent, $user, $group) = @_;
   my $group_id = defined $group? get_group_id ($group): -1;
-  log_in ($agent, $user);
+  return 1 if log_in ($agent, $user);
   print_test_log ('Visiting my group page.');
   $agent->get (make_url ('my/groups.php'));
   my $link_re = quit_link_re ($group_id);
