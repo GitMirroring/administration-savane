@@ -216,70 +216,102 @@ function find_out_new_list_name ()
   return $new_list_name[$i];
 }
 
-function add_new_list ()
+function check_if_list_exists ($new_list_name)
 {
-  global $newlist_format_index, $list_name, $formats, $grp, $group_id;
-  global $is_public, $description;
-  if ($newlist_format_index >= count ($formats))
-    return;
-  $new_list_name = find_out_new_list_name ();
-  if ($newlist_format_index === null) # At this point, it should be set.
-    return;
-  # Names less than two characters long are not acceptable (only
-  # check if the chosen format requires %NAME substitution).
-  if (
-    strpos ($formats[$newlist_format_index], "%NAME") !== false
-    && strlen ($new_list_name) < 2
-  )
-    {
-      # TRANSLATORS: the argument is the new mailing list
-      # name entered by the user.
-      $msg = sprintf (
-        _("You must provide list name that is two or more "
-          . "characters long: %s"),
-        $new_list_name
-      );
-      fb ($msg, 1);
-      return;
-    }
-  $new_list_name = strtolower ($new_list_name);
-  # Site may have a strict policy on list names: checks now.
-  if ($formats[$newlist_format_index] !== '%NAME')
-    $new_list_name =
-      $grp->getTypeMailingListFormat ($new_list_name, $newlist_format_index);
-  # Check if it is a valid name.
-  if (!account_namevalid ($new_list_name, 1, 1, 1, 80))
-    {
-      # TRANSLATORS: the argument is the new mailing list name
-      # entered by the user.
-      fb (sprintf (_("Invalid list name: %s"), $new_list_name), 1);
-      return;
-    }
-  # Check on the list_name: must not be equal to a user account,
-  # otherwise it can mess up the mail develivery for the list/user.
-  $res = db_execute (
-    "SELECT user_id FROM user WHERE user_name LIKE ?", [$new_list_name]
-  );
-  if (db_numrows ($res))
-    {
-      $msg = sprintf (
-        _("List name %s is reserved to avoid conflicts with "
-          . "user accounts."), $new_list_name
-      );
-      fb ($msg, 1);
-      return;
-    }
-  # Check if the list does not exists already.
   $result = db_execute (
-    "SELECT group_id FROM mail_group_list WHERE lower(list_name) = ?",
+    "SELECT `group_id` FROM `mail_group_list` WHERE lower(`list_name`) = ?",
     [$new_list_name]
   );
-  if (db_numrows ($result))
-    {
-      $msg = sprintf (_("The list %s already exists."), $new_list_name);
-      fb ($msg, 1);
-      return;
-    }
+  if (!db_numrows ($result))
+    return 0;
+  $msg = sprintf (_("The list %s already exists."), $new_list_name);
+  fb ($msg, 1);
+  return 1;
+}
+
+# Check on the list_name: must not be equal to a user account,
+# otherwise it can mess up the mail develivery for the list vs. user.
+function check_for_user_name_conflicts ($new_list_name)
+{
+  $res = db_execute (
+    "SELECT `user_id` FROM `user` WHERE `user_name` LIKE ?", [$new_list_name]
+  );
+  if (!db_numrows ($res))
+    return 0;
+  $msg = sprintf (
+    _("List name %s is reserved to avoid conflicts with user accounts."),
+    $new_list_name
+  );
+  fb ($msg, 1);
+  return 1;
+}
+
+function check_list_name_length ($format, $new_list_name)
+{
+  # Names less than two characters long are not acceptable (only
+  # check if the chosen format requires %NAME substitution).
+  if (strpos ($format, "%NAME") === false || strlen ($new_list_name) >= 2)
+    return 0;
+  # TRANSLATORS: the argument is the new mailing list
+  # name entered by the user.
+  $msg = sprintf (
+    _("You must provide list name that is two or more characters long: %s"),
+    $new_list_name
+  );
+  fb ($msg, 1);
+  return 1;
+}
+
+function substitute_list_name (
+  $new_list_name, $formats, $newlist_format_index, $grp
+)
+{
+  $new_list_name = strtolower ($new_list_name);
+  # Site may have a strict policy on list names: checks now.
+  if ($formats[$newlist_format_index] === '%NAME')
+    return $new_list_name;
+  return $grp->getTypeMailingListFormat ($new_list_name, $newlist_format_index);
+}
+
+# Check if it is a valid name.
+function validate_list_name ($new_list_name)
+{
+  if (account_namevalid ($new_list_name, 1, 1, 1, 80))
+    return 0;
+  # TRANSLATORS: the argument is the new mailing list name
+  # entered by the user.
+  fb (sprintf (_("Invalid list name: %s"), $new_list_name), 1);
+  return 1;
+}
+
+function check_list_name ()
+{
+  global $newlist_format_index, $list_name, $formats, $grp, $group_id;
+  if ($newlist_format_index >= count ($formats))
+    return null;
+  $new_list_name = find_out_new_list_name ();
+  if ($newlist_format_index === null) # At this point, it should be set.
+    return null;
+  if (check_list_name_length ($formats[$newlist_format_index], $new_list_name))
+    return null;
+  $new_list_name = substitute_list_name (
+    $new_list_name, $formats, $newlist_format_index, $grp
+  );
+  if (validate_list_name ($new_list_name))
+    return null;
+  if (check_for_user_name_conflicts ($new_list_name))
+    return null;
+  if (check_if_list_exists ($new_list_name))
+    return null;
+  return $new_list_name;
+}
+
+function add_new_list ()
+{
+  global $group_id, $is_public, $description;
+  $new_list_name = check_list_name ();
+  if ($new_list_name === null)
+    return;
   mailman_make_list (
     $group_id, $new_list_name, $is_public['new'], $description['new']
   );
