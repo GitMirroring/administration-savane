@@ -63,7 +63,6 @@ my $exit_code = 2;
 my @created_lists;
 append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
 my $agent = make_agent () or exit (1);
-log_in_su ($agent);
 
 sub visit_list_admin_page
 {
@@ -474,6 +473,7 @@ sub remove_lists
   return $ret;
 }
 
+log_in_su ($agent) and exit (1);
 $exit_code = 1 if create_lists (@list_params);
 $exit_code = 1 if modify_lists ($agent);
 $exit_code = 1 if remove_lists ($agent);
