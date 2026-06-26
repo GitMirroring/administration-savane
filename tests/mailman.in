@@ -51,9 +51,10 @@ PrintVersionOrHelp ("Test sv_mailman-wrapper.pl and mailman operations.");
 my $wrapper = "@bindir@/sv_mailman-wrapper.pl";
 my $group = 'administration';
 my $list_param_pack = 4;
+my $arbitrary_format = 3;
 my @list_params = (
-  'sample-list', 'sample "description"', 'public', 3,
-  'other', '</list> <list>', 'private', 3,
+  'sample-list', 'sample "description"', 'public', $arbitrary_format,
+  'other', '</list> <list>', 'private', $arbitrary_format,
   'templated', "'templated' list", 'public', 0,
   'info', 'info/ list', 'public', 1,
   'bug', 'bug list', 'private', 2
@@ -62,7 +63,7 @@ my @list_params = (
 my $exit_code = 2;
 my @created_lists;
 append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
-my $agent = make_agent () or exit (1);
+my $agent = make_agent (0) or exit (1);
 
 sub visit_list_admin_page
 {
@@ -155,19 +156,26 @@ sub find_modification_form
 {
   my $agent = shift;
   my $pref = shift;
+  my $should_fail = shift;
   my $form = $agent->form_with_fields ("post_changes");
-  return $form if defined $form;
-  print_test_error ("Cannot find form with field 'post_changes'.");
-  save_page ($agent, "$pref-no-post-changes.html");
-  return undef;
+  unless (defined $form)
+    {
+      print_test_result (
+        "Cannot find form with field 'post_changes'.", !$should_fail
+      );
+      save_page ($agent, "$pref-no-post-changes.html") unless $should_fail;
+      return undef;
+    }
+  save_page ($agent, "$pref-post-changes.html") if $should_fail;
+  return $form;
 }
 
 sub find_list_params
 {
-  my ($agent, $list) = @_;
-  my $id = find_list_id ($agent, $list);
+  my ($agent, $list, $should_fail) = @_;
+  my $id = find_list_id ($agent, $list, $should_fail);
   return (undef, undef) unless defined $id;
-  my $form = find_modification_form ($agent, 'find-list');
+  my $form = find_modification_form ($agent, 'find-list', $should_fail);
   return ($form, $id) if defined $form;
   return (undef, undef);
 }
@@ -224,27 +232,65 @@ sub check_list_params
   return $ret;
 }
 
-sub make_list
+sub list_exists
 {
-  my ($list, $description, $visibility, $format) = @_;
-  print_test_log ("Making list '$list'.");
-  visit_list_admin_page ($agent);
+  my ($agent, $list) = @_;
+  print_test_log ("Checking list non-existence.");
+  my ($form, $id) = find_list_params ($agent, $list, 1);
+  return defined $form;
+}
+
+sub find_list_submission_form
+{
+  my $agent = shift;
   print_test_log ("Looking for new list submission form.");
   my $form = $agent->form_with_fields ('newlist_format_index');
-  unless (defined $form)
-    {
-      print_test_error ("Cannot find submission form.");
-      save_page ($agent, 'make-list.html');
-      return 1;
-    }
+  return $form if defined $form;
+  print_test_error ("Cannot find submission form.");
+  save_page ($agent, 'make-list.html');
+  return undef;
+}
+
+sub set_privileges
+{
+  my ($agent, $set) = @_;
+  my $clone = $agent->clone ();
+  $clone->get ('/');
+  return become_su ($clone) if $set;
+  return drop_privileges_if_su ($clone);
+}
+
+sub fill_list_form
+{
+  my ($list, $description, $visibility, $format) = @_;
+  my $form = find_list_submission_form ($agent);
+  return 1 unless defined $form;
   return 1 if set_newlist_format ($agent, $form, $format);
   return 1 if set_list_name ($agent, $form, $list, $format);
   return 1 if set_list_description ($agent, $form, $description);
   return 1 if set_list_visibility ($agent, $form, $visibility);
-  print_test_log ('Submitting list creation form.');
-  $list = templated_list_name ($list, $format, $group);
-  $agent->click ();
-  return 1 if check_request_status ($agent, "submitted-$list.html");
+  return 0;
+}
+
+sub make_list
+{
+  my ($list, $description, $visibility, $format) = @_;
+  my $i = $format == $arbitrary_format? 2: 1;
+  while (--$i >= 0)
+    {
+      visit_list_admin_page ($agent);
+      return 1 if fill_list_form ($list, $description, $visibility, $format);
+      return 1 if ($i && set_privileges ($agent, 0));
+      $list = templated_list_name ($list, $format, $group);
+      print_test_log ("Submitting list creation form.");
+      $agent->click ();
+      return 1 if check_request_status ($agent, "submitted-$list.html");
+      if ($i)
+        {
+          return 1 if set_privileges ($agent, 1);
+          return 1 if list_exists ($agent, $list);
+        }
+    }
   push @created_lists, $list;
   return check_list_params ($agent, $list, $description, $visibility);
 }
@@ -255,6 +301,7 @@ sub create_lists
   while ($#_ + 1 >= $list_param_pack)
     {
       my $i = 0;
+      print_test_log ("Making list '$_[0]'.");
       $ret = 1 if make_list (@_);
       shift while ($i++ < $list_param_pack);
     }
@@ -390,15 +437,17 @@ sub modify_lists
 
 sub find_list_id
 {
-  my ($agent, $name) = @_;
+  my ($agent, $name, $should_fail) = @_;
   my $page = $agent->content (raw => 1);
   print_test_log ("Looking for list id of '$name'.");
   unless ($page =~ /<h2 id=\s*['"]list-([^>]*)['"][^>]*>$name<\/h2>/)
     {
-      print_test_error ("List id not found.", $agent, "no-list-$name.html");
+      print_test_result ("List id not found.", !$should_fail);
+      save_page ($agent, "no-list-$name.html") unless $should_fail;
       return undef;
     }
-  print_test_result ("List id is $1");
+  print_test_result ("List id is $1", $should_fail);
+  save_page ($agent, "have-list-$name.html") if $should_fail;
   return $1;
 }
 
