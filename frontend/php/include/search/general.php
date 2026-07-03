@@ -290,6 +290,7 @@ function search_type_label ($type_of_search)
     return _("<!-- Search... in -->Patches");
   if ($type_of_search == "people")
     return _("<!-- Search... in -->People");
+  exit_missing_param (['type_of_search']);
   return null;
 }
 
