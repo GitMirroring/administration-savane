@@ -271,49 +271,51 @@ function search_send_header ()
   print html_show_boxoptions ($title, search_box ($words, '', 45));
 }
 
+function search_type_label ($type_of_search)
+{
+  if ($type_of_search == "soft")
+    # TRANSLATORS: this string is the section to look in; it is used as
+    # the second argument in 'Search results for %1$s (in %2$s)'.
+    return _("Groups");
+  if ($type_of_search == "support")
+    # TRANSLATORS: this string is the section to look in; it is used as
+    # the second argument in 'Search results for %1$s (in %2$s)'. The HTML
+    # comment is used to differentiate the usages of the same English string.
+    return _("<!-- Search... in -->Support");
+  if ($type_of_search == "bugs")
+    return _("<!-- Search... in -->Bugs");
+  if ($type_of_search == "task")
+    return _("<!-- Search... in -->Tasks");
+  if ($type_of_search == "patch")
+    return _("<!-- Search... in -->Patches");
+  if ($type_of_search == "people")
+    return _("<!-- Search... in -->People");
+  return null;
+}
+
 # Search results for XXX (in YYY):
 # e.g.: Search results for emacs (in groups):
-function print_search_heading ()
+function search_print_heading ()
 {
   global $words, $type_of_search, $only_group_id;
   print html_h (2, _('Search results'), 'results');
   if (!($words && $type_of_search))
     return;
-  print "<p>";
   # Print real words describing the type of search.
-  if ($type_of_search == "soft")
-    # TRANSLATORS: this string is the section to look in; it is used as
-    # the second argument in 'Search results for %1$s (in %2$s)'.
-    $type_of_search_real = _("Groups");
-  elseif ($type_of_search == "support")
-    # TRANSLATORS: this string is the section to look in; it is used as
-    # the second argument in 'Search results for %1$s (in %2$s)'. The HTML
-    # comment is used to differentiate the usages of the same English string.
-    $type_of_search_real = _("<!-- Search... in -->Support");
-  elseif ($type_of_search == "bugs")
-    $type_of_search_real = _("<!-- Search... in -->Bugs");
-  elseif ($type_of_search == "task")
-    $type_of_search_real = _("<!-- Search... in -->Tasks");
-  elseif ($type_of_search == "patch")
-    $type_of_search_real = _("<!-- Search... in -->Patches");
-  elseif ($type_of_search == "people")
-    $type_of_search_real = _("<!-- Search... in -->People");
-
-  if (!$only_group_id)
-    # TRANSLATORS: the first argument is string to look for,
-    # the second argument is section (Group|Support|Bugs|Task|Patch|People).
-    printf (_('Search results for %1$s in %2$s:'),
-      '<b>' . utils_specialchars ($words) . '</b>',
-      $type_of_search_real
-    );
-  else
+  $type_of_search_real = search_type_label ($type_of_search);
+  $w = '<b>' . utils_specialchars ($words) . '</b>';
+  print "<p>";
+  if ($only_group_id)
     # TRANSLATORS: the first argument is string to look for, the second
     # argument is section (Support|Bugs|Task|Patch|People), the third argument
     # is group name (like GNU Coreutils).
     printf (_('Search results for %1$s in %2$s, for the Group %3$s:'),
-      '<b>' . utils_specialchars ($words) . '</b>',
-      $type_of_search_real, group_getname ($only_group_id)
+      $w, $type_of_search_real, group_getname ($only_group_id)
     );
+  else
+    # TRANSLATORS: the first argument is string to look for,
+    # the second argument is section (Group|Support|Bugs|Task|Patch|People).
+    printf (_('Search results for %1$s in %2$s:'), $w, $type_of_search_real);
   print "</p>\n";
 }
 

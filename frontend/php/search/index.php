@@ -107,7 +107,7 @@ if ($type_of_search == 'soft')
   {
     search_send_header ();
     search_exact ($words);
-    print_search_heading ();
+    search_print_heading ();
     $title_arr = [_("Group"), _("Description"), _("Type")];
 
     print html_build_list_table_top ($title_arr);
@@ -147,7 +147,7 @@ if ($type_of_search == "people")
     else
       {
         search_send_header ();
-        print_search_heading ();
+        search_print_heading ();
 
         print html_build_list_table_top ([_("Login"), _("Name")]);
         print "\n";
@@ -183,7 +183,7 @@ if ($rows == 1 && $offset == 0 && db_result ($result, 0, 'privacy') != "2")
   }
 
 search_send_header ();
-print_search_heading ();
+search_print_heading ();
 
 $titles = [_("Item Id"), _("Item Summary")];
 if (empty ($only_group_id))
