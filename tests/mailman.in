@@ -44,6 +44,8 @@ use strict;
 use warnings;
 use Savane::Version;
 use Savane::Test;
+use Savane::Test::Membership;
+use Savane::Test::User;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test sv_mailman-wrapper.pl and mailman operations.");
@@ -62,6 +64,7 @@ my @list_params = (
 
 my $exit_code = 2;
 my @created_lists;
+speed_up_crypt ();
 append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
 my $agent = make_agent (0) or exit (1);
 
@@ -522,11 +525,33 @@ sub remove_lists
   return $ret;
 }
 
+sub create_admin_user
+{
+  my $agent = shift;
+  my $login = 'site_admin';
+  my $passwd = register_user ($agent, $login, 'Site Admin');
+  exit (1) unless defined $passwd;
+  exit (1) if log_in ($agent);
+  $agent->get (group_admin_url ());
+  return ($login, 1) if (add_user_to_group ($agent, $login) < 0);
+  $agent->get (group_user_perm_url ());
+  return ($login, make_user_admin ($agent, $login));
+}
+
+my ($login, $err) = create_admin_user ($agent);
+log_out ($agent);
+$exit_code = 1 if $err;
 log_in_su ($agent) and exit (1);
 $exit_code = 1 if create_lists (@list_params);
 $exit_code = 1 if modify_lists ($agent);
 $exit_code = 1 if remove_lists ($agent);
 $exit_code = 1 if log_out ($agent);
+if (defined $login)
+  {
+    $exit_code = 1 if quit_group ($agent, $login);
+    $exit_code = 1 if log_out ($agent);
+    $exit_code = 1 if remove_user ($agent, $login);
+  }
 $exit_code = 0 if $exit_code == 2;
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);
