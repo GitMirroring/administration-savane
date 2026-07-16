@@ -58,6 +58,10 @@
 
 * Update French, German, Hebrew, Romanian, Russian, Swedish.
 
+[BUILD]
+
+* ImageMagick executable is detected at configure time.
+
 2026-03-07 3.17
 
 [FRONTEND]

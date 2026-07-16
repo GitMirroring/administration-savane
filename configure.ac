@@ -58,6 +58,7 @@ AC_SUBST([DIRNAME],
   [['${SED} -e "s,\([^/]\)/*$$,\1,;tb;:b;s,^[^/]*$$,.,;tq;" \
     -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']]
 )
+AX_PATH_PROG([CONVERT], [convert], [ImageMagick executable])
 AX_PATH_PROG([PERL], [perl], [Perl executable], [], [Perl not found])
 AX_PATH_PROG([PHP], [php], [PHP executable])
 AX_PATH_PROG([SENDMAIL], [sendmail], [sendmail executable])
@@ -150,6 +151,9 @@ AC_ARG_ENABLE([frontend],
 AS_CASE(["x$enable_frontend"], [xno], [], [enable_frontend=yes])
 AC_MSG_RESULT([$enable_frontend])
 AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
+AS_CASE(["$enable_frontend.$CONVERT"], [yes.],
+  [AC_MSG_ERROR([ImageMagick not found])]
+)
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
 AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
