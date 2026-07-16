@@ -143,6 +143,7 @@ AC_SUBST([ADD_SAMPLE_DB], [$enable_sample_db])
 AM_CONDITIONAL([MARK_DB_FOR_TEST], [test "x$enable_db_test_marker" = xyes])
 AM_CONDITIONAL([DETECT_WWW_PORT], [test "x$enable_detect_www_port" = xyes])
 
+AX_PHP_EXTENSION([mysqli])
 AC_MSG_CHECKING([whether to install frontend part])
 AC_ARG_ENABLE([frontend],
   [AS_HELP_STRING([--disable-frontend], [skip frontend (PHP) part])],
@@ -154,6 +155,10 @@ AS_CASE(["$enable_frontend.$PHP"], [yes.], [AC_MSG_ERROR([PHP not found])])
 AS_CASE(["$enable_frontend.$CONVERT"], [yes.],
   [AC_MSG_ERROR([ImageMagick not found])]
 )
+AS_CASE(["$enable_frontend.$ax_have_php_mysqli"], [yes.yes], [],
+  [AC_MSG_ERROR([PHP doesn't load mysqli; is the extension installed?])]
+)
+
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
 AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
