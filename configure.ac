@@ -87,6 +87,7 @@ AC_ARG_ENABLE([captcha],
   [], [enable_captcha=yes]
 )
 AM_CONDITIONAL([USE_CAPTCHA], [test "x$enable_captcha" = xyes])
+AC_MSG_RESULT([$enable_captcha])
 
 AC_MSG_CHECKING([whether to initialize database])
 AC_ARG_ENABLE([database],
