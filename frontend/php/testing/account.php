@@ -116,7 +116,9 @@ function test_sv_crypt_failure ()
   list ($bin, $use) = [$bindir, $sys_use_php_crypt];
   $sys_use_php_crypt = false;
   $bindir = '.';
+  $saved = utils_disable_warnings (E_WARNING);
   $res = hash_encryptpw ('passphrase');
+  utils_restore_warnings ($saved);
   if ($res !== null)
     print "Unexpected success: hash_encryptpw returns $res\n";
   list ($bindir, $sys_use_php_crypt) = [$bin, $use];
