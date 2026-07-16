@@ -80,6 +80,21 @@ AX_PATH_PROG([MYSQL_BIN], [mysql], [Database client],
 AX_PATH_PROG([GRAPHVIZ_BIN], [dot], [Graphviz executable])
 AX_PATH_PROG([GIT], [git], [Git executable])
 
+AX_PHP_EXTENSION([mysqli])
+
+AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
+  [have_perl_modules=yes], [have_perl_modules=no]
+)
+AX_PERL_MODULE_VERSION([LWP::Simple 5.69],
+  [have_recent_libwww_perl=yes], [have_recent_libwww_perl=no]
+)
+AX_PERL_MODULE_VERSION([WWW::Mechanize 0],
+  [have_mechanize=yes], [have_mechanize=no]
+)
+AX_PERL_MODULE_VERSION([Geo::IP 0 Locale::Codes 0 LWP::Simple 0],
+  [have_mirror_perl=yes], [have_mirror_perl=no]
+)
+
 AX_GEN_CHANGELOG
 
 AC_MSG_CHECKING([whether to disable captcha])
@@ -143,7 +158,6 @@ AC_SUBST([ADD_SAMPLE_DB], [$enable_sample_db])
 AM_CONDITIONAL([MARK_DB_FOR_TEST], [test "x$enable_db_test_marker" = xyes])
 AM_CONDITIONAL([DETECT_WWW_PORT], [test "x$enable_detect_www_port" = xyes])
 
-AX_PHP_EXTENSION([mysqli])
 AC_MSG_CHECKING([whether to install frontend part])
 AC_ARG_ENABLE([frontend],
   [AS_HELP_STRING([--disable-frontend], [skip frontend (PHP) part])],
@@ -161,18 +175,6 @@ AS_CASE(["$enable_frontend.$ax_have_php_mysqli"], [yes.yes], [],
 
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
-AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
-  [have_perl_modules=yes], [have_perl_modules=no]
-)
-
-AX_PERL_MODULE_VERSION([LWP::Simple 5.69],
-  [have_recent_libwww_perl=yes], [have_recent_libwww_perl=no]
-)
-
-AX_PERL_MODULE_VERSION([WWW::Mechanize 0],
-  [have_mechanize=yes], [have_mechanize=no]
-)
-
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],
   [AS_HELP_STRING([--enable-mirror], [install mirror-related scripts])],
@@ -181,9 +183,6 @@ AC_ARG_ENABLE([mirror],
 AS_CASE(["x$enable_mirror"], [xyes], [], [enable_mirror=no])
 AC_MSG_RESULT([$enable_mirror])
 AM_CONDITIONAL([HAVE_MIRROR], [test "x$enable_mirror" = xyes])
-AX_PERL_MODULE_VERSION([Geo::IP 0 Locale::Codes 0 LWP::Simple 0],
-  [have_mirror_perl=yes], [have_mirror_perl=no]
-)
 
 AC_MSG_CHECKING([for Git commit])
 SV_GIT_COMMIT=`$SED 's,^commit ,,;q' $srcdir/ChangeLog`
