@@ -81,6 +81,12 @@ AX_PATH_PROG([GRAPHVIZ_BIN], [dot], [Graphviz executable])
 AX_PATH_PROG([GIT], [git], [Git executable])
 
 AX_PHP_EXTENSION([mysqli])
+AX_PHP_EXTENSION([mailparse],
+  [Comments on trackers via email will be unavailable.]
+)
+AX_PHP_EXTENSION([imap],
+  [Savane will not be able to sign email notifications with GnuPG.]
+)
 
 AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
   [have_perl_modules=yes], [have_perl_modules=no]
@@ -393,6 +399,8 @@ AS_CASE(["$enable_frontend.$GRAPHVIZ_BIN"], [yes.],
     AS_ECHO(["      Dependency graphs will not be shown."])
   ]
 )
+
+AS_CASE(["$enable_frontend"], [yes], [AX_PHP_EXTENSION_REPORT])
 
 AS_CASE(["x$have_perl_modules"], [xno],
   [
