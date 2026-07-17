@@ -62,7 +62,8 @@
 
 * ImageMagick executable is detected at configure time.
 
-* A check for whether PHP loads the mysqli extension is added to configure.
+* A check for whether PHP loads the mysqli extension is added to configure;
+other missing PHP extensions are also reported.
 
 2026-03-07 3.17
 
