@@ -1,0 +1,1217 @@
+#! @PERL@ -I@pkgdatadir@/lib
+#
+# Ad-hock script to import GetFEM tracker data.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+use strict;
+use Savane;
+use Getopt::Long;
+use IO::Handle;
+use XML::Parser;
+
+my $verbose = 0;
+my $dry_run = 0;
+my (%group_names, %group_ids);
+my $acc_pfx = ':';
+
+my $help = <<"EOF";
+  Usage: $0 [OPTIONS] < exported-data.xml
+
+  Ad-hock script to import GetFEM tracker data.
+
+    -h, --help                 show this help and exit
+    -v, --version              show Savane version and exit
+
+    -V, --verbose              print more diagnostics
+    -q, --quiet                print less diagnostics
+
+        --dry-run              skip updating the database
+    -g, --group
+      GROUP_ID=UNIX_GROP_NAME  assign input group its to existing groups
+EOF
+$help =~ s,^ {2},,gm;
+
+PrintVersionOrHelp ($help);
+
+sub assign_group
+{
+  my ($option, $val) = @_;
+  die ("Wrong group assignment, '$val'.")
+    unless $val =~ /(\d+)=([[:alpha:]]\w+)/;
+  my ($id, $name) = ($1, $2);
+  die ("Group #$id has already been assigned") if exists $group_names{$id};
+  my @groups = GetGroupList (
+    '`unix_group_name` = ' . "'$name'", '`unix_group_name`'
+  );
+  die ("Group '$name' does not exist.") unless $groups[0] eq $name;
+  $group_names{$id} = $name;
+  my @groups = GetGroupList (
+    '`unix_group_name` = ' . "'$name'", '`group_id`'
+  );
+  $group_ids{$name} = $groups[0];
+}
+
+GetOptions (
+  "verbose|V+" => \$verbose, "quiet|q+" => sub { $verbose--; },
+  'dry-run' => \$dry_run, 'group|g=s' => \&assign_group,
+) or die "Wrong command line";
+
+my (%tag_ranges, %assigned_name, %assigned_id, %assigned_field, %field_values);
+my (%uids, $group_id, $tracker, $group_name);
+
+sub report_error
+{
+  my $str = shift;
+  my $level = @_? shift: 0;
+  return if $level > $verbose;
+  print STDERR "$str\n";
+}
+
+sub insert_unless_dry_run
+{
+  return InsertDB (@_) unless $dry_run;
+  report_error ("Note: skipping InsertDB due to --dry-run.", 1);
+  return 0;
+}
+
+sub report_settings
+{
+  report_error ("Note: --dry-run is in effect.", 1) if $dry_run;
+  if ($acc_pfx =~ /,/)
+    {
+      report_error ("Account prefix '$acc_pfx' contains ','.");
+      report_error ("Such cases are not supported.");
+      exit (1);
+    }
+}
+
+sub report_attributes
+{
+  my $str = shift;
+  my $data = shift;
+  my $attr = $data->[0];
+  return 0 unless %$attr;
+  report_error ($str, @_);
+  report_error ("  $_ => $attr->{$_}") foreach (keys %$attr);
+  return 1;
+}
+
+sub text_is_empty
+{
+  my ($t, $pos) = @_;
+  my $non_space = $t !~ /^\s*$/;
+  report_error ("$pos: found text '$t'.", 3);
+  return 1 unless $non_space;
+  report_error ("$pos: non-space text '$t' found.");
+  return 0;
+}
+
+sub get_short_tags
+{
+  return (
+    'original_submission' => 1, 'originator_email' => 1, 'field_name' => 1,
+    'new_value' => 1
+  );
+}
+
+sub check_value_length
+{
+  my ($tag, $lng, $pfx) = @_;
+  my %short_tags = get_short_tags ();
+  if ($lng == 1 && exists ($short_tags{$tag}))
+    {
+      report_error ("$pfx note: empty <$tag>.", 3);
+      return 0;
+    }
+  if ($lng == 2 && $tag eq '0')
+    {
+      report_error ("$pfx note: text found.", 3);
+      return 0;
+    }
+  if ($lng < 3)
+    {
+      report_error ("$pfx too short array for <$tag> ($lng, 3 is needed).");
+      return 1;
+    }
+  return 0 if ($tag eq 'history' || $lng >= 3);
+  report_error ("too long array ($lng, should be 3).");
+  return 1;
+}
+
+sub add_to_range
+{
+  my ($tag, $d, $pos, $ranges) = @_;
+  my %skipped = ('history' => 1, 'original_submission' => 1, 'field' => 1);
+  return 0 if $tag eq '0';
+  my $lng = scalar (@$d);
+  my $pfx = "Value at $pos:";
+  return 1 if check_value_length ($tag, $lng, $pfx);
+  my $subtag = $d->[1];
+  if ($subtag ne '0' and $lng > 1)
+    {
+      report_error ("$pfx non-text (<$subtag>).");
+      return 1;
+    }
+  return 0 if exists $skipped{$tag};
+  my $val = '';
+  $val = $d->[2] if $lng > 1;
+  $ranges->{$tag}->{$val} = 1;
+  return 0;
+}
+
+sub count_values
+{
+  my ($data, $pos, $ranges) = @_;
+  my %cnt;
+  my $ret = 0;
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $tag = $data->[$m * 2 + 1];
+      my $d = $data->[$m * 2 + 2];
+      my $p = "Value $pos:$m";
+      $cnt{$tag}++;
+      if ($tag eq '0')
+        {
+          $ret = 1 unless text_is_empty ($d, $p);
+        }
+      report_error ("$p: <$tag> found.", 3 + ($tag eq '0'));
+      $ret = 1 if add_to_range ($tag, $d, "$pos:$m", $ranges);
+    }
+  return (\%cnt, $ret);
+}
+
+sub check_mandatory_elements
+{
+  my ($cnt, $pos) = (shift, shift);
+  my @mandatory = @_;
+  my $ret = 0;
+  foreach (@mandatory)
+    {
+      my $field;
+      foreach my $f (split (/[|]/, $_))
+        {
+          $field = $f if exists ($cnt->{$f});
+        }
+      next if defined $field;
+      report_error ("Item $pos misses element <$_>.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
+sub check_duplicates
+{
+  my ($cnt, $pos) = @_;
+  my $ret = 0;
+  foreach (keys %$cnt)
+    {
+      next if $_ eq '0';
+      next if $cnt->{$_} == 1;
+      report_error ("Element $pos has $cnt->{$_} <$_> elements.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
+sub check_attributes
+{
+  my ($data, $pos) = @_;
+  my $ret = 0;
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      next if $data->[$m * 2 + 1] eq '0';
+      my $p = "Nonempty attributes in subelement $pos:$m";
+      $ret = 1 if report_attributes ($p, $data->[$m * 2 + 2]);
+    }
+  return $ret;
+}
+
+sub look_for_tag
+{
+  my ($data, $pos, $tag) = @_;
+  my ($m, $item, $item_pos);
+  for ($m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $p = "$pos:$m";
+      my $idx = $m * 2 + 2;
+      next unless $data->[$idx - 1] eq $tag;
+      if (defined $item)
+        {
+          report_error ("Duplicate <$tag> found at $p.");
+          report_error ("Note: the first <$tag> was at $item_pos.")
+            if defined $item_pos;
+          $item_pos = undef;
+          next;
+        }
+      $item = $data->[$idx];
+      $item_pos = $p;
+    }
+  report_error ("No <$tag> found in $pos.", 3) unless defined $item;
+  return ($item, $item_pos);
+}
+
+sub all_elements_are_events
+{
+  my ($data, $pos) = @_;
+  my $ret = 1;
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $p = "$pos:$m";
+      my $idx = $m * 2 + 2;
+      my $tag = $data->[$idx - 1];
+      next if ($tag eq 'event' || $tag eq '0');
+      $ret = 0;
+      report_error ("<history> contains non-event tag <$tag> at $p.");
+    }
+  return $ret;
+}
+
+sub check_dates
+{
+  my $pos = shift;
+  my $ret = 0;
+  foreach (@_)
+    {
+      next if $_ =~ /^[1-9]\d+$/s;
+      $ret = 1;
+      report_error ("Wrong date '$_' found at $pos.");
+    }
+  return $ret;
+}
+
+sub general_check
+{
+  my ($data, $pos, $ranges) = (shift, shift, shift);
+  my ($cnt, $ret) = count_values ($data, $pos, $ranges);
+  $ret = 1 if check_mandatory_elements ($cnt, $pos, @_);
+  $ret = 1 if check_attributes ($data, $pos);
+  return ($ret, $cnt);
+}
+
+sub expand_attributes
+{
+  my $data = shift;
+  my @ret;
+  push @ret, '{';
+  push @ret, $data->{$_} foreach (keys %{$data});
+  push @ret, '}';
+  return @ret;
+}
+
+sub report_item
+{
+  my ($pfx, $data, $level) = @_;
+  my @ret = ("$pfx: ");
+  push @ret, expand_attributes ($data->[0]);
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $idx = $m * 2 + 1;
+      my $item = $data->[$idx + 1];
+      push @ret, ", $data->[$idx], ";
+      if ($data->[$idx] eq '0')
+        {
+          push @ret, ", '$item'";
+          next;
+        }
+      push @ret, "(", expand_attributes ($item->[0]);
+      for (my $n = 0; exists $item->[$n * 2 + 2]; $n++)
+        {
+          my $i = $n * 2 + 1;
+          push @ret, ", $item->[$i], $item->[$i + 1]";
+        }
+      push @ret, ")";
+    }
+  report_error (join ('', @ret), $level);
+}
+
+sub check_field_name
+{
+  my ($item, $item_pos) = @_;
+  return 1 unless (defined $item_pos && defined $item);
+  unless (exists $item->[1])
+    {
+      report_error ("Note: empty field_name at $item_pos.", 3);
+      return 0;
+    }
+  return 0 if $item->[1] eq '0';
+  report_error ("At $item_pos, field_name isn't text: $item->[1].");
+  return 1;
+}
+
+sub look_for_modified_by
+{
+  my ($data, $pos) = @_;
+  my ($item, $item_pos) = look_for_tag ($data, $pos, 'modified_by');
+  unless (defined $item)
+    {
+      report_error ("At $item_pos, <modified_by> not found.");
+      return undef;
+    }
+  return undef unless (defined $item_pos);
+  unless (exists $item->[1])
+    {
+      report_error ("At $item_pos, <modified_by> is empty.");
+      return undef;
+    }
+  if ($item->[1] ne '0')
+    {
+      report_error ("At $item_pos, <modified_by> is not text.");
+      return undef;
+    }
+  report_error ("Found <modified_by> $item->[2] at $item_pos.", 3);
+  return $item->[2];
+}
+
+sub check_modified_by
+{
+  my ($data, $pos) = @_;
+  my $modified_by = look_for_modified_by ($data, $pos);
+  return 1 unless defined $modified_by;
+  $tag_ranges{'modified_by'}->{$modified_by} = 1;
+  return 0;
+}
+
+sub look_for_assigned_to
+{
+  my ($data, $pos) = @_;
+  report_item ("Checking field $pos", $data, 3);
+  my ($item, $item_pos) = look_for_tag ($data, $pos, 'field_name');
+  return (1) if check_field_name ($item, $item_pos);
+  return (0) unless exists $item->[1];
+  my $field = $item->[2];
+  return (0) unless ($field eq 'Assigned_to');
+  report_error ('Assigned_to field found.', 2);
+  ($item, $item_pos) = look_for_tag ($data, $pos, 'new_value');
+  unless ($item->[1] eq '0')
+    {
+      report_error ("At $pos, new_value isn't text: $item->[1].");
+      return (1);
+    }
+  $field = $item->[2];
+  report_error ("Assigned_to value is $field.", 2);
+  $assigned_field{$field} = 1;
+  return (0, $field);
+}
+
+sub check_single_field
+{
+  my ($data, $pos) = @_;
+  my @mandatory = ('field_name', 'old_value', 'new_value', 'modified_by');
+  my %ranges;
+  my ($ret, $cnt) = general_check ($data, $pos, \%ranges, @mandatory);
+  $ret = 1 if check_duplicates ($cnt, $pos);
+  $ret = 1 if check_modified_by ($data, $pos);
+  return (1) if $ret;
+  return look_for_assigned_to ($data, $pos);
+}
+
+sub check_fields
+{
+  my ($data, $pos, $assigned_to, $date) = @_;
+  my $ret = 0;
+  my ($d, $d_pos) = look_for_tag ($data, $pos, 'date');
+  $d = $d->[2] if defined $d;
+  $d = undef unless defined $d_pos;
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $p = "$pos:$m";
+      my $idx = $m * 2 + 2;
+      my $tag = $data->[$idx - 1];
+      next unless $tag eq 'field';
+      next unless defined $d;
+      my ($res, $assigned) = check_single_field ($data->[$idx], $p);
+      $ret = 1 if $res;
+      next unless defined $assigned;
+      next if (defined $$date || $d < $$date);
+      ($$assigned_to, $$date) = ($assigned, $d);
+    }
+  return $ret;
+}
+
+sub check_event
+{
+  my ($data, $pos, $assigned_to, $date) = @_;
+  my %ranges;
+  report_item ("Checking event $pos", $data, 3);
+  my ($ret, $cnt) = general_check ($data, $pos, \%ranges, 'date', 'field');
+  $ret = 1 if check_dates ($pos, keys %{$ranges{'date'}});
+  if ($cnt->{'date'} > 1)
+    {
+      report_error ("More than one <date> is found at $pos.");
+      $ret = 1;
+    }
+  $ret = 1 if check_fields ($data, $pos, $assigned_to, $date);
+  return $ret;
+}
+
+sub field_val_is_passed
+{
+  my $f = shift;
+  my @fields = (
+    'date', 'close_date', 'item_id', 'tracker', 'group_id', 'votes',
+    'originator_email', 'summary', 'details', 'hours',
+    'planned_starting_date', 'planned_close_date', 'assigned_to'
+  );
+  foreach (@fields)
+    {
+      next unless $_ eq $f;
+      report_error ("Field value is passed as is.", 2);
+      return 1;
+    }
+  return 0;
+}
+
+sub field_val_is_uid
+{
+  my $f = shift;
+  my @fields = ('submitted_by');
+  foreach (@fields)
+    {
+      next unless $_ eq $f;
+      report_error ("Field value is user_id derived from user_name.", 2);
+      return 1;
+    }
+  return 0;
+}
+
+sub quote_escape
+{
+  return "'" . SQLStringEscape (shift) . "'";
+}
+
+sub fetch_field_value
+{
+  my ($fname, $fval, $group_id, $tracker) = @_;
+  $fval = quote_escape ($fval);
+  my @val_ids = GetDB (
+    "`${tracker}_field_value` `fv` JOIN `${tracker}_field` `f`
+     ON `f`.`bug_field_id` = `fv`.`bug_field_id`",
+    "`fv`.`group_id` = $group_id AND `fv`.`value` = $fval",
+    "`fv`.`value_id`"
+  );
+  return undef unless @val_ids;
+  my $ret = shift @val_ids;
+  report_error ("Fetched $fname:$fval, group #$group_id: $ret.", 2);
+  $field_values{$fname}->{$fval} = $ret;
+  return $ret;
+}
+
+sub get_field_name
+{
+  my $ret = shift;
+  my %map = (
+    'effort' => 'hours', 'should_be_finished_on' => 'planned_close_date',
+    'category' => 'category_id', 'original_submission' => 'details',
+    'submitted_on' => 'date', 'closed_on' => 'close_date',
+    'open_closed' => 'status_id', 'operating_system' => 'platform_version_id',
+    'status' => 'resolution_id', 'should_start_on' => 'planned_starting_date'
+  );
+  return $ret unless exists $map{$ret};
+  report_error ("Note: aliasing field name $ret to $map{$ret}.", 2);
+  return $map{$ret};
+}
+
+sub get_uid
+{
+  my $fval = shift;
+  my $n = $fval;
+  if (defined $uids{$n})
+    {
+      report_error ("Getting uid for $fval: $uids{$n}.", 2);
+      return $uids{$n};
+    }
+  $n = "$acc_pfx$fval";
+  if (defined $uids{$n})
+    {
+      report_error ("Getting uid for $fval ($n): $uids{$n}.", 2);
+      return $uids{$n};
+    }
+  report_error ("No uid for $fval found.", 2);
+  return '**';
+}
+
+sub get_uname
+{
+  my $uid = shift;
+  if (exists $assigned_id{$uid})
+    {
+      my $name = $assigned_id{$uid};
+      $name = "$acc_pfx$name" if exists $uids{"$acc_pfx$name"};
+      report_error ("Found account $name #$uid.", 2);
+      return $name;
+    }
+  report_error ("Account #$uid not found.");
+  return undef;
+}
+
+sub get_field_value
+{
+  my $fname = shift;
+  my $fval = shift;
+  report_error ("Getting $tracker field value for $fname: $fval.", 2);
+  return (defined $fval? $fval: '') if field_val_is_passed ($fname);
+  return get_uid ($fval) if field_val_is_uid ($fname);
+  return $field_values{$fname}->{$fval}
+    if exists $field_values{$fname}->{$fval};
+  my $ret = fetch_field_value ($fname, $fval, $group_id, $tracker);
+  return $ret if defined $ret;
+  return fetch_field_value ($fname, $fval, 100, $tracker);
+}
+
+sub check_item_fields
+{
+  my ($data, $pos) = @_;
+  my ($ret, $idx) = (0, 2);
+  $ret = 1 if extract_group_id_tracker ($data, $pos);
+  for (my $m = 0; exists $data->[$idx]; ($m++, $idx += 2))
+    {
+      my $p = "$pos:$m";
+      my $tag = get_field_name ($data->[$idx - 1]);
+      next if $tag eq '0';
+      next if $tag eq 'history';
+      my $txt = $data->[$idx]->[2];
+      next if defined get_field_value ($tag, $txt, $group_id, $tracker);
+      report_error ("At $pos, cannot get value id for $tag $txt.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
+sub assign_user_id
+{
+  my ($assigned_to, $assigned, $date) = @_;
+  return 0 unless defined $assigned;
+  report_error ("Assigning #$assigned to user <$assigned_to> on $date.", 2);
+  unless (exists $assigned_name{$assigned_to})
+    {
+      $assigned_name{$assigned_to} = $assigned;
+      return 0;
+    }
+  my $a = $assigned_name{$assigned_to};
+  if ($a == $assigned)
+    {
+      report_error ("Note: <$assigned_to> ID has already been assigned.", 2);
+      return 0;
+    }
+  report_error ("The user ID has already been assigned to $a.");
+  return 1;
+}
+
+sub assign_user_name
+{
+  my ($assigned_to, $assigned, $date) = @_;
+  return 0 unless defined $assigned;
+  report_error ("Assigning <$assigned_to> to ID #$assigned on $date.", 2);
+  unless (exists $assigned_id{$assigned})
+    {
+      $assigned_id{$assigned} = $assigned_to;
+      return 0;
+    }
+  my $a = $assigned_id{$assigned};
+  if ($a == $assigned_to)
+    {
+      report_error ("Note: #$assigned user has already been assigned.", 2);
+      return 0;
+    }
+  report_error ("The user has already been assigned to $a.");
+  return 1;
+}
+
+sub check_history
+{
+  my ($data, $pos, $assigned_to) = @_;
+  my $ret = 0;
+  my ($assigned, $assigned_date, %ranges);
+  report_error ("Found <history> at $pos.", 2);
+  return 1 unless all_elements_are_events ($data, $pos);
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $p = "$pos:$m";
+      my $idx = $m * 2 + 2;
+      next if $data->[$idx - 1] eq '0';
+      $ret = 1 if check_event ($data->[$idx], $p, \$assigned, \$assigned_date);
+    }
+  $ret = 1 if assign_user_id ($assigned_to, $assigned, $assigned_date);
+  $ret = 1 if assign_user_name ($assigned_to, $assigned, $assigned_date);
+  return $ret;
+}
+
+sub validate_single_item
+{
+  my ($data, $pos) = @_;
+  my @mandatory = (
+    'tracker', 'item_id', 'original_submission', 'group_id', 'assigned_to',
+    'submitted_by|originator_email'
+  );
+  return 1
+    if report_attributes ("Nonempty attributes in item $pos:", $data);
+  my ($ret, $cnt) = general_check ($data,  $pos, \%tag_ranges, @mandatory);
+  $ret = 1 if check_duplicates ($cnt, $pos);
+  $ret = 1 if check_item_fields ($data, $pos);
+  my ($assigned_to, $at_pos) = look_for_tag ($data, $pos, 'assigned_to');
+  my ($history, $hist_pos) = look_for_tag ($data, $pos, 'history');
+  return $ret unless defined $history;
+  return 1 unless defined $hist_pos;
+  $ret = 1 if check_history ($history, $hist_pos, $assigned_to->[2]);
+  return $ret;
+}
+
+sub validate_item_tag
+{
+  my ($tag, $d, $pos) = @_;
+  if ($tag eq '0')
+    {
+      return text_is_empty ($d, "Element $pos")? -1: 1;
+    }
+  report_error ("Element $pos: <$tag> found.", 2 + ($tag eq '0'));
+  return 0 if ($tag eq 'item');
+  report_error ("Element $pos: found <$tag> rather than <item>.");
+  return 1;
+}
+
+sub validate_items
+{
+  my ($data, $n) = @_;
+  my $fails = 0;
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $pos = "$n:$m";
+      my $idx = $m * 2 + 2;
+      my $v = validate_item_tag ($data->[$idx - 1], $data->[$idx], $pos);
+      if ($v > 0)
+        {
+          $fails++;
+          next;
+        }
+      next if $v;
+      $fails++ if validate_single_item ($data->[$idx], $pos);
+    }
+  return $fails;
+}
+
+sub extract_group_id_tracker
+{
+  my ($data, $pos) = @_;
+  my ($gid, $gr_pos) = look_for_tag ($data, $pos, 'group_id');
+  my ($tr, $tr_pos) = look_for_tag ($data, $pos, 'tracker');
+  my $ret = 0;
+  $gid = $gid->[2];
+  $tr = $tr->[2];
+  if (defined $group_id && $gid != $group_id)
+    {
+      report_error ("New group_id $gid (!= $group_id) found at $pos.");
+      $ret = 1;
+    }
+  if (defined $tracker && $tr != $tracker)
+    {
+      report_error ("New tracker $tr (!= $tracker) found at $pos.");
+      $ret = 1;
+    }
+  $group_id = $gid;
+  $tracker = $tr;
+  return $ret;
+}
+
+sub extract_item_fields
+{
+  my ($data, $pos, $group_id, $tracker) = @_;
+  my %ret;
+  for (my ($m, $idx) = (0, 2); exists $data->[$idx]; ($m++, $idx += 2))
+    {
+      my $p = "$pos:$m";
+      my $tag = get_field_name ($data->[$idx - 1]);
+      next if $tag eq '0';
+      next if $tag eq 'history';
+      my $txt = $data->[$idx]->[2];
+      $ret{$tag} = get_field_value ($tag, $txt, $group_id, $tracker);
+    }
+  return %ret;
+}
+
+sub compile_item_fields
+{
+  my ($data, $pos, $group_id, $tracker) = @_;
+  my %ret = extract_item_fields (@_);
+  if (exists  $ret{'summary'} && exists $ret{'item_id'})
+    {
+      my $pfx = '[' . $ret{'item_id'} . ']';
+      report_error ("Note: prepending $pfx to summary, '$ret{'summary'}'.", 2);
+      $ret{'summary'} = "$pfx $ret{'summary'}";
+    }
+  foreach ('tracker', 'item_id', 'votes')
+    {
+      delete $ret{$_} if exists $ret{$_};
+    }
+  $ret{'group_id'} = $group_ids{$group_names{$ret{'group_id'}}};
+  $ret{'assigned_to'} = get_uid ($ret{'assigned_to'});
+  report_error ("Compiled fields:", 3);
+  report_error ("  $_ => $ret{$_}", 3) foreach (keys %ret);
+  return () unless defined $ret{'assigned_to'};
+  return %ret;
+}
+
+sub insert_hash
+{
+  my ($table, $fields) = @_;
+  my (@names, @vals);
+  foreach (keys %{$fields})
+    {
+      push @names, "`$_`";
+      push @vals, quote_escape ($fields->{$_});
+    }
+  return 1 != insert_unless_dry_run (
+    "`$table`", join (', ', @names), join (', ', @vals)
+  );
+}
+
+sub parse_field
+{
+  my ($data, $pos) = @_;
+  my @ret;
+  foreach ('field_name', 'old_value', 'new_value', 'modified_by')
+    {
+      my ($d, $d_pos) = look_for_tag ($data, $pos, $_);
+      unless (defined $d_pos && defined $d)
+        {
+          report_error ("At $pos, couldn't extract $_.");
+          return ();
+        }
+      my $val = '';
+      $val = $d->[2] if exists $d->[2];
+      push @ret, $val;
+    }
+  return @ret;
+}
+
+sub parse_empty_fn_dash
+{
+  my ($new, $pos) = @_;
+  return (
+    'field_name' => 'Attached File', 'old_value' => '-',
+    'new_value' => $new
+  ) if $new =~ /^Added .*, #(\d+)$/;
+  return (
+    'field_name' => 'Carbon-Copy', 'old_value' => '-', 'new_value' => $new
+  ) if $new =~ /^Added [^,]*$/;
+  if (
+    $new =~ /^(support|bugs|task|patch) #\d+ is dependent$/
+    || $new =~ /^Depends on (support|bugs|task|patch) #\d+$/
+  )
+    {
+      $new = s/ is / was /;
+      $new = s/Depends/Depended/;
+      return (
+        'field_name' => 'Dependencies', 'old_value' => '-', 'new_value' => $new
+      );
+    }
+  return ();
+}
+
+sub parse_empty_fieldname
+{
+  my ($fname, $old, $new, $pos) = @_;
+  my %ret;
+  if ($old eq '-')
+    {
+      %ret = parse_empty_fn_dash ($new, $pos)
+    }
+  elsif ($new =~ /\d+/)
+    {
+      %ret = (
+        'field_name' => 'Attached File', 'new_value' => "Added file #$new",
+        'old_value' => $old # Actually, $old is a comment.
+      );
+    }
+  report_error ("Unexpected history field values '$fname', '$old', '$new'")
+    unless %ret;
+  return %ret;
+}
+
+sub parse_fname_simple
+{
+  my ($fname, $old, $new, $pos) = @_;
+  my %field_names = (
+    'Original_Submission' => 'details',
+    'Should_be_Finished_on' => 'planned_close_date'
+  );
+  return (
+    'field_name' => $field_names{$fname},
+    'old_value' => $old, 'new_value' => $new
+  );
+}
+
+sub parse_fname_fv
+{
+  my ($fname, $old, $new, $pos) = @_;
+  my %field_names = (
+    'Discussion_lock' => 'discussion_lock', 'Open/Closed' => 'status_id',
+    'Status' => 'resolution_id', 'Priorigy' => 'priority',
+    'Percent_Complete' => 'percent_complete'
+  );
+  my $name = $field_names{$fname};
+  return (
+    'field_name' => $name,
+    'old_value' => get_field_value ($name, $old),
+    'new_value' => get_field_value ($name, $new)
+  );
+}
+
+sub parse_fname_uname
+{
+  my ($fname, $old, $new, $pos) = @_;
+  $old = get_uname ($old);
+  $new = get_uname ($new);
+  return () unless (defined $old && defined $new);
+  return ('field_name' => $fname, 'old_value' => $old, 'new_value' => $new,);
+}
+
+sub make_request_vals
+{
+  my ($name, $old, $new, $pos) = @_;
+  my %parsers = (
+    '' => \&parse_empty_fieldname,
+    'Discussion_Lock' => \&parse_fname_fv, 'Status' => \&parse_fname_fv,
+    'Original_Submission' => \&parse_fname_simple,
+    'Assigned_to' => \&parse_fname_uname, 'Priority' => \&parse_fname_simple,
+    'Should_be_Finished_on' => \&parse_fname_simple,
+    'Percent_Complete' => \&parse_fname_fv, 'Open/Closed' => \&parse_fname_fv
+  );
+  my %ret = $parsers{$name}->(@_) if exists $parsers{$name};
+  return %ret if %ret;
+  report_error ("Unknown event field name '$name' at $pos.");
+  return %ret;
+}
+
+sub import_history_field
+{
+  my ($data, $item_id, $date, $pos) = @_;
+  my ($name, $old, $new, $mod) = parse_field ($data, $pos);
+  return 1 unless defined $name;
+  my %fields = make_request_vals ($name, $old, $new, $pos);
+  return 1 unless %fields;
+  $fields{'date'} = $date;
+  $fields{'bug_id'} = $item_id;
+  $fields{'mod_by'} = get_uid ($mod);
+  return insert_hash ("${tracker}_history", \%fields);
+}
+
+sub import_event
+{
+  my ($data, $item_id, $pos) = @_;
+  my ($date, $date_pos) = look_for_tag ($data, $pos, 'date');
+  return 1 unless defined $date;
+  $date = $date->[2];
+  for (my ($m, $idx) = (0, 2); exists $data->[$idx]; ($m++, $idx += 2))
+    {
+       my $p = "$pos:$m";
+       my $tag = get_field_name ($data->[$idx - 1]);
+       next if $tag ne 'field';
+       return 1 if import_history_field ($data->[$idx], $item_id, $date, $p);
+    }
+  return 0;
+}
+
+sub import_history
+{
+  my ($data, $item_id, $pos) = @_;
+  my ($hist, $hist_pos) = look_for_tag ($data, $pos, 'history');
+  return 0 unless defined $hist;
+  $data = $hist;
+  $pos = $hist_pos;
+  for (my ($m, $idx) = (0, 2); exists $data->[$idx]; ($m++, $idx += 2))
+    {
+       my $p = "$pos:$m";
+       my $tag = get_field_name ($data->[$idx - 1]);
+       next if $tag ne 'event';
+       return 1 if import_event ($data->[$idx], $item_id, $p);
+    }
+  return 0;
+}
+
+sub import_single_item
+{
+  my ($data, $pos) = @_;
+  my $ret = 0;
+  report_item ("Importing item at $pos", $data, 3);
+  $ret = 1 if extract_group_id_tracker ($data, $pos);
+  my %fields = compile_item_fields ($data, $pos, $group_id, $tracker);
+
+  return 1 unless %fields;
+  return 1 if insert_hash ($tracker, \%fields);
+  my $item_id = db_last_insert_id ();
+  return 1 unless defined $item_id;
+  return import_history ($data, $item_id, $pos);
+}
+
+sub import_items
+{
+  my ($data, $n) = @_;
+  my $fails = 0;
+  for (my $m = 0; exists $data->[$m * 2 + 2]; $m++)
+    {
+      my $pos = "$n:$m";
+      my $idx = $m * 2 + 2;
+      next if $data->[$idx - 1] ne 'item';
+      $fails++ if import_single_item ($data->[$idx], $pos);
+    }
+  return $fails;
+}
+
+sub validate_svexport
+{
+  my ($n, $tag, $data) = @_;
+  if ($tag ne 'savaneexport')
+    {
+      report_error ("Topmost element $n is <$tag> rather than <savaneexport>.");
+      return -1;
+    }
+  return -1 if report_attributes ("Non-empty attributes in list $n:", $data);
+  return validate_items ($data, $n);
+}
+
+sub import_tree
+{
+  return import_items ($_[2], $_[0]);
+}
+
+sub check_tracker_range
+{
+  my @trackers = keys %{$tag_ranges{'tracker'}};
+  $tracker = $trackers[0];
+  return 0 unless $#trackers;
+  report_error ("Multiple trackers in single import are not supported.");
+  return 1;
+}
+
+sub check_group_range
+{
+  my @groups = keys %group_names;
+  $group_name = $group_names{$groups[0]};
+  return 0 unless $#groups;
+  report_error ("Multiple groups in single import are not supported.");
+  return 1;
+}
+
+sub report_ranges
+{
+  my $ret = 0;
+  my @tags = (
+    'group_id', 'tracker', 'originator_email',
+    'submitted_by', 'assigned_to', 'modified_by'
+  );
+  my $level = 1;
+  foreach my $tag (@tags)
+    {
+      report_error ("<$tag> range:", $level);
+      report_error ("  $_", $level) foreach (keys (%{$tag_ranges{$tag}}));
+    }
+  $ret = 1 if check_tracker_range ();
+  $ret = 1 if check_group_range ();
+  return $ret;
+}
+
+sub process_tree
+{
+  my ($tree, $func, $pre, $level) = @_;
+  my ($n, $fails, $sub, $tag, $data);
+  report_error ($pre, $level);
+  for ($n = $fails = $sub = 0; exists $tree->[$n * 2 + 1]; $n++)
+    {
+      my ($tag, $data) = ($tree->[$n * 2], $tree->[$n * 2 + 1]);
+      my $err = $func->($n, $tag, $data);
+      $fails++ if $err < 0;
+      next unless $err > 0;
+      $sub += $err;
+    }
+  report_error ("Note: processed $n item lists.", $level);
+  report_error ("Note: $fails lists are invalid.", $level);
+  report_error ("Note: $sub items are invalid.", $level);
+  return $fails || !$n;
+}
+
+sub find_unassigned_groups
+{
+  my $ret = 0;
+  foreach (keys %{$tag_ranges{'group_id'}})
+    {
+      next if exists $group_names{$_};
+      report_error ("Group #$_ is unassigned.");
+      $ret = 1;
+    }
+  foreach (keys %group_names)
+    {
+      next if exists $tag_ranges{'group_id'}->{$_};
+      report_error ("Note: no data for assigned group #$_.", 1);
+    }
+  return $ret;
+}
+
+sub list_names
+{
+  my %names;
+  foreach my $field ('submitted_by', 'modified_by', 'assigned_to')
+    {
+      next unless exists $tag_ranges{$field};
+      $names{$_} = 1 foreach (keys %{$tag_ranges{$field}})
+    }
+  return keys %names;
+}
+
+sub fetch_users
+{
+  my @names;
+  push @names, quote_escape ($_), quote_escape ("$acc_pfx$_") foreach (@_);
+  my @users = GetUserList (
+    '`user_name` IN (' . join (', ', @names) . ")", '`user_name`'
+  );
+  my %users;
+  $users{$_} = 1 foreach (@users);
+  return %users;
+}
+
+sub report_missing_users
+{
+  my @names = list_names ();
+  my %users = fetch_users (@names);
+  my (@missing, @existing);
+  foreach (@names)
+    {
+      my $n = $_;
+      my $have_n = exists $users{$n};
+      $n = "$acc_pfx$_" unless $have_n;
+      $have_n = exists $users{$n};
+      my $ref = $have_n? \@existing: \@missing;
+      push @$ref, $n;
+    }
+  report_error ("missing users:\n  " . join ("\n  ", @missing), 1);
+  report_error ("existing users:\n  " . join ("\n  ", @existing), 1);
+  return @missing;
+}
+
+sub report_uid_assignments
+{
+  my $level = 1;
+  my $ret = 0;
+  report_error (
+    "Assigned_to range:\n  " . join ("\n  ", keys %assigned_field), $level
+  );
+  report_error ("assigned uids:", $level);
+  report_error ("  $_ => $assigned_name{$_}", $level)
+    foreach keys %assigned_name;
+  report_error ("unknown uids:", $level);
+  foreach (keys %assigned_field)
+    {
+      next if exists $assigned_id{$_};
+      $ret = 1;
+      report_error ("  $_", $level);
+    }
+  return $ret;
+}
+
+sub compile_account
+{
+  my ($u, $t) = @_;
+  return {
+    'user_name' => $u, 'email' => "$u\@savane-import-$t.test",
+    'realname' => $u, 'status' => 'A', 'user_pw' => '*',
+    'add_date' => $t, 'people_view_skills' => 1,
+    'people_resume' =>
+      "This account was added for importing $group_name trackers."
+  };
+}
+
+sub make_missing_users
+{
+  my $t = shift;
+  my @missing = report_missing_users ();
+  return 1 if report_uid_assignments ();
+  my $ret = 0;
+  foreach (@missing)
+    {
+      report_error ("Adding user <$_>.", 2);
+      next if $dry_run;
+      next unless insert_hash ('user', compile_account ($_, $t));
+      report_error ("Fail to add user <$_>.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
+sub load_uids
+{
+  my @names = list_names ();
+  my @more_names;
+  push @more_names, "$acc_pfx$_" foreach (@names);
+  my @lines = GetDB (
+    "`user`",
+    "`user_name` IN ('" . join ("', '", @names, @more_names) . "')",
+    "`user_name`, `user_id`"
+  );
+  foreach (@lines)
+    {
+      my ($name, $id) = split /,/;
+      report_error ("fetched <$name> #$id.", 2);
+      $uids{$name} = $id;
+    }
+  return 0;
+}
+
+sub main
+{
+  my $timestamp = time ();
+  report_settings ();
+  my $parser = XML::Parser->new (Style => 'Tree');
+  my $in = IO::Handle->new ();
+  $in->fdopen (fileno (STDIN), 'r');
+  my $tree = $parser->parse ($in);
+  return 1 if process_tree ($tree, \&validate_svexport, 'Validating tree.', 1);
+  return 1 if report_ranges ();
+  $assigned_id{'100'} = 'None';
+  $assigned_name{'None'} = 100;
+  return 1 if find_unassigned_groups ();
+  return 1 if make_missing_users ($timestamp);
+  return 1 if load_uids ();
+  return 1 if process_tree ($tree, \&import_tree, 'Importing tree.', 1);
+  return 0;
+}
+
+exit (main ());
