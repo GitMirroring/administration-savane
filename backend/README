@@ -93,6 +93,12 @@ extra/git/sv_cgit.pl
 Updates lists of repositories for Cgit.
 Runs twice an hour on vcs2.
 
+extra/git/sv_git_gc_repos.pl
+============================
+
+Execute git-gc for every Git repository, update Cgit last-modified info.
+Runs on vcs2.
+
 mail/sv_aliases
 ===============
 
