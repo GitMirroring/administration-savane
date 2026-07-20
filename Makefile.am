@@ -52,6 +52,7 @@ backend_bin_common = \
   backend/extra/git/sv_cgit.pl \
   backend/extra/git/sv_cgit_about_filter.pl \
   backend/extra/git/sv_git_gc_repos.pl \
+  backend/extra/sv_import_getfem \
   backend/mail/sv_aliases \
   backend/mail/sv_mailman-wrapper.pl \
   backend/mail/sv_sendmail.pl \
