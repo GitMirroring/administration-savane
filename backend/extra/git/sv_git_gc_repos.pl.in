@@ -134,7 +134,7 @@ sub report_gc_results
     {
       $msg .= sprintf (" %u -> %u KiB (saved %.2f%% in %is)",
         $s0, $s1, ($s0 - $s1) * 100 / $s0, $t
-        );
+      );
     }
   print_log ($msg) if $verbose;
   print "$msg\n";

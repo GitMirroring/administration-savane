@@ -94,8 +94,9 @@ sub SetGroupSettings
 # Get a list of groups.
 # arg0: criterion
 # arg1: field to return
-sub GetGroupList {
-    return GetDBList("groups", $_[0], $_[1]);
+sub GetGroupList
+{
+  return GetDBList ("groups", $_[0], $_[1]);
 }
 
 
