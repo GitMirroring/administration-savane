@@ -55,11 +55,11 @@ my $group = 'administration';
 my $list_param_pack = 4;
 my $arbitrary_format = 3;
 my @list_params = (
-  'sample-list', 'sample "description"', 'public', $arbitrary_format,
-  'other', '</list> <list>', 'private', $arbitrary_format,
-  'templated', "'templated' list", 'public', 0,
-  'info', 'info/ list', 'public', 1,
-  'bug', 'bug list', 'private', 2
+  $arbitrary_format,'sample-list', 'sample "description"', 'public',
+  $arbitrary_format,'other', '</list> <list>', 'private',
+  0,'templated', "'templated' list", 'public',
+  1,'info', 'info/ list', 'public',
+  2, 'bug', 'bug list', 'private'
 );
 
 my @created_lists;
@@ -270,7 +270,7 @@ sub set_privileges
 sub fill_list_form
 {
   my $agent = shift;
-  my ($list, $description, $visibility, $format) = @list_params;
+  my ($format, $list, $description, $visibility) = @list_params;
   my $form = find_list_submission_form ($agent);
   return 1 unless defined $form;
   return 1 if set_newlist_format ($agent, $form, $format);
@@ -283,7 +283,7 @@ sub fill_list_form
 sub make_list
 {
   my $agent = shift;
-  my ($list, $description, $visibility, $format) = @list_params;
+  my ($format, $list, $description, $visibility) = @list_params;
   my $i = $format == $arbitrary_format? 2: 1;
   while (--$i >= 0)
     {
@@ -311,7 +311,7 @@ sub create_lists
   while ($#list_params + 1 >= $list_param_pack)
     {
       my $i = 0;
-      print_test_log ("Making list '$list_params[0]'.");
+      print_test_log ("Making list '$list_params[1]'.");
       $ret = 1 if make_list ($agent);
       shift @list_params while ($i++ < $list_param_pack);
     }
