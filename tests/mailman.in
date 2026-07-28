@@ -560,20 +560,16 @@ sub create_admin_user
 sub main
 {
   my $agent = init_environment ();
-  my ($login, $err) = create_admin_user ($agent);
-  log_out ($agent);
-  my $exit_code = !!$err;
-  log_in_su ($agent) and return 1;
+  my ($login, $exit_code) = create_admin_user ($agent);
+  $exit_code = 1 if log_out ($agent);
+  $exit_code = 1 if log_in_su ($agent, $login);
   $exit_code = 1 if create_lists ($agent);
   $exit_code = 1 if modify_lists ($agent);
   $exit_code = 1 if remove_lists ($agent);
   $exit_code = 1 if log_out ($agent);
-  if (defined $login)
-    {
-      $exit_code = 1 if quit_group ($agent, $login);
-      $exit_code = 1 if log_out ($agent);
-      $exit_code = 1 if remove_user ($agent, $login);
-    }
+  $exit_code = 1 if quit_group ($agent, $login);
+  $exit_code = 1 if log_out ($agent);
+  $exit_code = 1 if remove_user ($agent, $login);
   print_test_result ("Test done.") unless $exit_code;
   return $exit_code;
 }
