@@ -353,11 +353,13 @@ sub change_desc
       return (undef, undef);
     }
   my $id = $1;
-  my $val = $input->value;
-  print_test_log ("Found description field '$input_id' = '$val'.");
+  my $prev_val = $input->value;
+  my $val = $prev_val;
   $val =~ s/(.*) (.*)/$2 $1/;
+  print_test_log (
+    "Found description field '$input_id' = '$prev_val', changing to '$val'."
+  );
   $input->value ($val);
-  print_test_log ("Changing to '$val'.");
   return ($id, $input->value);
 }
 
@@ -386,10 +388,11 @@ sub change_vis
       return (undef, undef);
     }
   my $id = $1;
-  my $val = $input->value;
-  print_test_log ("Found visibility field '$name' = '$val'.");
-  $val = $val? 'private': 'public';
-  print_test_log ("Changing to '$val'.");
+  my $prev_val = $input->value;
+  my $val = $prev_val? 'private': 'public';
+  print_test_log (
+    "Found visibility field '$name' = '$prev_val', changing to '$val'."
+  );
   $input->value (visibility_idx ($val));
   return ($id, $val);
 }
