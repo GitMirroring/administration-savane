@@ -280,28 +280,37 @@ sub fill_list_form
   return 0;
 }
 
+sub try_make_list
+{
+  my ($agent, $fail_with_no_su) = @_;
+  my ($format, $list, $description, $visibility) = @list_params;
+  visit_list_admin_page ($agent);
+  return undef if fill_list_form ($agent);
+  return undef if ($fail_with_no_su && set_privileges ($agent, 0));
+  $list = templated_list_name ($list, $format, $group);
+  print_test_log ("Submitting list creation form.");
+  $agent->click ();
+  return undef if check_request_status ($agent, "submitted-$list.html");
+  return $list unless ($fail_with_no_su);
+  return undef if set_privileges ($agent, 1);
+  return undef if list_exists ($agent, $list);
+  return $list;
+}
+
 sub make_list
 {
   my $agent = shift;
-  my ($format, $list, $description, $visibility) = @list_params;
-  my $i = $format == $arbitrary_format? 2: 1;
-  while (--$i >= 0)
+  my $format = $list_params[0];
+  my $fail_with_no_su = $format == $arbitrary_format;
+  my $list = try_make_list ($agent, $fail_with_no_su);
+  return 1 unless defined $list;
+  if ($fail_with_no_su)
     {
-      visit_list_admin_page ($agent);
-      return 1 if fill_list_form ($agent);
-      return 1 if ($i && set_privileges ($agent, 0));
-      $list = templated_list_name ($list, $format, $group);
-      print_test_log ("Submitting list creation form.");
-      $agent->click ();
-      return 1 if check_request_status ($agent, "submitted-$list.html");
-      if ($i)
-        {
-          return 1 if set_privileges ($agent, 1);
-          return 1 if list_exists ($agent, $list);
-        }
+      $list = try_make_list ($agent, 0);
+      return 1 unless defined $list;
     }
   push @created_lists, $list;
-  return check_list_params ($agent, $list, $description, $visibility);
+  return check_list_params ($agent, $list, $list_params[2], $list_params[3]);
 }
 
 sub create_lists
