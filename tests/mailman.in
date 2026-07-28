@@ -62,11 +62,15 @@ my @list_params = (
   'bug', 'bug list', 'private', 2
 );
 
-my $exit_code = 2;
 my @created_lists;
-speed_up_crypt ();
-append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
-my $agent = make_agent (0) or exit (1);
+
+sub init_environment
+{
+  speed_up_crypt ();
+  append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
+  my $agent = make_agent (0) or exit (1);
+  return $agent;
+}
 
 sub visit_list_admin_page
 {
@@ -265,7 +269,8 @@ sub set_privileges
 
 sub fill_list_form
 {
-  my ($list, $description, $visibility, $format) = @_;
+  my $agent = shift;
+  my ($list, $description, $visibility, $format) = @list_params;
   my $form = find_list_submission_form ($agent);
   return 1 unless defined $form;
   return 1 if set_newlist_format ($agent, $form, $format);
@@ -277,12 +282,13 @@ sub fill_list_form
 
 sub make_list
 {
-  my ($list, $description, $visibility, $format) = @_;
+  my $agent = shift;
+  my ($list, $description, $visibility, $format) = @list_params;
   my $i = $format == $arbitrary_format? 2: 1;
   while (--$i >= 0)
     {
       visit_list_admin_page ($agent);
-      return 1 if fill_list_form ($list, $description, $visibility, $format);
+      return 1 if fill_list_form ($agent);
       return 1 if ($i && set_privileges ($agent, 0));
       $list = templated_list_name ($list, $format, $group);
       print_test_log ("Submitting list creation form.");
@@ -300,13 +306,14 @@ sub make_list
 
 sub create_lists
 {
+  my $agent = shift;
   my $ret = 0;
-  while ($#_ + 1 >= $list_param_pack)
+  while ($#list_params + 1 >= $list_param_pack)
     {
       my $i = 0;
-      print_test_log ("Making list '$_[0]'.");
-      $ret = 1 if make_list (@_);
-      shift while ($i++ < $list_param_pack);
+      print_test_log ("Making list '$list_params[0]'.");
+      $ret = 1 if make_list ($agent);
+      shift @list_params while ($i++ < $list_param_pack);
     }
   return $ret;
 }
@@ -538,20 +545,25 @@ sub create_admin_user
   return ($login, make_user_admin ($agent, $login));
 }
 
-my ($login, $err) = create_admin_user ($agent);
-log_out ($agent);
-$exit_code = 1 if $err;
-log_in_su ($agent) and exit (1);
-$exit_code = 1 if create_lists (@list_params);
-$exit_code = 1 if modify_lists ($agent);
-$exit_code = 1 if remove_lists ($agent);
-$exit_code = 1 if log_out ($agent);
-if (defined $login)
-  {
-    $exit_code = 1 if quit_group ($agent, $login);
-    $exit_code = 1 if log_out ($agent);
-    $exit_code = 1 if remove_user ($agent, $login);
-  }
-$exit_code = 0 if $exit_code == 2;
-print_test_result ("Test done.") unless $exit_code;
-exit ($exit_code);
+sub main
+{
+  my $agent = init_environment ();
+  my ($login, $err) = create_admin_user ($agent);
+  log_out ($agent);
+  my $exit_code = !!$err;
+  log_in_su ($agent) and return 1;
+  $exit_code = 1 if create_lists ($agent);
+  $exit_code = 1 if modify_lists ($agent);
+  $exit_code = 1 if remove_lists ($agent);
+  $exit_code = 1 if log_out ($agent);
+  if (defined $login)
+    {
+      $exit_code = 1 if quit_group ($agent, $login);
+      $exit_code = 1 if log_out ($agent);
+      $exit_code = 1 if remove_user ($agent, $login);
+    }
+  print_test_result ("Test done.") unless $exit_code;
+  return $exit_code;
+}
+
+exit (main ());
