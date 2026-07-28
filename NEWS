@@ -4,6 +4,8 @@
 
 * New configuration variable, $sys_pwqcheck_path, see doc/savane.conf.php.
 
+* Support for PHP 8.6 is declared.
+
 * Bug fixes:
 
 ** Files attached to private items were not accessible for submitters, see
