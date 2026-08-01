@@ -88,7 +88,7 @@ AX_PHP_EXTENSION([imap],
   [Savane will not be able to sign email notifications with GnuPG.]
 )
 
-AX_PERL_MODULE_VERSION([DBI 0 DBD::mysql 0 Mail::Send 0],
+AX_PERL_MODULE_VERSION([DBI 1.38 DBD::mysql 0 Mail::Send 0],
   [have_perl_modules=yes], [have_perl_modules=no]
 )
 AX_PERL_MODULE_VERSION([LWP::Simple 5.69],

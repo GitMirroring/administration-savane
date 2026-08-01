@@ -132,7 +132,7 @@ Run Time
      via email
 ** imap extension (php-imap in Trisquel) - signed email notifications
 * Perl >= 5.6
-** DBI (libdbi-perl in Trisquel)
+** DBI >= 1.38 (libdbi-perl in Trisquel)
 ** DBD::mysql (libdbd-mysql-perl, depends on libdbi-perl in Trisquel)
 ** Mail::Send (libmailtools-perl in Trisquel)
 ** Geo::IP (libgeo-ip-perl, geoip-database in Trisquel) - mirror-redirect
