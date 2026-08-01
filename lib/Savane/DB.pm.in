@@ -50,7 +50,7 @@ require Exporter;
 our @ISA = qw (Exporter);
 our @EXPORT = qw (DBSet GetDBDescribe GetDBSettings GetDBList GetDBAsIs GetDB
   GetDBAlt GetDBHash GetDBLists GetDBListsRef SetDBSettings DeleteDB InsertDB
-  db_die_if_unconnected
+  db_die_if_unconnected db_last_insert_id
 );
 our $version = 1;
 
@@ -87,6 +87,11 @@ sub db_die_if_unconnected
 {
   return if $dbd;
   die $DBI::errstr;
+}
+
+sub db_last_insert_id
+{
+  return $dbd->last_insert_id ();
 }
 
 # Return the name and type of every field of the table.
