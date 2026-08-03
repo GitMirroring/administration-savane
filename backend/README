@@ -99,11 +99,6 @@ extra/git/sv_git_gc_repos.pl
 Execute git-gc for every Git repository, update Cgit last-modified info.
 Runs on vcs2.
 
-extra/sv_import_getfem
-======================
-
-Import GetFEM tracker data, Savannah sr #109288.
-
 mail/sv_aliases
 ===============
 
