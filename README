@@ -158,6 +158,8 @@ plus an additional Perl module,
 Also, English and French locales are expected to be installed (at least,
 en_US.UTF-8 and fr_FR.UTF-8).
 
+For more info, see doc/tests-and-checks.
+
 Documentation
 =============
 
