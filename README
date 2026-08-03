@@ -149,9 +149,9 @@ Run Time
 Regression tests
 ----------------
 
-Regression tests are invoked as the 'test' Make target and assume all build
-time and run time dependencies, including optional ones, plus an additional
-Perl module,
+Regression tests are invoked as the 'test' Makefile target and assume all
+build-time and run-time dependencies are installed, including optional ones,
+plus an additional Perl module,
 
 * WWW::Mechanize (libwww-mechanize-perl in Trisquel)
 
