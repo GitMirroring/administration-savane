@@ -17,100 +17,58 @@ you may want to look into Savannah wiki (https://savannah.gnu.org/maintenance/).
 The commands are run from an ordinary (non-root) account unless in the 'Advanced
 and troubleshooting' section where it's specifically noted otherwise.
 
-Basic installation
-------------------
-
-In this case, a full database directory tree will be created in user's home
-directory.  This works starting with Trisquel 10 (it comes with MariaDB 10.3.39
-and MySQL 8.0.41); for older releases, see the 'Advanced and troubleshooting'
-section.
+Preparing the system
+--------------------
 
 Install dependencies listed in README.  If you are going to use localizations,
 make sure the languages are listed when running locale -a (in Trisquel,
-look for language-pack-*).
+look for language-pack-*; for more info, see doc/i18n).
 
-Enable Apache rewrite module if needed (this requires root privileges):
+Enable Apache rewrite module if disabled (this requires root privileges):
 
-$ cd /etc/apache2/mods-enabled && sudo ln -s ../mods-available/rewrite.load . \
-  && sudo apachectl -k graceful
+  $ cd /etc/apache2/mods-enabled \
+    && sudo ln -s ../mods-available/rewrite.load . \
+    && sudo apachectl -k graceful
+
+Getting a release
+------------------
 
 Download the latest tarball and its signature:
 
-$ wget \
-https://download.savannah.nongnu.org/releases/administration/savane-latest.tar.gz{.sig,}
-...
+  $ wget \
+    https://download.savannah.nongnu.org/releases/administration/savane-latest.tar.gz{.sig,}
+  ...
+
+You can also get the tarballs of any release with their signatures from
+https://download.savannah.nongnu.org/releases/administration/; the names
+of the tarballs follow the convention savane-RELEASE.NUMBERS.tar.gz.
 
 Download and import Savane release keyring:
 
-$ wget -O savane.asc \
-  'https://savannah.nongnu.org/project/release-gpgkeys.php?group=administration&download=1'
-...
-$ gpg --import savane.asc
-...
+  $ wget -O savane.asc \
+    'https://savannah.nongnu.org/project/release-gpgkeys.php?group=administration&download=1'
+  ...
+  $ gpg --import savane.asc
+  ...
 
 As an alternative, you can get the public key from a keyserver:
 
-$ gpg --recv-key BD9D4DEE7B2FF1CBEF2EE0C4E0ACD3E0CBE7874A
-...
-gpg: key E0ACD3E0CBE7874A: public key "Ineiev (fencepost) <ineiev@gnu.org>" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
+  $ gpg --recv-key BD9D4DEE7B2FF1CBEF2EE0C4E0ACD3E0CBE7874A
+  ...
+  gpg: key E0ACD3E0CBE7874A: public key "Ineiev (fencepost) <ineiev@gnu.org>" imported
+  gpg: Total number processed: 1
+  gpg:               imported: 1
 
 Verify and unpack the tarball:
 
-$ gpg --verify savane-latest.tar.gz{.sig,} && tar xzf savane-latest.tar.gz
-gpg: Signature made Thu 29 Feb 2024 03:37:07 PM UTC
-gpg:                using RSA key BD9D4DEE7B2FF1CBEF2EE0C4E0ACD3E0CBE7874A
-gpg: Good signature from "Ineiev (fencepost) <ineiev@gnu.org>" [unknown]
-gpg:                 aka "Павел Харитонов <ineiev@gnu.org>" [unknown]
-gpg: WARNING: This key is not certified with a trusted signature!
-gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: BD9D 4DEE 7B2F F1CB EF2E  E0C4 E0AC D3E0 CBE7 874A
-
-Configure and build:
-
-$ tar_dir=`tar tzf savane-latest.tar.gz | head -n1`
-$ mkdir build; cd build
-$ ../${tar_dir}configure --prefix=$HOME/sv/install
-checking for a BSD-compatible install... /usr/bin/install -c
-...
-Now you can run
-  make all install installcheck
-to install and check the package.
-$ make all install installcheck
-Making all in etc
-make[1]: Entering directory '/home/dti/sv/savane/etc'
-...
-make[2]: Nothing to be done for 'install-data-am'.
-make[2]: Leaving directory '/home/dti/sv/savane'
-make[1]: Leaving directory '/home/dti/sv/savane'
-...
-$
-
-Launch database daemon:
-
-$ $HOME/sv/install/sbin/sv_launch_db.pl
-
-Start web server:
-
-$ $HOME/sv/install/sbin/sv_frontendctl -k start
-
-Visit <http://127.0.0.85:4913/testconfig.php>, look for errors.
-
-At this point, it should work: visit <http://127.0.0.85:4913>,
-login as '-' using password '-'; that user is the initial administrator.
-
-In order to shut down the servers, run
-
-$ $HOME/sv/install/sbin/sv_frontendctl -k stop
-$ $HOME/sv/install/sbin/sv_kill_db
-
-Adding sample database
-----------------------
-
-When configured with --enable-sample-db, non-administrator users
-'alice', 'bob', 'carol', 'dave', 'eve' are added, with the same
-password '-'.
+  $ gpg --verify savane-latest.tar.gz{.sig,} && tar xzf savane-latest.tar.gz
+  gpg: Signature made Thu 29 Feb 2024 03:37:07 PM UTC
+  gpg:                using RSA key BD9D4DEE7B2FF1CBEF2EE0C4E0ACD3E0CBE7874A
+  gpg: Good signature from "Ineiev (fencepost) <ineiev@gnu.org>" [unknown]
+  gpg:                 aka "Павел Харитонов <ineiev@gnu.org>" [unknown]
+  gpg: WARNING: This key is not certified with a trusted signature!
+  gpg:          There is no indication that the signature belongs to the owner.
+  Primary key fingerprint: BD9D 4DEE 7B2F F1CB EF2E  E0C4 E0AC D3E0 CBE7 874A
 
 Bootstrapping Git sources
 -------------------------
@@ -120,26 +78,84 @@ our Git repository.
 
 Clone Savane to $HOME/sv:
 
-$ mkdir ~/sv && cd ~/sv \
-  && git clone https://git.savannah.nongnu.org/git/administration/savane.git
-git clone https://git.savannah.nongnu.org/git/administration/savane.git
-Cloning into 'savane'...
-remote: Counting objects: 14454, done.
-remote: Compressing objects: 100% (3394/3394), done.
-remote: Total 14454 (delta 10514), reused 14454 (delta 10514)
-Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
-Resolving deltas: 100% (10514/10514), done.
+  $ mkdir ~/sv && cd ~/sv \
+    && git clone https://git.savannah.nongnu.org/git/administration/savane.git
+  git clone https://git.savannah.nongnu.org/git/administration/savane.git
+  Cloning into 'savane'...
+  remote: Counting objects: 14454, done.
+  remote: Compressing objects: 100% (3394/3394), done.
+  remote: Total 14454 (delta 10514), reused 14454 (delta 10514)
+  Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
+  Resolving deltas: 100% (10514/10514), done.
 
 Checkout the commit you need, e.g.
 
-$ git checkout -b i18n origin/i18n
+  $ git checkout -b i18n origin/i18n
 
-Bootstrap:
+Regenerate the configure script and other parts of the build system:
 
-$ cd savane; ./bootstrap
-autoreconf: Entering directory `.'
-...
-autoreconf: Leaving directory `.'
+  $ cd savane; ./bootstrap
+  autoreconf: Entering directory `.'
+  ...
+  autoreconf: Leaving directory `.'
+
+Basic installation
+------------------
+
+In this case, a full database directory tree will be created in user's home
+directory.  This works starting with Trisquel 10 (it comes with MariaDB 10.3.39
+and MySQL 8.0.41); for older releases, see the 'Advanced and troubleshooting'
+section.
+
+Make a build directory and change the current working directory to it:
+
+  $ mkdir build && cd build
+
+Configure the package (replace SAVANE_SRC with the path to the top directory
+of the tree containing Savane sources):
+
+  $ SAVANE_SRC/configure --prefix=$HOME/sv/install
+  checking for a BSD-compatible install... /usr/bin/install -c
+  ...
+  Now you can run
+    make all install installcheck
+  to install and check the package.
+
+Build, install and check:
+
+  $ make all install installcheck
+  Making all in etc
+  make[1]: Entering directory '/home/dti/sv/savane/etc'
+  ...
+  make[2]: Nothing to be done for 'install-data-am'.
+  make[2]: Leaving directory '/home/dti/sv/savane'
+  make[1]: Leaving directory '/home/dti/sv/savane'
+  ...
+
+Launch database daemon:
+
+  $ $HOME/sv/install/sbin/sv_launch_db.pl
+
+Start web server:
+
+  $ $HOME/sv/install/sbin/sv_frontendctl -k start
+
+Visit <http://127.0.0.85:4913/testconfig.php>, look for errors.
+
+At this point, it should work: visit <http://127.0.0.85:4913>,
+login as '-' using password '-'; that user is the initial administrator.
+
+In order to shut down the servers, run
+
+  $ $HOME/sv/install/sbin/sv_frontendctl -k stop
+  $ $HOME/sv/install/sbin/sv_kill_db
+
+Adding sample database
+----------------------
+
+When configured with --enable-sample-db, non-administrator users
+'alice', 'bob', 'carol', 'dave', 'eve' are added, with the same
+password '-'.
 
 Database: advanced and troubleshooting
 --------------------------------------
@@ -162,9 +178,9 @@ name, user and password:
 
 Write a file with database password in form 'password=*PASSWORD*'.
 
-$ ../savane/configure --prefix=$HOME/sv/install \
-  --disable-database --enable-db-networking --with-db-user=sv \
-  --with-db-credentials=PASSWD_FILE --with-db-name=sv_demo
+  $ ../savane/configure --prefix=$HOME/sv/install \
+    --disable-database --enable-db-networking --with-db-user=sv \
+    --with-db-credentials=PASSWD_FILE --with-db-name=sv_demo
 
 where PASSWD_FILE is path to the file you've filled.
 
@@ -175,17 +191,19 @@ $ make all install
 Create database user account from the root account or use database root
 account:
 
-$ sudo mysql < db/mk-db.sql
-  or
-$ mysql --user=root --password < db/mk-db.sql
+  $ sudo mysql < db/mk-db.sql
+
+or
+
+  $ mysql --user=root --password < db/mk-db.sql
 
 Initialize database:
 
-$ mysql --user=sv --password sv_demo < ../savane/db/initial.sql
+  $ mysql --user=sv --password sv_demo < ../savane/db/initial.sql
 
 Optionally install sample entries:
 
-$ mysql --user=sv --password sv_demo < ../savane/db/sample.sql
+  $ mysql --user=sv --password sv_demo < ../savane/db/sample.sql
 
 Configuring GnuPG-signed tracker notifications
 ----------------------------------------------
