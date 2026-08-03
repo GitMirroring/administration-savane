@@ -139,7 +139,9 @@ Run Time
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
 * MariaDB (MySQL may also work)
-* Apache (apache2, libapache2-mod-php, apache2-utils in Trisquel) - frontend
+* Apache (apache2, apache2-utils in Trisquel) - frontend
+** PHP module (libapache2-mod-php in Trisquel)
+** Rewrite module (packaged with apache2 but disabled by default in Trisquel)
 * Pwqcheck (passwdqc in Trisquel) - handling new passwords in frontend
 * Graphviz (graphviz in Trisquel) - frontend, optionally displaying inter-item
     dependency graphs.
