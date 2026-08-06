@@ -198,7 +198,7 @@ AS_IF([test -d "$srcdir/.git"], [
   AS_CASE(["$head"], [*/*],
     [SV_GIT_COMMIT=`cat $srcdir/.git/$head`],
     [SV_GIT_COMMIT="$head"])
-  commit_source='extracted from Git repository'
+  commit_source='extracted from repository'
 ])
 AC_MSG_RESULT([$SV_GIT_COMMIT])
 AS_IF([echo $SV_GIT_COMMIT | grep -q ['^[a-f0-9]\{40,\}$']],
