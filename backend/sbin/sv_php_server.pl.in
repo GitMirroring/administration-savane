@@ -47,10 +47,12 @@ use Savane::Version;
 use Getopt::Long;
 use Cwd qw (abs_path);
 
-my $port = "@WWW_SERVER_PORT@";
-my $host = "@WWW_SERVER_HOST@";
-my $file_host = "@FILE_SERVER_HOST@";
-my $php_bin = "@PHP@";
+my $port = '@WWW_SERVER_PORT@';
+my $host = '@WWW_SERVER_HOST@';
+my $file_host = '@FILE_SERVER_HOST@';
+my $twin_host = '@WWW_TWIN_SERVER_HOST@';
+my $file_twin_host = '@FILE_TWIN_SERVER_HOST@';
+my $php_bin = '@PHP@';
 my @ini_directives;
 my $confdir = '@confdir@';
 my $frontenddir = '@frontenddir@';

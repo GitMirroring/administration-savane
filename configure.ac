@@ -181,6 +181,16 @@ AS_CASE(["$enable_frontend.$ax_have_php_mysqli"], [yes.yes], [],
 
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
+AC_MSG_CHECKING([whether to enable brother domain (twin host)])
+AC_ARG_ENABLE([twin-host],
+  [AS_HELP_STRING([--enable-twin-host], [enable brother domain (twin host)])],
+  [], [enable_twin_host=no]
+)
+AS_CASE(["x$enable_twin_host"], [xyes], [], [enable_twin_host=no])
+AC_MSG_RESULT([$enable_twin_host])
+TWIN_HOST_ENABLED=$enable_twin_host
+AC_SUBST([TWIN_HOST_ENABLED])
+
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],
   [AS_HELP_STRING([--enable-mirror], [install mirror-related scripts])],
@@ -289,6 +299,13 @@ AC_ARG_WITH([apache-group],
 )
 AC_MSG_RESULT([$WWW_SERVER_GROUP])
 AC_SUBST([WWW_SERVER_GROUP])
+AC_MSG_CHECKING([for Apache port])
+AC_ARG_WITH([apache-port],
+  AS_HELP_STRING([--with-apache-port], [webserver port [4913]]),
+  [WWW_SERVER_PORT="$withval"], [WWW_SERVER_PORT="4913"]
+)
+AC_MSG_RESULT([$WWW_SERVER_PORT])
+AC_SUBST([WWW_SERVER_PORT])
 AC_MSG_CHECKING([for Apache host])
 AC_ARG_WITH([apache-host],
   AS_HELP_STRING([--with-apache-host], [webserver host [127.0.0.85]]),
@@ -303,23 +320,37 @@ AC_ARG_WITH([apache-file-host],
 )
 AC_MSG_RESULT([$FILE_SERVER_HOST])
 AC_SUBST([FILE_SERVER_HOST])
-AC_MSG_CHECKING([for Apache port])
-AC_ARG_WITH([apache-port],
-  AS_HELP_STRING([--with-apache-port], [webserver port [4913]]),
-  [WWW_SERVER_PORT="$withval"], [WWW_SERVER_PORT="4913"]
+AC_MSG_CHECKING([for Apache twin host])
+AC_ARG_WITH([apache-twin-host],
+  AS_HELP_STRING([--with-apache-twin-host], [webserver twin host [127.0.0.87]]),
+  [WWW_TWIN_SERVER_HOST="$withval"], [WWW_TWIN_SERVER_HOST="127.0.0.87"]
 )
-AC_MSG_RESULT([$WWW_SERVER_PORT])
-AC_SUBST([WWW_SERVER_PORT])
-WWW_HOST=$WWW_SERVER_HOST
-FILE_HOST=$FILE_SERVER_HOST
+AC_MSG_RESULT([$WWW_TWIN_SERVER_HOST])
+AC_SUBST([WWW_TWIN_SERVER_HOST])
+AC_MSG_CHECKING([for Apache file twin host])
+AC_ARG_WITH([apache-file-twin-host],
+  AS_HELP_STRING([--with-apache-file-twin-host],
+    [file server twin host [127.0.0.88]]),
+  [FILE_TWIN_SERVER_HOST="$withval"], [FILE_TWIN_SERVER_HOST="127.0.0.88"]
+)
+AC_MSG_RESULT([$FILE_TWIN_SERVER_HOST])
+AC_SUBST([FILE_TWIN_SERVER_HOST])
+WWW_HOST="$WWW_SERVER_HOST"
+FILE_HOST="$FILE_SERVER_HOST"
+WWW_TWIN_HOST="$WWW_TWIN_SERVER_HOST"
+FILE_TWIN_HOST="$FILE_TWIN_SERVER_HOST"
 AS_IF([test "x$WWW_SERVER_PORT" != x80 -a "x$WWW_SERVER_PORT" != x],
   [
     WWW_HOST="$WWW_HOST:$WWW_SERVER_PORT"
     FILE_HOST="$FILE_HOST:$WWW_SERVER_PORT"
+    WWW_TWIN_HOST="$WWW_TWIN_HOST:$WWW_SERVER_PORT"
+    FILE_TWIN_HOST="$FILE_TWIN_HOST:$WWW_SERVER_PORT"
   ]
 )
 AC_SUBST([WWW_HOST])
 AC_SUBST([FILE_HOST])
+AC_SUBST([WWW_TWIN_HOST])
+AC_SUBST([FILE_TWIN_HOST])
 
 AC_CONFIG_FILES([Makefile frontend/Makefile db/mk-db.sql])
 AC_CONFIG_FILES([po/Makefile], [AM_POSTPROCESS_PO_MAKEFILE])
@@ -331,17 +362,28 @@ AX_PATH_PROG_REPORT
 AX_REPORT_GIT_COMMIT
 AS_ECHO(["Prefix: $prefix"])
 AS_ECHO(["Configuration directory: $SV_CONF"])
-AS_ECHO(["Apache user: $WWW_SERVER_USER"])
-AS_ECHO(["Apache group: $WWW_SERVER_GROUP"])
-AS_ECHO(["Apache host: $WWW_SERVER_HOST"])
-AS_ECHO(["Apache file host: $FILE_SERVER_HOST"])
-AS_ECHO(["Apache port: $WWW_SERVER_PORT"])
 AS_ECHO(["Database name: $SV_DB_NAME"])
 AS_ECHO(["Database user: $SV_DB_USER"])
 AS_ECHO(["Database host: $SV_DB_HOST"])
 AS_ECHO(["Database port: $db_port"])
 AS_ECHO(["Run database over network: $enable_db_networking"])
 AS_ECHO(["Install frontend (PHP) part: $enable_frontend"])
+AS_CASE(["$enable_frontend"], [yes],
+  [
+    AS_ECHO(["  Enable brother domain: $enable_twin_host"])
+    AS_ECHO(["  Apache user: $WWW_SERVER_USER"])
+    AS_ECHO(["  Apache group: $WWW_SERVER_GROUP"])
+    AS_ECHO(["  Apache host: $WWW_SERVER_HOST"])
+    AS_ECHO(["  Apache file host: $FILE_SERVER_HOST"])
+    AS_CASE(["$enable_twin_host"], [yes],
+      [
+        AS_ECHO(["  Apache twin host: $WWW_TWIN_SERVER_HOST"])
+        AS_ECHO(["  Apache file twin host: $FILE_TWIN_SERVER_HOST"])
+      ]
+    )
+    AS_ECHO(["  Apache port: $WWW_SERVER_PORT"])
+  ]
+)
 AS_ECHO(["Use captcha: $enable_captcha"])
 AS_ECHO(["Install database: $enable_database"])
 AS_ECHO(["Install mirror scripts: $enable_mirror"])
