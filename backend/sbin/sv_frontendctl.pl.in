@@ -48,6 +48,7 @@ use Savane::Version;
 
 my $port = "@WWW_SERVER_PORT@";
 my $host = "@WWW_SERVER_HOST@";
+my $file_host = "@FILE_SERVER_HOST@";
 
 my $pid_dir = "@apache_rundir@";
 my $log_dir = "@apache_logdir@";
@@ -66,8 +67,9 @@ Other options are passed to Apache2 (typically, -k graceful).
 
 Configuration:
 
-Host: $host
-Port: $port
+Main host: $host
+File host: $file_host
+Port:      $port
 
 APACHE_RUN_USER: @WWW_SERVER_USER@
 APACHE_RUN_GROUP: @WWW_SERVER_GROUP@
