@@ -1,0 +1,201 @@
+#! @PERL@ -I@pkgdatadir@/lib
+#
+# Remove old tarballs from frontend.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2003-2006 BBN Technologies Corp
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+use strict;
+use Savane::Version;
+use Savane::Util;
+use Getopt::Long;
+
+my $script = "sv_drop-old-tarballs";
+my $default_logfile = "@logdir@/$script.log";
+my $destdir = '';
+my $keep_num = 17;
+my $keep_days = 34;
+my $dry_run;
+my $verbose = 0;
+my $logfile;
+
+my $help = <<"EOF";
+  Usage: $0 [OPTIONS]
+
+  Remove old source tarballs installed at frontend.
+
+    -h, --help         show this help and exit
+    -v, --version      show Savane version and exit
+
+        --verbose      log additional info
+    -q, --quiet        log less info
+
+        --logfile      file for reports [$default_logfile]
+        --dry-run      don't actually remove files, just log
+
+    -n, --num=[N]      leave at least N latest tarballs [$keep_num]
+    -d, --days=[X]     keep files for at least X days [$keep_days]
+EOF
+$help =~ s/^  //gm;
+chop $help;
+PrintVersionOrHelp ($help);
+
+GetOptions (
+  'num|d=i' => \$keep_num, "days|d=f" => \$keep_days, 'dry-run' => \$dry_run,
+  "verbose+" => \$verbose, 'quiet|q+' => sub { $verbose--; },
+  "logfile=s" => \$logfile, 'destdir=s' => $destdir
+) or die ("Wrong command line.");
+
+my $keep_seconds;
+
+sub assign_settings
+{
+  $destdir =~ s,/*$,,;
+  $logfile = "$destdir$default_logfile" unless defined $logfile;
+  $keep_seconds = $keep_days * 24 * 3600;
+  $keep_seconds = -0.1 if $keep_days < 0;
+}
+
+sub sanitize_settings
+{
+  return if $keep_num > 0;
+  print_log ("Note: Too low --num $keep_num is requested; using 1 instead.")
+    unless $verbose < -1;
+  $keep_num = 1;
+}
+
+sub sec_to_days
+{
+  my $s = shift;
+  return sprintf ("%.1f days", $s / 24 / 3600);
+}
+
+sub get_age
+{
+  my ($t, $f) = @_;
+  unless (-f $f)
+    {
+      print_log ("Note: skipping non-file '$f'.") unless $verbose < -1;
+      return $t + 1;
+    }
+  my @st = stat ($f);
+  unless (@st)
+    {
+      print_log ("Cannot stat '$f'.");
+      return undef;
+    }
+  my $ret = $t - @st[9];
+  my $d = sec_to_days ($ret);
+  print_log ("Found file $f, modified $ret seconds ($d) ago.")
+    if $verbose > 1;
+  return $ret;
+}
+
+sub check_file_num
+{
+  my ($n, $f) = @_;
+  return 0 unless $n < $keep_num;
+  print_log ("File #$n, $f: keeping indefinitely.") if $verbose > 0;
+  return 1;
+}
+
+sub check_file_age
+{
+  my ($age, $n, $f) = @_;
+  return 0 unless $age < $keep_seconds;
+  my $d = sec_to_days ($age);
+  print_log ("File #$n, $f: too new ($age seconds, $d).") if $verbose > 0;
+  return 1;
+}
+
+sub rm_file
+{
+  my $f = shift;
+  print_log ("Removing '$f'.") unless $verbose < 0;
+  return 0 if $dry_run;
+  unless (unlink ($f))
+    {
+      print_log ("Cannot remove '$f': $!") unless $verbose < -1;
+      return 1;
+    }
+  print_log ("Removed '$f'.") unless $verbose < 0;
+  return 0;
+}
+
+sub remove_files
+{
+  my ($n, $rm) = (0, 0);
+  my $t = time ();
+  foreach (`ls -t`)
+    {
+      chomp;
+      my $age = get_age ($t, $_);
+      return 1 unless defined $age;
+      next if check_file_num ($n++, $_);
+      next if check_file_age ($age, $n, $_);
+      return 1 if rm_file ($_);
+      $rm++;
+    }
+  my $kept = $n - $rm;
+  print_log ("Files kept: $kept, removed: $rm.");
+  return 0;
+}
+
+sub main
+{
+  assign_settings ();
+  open_log ($logfile, $script, $dry_run);
+  sanitize_settings ();
+  my $ret = 1;
+  my $srcdir = $destdir . '@frontenddir@/php/source';
+  unless (chdir $srcdir)
+    {
+      print_log ("Cannot chdir '$srcdir': $!") unless $verbose < -1;
+    }
+  else
+    {
+      $ret = remove_files ($destdir);
+    }
+  finalize_log ();
+  return $ret;
+}
+
+exit (main ());

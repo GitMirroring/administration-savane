@@ -56,6 +56,7 @@ backend_bin_common = \
   backend/mail/sv_mailman-wrapper.pl \
   backend/mail/sv_sendmail.pl \
   backend/misc/sv_cleaner \
+  backend/misc/sv_drop-old-tarballs \
   backend/misc/sv_reminder
 
 bin_SCRIPTS += $(backend_bin_common)

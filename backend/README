@@ -122,6 +122,12 @@ misc/sv_cleaner
 Removes parts of the database that belong to removed entities.
 Runs twice an hour on mgt1.
 
+misc/sv_drop-old-tarballs
+=========================
+
+Removes old tarballs installed at frontend; takes care to keep
+a few latest tarballs indefinitely.
+
 misc/sv_collect-mirror-stats
 ============================
 
