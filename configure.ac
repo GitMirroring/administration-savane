@@ -94,7 +94,7 @@ AX_PERL_MODULE_VERSION([DBI 1.38 DBD::mysql 0 Mail::Send 0],
 AX_PERL_MODULE_VERSION([LWP::Simple 5.69],
   [have_recent_libwww_perl=yes], [have_recent_libwww_perl=no]
 )
-AX_PERL_MODULE_VERSION([WWW::Mechanize 0],
+AX_PERL_MODULE_VERSION([WWW::Mechanize 1.00],
   [have_mechanize=yes], [have_mechanize=no]
 )
 AX_PERL_MODULE_VERSION([Geo::IP 0 Locale::Codes 0 LWP::Simple 0],
