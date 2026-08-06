@@ -72,6 +72,9 @@
 * A check for whether PHP loads the mysqli extension is added to configure;
 other missing PHP extensions are also reported.
 
+* New configure options, --enable-twin-host, --with-apache-twin-host,
+  --with-apache-file-twin-host.
+
 * Bug fixes:
 
 ** Git commit was extracted in configure time; in make time, the commit
