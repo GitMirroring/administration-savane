@@ -60,6 +60,10 @@
 
 * Update French, German, Hebrew, Romanian, Russian, Swedish.
 
+[BACKEND]
+
+* New script, sv_drop-old-tarballs.
+
 [BUILD]
 
 * ImageMagick executable is detected at configure time.
