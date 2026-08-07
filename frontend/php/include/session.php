@@ -223,26 +223,30 @@ function session_redirect ($loc)
   exit;
 }
 
+function session_require_group ($req)
+{
+  $query = "
+    SELECT `user_id` FROM `user_group`
+    WHERE `user_id` = ? AND `group_id` = ?";
+  $params = [user_getid (), $req['group']];
+  if (!empty ($req['admin_flags']))
+    {
+      $query .= " AND admin_flags = ?";
+      $params[] = $req['admin_flags'];
+    }
+
+  if (db_numrows (db_execute ($query, $params)))
+    return true;
+  exit_permission_denied ();
+}
+
 function session_require ($req)
 {
   if (user_is_super_user ())
     return true;
 
   if (!empty ($req['group']))
-    {
-      $query =
-        "SELECT user_id FROM user_group WHERE user_id = ? AND group_id = ?";
-      $params = [user_getid (), $req['group']];
-      if (!empty ($req['admin_flags']))
-        {
-          $query .= " AND admin_flags = ?";
-          $params[] = $req['admin_flags'];
-        }
-
-      if (!db_numrows (db_execute ($query, $params)))
-        exit_permission_denied ();
-      return true;
-    }
+    return session_require_group ($req);
   if (!empty ($req['user']))
     {
       if (user_getid () != $req['user'])
