@@ -151,6 +151,11 @@ $sys_cc_error = [
 $sys_error_cc_limit = 20;
 $sys_error_cc_period = 60;
 
+# When $sys_error_unfiltered is set to non-zero, the error messages will include
+# sensitive data like entered passwords and session cookies; by default,
+# such data are filtered out.
+$sys_error_unfiltered = false;
+
 # Add debugging summary to error log every time when page output completes.
 $sys_debug_footer = true;
 # Character set to select when connecting to the database.
