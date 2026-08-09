@@ -200,6 +200,18 @@ function error_format_backtrace ($include_args = true)
   return join ("\n-> ", $ret);
 }
 
+function error_filter_request ($array)
+{
+  global $sys_error_unfiltered;
+  if (!empty ($sys_error_unfiltered))
+    return $array;
+  $filtered_fields = ['form_id', 'form_pw'];
+  foreach ($filtered_fields as $f)
+    if (array_key_exists ($f, $array))
+      $array[$f] = '*';
+  return $array;
+}
+
 function error_format_request ()
 {
   if (empty ($_SERVER))
@@ -213,9 +225,9 @@ function error_format_request ()
   if (isset ($_SERVER['REQUEST_METHOD']))
     {
       if ($_SERVER['REQUEST_METHOD'] == 'POST')
-        $ret .= 'POST: ' . error_print_r ($_POST);
+        $ret .= 'POST: ' . error_print_r (error_filter_request ($_POST));
       if ($_SERVER['REQUEST_METHOD'] == 'GET')
-        $ret .= 'GET: ' . error_print_r ($_GET);
+        $ret .= 'GET: ' . error_print_r (error_filter_request ($_GET));
     }
   return "request params $ret";
 }
@@ -460,22 +472,52 @@ function error_cc_log ($location, $title, $msg)
     }
 }
 
+function cookies_to_suppress ()
+{
+  return ['session_hash', 'PHPSESSID'];
+}
+
+function filter_request_headers ($array)
+{
+  global $sys_error_unfiltered;
+  if (!empty ($sys_error_unfiltered))
+    return $array;
+  if (array_key_exists ('Cookie', $array))
+    foreach (cookies_to_suppress () as $c)
+      $array['Cookie'] = preg_replace (
+        '/\<(' . $c . '=)[^;]*/', '\1*', $array['Cookie']
+      );
+  if (array_key_exists ('Authorization', $array))
+    $array['Authorization'] = '*';
+  return $array;
+
+}
+
 function error_request_headers ()
 {
   if (function_exists ('apache_request_headers'))
-    return apache_request_headers ();
+    return filter_request_headers (apache_request_headers ());
   $ret = [];
   foreach ($_SERVER as $k => $v)
     if (!strncmp ($k, 'HTTP_', strlen ('HTTP_')))
       $ret[$k] = $v;
-  return $ret;
+  return filter_request_headers ($ret);
 }
 
 function error_response_headers ()
 {
+  global $sys_error_unfiltered;
   if (function_exists ('apache_response_headers'))
-    return apache_response_headers ();
-  return headers_list ();
+    $resp = apache_response_headers ();
+  else
+    $resp = headers_list ();
+  if (!empty ($sys_error_unfiltered))
+    return $resp;
+  $ret = [];
+  foreach ($resp as $h)
+    foreach (cookies_to_suppress () as $c)
+      $ret[] = preg_replace ('/(Set-Cookie: ' . $c . '=)[^;]*/', '\1*', $h);
+  return $ret;
 }
 
 function error_format_headers ()
