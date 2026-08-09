@@ -2,7 +2,8 @@
 
 [FRONTEND]
 
-* New configuration variable, $sys_pwqcheck_path, see doc/savane.conf.php.
+* New configuration variables, $sys_pwqcheck_path, $sys_error_unfiltered,
+  see doc/savane.conf.php.
 
 * Support for PHP 8.6 is declared.
 
