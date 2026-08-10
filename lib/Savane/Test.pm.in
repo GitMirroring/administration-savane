@@ -490,11 +490,18 @@ sub savane_conf_start_marker
 
 my $savane_conf_modified = 0;
 
+sub savane_conf_name
+{
+  my $n = shift;
+  $n = 'savane.conf.php' unless defined $n;
+  return '@confdir@/' . $n;
+}
+
 sub append_savane_conf
 {
   my $text = shift;
+  my $fname = savane_conf_name (shift);
   my $fh;
-  my $fname = '@confdir@/savane.conf.php';
   my $formatted = $text;
   my $ret = 0;
   return 0 unless defined $text;
