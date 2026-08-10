@@ -113,6 +113,16 @@ $sys_mailman_wrapper = ["$bindir/sv_mailman-wrapper.pl"];
 if (!empty ($sys_conf_file))
   include ("$sys_conf_file");
 
+if (!empty ($sys_detect_www_port))
+  $sys_www_server_port = $_SERVER['SERVER_PORT'];
+if (!empty ($sys_www_server_port) && $sys_www_server_port != 80)
+  foreach (['default', 'brother', 'file'] as $v)
+    {
+      $k = "sys_{$v}_domain";
+      if (array_key_exists ($k, $GLOBALS))
+        ${$k} .= ":$sys_www_server_port";
+    }
+
 if (empty ($sys_linguas))
   $sys_linguas = "en:ru";
 

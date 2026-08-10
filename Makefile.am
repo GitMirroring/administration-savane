@@ -23,7 +23,7 @@ sbin_files =
 conf_files =
 
 mirmon_conf = mirmon-to-geoip.conf
-frontend_conf = apache.conf php.ini savane.conf.php
+frontend_conf = apache.conf php.ini savane.conf.php nongnu-conf/savane.conf.php
 conf_all = $(frontend_conf) $(mirmon_conf)
 frontend_sbin = sv_frontendctl.pl sv_php_server.pl
 sbin_all = $(frontend_sbin)
@@ -87,7 +87,7 @@ conf_all += $(common_conf)
 
 directories = backend/accounts backend/sbin backend/external \
   backend/extra/git backend/mail backend/misc db lib/Savane lib/Savane/Test \
-  frontend/php/include sysconf tests
+  frontend/php/include sysconf/nongnu-conf tests
 
 modules = \
   lib/Savane.pm \
@@ -164,8 +164,13 @@ subst_in_files = \
     -e 's,[@]WWW_SERVER_GROUP[@],$(WWW_SERVER_GROUP),g' \
     -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),g' \
     -e 's,[@]FILE_SERVER_HOST[@],$(FILE_SERVER_HOST),g' \
+    -e 's,[@]WWW_TWIN_SERVER_HOST[@],$(WWW_TWIN_SERVER_HOST),g' \
+    -e 's,[@]FILE_TWIN_SERVER_HOST[@],$(FILE_TWIN_SERVER_HOST),g' \
     -e 's,[@]WWW_HOST[@],$(WWW_HOST),g' \
     -e 's,[@]FILE_HOST[@],$(FILE_HOST),g' \
+    -e 's,[@]WWW_TWIN_HOST[@],$(WWW_TWIN_HOST),g' \
+    -e 's,[@]FILE_TWIN_HOST[@],$(FILE_TWIN_HOST),g' \
+    -e 's,[@]TWIN_HOST_ENABLED[@],$(TWIN_HOST_ENABLED),g' \
     -e 's,[@]WWW_SERVER_PORT[@],$(WWW_SERVER_PORT),g' \
     -e 's,[@]WWW_SERVER_USER[@],$(WWW_SERVER_USER),g' \
     -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
@@ -265,7 +270,8 @@ skip_init_db = @echo Skipping
 endif
 
 if HAVE_FRONTEND
-frontend_dirs = $(DESTDIR)$(apache_rundir) $(DESTDIR)$(apache_logdir)
+frontend_dirs = $(DESTDIR)$(apache_rundir) $(DESTDIR)$(apache_logdir) \
+  $(DESTDIR)/$(confdir)/nongnu-conf
 frontend_cache_dirs = $(dest_local)/submissions_uploads/trackers_attachments
 endif # HAVE_FRONTEND
 dirs_to_make = $(db_dirs) $(dest_log_dirs) $(frontend_dirs) \
@@ -382,7 +388,7 @@ test:
 	cd test; $$abs_src_dir/configure --prefix=`pwd`/install \
 	  --disable-sendmail --enable-mirror --disable-captcha \
 	  --disable-db-networking --enable-sample-db --enable-db-test-marker \
-	  --enable-detect-www-port
+	  --enable-detect-www-port --enable-twin-host
 	${MAKE} -C test all install
 	cd ./test && chmod a+x ${all_test_scripts}
 	cd ./test/tests && ./run-tests ${RUN_TESTS_ARGS}

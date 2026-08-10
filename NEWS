@@ -65,6 +65,9 @@
 
 * New script, sv_drop-old-tarballs.
 
+* When the twin host is enabled, sv_php_server.pl runs four PHP servers,
+  'primary,' 'file,' 'twin,' 'twin file.'
+
 [BUILD]
 
 * ImageMagick executable is detected at configure time.
