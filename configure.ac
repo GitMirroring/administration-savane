@@ -178,7 +178,6 @@ AS_CASE(["$enable_frontend.$CONVERT"], [yes.],
 AS_CASE(["$enable_frontend.$ax_have_php_mysqli"], [yes.yes], [],
   [AC_MSG_ERROR([PHP doesn't load mysqli; is the extension installed?])]
 )
-
 AM_CONDITIONAL([HAVE_FRONTEND], [test "x$enable_frontend" = xyes])
 
 AC_MSG_CHECKING([whether to enable brother domain (twin host)])
@@ -190,6 +189,7 @@ AS_CASE(["x$enable_twin_host"], [xyes], [], [enable_twin_host=no])
 AC_MSG_RESULT([$enable_twin_host])
 TWIN_HOST_ENABLED=$enable_twin_host
 AC_SUBST([TWIN_HOST_ENABLED])
+AM_CONDITIONAL([HAVE_TWIN_HOST], [test "x$enable_twin_host" = xyes])
 
 AC_MSG_CHECKING([whether to install mirror scripts])
 AC_ARG_ENABLE([mirror],

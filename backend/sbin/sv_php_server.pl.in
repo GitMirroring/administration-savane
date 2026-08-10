@@ -56,8 +56,8 @@ my $php_bin = '@PHP@';
 my @ini_directives;
 my $confdir = '@confdir@';
 my $frontenddir = '@frontenddir@';
-my $pid = -1;
-my $pid1 = 0;
+my $have_twin_host = '@TWIN_HOST_ENABLED@' eq 'yes';
+my ($skip_twin, $only_twin) = (!$have_twin_host, 0);
 
 my $help = <<"EOF";
   Usage: $0 [OPTIONS]
@@ -70,7 +70,11 @@ my $help = <<"EOF";
     -d directive[=value] pass additional INI directive to PHP
         --host           set host [$host]
         --file-host      set host for files [$file_host]
+        --twin-host      set twin host [$twin_host]
+        --file-twin-host set twin host for files [$file_twin_host]
         --port           set port [$port]
+        --skip-twin      only run the elder host
+        --only-twin      only run the younger host
 
   Note that when you set --port different from the default, you may want
   to set the \$sys_detect_www_port variable in $confdir/savane.conf.php,
@@ -79,55 +83,114 @@ my $help = <<"EOF";
 EOF
 $help =~ s,^  ,,gm;
 $help =~ s,\n$,,;
+$help =~ s/--twin-host.*(--port)/$1/m unless $have_twin_host;
+$help =~ s/^.*--skip-twin.*// unless $have_twin_host;
+$help =~ s/^.*--only-twin.*// unless $have_twin_host;
 
 $help .= "\n\nNote: Port is less than 1024; this script needs root privileges."
   if $port < 1024;
 
 PrintVersionOrHelp ($help);
-
-GetOptions (
+my %options = (
   "php-bin=s" => \$php_bin, 'd=s', \@ini_directives,
   'host=s' => \$host, 'file-host=s' => \$file_host, 'port=s' => \$port
-)
-  or die ("Wrong command line.");
+);
 
-$php_bin = abs_path ($php_bin);
+sub parse_skip_twin
+{
+  $only_twin = 0;
+  $skip_twin = 1;
+}
+
+sub parse_only_twin
+{
+  $only_twin = 1;
+  $skip_twin = 0;
+}
+
+if ($have_twin_host)
+  {
+    $options{'twin-host=s'} = \$twin_host;
+    $options{'file-twin-host=s'} = \$file_twin_host;
+    $options{'skip-twin'} = \&parse_skip_twin;
+    $options{'only-twin'} = \&parse_only_twin;
+  }
+
+GetOptions (%options) or die ("Wrong command line.");
+
+my @children;
 
 sub kill_servers
 {
-  my @siglist;
-  push @siglist, $pid if $pid > 0;
-  push @siglist, $pid1 if $pid1;
-  $pid = $pid1 = 0;
-  return unless @siglist;
-  kill ('TERM', @siglist);
+  return unless @children;
+  kill ('TERM', @children);
   1 while (wait () != -1);
 }
 
 END { kill_servers (); }
 
-$SIG{TERM} = \&kill_servers;
-
-$ENV{'LANG'} = 'C';
-$ENV{'SAVANE_CONF'} = "$confdir";
-
-chdir "$frontenddir/php";
-
-$pid = fork () if $file_host ne $host;
-die "Can't fork: $!" unless defined $pid;
-my $h = $pid? $host: $file_host;
 my @ini_options;
-foreach my $d (@ini_directives)
-  {
-    push @ini_options, '-d', $d;
-  }
-$pid1 = fork () if $pid;
-die "Can't fork: $!" unless defined $pid1;
-my @cmd = (
-  $php_bin, '-c', "$confdir/php.ini", @ini_options, '-S', "$h:$port",
-  '-t', "$frontenddir/php", "$frontenddir/local.php"
-);
+my ($run_host, $run_host_file, $run_twin, $run_twin_file);
+sub init_twin_options
+{
+  $run_host = 1 unless $only_twin;
+  $run_host_file = 1 if $run_host;
+  $run_host_file = 0 unless $file_host ne $host;
+  $run_twin = 1 unless $skip_twin;
+  $run_twin = 0 unless $host ne $twin_host;
+  $run_twin_file = $run_twin;
+  $run_twin_file = 0 unless $twin_host ne $file_twin_host;
+}
 
-exec (@cmd) unless ($pid and $pid1);
-1 while (wait () != -1);
-exit (0);
+sub init
+{
+  $php_bin = abs_path ($php_bin);
+  foreach my $d (@ini_directives)
+    {
+      push @ini_options, '-d', $d;
+    }
+  $SIG{TERM} = \&kill_servers;
+
+  $ENV{'LANG'} = 'C';
+  $ENV{'SAVANE_CONF'} = "$confdir";
+
+  chdir "$frontenddir/php";
+  init_twin_options ();
+}
+
+sub launch_host
+{
+  my $host = shift;
+  my $pid = fork ();
+  die "Can't fork for $host: $!" unless defined $pid;
+  if ($pid)
+    {
+      push @children, $pid;
+      return;
+    }
+  my @cmd = (
+    $php_bin, '-c', "$confdir/php.ini", @ini_options, '-S', "$host:$port",
+    '-t', "$frontenddir/php", "$frontenddir/local.php"
+  );
+  exec (@cmd);
+}
+
+sub launch_servers
+{
+  launch_host ($host) if $run_host;
+  launch_host ($file_host) if $run_host_file;
+  $ENV{'SAVANE_CONF'} .= "/nongnu-conf";
+  launch_host ($twin_host) if $run_twin;
+  launch_host ($file_twin_host) if $run_twin_file;
+}
+
+
+sub main
+{
+  init ();
+  launch_servers ();
+  1 while (wait () != -1);
+  return 0;
+}
+
+exit (main ());
