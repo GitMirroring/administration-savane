@@ -63,16 +63,6 @@ $extra_script_name = "/$sanitized";
 $group_id = db_result ($res_grp, 0, 'group_id');
 
 $project = group_get_object ($group_id);
-
-# If we are at wrong URL, redirect to the brother domain.
-$host = $project->getTypeBaseHost ();
-if (
-  $host && !$sys_debug_nobasehost && strcasecmp ($_SERVER['HTTP_HOST'], $host)
-)
-  {
-    $prot = session_protocol () . '://';
-    session_redirect ("$prot$host{$_SERVER['PHP_SELF']}");
-  }
 site_project_header ([]);
 
 print "\n<div class='indexright'>\n";
