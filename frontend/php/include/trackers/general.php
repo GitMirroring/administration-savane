@@ -1086,9 +1086,10 @@ function trackers_attach_several_files ($item_id, $group_id, &$changes)
   $files = sane_import ('files', ['pass' => $filenames]);
   extract (sane_import ('post', ['specialchars' => 'file_description']));
   foreach ($files as $file)
-    $comment[] = trackers_add_file (
-      $item_id, $file, $file_description, $changes
-    );
+    if ($file !== null)
+      $comment[] = trackers_add_file (
+        $item_id, $file, $file_description, $changes
+      );
   unset ($GLOBALS['current_upload_size']);
   $comment = array_filter ($comment);
   if (empty ($comment))
