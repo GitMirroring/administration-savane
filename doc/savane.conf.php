@@ -35,11 +35,7 @@ $sys_detect_www_port = false;
 if ($sys_detect_www_port)
   $sys_www_server_port = $_SERVER['SERVER_PORT'];
 
-if ($sys_www_server_port != 80)
-  foreach (['default', 'brother', 'file'] as $v)
-    ${"sys_{$v}_domain"} .= ":$sys_www_server_port";
-
-# Set to true to avoid automatic redirection to 'brother' host
+# Set to true to avoid automatic redirection to 'twin' host
 # when accessing a group hosted there.  The group will be just shown
 # in 'our' host.
 $sys_debug_nobasehost = false;
