@@ -1207,11 +1207,26 @@ function test_utf8_search_get_test_set ()
   ];
 }
 
-function try_utf8_search ()
+function test_try_db_charset ($charset)
 {
+  if (null === $charset)
+    return [];
+  $saved = utils_disable_warnings (E_WARNING);
+  db_reconnect ($charset);
+  utils_restore_warnings ($saved);
+  $new_charset = db_charset_name ();
+  if ($charset === $new_charset)
+    return [];
+  return "Cannot set charset '$charset': '$new_charset' returned.";
+}
+
+function try_utf8_search ($charset = null)
+{
+  $ret = test_try_db_charset ($charset);
+  if (!empty ($ret))
+    return $ret;
   $saved = utils_disable_warnings (E_ALL);
   db_query_prevent_die (true);
-  $ret = [];
   foreach (test_utf8_search_get_test_set () as $col => $tables)
     foreach ($tables as $tbl)
       {
@@ -1252,8 +1267,7 @@ function test_utf8_search ()
     {
       if ($charset === $saved_charset)
         continue;
-      db_reconnect ($charset);
-      $test_result = try_utf8_search ();
+      $test_result = try_utf8_search ($charset);
       $defs["UTF-8 search ($charset charset)"] = $test_result;
       if ($test_result === 'OK')
         $no_good_charset = false;
