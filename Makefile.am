@@ -76,8 +76,8 @@ all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 build_time_scripts = db/init-database.pl
 test_scripts = tests/field-usage tests/i18n tests/mail-pm tests/log-exits \
   tests/mailman tests/membership tests/register-group tests/register-user \
-  tests/repos tests/siteadmin tests/testconfig tests/tracker-conf-copy \
-  tests/trackers tests/utils
+  tests/repos tests/session tests/siteadmin tests/testconfig \
+  tests/tracker-conf-copy tests/trackers tests/utils
 test_data_files = tests/utils.php
 all_test_scripts = ${test_scripts} tests/run-tests
 
