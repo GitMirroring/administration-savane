@@ -77,13 +77,6 @@ sub list_siteadmin_pages
   return @pages;
 }
 
-sub set_admin_flags
-{
-  my ($agent, $user, $set) = @_;
-  $agent->get (group_user_perm_url ());
-  return make_user_admin ($agent, $user, $set);
-}
-
 sub page_expected_code
 {
   my ($page, $login) = @_;
@@ -169,11 +162,11 @@ sub run_checks
   log_in ($agent);
   $agent->get (group_admin_url ());
   return 1 if (add_user_to_group ($agent, $login) < 0);
-  return 1 if set_admin_flags ($agent, $login, 1);
+  return 1 if set_siteadmin ($agent, $login, 1);
   $ret = 1 if test_access ($login, @pages);
   $ret = 1 if test_access ("*$login", @pages);
   $ret = 1 if test_double_trigger ($login, $group_id);
-  return 1 if set_admin_flags ($agent, $login, 0);
+  return 1 if set_siteadmin ($agent, $login, 0);
   $ret = 1 if test_access ($login, @pages);
   return $ret;
 }

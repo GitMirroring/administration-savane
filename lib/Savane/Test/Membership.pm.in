@@ -52,7 +52,7 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (
   group_admin_url group_user_perm_url group_default_name
   add_user_to_group make_user_admin remove_user_from_group quit_group
-  user_id_is_removable request_inclusion approve_user
+  set_siteadmin user_id_is_removable request_inclusion approve_user
 );
 
 sub group_admin_url
@@ -363,6 +363,12 @@ sub report_admin_status
     }
   print_test_result ("User #$id is not an admin like expected.");
   return 0;
+}
+sub set_siteadmin
+{
+  my ($agent, $user, $set) = @_;
+  $agent->get (group_user_perm_url ());
+  return make_user_admin ($agent, $user, $set);
 }
 sub make_user_admin
 {
