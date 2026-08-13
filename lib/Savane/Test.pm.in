@@ -126,17 +126,20 @@ sub check_for_test_marker
   return 1;
 }
 
-my $root_url;
+my @root_url;
 my ($php_port, $php_bin, $have_launched_php);
 
 sub init_root_url
 {
-  my $host = "@WWW_SERVER_HOST@";
   my $port = <>;
   chomp $port;
   $php_bin = <>;
   chomp $php_bin;
-  $root_url = "http://$host:$port/";
+  my @hosts = (
+    '@WWW_SERVER_HOST@', '@WWW_TWIN_SERVER_HOST@',
+    '@FILE_SERVER_HOST@', '@FILE_TWIN_SERVER_HOST@'
+  );
+  push @root_url, "http://$_:$port/" foreach @hosts;
   $php_port = $port;
 }
 
@@ -229,13 +232,18 @@ sub get_group_id
 
 sub make_url
 {
-  return "$root_url$_[0]";
+  my $url = shift;
+  my $idx = @_? shift: 0;
+  return $root_url[$idx] . $url;
 }
 
 sub unmake_url
 {
   my $ret = shift;
-  $ret =~ s,^$root_url/?,,;
+  foreach (@root_url)
+    {
+      return $ret if $ret =~ s,^$_/?,,;
+    }
   return $ret;
 }
 
