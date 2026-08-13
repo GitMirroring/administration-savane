@@ -1,0 +1,315 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# Test session-related operations.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use Savane::Test::User;
+use Savane::Test::Membership;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test session-related operations.");
+
+my $list_sessions_php = <<'EOF';
+  <?php
+  require_once ('include/init.php');
+  $res = db_execute ('
+    SELECT `user_name`, `time`, `session_hash`
+    FROM `session` `s` JOIN `user` `u` ON `s`.`user_id` = `u`.`user_id`'
+  );
+  while ($row = db_fetch_array ($res))
+    print $row['user_name'] . " " . $row['time']
+      . " " . $row['session_hash'] . "\n";
+  ?>
+EOF
+$list_sessions_php =~ s/^  //gm;
+
+sub fetch_sessions
+{
+  my $agent = @_? shift: make_agent ();
+  my @ret;
+  $agent->get (make_url ('list-sessions.php'));
+  push @ret, $_ foreach (split (/\n/, $agent->content (raw => 1)));
+  return @ret;
+}
+
+sub log_out_single_session
+{
+  my $s = shift;
+  my $ret = 0;
+  select_root_url ($s->{'root'});
+  $ret = 1 if log_out ($s->{'agent'});
+  my %h;
+  $h{$_}++ foreach fetch_sessions ($s->{'agent'});
+  foreach (@{$s->{'rows'}})
+    {
+      next unless exists $h{$_};
+      print_test_error ("A session wasn't deleted, $_.");
+      $ret = 1;
+    }
+  save_page ($s->{'agent'}, 'left-sessions') if $ret;
+  return $ret;
+}
+
+sub log_out_sessions
+{
+  my $sessions = shift;
+  my $ret = 0;
+  foreach (@$sessions)
+    {
+      $ret = 1 if log_out_single_session ($_);
+    }
+  return $ret;
+}
+
+sub report_new_sessions
+{
+  my ($agent, $user, $fresh) = (shift, shift, shift);
+  unless (@_)
+    {
+      print_test_result ("No new sessions found for $user.", !$fresh);
+      return 0 if $fresh;
+      save_page ($agent, "no-new-$user");
+      return 1;
+    }
+  print_test_result ("New sessions found for $user:\n  " . join ("\n  ", @_));
+  my $n = $#_ + 1;
+  return 0 if $n <= 2 || $fresh;
+  print_test_result ("$n new sessions found, should be 2 or less.");
+  save_page ($agent, "many-new-sessions-$user");
+  return 1;
+}
+
+sub check_session_consistency
+{
+  my ($agent, $user, $fresh) = (shift, shift, shift);
+  return 0 if $fresh;
+  my %ids;
+  foreach (@_)
+    {
+      my $id = $_;
+      $id =~ s,;.*,,;
+      $ids{$id}++;
+    }
+  my @ids = keys (%ids);
+  if ($#ids == 0)
+    {
+      print_test_result ('New sessions look consistent.');
+      return 0;
+    }
+  print_test_error ("Inconsistent hashes found:\n  " . join ("\n  "), @ids);
+  save_page ($agent, "inconsistent-sessions-$user");
+  return 1;
+}
+
+sub check_new_sessions
+{
+  my ($user, $hashes, $fresh) = @_;
+  my @ret;
+  my $agent = make_agent ();
+  foreach my $line (fetch_sessions ($agent))
+    {
+      my ($uname) = split (/ /, $line);
+      next unless lc ($uname) eq $user;
+      next if exists $$hashes->{$line};
+      $$hashes->{$line} = 1;
+      push @ret, $line;
+    }
+  return () if report_new_sessions ($agent, $user, $fresh, @ret);
+  return () if check_session_consistency ($agent, $user, $fresh, @ret);
+  return @ret;
+}
+
+sub build_session
+{
+  my ($agent, $user, $hashes) = @_;
+  my @new_sessions = check_new_sessions ($user, $hashes);
+  return undef unless @new_sessions;
+  my ($uname, $time) = split (/ /, $new_sessions[0]);
+  return {'agent' => $agent, 'time' => $time, 'rows' => \@new_sessions};
+}
+
+my @hosts = ('www', 'twin');
+my ($host_no, $no_brother) = (0, 0);
+sub next_log_in
+{
+  my ($agent, $user) = @_;
+  if ($host_no > $#hosts)
+    {
+      $no_brother = !$no_brother;
+      $host_no = 0;
+    }
+  select_root_url ($hosts[$host_no++]);
+  return log_in ($agent, $user, undef, $no_brother);
+}
+
+sub make_sessions
+{
+  my $user = shift;
+  my $hashes;
+  check_new_sessions ($user, \$hashes, 1);
+  my @ret;
+  for (my $i = 0; $i < 0x11; $i++)
+    {
+      my $agent = make_agent (0);
+      return undef unless defined $agent;
+      return undef if next_log_in ($agent, $user);
+      my $s = build_session ($agent, $user, \$hashes);
+      return undef unless defined $s;
+      $s->{'root'} = select_root_url ();
+      $s->{'combined'} = !$no_brother;
+      push @ret, $s;
+    }
+  return \@ret;
+}
+
+my $hash_tail_length = 8;
+
+sub find_session_links
+{
+  my $agent = shift;
+  my $ret = 0;
+  my %hashes;
+  my $link_re = qr,/sessions\.php[?]func=del[&].*dtime=,;
+  foreach my $l ($agent->find_all_links (url_regex => $link_re))
+    {
+      my $url = $l->url;
+      unless ($url =~ /.*[&]dsession_hash=\.\.\.([^&]*)[&].*dtime=(\d*)/)
+        {
+          $ret = -1;
+          print_test_result ("Wrong session link found, '$url'.");
+          next;
+        }
+      $hashes{"$2;$1"} = 1;
+      $hash_tail_length = length ($1);
+    }
+  return ($ret, \%hashes);
+}
+
+sub report_session_link_not_found
+{
+  my ($agent, $t) = (shift, shift);
+  print_test_error (
+    "Session link not found: t = $t, hashes " . join (', ', @_) . "."
+  );
+  save_page ($agent, "no-session-link.html");
+}
+
+sub have_session_link
+{
+  my ($agent, $s, $hashes) = @_;
+  my $t = $s->{'time'};
+  my $ret = 0;
+  my @tails;
+  push @tails, substr ($_, -$hash_tail_length) foreach (@{$s->{'rows'}});
+  foreach (@tails)
+    {
+      my $tail = substr ($_, -$hash_tail_length);
+      next unless exists $hashes->{"$t;$tail"};
+      print_test_result ("Found session $t;$tail.");
+      $ret++;
+    }
+  return $ret if $ret == 1;
+  if ($ret)
+    {
+      print_test_error ("Multiple matching sessions found.");
+      return 0;
+    }
+  report_session_link_not_found ($agent, $t, @tails);
+  return 0;
+}
+
+sub count_missing_session_links
+{
+  my ($agent, $sessions) = @_;
+  my ($ret, $hashes) = find_session_links ($agent);
+  return $ret if $ret;
+  foreach my $s (@$sessions)
+    {
+      next if $s->{'agent'} == $agent;
+      $ret++ unless have_session_link ($agent, $s, $hashes);
+    }
+  return $ret;
+}
+
+sub check_session_url
+{
+  my ($s0, $sessions) = @_;
+  my $agent = $s0->{'agent'};
+  my $url = make_url ('my/admin/sessions.php');
+  my @tails = ();
+  push @tails, substr ($_, -$hash_tail_length) foreach (@{$s0->{'rows'}});
+  my $s = $s0->{'time'} . ": (" . join (', ', @tails) . ')';
+  print_test_log ("Visiting session page $url, session $s.");
+  $agent->get ($url);
+  return 1 if (check_request_status ($agent, 'no-sessions.html'));
+  return count_missing_session_links ($agent, $sessions);
+}
+
+sub check_session_pages
+{
+  my $sessions = shift;
+  my $ret = 0;
+  foreach my $s0 (@$sessions)
+    {
+      select_root_url ($s0->{'root'});
+      $ret = 1 if (check_session_url ($s0, $sessions));
+      next unless $s0->{'combined'};
+      select_root_url (get_twin_idx ($s0->{'root'}));
+      $ret = 1 if (check_session_url ($s0, $sessions));
+    }
+  return $ret;
+}
+
+sub main
+{
+  return 1 if write_test_php ('list-sessions.php', $list_sessions_php);
+  my $sessions = make_sessions ('bob');
+  return 1 unless defined $sessions;
+  my $exit_code = 0;
+  $exit_code = 1 if check_session_pages ($sessions);
+  $exit_code = 1 if log_out_sessions ($sessions);
+  print_test_result ("Test done.") unless $exit_code;
+  return $exit_code;
+}
+exit (main ());

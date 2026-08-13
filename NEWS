@@ -83,6 +83,10 @@ other missing PHP extensions are also reported.
 ** Git commit was extracted in configure time; in make time, the commit
    wasn't re-extracted when HEAD changed.
 
+[TESTS]
+
+* New test, 'session.'
+
 2026-03-07 3.17
 
 [FRONTEND]
