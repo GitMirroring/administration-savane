@@ -307,6 +307,9 @@ if HAVE_FRONTEND
 	       ${srcdir}/NEWS
 	$(MAKE) $(AM_MAKEFLAGS) dist
 endif
+if SV_COMMIT_FROM_REPO
+config.status: ${srcdir}/.git/HEAD ${SV_REPO_HEAD}
+endif
 
 init-database: make-var-subdirs install-conf-link install-conf-files
 	$(skip_init_db) $(PERL) db/init-database.pl "$(DESTDIR)" \
