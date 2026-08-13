@@ -54,7 +54,7 @@ our @EXPORT = qw (
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   get_group_id append_savane_conf reset_savane_conf
   speed_up_crypt run_cleanup check_request_status try_mkdir
-  write_test_php rm_test_php
+  write_test_php rm_test_php select_root_url get_twin_idx
 );
 
 my $bindir = '@bindir@';
@@ -127,6 +127,7 @@ sub check_for_test_marker
 }
 
 my @root_url;
+my $root_idx = 0;
 my ($php_port, $php_bin, $have_launched_php);
 
 sub init_root_url
@@ -230,10 +231,45 @@ sub get_group_id
   return $2;
 }
 
+sub root_url_max_idx
+{
+  return $#root_url;
+}
+
+sub change_root
+{
+  my $idx = shift;
+  return unless defined $idx;
+  my $ret = $root_idx;
+  my %host_names = ('www' => 0, 'twin' => 1, 'file' => 2, 'twin_file' => 3);
+  if ($idx =~ /\d+/)
+    {
+      $root_idx = $idx if ($idx <= root_url_max_idx ());
+      return;
+    }
+  return unless exists $host_names{$idx};
+  $root_idx = $host_names{$idx};
+}
+
+sub get_twin_idx
+{
+  return shift ^ 1;
+}
+
+sub select_root_url
+{
+  my $idx = shift;
+  my $ret = $root_idx;
+  change_root ($idx);
+  my ($url0, $url1) = ($root_url[$ret], $root_url[$root_idx]);
+  print_test_log ("Changing root URL $ret ($url0) => $idx ($url1).") if defined $idx;
+  return $ret;
+}
+
 sub make_url
 {
   my $url = shift;
-  my $idx = @_? shift: 0;
+  my $idx = @_? shift: $root_idx;
   return $root_url[$idx] . $url;
 }
 
@@ -416,7 +452,8 @@ sub log_in_parse_args
   my $su = $login eq '*';
   print_test_log ("Logging in as <$login>, passphrase >$passwd<.");
   $login = '-' if $su;
-  return ($agent, $login, $passwd, $su);
+  my $no_brother = shift;
+  return ($agent, $login, $passwd, $su, $no_brother);
 }
 
 sub find_log_in_form
@@ -433,17 +470,60 @@ sub find_log_in_form
   return 1;
 }
 
+sub check_link_by_regexp
+{
+  my ($agent, $regexp, $label, $should_fail) = @_;
+  my $link = $agent->find_link (url_regex => $regexp);
+  unless (defined $link)
+    {
+      print_test_result ("Cannot find $label link.", !$should_fail);
+      save_page ($agent, "no-$label.html") unless $should_fail;
+      return 1;
+    }
+  print_test_result ("Found $label link ". $link->url . ".", $should_fail);
+  save_page ($agent, "found-$label.html") if $should_fail;
+  return 0;
+}
+
+sub check_not_logged_in
+{
+  my $agent = shift;
+  return check_link_by_regexp ($agent, qr,/account/login\.php[?],, 'login');
+}
+
+sub check_logged_in_status
+{
+  my $agent = shift;
+  return check_not_logged_in ($agent) unless @_;
+  return 1
+    if check_link_by_regexp ($agent, qr,/account/logout\.php$,, 'logout');
+  my $user = shift;
+  my $text = 'Logged in as ';
+  my $login = $agent->content (raw => 1);
+  $login =~ s,</li><!-- end menutitle -->.*,,s;
+  $login =~ s,.*<li class='menutitle'>$text,,s;
+  if (lc ($login) eq $user)
+    {
+      print_test_result ("Found '$text$login'.");
+      return 0;
+    }
+  print_test_error ("'$text$login' not found.");
+  save_page ($agent, "no-logged-in-as-$user.html");
+}
+
 sub log_in
 {
-  my ($agent, $login, $passwd, $su) = log_in_parse_args (@_);
+  my ($agent, $login, $passwd, $su, $no_brother) = log_in_parse_args (@_);
   print_test_log ('Visiting login page.');
   $agent->get (make_url ('account/login.php'));
   return 1 if check_request_status ($agent);
   return 1 if find_log_in_form ($agent, $login);
   $agent->set_fields ('form_loginname' => $login, 'form_pw' => $passwd);
+  $agent->untick ('brotherhood', '1') if $no_brother;
   print_test_log ('Sending credentials.');
   $agent->click ('login');
   return 1 if check_request_status ($agent);
+  return 1 if check_logged_in_status ($agent, $login);
   print_test_result ("Logged in as <$login>.");
   save_passphrase ($login, $passwd);
   return 0 unless $su;
@@ -487,6 +567,7 @@ sub log_out
   drop_privileges_if_su ($agent) unless $keep_su;
   $agent->get (make_url ("account/logout.php"));
   my $ret = check_request_status ($agent);
+  return 1 if check_logged_in_status ($agent);
   print_test_result ("Logged out.") unless $ret;
   return $ret;
 }
