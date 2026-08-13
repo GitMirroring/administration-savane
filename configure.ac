@@ -190,22 +190,7 @@ AS_CASE(["x$enable_mirror"], [xyes], [], [enable_mirror=no])
 AC_MSG_RESULT([$enable_mirror])
 AM_CONDITIONAL([HAVE_MIRROR], [test "x$enable_mirror" = xyes])
 
-AC_MSG_CHECKING([for Git commit])
-SV_GIT_COMMIT=`$SED 's,^commit ,,;q' $srcdir/ChangeLog`
-commit_source='guessed from ChangeLog'
-AS_IF([test -d "$srcdir/.git"], [
-  head=`$SED 's,^ref: ,,;q' $srcdir/.git/HEAD`
-  AS_CASE(["$head"], [*/*],
-    [SV_GIT_COMMIT=`cat $srcdir/.git/$head`],
-    [SV_GIT_COMMIT="$head"])
-  commit_source='extracted from repository'
-])
-AC_MSG_RESULT([$SV_GIT_COMMIT])
-AS_IF([echo $SV_GIT_COMMIT | grep -q ['^[a-f0-9]\{40,\}$']],
-  [],
-  [AC_MSG_ERROR([Failed to identify Git commit of the source code.])
-])
-AC_SUBST([SV_GIT_COMMIT])
+AX_GIT_COMMIT
 
 AC_MSG_CHECKING([whether to use sendmail])
 AC_ARG_ENABLE([sendmail],
@@ -343,7 +328,7 @@ AC_OUTPUT
 AS_ECHO([])
 AS_ECHO(["Configured $PACKAGE_STRING"])
 AX_PATH_PROG_REPORT
-AS_ECHO(["Git commit: $SV_GIT_COMMIT ($commit_source)"])
+AX_REPORT_GIT_COMMIT
 AS_ECHO(["Prefix: $prefix"])
 AS_ECHO(["Configuration directory: $SV_CONF"])
 AS_ECHO(["Apache user: $WWW_SERVER_USER"])

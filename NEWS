@@ -72,6 +72,11 @@
 * A check for whether PHP loads the mysqli extension is added to configure;
 other missing PHP extensions are also reported.
 
+* Bug fixes:
+
+** Git commit was extracted in configure time; in make time, the commit
+   wasn't re-extracted when HEAD changed.
+
 2026-03-07 3.17
 
 [FRONTEND]
