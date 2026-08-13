@@ -67,22 +67,15 @@ sub visit_conf_page
   return 1;
 }
 
-sub set_admin_flags
-{
-  my ($user, $set) = @_;
-  $agent->get (group_user_perm_url ());
-  return make_user_admin ($agent, $user, $set);
-}
-
 sub copy_conf
 {
-  my ($agent, $group, $should_fail) = @_;
+  my ($a, $group, $should_fail) = @_;
   return 1 if visit_conf_page (@_);
-  set_admin_flags ($user, !$should_fail);
+  set_siteadmin ($agent, $user, !$should_fail);
   print_test_log ('Requesting copying.');
-  $agent->click ();
+  $a->click ();
   my $status = $should_fail? '403': '200';
-  return 1 if check_request_status ($agent, "conf-copy-$status.html", $status);
+  return 1 if check_request_status ($a, "conf-copy-$status.html", $status);
   print_test_result ('Successfully copied the configuration.')
     unless $should_fail;
   return 0;
