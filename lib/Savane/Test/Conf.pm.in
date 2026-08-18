@@ -59,7 +59,7 @@ sub speed_up_crypt
 
 sub savane_conf_start_marker
 {
-  return "<?php # SAVANE TEST\n";
+  return "<?php # SAVANE TEST $$\n";
 }
 
 my $savane_conf_modified = 0;
