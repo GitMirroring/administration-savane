@@ -44,6 +44,8 @@ use strict;
 use warnings;
 use Savane::Version;
 use Savane::Test::PHP;
+use Savane::Test::Conf;
+use Savane::Test::Log;
 
 my $sbindir = "@sbindir@";
 my $pidfile = "@mysql_pid@";
@@ -116,12 +118,16 @@ sub look_for_port
 }
 sub init_all
 {
+  init_test_log ('====');
   open ($php_log, '>>', $php_log_name)
     or die "Cannot open log file $php_log_name: $!\n";
   select ($php_log);
   $| = 1;
   select (STDOUT);
   launch_db ();
+  append_savane_conf (<<'  EOF', undef, 1);
+    $sys_error_unfiltered = true;
+  EOF
   $port = look_for_port ();
   wait_for_db ();
 }
@@ -164,4 +170,6 @@ for (sort (keys %results))
     $total += $results{$_};
   }
 print "\nTotal: $total\n";
+reset_savane_conf (1);
+close_test_log ();
 exit ($exit_code);
