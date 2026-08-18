@@ -1,0 +1,139 @@
+# Functions to modify savane.conf.php in tests.
+
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use Savane::Test::PHP;
+use Savane::Test;
+
+require Exporter;
+our @ISA = qw (Exporter);
+our @EXPORT = qw (append_savane_conf reset_savane_conf speed_up_crypt);
+
+# Set a low-cost crypt algorithm.
+sub speed_up_crypt
+{
+  append_savane_conf (<<'  EOF', shift, shift);
+    $sys_pw_prefix = '$6$';
+    $sys_pw_rounds = 1000;
+  EOF
+}
+
+sub savane_conf_start_marker
+{
+  return "<?php # SAVANE TEST\n";
+}
+
+my $savane_conf_modified = 0;
+
+sub savane_conf_name
+{
+  my $n = shift;
+  $n = 'savane.conf.php' unless defined $n;
+  return '@confdir@/' . $n;
+}
+
+sub append_savane_conf
+{
+  my $text = shift;
+  my $fname = savane_conf_name (shift);
+  my $skip_restart = shift;
+  my $fh;
+  my $formatted = $text;
+  my $ret = 0;
+  return 0 unless defined $text;
+  $formatted =~ s,^,    ,gm;
+  print_test_log ("Appending to savane.conf.php:\n$formatted");
+  unless (open ($fh, '>>:encoding(UTF-8)', $fname))
+    {
+      print_test_error ("Can't open $fname: $!.");
+      $ret = 1;
+    }
+  print { $fh } savane_conf_start_marker () . "$text\n?>\n";
+  $savane_conf_modified = 1;
+  return $ret if $skip_restart;
+  print_test_log ('Restarting PHP server.');
+  $ret = 1 if restart_php_server ();
+  return $ret;
+}
+
+sub rewrite_conf
+{
+  my ($fh, $fname, $th) = @_;
+  while (!eof ($fh))
+    {
+      if (!defined ($_ = <$fh>))
+        {
+          print_test_error ("Error when reading $fname: $!");
+          return 1;
+        }
+      last if $_ eq savane_conf_start_marker ();
+      print { $th } $_;
+    }
+  return 0;
+}
+
+sub reset_savane_conf
+{
+  my $skip_restart = shift;
+  return unless $savane_conf_modified;
+  $savane_conf_modified = 0;
+  my $fname = '@confdir@/savane.conf.php';
+  my ($th, $tn) = open_tmp ('reset-sv-conf');
+  my $fh;
+  print_test_log ("Resetting savane.conf.php");
+  unless (open ($fh, '<:encoding(UTF-8)', $fname))
+    {
+      print_test_error ("Can't open $fname: $!.");
+      return;
+    }
+  return if rewrite_conf ($fh, $fname, $th);
+  close_and_move ($th, $tn, $fname);
+  return 0 if $skip_restart;
+  return restart_php_server ();
+}
+
+END
+{
+  reset_savane_conf (0);
+}
+
+return "true";

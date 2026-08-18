@@ -43,6 +43,7 @@
 use strict;
 use warnings;
 use Savane::Version;
+use Savane::Test::Conf;
 use Savane::Test;
 
 my $frontenddir = '@frontenddir@';
