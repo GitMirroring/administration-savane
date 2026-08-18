@@ -52,8 +52,7 @@ our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
   print_test_log print_test_error print_test_result save_page save_text
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
-  get_group_id append_savane_conf reset_savane_conf
-  speed_up_crypt run_cleanup check_request_status try_mkdir
+  get_group_id run_cleanup check_request_status try_mkdir
   write_test_php rm_test_php select_root_url get_twin_idx
 );
 
@@ -571,71 +570,6 @@ sub log_out
   print_test_result ("Logged out.") unless $ret;
   return $ret;
 }
-
-sub savane_conf_start_marker
-{
-  return "<?php # SAVANE TEST\n";
-}
-
-my $savane_conf_modified = 0;
-
-sub savane_conf_name
-{
-  my $n = shift;
-  $n = 'savane.conf.php' unless defined $n;
-  return '@confdir@/' . $n;
-}
-
-sub append_savane_conf
-{
-  my $text = shift;
-  my $fname = savane_conf_name (shift);
-  my $fh;
-  my $formatted = $text;
-  my $ret = 0;
-  return 0 unless defined $text;
-  $formatted =~ s,^,    ,gm;
-  print_test_log ("Appending to savane.conf.php:\n$formatted");
-  unless (open ($fh, '>>:encoding(UTF-8)', $fname))
-    {
-      print_test_error ("Can't open $fname: $!.");
-      $ret = 1;
-    }
-  print { $fh } savane_conf_start_marker ();
-  print { $fh } $text;
-  print { $fh } "\n?>\n";
-  $savane_conf_modified = 1;
-  print_test_log ('Restarting PHP server.');
-  $ret = 1 if restart_php_server ();
-  return $ret;
-}
-
-sub reset_savane_conf
-{
-  return unless $savane_conf_modified;
-  my $fname = '@confdir@/savane.conf.php';
-  my ($th, $tn) = open_tmp ('reset-sv-conf');
-  my $fh;
-  print_test_log ("Resetting savane.conf.php");
-  unless (open ($fh, '<:encoding(UTF-8)', $fname))
-    {
-      print_test_error ("Can't open $fname: $!.");
-      return;
-    }
-  while (!eof ($fh))
-    {
-      if (!defined ($_ = <$fh>))
-        {
-          print_test_error ("Error when reading $fname: $!");
-          return;
-        }
-      last if $_ eq savane_conf_start_marker ();
-      print { $th } $_;
-    }
-  close_and_move ($th, $tn, $fname);
-  return restart_php_server ();
-}
-
 sub run_cleanup
 {
   print_test_log ('Clearing deleted things with sv_cleaner.');
@@ -645,15 +579,6 @@ sub run_cleanup
     );
   print_test_error ('Failed to run sv_cleaner.');
   return 1;
-}
-
-# Set a low-cost crypt algorithm.
-sub speed_up_crypt
-{
-  append_savane_conf (<<'  EOF');
-    $sys_pw_prefix = '$6$';
-    $sys_pw_rounds = 1000;
-  EOF
 }
 
 my %test_php_paths;
@@ -712,7 +637,6 @@ sub remove_test_php_files
 END
 {
   remove_test_php_files ();
-  reset_savane_conf ();
   my $name = script_name ();
   print_test_log ("== Test $name end.");
 }

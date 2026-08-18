@@ -55,7 +55,7 @@ my $host = $hosts[0];
 my $log_name = 'test-php.log';
 my ($php_server_pid, $php_port, $php_bin);
 
-sub print_log
+sub output_log
 {
   my $log_file;
 
@@ -80,7 +80,7 @@ sub server_return_code
       push @ret, $code;
       push @log, "$_ => $code";
     }
-  print_log ("Return codes for hosts:\n  " . join ("\n  ", @log));
+  output_log ("Return codes for hosts:\n  " . join ("\n  ", @log));
   return @ret;
 }
 
@@ -97,14 +97,13 @@ sub server_is_up
         }
       $up++;
     }
-  print_log ("$up up, $down down.");
   return ($up, $down);
 }
 
 sub server_is_alive
 {
   return 1 if kill (0, $php_server_pid);
-  print_log ("Process $php_server_pid is not running.");
+  output_log ("Process $php_server_pid is not running.");
   return 0;
 }
 
@@ -115,7 +114,7 @@ sub wait_for_server
   my $sd = $wait_for_shutdown? 'to shutdown': 'to start up';
   my $url = join (', ', server_urls ());
   my $h = join (', ', map { "$_:$php_port" } @hosts);
-  print_log ("Waiting for $h $sd, $pid.");
+  output_log ("Waiting for $h $sd, $pid.");
   for (my $i = 0; $i < 10; $i++)
     {
       return -2 if !($wait_for_shutdown || server_is_alive ());
@@ -123,11 +122,11 @@ sub wait_for_server
       my ($vex, $down) = server_is_up (@code);
       $vex = $wait_for_shutdown? $vex: $down;
       return 0 unless $vex;
-      print_log ("Waiting for $pid $sd, $i - " . join (', ', @code) . ".");
+      output_log ("Waiting for $pid $sd, $i - " . join (', ', @code) . ".");
       kill ('TERM', $php_server_pid) if $wait_for_shutdown;
       sleep 1;
     }
-  print_log ("Time for $url $sd is out, $pid.");
+  output_log ("Time for $url $sd is out, $pid.");
   kill_php_server ();
   return -1;
 }
@@ -150,7 +149,7 @@ sub launch
   $php_server_pid = $pid;
   my $w = wait_for_server ();
   return $w if $w;
-  print_log ("Launched $host:$php_port, PID $pid.");
+  output_log ("Launched $host:$php_port, PID $pid.");
   return $pid;
 }
 
@@ -161,10 +160,10 @@ sub launch_php_server
   my ($anything_up) = server_is_up ();
   if ($anything_up)
     {
-      print_log ("Server $host:$php_port is already running.");
+      output_log ("Server $host:$php_port is already running.");
       return -1;
     }
-  print_log ("Address $host:$php_port is not in use.");
+  output_log ("Address $host:$php_port is not in use.");
   for (my $i = 0; $i < 7 && $pid < 0; $i++)
     {
       $pid = launch ();
@@ -181,12 +180,12 @@ sub kill_php_server
     {
       waitpid ($php_server_pid, 0);
       my $ret = wait_for_server (1);
-      print_log ("Killed $php_server_pid.") unless $ret;
+      output_log ("Killed $php_server_pid.") unless $ret;
       undef $php_server_pid;
       $? = $exit_code;
       return $ret;
     }
-  print_log ("Cannot kill PHP server $host:$php_port, PID $php_server_pid.");
+  output_log ("Cannot kill PHP server $host:$php_port, PID $php_server_pid.");
   $? = 1;
   return 1;
 }
