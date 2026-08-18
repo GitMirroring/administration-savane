@@ -44,13 +44,14 @@ use strict;
 use Savane::DB;
 use Savane::Util;
 use Savane::Test::PHP;
+use Savane::Test::Log;
 use WWW::Mechanize;
 require Exporter;
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
-  print_test_log print_test_error print_test_result save_page save_text
+  save_page save_text
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   get_group_id run_cleanup check_request_status try_mkdir
   write_test_php rm_test_php select_root_url get_twin_idx
@@ -282,58 +283,6 @@ sub unmake_url
   return $ret;
 }
 
-my $log_fd;
-
-sub print_test
-{
-  my ($str, $pref) = @_;
-  $str =~ s,^,$pref,gm;
-  $str =~ s,\n$,\n$pref,;
-  print { $log_fd } "$str\n";
-}
-
-sub print_test_log
-{
-  my $str = shift;
-  my $pref = '= ';
-  $pref = '==' if ($str =~ s/^==//);
-  print_test ($str, $pref);
-}
-
-sub print_test_error
-{
-  print_test (shift, '% ');
-  return unless @_;
-  save_page (@_);
-}
-
-sub print_test_result
-{
-  my $str = shift;
-  my $result = @_? shift: 0;
-  if ($result)
-    {
-      print_test_error ($str);
-      return;
-    }
-  print_test ($str, '- ');
-}
-
-sub script_name
-{
-  my $name = $0;
-  $name =~ s,^[.]/,,;
-  return $name;
-}
-
-sub init_log
-{
-  my $file = "test.log";
-  my $name = script_name ();
-  open ($log_fd, ">>:encoding(UTF-8)", $file)
-    or die "$name: Can't open log file $file: $!";
-  print_test_log ("== Test $name start.");
-}
 sub mbox_path
 {
   return "@logdir@/sendmail.mbox";
@@ -637,11 +586,10 @@ sub remove_test_php_files
 END
 {
   remove_test_php_files ();
-  my $name = script_name ();
-  print_test_log ("== Test $name end.");
+  close_test_log ();
 }
 
-init_log ();
+init_test_log ();
 exit (1) if check_for_test_marker ();
 init_root_url ();
 clear_mbox (1);
