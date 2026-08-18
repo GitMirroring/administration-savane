@@ -43,8 +43,8 @@
 use strict;
 use warnings;
 use Savane::Version;
-use Savane::Test::Conf;
 use Savane::Test;
+use Savane::Test::Conf;
 use Savane::Mail;
 
 PrintVersionOrHelp ('Test $sys_log_exits (see doc/savane.conf.php).');

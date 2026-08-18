@@ -105,6 +105,7 @@ modules = \
   lib/Savane/Svn.pm \
   lib/Savane/Test/Conf.pm \
   lib/Savane/Test/Group.pm \
+  lib/Savane/Test/Log.pm \
   lib/Savane/Test/Membership.pm \
   lib/Savane/Test/PHP.pm \
   lib/Savane/Test/User.pm \

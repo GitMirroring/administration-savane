@@ -1,4 +1,4 @@
-# Functions to modify savane.conf.php in tests.
+# Logging results in tests.
 
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
@@ -41,100 +41,74 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use strict;
-use Savane::Test::PHP;
-use Savane::Test::Log;
-use Savane::Util;
 
 require Exporter;
 our @ISA = qw (Exporter);
-our @EXPORT = qw (append_savane_conf reset_savane_conf speed_up_crypt);
+our @EXPORT = qw (
+  print_test_log print_test_error print_test_result init_test_log close_test_log
+);
 
-# Set a low-cost crypt algorithm.
-sub speed_up_crypt
+my $log_fd;
+
+sub print_test
 {
-  append_savane_conf (<<'  EOF', shift, shift);
-    $sys_pw_prefix = '$6$';
-    $sys_pw_rounds = 1000;
-  EOF
+  my ($str, $pref) = @_;
+  $str =~ s,^,$pref,gm;
+  $str =~ s,\n$,\n$pref,;
+  print { $log_fd } "$str\n";
 }
 
-sub savane_conf_start_marker
+sub print_test_log
 {
-  return "<?php # SAVANE TEST $$\n";
+  my $str = shift;
+  my $pref = '= ';
+  $pref = '==' if ($str =~ s/^==//);
+  print_test ($str, $pref);
 }
 
-my $savane_conf_modified = 0;
-
-sub savane_conf_name
+sub print_test_error
 {
-  my $n = shift;
-  $n = 'savane.conf.php' unless defined $n;
-  return '@confdir@/' . $n;
+  print_test (shift, '% ');
+  return unless @_;
+  save_page (@_);
 }
 
-sub append_savane_conf
+sub print_test_result
 {
-  my $text = shift;
-  my $fname = savane_conf_name (shift);
-  my $skip_restart = shift;
-  my $fh;
-  my $formatted = $text;
-  my $ret = 0;
-  return 0 unless defined $text;
-  $formatted =~ s,^,    ,gm;
-  print_test_log ("Appending to savane.conf.php:\n$formatted");
-  unless (open ($fh, '>>:encoding(UTF-8)', $fname))
+  my $str = shift;
+  my $result = @_? shift: 0;
+  if ($result)
     {
-      print_test_error ("Can't open $fname: $!.");
-      $ret = 1;
-    }
-  print { $fh } savane_conf_start_marker () . "$text\n?>\n";
-  $savane_conf_modified = 1;
-  return $ret if $skip_restart;
-  print_test_log ('Restarting PHP server.');
-  $ret = 1 if restart_php_server ();
-  return $ret;
-}
-
-sub rewrite_conf
-{
-  my ($fh, $fname, $th) = @_;
-  while (!eof ($fh))
-    {
-      if (!defined ($_ = <$fh>))
-        {
-          print_test_error ("Error when reading $fname: $!");
-          return 1;
-        }
-      last if $_ eq savane_conf_start_marker ();
-      print { $th } $_;
-    }
-  return 0;
-}
-
-sub reset_savane_conf
-{
-  my $skip_restart = shift;
-  return unless $savane_conf_modified;
-  $savane_conf_modified = 0;
-  my $fname = '@confdir@/savane.conf.php';
-  my ($th, $tn) = open_tmp ('reset-sv-conf');
-  my $fh;
-  print_test_log ("Resetting savane.conf.php");
-  unless (open ($fh, '<:encoding(UTF-8)', $fname))
-    {
-      print_test_error ("Can't open $fname: $!.");
+      print_test_error ($str);
       return;
     }
-  return if rewrite_conf ($fh, $fname, $th);
-  close_and_move ($th, $tn, $fname);
-  return 0 if $skip_restart;
-  return restart_php_server ();
+  print_test ($str, '- ');
 }
 
-END
+sub script_name
 {
-  reset_savane_conf (0);
+  my $name = $0;
+  $name =~ s,^[.]/,,;
+  return $name;
+}
+
+my $prefix;
+
+sub init_test_log
+{
+  my $file = "test.log";
+  my $name = script_name ();
+  $prefix = shift;
+  $prefix = '==' unless defined $prefix;
+  open ($log_fd, ">>:encoding(UTF-8)", $file)
+    or die "$name: Can't open log file $file: $!";
+  print_test_log ("$prefix $name start.");
+}
+
+sub close_test_log
+{
+  my $name = script_name ();
+  print_test_log ("$prefix $name end.");
 }
 
 return "true";
