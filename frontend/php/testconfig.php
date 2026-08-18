@@ -578,24 +578,37 @@ function test_hash_cost ()
   return $cost;
 }
 
-function test_hash_algo ($pfx, $prefix, $rounds)
+function test_hash_single_cost ($pfx, $prefix, $rounds, $low_cost)
 {
-  global $sys_pw_prefix, $sys_pw_rounds;
+  global $sys_pw_rounds;
   $plain = 'foo \xff\xaa\xff \x9f\x98\x85';
-  $sys_pw_prefix = $pfx;
   if ($pfx === $prefix)
     $sys_pw_rounds = $rounds;
   else
     unset ($sys_pw_rounds);
-  $stored = hash_encryptpw ($plain);
+  $rounds = hash_get_pw_cost ($low_cost);
+  $t0 = error_timestamp ();
+  $stored = hash_encryptpw ($plain, $low_cost);
   $ret = "<b>fail</b>";
   if ($stored === '*0')
-    $ret .= ': algorithm is unsupported';
+    $ret .= ': algorithm is not supported';
   elseif (account_validpw ($stored, $plain))
-    $ret = 'OK';
+    $ret = sprintf ('OK (%.3f ms)', error_timestamp ($t0));
   else
-    add_summary ("Algorithm $pfx failed.");
+    add_summary ("Algorithm $pfx ($rounds) failed.");
   return $ret;
+}
+
+function test_hash_algo (&$defs, $pfx, $prefix, $rounds)
+{
+  global $sys_pw_prefix;
+  foreach ([false, true] as $c)
+    {
+      $sys_pw_prefix = $pfx;
+      $cost = hash_get_pw_cost ($c);
+      $defs["$pfx ($cost)"] =
+        test_hash_single_cost ($pfx, $prefix, $rounds, $c);
+    }
 }
 
 function test_hash_algos ()
@@ -607,7 +620,7 @@ function test_hash_algos ()
   $hash_silent_crypt = true;
   $defs = [];
   foreach (hash_supported_pw_prefices () as $pfx)
-    $defs[$pfx] = test_hash_algo ($pfx, $prefix, $rounds);
+    test_hash_algo ($defs, $pfx, $prefix, $rounds);
   list ($sys_pw_prefix, $sys_pw_rounds, $hash_silent_crypt) =
     [$prefix, $rounds, $silent];
   return html_dl ($defs);
