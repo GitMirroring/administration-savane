@@ -47,7 +47,11 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (launch_php_server restart_php_server kill_php_server);
 
 my $sbindir = "@sbindir@";
-my $host = "@WWW_SERVER_HOST@";
+my @hosts = (
+  '@WWW_SERVER_HOST@', '@WWW_TWIN_SERVER_HOST@',
+  '@FILE_SERVER_HOST@', '@FILE_TWIN_SERVER_HOST@'
+);
+my $host = $hosts[0];
 my $log_name = 'test-php.log';
 my ($php_server_pid, $php_port, $php_bin);
 
@@ -60,21 +64,41 @@ sub print_log
   close ($log_file);
 }
 
-sub server_url
+sub server_urls
 {
-  return "http://$host:$php_port/";
+  return map { "http://$_:$php_port/" } @hosts;
 }
 
 sub server_return_code
 {
   my $agent = WWW::Mechanize->new (autocheck => 0);
-  return $agent->get (server_url ())->code ();
+  my @ret;
+  my @log;
+  foreach (server_urls ())
+    {
+      my $code = $agent->get ($_)->code ();
+      push @ret, $code;
+      push @log, "$_ => $code";
+    }
+  print_log ("Return codes for hosts:\n  " . join ("\n  ", @log));
+  return @ret;
 }
 
 sub server_is_up
 {
-  my $code = @_? shift: server_return_code ();
-  return $code ne '500';
+  my @code = @_? @_: server_return_code ();
+  my ($up, $down) = (0, 0);
+  foreach (@code)
+    {
+      if ($_ eq '500')
+        {
+          $down++;
+          next;
+        }
+      $up++;
+    }
+  print_log ("$up up, $down down.");
+  return ($up, $down);
 }
 
 sub server_is_alive
@@ -89,16 +113,17 @@ sub wait_for_server
   my $wait_for_shutdown = @_? shift: 0;
   my $pid = "PID $php_server_pid";
   my $sd = $wait_for_shutdown? 'to shutdown': 'to start up';
-  my $url = server_url ();
-  print_log ("Waiting for $host:$php_port $sd, $pid.");
+  my $url = join (', ', server_urls ());
+  my $h = join (', ', map { "$_:$php_port" } @hosts);
+  print_log ("Waiting for $h $sd, $pid.");
   for (my $i = 0; $i < 10; $i++)
     {
       return -2 if !($wait_for_shutdown || server_is_alive ());
-      my $code = server_return_code ();
-      my $vex = server_is_up ($code);
-      $vex = !$vex if $wait_for_shutdown;
-      return 0 if $vex;
-      print_log ("Waiting for $pid $sd, $i - $code.");
+      my @code = server_return_code ();
+      my ($vex, $down) = server_is_up (@code);
+      $vex = $wait_for_shutdown? $vex: $down;
+      return 0 unless $vex;
+      print_log ("Waiting for $pid $sd, $i - " . join (', ', @code) . ".");
       kill ('TERM', $php_server_pid) if $wait_for_shutdown;
       sleep 1;
     }
@@ -133,7 +158,8 @@ sub launch_php_server
 {
   ($php_port, $php_bin) = @_;
   my $pid = -1;
-  if (server_is_up ())
+  my ($anything_up) = server_is_up ();
+  if ($anything_up)
     {
       print_log ("Server $host:$php_port is already running.");
       return -1;
