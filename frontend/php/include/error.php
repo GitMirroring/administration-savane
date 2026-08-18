@@ -43,16 +43,16 @@
 
 if (function_exists ('hrtime'))
   {
-    function error_timestamp ()
+    function error_timestamp ($t0 = 0)
     {
-      return hrtime (true) / 1000000;
+      return hrtime (true) / 1000000 - $t0;
     }
   }
 else
   {
-    function error_timestamp ()
+    function error_timestamp ($t0 = 0)
     {
-      return microtime (true) * 1000;
+      return microtime (true) * 1000 - $t0;
     }
   }
 
