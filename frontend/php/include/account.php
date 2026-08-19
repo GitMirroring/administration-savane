@@ -450,13 +450,13 @@ function account_upgrade_pw ($stored_pw, $plainpw, $user_id)
     account_set_pw ($user_id, $plainpw);
 }
 
-function account_validpw ($stored_pw, $plain_pw)
+function account_validpw ($stored_pw, $plain_pw, $low_cost = HASH_COST_NORMAL)
 {
   if (empty ($stored_pw) || empty ($plain_pw))
     return false;
   if (strlen ($stored_pw) < 2) # Disabled account, for sure.
     return false;
-  return hash_compare_hash (hash_crypt ($plain_pw, $stored_pw), $stored_pw);
+  return hash_validpw ($plain_pw, $stored_pw, $low_cost);
 }
 
 function account_key_separator ()
@@ -551,7 +551,7 @@ function account_validate_confirm_hash ($confirm_hash, $item, $uid = 0)
     array_shift ($ch); # Drop the hash creation date.
   if ($ch[0] != $item)
     exit_error (_("Invalid confirmation hash."));
-  if (!account_validpw ($ch[1], $confirm_hash))
+  if (!account_validpw ($ch[1], $confirm_hash, HASH_COST_LOWEST))
     exit_error (_("Invalid confirmation hash."));
 }
 
@@ -564,7 +564,7 @@ function account_generate_confirm_hash ($item, $params = [], $user_id = 0)
     $user_id = user_getid ();
   $s = CONFIRM_HASH_SEPARATOR;
   $confirm_hash = random_hash ();
-  $hash_enc = hash_encryptpw ($confirm_hash, true);
+  $hash_enc = hash_encryptpw ($confirm_hash, HASH_COST_LOWEST);
   $params['confirm_hash'] = time () . "$s$item$s$hash_enc";
   $success = db_autoexecute ('user', $params,
     DB_AUTOQUERY_UPDATE, "user_id = ?", [$user_id]

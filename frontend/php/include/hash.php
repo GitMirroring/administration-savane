@@ -46,6 +46,18 @@ define ('HASH_PREFIX_YES', '$y$');
 define ('HASH_PREFIX_SHA512', '$6$');
 define ('HASH_DEFAULT_PREFIX', HASH_PREFIX_YES);
 define ('HASH_TESTING_PREFIX', HASH_PREFIX_SHA512);
+define ('HASH_FASTEST_PREFIX', HASH_PREFIX_SHA512);
+
+# Hashing passwords: use the most expensive procedure.
+define ('HASH_COST_NORMAL', 0);
+# Tests: run the default configured algorithm
+# (PHP built-in or libc via sv_crypt).
+define ('HASH_COST_LOW', 1);
+# Keeping hashes in the database: their entropy is high, so no need to
+# really protect it from brute force attacks.  Use the fastest procedure
+# (PHP built-in crypt with the lowest cost).
+define ('HASH_COST_LOWEST', 2);
+
 if (defined ('TESTING_HASH') && !defined ('INSTALLCHECK'))
   define ('NO_SV_CRYPT', true);
 
@@ -145,9 +157,11 @@ function hash_gensalt ($salt_base64_length)
   return phpass_encode64 ($rand_bytes, $salt_byte_length);
 }
 
-function hash_get_pw_prefix ()
+function hash_get_pw_prefix ($use_low_cost = HASH_COST_NORMAL)
 {
   global $sys_pw_prefix;
+  if ($use_low_cost === HASH_COST_LOWEST)
+    return HASH_FASTEST_PREFIX;
   if (defined ('NO_SV_CRYPT'))
     return HASH_TESTING_PREFIX;
 
@@ -158,10 +172,10 @@ function hash_get_pw_prefix ()
   return $sys_pw_prefix;
 }
 
-function hash_get_pw_cost ($use_low_cost = false)
+function hash_get_pw_cost ($use_low_cost = HASH_COST_NORMAL)
 {
   global $sys_pw_rounds;
-  $pfx = hash_get_pw_prefix ();
+  $pfx = hash_get_pw_prefix ($use_low_cost);
   $costs = [
     HASH_PREFIX_YES => [hash_yescrypt_costs ()[0], 'DT'],
     # rounds=5000 is the 2010 glibc default, possibly we'll upgrade in
@@ -169,8 +183,7 @@ function hash_get_pw_cost ($use_low_cost = false)
     # Cf. http://www.akkadia.org/drepper/sha-crypt.html
     HASH_PREFIX_SHA512 => [1000, 5000]
   ];
-  $i = 1;
-  if ($use_low_cost)
+  if ($use_low_cost !== HASH_COST_NORMAL)
     # When storing a random hash as opposed to a passphrase, the cost
     # doesn't matter because the search space is guaranteed to be wide.
     # Use the minimum round number in such cases.
@@ -199,10 +212,12 @@ function hash_try_sv_crypt ($plainpw, $salt)
   return null;
 }
 
-function hash_crypt ($plainpw, $salt)
+function hash_crypt ($plainpw, $salt, $lowest_cost = false)
 {
   global $sys_use_php_crypt, $hash_silent_crypt;
   if (!empty ($sys_use_php_crypt) || defined ('NO_SV_CRYPT'))
+    $lowest_cost = true;
+  if ($lowest_cost)
     {
       if (!empty ($hash_silent_crypt))
         $saved = utils_disable_warnings (E_DEPRECATED);
@@ -219,22 +234,22 @@ function hash_crypt ($plainpw, $salt)
   return $ret;
 }
 
-function hash_get_prefix_with_cost ($use_low_cost = false)
+function hash_get_prefix_with_cost ($use_low_cost = HASH_COST_NORMAL)
 {
-  $pfx = hash_get_pw_prefix ();
+  $pfx = hash_get_pw_prefix ($use_low_cost);
   return $pfx . hash_pw_infix ($pfx) . hash_get_pw_cost ($use_low_cost) . '$';
 }
 
-function hash_encryptpw ($plainpw, $use_low_cost = false)
+function hash_encryptpw ($plainpw, $use_low_cost = HASH_COST_NORMAL)
 {
   $salt_lengths = [
     HASH_PREFIX_YES => 36, # 216 bits, 128+ is recommended in crypt(5).
     HASH_PREFIX_SHA512 => 16 # 96 bits, maximum for SHA512.
   ];
-  $pfx = hash_get_pw_prefix ();
+  $pfx = hash_get_pw_prefix ($use_low_cost);
   $salt = hash_gensalt ($salt_lengths[$pfx]);
   $pfx = hash_get_prefix_with_cost ($use_low_cost);
-  return hash_crypt ($plainpw, "$pfx$salt");
+  return hash_crypt ($plainpw, "$pfx$salt", $use_low_cost === HASH_COST_LOWEST);
 }
 
 function hash_needs_upgrading ($stored_pw)
@@ -301,5 +316,15 @@ function hash_compare_hash ($h0, $h)
       $ret -= $weights[substr ($h0, $j, 1) === substr ($h, $j, 1)];
     }
   return $ret == $n;
+}
+
+function hash_validpw ($plain_pw, $stored_pw, $low_cost)
+{
+  if (strncmp ($stored_pw, HASH_PREFIX_SHA512, strlen (HASH_PREFIX_SHA512)))
+    $low_cost = HASH_COST_NORMAL;
+  return hash_compare_hash (
+    hash_crypt ($plain_pw, $stored_pw, $low_cost === HASH_COST_LOWEST),
+    $stored_pw
+  );
 }
 ?>

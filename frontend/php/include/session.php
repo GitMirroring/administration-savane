@@ -379,7 +379,7 @@ function session_generate_hash ($user_id, $brother_data)
     {
       $hash = random_hash ();
       list ($time, $ticket) = session_generate_ticket ($user_id, $brother_data);
-      $hhash = "$ticket;" . hash_encryptpw ($hash, true);
+      $hhash = "$ticket;" . hash_encryptpw ($hash, HASH_COST_LOWEST);
       $vals = session_try_insert_hash ($user_id, $time, $hhash, $tries);
       if (empty ($vals))
         {
@@ -472,7 +472,7 @@ function session_count ($uid)
 function session_valid_hash ($stored_hash, $hash)
 {
   list ($clean_hash, $ticket) = session_hash_parts ($stored_hash);
-  return account_validpw ($clean_hash, $hash);
+  return account_validpw ($clean_hash, $hash, HASH_COST_LOWEST);
 }
 
 function session_logout ()
