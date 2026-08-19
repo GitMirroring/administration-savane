@@ -578,51 +578,57 @@ function test_hash_cost ()
   return $cost;
 }
 
-function test_hash_single_cost ($pfx, $prefix, $rounds, $low_cost)
+function test_hash_single_cost ($pfx, $rounds, $low_cost)
 {
-  global $sys_pw_rounds;
   $plain = 'foo \xff\xaa\xff \x9f\x98\x85';
-  if ($pfx === $prefix)
-    $sys_pw_rounds = $rounds;
-  else
-    unset ($sys_pw_rounds);
-  $rounds = hash_get_pw_cost ($low_cost);
   $t0 = error_timestamp ();
   $stored = hash_encryptpw ($plain, $low_cost);
   $ret = "<b>fail</b>";
   if ($stored === '*0')
     $ret .= ': algorithm is not supported';
-  elseif (account_validpw ($stored, $plain))
+  elseif (account_validpw ($stored, $plain, $low_cost))
     $ret = sprintf ('OK (%.3f ms)', error_timestamp ($t0));
   else
     add_summary ("Algorithm $pfx ($rounds) failed.");
   return $ret;
 }
 
-function test_hash_algo (&$defs, $pfx, $prefix, $rounds)
+function test_hash_algo (&$defs, $pfx)
 {
   global $sys_pw_prefix;
-  foreach ([false, true] as $c)
+  $sys_pw_prefix = $pfx;
+  foreach ([HASH_COST_NORMAL, HASH_COST_LOW] as $grade)
     {
-      $sys_pw_prefix = $pfx;
-      $cost = hash_get_pw_cost ($c);
-      $defs["$pfx ($cost)"] =
-        test_hash_single_cost ($pfx, $prefix, $rounds, $c);
+      $cost = hash_get_pw_cost ($grade);
+      $defs["$pfx ($cost)"] = test_hash_single_cost ($pfx, $cost, $grade);
     }
 }
 
-function test_hash_algos ()
+function test_hash_configured (&$defs)
 {
-  global $sys_pw_rounds, $sys_pw_prefix, $hash_silent_crypt;
-  list ($prefix, $rounds, $silent) = [
-    $sys_pw_prefix, $sys_pw_rounds, $hash_silent_crypt
-  ];
+  foreach (hash_supported_pw_prefices () as $pfx)
+    test_hash_algo ($defs, $pfx);
+}
+
+function test_hash_fast (&$defs)
+{
+  global $sys_pw_prefix;
+  $cost = HASH_COST_LOWEST;
+  $pfx = hash_get_pw_prefix ($cost);
+  $sys_pw_prefix = $pfx;
+  $rounds = hash_get_pw_cost ($cost);
+  $defs["$pfx ($rounds)"] =
+    test_hash_single_cost ($pfx, $rounds, $cost);
+}
+
+function test_hash_algos ($func)
+{
+  global $sys_pw_prefix, $hash_silent_crypt;
+  list ($prefix, $silent) = [$sys_pw_prefix, $hash_silent_crypt];
   $hash_silent_crypt = true;
   $defs = [];
-  foreach (hash_supported_pw_prefices () as $pfx)
-    test_hash_algo ($defs, $pfx, $prefix, $rounds);
-  list ($sys_pw_prefix, $sys_pw_rounds, $hash_silent_crypt) =
-    [$prefix, $rounds, $silent];
+  $func ($defs);
+  list ($sys_pw_prefix, $hash_silent_crypt) = [$prefix, $silent];
   return html_dl ($defs);
 }
 
@@ -641,10 +647,12 @@ function test_hash ()
   $saved_use = $sys_use_php_crypt;
   $ret .= test_h (3, 'Testing sv_crypt', 'sv-crypt');
   $sys_use_php_crypt = false;
-  $ret .= test_hash_algos ();
+  $ret .= test_hash_algos ('test_hash_configured');
   $ret .= test_h (3, 'Testing PHP crypt() function', 'php-crypt');
   $sys_use_php_crypt = true;
-  $ret .= test_hash_algos ();
+  $ret .= test_hash_algos ('test_hash_configured');
+  $ret .= test_h (3, 'Testing fast crypt()', 'fast-crypt');
+  $ret .= test_hash_algos ('test_hash_fast');
   $sys_use_php_crypt = $saved_use;
   return $ret;
 }
