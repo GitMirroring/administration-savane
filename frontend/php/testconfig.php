@@ -900,20 +900,21 @@ function php_functions ()
   $phpfunctions =
     [
       'crypt' => 'Used to handle passwords ! [REQUIRED]',
+      'ctype_digit' => 'You must have a PHP version supporting ctype '
+        . '(--enable-ctype) ! [REQUIRED]',
       'gettext' =>
         'You should install PHP with gettext support '
         . '(--with-gettext --enable-intl) ! [RECOMMENDED]',
-      'strftime' => 'When this function is dropped from PHP '
-        . '(deprecated in 8.1), date output is expected to slow down '
-        . '! [RECOMMENDED]',
-      'ctype_digit' => 'You must have a PHP version supporting ctype '
-        . '(--enable-ctype) ! [REQUIRED]',
+      'hrtime'=> 'Optionally used in diagnostic timestamps.',
       'imagettfbbox' =>
         'Used by captcha library (--enable-gd --with-freetype) ! [RECOMMENDED]',
+      'random_bytes' => 'Optionally used to handle credentials',
       'sem_get' =>
         'Used when connecting mailman and updating the group file '
         . '(--enable-sysvsem) ! [REQUIRED]',
-      'hrtime'=> 'Optionally used in diagnostic timestamps.'
+      'strftime' => 'When this function is dropped from PHP '
+        . '(deprecated in 8.1), date output is expected to slow down '
+        . '! [RECOMMENDED]'
     ];
   return test_h (2, "PHP functions", 'php-func')
     . list_facilities ('function_exists', $phpfunctions);
