@@ -115,7 +115,7 @@ sub wait_for_server
   my $url = join (', ', server_urls ());
   my $h = join (', ', map { "$_:$php_port" } @hosts);
   output_log ("Waiting for $h $sd, $pid.");
-  for (my $i = 0; $i < 10; $i++)
+  for (my $i = 0; $i < 0x11; $i++)
     {
       return -2 if !($wait_for_shutdown || server_is_alive ());
       my @code = server_return_code ();
@@ -124,7 +124,7 @@ sub wait_for_server
       return 0 unless $vex;
       output_log ("Waiting for $pid $sd, $i - " . join (', ', @code) . ".");
       kill ('TERM', $php_server_pid) if $wait_for_shutdown;
-      sleep 1;
+      select (undef, undef, undef, 0.1);
     }
   output_log ("Time for $url $sd is out, $pid.");
   kill_php_server ();
