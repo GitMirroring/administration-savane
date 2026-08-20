@@ -173,7 +173,7 @@ sub run_checks
 }
 
 my $exit_code = 2;
-speed_up_crypt ();
+speed_up_crypt (undef, 1) and exit (1);
 my $agent = make_agent () or exit (1);
 my $login = 'site_admin';
 my $group = 'siteadmin-test';

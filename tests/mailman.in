@@ -67,8 +67,8 @@ my @created_lists;
 
 sub init_environment
 {
-  speed_up_crypt ();
-  append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];") or exit (1);
+  speed_up_crypt (undef, 1) and exit (1);
+  append_savane_conf ("\$sys_mailman_wrapper = ['$wrapper'];", undef, 1) and exit (1);
   my $agent = make_agent (0) or exit (1);
   return $agent;
 }
