@@ -714,7 +714,7 @@ END
   $? = $exit_code;
 }
 
-speed_up_crypt ();
+speed_up_crypt (undef, 1) and exit (1);
 
 foreach my $login (@logins)
   {
