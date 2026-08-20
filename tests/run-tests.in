@@ -90,7 +90,7 @@ sub wait_for_db
   return unless $have_database;
   for (my $i = 0; $i < 0x11 && ! -f $pidfile; $i++)
     {
-      sleep 1;
+      select (undef, undef, undef, 0.2);
     }
   -f ($pidfile) || die "Database isn't running.\n";
 }
