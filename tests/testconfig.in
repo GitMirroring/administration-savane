@@ -62,8 +62,7 @@ sub install_gpg_key
     && die "Cannot install public GnuPG key.\n";
   system ('@GPG@', '--home', $gnupgdir, '--import', "$pref-priv.asc")
     && die "Cannot install private GnuPG key.\n";
-  append_savane_conf ('$sys_gpg_home = "' . $gnupgdir . '";');
-  return 0;
+  return append_savane_conf ('$sys_gpg_home = "' . $gnupgdir . '";', undef, 1);
 }
 
 sub check_source_availability

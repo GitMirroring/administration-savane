@@ -44,7 +44,9 @@ use strict;
 use WWW::Mechanize;
 require Exporter;
 our @ISA = qw (Exporter);
-our @EXPORT = qw (launch_php_server restart_php_server kill_php_server);
+our @EXPORT = qw (
+  init_php launch_php_server restart_php_server kill_php_server
+);
 
 my $sbindir = "@sbindir@";
 my @hosts = (
@@ -54,6 +56,11 @@ my @hosts = (
 my $host = $hosts[0];
 my $log_name = 'test-php.log';
 my ($php_server_pid, $php_port, $php_bin);
+
+sub init_php
+{
+  ($php_port, $php_bin) = @_;
+}
 
 sub output_log
 {
@@ -148,15 +155,16 @@ sub launch
   exec_server () unless ($pid);
   $php_server_pid = $pid;
   my $w = wait_for_server ();
-  return $w if $w;
+  return $w if $w < 0;
   output_log ("Launched $host:$php_port, PID $pid.");
   return $pid;
 }
 
 sub launch_php_server
 {
-  ($php_port, $php_bin) = @_;
+  return $php_server_pid if defined $php_server_pid;
   my $pid = -1;
+  output_log ("Launching PHP server '$php_bin'.");
   my ($anything_up) = server_is_up ();
   if ($anything_up)
     {
@@ -171,6 +179,7 @@ sub launch_php_server
     }
   return -1;
 }
+
 sub kill_php_server
 {
   return 0 unless defined $php_server_pid;
@@ -192,8 +201,8 @@ sub kill_php_server
 
 sub restart_php_server
 {
-  kill_php_server ();
-  return launch_php_server ($php_port, $php_bin) < 0;
+  return 1 if kill_php_server ();
+  return launch_php_server () < 0;
 }
 
 END

@@ -52,7 +52,7 @@ our @EXPORT = qw (append_savane_conf reset_savane_conf speed_up_crypt);
 # Set a low-cost crypt algorithm.
 sub speed_up_crypt
 {
-  append_savane_conf (<<'  EOF', shift, shift);
+  return append_savane_conf (<<'  EOF', shift, shift);
     $sys_pw_prefix = '$6$';
     $sys_pw_rounds = 1000;
   EOF
@@ -92,8 +92,9 @@ sub append_savane_conf
   $savane_conf_modified = 1;
   return $ret if $skip_restart;
   print_test_log ('Restarting PHP server.');
-  $ret = 1 if restart_php_server ();
-  return $ret;
+  return $ret unless restart_php_server ();
+  print_test_error ('Cannot restart PHP server.');
+  return 1;
 }
 
 sub rewrite_conf
@@ -129,7 +130,9 @@ sub reset_savane_conf
   return if rewrite_conf ($fh, $fname, $th);
   close_and_move ($th, $tn, $fname);
   return 0 if $skip_restart;
-  return restart_php_server ();
+  return 0 unless restart_php_server ();
+  print_test_error ('Cannot restart PHP server.');
+  return 1;
 }
 
 END
