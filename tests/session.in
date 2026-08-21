@@ -120,6 +120,7 @@ sub report_new_sessions
   return 1;
 }
 
+# Check that all new sessions share the same "$user $time $ticket" values.
 sub check_session_consistency
 {
   my ($agent, $user, $fresh) = (shift, shift, shift);
@@ -142,6 +143,32 @@ sub check_session_consistency
   return 1;
 }
 
+my $hash_tail_length = 8;
+
+sub check_new_tails
+{
+  my $hashes = shift;
+  return 0 unless defined $$hashes;
+  my (%tails, %new);
+  my $ret = 0;
+  $new{$_} = 1 foreach (@_);
+  foreach my $id (keys %{$$hashes})
+    {
+      next if exists $new{$id};
+      $id =~ s/(.*;).*(.{$hash_tail_length})$/$1...$2/;
+      $tails{$id} = 1;
+    }
+  foreach my $id (@_)
+    {
+      $id =~ s/(.*;).*(.{$hash_tail_length})$/$1...$2/;
+      print_test_log ("Session ID '$id' found.");
+      next unless exists $tails{$id};
+      print_test_log ("Session ID '$id' is ambiguous.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
 sub check_new_sessions
 {
   my ($user, $hashes, $fresh) = @_;
@@ -160,50 +187,68 @@ sub check_new_sessions
   return @ret;
 }
 
-sub build_session
-{
-  my ($agent, $user, $hashes) = @_;
-  my @new_sessions = check_new_sessions ($user, $hashes);
-  return undef unless @new_sessions;
-  my ($uname, $time) = split (/ /, $new_sessions[0]);
-  return {'agent' => $agent, 'time' => $time, 'rows' => \@new_sessions};
-}
-
 my @hosts = ('www', 'twin');
 my ($host_no, $no_brother) = (0, 0);
 sub next_log_in
 {
-  my ($agent, $user) = @_;
+  my ($user, $j) = shift;
+  my $agent = make_agent (0);
+  unless (defined ($agent))
+    {
+      $$j = -1;
+      return undef;
+    }
   if ($host_no > $#hosts)
     {
       $no_brother = !$no_brother;
       $host_no = 0;
     }
   select_root_url ($hosts[$host_no++]);
-  return log_in ($agent, $user, undef, $no_brother);
+  return $agent unless (log_in ($agent, $user, undef, $no_brother));
+  $$j = -1;
+  return undef;
+}
+
+sub build_session
+{
+  my ($user, $hashes, $j) = @_;
+  my $agent = next_log_in ($user, $j);
+  return undef unless defined ($agent);
+  my @new_sessions = check_new_sessions ($user, $hashes);
+  unless (@new_sessions)
+    {
+      log_out ($agent);
+      $$j = -1;
+      return undef;
+    }
+  if (check_new_tails ($hashes, @new_sessions))
+    {
+      log_out ($agent);
+      $$j++;
+      return undef;
+    }
+  my ($uname, $time) = split (/ /, $new_sessions[0]);
+  return {'agent' => $agent, 'time' => $time, 'rows' => \@new_sessions};
 }
 
 sub make_sessions
 {
+  my $n = 0x11;
   my $user = shift;
   my $hashes;
   check_new_sessions ($user, \$hashes, 1);
   my @ret;
-  for (my $i = 0; $i < 0x11; $i++)
+  for (my ($i, $j) = (0, 0); $i - $j < $n && $j < $n && $j >= 0; $i++)
     {
-      my $agent = make_agent (0);
-      return undef unless defined $agent;
-      return undef if next_log_in ($agent, $user);
-      my $s = build_session ($agent, $user, \$hashes);
-      return undef unless defined $s;
+      my $s = build_session ($user, \$hashes, \$j);
+      next unless (defined $s);
       $s->{'root'} = select_root_url ();
       $s->{'combined'} = !$no_brother;
       push @ret, $s;
     }
+  return undef unless $#ret == $n - 1;
   return \@ret;
 }
-
-my $hash_tail_length = 8;
 
 sub find_session_links
 {
