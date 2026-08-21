@@ -188,7 +188,9 @@ sub make_agent
       print_test_error ("Failed to launch PHP server.");
       return undef;
     }
-  return WWW::Mechanize->new (autocheck => @_? shift: 1);
+  my $ret = WWW::Mechanize->new (autocheck => @_? shift: 1);
+  print_test_error ('Cannot create WWW::Mechanize agent.') unless defined $ret;
+  return $ret;
 }
 
 sub get_user_id
