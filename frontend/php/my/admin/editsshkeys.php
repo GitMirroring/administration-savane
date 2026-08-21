@@ -105,9 +105,7 @@ print '<p>'
      . "registered is what\nyou expected.")
  . "</p><p>\n";
 
-$n = count ($keys);
-if ($n < $min_keys)
-  $n = $min_keys;
+$n = count ($keys) + $min_keys;
 if ($n > $key_limit)
   $n = $key_limit;
 
