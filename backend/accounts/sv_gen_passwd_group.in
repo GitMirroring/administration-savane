@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Generate passwd and group files for libnss-extrausers.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

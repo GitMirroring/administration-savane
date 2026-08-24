@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Regenerate HTML index for reports from sv_collect-mirror-stats data.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

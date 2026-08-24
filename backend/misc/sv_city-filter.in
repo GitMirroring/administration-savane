@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Exclude excessive info from GeoNames cities15000.txt to reduce size.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

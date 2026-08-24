@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Run crypt(3).  Used in web UI to make and validate hashed passphrases.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 #
 # Remove old tarballs from frontend.
 #

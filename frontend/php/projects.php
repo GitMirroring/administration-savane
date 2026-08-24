@@ -1,4 +1,5 @@
 <?php
+# -*- PHP -*- vi:filetype=php
 # Group main page.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
