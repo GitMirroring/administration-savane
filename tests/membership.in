@@ -1,4 +1,8 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
+#
+# Basic membership-related tests.
+#
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Mathieu Roy
 # Copyright (C) 2014, 2016, 2017 Assaf Gordon

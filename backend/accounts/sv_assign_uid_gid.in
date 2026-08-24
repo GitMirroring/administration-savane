@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # -*-Perl-*-
 # Assign uidNumber and gidNumber in the database.
 #

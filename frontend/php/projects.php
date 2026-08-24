@@ -1,4 +1,5 @@
 <?php
+# -*- perl -*- vi:filetype=perl
 # Group main page.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

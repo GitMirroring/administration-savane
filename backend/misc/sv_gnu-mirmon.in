@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Extract mirror lists from https://www.gnu.org/prep/FTP.
 # Based on public domain script originally written by Karl Berry.
 #

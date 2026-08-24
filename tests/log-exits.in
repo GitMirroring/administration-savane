@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Test $sys_log_exits (see doc/savane.conf.php).
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
