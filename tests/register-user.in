@@ -212,13 +212,226 @@ sub test_gpg
   print_test_log ('Visiting GnuPG key page.');
   $agent->get (make_url ('my/admin/change.php?item=gpgkey'));
   return 1 if check_request_status ($agent);
-  $agent->form_with_fields (qw (form_id newvalue test_gpg_key));
+  return 1 unless defined find_form (
+    $agent, 'GnuPG key', 'no-gpg-form.html', qw (form_id newvalue test_gpg_key)
+  );
   $agent->set_fields ('newvalue' => $key);
   print_test_log ('Submitting key for test.');
   $agent->click ('test_gpg_key');
   return parse_gpg_result ($filename) unless check_request_status ($agent);
   print_test_error ('Cannot test key.');
   return 1;
+}
+
+sub list_ssh_keys_in_form
+{
+  my $form = shift;
+  my @ret = ();
+  foreach ($form->param ())
+    {
+      next unless $_ =~ /^form_keys\[\d+\]$/;
+      my $val = $form->value ($_);
+      next unless $val ne '';
+      push @ret, $val;
+    }
+  print_test_log ("Found SSH keys:\n  ". join ("\n  ", @ret)) if @ret;
+  print_test_log ('No SSH keys found.') unless @ret;
+  return @ret;
+}
+
+sub empty_ssh_fields_in_form
+{
+  my $form = shift;
+  my $ret = 0;
+  foreach ($form->param ())
+    {
+      next unless $_ =~ /^form_keys\[\d+\]$/;
+      my $val = $form->value ($_);
+      $ret++ if $val eq '';
+    }
+  print_test_log ("$ret empty key fields found in form.");
+  return $ret;
+}
+
+sub assert_no_ssh_key
+{
+  my ($agent, $form) = @_;
+  my @keys = list_ssh_keys_in_form ($form);
+  my $key_num = $#keys + 1;
+  return 0 unless $key_num;
+  print_test_error ("$key_num keys found in form.");
+  save_page ($agent, 'nonempty-ssh-keys.html');
+  return 1;
+}
+
+sub compose_ssh_keys
+{
+  my ($agent, $keys, $m) = @_;
+  unless ($m)
+    {
+      print_test_error ('No empty fields found for SSH keys.');
+      save_page ($agent, 'no-empty-ssh-fields.html');
+      return 1;
+    }
+  my $n = @$keys? $#{$keys} + 1: 0;
+  for (my $i = 0; $i < $m; $i++)
+    {
+      push @$keys, 'key' . ($i + $n);
+    }
+  return 0;
+}
+
+sub find_ssh_key_form
+{
+  return find_form (
+    $agent, 'SSH key', 'no-ssh-form.html', qw (form_id form_quiet_ssh)
+  );
+}
+
+sub check_key_values
+{
+  my ($agent, $form) = (shift, shift);
+  my @keys = list_ssh_keys_in_form ($form);
+  my ($ret, $kn, $an) = (0, $#keys + 1, $#_ + 1);
+  if ($kn != $an)
+    {
+      print_test_error ("Wrong key number: submitted $an, listed $kn.");
+      $ret = 1;
+    }
+  foreach (@keys)
+    {
+      my $original_key = shift;
+      next if $original_key eq $_;
+      print_test_error (
+        "Key mismatch, submitted '$original_key', returned '$_'."
+      );
+      $ret = 1;
+    }
+  save_page ($agent, 'wrong-ssh-key-values.html') if $ret;
+  return $ret;
+}
+
+sub check_modified_keys
+{
+  my $agent = shift;
+  my $form = find_ssh_key_form ($agent);
+  return 1 unless defined $form;
+  my $ret = check_key_values ($agent, $form, @_);
+  unless ($ret)
+    {
+      print_test_result ("Keys updated successfully.");
+      return 0;
+    }
+  return 1 if $ret;
+}
+
+sub check_ssh_change_notification
+{
+  print_test_log ('Checking SSH key change notification.');
+  my $mbox = get_mbox ();
+  if ($mbox =~ /^Subject: .* SSH key changed on your account$/m
+    && $mbox =~ /Someone, presumably you, has changed your SSH keys on/
+  )
+    {
+      print_test_result ('Notification has landed in the mbox.');
+      return 0;
+    }
+  print_test_log ("No notification found: mbox contains the next:\n$mbox");
+  return 1;
+}
+
+sub submit_ssh_keys
+{
+  my ($agent, $keys, $skip_notif) = @_;
+  my $ret = 0;
+  clear_mbox (1) unless $skip_notif;
+  print_test_log ('Submitting updated SSH keys.');
+  $agent->click ();
+  return 1 if check_request_status ($agent);
+  $ret = 1 if check_modified_keys ($agent, @$keys);
+  $ret = 1 if (!$skip_notif && check_ssh_change_notification ());
+  return $ret;
+}
+
+sub test_adding_ssh_keys
+{
+  my ($agent, $form, $keys) = @_;
+  print_test_log ('Adding SSH keys.');
+  my $e = empty_ssh_fields_in_form ($form);
+  return 1 if compose_ssh_keys ($agent, $keys, $e > 1? $e - 1: $e);
+  my $i = 0;
+  foreach (@$keys)
+    {
+      print_test_log ("Adding key $i: '$_'.");
+      $form->value ("form_keys[$i]", $_);
+      $i++;
+    }
+  if ($e > 1)
+    {
+      my $idx = $#{$keys} >> 1;
+      my $key = $$keys[$idx];
+      print_test_log ("Adding key $idx once more: '$key'." );
+      $form->value ("form_keys[$i]", $key);
+    }
+  return submit_ssh_keys ($agent, $keys);
+}
+
+sub test_modifying_ssh_keys
+{
+  my ($agent, $form, $keys) = @_;
+  my $idx = int ($#{$keys} * 2 / 3);
+  my $key = ${$keys}[$idx];
+  print_test_log ("Modifying key $idx: $key");
+  $key .= ", modified";
+  $form->value ("form_keys[$idx]", $key);
+  ${$keys}[$idx] = $key;
+  return submit_ssh_keys ($agent, $keys);
+}
+
+sub clear_key_in_form
+{
+  my ($form, $i, $keys) = @_;
+  my $key = ${$keys}[$i];
+  print_test_log ("Clearing key $i: '$key'.");
+  $form->value ("form_keys[$i]", '');
+  splice (@$keys, $i, 1);
+}
+
+sub test_removing_ssh_keys
+{
+  my ($agent,$keys) = @_;
+  my $form;
+  while (@$keys)
+    {
+      $form = find_ssh_key_form ($agent);
+      my $i = int ($#{$keys} * 4 / 5);
+      clear_key_in_form ($form, $i, $keys);
+      my $j = $i >> 2;
+      clear_key_in_form ($form, $j, $keys) if $j != $i;
+      $i = $j >> 2;
+      clear_key_in_form ($form, $i, $keys) if $j != $i;
+      return 1 if submit_ssh_keys ($agent, $keys, 1);
+    }
+  return 0;
+}
+
+sub test_ssh_keys
+{
+  my @keys;
+  print_test_log ('Visiting SSH key page.');
+  $agent->get (make_url ('my/admin/editsshkeys.php'));
+  return 1 if check_request_status ($agent);
+  my $form = find_ssh_key_form ($agent);
+  return 1 unless defined $form;
+  return 1 if assert_no_ssh_key ($agent, $form);
+  for (my $i = 0; $i < 7; $i++)
+    {
+      return 1 if test_adding_ssh_keys ($agent, $form, \@keys);
+      $form = find_ssh_key_form ($agent);
+    }
+  my $ret = test_modifying_ssh_keys ($agent, $form, \@keys);
+  $ret = 1 if test_removing_ssh_keys ($agent,\@keys);
+  return $ret;
 }
 
 sub make_temp_file
@@ -245,6 +458,7 @@ sub run_tests
     }
   $ret = 1 if try_email_in_cmd ($filename);
   $ret = 1 if test_gpg ($filename);
+  $ret = 1 if test_ssh_keys ();
   return $ret;
 }
 
