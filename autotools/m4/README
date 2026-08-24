@@ -10,7 +10,7 @@ These files are not part of Savane, but are used with it.
 nls.m4, po.m4, progtest.m4 come
 from gettext-0.21.1 (po.m4 is modified in Savane).
 
-ax_perl_module_version.m4 come from autoconf-archive-2023.02.20,
+ax_perl_module_version.m4 came from autoconf-archive-2023.02.20,
 then was modified.
 
 ax_gen_changelog.m4, ax_path_prog.m4, ax_php_extension.m4 were written
