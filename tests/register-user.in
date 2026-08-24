@@ -53,7 +53,6 @@ PrintVersionOrHelp ("Test user account-related actions.");
 
 my $agent = make_agent () or exit (1);
 my $login = 'test_user';
-my $exit_code = 2;
 my $test_php = <<'EOF';
   <?php
     require_once ('include/init.php');
@@ -222,30 +221,40 @@ sub test_gpg
   return 1;
 }
 
-my $passwd = register_user ($agent, $login, 'Test User');
-exit (1) unless defined $passwd;
-my ($fh, $filename) = tempfile (UNLINK => 1);
-close $fh;
-log_in ($agent, $login, $passwd);
-if (check_for_idle_warning ())
-  {
-    $exit_code = 1;
-    save_page ($agent, 'idle-warning.html');
-  }
+sub make_temp_file
+{
+  my ($fh, $filename) = tempfile (UNLINK => 1);
+  close $fh;
+  return $filename unless $filename =~ /\s/;
+  print_test_error ("Internal error: space in temp filename '$filename'.");
+  return undef;
+}
 
-if ($filename =~ /\s/)
-  {
-    print_test_error ("Internal error: space in temp filename '$filename'.");
-    $exit_code = 1;
-  }
-else
-  {
-    $exit_code = 1 if try_email_in_cmd ($filename);
-    $exit_code = 1 if test_gpg ($filename);
-  }
+sub run_tests
+{
+  my $ret = 0;
+  my $filename = make_temp_file ();
+  exit (1) unless defined $filename;
+  my $passwd = register_user ($agent, $login, 'Test User');
+  exit (1) unless defined $passwd;
+  log_in ($agent, $login, $passwd);
+  if (check_for_idle_warning ())
+    {
+      $ret = 1;
+      save_page ($agent, 'idle-warning.html');
+    }
+  $ret = 1 if try_email_in_cmd ($filename);
+  $ret = 1 if test_gpg ($filename);
+  return $ret;
+}
 
-log_out ($agent);
-remove_user ($agent, $login, $passwd);
-$exit_code = 0 if $exit_code == 2;
-print_test_result ("Test done.") unless $exit_code;
-exit ($exit_code);
+sub main
+{
+   my $ret = run_tests ();
+   log_out ($agent);
+   remove_user ($agent, $login);
+   print_test_result ("Test done.") unless $ret;
+   return $ret;
+}
+
+exit (main ());

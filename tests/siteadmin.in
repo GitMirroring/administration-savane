@@ -54,10 +54,8 @@ use File::Temp qw (tempfile);
 
 PrintVersionOrHelp ("Test siteadmin/ area.");
 
-my %page_status = ('triggercreation.php' => '404');
-my $admin_group_id = get_group_id ('administration');
-exit (1) if $admin_group_id < 0;
-my %page_args = ('groupedit.php' => "group_id=$admin_group_id");
+my $admin_group_id;
+my %page_args;
 
 sub list_siteadmin_pages
 {
@@ -81,6 +79,7 @@ sub list_siteadmin_pages
 
 sub page_expected_code
 {
+  my %page_status = ('triggercreation.php' => '404');
   my ($page, $login) = @_;
   return '403' unless have_su_flag ($login);
   return $page_status{$page} if exists $page_status{$page};
@@ -173,26 +172,38 @@ sub run_checks
   return $ret;
 }
 
-my $exit_code = 2;
-speed_up_crypt (undef, 1) and exit (1);
-my $agent = make_agent () or exit (1);
-my $login = 'site_admin';
-my $group = 'siteadmin-test';
-my $passwd = register_user ($agent, $login, 'Site Admin');
-exit (1) unless defined $passwd;
-my $group_id = register_group ($agent, $login, $group);
-$exit_code = 1 if $group_id < 0;
-$exit_code = 1 if run_checks ($agent, $login, $group_id);
-log_out ($agent);
-unless ($group_id < 0)
-  {
-    print_test_log ("Removing >$group<.");
-    $exit_code = 1 if remove_group ($group_id, $group);
-  }
-print_test_log ("Removing <$login>.");
-$exit_code = 1 if quit_group ($agent, $login);
-log_out ($agent);
-$exit_code = 1 if remove_user ($agent, $login);
-$exit_code = 0 if $exit_code == 2;
-print_test_result ("Test done.") unless $exit_code;
-exit ($exit_code);
+sub init_test
+{
+  $admin_group_id = get_group_id ('administration');
+  exit (1) if $admin_group_id < 0;
+  $page_args{'groupedit.php'} = "group_id=$admin_group_id";
+  speed_up_crypt (undef, 1) and exit (1);
+  my $agent = make_agent () or exit (1);
+  my $login = 'site_admin';
+  my $passwd = register_user ($agent, $login, 'Site Admin');
+  exit (1) unless defined $passwd;
+  return ($agent, $login, $passwd);
+}
+
+sub main
+{
+  my ($agent, $login, $passwd) = init_test ();
+  my $group = 'siteadmin-test';
+  my $group_id = register_group ($agent, $login, $group);
+  my $ret = $group_id < 0;
+  $ret = 1 if run_checks ($agent, $login, $group_id);
+  log_out ($agent);
+  unless ($group_id < 0)
+    {
+      print_test_log ("Removing >$group<.");
+      $ret = 1 if remove_group ($group_id, $group);
+    }
+  print_test_log ("Removing <$login>.");
+  $ret = 1 if quit_group ($agent, $login);
+  log_out ($agent);
+  $ret = 1 if remove_user ($agent, $login);
+  print_test_result ("Test done.") unless $ret;
+  return $ret;
+}
+
+exit (main ());
