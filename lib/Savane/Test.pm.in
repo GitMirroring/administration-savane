@@ -52,6 +52,7 @@ our @ISA = qw (Exporter);
 our @EXPORT = qw (
   clear_mbox get_mbox make_url unmake_url make_agent
   save_page save_text
+  find_form
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
   get_group_id run_cleanup check_request_status try_mkdir
   write_test_php rm_test_php select_root_url get_twin_idx
@@ -402,6 +403,21 @@ sub log_in_parse_args
   $login = '-' if $su;
   my $no_brother = shift;
   return ($agent, $login, $passwd, $su, $no_brother);
+}
+
+sub find_form
+{
+  my ($agent, $form_name, $page) = (shift, shift, shift);
+  print_test_log ("Looking for $form_name form.");
+  my $form = $agent->form_with_fields (@_);
+  if (defined $form)
+    {
+      print_test_result ("Form found.");
+      return $form;
+    }
+  print_test_error ("$form_name form not found.");
+  save_page ($agent, $page);
+  return undef;
 }
 
 sub find_log_in_form
