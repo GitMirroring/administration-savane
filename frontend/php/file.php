@@ -1,4 +1,5 @@
 <?php
+# -*- perl -*- vi:filetype=perl
 # Provide an URL with a valid filename that browsers will use (save as...)
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew

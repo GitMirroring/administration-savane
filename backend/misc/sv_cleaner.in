@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 #
 # Run cleanup tasks: remove obsolete database entries.
 #

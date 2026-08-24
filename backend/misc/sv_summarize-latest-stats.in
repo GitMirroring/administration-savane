@@ -1,4 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
 # Summarize latest-requests from sv_collect-mirror-stats in HTML.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
