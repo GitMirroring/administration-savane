@@ -231,7 +231,7 @@ substituted = \
   $(all_scripts) $(build_time_scripts) $(conf_all:%=sysconf/%) $(modules) \
   $(frontend_php_built) $(test_data_files)
 
-dirs.stamp: ; $(MKDIR_P) $(directories) && touch $@
+dirs.stamp: Makefile ; $(MKDIR_P) $(directories) && touch $@
 
 $(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
 $(all_test_scripts): %: %.in Makefile dirs.stamp
