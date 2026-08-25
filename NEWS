@@ -86,6 +86,8 @@ other missing PHP extensions are also reported.
 ** Git commit was extracted in configure time; in make time, the commit
    wasn't re-extracted when HEAD changed.
 
+** Directories in the build tree weren't re-made when Makefile changed.
+
 [TESTS]
 
 * New test, 'session.'
