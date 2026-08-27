@@ -23,7 +23,10 @@ sbin_files =
 conf_files =
 
 mirmon_conf = mirmon-to-geoip.conf
-frontend_conf = apache.conf php.ini savane.conf.php nongnu-conf/savane.conf.php
+frontend_conf = apache.conf sv.conf php.ini savane.conf.php nongnu-conf/savane.conf.php
+if HAVE_TWIN_HOST
+  conf_files += twin.conf
+endif
 conf_all = $(frontend_conf) $(mirmon_conf)
 frontend_sbin = sv_frontendctl.pl sv_php_server.pl
 sbin_all = $(frontend_sbin)
@@ -151,6 +154,28 @@ if HAVE_DATABASE
 else
   HAVE_DATABASE_VAR = 0
 endif
+if HAVE_TWIN_HOST
+  INCLUDE_TWIN = Include $(confdir)/twin.conf
+  subst_in_twin = \
+    ${SED} \
+      -e 's,[@]SV_CONF[@],$(SV_CONF)/nongnu-conf,g' \
+      -e 's,[@]WWW_SERVER_HOST[@],$(WWW_TWIN_SERVER_HOST),g' \
+      -e 's,[@]FILE_SERVER_HOST[@],$(FILE_TWIN_SERVER_HOST),g' \
+      -e 's,[@]WWW_HOST[@],$(WWW_TWIN_HOST),g' \
+      -e 's,[@]FILE_HOST[@],$(FILE_TWIN_HOST),g' \
+      -e 's,[@]WWW_SENDMAIL_LINE[@],$(WWW_SENDMAIL_LINE),g' \
+      -e 's,[@]pkgstatedir[@],$(pkgstatedir),g' \
+      -e 's,[@]apache_logdir[@],$(apache_logdir),g' \
+      -e 's,[@]mirror_logdir[@],$(mirror_logdir),g' \
+      -e 's,[@]mirror_redirect_logdir[@],$(mirror_redirect_logdir),g' \
+      -e 's,[@]mirror_stat_dir[@],$(mirror_stat_dir),g' \
+      -e 's,[@]php_log_file[@],twin.$(php_log_file),g' \
+      -e 's,[@]frontenddir[@],$(frontenddir),g'
+
+  sysconf/twin.conf: sysconf/sv.conf.in Makefile; $(subst_in_twin) < $< > $@
+else
+  INCLUDE_TWIN =
+endif
 
 subst_in_files = \
   ${SED} \
@@ -162,6 +187,7 @@ subst_in_files = \
     -e 's,[@]VERSION[@],$(VERSION),g' \
     -e 's,[@]SV_CONF[@],$(SV_CONF),g' \
     -e 's,[@]SV_GIT_COMMIT[@],$(SV_GIT_COMMIT),g' \
+    -e 's,[@]INCLUDE_TWIN[@],$(INCLUDE_TWIN),g' \
     -e 's,[@]WWW_SERVER_BIN[@],$(WWW_SERVER_BIN),g' \
     -e 's,[@]WWW_SERVER_GROUP[@],$(WWW_SERVER_GROUP),g' \
     -e 's,[@]WWW_SERVER_HOST[@],$(WWW_SERVER_HOST),g' \

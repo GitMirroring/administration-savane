@@ -159,6 +159,15 @@ When configured with --enable-sample-db, non-administrator users
 'alice', 'bob', 'carol', 'dave', 'eve' are added, with the same
 password '-'.
 
+Enabling twin website
+---------------------
+
+When configured with --enable-twin-host, Savane imitates savannah.gnu.org vs.
+savannah.nongnu.org behavior: it adds two more hosts, <http://127.0.0.87:4913>
+imitating savannah.nongnu.org, and <http://127.0.0.88:4913> to serve tracker
+attachments.  Currently, the hosts mirror each other; no redirection is
+performed when something is requested from the "wrong" site.
+
 Database: advanced and troubleshooting
 --------------------------------------
 
