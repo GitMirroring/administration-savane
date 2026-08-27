@@ -26,13 +26,15 @@ Licensing
 =========
 
 The original package was distributed under GPLv2 "or later."
-On 2008-03-30, the option to re-license under a later version
-was used.  In other words, the old code is distributed under the GPLv3
-"or later" (commit 8b757b2565ff).  Then, section 13 of GPLv3
-and section 13 of AGPLv3 allowed combining code released under these
-licenses, so all further contributions come under the AGPL.
-The combination is effectively under the AGPLv3 "or later," but
-the precise conditions are explained in the licenses.
+On 2008-03-30, the option to re-license under a later version was used.
+In other words, the old code is distributed under the GPLv3 "or later"
+(commit 8b757b2565ff).  Then, section 13 of GPLv3 and section 13 of AGPLv3
+allowed combining code released under these licenses, so further contributions
+come under the AGPL (with a few exceptions like lib/Savane/Version.pm.in
+distributed under the GPLv3 "or later"; such exceptions are specified
+with the license notices for the respective files).  The combination
+is effectively under the AGPLv3 "or later," but the precise conditions
+are explained in the licenses.
 
 The license notices for the AGPL and the GPL follow.
 
