@@ -150,6 +150,8 @@ In order to shut down the servers, run
   $ $HOME/sv/install/sbin/sv_frontendctl -k stop
   $ $HOME/sv/install/sbin/sv_kill_db
 
+Files attached in the trackers will be served from <http://127.0.0.86:4913>.
+
 Adding sample database
 ----------------------
 
