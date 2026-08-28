@@ -1,0 +1,89 @@
+This file describes the 'brother domain' feature.
+
+Visitor's perspective
+---------------------
+
+Historically, Savannah Web UI has a feature that is called 'brother domain'
+in the source code, though it would be closer to the truth to name it
+'twin host'; in fact, it is more like two faces sharing the rest body.
+
+So, Savannah has two sets of hosts running exactly at the same servers,
+*savannah.gnu.org and *savannah.nongnu.org.  The idea behind that separation
+was keeping groups of the GNU Project distinct from non-GNU groups hosted
+at Savannah.  Within the scope of Savane, it means that whenever users
+request pages of non-GNU groups using a savannah.gnu.org URLs, they are
+redirected to savannah.nongnu.org, and vice versa, e.g.
+
+  savannah.gnu.org/task/?group=administration
+    -> savannah.nongnu.org/task/?group=administration,
+  savannah.nongnu.org/projects/emacs -> savannah.gnu.org/projects/emacs.
+
+This arrangement allows for moving groups to the gnu.org domain when a package
+joins the GNU Project.
+
+Another related feature is the 'login also the other site' checkbox on the login
+page.  This way, the session is shared between the two hosts, and logging out
+from any of them removes the credentials for the other host, too.
+
+When running Savane locally, the default URLs are,
+
+  http://127.0.0.85:4913 - the 'gnu' host
+  http://127.0.0.86:4913 - the 'gnu' host for serving tracker attachments
+  http://127.0.0.87:4913 - the 'nongnu' host
+  http://127.0.0.88:4913 - the 'nongnu' host for serving tracker attachments
+
+These values can be modified when running sv_php_server.pl; when invoking
+sv_frontendctl.pl, they are hard-coded.
+
+Build system
+------------
+
+In order to enable the feature, pass the --enable-twin-host option
+to the 'configure' script.  The option configures the 'sv_php_server.pl'
+script for running the twin PHP servers and accept options specific
+to the twin site; also, it adjusts the Apache configuration used
+with the 'sv_frontendctl.pl' script.
+
+Additional configuration options are --with-apache-twin-host
+and --apache-file-twin-host, they define the 'twin' counterparts
+for --with-apache-host and --with-apache-file-host.
+
+Run-time configuration
+----------------------
+
+The domain of the group is defined in the 'base_host' field of its group type
+record; the domains of existing groups can be listed with an SQL query like
+
+  SELECT `g`.`group_id`, `g`.`unix_group_name`, `t`.`base_host`
+  FROM `groups` `g` JOIN `group_type` `t` ON `g`.`type` = `t`.`type_id`
+
+First, when $sys_debug_nobasehost variable is set to true in savane.conf.php,
+the redirections are disabled.  Unless its boolean value is true, the next
+procedure applies.
+
+When the requested URL belongs to a group, like a tracker item, a group
+main page, a page listing VCS instructions for a specific group, Savane
+compares base_host against $_SERVER['HTTP_HOST'] and skips the redirection
+when they match.  When running Savannah, this test is sufficient; however,
+local Savane instances use IP addresses like http://127.0.0.85:4913/,
+and the 'sv_php_server.pl' script has options to change them arbitrarily.
+In order to support that case, another variable is used, $sys_this_host_name.
+After checking $_SERVER['HTTP_HOST'], Savane compares host_base against
+the $sys_this_host_name and only redirects when they differ.  The redirection
+forwards to the host defined in $sys_brother_domain.  These variables,
+$sys_brother_domain and $sys_this_host_name, are set in savane.conf.php
+and nongnu-conf/savane.conf.php accordingly.  The Apache configuration
+and sv_php_server.pl bind these files to the respective addresses;
+sv_php_server.pl additionally overrides the variables as requested
+in its command line.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2026 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
