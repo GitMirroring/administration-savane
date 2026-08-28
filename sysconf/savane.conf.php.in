@@ -46,6 +46,7 @@ if (empty ($sys_file_domain))
   $sys_file_domain = "@FILE_SERVER_HOST@";
 $sys_twin_host_enabled = '@TWIN_HOST_ENABLED@' === 'yes';
 if ($sys_twin_host_enabled && empty ($sys_brother_domain))
+  # The host where the request to twin domain, see doc/twin.
   $sys_brother_domain = '@WWW_TWIN_SERVER_HOST@';
 if (empty ($sys_www_server_port))
   $sys_www_server_port = '@WWW_SERVER_PORT@';
@@ -53,9 +54,9 @@ $sys_detect_www_port = @DETECT_WWW_PORT@;
 
 # Set to true to avoid automatic redirection to 'twin' host
 # when accessing a group hosted there.  The group will be just shown
-# in 'our' host.
+# in 'our' host; see also doc/twin.
 $sys_debug_nobasehost = !$sys_twin_host_enabled;
-# Name used to compare to 'base host' in group types.
+# Name used to compare to 'base host' in group types, see doc/twin.
 if (empty ($sys_this_host_name))
   $sys_this_host_name = 'savane.gnu.test';
 # Set this variable to redirect all emails to one address:
