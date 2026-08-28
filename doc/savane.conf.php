@@ -39,6 +39,8 @@ if ($sys_detect_www_port)
 # when accessing a group hosted there.  The group will be just shown
 # in 'our' host.
 $sys_debug_nobasehost = false;
+# Name used to compare to 'base host' in group types.
+$sys_this_host_name = 'savannah.gnu.org';
 
 # Parameters for database access.
 $sys_dbhost = "127.51.188.169";
