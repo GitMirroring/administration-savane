@@ -218,11 +218,9 @@ class Layout extends savane_error
     $root = realpath (dirname (__FILE__) . "/../../..");
     $page =
       preg_replace (":^$root:", '', realpath ($_SERVER['SCRIPT_FILENAME']));
-    $url = git_get_savane_url ($page);
-    print "<br />\n" . utils_link ($url, _('Page source code'));
 
     print "</p>\n<div align='right'><p>";
-    # TRANSLATORS: the argument is version of Savane (like 3.2).
+    # TRANSLATORS: the argument is version of Savane (like 3.17-1b7a).
     printf (_("Powered by Savane %s."), $savane_version);
     $url = git_get_savane_url ();
     print "<br />" . utils_link ($url, _("Corresponding source code"));
