@@ -144,6 +144,7 @@ sub init_root_url
   push @root_url, "http://$_:$php_port/" foreach @hosts;
   print_test_log ("port $php_port, bin $php_bin");
   init_php ($php_port, $php_bin);
+  select_root_url ('twin');
 }
 
 sub log_in_for_accessibility

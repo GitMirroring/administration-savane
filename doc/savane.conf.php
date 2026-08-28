@@ -29,16 +29,16 @@ $sys_brother_domain = "savannah.nongnu.org";
 # Host for serving files.
 $sys_file_domain = "file.$sys_default_domain";
 
-# This variable is set in ./configure time; with the next two lines,
-# it overrides $sys_www_sever_port with the info coming from Apache.
+# This variable is set in ./configure time it overrides
+# $sys_www_server_port with the info coming from Apache.
 $sys_detect_www_port = false;
-if ($sys_detect_www_port)
-  $sys_www_server_port = $_SERVER['SERVER_PORT'];
 
 # Set to true to avoid automatic redirection to 'twin' host
 # when accessing a group hosted there.  The group will be just shown
 # in 'our' host.
 $sys_debug_nobasehost = false;
+# Name used to compare to 'base host' in group types.
+$sys_this_host_name = 'savannah.gnu.org';
 
 # Parameters for database access.
 $sys_dbhost = "127.51.188.169";

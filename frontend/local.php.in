@@ -54,6 +54,19 @@
 # See backend/sbin/sv_php_server.pl.in to see how this file is used.
 
 $path = parse_url ($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+if (getenv ('SAVANE_THIS_HOST_NAME') !== false)
+  $sys_this_host_name = getenv ('SAVANE_THIS_HOST_NAME');
+if (getenv ('SAVANE_BROTHER_DOMAIN') !== false)
+  $sys_brother_domain = getenv ('SAVANE_BROTHER_DOMAIN');
+if (getenv ('SAVANE_DEFAULT_DOMAIN') !== false)
+  $sys_default_domain = getenv ('SAVANE_DEFAULT_DOMAIN');
+if (getenv ('SAVANE_BROTHER_DOMAIN') !== false)
+  $sys_brother_domain = getenv ('SAVANE_BROTHER_DOMAIN');
+if (getenv ('SAVANE_FILE_DOMAIN') !== false)
+  $sys_file_domain = getenv ('SAVANE_FILE_DOMAIN');
+if (getenv ('SAVANE_PORT') !== false)
+  $sys_www_server_port = getenv ('SAVANE_PORT');
+
 $phpdir = '@frontenddir@/php';
 $sym = ['projects' => ['p', 'pr', 'projects'], 'users' => ['u', 'us', 'users']];
 foreach ($sym as $file => $aliases)

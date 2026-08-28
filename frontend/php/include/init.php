@@ -69,9 +69,6 @@ $sys_enable_forum_comments = 1;
 $sys_registration_captcha = 0;
 $sys_registration_text_spam_test = 1;
 
-$sys_default_domain = $_SERVER['SERVER_NAME'];
-if ($_SERVER['SERVER_PORT'] != 80)
-  $sys_default_domain .= ':' . $_SERVER['SERVER_PORT'];
 $sys_unix_group_name = 'siteadmin';
 
 $sys_mail_domain = 'localhost';
@@ -387,16 +384,22 @@ function init_check_group_status ($status)
 # Make sure we are on the correct site.
 function init_run_redirections ($group_id)
 {
-  global $sys_debug_nobasehost;
+  global $sys_debug_nobasehost, $sys_this_host_name, $sys_brother_domain;
 
   if ($sys_debug_nobasehost)
     return;
   $group = project_get_object ($group_id);
   $type_host = $group->getTypeBaseHost ();
-  if (!(strcasecmp ($_SERVER['HTTP_HOST'], $type_host) && $type_host))
+  if (!$type_host)
+    return;
+  if (!strcasecmp ($_SERVER['HTTP_HOST'], $type_host))
+    return;
+  if (!empty ($sys_this_host_name)
+    && !strcasecmp ($sys_this_host_name, $type_host)
+  )
     return;
   $prot = session_protocol () . '://';
-  session_redirect ("$prot$type_host{$_SERVER["REQUEST_URI"]}");
+  session_redirect ("$prot$sys_brother_domain{$_SERVER["REQUEST_URI"]}");
 }
 
 function init_check_group ()

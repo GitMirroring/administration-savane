@@ -68,8 +68,9 @@
 
 * New script, sv_drop-old-tarballs.
 
-* When the twin host is enabled, sv_php_server.pl runs four PHP servers,
-  'primary,' 'file,' 'twin,' 'twin file.'
+* When the twin host is enabled, requests for to pairs of hosts are served,
+  'primary,' 'file,' 'twin,' 'twin file.'  Previously, the feature was only
+  supported on savannah.gnu.org vs. savannah.nongnu.org.
 
 [BUILD]
 

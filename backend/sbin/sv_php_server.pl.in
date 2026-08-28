@@ -153,6 +153,11 @@ sub init
 
   $ENV{'LANG'} = 'C';
   $ENV{'SAVANE_CONF'} = "$confdir";
+  $ENV{'SAVANE_THIS_HOST_NAME'} = 'savane.gnu.test';
+  $ENV{'SAVANE_PORT'} = $port;
+  $ENV{'SAVANE_BROTHER_DOMAIN'} = $twin_host;
+  $ENV{'SAVANE_DEFAULT_DOMAIN'} = $host;
+  $ENV{'SAVANE_FILE_DOMAIN'} = $file_host;
 
   chdir "$frontenddir/php";
   init_twin_options ();
@@ -180,6 +185,10 @@ sub launch_servers
   launch_host ($host) if $run_host;
   launch_host ($file_host) if $run_host_file;
   $ENV{'SAVANE_CONF'} .= "/nongnu-conf";
+  $ENV{'SAVANE_THIS_HOST_NAME'} = 'savane.nongnu.test';
+  $ENV{'SAVANE_BROTHER_DOMAIN'} = $host;
+  $ENV{'SAVANE_DEFAULT_DOMAIN'} = $twin_host;
+  $ENV{'SAVANE_FILE_DOMAIN'} = $file_twin_host;
   launch_host ($twin_host) if $run_twin;
   launch_host ($file_twin_host) if $run_twin_file;
 }
