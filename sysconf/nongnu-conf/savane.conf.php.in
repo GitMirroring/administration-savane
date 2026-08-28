@@ -40,8 +40,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+if (empty ($sys_default_domain))
+  $sys_default_domain = '@WWW_TWIN_SERVER_HOST@';
+if (empty ($sys_file_domain))
+  $sys_file_domain = '@FILE_TWIN_SERVER_HOST@';
+if (empty ($sys_brother_domain))
+  $sys_brother_domain = '@WWW_SERVER_HOST@';
+if (empty ($sys_this_host_name))
+  $sys_this_host_name = 'savane.nongnu.test';
 include (__DIR__ . '/../savane.conf.php');
-$sys_default_domain = '@WWW_TWIN_SERVER_HOST@';
-$sys_file_domain = '@FILE_TWIN_SERVER_HOST@';
-$sys_brother_domain = '@WWW_SERVER_HOST@';
 ?>
