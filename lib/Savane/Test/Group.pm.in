@@ -66,7 +66,7 @@ sub fill_new_group_request
   my %fields = (
     'full_name' => "Test group $group", 'unix_name' => $group,
     'purpose' => "$purpose " x 0x11, 'license' => 'gplv3orlater',
-    'required_sw' => 'Savane and its dependencies.',
+    'group_type' => '1', 'required_sw' => 'Savane and its dependencies.',
     'tarball_url' => make_url ('images/Savannah.theme/arrows/top.orig.png')
   );
   for (my $i = 1; $i < 8; $i++)
