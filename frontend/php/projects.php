@@ -62,6 +62,7 @@ if (!db_numrows ($res_grp))
 $group = $sanitized;
 $extra_script_name = "/$sanitized";
 $group_id = db_result ($res_grp, 0, 'group_id');
+init_run_redirections ($group_id);
 
 $project = group_get_object ($group_id);
 site_project_header ([]);

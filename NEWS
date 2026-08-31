@@ -60,6 +60,9 @@
 ** Files attached to private items were not accessible for submitters, see
    Savannah bug #68140 (private as of 2026-03-13).
 
+** Main pages of hosted groups didn't redirect to the right domain; all
+   groups were served both as sv.gnu.org/p/$group and sv.nongnu.org/p/$group.
+
 [I18N]
 
 * Update French, German, Hebrew, Romanian, Russian, Swedish.
