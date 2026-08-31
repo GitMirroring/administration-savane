@@ -61,12 +61,12 @@ sub check_request_result
 
 sub fill_new_group_request
 {
-  my ($agent, $group, $purpose) = @_;
+  my ($agent, $group, $type, $purpose) = @_;
   return 1 unless defined $agent->form_with_fields (qw (full_name unix_name));
   my %fields = (
     'full_name' => "Test group $group", 'unix_name' => $group,
     'purpose' => "$purpose " x 0x11, 'license' => 'gplv3orlater',
-    'group_type' => '1', 'required_sw' => 'Savane and its dependencies.',
+    'group_type' => $type, 'required_sw' => 'Savane and its dependencies.',
     'tarball_url' => make_url ('images/Savannah.theme/arrows/top.orig.png')
   );
   for (my $i = 1; $i < 8; $i++)
@@ -80,13 +80,14 @@ sub fill_new_group_request
 
 sub request_new_group
 {
-  my ($agent, $user, $group) = @_;
+  my ($agent, $user, $group, $type) = @_;
+  $type = 1 unless defined $type;
   my $ret;
   log_in ($agent, $user);
   print_test_log ('Requesting new group.');
   $agent->get (make_url ('register/'));
   return 1
-    if fill_new_group_request ($agent, $group, 'Testing group registration.');
+    if fill_new_group_request ($agent, $group, $type, 'Testing group registration.');
   $agent->click ();
   $ret = check_request_result ($agent);
   print_test_result ('New group requested.') unless $ret;
@@ -186,7 +187,7 @@ sub mark_for_removal
 sub fill_feature_checkboxes
 {
   my $form = shift;
-  my @boxes = ('bugs', 'task', 'support', 'patch', 'cookbook', 'news');
+  my @boxes = ('bugs', 'task', 'support', 'patch', 'cookbook', 'news', 'hg');
   my $ret = 0;
   return 1 unless defined $form;
   foreach (@boxes)
@@ -350,9 +351,9 @@ sub select_fields
 
 sub register_group
 {
-  my ($agent, $user, $group) = @_;
+  my ($agent, $user, $group, $type) = @_;
   my $id;
-  return -1 if request_new_group ($agent, $user, $group);
+  return -1 if request_new_group ($agent, $user, $group, $type);
   $id = approve_group ();
   return $id if $id < 0;
   return -1 if select_features ($user, $id, $group);
