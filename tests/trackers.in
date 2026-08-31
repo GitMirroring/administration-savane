@@ -54,7 +54,7 @@ PrintVersionOrHelp ("Test tracker operations.");
 
 my $agent = make_agent ()
   or exit (1);
-my $group = 'proba';
+my %group_types = ('proba' => 1, 'proba-nongnu' => 2);
 my $admin = 'bob';
 my $tracker = 'bugs';
 my @logins = ('semel', 'bis', 'ter', 'quater', 'quinquies', 'sexies');
@@ -91,7 +91,7 @@ my %group_members = ($admin => 1);
 my %tracker_admins = ($admin => 1, '*' => 1);
 
 my %private_names = ('<ter>' => 1, '<quinquies>' => 1, '<dave>' => 1);
-my (%private_items, %submitted_items);
+my (%private_items, %submitted_items, %latest_item_id);
 my @submit_textareas = ('details');
 my @submit_files;
 for (my $i = 1; $i <= 4; $i++)
@@ -424,6 +424,7 @@ sub submit_item
   shift @submit_texts unless defined $login;
   log_out ($agent) if defined $login;
   $submitters_by_item_id{$item_id} = $login unless $ret;
+  $latest_item_id{$group} = $item_id unless $ret;
   save_page ($agent, "$name-$group-$tracker-submit.html") if $ret;
   return $ret;
 }
@@ -700,6 +701,70 @@ sub check_item_access
   return $ret;
 }
 
+sub log_test_redirect
+{
+  my ($url, $redir, $err) = @_;
+  $url = make_url ($url);
+  if ($redir)
+    {
+      print_test_result ("$url redirects.", $err);
+      return;
+    }
+  print_test_result ("$url doesn't redirect.", $err);
+}
+
+sub test_redir
+{
+  my ($agent, $url, $should_redirect) = @_;
+  my ($redir, $err);
+  $url = make_url ($url);
+  $agent->get ($url);
+  return 1 if check_request_status ($agent, 'redir.html');
+  $redir = $agent->redirects ();
+  $err = $should_redirect ^ !!$redir;
+  log_test_redirect ($url, $redir, $err);
+  return $err;
+}
+
+sub recall_item_url
+{
+  my $group = shift;
+  return "$tracker/?$latest_item_id{$group}" if exists $latest_item_id{$group};
+  print_test_error ("Can't recall any items for >$group< group.");
+  return undef;
+}
+
+sub test_redirect
+{
+  my ($agent, $group, $gnu) = @_;
+  my @artifacts = ('support', 'task', 'news', 'hg');
+  my @urls = ("projects/$group/");
+  push @urls, "$_/?group=$group" foreach @artifacts;
+  my $item = recall_item_url ($group);
+  my $ret = !defined $item;
+  push @urls, $item unless $ret;
+  print_test_log ("Checking if >$group< group redirects from 'gnu'.");
+  select_root_url ('www');
+  foreach (@urls)
+    {
+      $ret = 1 if test_redir ($agent, $_, !$gnu);
+    }
+  print_test_log ("Checking if >$group< group redirects from 'nongnu'.");
+  select_root_url ('twin');
+  foreach (@urls)
+    {
+      $ret = 1 if test_redir ($agent, $_, $gnu);
+    }
+  return $ret;
+}
+
+sub test_group_domains
+{
+  my ($group, $gnu) = @_;
+  my $agent = make_agent (0);
+  return test_redirect ($agent, $group, $gnu);
+}
+
 END
 {
   print_test_log ("Removing users registered in the test.");
@@ -728,17 +793,29 @@ foreach my $login (@logins)
 
 unshift @logins, undef, '-', 'alice', 'bob', 'dave';
 
-my $group_id = register_group ($agent, $admin, $group);
-exit (1) if $group_id < 0;
-$registered_groups{$group} = $group_id;
-
-clear_mbox (1);
-foreach (@logins)
+foreach (keys %group_types)
   {
-    $exit_code = 1 if submit_item ($_, $group, $tracker);
+    my $group_id = register_group ($agent, $admin, $_, $group_types{$_});
+    exit (1) if $group_id < 0;
+    $registered_groups{$_} = $group_id;
+  }
+clear_mbox (1);
+my $group;
+foreach $group (keys %group_types)
+  {
+    foreach (@logins)
+      {
+        $exit_code = 1 if submit_item ($_, $group, $tracker);
+      }
   }
 
 $exit_code = 1 if check_item_access ();
+my $root_idx = select_root_url ();
+foreach (keys %group_types)
+  {
+    $exit_code = 1 if test_group_domains ($_, $group_types{$_} == 1);
+  }
+select_root_url ($root_idx);
 $exit_code = 0 if $exit_code == 2;
 print_test_result ("Test done.") unless $exit_code;
 exit ($exit_code);
