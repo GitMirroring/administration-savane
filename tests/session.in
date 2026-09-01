@@ -92,14 +92,95 @@ sub log_out_single_session
   return $ret;
 }
 
+sub session_page
+{
+  return make_url ('my/admin/sessions.php');
+}
+
+sub kill_single_session
+{
+  my ($sessions, $hashes) = @_;
+  my $s0 = shift @$sessions;
+  my $s = $sessions->[0];
+  my $a = $s->{'agent'};
+  print_test_log (
+    'Killing session ' . $s0->{'time'} . ":\n  "
+    . join ("\n  ", @{$s0->{'rows'}})
+  );
+  select_root_url ($s->{'root'});
+  $a->get (session_page ());
+  my ($ret, $hashes) = find_session_links ($a);
+  return 1 if $ret;
+  my $url = get_session_link ($a, $s0, $hashes);
+  return 1 unless defined $url;
+  $a->get ($url);
+  return check_request_status ($a, 'cant-kill-session.html');
+}
+
+sub kill_some_sessions
+{
+  my ($sessions, $n) = @_;
+  my $ret = 0;
+  print_test_log ("Killing $n sessions.");
+  while (--$n > 0)
+    {
+      $ret = 1 if kill_single_session ($sessions);
+    }
+  return $ret;
+}
+
+sub log_out_some_sessions
+{
+  my ($sessions, $n) = @_;
+  print_test_log ("Logging out $n sessions.");
+  my $ret = 0;
+  while (--$n > 0)
+    {
+      my $s = shift @$sessions;
+      $ret = 1 if log_out_single_session ($s);
+    }
+  return $ret;
+}
+
+sub have_kill_session_link
+{
+  my $a = shift;
+  return 0 unless defined $a->find_link (text => 'Kill this session');
+  print_test_error ('Some sessions are left to kill.');
+  save_page ($a, 'unkilled-sessions.html');
+  return 1;
+}
+
+sub kill_most_sessions
+{
+  my $s = shift;
+  my $a = $s->{'agent'};
+  print_test_log ('Killing all sessions except the current one.');
+  select_root_url ($s->{'root'});
+  $a->get (session_page ());
+  my $link = $a->find_link (text => 'Kill all sessions');
+  unless (defined $link)
+    {
+      print_test_error ('No link to kill all sessions found.');
+      save_page ($a, 'no-kill-all-link.html');
+      return 1;
+    }
+  $a->get ($link->url);
+  return 1 if (check_request_status ($a, 'cant-kill-all.html'));
+  return 1 if have_kill_session_link ($a);
+  print_test_result ('Successfully killed all sessions but the current one.');
+  return 0;
+}
+
 sub log_out_sessions
 {
   my $sessions = shift;
-  my $ret = 0;
-  foreach (@$sessions)
-    {
-      $ret = 1 if log_out_single_session ($_);
-    }
+  my $ret = kill_some_sessions ($sessions, int ($#$sessions / 3));
+  $ret = 1 if log_out_some_sessions ($sessions, int ($#$sessions / 2));
+  my $last_session = shift @$sessions;
+  $ret = 1 if kill_most_sessions ($last_session);
+  print_test_log ("Logging out the last session.");
+  $ret = 1 if log_out_single_session ($last_session);
   return $ret;
 }
 
@@ -234,9 +315,10 @@ sub build_session
 
 sub make_sessions
 {
-  my $n = 0x11;
+  my $n = 0x22;
   my $user = shift;
   my $hashes;
+  print_test_log ('Building new sessions.');
   check_new_sessions ($user, \$hashes, 1);
   my @ret;
   for (my ($i, $j) = (0, 0); $i - $j < $n && $j < $n && $j >= 0; $i++)
@@ -266,7 +348,7 @@ sub find_session_links
           print_test_result ("Wrong session link found, '$url'.");
           next;
         }
-      $hashes{"$2;$1"} = 1;
+      $hashes{"$2;$1"} = $url;
       $hash_tail_length = length ($1);
     }
   return ($ret, \%hashes);
@@ -281,11 +363,11 @@ sub report_session_link_not_found
   save_page ($agent, "no-session-link.html");
 }
 
-sub have_session_link
+sub get_session_link
 {
   my ($agent, $s, $hashes) = @_;
   my $t = $s->{'time'};
-  my $ret = 0;
+  my @ret;
   my @tails;
   push @tails, substr ($_, -$hash_tail_length) foreach (@{$s->{'rows'}});
   foreach (@tails)
@@ -293,16 +375,21 @@ sub have_session_link
       my $tail = substr ($_, -$hash_tail_length);
       next unless exists $hashes->{"$t;$tail"};
       print_test_result ("Found session $t;$tail.");
-      $ret++;
+      push @ret, $hashes->{"$t;$tail"};
     }
-  return $ret if $ret == 1;
-  if ($ret)
+  return $ret[0] if $#ret == 0;
+  if (@ret)
     {
       print_test_error ("Multiple matching sessions found.");
-      return 0;
+      return undef;
     }
   report_session_link_not_found ($agent, $t, @tails);
-  return 0;
+  return undef;
+}
+
+sub have_session_link
+{
+  return defined get_session_link (@_);
 }
 
 sub count_missing_session_links
@@ -322,7 +409,7 @@ sub check_session_url
 {
   my ($s0, $sessions) = @_;
   my $agent = $s0->{'agent'};
-  my $url = make_url ('my/admin/sessions.php');
+  my $url = session_page ();
   my @tails = ();
   push @tails, substr ($_, -$hash_tail_length) foreach (@{$s0->{'rows'}});
   my $s = $s0->{'time'} . ": (" . join (', ', @tails) . ')';
@@ -351,11 +438,16 @@ sub main
 {
   return 1 if write_test_php ('list-sessions.php', $list_sessions_php);
   my $sessions = make_sessions ('bob');
-  return 1 unless defined $sessions;
-  my $exit_code = 0;
-  $exit_code = 1 if check_session_pages ($sessions);
+  unless (defined $sessions)
+    {
+      print_test_error ("Cannot make session set.");
+      return 1;
+    }
+  print_test_log ("Made session set.");
+  my $exit_code = check_session_pages ($sessions);
   $exit_code = 1 if log_out_sessions ($sessions);
   print_test_result ("Test done.") unless $exit_code;
   return $exit_code;
 }
+
 exit (main ());
