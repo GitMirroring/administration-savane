@@ -1413,7 +1413,8 @@ function output_sysvars ()
   $variables = [
     'dbcharset',
     'dbhost', 'dbname', '*dbpasswd', 'dbport', 'dbsocket', 'dbuser',
-    'default_domain', 'brother_domain', 'file_domain', 'https_host',
+    'default_domain', 'debug_nobasehost', 'brother_domain', 'file_domain',
+    'this_host_name', 'https_host',
     'gpg_name', 'gpg_home', 'graphviz', 'pwqcheck_path',
     'etc_dir', 'incdir', 'upload_dir', 'www_topdir', 'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
