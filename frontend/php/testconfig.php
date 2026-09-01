@@ -1371,15 +1371,16 @@ function test_mysql ()
   return $ret . test_db_values ();
 }
 
-function list_unset_val ($must_be_unset, $value)
+function list_unset_val ($must_be_unset, $var, $value)
 {
+  $var_is_unset = !isset ($GLOBALS[$var]);
   if (!$must_be_unset)
     {
-      if ($value === '<>')
+      if ($var_is_unset)
         return '<strong>unset</strong>';
       return $value;
     }
-  if ($value === '<>')
+  if ($var_is_unset)
     return 'unset';
   return "$value\n<br /><strong>This variable should not be set "
     . "at production servers.</strong>";
@@ -1401,11 +1402,18 @@ function list_sysvar ($tag, &$defs)
   );
   $var = "sys_$tag";
   $value = '<>';
-  if (isset ($GLOBALS[$var]))
-    $value = nl2br (utils_specialchars (print_r ($GLOBALS[$var], true)));
+  if (array_key_exists ($var, $GLOBALS))
+    {
+      if ($GLOBALS[$var] === null)
+        $value = '<i>NULL</i>';
+      elseif (is_bool ($GLOBALS[$var]))
+        $value = '<i>' . ($GLOBALS[$var]? 'true': 'false') . '</i>';
+      else
+        $value = nl2br (utils_specialchars (print_r ($GLOBALS[$var], true)));
+    }
   if ($flags['must_be_hidden'])
     $value = "**************";
-  $defs[$var] = list_unset_val ($flags['must_be_unset'], $value);
+  $defs[$var] = list_unset_val ($flags['must_be_unset'], $var, $value);
 }
 
 function output_sysvars ()
