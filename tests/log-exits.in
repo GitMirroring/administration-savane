@@ -62,28 +62,6 @@ sub init_environment
   return $agent;
 }
 
-sub check_mbox
-{
-  my $should_be_empty = shift;
-  my $empty = get_mbox (1, 1) eq '';
-  if ($should_be_empty)
-    {
-      if ($empty)
-        {
-          print_test_result ("Mbox was expectedly empty.");
-          return 0;
-        }
-      print_test_error ("Mbox wasn't empty.");
-      return 1;
-    }
-  if ($empty)
-    {
-      print_test_error ("Mbox was empty.");
-      return 1;
-    }
-  print_test_result ("Mbox was expectedly not empty.");
-  return 0;
-}
 sub run_url
 {
   my ($url, $msg) = (shift, shift);

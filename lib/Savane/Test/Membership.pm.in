@@ -166,13 +166,7 @@ sub check_request_subject
 {
   my $headers = shift;
   return 0 if $headers =~ /\nSubject: Membership request/s;
-  print_test_error ("Subject not found.");
-  return 1;
-}
-sub check_apparently_from
-{
-  return 0 if $_[0] =~ /\nX-Apparently-From: Savane authenticated user $_[1]/s;
-  print_test_error ("X-Apparently-From is missing.");
+  print_test_error ("Expected subject not found.");
   return 1;
 }
 sub check_user_details
@@ -191,16 +185,6 @@ sub run_request_email_checks
   $result = 1 if check_apparently_from ($headers, $user);
   $result = 1 if check_user_details ($body, $user);
   return $result;
-}
-sub get_message
-{
-  my $mbox = get_mbox (1);
-  if ($mbox !~ /(.*?)\n\n(.*)/s)
-    {
-      print_test_error ("No empty line is found in mbox:\n$mbox\n.");
-      return (undef, undef, undef);
-    }
-  return ($1, $2, $mbox);
 }
 sub check_request_email
 {
@@ -240,12 +224,27 @@ sub request_inclusion
 sub check_approval_subject
 {
   return 0 if $_[0] =~ /\nSubject: Group membership approved\n/s;
-  print_test_error ("Subject not found.");
+  print_test_error ("Expected subject not found.");
+  return 1;
+}
+sub check_quit_subject
+{
+  return 0 if $_[0] =~ /\nSubject: .* has quit the group .*\n/s;
+  print_test_error ("Expected subject not found.");
   return 1;
 }
 sub check_approval_body
 {
   return 0 if $_[0] =~ /^You've been approved/;
+  print_test_error ("Expected string in body not found.");
+  return 1;
+}
+sub check_quit_body
+{
+  my ($body, $user) = @_;
+  return 0
+    if $body
+      =~ /^This message is being sent.* <((?i)$user)>\nhas chosen to quit/s;
   print_test_error ("Expected string in body not found.");
   return 1;
 }
@@ -265,6 +264,24 @@ sub check_approval_email
       return 1;
     }
   print_test_result ("Approval message looks sane.");
+  return 0;
+}
+sub check_quit_email
+{
+  print_test_log ("Checking quit message.");
+  my $user = shift;
+  my ($headers, $body, $mbox) = get_message ();
+  return 1 unless defined $headers;
+  my $result = 0;
+  $result = 1 if check_quit_subject ($headers);
+  $result = 1 if check_apparently_from ($headers, $user);
+  $result = 1 if check_quit_body ($body, $user);
+  if ($result)
+    {
+      print_test_error ("The message found is:\n$mbox\n");
+      return 1;
+    }
+  print_test_result ("Quit message looks sane.");
   return 0;
 }
 sub add_user_to_group
@@ -428,7 +445,7 @@ sub quit_group
       return 1;
     }
   print_test_result ('Successfully quit.');
-  return 0;
+  return check_quit_email ($user);
 }
 
 return "true";
