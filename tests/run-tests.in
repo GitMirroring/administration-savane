@@ -129,6 +129,8 @@ sub init_all
   launch_db ();
   append_savane_conf (<<'  EOF', undef, 1);
     $sys_error_unfiltered = true;
+    $sys_cc_error = ['sv@savane.test' => []];
+    $sys_error_cc_limit = -1;
   EOF
   $port = look_for_port ();
   wait_for_db ();
