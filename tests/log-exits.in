@@ -50,15 +50,17 @@ use Savane::Mail;
 
 PrintVersionOrHelp ('Test $sys_log_exits (see doc/savane.conf.php).');
 
-my $agent = make_agent ()
-  or exit (1);
-my $exit_code = 0;
-my $url = 'siteadmin/index.php';
-my $cc_error_setting = <<'EOF';
-  # Save error reports in mbox.
-  $sys_cc_error = ['sv-dev@savane.test' => ['subject' => 'error']];
-  $sys_error_cc_limit = -1; # Don't limit error message rate.
-EOF
+sub init_environment
+{
+  my $agent = make_agent () or exit (1);
+  my $cc_error_setting = <<'  EOF';
+    # Save error reports in mbox.
+    $sys_cc_error = ['sv-dev@savane.test' => ['subject' => 'error']];
+    $sys_error_cc_limit = -1; # Don't limit error message rate.
+  EOF
+  return undef if append_savane_conf ($cc_error_setting);
+  return $agent;
+}
 
 sub check_mbox
 {
@@ -93,20 +95,26 @@ sub run_url
   return check_mbox ($should_be_empty);
 }
 
-$exit_code = 1 if append_savane_conf ($cc_error_setting);
-$exit_code = 1 if run_url (
-  "$url/?iter=0", 'Checking default $sys_log_exits behavior.'
-);
-$exit_code = 1 if run_url (
-  "$url/?iter=1", 'Checking $sys_log_exits explicitly set to false.',
-  '$sys_log_exits = false;'
-);
-$exit_code = 1 if run_url (
-  "$url/?iter=2", 'Checking $sys_log_exits set to true.',
-  '$sys_log_exits = true;', 0
-);
-print_test_log ('Checking the theoretical existence of the URL tested.');
-$exit_code = 1 if check_status_code ("$url/?iter=3", '200', '*');
+sub main
+{
+  my $agent = init_environment ();
+  my $url = 'siteadmin/index.php';
+  my $ret = run_url (
+    "$url/?iter=0", 'Checking default $sys_log_exits behavior.'
+  );
+  $ret = 1 if run_url (
+    "$url/?iter=1", 'Checking $sys_log_exits explicitly set to false.',
+    '$sys_log_exits = false;'
+  );
+  $ret = 1 if run_url (
+    "$url/?iter=2", 'Checking $sys_log_exits set to true.',
+    '$sys_log_exits = true;', 0
+  );
+  print_test_log ('Checking the theoretical existence of the URL tested.');
+  $ret = 1 if check_status_code ("$url/?iter=3", '200', '*');
 
-print_test_result ("Test done.") unless $exit_code;
-exit ($exit_code);
+  print_test_result ("Test done.") unless $ret;
+  return $ret;
+}
+
+exit (main ());
