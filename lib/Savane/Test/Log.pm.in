@@ -46,6 +46,7 @@ require Exporter;
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
   print_test_log print_test_error print_test_result init_test_log close_test_log
+  get_test_name
 );
 
 my $log_fd;
@@ -85,7 +86,7 @@ sub print_test_result
   print_test ($str, '- ');
 }
 
-sub script_name
+sub get_test_name
 {
   my $name = $0;
   $name =~ s,^[.]/,,;
@@ -97,7 +98,7 @@ my $prefix;
 sub init_test_log
 {
   my $file = "test.log";
-  my $name = script_name ();
+  my $name = get_test_name ();
   $prefix = shift;
   $prefix = '==' unless defined $prefix;
   open ($log_fd, ">>:encoding(UTF-8)", $file)
@@ -107,7 +108,7 @@ sub init_test_log
 
 sub close_test_log
 {
-  my $name = script_name ();
+  my $name = get_test_name ();
   print_test_log ("$prefix $name end.");
 }
 

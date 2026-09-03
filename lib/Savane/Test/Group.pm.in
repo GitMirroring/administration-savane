@@ -349,6 +349,46 @@ sub select_fields
   return $ret;
 }
 
+sub check_submission_subject
+{
+  my $headers = shift;
+  return 0 if $headers =~ /\nSubject: submission of/s;
+  print_test_error ("Expected subject not found.");
+  return 1;
+}
+
+sub check_submission_body
+{
+  my $body = shift;
+  return 0
+    if $body =~ /A package was submitted.* <.*> described the package/s;
+  print_test_error ("Message body doesn't meet expectations.");
+  return 1;
+}
+
+sub run_submission_email_checks
+{
+  my ($user, $headers, $body) = @_;
+  my $result = check_submission_subject ($headers);
+  $result = 1 if check_apparently_from ($headers, $user);
+  $result = 1 if check_submission_body ($body);
+  return $result;
+}
+
+sub check_submission_email
+{
+  my ($user, $group) = @_;
+  my ($headers, $body, $mbox) = get_message ();
+  return 1 unless defined $headers;
+  if (run_submission_email_checks ($user, $headers, $body))
+    {
+      print_test_error ("The message found is:\n$mbox\n");
+      return 1;
+    }
+  print_test_result ("Request message looks sane.");
+  return 0;
+}
+
 sub register_group
 {
   my ($agent, $user, $group, $type) = @_;
@@ -359,6 +399,7 @@ sub register_group
   return -1 if select_features ($user, $id, $group);
   return -1 if set_permissions ($user, $group);
   return -1 if select_fields ($user, $id, $group);
+  return -1 if check_submission_email ($user, $group);
   return $id;
 }
 
