@@ -50,6 +50,8 @@ use Savane::Test;
 my $frontenddir = '@frontenddir@';
 my $gnupgdir = "@pkgstatedir@/gnupg";
 
+PrintVersionOrHelp ('Visit testconfig.php and check for essential issues.');
+
 sub install_gpg_key
 {
   my $pref = "$frontenddir/php/testing/gpg/rsa";
@@ -86,28 +88,26 @@ END {
   system ('rm', '-f', '-r', $gnupgdir);
 }
 
-PrintVersionOrHelp ('Visit testconfig.php and check for essential issues.');
+sub main
+{
+  exit (1) if install_gpg_key ();
+  my $agent = make_agent (0) or exit (1);
+  print_test_log ('Visiting testconfig.php.');
+  $agent->get (make_url ('testconfig.php'));
+  my $ret = check_request_status ($agent, 'testconfig-status.html');
+  if ($agent->content (raw => 1) =~ /<p id='no-tests-failed'>/)
+    {
+      print_test_result ('No essential tests failed on the page.');
+    }
+  else
+    {
+      $ret = 1;
+      print_test_error ('Some tests failed.');
+      save_page ($agent, 'testconfig.html');
+    }
+  $ret = 1 if check_source_availability ($agent);
+  print_test_result ("Test done.") unless $ret;
+  return $ret;
+}
 
-my $exit_code = 2;
-exit (1) if install_gpg_key ();
-my $agent = make_agent (0) or exit (1);
-my $url = 'testconfig.php';
-
-print_test_log ('Visiting testconfig.php.');
-$agent->get (make_url ('testconfig.php'));
-$exit_code = 1 if check_request_status ($agent, 'testconfig-status.html');
-
-if ($agent->content (raw => 1) =~ /<p id='no-tests-failed'>/)
-  {
-    print_test_result ('No essential tests failed on the page.');
-  }
-else
-  {
-    $exit_code = 1;
-    print_test_error ('Some tests failed.');
-    save_page ($agent, 'testconfig.html');
-  }
-$exit_code = 1 if check_source_availability ($agent);
-$exit_code = 0 if $exit_code == 2;
-print_test_result ("Test done.") unless $exit_code;
-exit ($exit_code);
+exit (main ());
