@@ -52,7 +52,8 @@ require Exporter;
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
-  clear_mbox get_mbox make_url unmake_url make_agent
+  clear_mbox get_mbox get_message check_apparently_from check_mbox
+  make_url unmake_url make_agent
   save_page save_text
   find_form
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
@@ -323,28 +324,47 @@ sub clear_mbox
   unless (-f $path)
     {
       print_test_result ("No mbox at $path", !$silent);
-      return;
+      return !$silent;
     }
-  unlink ($path) or print_test_result ("Can't remove $path: $!.", !$silent);
+  return 0 if unlink ($path);
+  print_test_result ("Can't remove $path: $!.", !$silent);
+  return !$silent;
 }
 
 sub get_mbox
 {
   my ($clear, $silent) = @_;
-  my $fd;
   my @ret;
   my $mp = mbox_path ();
-  unless (open ($fd, '<', $mp))
+  open (my $fd, '<', $mp);
+  unless (defined $fd)
     {
-      print_test_error ("Can't open mbox $mp.") unless $silent;
+      print_test_error ("Can't open mbox $mp: $!") unless $silent;
       return '';
     }
-  while (<$fd>)
-    {
-      push @ret, $_;
-    }
+  @ret = <$fd>;
+  close ($fd);
   clear_mbox ($silent) if $clear;
   return join '', @ret;
+}
+
+sub get_message
+{
+  my $mbox = get_mbox (1);
+  if ($mbox !~ /(.*?)\n\n(.*)/s)
+    {
+      print_test_error ("No empty line is found in mbox:\n$mbox\n.");
+      return (undef, undef, undef);
+    }
+  return ($1, $2, $mbox);
+}
+
+sub check_apparently_from
+{
+  return 0
+    if $_[0] =~ /\nX-Apparently-From: Savane authenticated user ((?i)$_[1])/s;
+  print_test_error ("X-Apparently-From is missing.");
+  return 1;
 }
 
 sub find_su_link
@@ -625,8 +645,41 @@ sub remove_test_php_files
   return $ret;
 }
 
+sub mbox_log_name
+{
+  my $ret = shift;
+  return $ret if defined $ret;
+  return get_test_name () . '.mbox';
+}
+
+sub check_mbox
+{
+  my ($should_be_empty, $file) = (@_? shift: 1, shift);
+  my $mbox = get_mbox (1, 1);
+  my $empty = $mbox eq '';
+  if ($should_be_empty)
+    {
+      if ($empty)
+        {
+          print_test_result ("Mbox was expectedly empty.");
+          return 0;
+        }
+      print_test_error ("Mbox wasn't empty.");
+      save_text ($mbox, mbox_log_name ($file));
+      return 1;
+    }
+  if ($empty)
+    {
+      print_test_error ("Mbox was empty.");
+      return 1;
+    }
+  print_test_result ("Mbox was expectedly not empty.");
+  return 0;
+}
+
 END
 {
+  $? = 1 if check_mbox ();
   remove_test_php_files ();
   close_test_log ();
 }

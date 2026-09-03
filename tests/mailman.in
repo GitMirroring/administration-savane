@@ -569,6 +569,7 @@ sub main
   $exit_code = 1 if modify_lists ($agent);
   $exit_code = 1 if remove_lists ($agent);
   $exit_code = 1 if log_out ($agent);
+  $exit_code = 1 if clear_mbox ();
   $exit_code = 1 if quit_group ($agent, $login);
   $exit_code = 1 if log_out ($agent);
   $exit_code = 1 if remove_user ($agent, $login);

@@ -324,7 +324,7 @@ sub check_submitted_item
   return $item_id;
 }
 
-sub check_submission_subject
+sub check_notif_subject
 {
   my ($box, $item_id) = @_;
   unless ($box =~ s,.*\nSubject: ([^\n]*).*,$1,s)
@@ -364,7 +364,7 @@ sub check_submit_notification
   my $item_id = shift;
   my $box = get_mbox (1, 1);
   print_test_log ("Checking the notification.");
-  my $ret = check_submission_subject ($box, $item_id);
+  my $ret = check_notif_subject ($box, $item_id);
   $ret = 1 if check_discussion_lock ($box, $item_id);
   save_text ($box, "$item_id-submit.mbox") if $ret;
   print_test_result ("The notification looks sane.") unless $ret;
@@ -388,6 +388,7 @@ sub request_new_item
 sub check_new_item
 {
   my ($agent, $tracker, $item_id) = @_;
+  print_test_log ("Checking $tracker #$item_id.");
   my $notif_result = check_submit_notification ($item_id);
   return 1 if $item_id < 0;
   $agent->get (make_url (comment_page_url ($item_id)));
