@@ -45,7 +45,8 @@
 use strict;
 use Savane::Version;
 use Getopt::Long;
-use Cwd qw (abs_path);
+use Cwd 'abs_path';
+use File::Temp 'tempfile';
 
 my $port = '@WWW_SERVER_PORT@';
 my $host = '@WWW_SERVER_HOST@';
@@ -55,6 +56,7 @@ my $file_twin_host = '@FILE_TWIN_SERVER_HOST@';
 my $php_bin = '@PHP@';
 my @ini_directives;
 my $confdir = '@confdir@';
+my $rundir = '@rundir@';
 my $frontenddir = '@frontenddir@';
 my $have_twin_host = '@TWIN_HOST_ENABLED@' eq 'yes';
 my ($skip_twin, $only_twin) = (!$have_twin_host, 0);
@@ -142,6 +144,17 @@ sub init_twin_options
   $run_twin_file = 0 unless $twin_host ne $file_twin_host;
 }
 
+sub make_ini_file
+{
+  my $php = shift;
+  my $my_conf = "$confdir/php.ini";
+  my $ini_file = `$php -r 'print php_ini_loaded_file ();'`;
+  return $my_conf if $ini_file eq '';
+  my (undef, $fn) = tempfile ('php-ini-XXXXXXXX', DIR => $rundir, UNLINK => 1);
+  `cat "$ini_file" "$my_conf" > "$fn"` if $ini_file ne '';
+  return $fn;
+}
+
 sub init
 {
   $php_bin = abs_path ($php_bin);
@@ -161,11 +174,14 @@ sub init
 
   chdir "$frontenddir/php";
   init_twin_options ();
+  my $ini_file = make_ini_file ($php_bin);
+  exit (1) unless defined $ini_file;
+  return $ini_file;
 }
 
 sub launch_host
 {
-  my $host = shift;
+  my ($host, $ini_file) = @_;
   my $pid = fork ();
   die "Can't fork for $host: $!" unless defined $pid;
   if ($pid)
@@ -174,7 +190,7 @@ sub launch_host
       return;
     }
   my @cmd = (
-    $php_bin, '-c', "$confdir/php.ini", @ini_options, '-S', "$host:$port",
+    $php_bin, '-c', $ini_file, @ini_options, '-S', "$host:$port",
     '-t', "$frontenddir/php", "$frontenddir/local.php"
   );
   exec (@cmd);
@@ -182,22 +198,22 @@ sub launch_host
 
 sub launch_servers
 {
-  launch_host ($host) if $run_host;
-  launch_host ($file_host) if $run_host_file;
+  my $ini_file = shift;
+  launch_host ($host, $ini_file) if $run_host;
+  launch_host ($file_host, $ini_file) if $run_host_file;
   $ENV{'SAVANE_CONF'} .= "/nongnu-conf";
   $ENV{'SAVANE_THIS_HOST_NAME'} = 'savane.nongnu.test';
   $ENV{'SAVANE_BROTHER_DOMAIN'} = $host;
   $ENV{'SAVANE_DEFAULT_DOMAIN'} = $twin_host;
   $ENV{'SAVANE_FILE_DOMAIN'} = $file_twin_host;
-  launch_host ($twin_host) if $run_twin;
-  launch_host ($file_twin_host) if $run_twin_file;
+  launch_host ($twin_host, $ini_file) if $run_twin;
+  launch_host ($file_twin_host, $ini_file) if $run_twin_file;
 }
-
 
 sub main
 {
-  init ();
-  launch_servers ();
+  my $ini_file = init ();
+  launch_servers ($ini_file);
   1 while (wait () != -1);
   return 0;
 }
