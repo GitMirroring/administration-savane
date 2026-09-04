@@ -46,6 +46,8 @@ use Savane::Util;
 use Savane::Test::PHP;
 use Savane::Test::Log;
 use WWW::Mechanize;
+use File::Temp "tempfile";
+use File::Basename qw (basename dirname);
 require Exporter;
 
 our @ISA = qw (Exporter);
@@ -81,16 +83,39 @@ sub try_mkdir
   return 1;
 }
 
+# Rename the temporary file so that the generated part of its name
+# move to the start of the name; return the renamed file name or
+# the old name when renaming fails.
+sub try_rename_tmpfile
+{
+  my ($fn, $base, $tail) = @_;
+  my $l = length ($tail);
+  my ($ret, $sep);
+  my $pref = substr ($fn, 0, -length ($base) - $l);
+  $tail = substr ($fn, -$l);
+  $sep = substr ($tail, 0, 1);
+  $tail = substr ($tail, 1);
+  $ret = "$pref$tail$sep$base";
+  link ($fn, $ret) or return $fn;
+  unlink $fn;
+  return $ret;
+}
+
 sub save_text
 {
   my $text = shift;
   my $file = @_? shift: 'test.txt';
   my $error = @_? shift: 1;
-  my $fd;
-  print_test_result ("See $file.", $error);
-  open ($fd, '>:encoding(UTF-8)', $file);
+  my $dir = dirname ($file);
+  my $base = basename ($file);
+  my $tail = '-' . ('X' x 8);
+  my ($fd, $fn) = tempfile ("$base$tail", DIR => $dir);
+  binmode $fd, ":utf8";
   print {$fd} $text;
   close ($fd);
+  $fn = try_rename_tmpfile ($fn, $base, $tail);
+  link $fn, $file or $file = $fn;
+  print_test_result ("See $file.", $error);
 }
 
 sub save_page
