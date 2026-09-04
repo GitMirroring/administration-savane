@@ -882,7 +882,8 @@ function list_facilities ($func, $items, $labels = [])
       else
         {
           $res = sprintf ("<b>%s</b> <i>%s</i>", $lab[false], $comment);
-          add_summary ("$name not found.");
+          if (strncmp ($comment, 'Optionally ', strlen ('Optionally ')))
+            add_summary ("$name not found.");
         }
       $defs["<b>$name</b>"] = $res;
     }
