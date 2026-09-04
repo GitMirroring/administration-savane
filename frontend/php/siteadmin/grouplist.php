@@ -59,6 +59,9 @@ extract (sane_import ('get',
   ]
 ));
 
+if (empty ($status))
+  $status = '';
+
 extract (sane_import ('post',
   ['digits' => 'group_id_to_assign', 'true' => 'assign_gid']
 ));
