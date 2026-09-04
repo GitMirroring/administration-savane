@@ -312,18 +312,18 @@ function context_cont_icon ()
 function context_sub_icon ()
 {
   $sub_icons = [
-    'my' => ['groups' => 'people', 'configure' => 'preferences',
-      null => 'desktop'],
+    'my' => ['groups' => 'people', 'configure' => 'preferences'],
     'project' => ['search' => 'directory', 'members' => 'people',
-      'keys' => 'keys', 'configure' => 'preferences', null => 'main'
+      'keys' => 'keys', 'configure' => 'preferences'
     ]
   ];
+  $default_icons = ['my' => 'desktop', 'project' => 'main'];
   if (!array_key_exists (CONTEXT, $sub_icons))
     return 'main';
   $sub = $sub_icons[CONTEXT];
   if (array_key_exists (SUBCONTEXT, $sub))
     return $sub[SUBCONTEXT];
-  return $sub[null];
+  return $default_icons[CONTEXT];
 }
 
 # Return icon name depending on the context.

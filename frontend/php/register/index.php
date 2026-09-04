@@ -169,7 +169,7 @@ $form->addElement ('text', 'tarball_url', no_i18n ('Tarball (.tar.gz) URL'),
     no_i18n ('(or <a href="%s" target="_blank">upload file</a> to Savannah.)'),
     'upload.php')
 );
-$form->addElement ('submit', null, no_i18n ("Register group"));
+$form->addElement ('submit', '', no_i18n ("Register group"));
 
 $form->addRule ('full_name', no_i18n ("Invalid full name"), 'minlength', 2);
 $form->addRule ('unix_name', no_i18n ("Invalid system name"), 'callback',
