@@ -51,4 +51,6 @@ error_log = "@apache_logdir@/@php_log_file@"
 allow_url_fopen = on
 disable_functions = exec,passthru,popen,shell_exec,system
 date.timezone = "UTC"
+memory_limit = 4M
+post_max_size = 3M
 @PHP_SENDMAIL_LINE@
