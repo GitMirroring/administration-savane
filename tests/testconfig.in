@@ -83,9 +83,11 @@ sub check_source_availability
 }
 
 END {
-  return unless -d $gnupgdir;
+  my $exit_code = $?;
+  return $exit_code unless -d $gnupgdir;
   print_test_log ('Removing GnuPG directory.');
   system ('rm', '-f', '-r', $gnupgdir);
+  $? = $exit_code;
 }
 
 sub main
