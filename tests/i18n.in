@@ -225,10 +225,16 @@ sub test_i18n_page
 {
   my ($agent, $language) = @_;
   print_test_log ("Testing language '$language'.");
-  print_test_log ('Visiting initial page.');
+  print_test_log ("Visiting initial page $initial_page.");
   $agent->get (make_url ($initial_page));
   print_test_log ('Visiting i18n page.');
-  $agent->follow_link (url_regex => qr@^/i18n.php@);
+  my $link = $agent->find_link (url_regex => qr@^/i18n.php@);
+  unless (defined $link)
+    {
+      print_test_error ('Link to i18n.php not found.');
+      return 1;
+    }
+  $agent->get ($link->url ());
   my $form = find_i18n_form ($agent);
   return 1 unless (defined $form);
   my $input = check_language_input ($form);
@@ -243,7 +249,9 @@ sub run_tests
   $ret = 1 if check_i18n_requests ($agent);
   foreach ('fr', 'en', '100')
     {
-      $ret = 1 if test_i18n_page ($agent, $_);
+      next unless test_i18n_page ($agent, $_);
+      save_page ($agent, 'i18n-page.html');
+      $ret = 1;
     }
   return $ret;
 }
