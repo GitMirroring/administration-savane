@@ -336,7 +336,8 @@ sub get_mbox
   my ($clear, $silent) = @_;
   my @ret;
   my $mp = mbox_path ();
-  open (my $fd, '<', $mp);
+  open (my $fd, '<:encoding(UTF-8)', $mp);
+
   unless (defined $fd)
     {
       print_test_error ("Can't open mbox $mp: $!") unless $silent;
