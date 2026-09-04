@@ -76,6 +76,7 @@ sub find_the_form
   if (!defined ($form))
     {
       print_test_error ("Form not found.");
+      save_page ($agent, 'no-form.html');
       exit (1);
     }
   return $form;
@@ -89,6 +90,7 @@ my $link = $agent->find_link (text => 'Originator Phone');
 if (!defined ($link))
   {
     print_test_error ("Link not found");
+    save_page ($agent, 'no-link.html');
     exit (1);
   }
 my $field_usage_url = $link->url ();
@@ -151,6 +153,7 @@ if ($form->find_input ('#status', 'checkbox')->value)
 else
   {
     print_test_error ('Status has not been set correctly.');
+    save_page ($agent, 'wrong-status.html');
     $exit_code = 1;
   }
 my %other_checkboxes = %saved_checkboxes;
@@ -169,6 +172,7 @@ foreach (keys %other_checkboxes)
         next;
       }
     print_test_error ("$_ was unintendedly modified");
+    save_page ($agent, 'modified.html');
     $exit_code = 1;
   }
 print_test_log ('Reverting settings.');
