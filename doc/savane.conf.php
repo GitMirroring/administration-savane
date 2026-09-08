@@ -71,7 +71,7 @@ $sys_pwqcheck_path = '/usr/local/bin';
 $sys_reply_to = '%UID-%TRACKER-sv-dev <savane-trackers@example.org>';
 
 # URL of the Cgit instance hosting the corresponding source code.
-# Used to implement AGPL reqirements.
+# Used to implement AGPL requirements.
 $sys_savane_cgit = '//git.example.org/cgit/savane/savane.git';
 
 # Address to redirect all email to (don't set if not needed).

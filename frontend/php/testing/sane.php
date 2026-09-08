@@ -77,7 +77,7 @@ $help_string = '
 
   Options:
 
-    -h, --help             diplay this help and exit
+    -h, --help             display this help and exit
     -g "UNIX_GROUP_NAMES"  instead of running the testsuite, validate
                              the specified space-separated strings against
                              the rules applied to group names in init.php';

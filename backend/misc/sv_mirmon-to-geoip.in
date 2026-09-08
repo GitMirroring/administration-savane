@@ -92,7 +92,7 @@ die qq{Too few command line arguments $#ARGV\n} if $#ARGV < 3;
 my @schemes = ('http', 'https');
 
 our %source_overrides = ('am' => '!az,am,bg,de');
-# Sometimes, the GeoIP library returns a code that isn't really a contry.
+# Sometimes, the GeoIP library returns a code that isn't really a country.
 our %cc_aliases = (
   'ap' => 'as', # 'Asia/Pacific': assume American Samoa.
   'eu' => 'fr', # 'Europe': assume France.

@@ -612,7 +612,7 @@ if ($item == 'delete')
 if (in_array ($step, ['confirm', 'discard'], true))
   {
     # At this step, a GET request is used because the URL comes
-    # from the confrimation email.  That means no form_id-based CSRF
+    # from the confirmation email.  That means no form_id-based CSRF
     # mitigation; in order to use it, we form a POST request as
     # the 'confirm2' step.  The hash is validated just to reveal
     # the errors at an earlier stage.

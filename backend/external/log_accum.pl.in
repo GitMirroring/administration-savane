@@ -692,7 +692,7 @@ sub mail_separate_diffs
         }
       while @diffs and $diffs[0] !~ /^Index: /;
 
-      # Send the curent diff.
+      # Send the current diff.
       $count++;
       $errors++
         unless send_mail $mail_to, $module, $username, $fullname,

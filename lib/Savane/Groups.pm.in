@@ -100,7 +100,7 @@ sub GetGroupList
 }
 
 
-# Delete a group account. This function should be used carrefully.
+# Delete a group account. This function should be used carefully.
 # arg1: group name
 # returns: 1 if the group was deleted, 0 if it was not
 sub DeleteGroup
@@ -112,7 +112,7 @@ sub DeleteGroup
   return ($dbd->do ($sql) >= 1);
 }
 
-# Delete several group accounts. This function should be used carrefully.
+# Delete several group accounts. This function should be used carefully.
 # arg1: criterion
 # returns: the number (real) of deleted rows, undef on error - check
 #   the DBI documentation

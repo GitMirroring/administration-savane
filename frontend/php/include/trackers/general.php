@@ -1606,7 +1606,7 @@ function trackers_build_match_text ($field, &$to_match)
 {
   $to_match = utils_specialchars ($to_match);
   $params = [];
-  # If it is sourrounded by /.../ the assume a regexp
+  # If it is surrounded by /.../ the assume a regexp,
   # else transform into a series of LIKE %word%.
   if (preg_match ('/^\s*\/(.*)\/\s*$/', $to_match, $matches))
     return [
@@ -1647,7 +1647,7 @@ function trackers_build_match_int_exact ($field, &$to_match, $matches)
 
 function trackers_build_match_int ($field, &$to_match)
 {
-  # If it is sourrounded by /.../ then assume a regexp
+  # If it is surrounded by /.../ then assume a regexp,
   # else assume an equality.
   if (preg_match ('/\/(.*)\#/', $to_match, $matches))
     return [" $field RLIKE ? ", trackers_limit_rlike ($matches[1])];

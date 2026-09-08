@@ -5,7 +5,7 @@ the arrangements needed for that.
 
 When Savane sends notifications from trackers to specific users, it adds
 information about the relevant tracker, item, and the user who would reply
-to the notitication by email.  When the user replies to the message,
+to the notification by email.  When the user replies to the message,
 it comes to a specific address, and a simple script redirects the
 data into a HTTP request to $SERVER_URL/$tracker/comment.php.  Then
 comment.php validates the request and adds a comment to the tracker

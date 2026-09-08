@@ -118,8 +118,8 @@ sub output_period_stats
 sub output_periods
 {
   my ($fh, $periods) = @_;
-  my $i = '1-groupped';
-  my $l = 'by path (groupped by package)';
+  my $i = '1-grouped';
+  my $l = 'by path (grouped by package)';
   output_period_stats ($fh, $i, $l, $periods);
   my ($i, $l);
   for ($i = 1; ($l = stat_field_label ($i)) ne ''; $i++)
@@ -164,7 +164,7 @@ sub output_period_indicem
   print $fh "<h1>$site_name statistics [$period]</h1>\n";
   print $fh "<ul>\n";
   print $fh "<li><a href='$period.1-groupped.html'>"
-    . "by path (groupped by package)</a></li>\n";
+    . "by path (grouped by package)</a></li>\n";
   my ($i, $l);
   for ($i = 1; ($l = stat_field_label ($i)) ne ''; $i++)
     {

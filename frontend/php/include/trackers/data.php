@@ -1214,7 +1214,7 @@ function trackers_data_update_transition (
     fb (_("Transition updated"));
 }
 
-# Greate an entry for a transition.
+# Create an entry for a transition.
 function trackers_data_create_transition (
   $field_id, $from, $to, $mail_list, $allowed
 )

@@ -1,5 +1,5 @@
 Savane Web UI can display its pages in the language selected by the user.
-This file discusses how to configure the languages availble to the user
+This file discusses how to configure the languages available to the user
 in Savane.  These procedures were tested on Trisquel 11.0.
 
 In order to enable localization, assign a colon-separated list of language
