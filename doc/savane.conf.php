@@ -145,7 +145,8 @@ $sys_cc_error = [
 # ($sys_error_cc_limit) within $sys_error_cc_period, in seconds.
 # Further messages are blocked until the period passes.
 # When $sys_debug_footer is set, these variables are ignored and the rate
-# isn't limited.
+# isn't limited.  Likewise, the rate is not limited when $sys_error_cc_limit
+# is negative.
 $sys_error_cc_limit = 20;
 $sys_error_cc_period = 60;
 
