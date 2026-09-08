@@ -130,7 +130,7 @@ function user_check_group_admin ()
     exit_permission_denied ();
 }
 
-# Return arrays of ids and names of the groups the user belogs to.
+# Return arrays of ids and names of the groups the user belongs to.
 function user_group_names ($uid)
 {
   $result = db_execute ("

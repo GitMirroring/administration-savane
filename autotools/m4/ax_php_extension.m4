@@ -11,7 +11,7 @@ dnl AX_PHP_EXTENSION(EXTENSION, WHY)
 dnl Assign $ax_have_php_$1: "yes" if PHP is configured and loads $1 extension,
 dnl at start, else "no."
 dnl When $2 is supplied and the the result is "no," append a note on the missing
-dnl extention to ax_php_extension_missing to be used in AX_PHP_EXTENSION_REPORT.
+dnl extension to ax_php_extension_missing to be used in AX_PHP_EXTENSION_REPORT.
 
 AC_DEFUN([AX_PHP_EXTENSION],
   [

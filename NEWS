@@ -210,7 +210,7 @@ other missing PHP extensions are also reported.
 * A control to continue editing when form_id check fails is added,
   Savannah sr #111315.
 
-* Savane version and souce code offer is added to the headers of emails
+* Savane version and source code offer is added to the headers of emails
   frontend sends.
 
 * New passphrase hashes are made using yescrypt by default, and
@@ -427,7 +427,7 @@ other missing PHP extensions are also reported.
 
 ** When renaming users, the user_group table wasn't updated.
 
-** Member approvement was broken since 2024-10 0056aaf42.
+** Member approval was broken since 2024-10 0056aaf42.
 
 ** The 'Impersonate' facility didn't work since 2024-09 (e3a4540efed).
 
@@ -1033,7 +1033,7 @@ other missing PHP extensions are also reported.
 
 * Anonymous posts are reported to $sys_mail_admin@$sys_mail_domain
   when $sys_watch_anon_posts is set; likewise, posts of new users
-  are repored for first $sys_new_user_watch_days.
+  are reported for first $sys_new_user_watch_days.
 
 * Registration task template was improved (commit d16b7e7).
 
@@ -1533,7 +1533,7 @@ other missing PHP extensions are also reported.
 
 * Fix feedback on query form edit page.
 
-* Rewrite Export to work syncrhonously, without the need for cron jobs.
+* Rewrite Export to work synchronously, without the need for cron jobs.
 
 * Add a control for site admins to rename accounts.
 
