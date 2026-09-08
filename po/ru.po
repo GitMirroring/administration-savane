@@ -49,7 +49,7 @@ msgstr ""
 "Project-Id-Version: savane 3.17\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
 "POT-Creation-Date: 2026-04-25 07:27+0000\n"
-"PO-Revision-Date: 2026-04-25 15:44+0000\n"
+"PO-Revision-Date: 2026-09-08 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -1617,7 +1617,7 @@ msgid "Task Manager"
 msgstr "Журнал задач"
 
 msgid "Patch Manager"
-msgstr "Управление заплатками"
+msgstr "Журнал заплаток"
 
 #. TRANSLATORS: the first argument is a domain (like "savannah.gnu.org"
 #. vs. "savannah.nongnu.org"); the second argument
@@ -7615,7 +7615,7 @@ msgid ""
 "News Posted: it will need to be approved by a news manager of this group "
 "before it shows on the front page."
 msgstr ""
-"Новость написана: ее должен подтвердить уполномоченный участник этой группы "
+"Новость написана: ее должен подтвердить секретарь новостей этой группы "
 "перед тем, как она покажется на главной странице проекта."
 
 msgid "Error doing insert"
@@ -7626,7 +7626,7 @@ msgstr "Написать новость"
 
 msgid "A news manager of this group will have to review and approve the news."
 msgstr ""
-"Уполномоченный участник этой группы должен будет рассмотреть и подтвердить "
+"Секретарь новостей этой группы должен будет рассмотреть и подтвердить "
 "эту новость."
 
 msgid "No such group."
@@ -7668,8 +7668,7 @@ msgstr "Настройка оповещений по электронной по
 
 msgid "Action unavailable: only news managers can approve news."
 msgstr ""
-"Действие недоступно: подтверждать новости могут только уполномоченные "
-"участники проекта."
+"Действие недоступно: подтверждать новости могут только секретари новостей."
 
 #, php-format
 msgid "Open items assigned to %s"
