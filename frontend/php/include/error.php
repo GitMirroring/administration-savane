@@ -298,8 +298,13 @@ function error_cc_limit_path ($override = null)
 function error_cc_limit ()
 {
   global $sys_error_cc_limit;
-  if (isset ($sys_error_cc_limit) && $sys_error_cc_period > 0)
-    return $sys_error_cc_limit;
+  if (isset ($sys_error_cc_limit))
+    {
+      if (isset ($sys_error_cc_period) && $sys_error_cc_period > 0)
+        return $sys_error_cc_limit;
+      if ($sys_error_cc_limit < 0)
+        return $sys_error_cc_limit;
+    }
   return 17;
 }
 
@@ -328,23 +333,29 @@ function error_count_cc ($cc_error_file = null, $period = null)
   return $ret;
 }
 
+function error_write_timestamps ($timestamps, $cc_error_file)
+{
+  $f = fopen (error_cc_limit_path ($cc_error_file), 'w');
+  if ($f === false)
+    return;
+  fwrite ($f, join ("\n", $timestamps));
+  fclose ($f);
+}
+
 function error_check_cc_limit ($cc_error_file = null, $limit = null)
 {
   $sem = null; $ret = true;
   $state = utils_disable_warnings ();
   if (function_exists ('sem_get'))
     $sem = utils_sem_acquire (__FILE__);
-  $timestamps = error_count_cc ($cc_error_file);
   $limit = $limit === null? error_cc_limit (): $limit;
+  if ($limit < 0)
+    return false;
+  $timestamps = error_count_cc ($cc_error_file);
   if (count ($timestamps) <= $limit)
     {
       $ret = false;
-      $f = fopen (error_cc_limit_path ($cc_error_file), 'w');
-      if ($f !== false)
-        {
-          fwrite ($f, join ("\n", $timestamps));
-          fclose ($f);
-        }
+      error_write_timestamps ($timestamps, $cc_error_file);
     }
   if ($sem !== null)
     sem_release ($sem);
