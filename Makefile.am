@@ -45,6 +45,7 @@ endif
 
 backend_bin_common = \
   backend/accounts/sv_assign_uid_gid \
+  backend/accounts/sv_check-gpg-keys \
   backend/accounts/sv_crypt \
   backend/accounts/sv_gen_passwd_group \
   backend/accounts/sv_get_authorized_keys \
