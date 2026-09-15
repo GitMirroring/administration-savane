@@ -182,7 +182,7 @@ sub GetDBHash
 
   $hop = $dbd->prepare (parse_db_args (@_));
   $hop->execute;
-  my $count;
+  my $count = 0;
   while (my (@line) = $hop->fetchrow_array)
     {
       $ret{$count} = [@line];

@@ -1,0 +1,364 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2015-2020, 2022, 2024 Bob Proulx <bob@proulx.com>
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+use strict;
+use Savane::Version;
+use Savane::DB;
+use Savane::Util;
+use Getopt::Long;
+use File::Temp 'tempdir';
+use File::Path 'rmtree';
+
+my $script = 'sv_check-gpg-keys';
+my @accounts;
+my $verbose = 0;
+my $dry_run;
+my $log_file = '@logdir@/' . $script . '.log';
+my $tmp_dir = '@rundir@';
+my $gpg_bin = '@GPG@';
+
+my $help = <<"EOF";
+  Usage: $0 [OPTIONS] USER
+
+  Check registered GnuPG keys.
+
+    -h, --help                   show this help and exit
+    -v, --version                show Savane version and exit
+
+    -g, --gpg-bin                GPG executable [$gpg_bin]
+    -u, --login user[,...]       only check keys in the given accounts
+        --dry-run                don't run GPG
+        --verbose                output additional information
+        --logfile                file for reports [$log_file]
+EOF
+$help =~ s,^  ,,gm;
+$help =~ s,\n$,,;
+
+PrintVersionOrHelp ($help);
+
+GetOptions (
+  'login|u=s', \@accounts, 'verbose+' => \$verbose, 'logfile=s' => \$log_file,
+  'dry-run' => \$dry_run, 'gpg-bin|g=s' => \$gpg_bin
+) or die 'Wrong command line';
+
+sub build_account_cond
+{
+  my @acc = map { "'" . join ("', '", split (/,/, $_)) . "'" } @accounts;
+  return '`user_name` IN (' . join (', ', @acc) . ')';
+}
+
+sub fetch_keys
+{
+  my @cond = ('`gpg_key` IS NOT NULL', "`gpg_key` != ''");
+  push @cond, build_account_cond () if (@accounts);
+  return GetDBHash (
+    '`user`', join (' AND ', @cond) . ' ORDER BY `user_id`',
+    '`user_name`, `email`, `gpg_key`'
+  );
+}
+
+sub make_dirs
+{
+  my $data = tempdir ("$script-data-XXXXXXXX", DIR => $tmp_dir);
+  my $home = tempdir ("$script-home-XXXXXXXX", DIR => $tmp_dir);
+  return ($data, $home);
+}
+
+sub clean_dirs
+{
+  while (@_)
+    {
+      my $dir = shift;
+      next unless defined $dir;
+      rmtree ($dir);
+    }
+  return 0;
+}
+
+sub write_key
+{
+  my $gpg_key = shift;
+  my $data = $_[0];
+  my $keys = "$data/keys";
+  my $fh;
+  unless (open ($fh, '>:encoding(UTF-8)', $keys))
+    {
+      print_log ("cannot open '$keys' for writing: $!");
+      clean_dirs (@_);
+      return undef;
+    }
+  print {$fh} $gpg_key;
+  close ($fh);
+  return $keys;
+}
+
+sub open_for_reading
+{
+  my $file = shift;
+  my $fh;
+  unless (open ($fh, '<:encoding(UTF-8)', $file))
+    {
+      print_log ("cannot open $file for reading: $!");
+      return undef;
+    }
+  return $fh;
+}
+
+sub log_file_data
+{
+  my ($msg, $file, $level) = @_;
+  return () unless $verbose > $level;
+  my $fh = open_for_reading ($file);
+  return () unless defined $fh;
+  my @ret = (dup_log ("$msg:", $level));
+  while (<$fh>)
+   {
+     chomp;
+     push @ret, dup_log ("    $_", $level);
+   }
+  close ($fh);
+  return @ret;
+}
+
+sub log_cmd_results
+{
+  my ($data, $level) = @_;
+  return (log_file_data ("errors", "$data/err", $level),
+    log_file_data ("status", "$data/status", $level),
+    log_file_data ("output", "$data/out", $level));
+}
+
+sub dup_log
+{
+  my $msg = shift;
+  my $level = @_? shift: -1;
+  print_log ($msg) if $verbose > $level;
+  return $msg;
+}
+
+sub run_cmd
+{
+  my ($cmdline, $msg, $data) = @_;
+  my $level = 0;
+  `$cmdline 2> '$data/err' > '$data/out'`;
+  return () unless $?;
+  my @ret = (dup_log ("$msg failed; command line was, $cmdline", $level));
+  push @ret, log_cmd_results ($data, $level);
+  if ($? == -1)
+    {
+      return @ret, dup_log ("failed to execute: $!", $level);
+    }
+  if ($? & 0x7f)
+    {
+      my $sig = $? & 0x7f;
+      return @ret, dup_log ("died with a signal $sig", $level);
+    }
+  my $code = $? >> 8;
+  return @ret, dup_log ("exit code $code", $level);
+}
+
+sub run_gpg_cmd
+{
+  my ($cmd, $msg, $home, $data) = @_;
+  return () if $dry_run;
+  my @ret = run_cmd (
+    "'$gpg_bin' --batch --status-file '$data/status' --home '$home' $cmd",
+    $msg, $data
+  );
+  print_log ("$msg succeeded") if ($verbose > 2 && !@ret);
+  return @ret;
+}
+
+sub import_keys
+{
+  my $keys = shift;
+  return run_gpg_cmd ("--import '$keys'", 'key import', @_);
+}
+
+sub list_keys
+{
+  my $email = shift;
+  my $e = $email;
+  my $options = '--list-keys --with-colons';
+  print_log ("note: irregular characters in email $e are suppressed")
+    if (($email =~ s/['\\]//g) && $verbose > 0);
+  my @r0 = run_gpg_cmd ("$options '$email'", 'specific key listing', @_);
+  unless (@r0)
+    {
+      log_cmd_results ($_[1], 3);
+      return ();
+    }
+  my @r1 = run_gpg_cmd ($options, 'any key listing', @_);
+  return @r1 if @r1;
+  my ($k_id, $exp, $uid) = find_usable_key ("$_[1]/out");
+  return (
+    "key for email $email not found", "found key $k_id for $uid", @r0,
+    log_cmd_results ($_[1], 0)
+  )
+    if defined $k_id;
+  return ("no usable key is listed", @r1, log_cmd_results ($_[1], 1));
+}
+
+sub parse_key
+{
+  my @fields = split (/:/, shift);
+  return (undef) unless $fields[0] eq 'pub';
+  my ($k_id, $e, $cap) = ($fields[4], $fields[6], $fields[11]);
+  return (undef) unless $cap =~ /E/;
+  return ($k_id, $e, $cap);
+}
+
+sub read_uid
+{
+  my $fh = shift;
+  while (<$fh>)
+    {
+      my @fields = split (/:/, $_);
+      return '' if $fields[0] eq 'sub';
+      next unless $fields[0] eq 'uid';
+      return $fields[9];
+    }
+  return '';
+}
+
+sub find_usable_key
+{
+  my $file = shift;
+  my $fh = open_for_reading ($file);
+  return (undef, undef) unless defined $fh;
+  my ($key_id, $exp, $uid) = (undef, -1);
+  while (<$fh>)
+    {
+      my ($k_id, $e, $cap) = parse_key ($_);
+      next unless defined $k_id;
+      my $id = read_uid ($fh);
+      return ($k_id, -1, $id) if ($e eq ''); # no expiry
+      next unless $exp < $e;
+      ($key_id, $exp, $uid) = ($k_id, $e, $id);
+    }
+  close ($fh);
+  return ($key_id, $exp, $uid) if defined $key_id;
+  print_log ('no encryption-capable key found') if $verbose > 0;
+  return (undef);
+}
+
+sub expand_exp_time
+{
+  my $exp = shift;
+  return 'never expires' if ($exp < 0);
+  my @date = gmtime ($exp);
+  splice (@date, 0, 3);
+  splice (@date, 3);
+  $date[2] += 1900;
+  my $ret = sprintf ("expires on %3\$4.4i-%2\$2.2i-%1\$2.2i ", @date);
+  my $t = time ();
+  if ($t < $exp)
+    {
+      $ret .= sprintf ("(%i days left)", int (($exp - $t) / 24 / 3600));
+    }
+  else
+    {
+      $ret .= sprintf ("(%i days passed)", int (($t - $exp) / 24 / 3600));
+    }
+  return $ret;
+}
+
+sub run_gpg
+{
+  my ($keys, $email, $home, $data) = @_;
+  my @ret = import_keys ($keys, $home, $data);
+  return @ret if @ret;
+  @ret = list_keys ($email, $home, $data);
+  return @ret if @ret;
+  my ($k_id, $exp) = find_usable_key ("$data/out");
+  return ('no usable key found', log_cmd_results ($data, 0))
+    unless defined $k_id;
+  print_log ("found key $k_id, " . expand_exp_time ($exp)) if $verbose > 1;
+  return ();
+}
+
+sub run_checks
+{
+  my ($user_name, $email, $gpg_key) = @_;
+  return if $dry_run;
+  my ($data, $home) = make_dirs ();
+  my $keys = write_key ($gpg_key, $data, $home);
+  return ('cannot write key') unless defined ($keys);
+  my @ret = run_gpg ($keys, $email, $home, $data);
+  clean_dirs ($data, $home);
+  return @ret;
+}
+
+sub report_errors
+{
+  my $uid = shift;
+  my $gpg_key = shift;
+  my $msg = "Key registered in account $uid has issues:\n";
+  $msg .= '  ' . shift . "\n" while (@_);
+  print $msg;
+}
+
+sub main
+{
+  open_log ($log_file, $script, $dry_run);
+  binmode STDOUT, ":utf8";
+  my $t = time ();
+  my %entries = fetch_keys ();
+  my $n = scalar (keys %entries);
+  my $fails = 0;
+  for (my $i = 0; $i < $n; $i++)
+    {
+      my ($user_name, $email, $gpg_key) = @{$entries{$i}};
+      print_log ("checking <$user_name>") if $verbose > 0;
+      my @errors = run_checks ($user_name, $email, $gpg_key);
+      next unless @errors;
+      report_errors ("$user_name <$email>", $gpg_key, @errors);
+      $fails++;
+    }
+  $t = time () - $t;
+  print_log ("time: $t s; keyrings: $n; problematic: $fails");
+  finalize_log ();
+}
+
+exit (main ());
