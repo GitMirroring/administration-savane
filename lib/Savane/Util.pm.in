@@ -94,6 +94,7 @@ sub open_log
 {
   my ($file, $script, $dr) = @_;
   $log_script = $script;
+  $file = '/dev/stdout' if $file eq '-';
   $dry_run = $dr? ' (dry_run)': '';
   open ($util_log_fd, ">>:encoding(UTF-8)", $file)
     or die "$log_script: Can't open log file $file: $!";
