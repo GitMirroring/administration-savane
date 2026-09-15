@@ -268,7 +268,7 @@ all_substituted = $(substituted) $(all_test_scripts)
 # Force trivial cgitrepos for the time being.
 cgirepos: ; echo -n > $@
 
-EXTRA_DIST += backend/external/cities15000.txt bootstrap AUTHORS.Savannah \
+EXTRA_DIST += backend/external/cities15000.txt AUTHORS.Savannah \
   AUTHORS.SourceForge db/initial.sql db/mk-db.sql.in db/sample.sql \
   $(all_substituted:%=%.in) $(mirmon_pkgdata) backend/README \
   autotools/README caboose/cleanup-dump.sed \

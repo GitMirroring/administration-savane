@@ -94,7 +94,7 @@ Checkout the commit you need, e.g.
 
 Regenerate the configure script and other parts of the build system:
 
-  $ cd savane; ./bootstrap
+  $ cd savane; autoreconf -vi
   autoreconf: Entering directory `.'
   ...
   autoreconf: Leaving directory `.'
