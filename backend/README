@@ -85,7 +85,7 @@ extra/git/sv_cgit_about_filter.pl
 =================================
 
 Basic "about filter" for Cgit.
-Used on vcs2.
+Was used on vcs2 before migration to mirrors.
 
 extra/git/sv_cgit.pl
 ====================
