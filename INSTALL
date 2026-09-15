@@ -88,6 +88,11 @@ Clone Savane to $HOME/sv:
   Receiving objects: 100% (14454/14454), 20.82 MiB | 1.57 MiB/s, done.
   Resolving deltas: 100% (10514/10514), done.
 
+If you have a Savannah account, you an authenticated access may work better
+for you (replace <account> with your user name),
+
+  git clone <account>@git.savannah.nongnu.org:/srv/git/administration/savane.git
+
 Checkout the commit you need, e.g.
 
   $ git checkout -b i18n origin/i18n
