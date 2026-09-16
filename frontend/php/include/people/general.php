@@ -343,11 +343,18 @@ function people_show_job_inventory ($job_id)
 
 function people_verify_job_group ($job_id, $group_id)
 {
-  $result = db_execute ("
-    SELECT * FROM people_job WHERE job_id = ? AND group_id = ?",
+  if (empty ($job_id))
+    return;
+  $result = db_execute (
+    "SELECT * FROM `people_job` WHERE `job_id` = ? AND `group_id` = ?",
     [$job_id, $group_id]
   );
-  return db_numrows ($result) > 0;
+  if (db_numrows ($result) > 0)
+    return $result;
+  $name = group_getname ($group_id);
+  $msg = sprintf (_('Group %s has not job #%d.'), $name, $job_id);
+  exit_error ($msg);
+  return null;
 }
 
 function people_draw_skill_box ($result, $job_id = false, $group_id = false)

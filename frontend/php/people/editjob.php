@@ -50,196 +50,218 @@ extract (sane_import ('request', ['digits' => 'job_id']));
 $submits = ['add_job', 'update_job', 'add_to_job_inventory',
   'update_job_inventory', 'delete_from_job_inventory',
 ];
+$post_digits = [
+  'status_id', 'category_id', 'job_inventory_id', 'skill_id',
+  'skill_level_id', 'skill_year_id',
+];
 extract (sane_import ('post',
   [
-    'true' => $submits,
-    'digits' =>
-      [
-        'status_id', 'category_id', 'job_inventory_id', 'skill_id',
-        'skill_level_id', 'skill_year_id',
-      ],
-    'specialchars' => 'title',
-    'pass' => 'description',
+    'true' => $submits, 'digits' => $post_digits,
+    'specialchars' => 'title', 'pass' => 'description',
   ]
 ));
 form_check ($submits);
 user_check_group_admin ();
-
-if ($add_job)
+$job_result = people_verify_job_group ($job_id, $group_id);
+foreach ($post_digits as $v)
   {
-    # Create a new job.
-    if (!$title || !$description || $category_id == 100)
-      exit_error (_("error - missing info"), _("Fill in all required fields"));
-    $result = db_autoexecute ('people_job',
-      [ 'group_id' => $group_id, 'created_by' => user_getid (),
-        'title' => $title, 'description' => $description, 'date' => time (),
-        'status_id' => 1, 'category_id' => $category_id,
-      ], DB_AUTOQUERY_INSERT
-    );
-    if (!$result || db_affected_rows ($result) < 1)
-      {
-        fb (_("JOB insert FAILED"));
-        print db_error ();
-      }
-    else
-      {
-        $job_id = db_insertid ($result);
-        fb (_("JOB inserted successfully"));
-      }
-  }
-elseif ($update_job)
-  {
-    # Update the job's description, status, etc.
-    if (!$title || !$description || $category_id == 100 || $status_id == 100
-        || !$job_id
-    )
-      exit_error (_("error - missing info"), _("Fill in all required fields"));
-    $result = db_autoexecute ('people_job',
-      [
-        'title' => $title, 'description' => $description,
-        'status_id' => $status_id, 'category_id' => $category_id,
-      ], DB_AUTOQUERY_UPDATE,
-      "job_id = ? AND group_id = ?", [$job_id, $group_id]
-    );
-    if (!$result || db_affected_rows ($result) < 1)
-      {
-        fb (_("JOB update FAILED"));
-        print db_error ();
-      }
-    else
-      fb (_("JOB updated successfully"));
-  }
-elseif ($add_to_job_inventory)
-  {
-    # Add item to job inventory.
-    if ($skill_id == 100 || $skill_level_id == 100 || $skill_year_id == 100
-        || !$job_id)
-      exit_error (_("error - missing info"), _("Fill in all required fields"));
-
-    if (people_verify_job_group ($job_id, $group_id))
-      {
-        people_add_to_job_inventory (
-          $job_id, $skill_id, $skill_level_id, $skill_year_id
-        );
-        fb (_("JOB updated successfully"));
-      }
-    else
-      fb (_("JOB update failed - wrong project_id"));
-  }
-elseif ($update_job_inventory)
-  {
-    # Change Skill level, experience etc.
-    if ($skill_level_id == 100 || $skill_year_id == 100  || !$job_id
-        || !$job_inventory_id)
-      exit_error (_("error - missing info"), _("Fill in all required fields"));
-
-    if (people_verify_job_group ($job_id, $group_id))
-      {
-        $result = db_autoexecute ('people_job_inventory',
-          [
-            'skill_level_id' => $skill_level_id,
-            'skill_year_id' => $skill_year_id,
-          ], DB_AUTOQUERY_UPDATE,
-          "job_id = ? AND job_inventory_id = ?", [$job_id, $job_inventory_id]
-        );
-        if (!$result || db_affected_rows($result) < 1)
-          {
-            fb(_("JOB skill update FAILED"));
-            print db_error();
-          }
-        else
-          fb(_("JOB skill updated successfully"));
-      }
-    else
-      fb (_("JOB skill update failed - wrong project_id"));
-  }
-elseif ($delete_from_job_inventory)
-  {
-    # Remove this skill from this job.
-    if (!$job_id)
-      exit_error (_("error - missing info"), _("Fill in all required fields"));
-    if (people_verify_job_group ($job_id, $group_id))
-      {
-        $result = db_execute("
-          DELETE FROM people_job_inventory
-          WHERE job_id = ? AND job_inventory_id = ?",
-          [$job_id, $job_inventory_id]
-        );
-        if (!$result || db_affected_rows ($result) < 1)
-          {
-            fb (_("JOB skill delete FAILED"));
-            print db_error ();
-          }
-        else
-          fb (_("JOB skill deleted successfully"));
-      }
-    else
-      fb (_("JOB skill delete failed - wrong project_id"));
+    if (empty ($GLOBALS[$v]))
+      $GLOBALS[$v] = 100;
   }
 
-# Fill in the info to create a job.  Only if we have a job id specified;
-# if not, it means that we are looking for a project to edit.
+function assert_missing_info ($cond)
+{
+  if ($cond)
+    exit_error (_("error - missing info"), _("Fill in all required fields"));
+}
+
+function report_result_get_fail ($idx)
+{
+  $fails = [
+    'insert' => _('JOB insert FAILED'), 'update' => _('JOB update FAILED'),
+    'skill update' => _('JOB skill update FAILED'),
+    'skill delete' => _('JOB skill delete FAILED'),
+    'refresh' => _('JOB refresh FAILED')
+  ];
+  if (!empty ($fails[$idx]))
+    return $fails[$idx];
+  return _('Error');
+}
+
+function report_result_get_success ($idx)
+{
+  $success = [
+    'insert' =>  _('JOB inserted successfully'),
+    'update' =>  _('JOB updated successfully'),
+    'skill update' => _("JOB skill updated successfully"),
+    'skill delete' => _("JOB skill deleted successfully"),
+    'refresh' => _("JOB refreshed successfully")
+  ];
+  if (!empty ($success[$idx]))
+    return $success[$idx];
+  return _('Error');
+}
+
+function report_result ($result, $task, $test = null)
+{
+  if ($test === null)
+    $test = !$result || db_affected_rows ($result) < 1;
+  if ($test)
+    {
+      fb (report_result_get_fail ($task));
+      print db_error ();
+      return 1;
+    }
+  fb (report_result_get_success ($task));
+  return 0;
+}
+
+# Create a new job.
+function add_job ()
+{
+  global $title, $description, $category_id, $group_id, $job_id;
+  assert_missing_info (!$title || !$description || $category_id == 100);
+  $result = db_autoexecute ('people_job',
+    [ 'group_id' => $group_id, 'created_by' => user_getid (),
+      'title' => $title, 'description' => $description, 'date' => time (),
+      'status_id' => 1, 'category_id' => $category_id,
+    ], DB_AUTOQUERY_INSERT
+  );
+  if (report_result ($result, 'insert'))
+    return;
+  $job_id = db_insertid ($result);
+}
+
+# Modify job.
+function update_job ()
+{
+  global $title, $description, $category_id, $status_id, $job_id;
+  assert_missing_info (!$title || !$description || $category_id == 100
+    || $status_id == 100 || !$job_id
+  );
+  $result = db_autoexecute ('people_job',
+    [
+      'title' => $title, 'description' => $description,
+      'status_id' => $status_id, 'category_id' => $category_id,
+    ], DB_AUTOQUERY_UPDATE, "`job_id` = ?", [$job_id]
+  );
+  report_result ($result, 'update');
+}
+
+# Add item to job inventory.
+function add_to_job_inventory ()
+{
+  global $job_id, $skill_id, $skill_level_id, $skill_year_id;
+  assert_missing_info ($skill_id == 100 || $skill_level_id == 100
+    || $skill_year_id == 100 || !$job_id
+  );
+  people_add_to_job_inventory (
+    $job_id, $skill_id, $skill_level_id, $skill_year_id
+  );
+}
+
+# Change Skill level, experience etc.
+function update_job_inventory ()
+{
+  global $job_id, $skill_level_id, $skill_year_id, $job_inventory_id;
+  assert_missing_info ($skill_level_id == 100 || $skill_year_id == 100
+    || !$job_id || !$job_inventory_id
+  );
+
+  $result = db_autoexecute ('people_job_inventory',
+    ['skill_level_id' => $skill_level_id, 'skill_year_id' => $skill_year_id],
+    DB_AUTOQUERY_UPDATE,
+    "`job_id` = ? AND `job_inventory_id` = ?", [$job_id, $job_inventory_id]
+  );
+  report_result ($result, 'skill update');
+}
+
+# Remove this skill from this job.
+function delete_from_job_inventory ()
+{
+  global $job_id, $job_inventory_id;
+  assert_missing_info (!$job_id);
+  $result = db_execute ("
+    DELETE FROM `people_job_inventory`
+    WHERE `job_id` = ? AND `job_inventory_id` = ?",
+    [$job_id, $job_inventory_id]
+  );
+  report_result ($result, 'skill delete');
+}
+
+function list_positions ()
+{
+  global $group_id;
+  site_project_header (
+    [ 'title' => _("Looking for a job to Edit"),
+      'group' => $group_id,'context' => 'ahome']
+  );
+  print '<p>'
+    . _("Here is a list of positions available for this project, choose "
+        . "the\none you want to modify.")
+    . "</p>\n";
+  print people_show_project_jobs ($group_id, 1);
+}
+
+function print_edit_form ($job_id, $group_id, $row)
+{
+  print form_tag ()
+    . form_hidden (['group_id' => $group_id, 'job_id' => $job_id])
+    . "<b>" . _("Category:") . "</b>\n"
+    . people_job_category_box ('category_id', $row['category_id'])
+    . "\n<p><b>" . _("Status") . ":</b>\n"
+    . people_job_status_box ('status_id', $row['status_id']) . "</p>\n<p>"
+    . html_label ('title', '<b>' . _("Short Description:") . '</b>') . "\n"
+    . form_input_arr (['type' => 'text', 'name' => 'title',
+        'value' => $row['title'], 'size' => '40', 'maxlength' => '80'])
+    . "</p>\n<p>"
+    . html_label ('description', '<b>' ._("Long Description:") . '</b>')
+    . "<br />\n"
+    . form_textarea ('description', utils_specialchars ($row['description']),
+        "rows='10' cols='60' wrap='soft'")
+    . "\n</p>\n<p>" . form_submit (_("Update Descriptions"), "update_job")
+    . "\n</form>\n";
+  print '<p>' . people_edit_job_inventory ($job_id, $group_id)
+    . "</p>\n<p><a href='/people/editjob.php?group_id=$group_id'>"
+    . _("Back to jobs listing") . "</a></p>\n";
+}
+
+# Fill in the info to create a job.
+function print_edit_job ($job_id, $group_id, $result)
+{
+  site_project_header (
+    [ 'title' => _("Edit a job for your project"),
+      'group' => $group_id, 'context' => 'ahome']
+  );
+  if ($result === null)
+    return;
+  $row = db_fetch_array ($result);
+  utils_get_content ("people/editjob");
+  print_edit_form ($job_id, $group_id, $row);
+}
+
+function run_action ()
+{
+  global $job_result, $job_id, $group_id;
+  $actions = [
+    'add_job', 'update_job', 'add_to_job_inventory', 'update_job_inventory',
+    'delete_from_job_inventory'
+  ];
+  foreach ($actions as $a)
+    {
+      if (empty ($GLOBALS[$a]))
+        continue;
+       $a ();
+       $job_result = people_verify_job_group ($job_id, $group_id);
+       return;
+    }
+}
+
+run_action ();
+
 if ($job_id)
-  {
-    site_project_header (
-      [ 'title' => _("Edit a job for your project"),
-        'group' => $group_id, 'context' => 'ahome']
-    );
-    # For security, include group_id.
-    $result = db_execute (
-      "SELECT * FROM people_job WHERE job_id = ? AND group_id = ?",
-      [$job_id, $group_id]
-    );
-    if (db_numrows ($result) < 1)
-      {
-        print db_error ();
-        fb (_("POSTING fetch FAILED"));
-      }
-    else
-      {
-        $description = utils_specialchars (
-          db_result ($result, 0, 'description')
-        );
-        utils_get_content ("people/editjob");
-        print form_tag ()
-          . form_hidden (['group_id' => $group_id, 'job_id' => $job_id])
-          . "<strong>" . _("Category:") . "</strong><br />\n"
-          . people_job_category_box (
-              'category_id', db_result ($result, 0, 'category_id')
-            )
-          . "\n<p><strong>" . _("Status") . ":</strong><br />\n"
-          . people_job_status_box (
-              'status_id', db_result ($result, 0, 'status_id')
-            )
-          . "</p>\n<p><strong>"
-          . html_label ('title', _("Short Description:"))
-          . "</strong><br />\n"
-          . "<input type='text' id='title' name='title' value=\""
-          . db_result ($result, 0, 'title')
-          . "\" size='40' maxlength='60' /></p>\n<p><strong>"
-          . html_label ('description', _("Long Description:"))
-          . "</strong><br />\n"
-          . "<textarea name='description' id='description' rows='10' "
-          . "cols='60' wrap='soft'>$description</textarea>\n</p>\n"
-          . '<p>'
-          . form_submit (_("Update Descriptions"), "update_job")
-          . "\n</form>\n";
-        print '<p>' . people_edit_job_inventory ($job_id, $group_id)
-          . "</p>\n<p>[<a href='/people'>" . _("Back to jobs listing")
-          . "</a>]</p>\n";
-      }
-  }
-else # ! $job_id
-  {
-    site_project_header (
-      [ 'title' => _("Looking for a job to Edit"),
-        'group' => $group_id,'context' => 'ahome']
-    );
-    print '<p>'
-      . _("Here is a list of positions available for this project, choose "
-          . "the\none you want to modify.")
-      . "</p>\n";
-    print people_show_project_jobs ($group_id, 1);
-  }
+  print_edit_job ($job_id, $group_id, $job_result);
+else
+  list_positions ();
 site_project_footer ();
 ?>
