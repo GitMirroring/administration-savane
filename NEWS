@@ -94,6 +94,9 @@ other missing PHP extensions are also reported.
 
 ** Directories in the build tree weren't re-made when Makefile changed.
 
+** Handling missing binaries like Perl or PHP was broken
+   in 2025-11 (7928c45967d).
+
 [TESTS]
 
 * New test, 'session.'
