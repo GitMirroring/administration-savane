@@ -42,12 +42,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-print '
-<h2>'._('Create a New Job').'</h2>
-
-<p>'
-._('Start by filling in the fields below. When you push &ldquo;continue,&rdquo;
-you will be shown a list of skills and experience levels that this job requires.')
-.'</p>
-';
+print html_h (2, _('Create a New Job'))
+  . '<p>'
+  . _("Start by filling in the fields below. When you push "
+      . "&ldquo;continue,&rdquo;\nyou will be shown a list of skills and "
+      . "experience levels that this job requires.")
+  . "</p>\n";
 ?>

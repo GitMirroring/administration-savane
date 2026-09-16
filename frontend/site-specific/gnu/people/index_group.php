@@ -43,11 +43,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # TRANSLATORS: the argument is project name (like "GNU coreutils").
-sprintf ('<h2>'._('Project Help Wanted for %s').'</h2>
-
-', group_getname($GLOBALS['group_id']));
+printf (html_h (2, _('Project Help Wanted for %s')),
+  group_getname($GLOBALS['group_id'])
+);
 print '<p>'
-._('Here is a list of positions available for this project.')
-.'</p>
-';
+  . _('Here is a list of positions available for this project.')
+  . "</p>\n";
 ?>

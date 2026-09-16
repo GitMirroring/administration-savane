@@ -43,12 +43,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-print '
-<h2>'._('Select Required Skills').'</h2>
-
-<p>'
-._('Here you can edit/change the list of skills attached to this posting,
-so that developers can match their skills against your requirements.')
-.'</p>
-';
+print html_h (2, _('Select Required Skills') )
+ . "<p>"
+ . _("Here you can edit the list of skills attached to this posting,\n"
+     . 'so that developers can match their skills against your requirements.')
+ . "</p>\n";
 ?>
