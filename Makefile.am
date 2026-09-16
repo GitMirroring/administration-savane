@@ -302,7 +302,7 @@ frontend_dirs = $(DESTDIR)$(apache_rundir) $(DESTDIR)$(apache_logdir) \
   $(DESTDIR)/$(confdir)/nongnu-conf
 frontend_cache_dirs = $(dest_local)/submissions_uploads/trackers_attachments
 endif # HAVE_FRONTEND
-dirs_to_make = $(db_dirs) $(dest_log_dirs) $(frontend_dirs) \
+dirs_to_make = $(db_dirs) $(dest_run) $(dest_log_dirs) $(frontend_dirs) \
   $(frontend_cache_dirs) $(mailman_wrapper_dirs)
 uninstalled_dirs = $(dirs_to_make) $(uninstalled_db_dirs)
 

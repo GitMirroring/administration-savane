@@ -97,6 +97,8 @@ other missing PHP extensions are also reported.
 ** Handling missing binaries like Perl or PHP was broken
    in 2025-11 (7928c45967d).
 
+** The 'rundir' wasn't created unless 'database' or 'frontend' were enabled.
+
 [TESTS]
 
 * New test, 'session.'
