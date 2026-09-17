@@ -9,6 +9,8 @@
 
 * Error email rate limit is disabled when $sys_error_cc_limit < 0.
 
+* A control to update job post dates is added in /people/editjob.php.
+
 * Bug fixes:
 
 ** The maximum number of registered SSH keys in an account was 5 whereas

@@ -47,8 +47,8 @@ require_once ('../include/form.php');
 require_once ('../include/people/general.php');
 
 extract (sane_import ('request', ['digits' => 'job_id']));
-$submits = ['add_job', 'update_job', 'add_to_job_inventory',
-  'update_job_inventory', 'delete_from_job_inventory',
+$submits = ['add_job', 'update_job', 'add_to_job_inventory', 'refresh',
+  'update_job_inventory', 'delete_from_job_inventory', 'confirm_refresh'
 ];
 $post_digits = [
   'status_id', 'category_id', 'job_inventory_id', 'skill_id',
@@ -203,8 +203,45 @@ function list_positions ()
   print people_show_project_jobs ($group_id, 1);
 }
 
+function refresh ()
+{
+  # Empty function body.
+}
+
+function confirm_refresh ()
+{
+  global $job_id;
+  if (empty ($job_id))
+    return;
+  $t = time ();
+  $result = db_autoexecute (
+    'people_job', ['date' => $t], DB_AUTOQUERY_UPDATE, '`job_id` = ?', [$job_id]
+  );
+  report_result ($result, 'refresh');
+}
+
+function print_date_form ($row)
+{
+  global $refresh;
+  $preamble = '';
+  $buttons = form_submit (_('Refresh'), 'refresh');
+  if (!empty ($refresh))
+    {
+      $preamble = '<p><span class="preinput">'
+        . _('You are about to refresh job post date, please confirm:')
+        . "</span></p>\n";
+      $buttons = form_submit (_('Confirm'), 'confirm_refresh')
+        . ' ' . form_submit (_('Cancel'), 'cancel');
+    }
+  print form_tag ()
+    . form_hidden (['group_id' => $row['group_id'], 'job_id' => $row['job_id']])
+    . "$preamble<p><b>" . _('Date:') . '</b> '
+    . utils_format_date ($row['date']) . ' ' . "$buttons</p>\n</form>\n";
+}
+
 function print_edit_form ($job_id, $group_id, $row)
 {
+  print_date_form ($row);
   print form_tag ()
     . form_hidden (['group_id' => $group_id, 'job_id' => $job_id])
     . "<b>" . _("Category:") . "</b>\n"
@@ -244,8 +281,8 @@ function run_action ()
 {
   global $job_result, $job_id, $group_id;
   $actions = [
-    'add_job', 'update_job', 'add_to_job_inventory', 'update_job_inventory',
-    'delete_from_job_inventory'
+    'refresh', 'confirm_refresh', 'add_job', 'update_job',
+    'add_to_job_inventory', 'update_job_inventory', 'delete_from_job_inventory'
   ];
   foreach ($actions as $a)
     {
