@@ -261,6 +261,17 @@ function people_job_category_box ($name = 'category_id', $checked = 'xyxy')
   );
 }
 
+function people_report_result ($result, $msg_ok, $msg_err)
+{
+  if ($result && db_affected_rows ($result) > 0)
+    {
+      fb ($msg_ok);
+      return;
+    }
+  fb ($msg_err, 1);
+  print db_error ();
+}
+
 function people_add_to_job_inventory (
   $job_id, $skill_id, $skill_level_id, $skill_year_id
 )
@@ -272,7 +283,7 @@ function people_add_to_job_inventory (
     }
   # Check if they've already added this skill.
   $result = db_execute ("
-    SELECT * FROM people_job_inventory WHERE job_id = ? AND skill_id = ?",
+    SELECT * FROM `people_job_inventory` WHERE `job_id` = ? AND `skill_id` = ?",
     [$job_id, $skill_id]
   );
   if (db_numrows ($result) > 0)
@@ -284,22 +295,13 @@ function people_add_to_job_inventory (
   $result = db_autoexecute (
    'people_job_inventory',
     [
-      'job_id' => $job_id,
-      'skill_id' => $skill_id,
-      'skill_level_id' => $skill_level_id,
-      'skill_year_id' => $skill_year_id
+      'job_id' => $job_id, 'skill_id' => $skill_id,
+      'skill_level_id' => $skill_level_id, 'skill_year_id' => $skill_year_id
     ], DB_AUTOQUERY_INSERT
   );
-  if ($result && db_affected_rows ($result) > 0)
-    {
-      fb (_("Added to skill inventory"));
-      return;
-    }
-  fb (
-    # TRANSLATORS: this is an error message.
-    _('Inserting into skill inventory'), 1
+  people_report_result (
+    $result, _("Added to skill inventory"), _('Inserting into skill inventory')
   );
-  print db_error ();
 }
 
 function people_show_job_inventory ($job_id)
@@ -612,13 +614,9 @@ function people_add_to_skill_inventory (
     ],
     DB_AUTOQUERY_INSERT
   );
-  if ($result && db_affected_rows ($result))
-    {
-      fb (_('Added to skill inventory'));
-      return;
-    }
-  fb (_('ERROR inserting into skill inventory'), 1);
-  print db_error ();
+  people_report_result ($result,
+    _('Added to skill inventory'), _('ERROR inserting into skill inventory')
+  );
 }
 
 function people_print_skill_table ($result)
