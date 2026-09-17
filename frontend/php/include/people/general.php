@@ -276,11 +276,6 @@ function people_add_to_job_inventory (
   $job_id, $skill_id, $skill_level_id, $skill_year_id
 )
 {
-  if (!user_isloggedin ())
-    {
-      fb (_("You must be logged in first"), 1);
-      return;
-    }
   # Check if they've already added this skill.
   $result = db_execute ("
     SELECT * FROM `people_job_inventory` WHERE `job_id` = ? AND `skill_id` = ?",
