@@ -272,21 +272,25 @@ function people_report_result ($result, $msg_ok, $msg_err)
   print db_error ();
 }
 
-function people_add_to_job_inventory (
-  $job_id, $skill_id, $skill_level_id, $skill_year_id
-)
+# Check if they've already added this skill.
+function people_have_skill ($job_id, $skill_id)
 {
-  # Check if they've already added this skill.
   $result = db_execute ("
     SELECT * FROM `people_job_inventory` WHERE `job_id` = ? AND `skill_id` = ?",
     [$job_id, $skill_id]
   );
-  if (db_numrows ($result) > 0)
-    {
-      fb (_("Skill already in your inventory"), 1);
-      return;
-    }
-  # Skill isn't already in this inventory.
+  if (db_numrows ($result) <= 0)
+    return 0;
+  fb (_("Skill already in your inventory"), 1);
+  return 1;
+}
+
+function people_add_to_job_inventory (
+  $job_id, $skill_id, $skill_level_id, $skill_year_id
+)
+{
+  if (people_have_skill ($job_id, $skill_id))
+    return;
   $result = db_autoexecute (
    'people_job_inventory',
     [
