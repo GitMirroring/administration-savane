@@ -124,7 +124,7 @@ function add_job ()
   $result = db_autoexecute ('people_job',
     [ 'group_id' => $group_id, 'created_by' => user_getid (),
       'title' => $title, 'description' => $description, 'date' => time (),
-      'status_id' => 1, 'category_id' => $category_id,
+      'status_id' => PEOPLE_JOB_STATUS_OPEN, 'category_id' => $category_id,
     ], DB_AUTOQUERY_INSERT
   );
   if (report_result ($result, 'insert'))

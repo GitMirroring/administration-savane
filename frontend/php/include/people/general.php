@@ -41,6 +41,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+define ('PEOPLE_JOB_STATUS_OPEN', 1);
+
 function people_fetch_name ($table, $id_field, $id)
 {
   static $names = [];
@@ -72,11 +74,11 @@ function people_fetch_counts_by_category ()
       `people_job_category` `c` LEFT JOIN
       (
         SELECT `category_id`, COUNT(`job_id`) AS `count`
-        FROM `people_job` WHERE `status_id` = 1
+        FROM `people_job` WHERE `status_id` = ?
         GROUP BY `category_id`
       ) `j`
       ON `c`.`category_id` = `j`.`category_id`
-    ORDER BY `c`.`category_id`"
+    ORDER BY `c`.`category_id`", [PEOPLE_JOB_STATUS_OPEN]
   );
 }
 
@@ -103,11 +105,9 @@ function people_list_categories ()
   return join ("<br />\n", $ret);
 }
 
-function people_list_project_type ()
+function people_fetch_jobs_by_group_type ()
 {
-  global $php_self;
-
-  $result = db_execute ("
+  return db_execute ("
     SELECT
       `gt`.`type_id`, `gt`.`name`, COUNT(`p`.`job_id`) AS `count`
     FROM
@@ -115,8 +115,16 @@ function people_list_project_type ()
       JOIN
       (`groups` `g` JOIN `people_job` `p` ON `g`.`group_id` = `p`.`group_id`)
       ON `gt`.`type_id` = `g`.`type`
-    WHERE `status_id` = 1 GROUP BY `type_id`, `gt`.`name` ORDER BY `type_id`"
+    WHERE `status_id` = ? GROUP BY `type_id`, `gt`.`name` ORDER BY `type_id`",
+    [PEOPLE_JOB_STATUS_OPEN]
   );
+}
+
+function people_list_project_type ()
+{
+  global $php_self;
+
+  $result = people_fetch_jobs_by_group_type ();
   $rows = db_numrows ($result);
   if ($rows < 1)
     return false;
@@ -178,8 +186,8 @@ function people_fetch_categories ()
 function people_fetch_job_counts ()
 {
   $result = db_execute ("
-     SELECT category_id, count(*) AS count FROM people_job
-     WHERE status_id = 1 GROUP BY category_id"
+     SELECT `category_id`, count(*) AS `count` FROM `people_job`
+     WHERE `status_id` = ? GROUP BY `category_id`", [PEOPLE_JOB_STATUS_OPEN]
   );
   $ret = [];
   while ($row = db_fetch_array ($result))
@@ -483,9 +491,9 @@ function people_show_project_jobs ($group_id, $edit = 0)
     people_job_sql () . "
     WHERE
       `j`.`group_id` = ? AND `j`.`group_id` = `g`.`group_id`
-      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = 1
+      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = ?
     ORDER BY `date` DESC",
-    [$group_id]
+    [$group_id, PEOPLE_JOB_STATUS_OPEN]
   );
   return people_show_job_list ($result, $edit);
 }
@@ -498,8 +506,8 @@ function people_project_jobs_rows ($group_id)
     FROM `people_job` `j`, `people_job_category` `c`, `groups` `g`
     WHERE
       `j`.`group_id` = ?  AND `j`.`group_id` = `g`.`group_id`
-      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = 1",
-    [$group_id]
+      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = ?",
+    [$group_id, PEOPLE_JOB_STATUS_OPEN]
   );
   return db_numrows ($result);
 }
@@ -508,7 +516,7 @@ function people_project_jobs_rows ($group_id)
 # or all open jobs when $categories and $types are empty.
 function people_show_jobs ($categories, $types)
 {
-  $sql_args = [];
+  $sql_args = [PEOPLE_JOB_STATUS_OPEN];
   $enum_ids =
     function ($id_arr, $field) use (&$sql_args)
     {
@@ -521,7 +529,7 @@ function people_show_jobs ($categories, $types)
   $cat_ids = $enum_ids ($categories, '`j`.`category_id`');
   $type_ids = $enum_ids ($types, '`g`.`type`');
   $result = db_execute (people_job_sql () . "
-    WHERE `g`.`is_public` = 1 AND `j`.`status_id` = 1
+    WHERE `g`.`is_public` = 1 AND `j`.`status_id` = ?
     $cat_ids $type_ids ORDER BY `date` DESC",
     $sql_args
   );
