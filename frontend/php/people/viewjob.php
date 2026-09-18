@@ -119,7 +119,6 @@ print "<span class=\"preinput\"><br />\n"
 print '<p><span class="preinput">'
   . _("Details (job description, contact ...):") . "</span></p>\n";
 print markup_full (utils_specialchars ($row['description']));
-print html_h (2, _("Required Skills:"));
 print people_show_job_inventory ($job_id);
 site_project_footer ([]);
 ?>
