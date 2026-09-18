@@ -11,7 +11,8 @@
 
 * A control to update job post dates is added in /people/editjob.php.
   'Filled' jobs are made available for editing.  A control to remove jobs
-  from the database is added.
+  from the database is added.  The set of status values is hardcoded to 'Open'
+  and 'Filled'---the people_job_status database table is ignored.
 
 * Bug fixes:
 

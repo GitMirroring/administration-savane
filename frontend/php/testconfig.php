@@ -1223,7 +1223,7 @@ function test_utf8_search_get_test_set ()
   array_push ($descr,
     'group_type', 'trackers_notification_event', 'trackers_notification_role'
   );
-  $named = ['people_job_category', 'people_job_status', 'people_skill'];
+  $named = ['people_job_category', 'people_skill'];
   return [
     'name' => $named, 'description' => $descr, 'originator_phone' => $trackers,
     'title' => array_add_suff ($trackers, 'canned_responses')

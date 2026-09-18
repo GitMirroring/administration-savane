@@ -2660,23 +2660,6 @@ CREATE TABLE `people_job_inventory` (
 ) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-DROP TABLE IF EXISTS `people_job_status`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `people_job_status` (
-  `status_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` text DEFAULT NULL,
-  PRIMARY KEY (`status_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-LOCK TABLES `people_job_status` WRITE;
-/*!40000 ALTER TABLE `people_job_status` DISABLE KEYS */;
-INSERT INTO `people_job_status` VALUES
-  (1, 'Open'), (2, 'Filled'), (3, 'Deleted');
-/*!40000 ALTER TABLE `people_job_status` ENABLE KEYS */;
-UNLOCK TABLES;
-
 DROP TABLE IF EXISTS `people_skill`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;

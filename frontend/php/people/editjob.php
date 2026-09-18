@@ -286,7 +286,7 @@ function print_edit_form ($job_id, $group_id, $row)
     . "<b>" . _("Category:") . "</b>\n"
     . people_job_category_box ('category_id', $row['category_id'], true)
     . "\n<p><b>" . _("Status") . ":</b>\n"
-    . people_job_status_box ('status_id', $row['status_id'], 1) . "</p>\n<p>"
+    . people_job_status_box ($row['status_id']) . "</p>\n<p>"
     . html_label ('title', '<b>' . _("Short Description:") . '</b>') . "\n"
     . form_input_arr (['type' => 'text', 'name' => 'title',
         'value' => $row['title'], 'size' => '40', 'maxlength' => '80'])

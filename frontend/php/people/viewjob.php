@@ -49,20 +49,19 @@ extract (sane_import ('get', ['digits' => ['group_id', 'job_id']]));
 exit_if_no_group ();
 exit_if_missing ('job_id');
 
-# For security, include group_id.
 $result = db_execute ("
   SELECT
-    groups.group_name, groups.type, groups.unix_group_name,
-    j.title AS job_title, j.date, j.description, j.category_id AS category_id,
-    jc.name AS category_name, js.name AS status_name,
-    user.user_name, user.user_id
+    `g`.`group_name`, `g`.`type`, `g`.`unix_group_name`,
+    `j`.`title` AS `job_title`, `j`.`date`, `j`.`description`,
+    `j`.`category_id` AS `category_id`, `jc`.`name` AS `category_name`,
+    `j`.`status_id`, `u`.`user_name`, `u`.`user_id`
   FROM
-    people_job j, groups, people_job_status js, people_job_category jc, user
-  WHERE
-    jc.category_id = j.category_id AND js.status_id = j.status_id
-    AND user.user_id = j.created_by AND groups.group_id = j.group_id
-    AND j.job_id = ? AND j.group_id = ?",
-  [$job_id, $group_id]
+    (
+      (`people_job` `j` JOIN `groups` `g` ON `j`.`group_id` = `g`.`group_id`)
+      JOIN people_job_category jc ON `jc`.`category_id` = `j`.`category_id`
+    )
+    JOIN `user` `u` ON `u`.`user_id` = `j`.`created_by`
+  WHERE `j`.`job_id` = ? AND `j`.`group_id` = ?", [$job_id, $group_id]
 );
 
 $msg = sprintf (_("Job #%s not found"), $job_id);
@@ -93,7 +92,7 @@ print "<p><span class='preinput'>" . _("Category:")
   . '<span class="preinput">' . _("Date:") . '</span> '
   . utils_format_date ($row['date'])
   . "<br />\n<span class=\"preinput\">" . _("Status:") . '</span> '
-  . $row['status_name'] . "</p>\n";
+  . people_fetch_job_status ($row['status_id']) . "</p>\n";
 
 if ($project->getTypeDescription ())
   print "<p>" . markup_full ($project->getTypeDescription( )) . "</p>\n";

@@ -221,35 +221,25 @@ function people_show_category_list ()
 
 function people_fetch_job_status ($id = null)
 {
-  static $result = null;
-  if ($result === null)
-    $result = db_execute ('SELECT * FROM `people_job_status`');
+  $status = [
+    # TRANSLATORS: this string is a job status.
+    PEOPLE_JOB_STATUS_OPEN => _('Open'),
+    # TRANSLATORS: this string is a job status.
+    PEOPLE_JOB_STATUS_FILLED => _('Filled')
+  ];
   if ($id === null)
-    return $result;
-  $ret = null;
-  while ($row = db_fetch_array ($result))
-    if ($id === $row['status_id'])
-      $ret = $row['name'];
-  if (db_numrows ($result))
-    db_data_seek ($result);
-  return $ret;
+    return $status;
+  if (array_key_exists ($id, $status))
+    return $status[$id];
+  return $id;
 }
 
-function people_job_status_box ($name = 'status_id', $checked = 'xyxy', $edit = false)
+function people_job_status_box ($checked)
 {
-  # Add current job categories to i18n.
-  $job_status_as_of_2017_06 = [
-    # TRANSLATORS: this string is a job status.
-    _("Open"),
-    # TRANSLATORS: this string is a job status.
-    _("Filled"),
-    # TRANSLATORS: this string is a job status.
-    _("Deleted")
-  ];
-  $result = people_fetch_job_status ();
-  return html_build_localized_select_box (
-    $result, $name, $checked, !$edit, 'None', false, 'Any', false,
-    _('job status')
+  $status = people_fetch_job_status ();
+  return html_build_select_box_from_arrays (
+    array_keys ($status), array_values ($status),
+    'status_id', $checked, false, 'None', false, 'Any', false, _('job status')
   );
   if (db_numrows ($result))
     db_data_seek ($result);
@@ -455,7 +445,7 @@ function people_job_line ($row, $i, $page, $edit)
     . $row['group_name'] . "</a></td>\n<td>$name</td>\n";
   if ($edit)
     $ret .= '<td>'
-      . utils_specialchars (gettext (people_fetch_job_status ($row['status_id'])))
+      . utils_specialchars (people_fetch_job_status ($row['status_id']))
       . "</td>\n";
   return $ret . "</tr>\n";
 }
