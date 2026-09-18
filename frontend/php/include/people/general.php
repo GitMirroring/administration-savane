@@ -329,7 +329,7 @@ function print_job_inventory_row ($i, $row)
 {
   print "<tr class=\"" . utils_altrow ($i) . "\">\n";
   foreach (['skill', 'level', 'year'] as $c)
-    print '  <td>' . $row[$c] . "</td>\n";
+    print '  <td>' . utils_specialchars (gettext ($row[$c])) . "</td>\n";
   print "</tr>\n";
 }
 
