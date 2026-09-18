@@ -47,8 +47,10 @@ require_once ('../include/form.php');
 require_once ('../include/people/general.php');
 
 extract (sane_import ('request', ['digits' => 'job_id']));
-$submits = ['add_job', 'update_job', 'add_to_job_inventory', 'refresh',
-  'update_job_inventory', 'delete_from_job_inventory', 'confirm_refresh'
+$submits = [
+  'add_job', 'update_job', 'add_to_job_inventory', 'update_job_inventory',
+  'delete_from_job_inventory', 'refresh', 'confirm_refresh', 'rm_job',
+  'confirm_rm_job'
 ];
 $post_digits = [
   'status_id', 'category_id', 'job_inventory_id', 'skill_id',
@@ -81,7 +83,7 @@ function report_result_get_fail ($idx)
     'insert' => _('JOB insert FAILED'), 'update' => _('JOB update FAILED'),
     'skill update' => _('JOB skill update FAILED'),
     'skill delete' => _('JOB skill delete FAILED'),
-    'refresh' => _('JOB refresh FAILED')
+    'refresh' => _('JOB refresh FAILED'), 'rm_job' => _('JOB delete FAILED')
   ];
   if (!empty ($fails[$idx]))
     return $fails[$idx];
@@ -95,7 +97,8 @@ function report_result_get_success ($idx)
     'update' =>  _('JOB updated successfully'),
     'skill update' => _("JOB skill updated successfully"),
     'skill delete' => _("JOB skill deleted successfully"),
-    'refresh' => _("JOB refreshed successfully")
+    'refresh' => _("JOB refreshed successfully"),
+    'rm_job' =>  _("JOB removed successfully"),
   ];
   if (!empty ($success[$idx]))
     return $success[$idx];
@@ -208,6 +211,11 @@ function refresh ()
   # Empty function body.
 }
 
+function rm_job ()
+{
+  # Empty function body.
+}
+
 function confirm_refresh ()
 {
   global $job_id;
@@ -218,6 +226,37 @@ function confirm_refresh ()
     'people_job', ['date' => $t], DB_AUTOQUERY_UPDATE, '`job_id` = ?', [$job_id]
   );
   report_result ($result, 'refresh');
+}
+
+function confirm_rm_job ()
+{
+  global $job_id;
+  if (empty ($job_id))
+    return;
+  $t = time ();
+  $result = db_execute (
+    'DELETE FROM `people_job` WHERE `job_id` = ?', [$job_id]
+  );
+  report_result ($result, 'rm_job');
+  $job_id = 0; # Return to job listing instead of drawing the removed job.
+}
+
+function print_rm_button ($row)
+{
+  global $rm_job;
+  $preamble = '';
+  $buttons = form_submit (_('Delete job'), 'rm_job');
+  if (!empty ($rm_job))
+    {
+      $preamble = '<p><span class="preinput">'
+        . _('You are about to delete this job, please confirm:')
+        . "</span></p>\n";
+      $buttons = form_submit (_('Confirm'), 'confirm_rm_job')
+        . ' ' . form_submit (_('Cancel'), 'cancel');
+    }
+  print form_tag ()
+    . form_hidden (['group_id' => $row['group_id'], 'job_id' => $row['job_id']])
+    . "$preamble<p>$buttons</p>\n</form>\n";
 }
 
 function print_date_form ($row)
@@ -241,7 +280,7 @@ function print_date_form ($row)
 
 function print_edit_form ($job_id, $group_id, $row)
 {
-  print_date_form ($row);
+  print_rm_button ($row); print_date_form ($row);
   print form_tag ()
     . form_hidden (['group_id' => $group_id, 'job_id' => $job_id])
     . "<b>" . _("Category:") . "</b>\n"
@@ -281,8 +320,9 @@ function run_action ()
 {
   global $job_result, $job_id, $group_id;
   $actions = [
-    'refresh', 'confirm_refresh', 'add_job', 'update_job',
-    'add_to_job_inventory', 'update_job_inventory', 'delete_from_job_inventory'
+    'rm_job', 'confirm_rm_job', 'refresh', 'confirm_refresh', 'add_job',
+    'update_job', 'add_to_job_inventory', 'update_job_inventory',
+    'delete_from_job_inventory'
   ];
   foreach ($actions as $a)
     {
