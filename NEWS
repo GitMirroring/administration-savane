@@ -10,6 +10,7 @@
 * Error email rate limit is disabled when $sys_error_cc_limit < 0.
 
 * A control to update job post dates is added in /people/editjob.php.
+  'Filled' jobs are made available for editing.
 
 * Bug fixes:
 

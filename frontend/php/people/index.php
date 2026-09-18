@@ -71,7 +71,7 @@ if ($group_id)
       ]
     );
     utils_get_content ("people/index_group");
-    print people_show_project_jobs ($group_id);
+    print people_show_group_jobs ($group_id);
     finish_page ();
   }
 

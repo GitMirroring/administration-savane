@@ -200,7 +200,7 @@ function list_positions ()
     . _("Here is a list of positions available for this project, choose "
         . "the\none you want to modify.")
     . "</p>\n";
-  print people_show_project_jobs ($group_id, 1);
+  print people_show_group_jobs ($group_id, true);
 }
 
 function refresh ()

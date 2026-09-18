@@ -42,6 +42,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 define ('PEOPLE_JOB_STATUS_OPEN', 1);
+define ('PEOPLE_JOB_STATUS_FILLED', 2);
 
 function people_fetch_name ($table, $id_field, $id)
 {
@@ -218,6 +219,22 @@ function people_show_category_list ()
   return $finalize ($ret);
 }
 
+function people_fetch_job_status ($id = null)
+{
+  static $result = null;
+  if ($result === null)
+    $result = db_execute ('SELECT * FROM `people_job_status`');
+  if ($id === null)
+    return $result;
+  $ret = null;
+  while ($row = db_fetch_array ($result))
+    if ($id === $row['status_id'])
+      $ret = $row['name'];
+  if (db_numrows ($result))
+    db_data_seek ($result);
+  return $ret;
+}
+
 function people_job_status_box ($name = 'status_id', $checked = 'xyxy')
 {
   # Add current job categories to i18n.
@@ -229,11 +246,13 @@ function people_job_status_box ($name = 'status_id', $checked = 'xyxy')
     # TRANSLATORS: this string is a job status.
     _("Deleted")
   ];
-  $result = db_execute ("SELECT * FROM people_job_status");
+  $result = people_fetch_job_status ();
   return html_build_localized_select_box (
     $result, $name, $checked, true, 'None', false, 'Any', false,
     _('job status')
   );
+  if (db_numrows ($result))
+    db_data_seek ($result);
 }
 
 function people_job_category_box ($name = 'category_id', $checked = 'xyxy')
@@ -432,25 +451,32 @@ function people_edit_job_inventory ($job_id, $group_id)
   people_draw_skill_box ($result, $job_id, $group_id);
 }
 
-function people_job_line ($row, $i, $page)
+function people_job_line ($row, $i, $page, $edit)
 {
   $name = gettext ($row['type_name']);
-  return "<tr class=\"" . utils_altrow ($i)
+  $ret = "<tr class=\"" . utils_altrow ($i)
     . '"><td><a href="' . "/people/$page?group_id="
     . $row['group_id'] . '&job_id=' . $row['job_id'] . '">'
     . $row['title'] . "</a></td>\n<td>" . $row['category_name'] . "</td>\n<td>"
     . utils_format_date ($row['date'], 'natural')
     . "</td>\n<td><a href=\"/projects/"
     . strtolower ($row['unix_group_name']) . '/">'
-    . $row['group_name'] . "</a></td>\n<td>$name</td></tr>\n";
+    . $row['group_name'] . "</a></td>\n<td>$name</td>\n";
+  if ($edit)
+    $ret .= '<td>'
+      . utils_specialchars (gettext (people_fetch_job_status ($row['status_id'])))
+      . "</td>\n";
+  return $ret . "</tr>\n";
 }
 
 # Take a result set from a query and show the jobs.
-function people_show_job_list ($result, $edit = 0)
+function people_show_job_list ($result, $edit = false)
 {
   $title_arr = [
     _("Title"), _("Category"), _("Date Opened"), _("Group"), _("Type")
   ];
+  if ($edit)
+    $title_arr[] = _('Status');
 
   $page = 'viewjob.php';
   if ($edit)
@@ -465,7 +491,7 @@ function people_show_job_list ($result, $edit = 0)
 
   $i = 0;
   while ($row = db_fetch_array ($result))
-    $return .= people_job_line ($row, $i++, $page);
+    $return .= people_job_line ($row, $i++, $page, $edit);
   return $return . $tail;
 }
 
@@ -473,7 +499,7 @@ function people_job_sql ()
 {
   return "
   SELECT
-    `j`.`group_id`, `j`.`job_id`, `j`.`title`, `j`.`date`,
+    `j`.`group_id`, `j`.`job_id`, `j`.`title`, `j`.`date`, `j`.`status_id`,
     `g`.`unix_group_name`, `g`.`group_name`, `g`.`type`,
     `c`.`name` AS `category_name`, `gt`.`name` AS `type_name`
   FROM
@@ -485,15 +511,17 @@ function people_job_sql ()
 }
 
 # Show open jobs for this group.
-function people_show_project_jobs ($group_id, $edit = 0)
+function people_show_group_jobs ($group_id, $edit = false)
 {
+  $sql_args = [PEOPLE_JOB_STATUS_OPEN];
+  if ($edit)
+    $sql_args[] = PEOPLE_JOB_STATUS_FILLED;
+  $status_sql = '`j`.`status_id` ' . utils_in_placeholders ($sql_args);
+  $sql_args[] = $group_id;
   $result = db_execute (
     people_job_sql () . "
-    WHERE
-      `j`.`group_id` = ? AND `j`.`group_id` = `g`.`group_id`
-      AND `j`.`category_id` = `c`.`category_id` AND `j`.`status_id` = ?
-    ORDER BY `date` DESC",
-    [$group_id, PEOPLE_JOB_STATUS_OPEN]
+    WHERE $status_sql AND `j`.`group_id` = ?  ORDER BY `date` DESC",
+    $sql_args
   );
   return people_show_job_list ($result, $edit);
 }
