@@ -235,7 +235,7 @@ function people_fetch_job_status ($id = null)
   return $ret;
 }
 
-function people_job_status_box ($name = 'status_id', $checked = 'xyxy')
+function people_job_status_box ($name = 'status_id', $checked = 'xyxy', $edit = false)
 {
   # Add current job categories to i18n.
   $job_status_as_of_2017_06 = [
@@ -248,42 +248,28 @@ function people_job_status_box ($name = 'status_id', $checked = 'xyxy')
   ];
   $result = people_fetch_job_status ();
   return html_build_localized_select_box (
-    $result, $name, $checked, true, 'None', false, 'Any', false,
+    $result, $name, $checked, !$edit, 'None', false, 'Any', false,
     _('job status')
   );
   if (db_numrows ($result))
     db_data_seek ($result);
 }
 
-function people_job_category_box ($name = 'category_id', $checked = 'xyxy')
+function people_job_category_box (
+  $name = 'category_id', $checked = 'xyxy', $edit = false
+)
 {
   # Add current job categories to i18n.
   $job_categories_as_of_2017_06 = [
-    # TRANSLATORS: this string is a job category.
-    _("None"),
-    # TRANSLATORS: this string is a job category.
-    _("Developer"),
-    # TRANSLATORS: this string is a job category.
-    _("Group Manager"),
-    # TRANSLATORS: this string is a job category.
-    _("Unix Admin"),
-    # TRANSLATORS: this string is a job category.
-    _("Doc Writer"),
-    # TRANSLATORS: this string is a job category.
-    _("Tester"),
-    # TRANSLATORS: this string is a job category.
-    _("Support Manager"),
-    # TRANSLATORS: this string is a job category.
-    _("Graphic/Other Designer"),
-    # TRANSLATORS: this string is a job category.
-    _("Translator"),
-    # TRANSLATORS: this string is a job category.
-    _("Other")
+    # TRANSLATORS: these strings are job categories.
+    _("None"), _("Developer"), _("Group Manager"), _("Unix Admin"),
+    _("Doc Writer"), _("Tester"), _("Support Manager"),
+    _("Graphic/Other Designer"), _("Translator"), _("Other")
   ];
 
   $result = db_execute ("SELECT * FROM people_job_category");
   return html_build_localized_select_box (
-    $result, $name, $checked, true, 'None', false, 'Any', false,
+    $result, $name, $checked, !$edit, 'None', false, 'Any', false,
     _('job category')
   );
 }
@@ -384,44 +370,8 @@ function people_verify_job_group ($job_id, $group_id)
   return null;
 }
 
-function people_draw_skill_box ($result, $job_id = false, $group_id = false)
+function people_draw_new_skill_box ($job_id, $group_id, $infix, $title_arr)
 {
-  if ($job_id === false)
-    $infix = 'skill';
-  else
-    $infix = 'job';
-
-  $title_arr = [_('Skill'), _('Level'), _('Experience'), _('Action')];
-  if (!db_numrows ($result))
-    {
-      print html_build_list_table_top ($title_arr);
-      print "\n<tr><td colspan='4'><strong>"
-        . _("No skill inventory set up")
-        . "</strong></td></tr>\n</table>\n";
-      print db_error ();
-    }
-  for ($i = 0; $row = db_fetch_array ($result); $i++)
-    {
-      print form_tag ();
-      print html_build_list_table_top ($title_arr);
-      $hid = ['group_id' => $group_id];
-      $k = "{$infix}_inventory_id";
-      $hid[$k] = $row[$k];
-      $k = "{$infix}_id";
-      $hid[$k] = $row[$k];
-      print "<tr class='" . utils_altrow ($i)
-        . "'>\n<td>" . form_hidden ($hid)
-        . "<span class='smaller'>{$row['skill_name']}"
-        . "</span></td>\n<td><span class='smaller'>"
-        . people_skill_level_box ('skill_level_id', $row['skill_level_id'])
-        . "</span></td>\n<td><span class='smaller'>"
-        . people_skill_year_box ('skill_year_id', $row['skill_year_id'])
-        . "</span></td>\n<td nowrap><span class='smaller'>"
-        . form_submit (_("Update"), "update_{$infix}_inventory") . "&nbsp;\n"
-        . form_submit (_("Delete"), "delete_from_{$infix}_inventory")
-        . "</span></td>\n</tr></table>\n"
-        . "</form>\n";
-    }
   print html_h (3, _("Add a New Skill"));
   print form_tag ();
   print html_build_list_table_top ($title_arr);
@@ -440,13 +390,50 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
     . "</span></td>\n</tr></table>\n</form>\n";
 }
 
+function people_print_skill_box_row ($group_id, $i, $row, $infix)
+{
+  $hid = ['group_id' => $group_id];
+  $k = "{$infix}_inventory_id";
+  $hid[$k] = $row[$k];
+  $k = "{$infix}_id";
+  $hid[$k] = $row[$k];
+  print "<tr class='" . utils_altrow ($i) . "'>\n<td>" . form_hidden ($hid)
+    . "<span class='smaller'>{$row['skill_name']}"
+    . "</span></td>\n<td><span class='smaller'>"
+    . people_skill_level_box ('skill_level_id', $row['skill_level_id'], true)
+    . "</span></td>\n<td><span class='smaller'>"
+    . people_skill_year_box ('skill_year_id', $row['skill_year_id'], true)
+    . "</span></td>\n<td nowrap><span class='smaller'>"
+    . form_submit (_("Update"), "update_{$infix}_inventory") . "&nbsp;\n"
+    . form_submit (_("Delete"), "delete_from_{$infix}_inventory")
+    . "</span></td>\n</tr></table>\n"
+    . "</form>\n";
+}
+
+function people_draw_skill_box ($result, $job_id = false, $group_id = false)
+{
+  $infix = ($job_id === false)? 'skill': 'job';
+
+  if (!db_numrows ($result))
+    print "<p><strong>" . _("No skill inventory set up") . "</strong></p>\n";
+  $title_arr = [_('Skill'), _('Level'), _('Experience'), _('Action')];
+  for ($i = 0; $row = db_fetch_array ($result); $i++)
+    {
+      print form_tag ();
+      print html_build_list_table_top ($title_arr);
+      people_print_skill_box_row ($group_id, $i, $row, $infix);
+    }
+  people_draw_new_skill_box ($job_id, $group_id, $infix, $title_arr);
+}
+
 function people_edit_job_inventory ($job_id, $group_id)
 {
   $result = db_execute ("
-     SELECT *, s.name AS skill_name
-     FROM people_job_inventory i, people_skill s
-     WHERE job_id = ? AND s.skill_id = i.skill_id",
-    [$job_id]
+     SELECT *, `s`.`name` AS `skill_name`
+     FROM
+       `people_job_inventory` `i` JOIN `people_skill` `s`
+         ON `s`.`skill_id` = `i`.`skill_id`
+     WHERE `job_id` = ?", [$job_id]
   );
   people_draw_skill_box ($result, $job_id, $group_id);
 }
@@ -574,7 +561,9 @@ function people_skill_box ($name = 'skill_id', $checked = 'xyxy')
   );
 }
 
-function people_skill_level_box ($name = 'skill_level_id', $checked = 'xyxy')
+function people_skill_level_box (
+  $name = 'skill_level_id', $checked = 'xyxy', $edit = false
+)
 {
   global $PEOPLE_SKILL_LEVEL;
 
@@ -593,38 +582,28 @@ function people_skill_level_box ($name = 'skill_level_id', $checked = 'xyxy')
   if (!$PEOPLE_SKILL_LEVEL)
     $PEOPLE_SKILL_LEVEL = db_execute ("SELECT * FROM people_skill_level");
   return html_build_localized_select_box (
-    $PEOPLE_SKILL_LEVEL, $name, $checked, true, 'None', false, 'Any', false,
+    $PEOPLE_SKILL_LEVEL, $name, $checked, !$edit, 'None', false, 'Any', false,
     _('skill level')
   );
 }
 
-function people_skill_year_box ($name = 'skill_year_id', $checked = 'xyxy')
+
+
+function people_skill_year_box (
+  $name = 'skill_year_id', $checked = 'xyxy', $edit = false
+)
 {
   global $PEOPLE_SKILL_YEAR;
   $skill_years_as_of_2023_01 = [
-    # TRANSLATORS: this string is an experience level.
-    _('< 6 Months'),
-    # TRANSLATORS: this string is an experience level.
-    _('6 Mo - 2 yr'),
-    # TRANSLATORS: this string is an experience level.
-    _('2 yr - 5 yr'),
-    # TRANSLATORS: this string is an experience level.
-    _('5 yr - 10 yr'),
-    # TRANSLATORS: this string is an experience level.
-    _('> 10 years'),
-    # TRANSLATORS: this string is an experience level.
-    _('10 yr - 20 yr'),
-    # TRANSLATORS: this string is an experience level.
-    _('20 yr - 40 yr'),
-    # TRANSLATORS: this string is an experience level.
-    _('40 yr - 80 yr'),
-    # TRANSLATORS: this string is an experience level.
-    _('> 80 years')
+    # TRANSLATORS: these strings are experience levels.
+    _('< 6 Months'), _('6 Mo - 2 yr'), _('2 yr - 5 yr'),
+    _('5 yr - 10 yr'), _('> 10 years'), _('10 yr - 20 yr'),
+    _('20 yr - 40 yr'), _('40 yr - 80 yr'), _('> 80 years')
   ];
   if (!$PEOPLE_SKILL_YEAR)
-    $PEOPLE_SKILL_YEAR = db_execute ("SELECT * FROM people_skill_year");
+    $PEOPLE_SKILL_YEAR = db_execute ('SELECT * FROM `people_skill_year`');
   return html_build_localized_select_box (
-    $PEOPLE_SKILL_YEAR, $name, $checked, true, 'None', false, 'Any', false,
+    $PEOPLE_SKILL_YEAR, $name, $checked, !$edit, 'None', false, 'Any', false,
     _('experience level')
   );
 }
