@@ -406,7 +406,7 @@ function people_print_skill_box_row ($group_id, $i, $row, $infix)
     . "</span></td>\n<td nowrap><span class='smaller'>"
     . form_submit (_("Update"), "update_{$infix}_inventory") . "&nbsp;\n"
     . form_submit (_("Delete"), "delete_from_{$infix}_inventory")
-    . "</span></td>\n</tr></table>\n"
+    . "</span></td>\n</tr>\n"
     . "</form>\n";
 }
 
@@ -414,14 +414,18 @@ function people_draw_skill_box ($result, $job_id = false, $group_id = false)
 {
   $infix = ($job_id === false)? 'skill': 'job';
 
-  if (!db_numrows ($result))
-    print "<p><strong>" . _("No skill inventory set up") . "</strong></p>\n";
   $title_arr = [_('Skill'), _('Level'), _('Experience'), _('Action')];
-  for ($i = 0; $row = db_fetch_array ($result); $i++)
+  if (!db_numrows ($result))
+    print "<p><b>" . _("No skill inventory set up") . "</b></p>\n";
+  else
     {
-      print form_tag ();
       print html_build_list_table_top ($title_arr);
-      people_print_skill_box_row ($group_id, $i, $row, $infix);
+      for ($i = 0; $row = db_fetch_array ($result); $i++)
+        {
+          print form_tag ();
+          people_print_skill_box_row ($group_id, $i, $row, $infix);
+        }
+      print "</table>\n";
     }
   people_draw_new_skill_box ($job_id, $group_id, $infix, $title_arr);
 }
