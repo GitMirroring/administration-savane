@@ -67,6 +67,7 @@ my $dry_run;
 my $verbose = 0;
 my $cron;
 my @trackers = ('bugs', 'support', 'task', 'patch', 'cookbook');
+my $sys_just = 1796083200; # 2026-12
 
 $help = <<"EOF";
   Usage: $0 [OPTIONS]
@@ -89,7 +90,14 @@ $help = <<"EOF";
         --cron         ignored
         --verbose      log additional info
         --logfile      file for reports [$logfile]
-        --dry-run      skip updating the database
+        --dry-run      skip updating the database and sending notifications
+
+    Variables from savane.conf.pl used in the script:
+
+       \$sys_job_update_start_time   the earliest time when automatically
+                                       closing jobs is allowed [$sys_just]
+       \$sys_name                    the name of the forge (like 'Savannah')
+       \$sys_default_domain          the domain of the forge
 EOF
 $help =~ s,^  ,,gm;
 $help =~ s,\n$,,;
@@ -122,12 +130,31 @@ sub delete_and_log
   log_result ("deleted $result $msg", $result);
 }
 
+sub get_sys_name
+{
+  return GetConf ('sys_name');
+}
+
+sub get_update_start_time
+{
+  my $t = GetConf ('sys_job_update_start_time');
+  return $t if defined $t;
+  return $sys_just;
+}
+
+sub get_default_domain
+{
+  my $ret = GetConf ('sys_default_domain');
+  return $ret if defined $ret;
+  return 'savannah.nongnu.org';
+}
+
 sub send_account_removal_notification
 {
   print_log ("-- sending notification") if $verbose > 2;
   return if $dry_run;
   my ($name, $email) = @_;
-  my $sys = GetConf ("sys_name");
+  my $sys = get_sys_name ();
   my $body = "Your $sys account <$name> is automatically\n"
     . "removed due to inactivity.\n\n"
     . "For criteria of removing idle accounts, please check\n"
@@ -602,6 +629,130 @@ sub cleanup_user_tables
     }
 }
 
+sub make_old_job_subject
+{
+  my ($group, $job_id) = @_;
+  my $sys_name = get_sys_name ();
+  return "Old job #$job_id in $group $sys_name group";
+}
+
+sub get_admin_emails
+{
+  my $group_id = shift;
+  my @ret = GetDB (
+    '`user_group` `g` JOIN `user` `u` ON `u`.`user_id` = `g`.`user_id`',
+    "`group_id` = $group_id AND `admin_flags` = 'A'", '`email`'
+  );
+  return undef unless @ret;
+  return join (', ', @ret);
+}
+
+sub fetch_old_jobs
+{
+  my $max_mon = shift;
+  my %jobs = GetDBHash (
+    '(
+       `people_job` `j` JOIN `user` `u` ON `j`.`created_by` = `u`.`user_id`
+     ) JOIN `groups` `g` ON `j`.`group_id` = `g`.`group_id`',
+    "`status_id` = 1
+     AND TIMESTAMPDIFF(MONTH, FROM_UNIXTIME(`date`), NOW()) > $max_mon",
+    'TIMESTAMPDIFF(MONTH, FROM_UNIXTIME(`date`), NOW()),
+     `job_id`, `j`.`group_id`, FROM_UNIXTIME(`date`),
+     `title`, `user_name`, `realname`, `unix_group_name`'
+  );
+  return %jobs;
+}
+
+sub make_update_job_body
+{
+  my ($age, $job_id, $group_id, $date, $title, $user_name, $realname, $group)
+    = @_;
+
+}
+
+sub make_notif_job_body
+{
+  my ($age, $job_id, $group_id, $date, $title, $user_name, $realname, $group)
+    = @_;
+}
+
+
+sub make_old_job_body
+{
+  my ($update,
+    $age, $job_id, $group_id, $date, $title, $user_name, $realname, $group)
+    = @_;
+  my $domain = get_default_domain ();
+  my $sys_name = get_sys_name ();
+  my $ret = <<"  EOF";
+    On $date, user $realname <$user_name> posted a job titled
+    '$title' in the <$group> group at $sys_name.
+    This job will be marked as filled because it is very old, and then
+    it will not show up in search results any more.  You can refresh
+    or completely remove it if you login $sys_name and visit
+    <$domain/people/editjob.php?group_id=$group_id&job_id=$job_id>.
+  EOF
+  $ret =~ s,^    ,,gm;
+  $ret =~ s,\n$,,;
+  $ret =~ s,job will be marked,job is marked, if $update;
+  return $ret;
+}
+
+sub fill_old_job
+{
+  my $id = shift;
+  print_log ('-- filling old job') if $verbose > 1;
+  return if $dry_run;
+  $dbd->do ("UPDATE `people_job` SET `status_id` = 2 WHERE `job_id` = $id");
+}
+
+sub check_update_start_time
+{
+  my $update = shift;
+  my ($t, $now) = (get_update_start_time (), time ());
+  return $update unless $now < $t;
+  print_log ("-- skipping update: start time $t > current time $now")
+    if ($update && $verbose > 2);
+  return 0;
+}
+
+sub process_old_job
+{
+  my $update = check_update_start_time (shift);
+  my ($age, $job_id, $group_id, $date, $title, $user_name, $realname, $group)
+    = @_;
+  print_log ("- found old job #$job_id '$title' in group #$group_id <$group>");
+  print_log ("-- sending notification") if $verbose > 2;
+  my $email = get_admin_emails ($group_id);
+  if (defined $email)
+    {
+      my $subj = make_old_job_subject ($group, $job_id);
+      my $body = make_old_job_body ($update, @_);
+      MailSend ($email, $subj, $body) unless $dry_run;
+    }
+  else
+    {
+      print_log ('- no group admin email found');
+    }
+  fill_old_job ($job_id) if $update;
+}
+
+sub check_old_jobs
+{
+  my $max_mon = 5 * 12;
+  my $notif_period = 2;
+  my %jobs = fetch_old_jobs ($max_mon);
+  my $n = scalar (keys %jobs);
+  print_log ("- found $n outdated jobs");
+  foreach (my $i = 0; $i < $n; $i++)
+    {
+      my @row = @{$jobs{$i}};
+      my $age = $row[0];
+      my $update = $age > $max_mon + $notif_period;
+      process_old_job ($update, @{$jobs{$i}});
+    }
+}
+
 sub main
 {
   open_log ($logfile, $script, $dry_run);
@@ -611,6 +762,7 @@ sub main
   cleanup_news ();
   cleanup_dead_groups ();
   cleanup_user_tables ();
+  check_old_jobs ();
   finish_work ();
 }
 

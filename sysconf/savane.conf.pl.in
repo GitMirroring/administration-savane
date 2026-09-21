@@ -10,4 +10,5 @@ our $sys_dbsocket = "@mysql_socket@"
   if $sys_dbnetworking eq 'no';
 our $sys_banned_email_domains = '';
 our %sys_banned_email_names = ();
+$sys_default_domain = '@WWW_SERVER_HOST@';
 return 1;

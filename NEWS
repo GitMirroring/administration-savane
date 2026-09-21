@@ -88,6 +88,9 @@
   'primary,' 'file,' 'twin,' 'twin file.'  Previously, the feature was only
   supported on savannah.gnu.org vs. savannah.nongnu.org.
 
+* The sv_cleaner script marks old jobs from the 'people' area as
+  'filled' when invoked with the --big-cleanup option.
+
 [BUILD]
 
 * ImageMagick executable is detected at configure time.
