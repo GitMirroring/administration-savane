@@ -125,6 +125,7 @@ POTFILES = \
 	frontend/php/include/savane-git.php \
 	frontend/php/include/stats/general.php \
 	frontend/php/include/people/general.php \
+	frontend/php/include/people/viewjob.php \
 	frontend/php/include/vcs.php \
 	frontend/php/include/vcs/cvs.php \
 	frontend/php/include/vcs/git.php \

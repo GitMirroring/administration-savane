@@ -444,6 +444,7 @@ ordinary_files = \
   php/include/pagemenu.php \
   php/include/parsemail.php \
   php/include/people/general.php \
+  php/include/people/viewjob.php \
   php/include/project/admin.php \
   php/include/proj_email.php \
   php/include/pwqcheck.php \

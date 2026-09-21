@@ -41,84 +41,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../include/init.php');
-require_once ('../include/people/general.php');
-require_once ('../include/vars.php');
+foreach (['init', 'people/general', 'people/viewjob', 'vars'] as $inc)
+  require_once ("../include/$inc.php");
 extract (sane_import ('get', ['digits' => ['group_id', 'job_id']]));
 
 exit_if_no_group ();
 exit_if_missing ('job_id');
-
-$result = db_execute ("
-  SELECT
-    `g`.`group_name`, `g`.`type`, `g`.`unix_group_name`,
-    `j`.`title` AS `job_title`, `j`.`date`, `j`.`description`,
-    `j`.`category_id` AS `category_id`, `jc`.`name` AS `category_name`,
-    `j`.`status_id`, `u`.`user_name`, `u`.`user_id`
-  FROM
-    (
-      (`people_job` `j` JOIN `groups` `g` ON `j`.`group_id` = `g`.`group_id`)
-      JOIN people_job_category jc ON `jc`.`category_id` = `j`.`category_id`
-    )
-    JOIN `user` `u` ON `u`.`user_id` = `j`.`created_by`
-  WHERE `j`.`job_id` = ? AND `j`.`group_id` = ?", [$job_id, $group_id]
-);
-
-$msg = sprintf (_("Job #%s not found"), $job_id);
-if (!db_numrows ($result))
-  exit_error ($msg, db_error ());
-
-# Fill in the info to create a job.
-site_project_header (
-  ['title' => _("View a Job"), 'group' => $group_id, 'context' => 'home']
-);
-
-$project = project_get_object ($group_id);
-$row = db_fetch_array ($result);
-$user_name = $row['user_name'];
-$group_link = "<a href=\"/projects/"
-  . $row['unix_group_name'] . '">' . $row['group_name'] . '</a>';
-# TRANSLATORS: the first argument is job title (like Tester or Developer),
-# the second argument is group name (like GNU Coreutils).
-$msg = sprintf (
-  _('%1$s for %2$s'), $row['job_title'], $group_link
-);
-print html_h (1, $msg);
-print "<p><span class='preinput'>" . _("Category:")
-  . "</span> <a href=\"/people/?categories[]="
-  . $row['category_id'] . '">' . $row['category_name'] . "</a><br />\n"
-  . '<span class="preinput">' . _("Submitter:") . '</span> '
-  . "<a href='/users/$user_name'>$user_name</a><br />\n"
-  . '<span class="preinput">' . _("Date:") . '</span> '
-  . utils_format_date ($row['date'])
-  . "<br />\n<span class=\"preinput\">" . _("Status:") . '</span> '
-  . people_fetch_job_status ($row['status_id']) . "</p>\n";
-
-if ($project->getTypeDescription ())
-  print "<p>" . markup_full ($project->getTypeDescription( )) . "</p>\n";
-print "<p>";
-if ($project->getLongDescription ())
-  print markup_full (utils_specialchars ($project->getLongDescription ()));
-elseif ($project->getDescription ())
-  print $project->getDescription ();
-print "</p>\n";
-$license = $project->getLicense ();
-print '<p><span class="preinput">' . _("License") . '</span> ';
-$lic_label = $LICENSE[$license];
-$lic_url = $LICENSE_URL[$license];
-if ($lic_url != "0")
-  $lic_label = "<a href=\"{$lic_url}\" target=\"_blank\">$lic_label</a>";
-print "$lic_label</p>\n";
-$devel_status_id = $project->getDevelStatus ();
-$devel_status = "&lt;" . _("Invalid status ID") . "&gt;";
-if (isset ($DEVEL_STATUS[$devel_status_id]))
-  $devel_status = $DEVEL_STATUS[$devel_status_id];
-print "<span class=\"preinput\"><br />\n"
-  . _("Development Status") . "</span>: $devel_status";
-
-print '<p><span class="preinput">'
-  . _("Details (job description, contact ...):") . "</span></p>\n";
-print markup_full (utils_specialchars ($row['description']));
-print people_show_job_inventory ($job_id);
-site_project_footer ([]);
+people_show_job ($job_id, $group_id);
 ?>

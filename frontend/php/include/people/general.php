@@ -306,51 +306,6 @@ function people_add_to_job_inventory (
   );
 }
 
-function people_fetch_job_inventory ($job_id)
-{
-  return db_execute ("
-    SELECT
-      `s`.`name` AS `skill`, `l`.`name` AS `level`, `y`.`name` AS `year`
-    FROM
-      (
-        (
-          `people_job_inventory` `i` JOIN `people_skill_year` `y`
-          ON `y`.`skill_year_id` = `i`.`skill_year_id`
-        )
-        JOIN `people_skill_level` `l`
-        ON `l`.`skill_level_id` = `i`.`skill_level_id`
-      )
-      JOIN `people_skill` `s` ON `s`.`skill_id` = `i`.`skill_id`
-    WHERE `i`.`job_id` = ?", [$job_id]
-  );
-}
-
-function print_job_inventory_row ($i, $row)
-{
-  print "<tr class=\"" . utils_altrow ($i) . "\">\n";
-  foreach (['skill', 'level', 'year'] as $c)
-    print '  <td>' . utils_specialchars (gettext ($row[$c])) . "</td>\n";
-  print "</tr>\n";
-}
-
-function people_show_job_inventory ($job_id)
-{
-  $result = people_fetch_job_inventory ($job_id);
-  if (!$result)
-    {
-      print '<p class="warn">(' . _("SQL Error:") . db_error () . ")</p>\n";
-      return;
-    }
-  if (!db_numrows ($result))
-    return;
-  print html_h (2, _('Required Skills'));
-  print html_build_list_table_top ([_("Skill"), _("Level"), _("Experience")]);
-  $i = 0;
-  while ($row = db_fetch_array ($result))
-    print_job_inventory_row ($i++, $row);
-  print "</table>\n";
-}
-
 function people_verify_job_group ($job_id, $group_id)
 {
   if (empty ($job_id))
