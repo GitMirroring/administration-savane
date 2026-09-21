@@ -674,7 +674,7 @@ function user_rename ($user_id, $new_name)
 {
   $old_name = user_fetch_name ($user_id);
   if ($old_name == '')
-    return sprintf ('No user #%i in the database', $user_id);
+    return sprintf ('No user #%d in the database', $user_id);
   db_execute (
     "UPDATE user SET user_name = ? WHERE user_id = ?", [$new_name, $user_id]
   );
