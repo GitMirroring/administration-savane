@@ -397,10 +397,11 @@ function people_edit_job_inventory ($job_id, $group_id)
 function people_job_line ($row, $i, $page, $edit)
 {
   $name = gettext ($row['type_name']);
+  $category = utils_specialchars (gettext ($row['category_name']));
   $ret = "<tr class=\"" . utils_altrow ($i)
     . '"><td><a href="' . "/people/$page?group_id="
     . $row['group_id'] . '&job_id=' . $row['job_id'] . '">'
-    . $row['title'] . "</a></td>\n<td>" . $row['category_name'] . "</td>\n<td>"
+    . $row['title'] . "</a></td>\n<td>$category</td>\n<td>"
     . utils_format_date ($row['date'], 'natural')
     . "</td>\n<td><a href=\"/projects/"
     . strtolower ($row['unix_group_name']) . '/">'

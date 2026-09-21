@@ -17,7 +17,7 @@
 
 * Bug fixes:
 
-** Skills in jobs were displayed unlocalized.
+** Skills and job categories in jobs were displayed unlocalized.
 
 ** The maximum number of registered SSH keys in an account was 5 whereas
    25 was intended.

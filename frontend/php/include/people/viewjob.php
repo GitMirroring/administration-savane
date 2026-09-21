@@ -127,9 +127,10 @@ function people_show_job_header ($group_id, $row)
 function people_show_job_params ($row)
 {
   $user_name = $row['user_name'];
+  $category = utils_specialchars (gettext ($row['category_name']));
   print "<p><span class='preinput'>" . _("Category:")
     . "</span> <a href=\"/people/?categories[]="
-    . $row['category_id'] . '">' . $row['category_name'] . "</a><br />\n"
+    . $row['category_id'] . '">' . "$category</a><br />\n"
     . '<span class="preinput">' . _("Submitter:") . '</span> '
     . "<a href='/users/$user_name'>$user_name</a><br />\n"
     . '<span class="preinput">' . _("Date:") . '</span> '
