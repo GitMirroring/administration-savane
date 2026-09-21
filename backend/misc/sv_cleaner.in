@@ -59,46 +59,47 @@ our $dbd;
 our $sys_banned_email_domains;
 our %sys_banned_email_names;
 
-my $script = "sv_cleaner";
-my $logfile = "/var/log/sv_cleaner.log";
+my $script = 'sv_cleaner';
+my $logfile = '/var/log/sv_cleaner.log';
 my $help;
 my $big_cleanup;
 my $dry_run;
 my $verbose = 0;
 my $cron;
-my @trackers = ("bugs", "support", "task", "patch", "cookbook");
+my @trackers = ('bugs', 'support', 'task', 'patch', 'cookbook');
 
-$help =
-"Usage: $0 [OPTIONS]
+$help = <<"EOF";
+  Usage: $0 [OPTIONS]
 
-Clean up the database:
+  Clean up the database:
 
-  * old form ids, sessions, lost password requests;
-  * banned, idle and unconfirmed user accounts;
+    * outdated form ids, sessions, confirm hashes, lost password requests;
+    * banned, idle and unconfirmed user accounts;
+    * groups marked for deletion;
 
-  (--big-cleanup)
+    (--big-cleanup)
 
-  * groups marked for deletion, including tracker items, news &c.;
-  * mailing lists marked for deletion;
-  * news marked for deletion as well as unapproved for a long time;
-  * orphan user data---bookmarks, sessions, preferences &c.
+    * data of removed groups, including tracker items, news &c.;
+    * news marked for deletion as well as unapproved for a long time;
+    * orphan user data---bookmarks, sessions, preferences, membership info &c.
 
-  -h, --help         show this help and exit
-  -v, --version      show Savane version and exit
-      --big-cleanup  take care of less frequent cases; typically runs monthly
-      --cron         ignored
-      --verbose      log additional info
-      --logfile      file for reports [$logfile]
-      --dry-run      skip updating the database";
+    -h, --help         show this help and exit
+    -v, --version      show Savane version and exit
+        --big-cleanup  take care of less frequent cases; typically runs monthly
+        --cron         ignored
+        --verbose      log additional info
+        --logfile      file for reports [$logfile]
+        --dry-run      skip updating the database
+EOF
+$help =~ s,^  ,,gm;
+$help =~ s,\n$,,;
 
 PrintVersionOrHelp ($help);
 
 GetOptions (
-  "cron" => \$cron, "big-cleanup" => \$big_cleanup, "dry-run" => \$dry_run,
-  "verbose+" => \$verbose, "logfile=s" => \$logfile
-) or die ("Wrong command line.");
-
-open_log ($logfile, $script, $dry_run);
+  'cron' => \$cron, 'big-cleanup' => \$big_cleanup, 'dry-run' => \$dry_run,
+  'verbose+' => \$verbose, 'logfile=s' => \$logfile
+) or die 'Wrong command line.';
 
 sub log_result
 {
@@ -110,7 +111,7 @@ sub delete_db
 {
   my ($table, $condition) = @_;
   return DeleteDB ($table, $condition) unless $dry_run;
-  my @ret = GetDB ($table, $condition, "count(*)");
+  my @ret = GetDB ($table, $condition, "COUNT(*)");
   return shift @ret;
 }
 
@@ -121,37 +122,7 @@ sub delete_and_log
   log_result ("deleted $result $msg", $result);
 }
 
-AcquireReplicationLock ();
-
-# Normal cleanup.
-
-# Remove user account registration not confirmed after three days.
-delete_and_log (
-  "user",
-  "status = 'P' AND TIMESTAMPDIFF(hour, FROM_UNIXTIME(add_date), NOW()) > 71",
-  "unconfirmed user accounts"
-);
-
-delete_and_log ("groups", "status = 'D'", "deleted groups");
-
-# Remove too old form_id, forms created more than one day ago an still
-# not submitted.
-delete_and_log (
-  "form", "TIMESTAMPDIFF(hour, FROM_UNIXTIME(timestamp), now()) > 23",
-  "outdated form ids"
-);
-
-# Remove session more than one year old.
-delete_and_log (
-  "session", "TIMESTAMPDIFF(day, FROM_UNIXTIME(time), now()) > 365",
-  "sessions older than one year"
-);
-
-delete_and_log ("user_lostpw", "TIMESTAMPDIFF(hour, date, now()) > 23",
-  "lost password requests"
-);
-
-sub send_notification
+sub send_account_removal_notification
 {
   print_log ("-- sending notification") if $verbose > 2;
   return if $dry_run;
@@ -176,7 +147,9 @@ sub purge_query_forms
   my $params;
   my @report_ids;
   foreach my $line (
-    GetDB ($tracker . "_report", "scope = 'I' AND user_id = $id", 'report_id')
+    GetDB (
+      $tracker . "_report", "`scope` = 'I' AND `user_id` = $id", 'report_id'
+    )
   )
     {
       chomp ($line);
@@ -193,7 +166,7 @@ sub purge_account_aux_data
   my ($id) = @_;
   foreach my $t (@user_tables)
     {
-      delete_and_log ($t, "user_id = $id", "#$id $t");
+      delete_and_log ($t, "`user_id` = $id", "#$id $t");
     }
   purge_query_forms ($id, $_) foreach (@trackers);
 }
@@ -201,7 +174,7 @@ sub purge_account_aux_data
 sub purge_account
 {
   my ($id, $name) = @_;
-  my $result = delete_db ("user", "user_id = $id");
+  my $result = delete_db ('user', "`user_id` = $id");
   log_result ("purged account #$id <$name>", $result);
 }
 
@@ -210,17 +183,18 @@ sub suspend_account
   my ($id, $name, $email) = @_;
   print_log ("- suspended account #$id <$name>");
   return if $dry_run;
-  $dbd->do ("UPDATE group_history"
-    . " SET old_value = '_$id' WHERE old_value = '$name'"
+  my $new_name = "_$id";
+  $dbd->do ("UPDATE `group_history`"
+    . " SET `old_value` = '$new_name' WHERE `old_value` = '$name'"
   );
   $dbd->do (<<"  EOF");
-    UPDATE user
+    UPDATE `user`
     SET
-      user_name = '_$id', user_pw = '!', realname = '-#-', status = 'S',
-      email = 'idontexist\@savane.test', confirm_hash = null,
-      authorized_keys = '', people_view_skills = 0, people_resume = '',
-      timezone = 'GMT', theme = '', gpg_key = '', email_new = null
-    WHERE user_id = $id
+      `user_name` = '$new_name', `user_pw` = '!', `realname` = '-#-',
+      `status` = 'S', `email = 'idontexist\@savane.test', `confirm_hash` = null,
+      `authorized_keys` = '', `people_view_skills` = 0, `email_new` = null,
+      `people_resume` = '', `timezone` = 'GMT', `theme` = '', `gpg_key` = ''
+    WHERE `user_id` = $id
   EOF
 }
 
@@ -281,12 +255,12 @@ sub account_has_tracker_history
 
   foreach my $tracker (@trackers)
     {
-      foreach my $line (GetDB ($tracker, "submitted_by = $id limit 1"))
+      foreach my $line (GetDB ($tracker, "`submitted_by` = $id LIMIT 1"))
         {
           print_log ("- account has submissions in $tracker") if ($verbose > 1);
           return 1;
         }
-      foreach my $line (GetDB ($tracker . "_history", "mod_by = $id limit 1"))
+      foreach my $line (GetDB ($tracker . "_history", "`mod_by` = $id LIMIT 1"))
         {
           print_log ("- account has comments in $tracker") if ($verbose > 1);
           return 1;
@@ -300,7 +274,7 @@ sub account_has_group_history
   my ($name) = @_;
   my $active = 0;
   foreach my $line (
-    GetDB ("group_history", "old_value = '$name'", "field_name")
+    GetDB ('group_history', "`old_value` = '$name'", '`field_name`')
   )
     {
       chomp ($line);
@@ -322,7 +296,7 @@ sub account_belongs_groups
 {
   my ($id) = @_;
   foreach my $line (
-    GetDB ("user_group", "user_id = '$id' AND admin_flags != 'P' limit 1")
+    GetDB ("user_group", "`user_id` = '$id' AND `admin_flags` != 'P' LIMIT 1")
   )
     {
       print_log ('- account belongs some groups') if ($verbose > 1);
@@ -350,7 +324,7 @@ sub clean_account
 {
   my ($user, $t0, $t1) = @_;
   my $active = 0;
-  my ($id, $name, $realname, $email, $status, $da, $ut) = split (",", $user);
+  my ($id, $name, $realname, $email, $status, $da, $ut) = split (',', $user);
   print_log ("- trying user $user") if ($verbose > 0);
   print_log ("- account is too new to purge (unless banned)")
     if ($ut > $t1 && $verbose > 1);
@@ -360,7 +334,7 @@ sub clean_account
   return if $active > 1;
   print_log ("- removing $user: $active");
   remove_account ($id, $name, $email, $active);
-  send_notification ($name, $email) unless $banned;
+  send_account_removal_notification ($name, $email) unless $banned;
 }
 
 sub log_banned_email_names
@@ -384,9 +358,9 @@ sub clean_idle_accounts
   log_banned_email_names ();
   foreach my $user (
     GetDB (
-      "user", "status = 'A' AND add_date > $t0",
-      "user_id, user_name, realname, email, status, "
-      . "from_unixtime(add_date), add_date"
+      'user', "`status` = 'A' AND `add_date` > $t0",
+      "`user_id`, `user_name`, `realname`, `email`, `status`, "
+      . "FROM_UNIXTIME(`add_date`), `add_date`"
     )
   )
     {
@@ -415,8 +389,8 @@ sub get_uids_with_expired_hash
   my @ret;
   foreach my $user (
     GetDB (
-      'user', "status = 'A' AND confirm_hash IS NOT NULL",
-      'user_id, user_name, confirm_hash'
+      'user', "`status` = 'A' AND `confirm_hash` IS NOT NULL",
+      '`user_id`, `user_name`, `confirm_hash`'
     )
   )
     {
@@ -455,12 +429,13 @@ sub clean_tracker_item
     foreach ($tracker, $tracker . '_cc', $tracker . '_history');
   my $tbl = $tracker . "_dependencies";
   delete_and_log ($tbl,
-    "item_id = '$item' OR (is_dependent_on_item_id = '$item' "
-    . "AND is_dependent_on_item_id_artifact = '$tracker')",
+    "`item_id` = '$item' OR (`is_dependent_on_item_id` = '$item' "
+    . "AND `is_dependent_on_item_id_artifact` = '$tracker')",
     "$tbl entries of $tracker #$item"
   );
   delete_and_log ('trackers_file',
-    "artifact = '$tracker' AND item_id = '$item'", "files of $tracker #$item"
+    "`artifact` = '$tracker' AND `item_id` = '$item'",
+    "files of $tracker #$item"
   );
 }
 
@@ -474,8 +449,8 @@ sub delete_news
 {
   my ($message, $term, $is_approved) = @_;
   my $condition =
-    "TIMESTAMPDIFF(day, FROM_UNIXTIME(date_last_edit), NOW()) > $term "
-    . "AND is_approved = $is_approved";
+    "TIMESTAMPDIFF(DAY, FROM_UNIXTIME(`date_last_edit`), NOW()) > $term "
+    . "AND `is_approved` = $is_approved";
   delete_and_log ("news_bytes", $condition, $message);
 }
 
@@ -484,11 +459,6 @@ sub cleanup_news
   delete_news ("news unapproved for a year", 374, 5);
   delete_news ("news removed more than a month ago", 34, 4);
 }
-
-clean_idle_accounts ();
-clean_confirm_hashes ();
-finish_work () unless ($big_cleanup);
-cleanup_news ();
 
 # Remove items from groups that no longer exists in the database.
 # When a group is deleted, its items no longer make sense.
@@ -499,102 +469,149 @@ cleanup_news ();
 sub dead_group_table
 {
   my $table = shift;
-  return "$table a LEFT JOIN groups g ON g.group_id = a.group_id";
+  return "$table `a` LEFT JOIN `groups` `g` ON `g`.`group_id` = `a`.`group_id`";
 }
 
 sub dead_group_criterion
 {
   # "OR g.status = 'D'" is added for more realistic dry runs.
-  return "g.group_id IS NULL OR g.status = 'D'";
+  return "`g`.`group_id` IS NULL OR `g`.`status` = 'D'";
 }
 
-# Browse each tracker item to found out if there are items to trash.
-foreach my $tracker (@trackers)
-  {
-    my @items_to_delete;
-    my $table = dead_group_table ($tracker);
-    my $crit = dead_group_criterion ();
+# Remove user account registration not confirmed after three days.
+sub cleanup_unconfirmed_accounts
+{
+  delete_and_log ('user', "
+    `status` = 'P'
+    AND TIMESTAMPDIFF(HOUR, FROM_UNIXTIME(`add_date`), NOW()) > 71",
+    'unconfirmed user accounts'
+  );
+}
 
-    # Find items to delete in tracker-specific tables.
-    foreach my $line (GetDB ($table, $crit, "bug_id, a.group_id"))
-      {
-        chomp ($line);
-        my ($item_id, $group_id) = split (",", $line);
-
-        push (@items_to_delete, $item_id);
-        print_log (
-          "- deleted $tracker #$item_id from dead group #$group_id"
-        );
-      }
-    clean_tracker_item ($tracker, $_) foreach (@items_to_delete);
-  } # foreach my $tracker (@trackers)
-
-# Now look in others tables to find if there was entries of deleted
-# groups. To keep it simple and not too much rendudant, we first get
-# all the dead group_id, and then we run simple delete on all table
-# where these groups id exists.
-my @dead_group_id;
-my %dead_group_id_already_found;
-
-my @tables = ("user_group", "groups_default_permissions", "group_preferences",
-  "group_history", "news_bytes", "forum_group_list", "trackers_watcher"
-);
+sub run_normal_cleanup
+{
+  cleanup_unconfirmed_accounts ();
+  delete_and_log ('groups', "`status` = 'D'", 'deleted groups');
+  # Remove too old forms created more than one day ago an still not submitted.
+  delete_and_log (
+    'form', 'TIMESTAMPDIFF(HOUR, FROM_UNIXTIME(`timestamp`), NOW()) > 23',
+    'outdated form ids'
+  );
+  delete_and_log (
+    'session', 'TIMESTAMPDIFF(DAY, FROM_UNIXTIME(`time`), NOW()) > 365',
+    'sessions older than one year'
+  );
+  delete_and_log ('user_lostpw', 'TIMESTAMPDIFF(HOUR, `date`, NOW()) > 23',
+    'lost password requests'
+  );
+  clean_idle_accounts ();
+  clean_confirm_hashes ();
+}
 
 # Find group ids of orphan items in table $_[0].
 sub mark_dead_groups
 {
   my $tbl = shift;
+  my $group_ids = shift;
   my $table = dead_group_table ($tbl);
   my $crit = dead_group_criterion ();
-  foreach my $group_id (GetDB ($table, $crit, "DISTINCT a.group_id"))
+  foreach my $group_id (GetDB ($table, $crit, 'DISTINCT `a`.`group_id`'))
     {
       chomp ($group_id);
-      next if $dead_group_id_already_found{$group_id};
+      next if $group_ids->{$group_id};
       print_log ("- found dead group #$group_id in $tbl") if ($verbose > 1);
-      push (@dead_group_id, $group_id);
-      $dead_group_id_already_found{$group_id} = 1;
+      $group_ids->{$group_id} = 1;
     }
 }
 
-mark_dead_groups ($_) foreach (@tables);
+sub remove_orphan_tracker_items
+{
+  my $tracker = shift;
+  my @items_to_delete;
+  my $table = dead_group_table ($tracker);
+  my $crit = dead_group_criterion ();
 
-my @suffices = ("_report", "_field_usage", "_field_value");
-# Find entries to delete in trackers query forms (don't bother removing
-# the query forms in depth values, they won't be visible anyway
-# since they refer to a query id that will be made bogus.
-# Do exactly the same for group field values.
-foreach my $tracker (@trackers)
-  {
-    mark_dead_groups ("$tracker$_") foreach (@suffices);
-  }
-my @table_list = @tables;
-foreach my $tracker (@trackers)
-  {
-    push (@table_list, "$tracker$_") foreach (@suffices);
-  }
+  # Find items to delete in tracker-specific tables.
+  foreach my $line (GetDB ($table, $crit, '`bug_id`, `a`.`group_id`'))
+    {
+      chomp ($line);
+      my ($item_id, $group_id) = split (',', $line);
 
-foreach my $group_id (@dead_group_id)
-  {
-    die "Strange group id found for dead group, exiting" if $group_id eq "";
-    print_log (
-      "- delete anything else that belong in dead group #$group_id"
-    );
-    foreach my $table (@table_list)
-      {
-        delete_and_log ($table, "group_id = '$group_id'",
-          "$table entries of group #$group_id");
-      }
-  } # foreach my $group_id (@dead_group_id)
+      push (@items_to_delete, $item_id);
+      print_log (
+        "- deleted $tracker #$item_id from dead group #$group_id"
+      );
+    }
+  clean_tracker_item ($tracker, $_) foreach (@items_to_delete);
+}
 
-foreach my $table (@user_tables)
-  {
-    my @res = GetDB ("$table p LEFT JOIN user u ON p.user_id = u.user_id",
-      "u.user_id IS NULL OR u.status = 'S' GROUP BY p.user_id", "p.user_id"
-    );
-    foreach my $uid (@res)
-      {
-        chomp ($uid);
-        delete_and_log ($table, "user_id = $uid", "#$uid orphan $table");
-      }
-  }
-finish_work ();
+sub get_group_related_tables
+{
+  my @tables = ('user_group', 'groups_default_permissions', 'group_preferences',
+    'group_history', 'news_bytes', 'forum_group_list', 'trackers_watcher'
+  );
+  my @suffices = ('_report', '_field_usage', '_field_value');
+  foreach my $tracker (@trackers)
+    {
+      push (@tables, "$tracker$_") foreach (@suffices);
+    }
+  return @tables;
+}
+
+sub compile_dead_group_ids
+{
+  my %dead_group_ids = ();
+  mark_dead_groups ($_, \%dead_group_ids)
+    foreach (get_group_related_tables ());
+  return keys %dead_group_ids;
+}
+
+sub cleanup_dead_groups
+{
+  remove_orphan_tracker_items ($_) foreach (@trackers);
+  my @dead_group_ids = compile_dead_group_ids ();
+  foreach my $group_id (@dead_group_ids)
+    {
+      die "Strange group id '$group_id' found for dead group, exiting"
+        unless $group_id =~ /^\d+$/;
+      print_log (
+        "- delete anything else that belong in dead group #$group_id"
+      );
+      foreach my $table (get_group_related_tables ())
+        {
+          delete_and_log ($table, "`group_id` = '$group_id'",
+            "$table entries of group #$group_id");
+        }
+    } # foreach my $group_id (@dead_group_ids)
+}
+
+sub cleanup_user_tables
+{
+  foreach my $table (@user_tables)
+    {
+      my @res = GetDB (
+        "$table `p` LEFT JOIN `user` `u` ON `p`.`user_id` = `u`.`user_id`",
+        "`u`.`user_id` IS NULL OR `u`.`status` = 'S' GROUP BY `p`.`user_id`",
+        '`p`.`user_id`'
+      );
+      foreach my $uid (@res)
+        {
+          chomp ($uid);
+          delete_and_log ($table, "`user_id` = $uid", "#$uid orphan $table");
+        }
+    }
+}
+
+sub main
+{
+  open_log ($logfile, $script, $dry_run);
+  AcquireReplicationLock ();
+  run_normal_cleanup ();
+  finish_work () unless ($big_cleanup);
+  cleanup_news ();
+  cleanup_dead_groups ();
+  cleanup_user_tables ();
+  finish_work ();
+}
+
+main ();
