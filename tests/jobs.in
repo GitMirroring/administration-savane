@@ -1,0 +1,325 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
+# Test jobs in the 'people' section.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Version;
+use Savane::Test;
+use Savane::Test::Group;
+use Savane::Test::Membership;
+use WWW::Mechanize;
+
+PrintVersionOrHelp ("Test jobs in the 'people' section.");
+
+sub make_environment
+{
+  my ($user, $group) = @_;
+  my $agent = make_agent () or exit (1);
+  my $group_id = register_group ($agent, $user, $group);
+  exit (1) if $group_id < 0;
+  return ($agent, $group_id);
+}
+
+sub visit_post_page
+{
+  my ($agent, $group) = @_;
+  print_test_log ('Visiting job post page.');
+  $agent->get (make_url ("people/createjob.php?group=$group"));
+  my $form = $agent->form_with_fields (
+    qw /form_id group_id category_id title description/
+  );
+  return 0 if defined $form;
+  print_test_error ('Cannot find job post form.');
+  save_page ($agent, 'visit-post-page.html');
+  return 1;
+}
+
+sub visit_edit_page
+{
+  my ($agent, $group, $job_id) = @_;
+  my $url = "people/editjob.php?group=$group";
+  my $msg = 'Visiting job edit page';
+  $url .= "&job_id=$job_id" if defined $job_id;
+  $msg .= " for job #$job_id" if defined $job_id;
+  print_test_log ("$msg.");
+  $agent->get (make_url ($url));
+  return check_request_status ($agent);
+}
+
+sub skip_100
+{
+  my @ret;
+  foreach (@_)
+    {
+      unless ($_ == 100)
+        {
+          push @ret, $_;
+          next;
+        }
+      print_test_log ('Note: skipping the value 100.');
+    }
+  return @ret;
+}
+
+sub get_option_list
+{
+  my ($agent, $name) = @_;
+  my $form = $agent->current_form ();
+  print_test_log ("Checking options for $name.");
+  my $input = $form->find_input ($name, 'option');
+  unless (defined ($input))
+    {
+      print_test_error ('No input found.');
+      save_page ($agent, "no-$name-input.html");
+      return ();
+    }
+  my @vals = $input->possible_values ();
+  my @names = $input->value_names ();
+  my @vn;
+  push @vn, "'$_' => '" . (shift @names) . "'" foreach (@vals);
+  my $sep = "\n  ";
+  print_test_result ("Values found for $name:$sep" . join ($sep, @vn));
+  return skip_100 (@vals);
+}
+
+sub make_job_list
+{
+  my ($agent, $group) = @_;
+  return () if visit_post_page ($agent, $group);
+  my @categories = get_option_list ($agent, 'category_id');
+  return () unless @categories;
+  my @ret;
+  foreach (@categories)
+    {
+      push @ret, $_, "sample $_", "job for $_";
+      push @ret, $_, "sample $_ (bis)", "second job for $_";
+    }
+  return @ret;
+}
+
+sub look_for_input
+{
+  my ($agent, $name, $type) = @_;
+  my $form = $agent->current_form ();
+  my $input = $form->find_input ($name, $type);
+  return $input;
+}
+
+sub make_job
+{
+  my ($agent, $cat_id, $title, $description) = @_;
+  print_test_log ("Making job ($cat_id, '$title', '$description').");
+  my $input = look_for_input ($agent, 'category_id', 'option');
+  return 1 unless defined $input;
+  $input->value ($cat_id);
+  $input = look_for_input ($agent, 'title', 'text');
+  return 1 unless defined $input;
+  $input->value ($title);
+  $input = look_for_input ($agent, 'description', 'textarea');
+  return 1 unless defined $input;
+  $input->value ($description);
+  print_test_log ("Submitting the job.");
+  $agent->click ();
+  return check_request_status ($agent);
+}
+
+sub get_categories
+{
+  my ($agent, $group) = @_;
+  return () if visit_post_page ($agent, $group);
+  my $form = $agent->current_form ();
+  my $input = $form->find_input ('category_id', 'option');
+  unless (defined $input)
+    {
+      print_test_error ('Cannot find category_id select box.');
+      save_page ($agent, 'no-category-id.html');
+      return ();
+    }
+  my %ret = ();
+  my @vals = $input->possible_values ();
+  my @names = $input->value_names ();
+  foreach (@vals)
+    {
+      my $name = shift @names;
+      next if $_ == 100;
+      $ret{$_} = $name;
+    }
+  return %ret;
+}
+
+sub parse_job_table_row
+{
+  my ($line, $cat_names) = @_;
+  $line =~ s/^<td>(.*)<\/td>\s*$/$1/s;
+  my @ret = split (/<\/td>\s*<td>/s, $line);
+  my $id;
+  $ret[0] =~ s,<a href=[^>]*>(.*)</a>.*,$1,;
+  my $name = $ret[1];
+  foreach (keys %{$cat_names})
+    {
+      $id = $_ if $cat_names->{$_} eq $name;
+    }
+  $ret[2] = $id;
+  unless (defined $id)
+    {
+      print_test_error ("Cannot find id for category name '$name'.");
+      return undef;
+    }
+  return \@ret;
+}
+
+sub strip_for_job_table
+{
+  my $agent = shift;
+  my $page = $agent->content (raw => 1);
+  unless ($page =~ s/.*<table[^>]*id='job-list'>\s*//s)
+    {
+      print_test_error ('No job table found.');
+      save_page ($agent, 'no-job-table.html');
+      return undef;
+    }
+  unless ($page =~ s,\s*</tr>\s*</table>.*$,,s)
+    {
+      print_test_error ('Job table has no end.');
+      save_page ($agent, 'endless-job-table.html');
+      return undef;
+    }
+  $page =~ s,<tr[^>]*>.*?</tr>\s*<tr[^>]*>\s*,,s;
+  return $page;
+}
+
+sub get_job_table
+{
+  my $agent = shift;
+  my $cat_names = shift;
+  my $page = strip_for_job_table ($agent);
+  return () unless defined $page;
+  my @ret;
+  foreach (split (m@</tr>\s*<tr[^>]*>@, $page))
+    {
+      my $row = parse_job_table_row ($_, $cat_names);
+      unless (defined $row)
+        {
+          save_page ($agent, 'no-cat-name.html');
+          return ();
+        }
+      push @ret, $row;
+    }
+  return @ret;
+}
+
+sub look_for_job
+{
+  my ($agent, $cat, $title) = (shift, shift, shift);
+  print_test_log ("Looking for job '$title' for category #$cat.");
+  while (@_)
+    {
+      my $entry = shift;
+      my ($tit, $cat_name, $cat_id, $group, $type, $status) = @{$entry};
+      next unless $cat_id eq $cat;
+      next unless $title eq $tit;
+      print_test_result ("Job found.");
+      return 0;
+    }
+  print_test_error ("Job not found.");
+  return 1;
+}
+
+sub check_jobs
+{
+  my ($agent, $user, $group) = (shift, shift, shift);
+  my %cat_names = get_categories ($agent, $group);
+  return 1 unless %cat_names;
+  return 1 if visit_edit_page ($agent, $group);
+  my @table = get_job_table ($agent, \%cat_names);
+  return 1 unless @table;
+  my @jobs = @_;
+  my $ret = 0;
+  while (@jobs)
+    {
+      my ($cat, $title) = (shift @jobs, shift @jobs);
+      $ret = 1 if look_for_job ($agent, $cat, $title, @table);
+      shift @jobs;
+    }
+  save_page ($agent, 'edit-jobs.html') if $ret;
+  return $ret;
+}
+
+sub post_jobs
+{
+  my ($agent, $user, $group) = @_;
+  my @jobs = make_job_list ($agent, $group);
+  return 1 unless @jobs;
+  my $ret = 0;
+  my @j = @jobs;
+  while (@j)
+    {
+      return 1 if visit_post_page ($agent, $group);
+      return 1 if make_job ($agent, @j);
+      shift @j; shift @j; shift @j;
+    }
+  return check_jobs ($agent, $user, $group, @jobs);
+}
+
+sub run_checks
+{
+  my ($agent, $user, $group, $group_id) = @_;
+  my $ret = post_jobs ($agent, $user, $group);
+  return $ret;
+}
+
+sub main
+{
+  my $ret = 0;
+  my $user = 'alice';
+  my $group = 'proba';
+  my ($agent, $group_id) = make_environment ($user, $group);
+  $ret = 1 if log_out ($agent);
+  $ret = 1 if log_in ($agent, $user);
+  $ret = 1 if run_checks ($agent, $user, $group, $group_id);
+  $ret = 1 if remove_group ($group_id, $group);
+  print_test_result ('Test done.') unless $ret;
+  return $ret;
+}
+
+exit (main ());

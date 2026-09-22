@@ -422,21 +422,17 @@ function people_show_job_list ($result, $edit = false)
   if ($edit)
     $title_arr[] = _('Status');
 
-  $page = 'viewjob.php';
-  if ($edit)
-    $page = 'editjob.php';
-  $tail = "</table>\n";
-
-  $return = html_build_list_table_top ($title_arr);
   $rows = db_numrows ($result);
   if ($rows < 1)
-    return $return . '<tr><td colspan="3"><strong>'
-      . _("None found") . '</strong>' . db_error () . "</td></tr>\n" . $tail;
+    return '<p>' . _("None found") . "</p>\n";
 
+  $ret = "\n<table class='box' id='job-list'>\n"
+     . html_build_list_table_top ($title_arr, false, false);
   $i = 0;
+  $page = $edit? 'editjob.php': 'viewjob.php';
   while ($row = db_fetch_array ($result))
-    $return .= people_job_line ($row, $i++, $page, $edit);
-  return $return . $tail;
+    $ret .= people_job_line ($row, $i++, $page, $edit);
+  return "$ret</table>\n";
 }
 
 function people_job_sql ()
