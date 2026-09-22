@@ -57,7 +57,7 @@
 # 2023, 2026 Ineiev: rewrite with utils_run_proc.
 
 # The original pwqcheck is not internationalized. Strings to localize
-# are taken from passwdqc_check.c (the 1.3.1 release); they are copyrighted
+# are taken from passwdqc_check.c (the 2.0.2 release); they are copyrighted
 # by Solar Designer (if copyrightable at all).
 # The license for passwdqc_check.c is:
 #
