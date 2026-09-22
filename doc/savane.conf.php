@@ -60,10 +60,14 @@ $sys_unix_group_name = "administration";
 $sys_themedefault = "Savannah";
 # The path to Graphviz executable.
 $sys_graphviz = "/usr/bin/dot";
+# Do we use the pwqcheck(1) program from the passwdqc package?
+$sys_use_pwqcheck = true;
 # The directory where pwqcheck and pwqgen binaries are located; when
 # the variable doesn't exist, the executables are searched according to the PATH
 # environment variable.
 $sys_pwqcheck_path = '/usr/local/bin';
+# The command line options passed to pwqcheck.
+$sys_pwqcheck_args = ['match=0', 'max=256', 'min=24,24,11,8,7'];
 # Template for the Reply-To: header in tracker follow-up notifications,
 # see doc/comments-via-email.
 $sys_reply_to = '%UID-%TRACKER-sv-dev <savane-trackers@example.org>';

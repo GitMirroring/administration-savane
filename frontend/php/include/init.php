@@ -88,7 +88,7 @@ $sys_debug_nobasehost = false;
 
 # Password strength checking.
 # Do we have the pwqcheck(1) program from the passwdqc package?
-$use_pwqcheck = TRUE;
+$sys_use_pwqcheck = true;
 # We can override the default password policy
 # max = 40 is overridden because some users want longer passwords.
 # min = default,24,11,8,7 is overridden for N0 passwords
@@ -100,7 +100,7 @@ $use_pwqcheck = TRUE;
 # checks has 27 bits of entropy, the same as 22 characters long
 # user-chosen password composed from 10-character alphabet with no checks
 # implied, so we can safely admit any 24 characters long passwords.
-$pwqcheck_args = ['match=0', 'max=256', 'min=24,24,11,8,7'];
+$sys_pwqcheck_args = ['match=0', 'max=256', 'min=24,24,11,8,7'];
 
 # Default uploads directory for './register2/upload.html'.
 $sys_upload_dir = "/var/www/submissions_uploads" ;

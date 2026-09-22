@@ -49,12 +49,12 @@ define ('HASH_LOSTPW', 'lostpw');
 
 function account_password_help ()
 {
-  global $use_pwqcheck, $pwqcheck_args;
+  global $sys_use_pwqcheck, $sys_pwqcheck_args;
   $help =
     _("Note: The password should be long enough\n"
       . "or containing multiple character classes:\n"
       . "symbols, digits (0-9), upper and lower case letters.");
-  if (!$use_pwqcheck)
+  if (!$sys_use_pwqcheck)
     return $help;
   list ($pwqgen, ) = pwqgen ();
   # TRANSLATORS: the argument is an example of passphrase.
@@ -62,9 +62,9 @@ function account_password_help ()
   $help .= " <br />\n"
     . sprintf (
         _("pwqcheck options are '%s':"),
-        utils_specialchars (join (' ', $pwqcheck_args))
+        utils_specialchars (join (' ', $sys_pwqcheck_args))
       );
-  $help .= pwqcheck_explain_options ($pwqcheck_args);
+  $help .= pwqcheck_explain_options ($sys_pwqcheck_args);
   return $help;
 }
 
@@ -94,9 +94,9 @@ function account_pwcheck ($newpass, $oldpass, $user)
 
 function account_pwvalid ($newpass, $oldpass = '', $user = '')
 {
-  global $use_pwqcheck, $pwqcheck_args;
-  if ($use_pwqcheck)
-    $check = pwqcheck ($newpass, $oldpass, $user, '', $pwqcheck_args);
+  global $sys_use_pwqcheck, $sys_pwqcheck_args;
+  if ($sys_use_pwqcheck)
+    $check = pwqcheck ($newpass, $oldpass, $user, '', $sys_pwqcheck_args);
   else
     {
       $check = account_pwcheck ($newpass, $oldpass, $user);
