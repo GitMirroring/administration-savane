@@ -68,10 +68,13 @@ if (getenv ('SAVANE_PORT') !== false)
   $sys_www_server_port = getenv ('SAVANE_PORT');
 
 $phpdir = '@frontenddir@/php';
-$sym = ['projects' => ['p', 'pr', 'projects'], 'users' => ['u', 'us', 'users']];
+$sym = [
+  'projects' => ['p', 'pr', 'projects'], 'users' => ['u', 'us', 'users'],
+  'vc.php' => ['vc']
+];
 foreach ($sym as $file => $aliases)
   foreach ($aliases as $a)
-    if (preg_match (".^/$a/.", $path))
+    if (preg_match (".^/$a(/|$).", $path))
       {
         include "$phpdir/$file";
         return true;

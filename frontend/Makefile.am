@@ -573,6 +573,7 @@ ordinary_files = \
   php/us \
   php/users \
   php/users.php \
+  php/vc.php \
   php/vcs/index.php \
   site-specific/gnu/account/editsshkeys.php \
   site-specific/gnu/account/first.php \
