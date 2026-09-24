@@ -60,6 +60,8 @@ $sys_unix_group_name = "administration";
 $sys_themedefault = "Savannah";
 # The path to Graphviz executable.
 $sys_graphviz = "/usr/bin/dot";
+# The path to viewvc.cgi.
+$sys_viewvc = '/opt/viewvc/bin/cgi/viewvc.cgi';
 # Do we use the pwqcheck(1) program from the passwdqc package?
 $sys_use_pwqcheck = true;
 # The directory where pwqcheck and pwqgen binaries are located; when

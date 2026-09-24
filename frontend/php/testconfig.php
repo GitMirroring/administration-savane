@@ -1427,7 +1427,7 @@ function output_sysvars ()
     'dbhost', 'dbname', '*dbpasswd', 'dbport', 'dbsocket', 'dbuser',
     'default_domain', 'debug_nobasehost', 'brother_domain', 'file_domain',
     'this_host_name', 'https_host',
-    'gpg_name', 'gpg_home', 'graphviz',
+    'gpg_name', 'gpg_home', 'graphviz', 'viewvc_bin',
     'use_pwqcheck', 'pwqcheck_path', 'pwqcheck_args',
     'etc_dir', 'incdir', 'upload_dir', 'www_topdir', 'linguas', 'localedir',
     'mail_admin', 'mail_domain', 'mail_replyto', 'name',
