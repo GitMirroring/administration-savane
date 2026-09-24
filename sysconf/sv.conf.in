@@ -60,6 +60,9 @@ ServerName @WWW_SERVER_HOST@
   RewriteCond "%{REQUEST_URI}" "!^/(submissions_uploads/|file|images|css)"
   RewriteRule "(.*)" "%{REQUEST_SCHEME}://@WWW_HOST@$1" [R,L]
 
+  # Redirect ViewVC renderer.
+  RewriteRule "^/vc/[^/]*(/.*)" "/vc.php/$1" [L]
+
   DocumentRoot @frontenddir@/php
   SetEnv SAVANE_CONF @SV_CONF@
   <Directory "@frontenddir@/php/">

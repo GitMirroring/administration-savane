@@ -194,6 +194,7 @@ POTFILES = \
 	frontend/php/news/admin/index.php \
 	frontend/php/news/approve.php \
 	frontend/php/users.php \
+	frontend/php/vc.php \
 	frontend/php/css/graph-widths.php \
 	frontend/php/markup-test.php \
 	frontend/php/js/hide-span.php \
