@@ -48,8 +48,7 @@ require_directory ("trackers");
 global $item_data, $group_data;
 $item_data = $group_data = [];
 
-if (!user_isloggedin ())
-  exit_not_logged_in ();
+session_require_login ();
 
 extract (sane_import ('get',
   [

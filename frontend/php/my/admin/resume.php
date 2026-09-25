@@ -45,8 +45,7 @@ require_once ('../../include/init.php');
 require_once ('../../include/form.php');
 require_directory ("people");
 
-if (!user_isloggedin ())
-  exit_not_logged_in ();
+session_require_login ();
 
 $submits = [
   'update_profile', 'add_to_skill_inventory', 'update_skill_inventory',

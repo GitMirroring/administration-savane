@@ -547,14 +547,8 @@ switch ($func)
     break;
 
   case 'flagspam':
-    # Only allowed to logged in user.
     if (!user_isloggedin ())
-      {
-        # Do not use exit_not_logged_in(), because the user has no
-        # valid reason to get here if he was not logged in in first place
-        # (the link was not provided).
-        exit_permission_denied ();
-      }
+      exit_permission_denied ();
 
     # Determine the additional spamscore according to user credentials.
     # +1 = logged in user
@@ -580,12 +574,7 @@ switch ($func)
   case 'unflagspam':
     # Unflag an alleged spam: for group admins only.
     if (!member_check (0, $group_id, MEMBER_FLAGS_ADMIN))
-      {
-        # Do not use exit_not_logged_in(), because the user has no
-        # valid reason to get here if he was not logged in in first place
-        # (the link was not provided).
-        exit_permission_denied ();
-      }
+      exit_permission_denied ();
     if (!isset ($comment_internal_id))
       exit_missing_param (['comment_internal_id']);
     spam_unflag ($item_id, $comment_internal_id, ARTIFACT, $group_id);

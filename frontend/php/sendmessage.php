@@ -55,8 +55,7 @@ extract (sane_import ('request',
 
 form_check ('send_mail');
 
-if (!user_isloggedin ())
-  exit_not_logged_in ();
+session_require_login ();
 
 exit_if_missing ('touser');
 

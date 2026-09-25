@@ -53,8 +53,7 @@ extract (sane_import ('post',
 ));
 form_check ('update');
 
-if (!user_isloggedin ())
-  exit_not_logged_in ();
+session_require_login ();
 $remaining_votes = trackers_votes_remaining ();
 
 if ($update)
