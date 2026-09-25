@@ -17,6 +17,9 @@
 
 * Bug fixes:
 
+** In some cases, redirection to the login script was done without
+   returning to the original page where login was required.
+
 ** Skills and job categories in jobs were displayed unlocalized.
 
 ** The maximum number of registered SSH keys in an account was 5 whereas

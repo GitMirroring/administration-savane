@@ -243,11 +243,11 @@ function session_require_group ($req)
 # Instead of a simple error page, take user to the login page.
 function session_require_login ()
 {
-  global $REQUEST_URI, $sys_https_host, $sys_default_domain;
+  global $sys_https_host, $sys_default_domain;
   if (user_isloggedin ())
     return;
 
-  $uri = utils_urlencode ($REQUEST_URI);
+  $uri = utils_urlencode ($_SERVER['REQUEST_URI']);
   $domain = "http://$sys_default_domain";
   if (!empty ($sys_https_host))
     $domain = "https://$sys_https_host";
