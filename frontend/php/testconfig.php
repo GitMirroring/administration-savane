@@ -955,12 +955,15 @@ function test_language ($lang, $report_fails = false)
   $err = i18n_setup ($loc);
   if (!empty ($err))
     return i18n_setup_failed ($lang, $err, $report_fails);
-  foreach (['Any', 'Apply'] as $str)
+  $ret = [];
+  foreach (['Any', 'None', 'Apply'] as $str)
     {
       $res = gettext ($str);
       if (($res == $str  && $lang == 'en') || ($res != $str && $lang != 'en'))
-        return "$str => $res";
+        $ret[] = "$str => $res";
     }
+  if (!empty ($ret))
+    return join ("<br />\n", $ret);
   if ($report_fails)
     add_summary ("$lang failed.");
   return "<b>Fail.</b> Check <code>locale -a</code> output,\n"
