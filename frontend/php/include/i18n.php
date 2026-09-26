@@ -182,8 +182,9 @@ register_language ("ru", "ru_RU", "русский");
 register_language ("sv", "sv_SE", "svenska");
 #register_language ("sv-se", "sv_SE");
 register_language ("uk", "uk_UA", "українська");
-register_language ("zh", "zh_CN", "简体中文");
-#register_language ("zh-cn", "zh_CN");
+register_language ("zh", "zh_TW", "體中文");
+register_language ("zh-tw", "zh_TW");
+register_language ("zh-cn", "zh_CN", "简体中文");
 
 # Get user's preferred languages from UA headers.
 $browser_preferences = get_browser_preferences ();
