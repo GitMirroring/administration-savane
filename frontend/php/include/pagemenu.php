@@ -336,7 +336,7 @@ function pagemenu_vcs_browse_entry ($group, $vcs, $name)
     return '';
   $repos = vcs_get_repos ($vcs, $group_id);
   $n = count ($repos);
-  $scm_url = $group->getUrl ($a_idx);
+  $scm_url = vcs_get_vc_url ($group, $vcs);
   if ($n < 2)
     {
       $title = sprintf (_("Browse %s repository"), $name);
@@ -348,19 +348,9 @@ function pagemenu_vcs_browse_entry ($group, $vcs, $name)
   return $ret;
 }
 
-function pagemenu_vcs_web_browse_url ($group, $vcs)
-{
-  if (!pagemenu_url_is_set ($group, "cvs_viewcvs_homepage"))
-    return '';
-  $have_entry = $group->UsesForHomepage ($vcs);
-  if (!$have_entry)
-    return '';
-  return $group->getUrl ("cvs_viewcvs_homepage");
-}
-
 function pagemenu_vcs_web_browse_entry ($group, $vcs, $name)
 {
-  $url = pagemenu_vcs_web_browse_url ($group, $vcs);
+  $url = vcs_web_browse_url ($group, $vcs);
   if ($url == '')
     return '';
   return pagemenu_submenu_entry (_("Browse Web Pages Repository"), $url);
