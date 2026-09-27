@@ -1,5 +1,5 @@
 <?php
-# Git-specific functions.
+# CVS-specific functions.
 # To be included from php/include/vcs.php only.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
