@@ -504,7 +504,7 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
   if ($admin_url != '')
     print "<li><a href=\"$admin_url\">" . _("Administer") . "</a></li>\n";
 
-  $scm_url = $group->getUrl ("{$scm}_viewcvs");
+  $scm_url = vcs_get_vc_url ($group, $scm);
   if (
     $group->Uses ($scm) && $scm_url != 'http://' && $scm_url != ''
   )
@@ -520,7 +520,7 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
           print vcs_compile_repo_ul ($repos, $scm_url) . "\n";
         }
     }
-  $view_url = pagemenu_vcs_web_browse_url ($group, $scm);
+  $view_url = vcs_web_browse_url ($group, $scm);
   if ($view_url != '')
     print "<li><a href=\"$view_url\">"
       . _("Browse Web Pages Repository") . "</a></li>\n";
