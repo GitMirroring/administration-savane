@@ -1,5 +1,10 @@
 ????-??-?? 3.19
 
+[FRONTEND]
+
+* Add an option to pass requests from logged-in users to a separate
+  ViewVC instance.
+
 2026-09-26 3.18
 
 [FRONTEND]

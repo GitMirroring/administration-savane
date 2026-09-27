@@ -206,19 +206,33 @@ function vcs_exit_if_not_modified ($vcs)
   header ('Last-Modified: ' . date ('r', $mtime));
 }
 
+function vcs_get_vc_url ($group, $vcs, $web = false)
+{
+  global $sys_viewvc;
+  $url = $group->getUrl ("{$vcs}_viewcvs");
+  $name = $group->getUnixName ();
+  if (empty ($sys_viewvc))
+    return $url;
+  if (!user_isloggedin ())
+    return $url;
+  if ($vcs === 'cvs')
+    return $web? "/vc/web/$name/": "/vc/sources/$name/";
+  if ($vcs === 'svn')
+    return "/vc/svn/$name/";
+  return $url;
+}
+
 function vcs_print_source_repo_links ($group, $vcs, $repo_list)
 {
   $n = count ($repo_list);
+  $base = vcs_get_vc_url ($group, $vcs);
   if ($n <= 1)
     {
-      print '<li><a href="' . $group->getUrl ("{$vcs}_viewcvs")
-        . '">' . _("Browse Sources Repository") . "</a></li>\n";
+      print "<li><a href=\"$base\">"
+        . _("Browse Sources Repository") . "</a></li>\n";
       return;
     }
-  $url0 = preg_replace (
-    ':/[^/]*$:', '/', $group->getUrl ("{$vcs}_viewcvs")
-  );
-
+  $url0 = preg_replace (':/[^/]*$:', '/', $base);
   for ($i = 0; $i < $n; $i++)
     print '<li><a href="' . $url0 . $repo_list[$i]['url'] . '">'
       . $repo_list[$i]['desc'] . "</a></li>\n";
@@ -238,6 +252,19 @@ function vcs_label ($vcs)
   return $names[$vcs];
 }
 
+function vcs_web_browse_url ($group, $vcs)
+{
+  global $sys_viewvc;
+  if (!pagemenu_url_is_set ($group, "cvs_viewcvs_homepage"))
+    return '';
+  if (!$group->UsesForHomepage ($vcs))
+    return '';
+  $ret = vcs_get_vc_url ($group, $vcs, true);
+  if ($ret !== null)
+    return $ret;
+  return $group->getUrl ("cvs_viewcvs_homepage");
+}
+
 function vcs_print_links_to_repos ($group, $group_id, $vcs)
 {
   global $repo_list;
@@ -245,7 +272,7 @@ function vcs_print_links_to_repos ($group, $group_id, $vcs)
   $repo_list = vcs_get_repos ($vcs, $group_id);
   $have_links = $group->Uses ($vcs)
     && pagemenu_url_is_set ($group, "{$vcs}_viewcvs");
-  $web_link = pagemenu_vcs_web_browse_url ($group, $vcs);
+  $web_link = vcs_web_browse_url ($group, $vcs);
   if (!($have_links || $web_link !== ''))
     return;
   vcs_print_browsing_preface (vcs_label ($vcs));
