@@ -60,7 +60,9 @@ $sys_unix_group_name = "administration";
 $sys_themedefault = "Savannah";
 # The path to Graphviz executable.
 $sys_graphviz = "/usr/bin/dot";
-# The path to viewvc.cgi.
+# Either the path to viewvc.cgi or a URL like http://localhost:49152
+# (in the latter case, it's assummed that the server's 'script alias' is set
+# to 'vc').
 $sys_viewvc = '/opt/viewvc/bin/cgi/viewvc.cgi';
 # Do we use the pwqcheck(1) program from the passwdqc package?
 $sys_use_pwqcheck = true;
