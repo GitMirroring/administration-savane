@@ -45,7 +45,35 @@
 foreach (['init'] as $i)
   require_once ("include/$i.php");
 
-function filter_header ($h)
+function remote_fopen ($url)
+{
+  $f = fopen ($url, 'r', false, stream_context_create ());
+  if (false === $f)
+    exit_error ();
+  $h = [];
+  if (function_exists ('http_get_last_response_headers'))
+    $h = http_get_last_response_headers ();
+  elseif (isset ($http_response_header))
+    $h = $http_response_header;
+  return [$f, $h];
+}
+
+function connect_viewvc ($env)
+{
+  global $sys_viewvc;
+  $script = $env['SCRIPT_NAME'];
+  $path = $env['PATH_INFO'];
+  if (!empty ($env['QUERY_STRING']))
+    $path .= '?' . $env['QUERY_STRING'];
+  list ($f, $headers) = remote_fopen ("$sys_viewvc$script/$path");
+  foreach ($headers as $h)
+    header ($h);
+  while (!feof ($f))
+    print fread ($f, 16834);
+  fclose ($f);
+}
+
+function filter_header_line ($h)
 {
   if (substr ($h, -1) !== "\r")
     return false;
@@ -58,17 +86,17 @@ function filter_header ($h)
 function pass_to_viewvc ($script, $path, $qs)
 {
   global $sys_viewvc;
-  if (empty ($sys_viewvc))
-    exit_error ();
   $env = [
    'SCRIPT_NAME' => $script, 'PATH_INFO' => $path, 'QUERY_STRING' => $qs
   ];
+  if (preg_match (',^[a-z]+://,', $sys_viewvc))
+    return connect_viewvc ($env);
   utils_run_proc ([$sys_viewvc], $out, $err, ['env' => $env]);
   $header = true;
   foreach (explode ("\n", $out) as $line)
     {
       if ($header)
-        $header = filter_header ($line);
+        $header = filter_header_line ($line);
       if (!$header)
         print "$line\n";
     }
@@ -81,6 +109,7 @@ function get_script_name ()
 
 function process_request ()
 {
+  global $sys_viewvc;
   session_require_login ();
   $pfx = get_script_name ();
   $qs = '';
@@ -94,6 +123,8 @@ function process_request ()
   if (!preg_match (":^$pfx/:", $path))
     exit_error ();
   $path = substr ($path, strlen ($pfx) + 1);
+  if (empty ($sys_viewvc))
+    exit_error ();
   pass_to_viewvc ($pfx, $path, $qs);
   utils_output_debug_footer ();
 }
