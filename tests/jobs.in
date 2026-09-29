@@ -51,9 +51,32 @@ use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test jobs in the 'people' section.");
 
+my $sv_cleaner = '@bindir@/sv_cleaner';
+
+my $test_php = <<'EOF';
+  <?php
+     require_once ('include/init.php');
+     $where = '';
+     $t = 433532159;
+     $job_id = null;
+     if (!empty ($_SERVER['QUERY_STRING']))
+       list ($t, $job_id) = explode ('-', $_SERVER['QUERY_STRING']);
+     $args = [$t];
+     if ($job_id !== null)
+       {
+         $where = ' WHERE `job_id` = ?';
+         $args[] = $job_id;
+       }
+     db_execute ('UPDATE `people_job` SET `date` = ?' . $where, $args);
+  ?>
+EOF
+
+$test_php =~ s/^  //gm;
+
 sub make_environment
 {
   my ($user, $group) = @_;
+  exit (1) if write_test_php ('reset-job-dates.php', $test_php);
   my $agent = make_agent () or exit (1);
   my $group_id = register_group ($agent, $user, $group);
   exit (1) if $group_id < 0;
@@ -86,6 +109,15 @@ sub visit_edit_page
   return check_request_status ($agent);
 }
 
+sub visit_job_list_page
+{
+  my ($agent, $group) = @_;
+  my $url = "people/?group=$group";
+  print_test_log ('Visiting job list page.');
+  $agent->get (make_url ($url));
+  return check_request_status ($agent);
+}
+
 sub skip_100
 {
   my @ret;
@@ -101,38 +133,16 @@ sub skip_100
   return @ret;
 }
 
-sub get_option_list
-{
-  my ($agent, $name) = @_;
-  my $form = $agent->current_form ();
-  print_test_log ("Checking options for $name.");
-  my $input = $form->find_input ($name, 'option');
-  unless (defined ($input))
-    {
-      print_test_error ('No input found.');
-      save_page ($agent, "no-$name-input.html");
-      return ();
-    }
-  my @vals = $input->possible_values ();
-  my @names = $input->value_names ();
-  my @vn;
-  push @vn, "'$_' => '" . (shift @names) . "'" foreach (@vals);
-  my $sep = "\n  ";
-  print_test_result ("Values found for $name:$sep" . join ($sep, @vn));
-  return skip_100 (@vals);
-}
-
 sub make_job_list
 {
-  my ($agent, $group) = @_;
-  return () if visit_post_page ($agent, $group);
-  my @categories = get_option_list ($agent, 'category_id');
-  return () unless @categories;
+  my ($agent, $group, $categories) = @_;
+  return () unless %{$categories};
   my @ret;
-  foreach (@categories)
+  foreach (keys %{$categories})
     {
-      push @ret, $_, "sample $_", "job for $_";
-      push @ret, $_, "sample $_ (bis)", "second job for $_";
+      my $val = $categories->{$_};
+      push @ret, $_, "sample $val", "job for $val";
+      push @ret, $_, "sample $val (bis)", "second job for $val";
     }
   return @ret;
 }
@@ -163,49 +173,111 @@ sub make_job
   return check_request_status ($agent);
 }
 
-sub get_categories
+sub look_for_category_id_input
 {
-  my ($agent, $group) = @_;
-  return () if visit_post_page ($agent, $group);
-  my $form = $agent->current_form ();
-  my $input = $form->find_input ('category_id', 'option');
-  unless (defined $input)
-    {
-      print_test_error ('Cannot find category_id select box.');
-      save_page ($agent, 'no-category-id.html');
-      return ();
-    }
+  my $agent = shift;
+  my $input = look_for_input ($agent, 'category_id', 'option');
+  return $input if defined $input;
+  print_test_error ('Cannot find category_id select box.');
+  save_page ($agent, 'no-category-id.html');
+  return undef;
+}
+
+sub make_input_hash
+{
+  my $input = shift;
   my %ret = ();
   my @vals = $input->possible_values ();
   my @names = $input->value_names ();
+  print_test_log ('Listing input values.');
   foreach (@vals)
     {
       my $name = shift @names;
-      next if $_ == 100;
+      if ($_ == 100)
+        {
+          print_test_log ("Note: skipping the value '100' => '$name'.");
+          next;
+        }
       $ret{$_} = $name;
+      print_test_log ("Found value '$_' => '$name'.");
     }
   return %ret;
 }
 
-sub parse_job_table_row
+sub get_categories
 {
-  my ($line, $cat_names) = @_;
-  $line =~ s/^<td>(.*)<\/td>\s*$/$1/s;
-  my @ret = split (/<\/td>\s*<td>/s, $line);
-  my $id;
-  $ret[0] =~ s,<a href=[^>]*>(.*)</a>.*,$1,;
-  my $name = $ret[1];
+  my ($agent, $group) = @_;
+  print_test_log ('Getting available job categories.');
+  return () if visit_post_page ($agent, $group);
+  my $form = $agent->current_form ();
+  my $input = look_for_category_id_input ($agent);
+  return () unless defined $input;
+  my %ret = make_input_hash ($input);
+  my @entries;
+  push @entries, "$_ => " . $ret{$_} foreach keys %ret;
+  print_test_log ("Found categories:\n  " . join ("\n  ", @entries));
+  return %ret;
+}
+
+sub extract_job_id
+{
+  my $link = shift;
+  $link =~ s/^\s*(['"])//;
+  my $sep = $1;
+  $link = s/$sep.*$//;
+  $link = /[?&]job_id=(\d+)/;
+  return $1;
+}
+
+sub look_for_cat_id
+{
+  my ($cat_names, $name) = @_;
+  return $name unless defined $cat_names;
   foreach (keys %{$cat_names})
     {
-      $id = $_ if $cat_names->{$_} eq $name;
+      return $_ if $cat_names->{$_} eq $name;
     }
-  $ret[2] = $id;
-  unless (defined $id)
+  print_test_error ("Cannot find id for category name '$name'.");
+  my @entries;
+  push @entries, "$_ => " . $cat_names->{$_} foreach keys %{$cat_names};
+  print_test_error ("Known categories:\n  " . join ("\n  ", @entries));
+  return undef;
+}
+
+# Return a hash containing row cells, plus 'title', 'job_id' and 'cat_id'.
+sub parse_job_table_row
+{
+  my ($line, $cat_names, $headings) = @_;
+  $line =~ s/^<td>(.*)<\/td>\s*$/$1/s;
+  my @cells = split (/<\/td>\s*<td>/s, $line);
+  my %ret;
+  $ret{$_} = shift @cells foreach @{$headings};
+  $ret{'title'} = $ret{'Title'};
+  $ret{'title'} =~ s,<a href=([^>]*)>(.*)</a>.*,$2,s;
+  $ret{'job_id'} = extract_job_id ($1);
+  my $name = $ret{'Category'};
+  my $id = look_for_cat_id ($cat_names, $name);
+  return undef unless defined $id;
+  $ret{'cat_id'} = $id;
+  return \%ret;
+}
+
+sub parse_table_head
+{
+  my $line = shift;
+  $line =~ s/^<th[^>]*>(.*)<\/th>\s*$/$1/s;
+  my @ret = split (/<\/th>[^<]*<th[^>]*>/, $line);
+  print_test_log ("Found job table headings: '" . join ("', '", @ret) . "'.");
+  my ($have_title, $have_cat);
+  foreach (@ret)
     {
-      print_test_error ("Cannot find id for category name '$name'.");
-      return undef;
+      $have_title = 1 if $_ eq 'Title';
+      $have_cat = 1 if $_ eq 'Category';
     }
-  return \@ret;
+  return \@ret if ($have_cat && $have_title);
+  print_test_error ('Job title not found.') unless $have_title;
+  print_test_error ('Job category not found.') unless $have_cat;
+  return undef;
 }
 
 sub strip_for_job_table
@@ -224,20 +296,24 @@ sub strip_for_job_table
       save_page ($agent, 'endless-job-table.html');
       return undef;
     }
-  $page =~ s,<tr[^>]*>.*?</tr>\s*<tr[^>]*>\s*,,s;
-  return $page;
+  $page =~ s,<tr[^>]*>\s*(.*?)\s*</tr>\s*<tr[^>]*>\s*,,s;
+  my $headings = parse_table_head ($1);
+  return ($headings, $page);
 }
 
 sub get_job_table
 {
-  my $agent = shift;
-  my $cat_names = shift;
-  my $page = strip_for_job_table ($agent);
-  return () unless defined $page;
+  my ($agent, $cat_names) = @_;
+  my ($headings, $page) = strip_for_job_table ($agent);
+  unless (defined $page && defined $headings)
+    {
+      save_page ($agent, 'invalid-job-table.html');
+      return ();
+    }
   my @ret;
   foreach (split (m@</tr>\s*<tr[^>]*>@, $page))
     {
-      my $row = parse_job_table_row ($_, $cat_names);
+      my $row = parse_job_table_row ($_, $cat_names, $headings);
       unless (defined $row)
         {
           save_page ($agent, 'no-cat-name.html');
@@ -248,37 +324,18 @@ sub get_job_table
   return @ret;
 }
 
-sub look_for_job
+sub check_jobs_edited
 {
-  my ($agent, $cat, $title) = (shift, shift, shift);
-  print_test_log ("Looking for job '$title' for category #$cat.");
-  while (@_)
-    {
-      my $entry = shift;
-      my ($tit, $cat_name, $cat_id, $group, $type, $status) = @{$entry};
-      next unless $cat_id eq $cat;
-      next unless $title eq $tit;
-      print_test_result ("Job found.");
-      return 0;
-    }
-  print_test_error ("Job not found.");
-  return 1;
-}
-
-sub check_jobs
-{
-  my ($agent, $user, $group) = (shift, shift, shift);
-  my %cat_names = get_categories ($agent, $group);
-  return 1 unless %cat_names;
+  my ($agent, $user, $group, $cat_names) = (shift, shift, shift, shift);
   return 1 if visit_edit_page ($agent, $group);
-  my @table = get_job_table ($agent, \%cat_names);
+  my @table = get_job_table ($agent, $cat_names);
   return 1 unless @table;
   my @jobs = @_;
   my $ret = 0;
   while (@jobs)
     {
       my ($cat, $title) = (shift @jobs, shift @jobs);
-      $ret = 1 if look_for_job ($agent, $cat, $title, @table);
+      $ret = 1 if find_job_in_table ($agent, \@table, $cat, $title);
       shift @jobs;
     }
   save_page ($agent, 'edit-jobs.html') if $ret;
@@ -287,24 +344,538 @@ sub check_jobs
 
 sub post_jobs
 {
-  my ($agent, $user, $group) = @_;
-  my @jobs = make_job_list ($agent, $group);
-  return 1 unless @jobs;
+  my ($agent, $user, $group, $cat_names) = (shift, shift, shift, shift);
+  return 1 unless @_;
   my $ret = 0;
-  my @j = @jobs;
+  my @j = @_;
   while (@j)
     {
       return 1 if visit_post_page ($agent, $group);
       return 1 if make_job ($agent, @j);
       shift @j; shift @j; shift @j;
     }
-  return check_jobs ($agent, $user, $group, @jobs);
+  return check_jobs_edited ($agent, $user, $group, $cat_names, @_);
+}
+
+sub find_job_link
+{
+  my ($agent, $title, $quiet) = @_;
+  my $link = $agent->find_link (text => $title);
+  return $link if defined $link;
+  return undef if $quiet;
+  print_test_error ('The job is absent on the page.');
+  save_page ($agent, 'no-job-link.html');
+  return undef;
+}
+
+sub find_job_form
+{
+  my $agent = shift;
+  my $ret = $agent->form_with_fields ('form_id', 'job_id', 'group_id', @_);
+  return $ret if defined $ret;
+  print_test_error ('No form with fields \'' . join ("', '", @_) . "' found.");
+  save_page ($agent, 'no-form.html');
+  return undef;
+}
+
+sub invoke_button
+{
+  my ($agent, $msg) = @_;
+  print_test_log ("Requesting job $msg.");
+  $agent->click ();
+  return check_request_status ($agent);
+}
+
+sub find_job_button
+{
+  my ($agent, $hidden, $id) = @_;
+  my $form = find_job_form ($agent, $hidden);
+  return 1 unless defined $form;
+  print_test_log ("Looking for button #$id.");
+  my $input = $form->find_input ($id, 'submit');
+  unless (defined $input)
+    {
+      print_test_error ('No button found.');
+      save_page ($agent, 'no-confirm-button.html');
+      return 1;
+    }
+  print_test_result ('Button is present.');
+  return 0;
+}
+
+sub find_confirm_cancel
+{
+  my ($agent, $hidden, $confirm) = @_;
+  return 1 if find_job_button ($agent, $hidden, $confirm);
+  return find_job_button ($agent, $hidden, 'cancel');
+}
+
+sub invoke_confirm_button
+{
+  my ($agent, $hidden, $button, $confirm) = @_;
+  print_test_log ("Invoking '$button' in the confirm form.");
+  return 1 if find_confirm_cancel ($agent, $hidden, $confirm);
+  $agent->click ($button);
+  return check_request_status ($agent);
+}
+
+sub check_job_removal
+{
+  my ($agent, $group, $title) = @_;
+  return 1 if visit_job_list_page ($agent, $group);
+  print_test_log ('Checking if the job is still present.');
+  if (defined find_job_link ($agent, $title, 1))
+    {
+      print_test_error ('The job persists.');
+      return 1;
+    }
+  print_test_result ('The job is absent.');
+  return 1 if visit_edit_page ($agent, $group);
+  if (defined find_job_link ($agent, $title, 1))
+    {
+      print_test_error ('The job persists.');
+      return 1;
+    }
+  print_test_result ('The job is absent.');
+  return 0;
+}
+
+sub invoke_cancel_confirm
+{
+  my ($agent, $hidden, $confirm, $msg) = @_;
+  foreach ('cancel', $confirm)
+    {
+      return 1 unless defined find_job_form ($agent, $hidden);
+      return 1 if invoke_button ($agent, $msg);
+      return 1 if invoke_confirm_button ($agent, $hidden, $_, $confirm);
+    }
+  return 0;
+}
+
+sub delete_job
+{
+  my ($agent, $group, $title) = @_;
+  print_test_log ("Removing job '$title'.");
+  return 1 if visit_edit_page ($agent, $group);
+  my $link = find_job_link ($agent, $title);
+  return 1 unless defined $link;
+  print_test_log ('Following job edit link.');
+  $agent->get (make_url ($link->url));
+  return 1 if check_request_status ($agent);
+  my $confirm = 'confirm_rm_job';
+  my $hidden = 'rm_form';
+  return 1 if invoke_cancel_confirm (
+    $agent, 'rm_form', 'confirm_rm_job', 'removal'
+  );
+  return check_job_removal ($agent, $group, $title);
+}
+
+sub remove_jobs
+{
+  my ($agent, $user, $group) = (shift, shift, shift);
+  return 1 unless @_;
+  my $ret = 0;
+  while (@_)
+    {
+      my ($cat, $title, $desc) = (shift, shift, shift);
+      $ret = 1 if delete_job ($agent, $group, $title);
+    }
+  return $ret;
+}
+
+sub find_job_in_table
+{
+  my ($agent, $table, $category, $title) = @_;
+  print_test_log ("Looking for job cat_id $category, '$title' in table.");
+  foreach (@{$table})
+    {
+      my %entry = %{$_};
+      next unless $entry{'cat_id'} eq $category;
+      next unless $entry{'title'} eq $title;
+      print_test_result ('Job found.');
+      return 0;
+    }
+  print_test_error ('Job not found.');
+  return 1;
+}
+
+sub check_job_listed
+{
+  my ($agent, $table, $cat, $title) = @_;
+  return 1 if find_job_in_table (@_);
+  my $link = find_job_link ($agent, $title);
+  return 1 unless defined $link;
+  my $url = $link->url;
+  my $a = make_agent ();
+  print_test_log ("Trying job link $url.");
+  $a->get (make_url ($url));
+  return 1 if check_request_status ($a);
+  my $page = $a->content (raw => 1);
+  $page =~ s/.*<h1[^>]*>//s;
+  $page =~ s,</h1>.*,,s;
+  $page =~ s, for <a href.*,,s;
+  if ($title eq $page)
+    {
+      print_test_result ('Job page matches expectations.');
+      return 0;
+    }
+  print_test_error ("Wrong job title ('$page', '$title' expected).");
+  save_page ($agent, 'wrong-job-page.html');
+  return 1;
+}
+
+sub check_job_list
+{
+  my ($agent, $group, $cat_names) = (shift, shift, shift);
+  return 1 if visit_job_list_page ($agent, $group);
+  my @table = get_job_table ($agent, $cat_names);
+  return 1 unless @table;
+  my $ret = 0;
+  while (@_)
+    {
+      $ret = 1 if check_job_listed ($agent, \@table, @_);
+      shift; shift; shift;
+    }
+  save_page ($agent, 'check-job-page.html') if $ret;
+  return $ret;
+}
+
+sub refresh_job
+{
+  my ($agent, $group, $title) = @_;
+  print_test_log ("Refreshing job '$title'.");
+  return 1 if visit_edit_page ($agent, $group);
+  my $link = find_job_link ($agent, $title);
+  return 1 unless defined $link;
+  print_test_log ('Following job edit link.');
+  $agent->get (make_url ($link->url));
+  return 1 if check_request_status ($agent);
+  return invoke_cancel_confirm (
+    $agent, 'refresh_form', 'confirm_refresh', 'refreshing'
+  );
+}
+
+sub refresh_all_jobs
+{
+  my ($agent, $group) = (shift, shift);
+  print_test_log ('Refreshing all jobs.');
+  my $ret = 0;
+  foreach (@_)
+    {
+      $ret = 1 if refresh_job ($agent, $group, $_->{'title'});
+    }
+  return $ret;
+}
+
+sub compare_key_sets
+{
+  my ($old, $new) = @_;
+  my $ret = 0;
+  foreach (keys %{$old})
+    {
+      next if exists $new->{$_};
+      print_test_error ("Job #$_ is missing in the new list.");
+      $ret = 1;
+    }
+  foreach (keys %{$new})
+    {
+      next if exists $old->{$_};
+      print_test_error ("Job #$_ is missing in the old list.");
+      $ret = 1;
+    }
+  return $ret;
+}
+
+sub compare_dates
+{
+  my ($new_dates, $old_dates) = @_;
+  my $ret = 0;
+  print_test_log ('Checking if post dates were updated.');
+  foreach (keys %{$new_dates})
+    {
+      my $old = $old_dates->{$_};
+      my $new = $new_dates->{$_};
+      if ($old ne $new)
+        {
+          print_test_result ("Job #$_: date $old changed to $new.");
+          next;
+        }
+      $ret = 1;
+      print_test_error ("Job #$_: date $old persisted.");
+    }
+  return $ret;
+}
+
+sub check_refreshed_jobs
+{
+  my ($agent, $cat_names, $dates) = @_;
+  my $ret;
+  my @table = get_job_table ($agent, $cat_names);
+  my %new_dates;
+  $new_dates{$_->{'job_id'}} = $_->{'Date Opened'} foreach @table;
+  return 1 if compare_key_sets ($dates, \%new_dates);
+  return compare_dates (\%new_dates, $dates);
+}
+
+sub check_refreshing
+{
+  my ($agent, $group, $cat_names) = @_;
+  $agent->get (make_url ('reset-job-dates.php'));
+  return 1 if visit_edit_page ($agent, $group);
+  my @table = get_job_table ($agent, $cat_names);
+  my %dates;
+  $dates{$_->{'job_id'}} = $_->{'Date Opened'} foreach @table;
+  return 1 if refresh_all_jobs ($agent, $group, @table);
+  print_test_log ("Checking refreshed jobs on job view page.");
+  return 1 if visit_job_list_page ($agent, $group);
+  return 1 if check_refreshed_jobs ($agent, $cat_names, \%dates);
+  print_test_log ("Checking refreshed jobs on job edit page.");
+  return 1 if visit_edit_page ($agent, $group);
+  return check_refreshed_jobs ($agent, $cat_names, \%dates);
+}
+
+sub check_input_value
+{
+  my ($agent, $input, $val, $msg) = @_;
+  my $input_val = $input->value;
+  print_test_log ($msg);
+  if ($input_val eq $val)
+    {
+      print_test_result ("The value is $val as expected.");
+      return 0;
+    }
+  print_test_error ("Wrong value $input_val found ($val is expected).");
+  save_page ($agent, 'wrong-value.html');
+  return 1;
+}
+
+sub submit_value
+{
+  my ($agent, $input, $value) = @_;
+  my $old = $input->value;
+  print_test_log ("Submitting new value $value (was $old).");
+  $input->value ($value);
+  $agent->click ();
+  return check_request_status ($agent, 'cant-submit.html');
+}
+
+sub report_job_advertizing
+{
+  my ($agent, $job, $should_show_up, $link);
+  if ($should_show_up)
+    {
+      if (defined $link)
+        {
+          print_test_result ('Job expectedly shows up in results.');
+          return 0;
+        }
+       print_test_error ('Job is unexpectedly missing from results.');
+       return 1;
+    }
+  if (defined $link)
+    {
+      print_test_result ('Job unexpectedly shows up in results.');
+      return 1;
+    }
+   print_test_result ('Job is expectedly missing from results.');
+   return 0;
+}
+
+sub check_job_advertizing
+{
+  my ($agent, $group, $job, $should_show_up) = @_;
+  my $job_id = $job->{'job_id'};
+  my $msg = $should_show_up?
+    "Checking if job #$job_id shows up in search results."
+    : "Checking if job #$job_id is skipped in search results.";
+  print_test_log ($msg);
+  my $title = $job->{'title'};
+  return 1 if visit_job_list_page ($agent, $group);
+  my $link = find_job_link ($agent, $title, 1);
+  return report_job_advertizing ($agent, $job, $should_show_up, $link);
+}
+
+sub change_status
+{
+  my ($agent, $group, $job) = (shift, shift, shift);
+  my @vals = @_;
+  return 1 if visit_edit_page ($agent, $group, $job->{'job_id'});
+  my $form = find_job_form ($agent, 'category_id', 'status_id', 'title');
+  my $input = $form->find_input ('status_id', 'option');
+  return 1 unless defined $form;
+  return 1
+    if check_input_value ($agent, $input, $vals[0], 'Checking initial status.');
+  return 1 if submit_value ($agent, $input, $vals[1]);
+  return check_job_advertizing ($agent, $group, $job, $vals[1] eq '1');
+}
+
+sub fill_job
+{
+  return change_status (@_, '1', '2');
+}
+
+sub open_job
+{
+  return change_status (@_, '2', '1');
+}
+
+sub try_change_status
+{
+  return 1 if fill_job (@_);
+  return open_job (@_);
+}
+
+sub test_status_change
+{
+  my ($agent, $group, $cat_names) = @_;
+  print_test_log ('Testing status change.');
+  return 1 if visit_edit_page ($agent, $group);
+  my @table = get_job_table ($agent, $cat_names);
+  my $ret = 0;
+  foreach (@table)
+    {
+      $ret = 1 if try_change_status ($agent, $group, $_);
+    }
+  return $ret;
+}
+
+sub reset_job_date
+{
+  my ($job, $additional_year) = @_;
+  my $agent = make_agent ();
+  my $y = 5;
+  my $days = ($y + ($additional_year? 1: 0)) * 365 + 40;
+  my $t = time () - $days * 24 * 3600;
+  my $msg = "Resetting job #$job post date to $t ($y";
+  $msg .= ' plus one more' if $additional_year;
+  $msg .= ' years ago).';
+  print_test_log ($msg);
+  $agent->get (make_url ("reset-job-dates.php?$t-$job"));
+}
+
+sub get_subject
+{
+  my $headers = shift;
+  unless ($headers =~ /^Subject: (.*)$/m)
+    {
+      print_test_error ("Subject line not found in headers,\n$headers");
+      return undef;
+    }
+  return $1;
+}
+
+sub check_pre_notification
+{
+  my ($headers, $body, $job_id) = @_;
+  print_test_log ('Checking notification email.');
+  my $subject = get_subject ($headers);
+  return 1 unless defined $subject;
+  my $ret = 0;
+  unless ($subject =~ /^Old job #$job_id in .* group/)
+    {
+      print_test_error ("Unexpected subject '$subject'.");
+      $ret = 1;
+    }
+  unless ($body =~ /On .*, user .* posted a job titled/)
+    {
+      $body =~ s/^/  /m;
+      print_test_error ("Unexpected body,\n$body");
+      $ret = 1;
+    }
+  print_test_result ('Notification email does not look wrong.') unless $ret;
+  return $ret;
+}
+
+sub find_job_table_entry
+{
+  my ($agent, $job_id) = (shift, shift);
+  my $entry;
+  foreach (@_)
+    {
+      $entry = $_ if $job_id eq $_->{'job_id'};
+    }
+  unless (defined $entry)
+    {
+      print_test_error ('Job not found.');
+      save_page ($agent, 'job-not-found.html');
+      return undef;
+    }
+  return $entry;
+}
+
+sub check_notified_status
+{
+  my ($agent, $group, $job_id, $status) = @_;
+  print_test_log ('Checking status after sv_cleaner.');
+  return 1 if visit_edit_page ($agent, $group);
+  my @table = get_job_table ($agent);
+  my $entry = find_job_table_entry ($agent, $job_id, @table);
+  return 1 unless defined $entry;
+  my $st = $entry->{'Status'};
+  if ($st eq $status)
+    {
+      print_test_result ("Job status is '$status' as expected.");
+      return 0;
+    }
+  print_test_error ("Wrong job status '$st' ('$status' is expected).");
+  save_page ($agent, 'wrong-status.html');
+  return 1;
+}
+
+sub test_sv_cleaner_operation
+{
+  my ($agent, $group, $job, $op) = @_;
+  my $job_id = $job->{'job_id'};
+  print_test_log ("Checking $op.");
+  reset_job_date ($job_id, $op ne 'pre-notification');
+  return 1 if visit_edit_page ($agent, $group);
+  print_test_log ('Running sv_cleaner.');
+  my $cmd = "$sv_cleaner --verbose --verbose --verbose --run-tasks jobs ";
+  $cmd .=  "--logfile - --job-update-start-time " . (time () - 365 * 24 * 3600);
+  my $out = `$cmd`;
+  print_test_log ('Checking email.');
+  my ($headers, $body, $mbox)  = get_message ();
+  return 1 if check_pre_notification ($headers, $body, $job_id);
+  my $st = $op eq 'pre-notification'? 'Open': 'Filled';
+  return 0 unless check_notified_status ($agent, $group, $job_id, $st);
+  $out =~ s/^/  /mg;
+  print_test_error ("sv_cleaner output was,\n$out");
+  return 1;
+}
+
+sub test_cleaner_pre_notification
+{
+  return test_sv_cleaner_operation (@_, 'pre-notification');
+}
+
+sub test_cleaner_job_filling
+{
+  return test_sv_cleaner_operation (@_, 'closing old jobs');
+}
+
+sub test_cleaner
+{
+  my ($agent, $group, $cat_names) = @_;
+  print_test_log ('Testing sv_cleaner.');
+  return 1 if visit_edit_page ($agent, $group);
+  my @table = get_job_table ($agent, $cat_names);
+  return 1 unless @table;
+  my $job = $table[0];
+  return 1 if test_cleaner_pre_notification ($agent, $group, $job);
+  return test_cleaner_job_filling ($agent, $group, $job);
 }
 
 sub run_checks
 {
   my ($agent, $user, $group, $group_id) = @_;
-  my $ret = post_jobs ($agent, $user, $group);
+  my %cat_names = get_categories ($agent, $group);
+  my @jobs = make_job_list ($agent, $group, \%cat_names);
+  my $ret = post_jobs ($agent, $user, $group, \%cat_names, @jobs);
+  $ret = 1 if check_job_list ($agent, $group, \%cat_names, @jobs);
+  $ret = 1 if check_refreshing ($agent, $group, \%cat_names);
+  $ret = 1 if test_status_change ($agent, $group, \%cat_names);
+  $ret = 1 if test_cleaner ($agent, $group, \%cat_names);
+  $ret = 1 if remove_jobs ($agent, $user, $group, @jobs);
   return $ret;
 }
 

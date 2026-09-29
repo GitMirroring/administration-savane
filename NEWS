@@ -9,6 +9,10 @@
 
 * Update German, Hebrew, Romanian.
 
+[BACKEND]
+
+* New sv_cleaner options, --job-update-start-time, --run-tasks.
+
 2026-09-26 3.18
 
 [FRONTEND]
