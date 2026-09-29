@@ -68,6 +68,7 @@ my $verbose = 0;
 my $cron;
 my @trackers = ('bugs', 'support', 'task', 'patch', 'cookbook');
 my $sys_just = 1796083200; # 2026-12
+my $task_list;
 
 $help = <<"EOF";
   Usage: $0 [OPTIONS]
@@ -87,15 +88,20 @@ $help = <<"EOF";
     -h, --help         show this help and exit
     -v, --version      show Savane version and exit
         --big-cleanup  take care of less frequent cases; typically runs monthly
+        --run-tasks    only run the specified comma-separated list of tasks:
+                       normal, news, groups, users, jobs; this option overrides
+                       --big-cleanup.
         --cron         ignored
         --verbose      log additional info
         --logfile      file for reports [$logfile]
         --dry-run      skip updating the database and sending notifications
 
+        --job-update-start-time
+                       the earliest time when automatically closing jobs
+                       is allowed [$sys_just]
+
     Variables from savane.conf.pl used in the script:
 
-       \$sys_job_update_start_time   the earliest time when automatically
-                                       closing jobs is allowed [$sys_just]
        \$sys_name                    the name of the forge (like 'Savannah')
        \$sys_default_domain          the domain of the forge
 EOF
@@ -106,8 +112,30 @@ PrintVersionOrHelp ($help);
 
 GetOptions (
   'cron' => \$cron, 'big-cleanup' => \$big_cleanup, 'dry-run' => \$dry_run,
-  'verbose+' => \$verbose, 'logfile=s' => \$logfile
+  'verbose+' => \$verbose, 'logfile=s' => \$logfile,
+  'job-update-start-time=s' => \$sys_just, 'run-tasks=s' => \$task_list
 ) or die 'Wrong command line.';
+
+my @tasks = qw /normal news groups users jobs/;
+my %tasks_selected;
+
+sub select_tasks
+{
+  return unless defined $task_list;
+  $tasks_selected{$_} = 0 foreach @tasks;
+  foreach (split (/,/, $task_list))
+    {
+      die "Unknown task '$_'." unless exists $tasks_selected{$_};
+      $tasks_selected{$_} = 1;
+      print_log ("-- selecting task '$_'") if $verbose > 2;
+    }
+}
+
+sub task_is_disabled
+{
+  return 0 unless defined $task_list;
+  return !$tasks_selected{$_[0]};
+}
 
 sub log_result
 {
@@ -133,13 +161,6 @@ sub delete_and_log
 sub get_sys_name
 {
   return GetConf ('sys_name');
-}
-
-sub get_update_start_time
-{
-  my $t = GetConf ('sys_job_update_start_time');
-  return $t if defined $t;
-  return $sys_just;
 }
 
 sub get_default_domain
@@ -483,6 +504,7 @@ sub delete_news
 
 sub cleanup_news
 {
+  return if task_is_disabled ('news');
   delete_news ("news unapproved for a year", 374, 5);
   delete_news ("news removed more than a month ago", 34, 4);
 }
@@ -517,6 +539,7 @@ sub cleanup_unconfirmed_accounts
 
 sub run_normal_cleanup
 {
+  return if task_is_disabled ('normal');
   cleanup_unconfirmed_accounts ();
   delete_and_log ('groups', "`status` = 'D'", 'deleted groups');
   # Remove too old forms created more than one day ago an still not submitted.
@@ -595,6 +618,7 @@ sub compile_dead_group_ids
 
 sub cleanup_dead_groups
 {
+  return if task_is_disabled ('groups');
   remove_orphan_tracker_items ($_) foreach (@trackers);
   my @dead_group_ids = compile_dead_group_ids ();
   foreach my $group_id (@dead_group_ids)
@@ -614,6 +638,7 @@ sub cleanup_dead_groups
 
 sub cleanup_user_tables
 {
+  return if task_is_disabled ('users');
   foreach my $table (@user_tables)
     {
       my @res = GetDB (
@@ -709,7 +734,7 @@ sub fill_old_job
 sub check_update_start_time
 {
   my $update = shift;
-  my ($t, $now) = (get_update_start_time (), time ());
+  my ($t, $now) = ($sys_just, time ());
   return $update unless $now < $t;
   print_log ("-- skipping update: start time $t > current time $now")
     if ($update && $verbose > 2);
@@ -739,6 +764,7 @@ sub process_old_job
 
 sub check_old_jobs
 {
+  return if task_is_disabled ('jobs');
   my $max_mon = 5 * 12;
   my $notif_period = 2;
   my %jobs = fetch_old_jobs ($max_mon);
@@ -748,7 +774,10 @@ sub check_old_jobs
     {
       my @row = @{$jobs{$i}};
       my $age = $row[0];
-      my $update = $age > $max_mon + $notif_period;
+      my $period = $max_mon + $notif_period;
+      my $update = $age > $period;
+      print_log ("-- whether to fill: $update (age $age, period $period)")
+        if ($verbose > 2);
       process_old_job ($update, @{$jobs{$i}});
     }
 }
@@ -756,9 +785,10 @@ sub check_old_jobs
 sub main
 {
   open_log ($logfile, $script, $dry_run);
+  select_tasks ();
   AcquireReplicationLock ();
   run_normal_cleanup ();
-  finish_work () unless ($big_cleanup);
+  finish_work () unless ($big_cleanup or defined $task_list);
   cleanup_news ();
   cleanup_dead_groups ();
   cleanup_user_tables ();
