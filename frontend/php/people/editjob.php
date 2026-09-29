@@ -254,8 +254,10 @@ function print_rm_button ($row)
       $buttons = form_submit (_('Confirm'), 'confirm_rm_job')
         . ' ' . form_submit (_('Cancel'), 'cancel');
     }
-  print form_tag ()
-    . form_hidden (['group_id' => $row['group_id'], 'job_id' => $row['job_id']])
+  $hidden = [
+    'group_id' => $row['group_id'], 'job_id' => $row['job_id'], 'rm_form' => '1'
+  ];
+  print form_tag () . form_hidden ($hidden)
     . "$preamble<p>$buttons</p>\n</form>\n";
 }
 
@@ -272,9 +274,12 @@ function print_date_form ($row)
       $buttons = form_submit (_('Confirm'), 'confirm_refresh')
         . ' ' . form_submit (_('Cancel'), 'cancel');
     }
+  $hidden = [
+    'group_id' => $row['group_id'], 'job_id' => $row['job_id'],
+    'refresh_form' => 1
+  ];
   print form_tag ()
-    . form_hidden (['group_id' => $row['group_id'], 'job_id' => $row['job_id']])
-    . "$preamble<p><b>" . _('Date:') . '</b> '
+    . form_hidden ($hidden) . "$preamble<p><b>" . _('Date:') . '</b> '
     . utils_format_date ($row['date']) . ' ' . "$buttons</p>\n</form>\n";
 }
 
