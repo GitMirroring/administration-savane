@@ -143,7 +143,7 @@ function people_show_job_group_license ($group)
 {
   global $LICENSE, $LICENSE_URL;
   $license = $group->getLicense ();
-  print '<p><span class="preinput">' . _("License") . '</span> ';
+  print '<p><span class="preinput">' . _('License:') . '</span> ';
   $lic_label = $LICENSE[$license];
   $lic_url = $LICENSE_URL[$license];
   if ($lic_url != "0")
@@ -158,20 +158,21 @@ function people_show_job_group_devel_status ($group)
   $devel_status = "&lt;" . _("Invalid status ID") . "&gt;";
   if (isset ($DEVEL_STATUS[$devel_status_id]))
     $devel_status = $DEVEL_STATUS[$devel_status_id];
-  print "<span class=\"preinput\"><br />\n"
-    . _("Development Status") . "</span>: $devel_status";
+  print "<p><span class=\"preinput\">" . _("Development Status:")
+    . "</span> $devel_status</p>\n";
 }
 
 function people_show_job_group_descriptions ($group)
 {
   if ($group->getTypeDescription ())
-    print "<p>" . markup_full ($group->getTypeDescription ()) . "</p>\n";
-  print "<p>";
+    print markup_full ($group->getTypeDescription ());
+  $desc = '';
   if ($group->getLongDescription ())
-    print markup_full (utils_specialchars ($group->getLongDescription ()));
+    $desc .= markup_full (utils_specialchars ($group->getLongDescription ()));
   elseif ($group->getDescription ())
-    print $group->getDescription ();
-  print "</p>\n";
+    $desc .= $group->getDescription ();
+  if (!empty ($desc))
+  print "<p>$desc</p>\n";
   people_show_job_group_license ($group);
   people_show_job_group_devel_status ($group);
 }
