@@ -5,6 +5,14 @@
 * Add an option to pass requests from logged-in users to a separate
   ViewVC instance.
 
+* Bug fixes:
+
+** Since 2026-05 (10cadf7), enabling Git (and more generally, listing
+   repositories based on cgitrepos) in a group broke the pages
+   of that group until the Git repository was actually created,
+   see sv-hackers-public@ 2026-10-04,
+   <97d044904729f1a6c022a6a01b6ec96a@smtp.hushmail.com>.
+
 [I18N]
 
 * Update German, Hebrew, Romanian.

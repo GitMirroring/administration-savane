@@ -83,8 +83,9 @@ function git_get_list_from_cgitrepos ($group_name)
       'grep', '-A', '3', "^repo\.url=$group_name\(/\|\.git$\)",
       "$sys_etc_dir/cgitrepos"
     ],
-    $output, $stderr
+    $out, $stderr
   );
+  $output = explode ("\n", $out);
   $n = intval ((count ($output) + 1) / 5);
   $ret = [];
   for ($i = 0; $i < $n; $i++)
