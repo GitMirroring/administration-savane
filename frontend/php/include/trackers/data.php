@@ -2788,7 +2788,7 @@ function trackers_data_quote_comment ($item_id, $quote_no)
     }
   if ($entry === false)
     return $entry;
-  $entry = html_entity_decode (trackers_decode_value ($entry));
+  $entry = utils_html_entity_decode (trackers_decode_value ($entry));
   $quote = preg_replace ("/(^|\n)/", "$1> ", $entry);
   $quote = "\n\n[comment #$quote_no $label]\n$quote";
   return $quote;
