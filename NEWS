@@ -13,6 +13,8 @@
    see sv-hackers-public@ 2026-10-04,
    <97d044904729f1a6c022a6a01b6ec96a@smtp.hushmail.com>.
 
+** Comments on files in notifications included encoded HTML entities.
+
 [I18N]
 
 * Update German, Hebrew, Romanian.
