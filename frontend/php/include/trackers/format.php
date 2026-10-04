@@ -507,7 +507,7 @@ function format_attachment ($file, $public)
   );
   $description = '';
   if (!empty ($file['description']))
-    $description = $file['description'];
+    $description = utils_html_entity_decode ($file['description'], ENT_QUOTES);
   return [$ret . format_attachment_link ($file, $public), $description];
 }
 

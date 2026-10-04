@@ -248,6 +248,12 @@ sub fill_anon_check
   $input->value ('1984');
 }
 
+sub generate_new_item_details
+{
+  my $name = shift;
+  return "This item was submitted in name of $name.";
+}
+
 sub fill_new_item_form
 {
   my ($form, $name) = @_;
@@ -255,7 +261,7 @@ sub fill_new_item_form
   $fields = $submit_fields{$name} if exists $submit_fields{$name};
   $fields->{'privacy'} = '2' if defined $private_names{$name};
   $fields->{'summary'} = "request by $name";
-  $fields->{'details'} = "This item was submitted in name of $name.";
+  $fields->{'details'} = generate_new_item_details ($name);
   foreach my $k (keys %$fields)
     {
       my $val = $fields->{$k};
@@ -359,13 +365,27 @@ sub check_discussion_lock
   return 0;
 }
 
+sub check_new_item_notif_body
+{
+  my ($body, $name) = @_;
+  my $line = generate_new_item_details ($name);
+  unless (index ($body, "\n$line\n") < 0)
+    {
+      print_test_result ('The body looks correct.');
+      return 0;
+    }
+  print_test_error ("Expected line not found in message body:\n  $line");
+  return 1;
+}
+
 sub check_submit_notification
 {
-  my $item_id = shift;
-  my $box = get_mbox (1, 1);
+  my ($item_id, $name) = @_;
   print_test_log ("Checking the notification.");
-  my $ret = check_notif_subject ($box, $item_id);
+  my ($headers, $body, $box) = get_message ();
+  my $ret = check_notif_subject ($headers, $item_id);
   $ret = 1 if check_discussion_lock ($box, $item_id);
+  $ret = 1 if check_new_item_notif_body ($body, $name);
   save_text ($box, "$item_id-submit.mbox") if $ret;
   print_test_result ("The notification looks sane.") unless $ret;
   return $ret;
@@ -387,9 +407,9 @@ sub request_new_item
 
 sub check_new_item
 {
-  my ($agent, $tracker, $item_id) = @_;
+  my ($agent, $tracker, $item_id, $name) = @_;
   print_test_log ("Checking $tracker #$item_id.");
-  my $notif_result = check_submit_notification ($item_id);
+  my $notif_result = check_submit_notification ($item_id, $name);
   return 1 if $item_id < 0;
   $agent->get (make_url (comment_page_url ($item_id)));
   return 1 if check_request_status ($agent);
@@ -420,7 +440,7 @@ sub submit_item
   print_test_log ("Submitting item as $name.");
   log_in ($agent, $login, $pw) if defined $login;
   $item_id = request_new_item ($agent, $name, $group, $tracker);
-  $ret = check_new_item ($agent, $tracker, $item_id);
+  $ret = check_new_item ($agent, $tracker, $item_id, $name);
   # Remove originator_email from further non-anonymous submissions.
   shift @submit_texts unless defined $login;
   log_out ($agent) if defined $login;
@@ -508,13 +528,21 @@ sub find_mod_form
   return $form;
 }
 
+sub generate_file_description
+{
+  my $fn = shift;
+  return "comment for $fn with chars like ' and \"";
+}
+
 sub attach_file
 {
   my ($agent, $form, $fn) = @_;
   my $input = $form->find_input ('input_file1', 'file');
+  my $desc = $form->find_input ('file_description', 'text');
   if (defined $input)
     {
       $input->file ($fn);
+      $desc->value (generate_file_description ($fn));
       return 0;
     }
   print_test_error ("Input for file not found.");
@@ -554,6 +582,27 @@ sub compare_attachment
     }
   print_test_error ("Contents do not match.");
   return undef;
+}
+
+sub check_notif
+{
+  my $desc = shift;
+  my ($headers, $body, $mbox) = get_message ();
+  return 1 unless defined $body;
+  if (index ($body, "\n$desc\n") < 0)
+    {
+      print_test_error ("Expected string >$desc< not found in message body.");
+      save_text ($mbox, 'notif.mbox');
+      return 1;
+    }
+  print_test_result ('Notification is correct.');
+  return 0;
+}
+
+sub check_file_notif
+{
+  print_test_log ('Checking notification on attachment.');
+  return check_notif (generate_file_description (shift));
 }
 
 sub find_file_deletion_link
@@ -607,6 +656,7 @@ sub run_attachment
   print_test_log ('Submitting file.');
   $agent->click ('submitreturn');
   return 1 if check_request_status ($agent, "$fn-status.html");
+  return 1 if check_file_notif ($fn);
   my $file_id = compare_attachment ($agent, $fn, $text);
   return 1 unless defined $file_id;
   my $user = name_to_login ($name);
@@ -651,6 +701,12 @@ sub check_comment_status
   return 1;
 }
 
+sub check_comment_notif
+{
+  print_test_log ('Checking comment notification.');
+  return check_notif (shift);
+}
+
 sub try_comment
 {
   my ($agent, $fn, $item_id, $name) = @_;
@@ -664,9 +720,12 @@ sub try_comment
       save_page ($agent, "comment-input-$fn");
       return 1;
     }
-  $input->value ("Comment by $name.");
+  my $msg = "Comment by $name with chars like ' and \".";
+  $input->value ($msg);
   $agent->click ('submitreturn');
-  return check_comment_status ($agent, $fn);
+  return 1 if check_comment_status ($agent, $fn);
+  return check_comment_notif ($msg) unless $name eq 'anonymous';
+  return 0;
 }
 
 sub test_user_access

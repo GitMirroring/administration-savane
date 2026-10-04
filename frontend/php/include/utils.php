@@ -1046,6 +1046,12 @@ function utils_htmlentities ($string, $flags = ENT_COMPAT)
     $string = '';
   return htmlentities ($string, $flags, 'UTF-8');
 }
+
+function utils_html_entity_decode ($string, $flags = ENT_COMPAT)
+{
+  return html_entity_decode ($string, $flags);
+}
+
 function utils_urlencode ($string)
 {
   if ($string === null)
