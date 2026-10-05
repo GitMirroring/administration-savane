@@ -60,8 +60,7 @@ my @web_modules = ($unix_group_name);
 my @more_web_modules = ('www', 'web');
 my $git_url = make_url ("git/?group=$unix_group_name");
 my $admin_url = make_url ("git/admin/?group=$unix_group_name");
-my $agent = make_agent ()
-  or exit (1);
+my $agent = make_agent () or exit (1);
 
 sub simulate_cvs_repos
 {
@@ -480,10 +479,16 @@ sub run_git_checks
   exit (1) if modify_git_configuration ();
 }
 
-log_in ($agent);
-run_cvs_checks ();
-run_git_checks ();
-
-print_test_result ("Test done.");
-exit (0);
 END { clear_repos (); }
+
+sub main
+{
+  return 1 if log_in ($agent);
+  run_cvs_checks ();
+  run_git_checks ();
+
+  print_test_result ("Test done.");
+  return 0;
+}
+
+exit (main ());
