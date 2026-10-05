@@ -83,7 +83,8 @@ $help = <<"EOF";
 
     * data of removed groups, including tracker items, news &c.;
     * news marked for deletion as well as unapproved for a long time;
-    * orphan user data---bookmarks, sessions, preferences, membership info &c.
+    * orphan user data---bookmarks, sessions, preferences, membership info &c;
+    * mark jobs more than 5 years old filled.
 
     -h, --help         show this help and exit
     -v, --version      show Savane version and exit

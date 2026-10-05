@@ -119,8 +119,9 @@ in misc/sv_mirmon-to-geoip.
 misc/sv_cleaner
 ===============
 
-Removes parts of the database that belong to removed entities.
-Runs twice an hour on mgt1.
+Removes parts of the database that belong to removed entities;
+closes old jobs.  Runs at mgt1: twice an hour regularly, monthly
+with --big-cleanup.
 
 misc/sv_drop-old-tarballs
 =========================
