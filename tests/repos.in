@@ -44,6 +44,8 @@
 use strict;
 use warnings;
 use Savane::Version;
+use Savane::Util;
+use Savane::Git;
 use Savane::Test;
 use WWW::Mechanize;
 
@@ -86,13 +88,32 @@ sub git_root
   return "$statedir/git";
 }
 
+sub make_git_repo
+{
+  my ($name, $template, $dir) = @_;
+  print_test_log ("Making Git area for '$name' using '$template'.");
+  my $w = substr (GitMakeArea ($name, $template, 1), 1);
+  unless (index ($w, ' ') < 0)
+    {
+      print_test_error ("Failed to create Git area: $w.");
+      exit (1);
+    }
+  push @git_paths, $dir;
+  print_test_result ('Done.');
+}
+
 sub simulate_git_repos
 {
   my $root = git_root ();
   try_mkdir ($root);
   try_mkdir ("$root/$unix_group_name");
-  push @git_paths, "$unix_group_name.git";
-  push @git_paths, "$unix_group_name/$_.git" for @git_repos;
+  make_git_repo ($unix_group_name, '/git/%PROJECT.git', "$unix_group_name.git");
+  for (@git_repos)
+    {
+      make_git_repo (
+        $unix_group_name, "/git/%PROJECT/$_.git", "$unix_group_name/$_.git"
+      );
+    }
   try_mkdir ("$root/$_") for @git_paths;
 }
 
@@ -106,11 +127,11 @@ sub try_rm_dir
 sub clear_repos
 {
   my $root = git_root ();
+  print_test_log ("Removing Git repositories in $root.");
+  system ('chmod', '-R', 'u+w', $root) and die;
+  system ('rm', '-fr', $root) and die;
   my @modules = @src_modules;
   push @modules, 'CVSROOT';
-  try_rm_dir ("$root/$_") for (@git_paths);
-  try_rm_dir ("$root/$unix_group_name");
-  try_rm_dir ($root);
   $root = "$statedir/cvs/sources/$unix_group_name";
   try_rm_dir ("$root/$_") for (@modules);
   try_rm_dir ($root);

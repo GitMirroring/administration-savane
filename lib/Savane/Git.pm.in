@@ -87,7 +87,7 @@ sub make_git_area
   $ENV{'GIT_DIR'} = $dir_git;
 
   # --shared sets g+s on directories
-  system ($git, 'init', '--shared=all');
+  system ($git, 'init', '-q', '--shared=all');
 
   system ('chgrp', '-R', $name, $dir_git) unless $>;
   system ('chmod', '-R', 'o=', $dir_git) unless $is_public;

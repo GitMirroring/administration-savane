@@ -11,4 +11,5 @@ our $sys_dbsocket = "@mysql_socket@"
 our $sys_banned_email_domains = '';
 our %sys_banned_email_names = ();
 $sys_default_domain = '@WWW_SERVER_HOST@';
+$sys_dir_prefix = '@pkgstatedir@';
 return 1;
