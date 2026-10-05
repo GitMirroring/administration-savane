@@ -1,6 +1,5 @@
 #! @PERL@ -I@pkgdatadir@/lib
 # -*- perl -*- vi:filetype=perl
-# -*-Perl-*-
 # Assign uidNumber and gidNumber in the database.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
