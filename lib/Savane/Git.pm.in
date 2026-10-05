@@ -48,6 +48,7 @@ require Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(GitMakeArea);
 our $version = 1;
+my $git = '@GIT@';
 
 sub make_post_update_hook
 {
@@ -57,7 +58,7 @@ sub make_post_update_hook
   open (HOOK, ">$dir_git/hooks/post-update")
     or $w = " Cannot open hooks/post-update for writing: $!";
   print HOOK "#!/bin/sh\n";
-  print HOOK "exec git update-server-info\n";
+  print HOOK "exec $git update-server-info\n";
   close (HOOK);
   system ('chmod', '+x', "$dir_git/hooks/post-update");
   return $w;
@@ -74,9 +75,9 @@ sub seal_hooks
 sub config_git
 {
   # 'git-cvsserver' support
-  system ('git', 'config', 'gitcvs.pserver.enabled', 1);
-  system ('git', 'config', 'gitcvs.ext.enabled', 0);
-  system ('git', 'config', 'gitcvs.dbname', '%G/gitcvs-db/sqlite');
+  system ($git, 'config', 'gitcvs.pserver.enabled', 1);
+  system ($git, 'config', 'gitcvs.ext.enabled', 0);
+  system ($git, 'config', 'gitcvs.dbname', '%G/gitcvs-db/sqlite');
 }
 
 sub make_git_area
@@ -86,7 +87,7 @@ sub make_git_area
   $ENV{'GIT_DIR'} = $dir_git;
 
   # --shared sets g+s on directories
-  system ('git', 'init', '--shared=all');
+  system ($git, 'init', '--shared=all');
 
   system ('chgrp', '-R', $name, $dir_git) unless $>;
   system ('chmod', '-R', 'o=', $dir_git) unless $is_public;
