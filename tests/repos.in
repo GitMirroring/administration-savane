@@ -64,22 +64,28 @@ my $agent = make_agent () or exit (1);
 
 sub simulate_cvs_repos
 {
-  my @modules = @src_modules;
-  push @modules, 'CVSROOT';
+  my @modules = (@src_modules, 'CVSROOT');
   my $root = $statedir;
   for ('cvs', 'sources', $unix_group_name)
     {
       $root .= "/$_";
-      try_mkdir ($root);
+      return 1 if try_mkdir ($root, 1);
     }
-  try_mkdir ("$root/$_") for (@modules);
+  for (@modules)
+     {
+        return 1 if try_mkdir ("$root/$_", 1);
+     }
   $root = "$statedir/cvs/web";
-  try_mkdir ($root);
+  return 1 if try_mkdir ($root, 1);
   $root .= "/$unix_group_name";
-  try_mkdir ($root);
+  return 1 if try_mkdir ($root, 1);
   @modules = @web_modules;
   push @modules, 'CVSROOT';
-  try_mkdir ("$root/$_") for (@modules);
+  for (@modules)
+    {
+      return 1 if try_mkdir ("$root/$_", 1);
+    }
+  return 0;
 }
 
 sub git_root
@@ -95,25 +101,31 @@ sub make_git_repo
   unless (index ($w, ' ') < 0)
     {
       print_test_error ("Failed to create Git area: $w.");
-      exit (1);
+      return 1;
     }
   push @git_paths, $dir;
   print_test_result ('Done.');
+  return 0;
 }
 
 sub simulate_git_repos
 {
   my $root = git_root ();
-  try_mkdir ($root);
-  try_mkdir ("$root/$unix_group_name");
-  make_git_repo ($unix_group_name, '/git/%PROJECT.git', "$unix_group_name.git");
+  return 1 if try_mkdir ($root, 1);
+  return 1 if try_mkdir ("$root/$unix_group_name", 1);
+  return 1 if make_git_repo (
+    $unix_group_name, '/git/%PROJECT.git', "$unix_group_name.git"
+  );
   for (@git_repos)
     {
-      make_git_repo (
+      return 1 if make_git_repo (
         $unix_group_name, "/git/%PROJECT/$_.git", "$unix_group_name/$_.git"
       );
     }
-  try_mkdir ("$root/$_") for @git_paths;
+  for (@git_paths)
+    {
+      return 1 if try_mkdir ("$root/$_", 1);
+    }
 }
 
 sub try_rm_dir
@@ -179,9 +191,9 @@ sub check_module_set
 {
   my $res = check_existing_modules (@_);
   $res = 1 if check_extra_modules ();
-  return unless $res;
+  return 0 unless $res;
   save_page ($agent, 'module-set.html');
-  exit (1);
+  return 1;
 }
 sub find_module_list
 {
@@ -204,10 +216,11 @@ sub assert_no_module_list
   unless ($page =~ m#$start(.*)$end#s)
     {
       print_test_result ("No modules found.");
-      return;
+      return 0;
     }
   print_test_error ("Module list is found unexpectedly:\n$1\n");
   save_page ($agent, 'modules.html');
+  return 1;
 }
 sub source_start
 {
@@ -230,7 +243,7 @@ sub check_source_repos
   $start = source_start ();
   $end = source_end ();
   find_module_list ($page, $start, $end);
-  check_module_set (@src_modules);
+  return 1 if check_module_set (@src_modules);
 
   $start = source_start (1);
   $end = source_end (1);
@@ -238,7 +251,7 @@ sub check_source_repos
     "Looking for source module list in the authenticated section."
   );
   find_module_list ($page, $start, $end);
-  check_module_set (@src_modules);
+  return check_module_set (@src_modules);
 }
 
 sub check_source_absense
@@ -248,13 +261,13 @@ sub check_source_absense
   print_test_log ("Looking for source module list in the anonymous section.");
   $start = source_start ();
   $end = source_end ();
-  assert_no_module_list ($page, $start, $end);
+  return 1 if assert_no_module_list ($page, $start, $end);
   $start = source_start (1);
   $end = source_end (1);
   print_test_log (
     "Looking for source module list in the authenticated section."
   );
-  assert_no_module_list ($page, $start, $end);
+  return assert_no_module_list ($page, $start, $end);
 }
 
 sub web_start
@@ -279,11 +292,11 @@ sub check_web_absense
   $start = web_start ();
   $end = web_end ();
   print_test_log ("Looking for web module list in the anonymous section.");
-  assert_no_module_list ($page, $start, $end);
+  return 1 if assert_no_module_list ($page, $start, $end);
   $start = web_start (1);
   $end = web_end (1);
   print_test_log ("Looking for web module list in the authenticated section.");
-  assert_no_module_list ($page, $start, $end);
+  return assert_no_module_list ($page, $start, $end);
 }
 
 sub check_web_repos
@@ -294,13 +307,13 @@ sub check_web_repos
   $end = web_end ();
   print_test_log ("Looking for web module list in the anonymous section.");
   find_module_list ($page, $start, $end);
-  check_module_set (@web_modules);
+  return 1 if check_module_set (@web_modules);
 
   $start = web_start (1);
   $end = web_end (1);
   print_test_log ("Looking for web module list in the authenticated section.");
   find_module_list ($page, $start, $end);
-  check_module_set (@web_modules);
+  return check_module_set (@web_modules);
 }
 sub get_cvs_section
 {
@@ -314,23 +327,29 @@ sub get_cvs_section
     if $page =~ s#.*<h2>$start</h2>(.*)<h2>Email Notifications</h2>.*#$1#s;
   print_test_error ("Page at $url has a wrong structure.");
   save_page ($agent, 'cvs-section.html');
-  exit (1);
+  return undef;
 }
 sub run_cvs_checks
 {
   my $url = "cvs/?group=$unix_group_name";
   my $page = get_cvs_section ($url);
-  check_source_absense ($page);
-  check_web_absense ($page);
-  simulate_cvs_repos ();
+  return 1 unless defined $page;
+  return 1 if check_source_absense ($page);
+  return 1 if check_web_absense ($page);
+  return 1  if simulate_cvs_repos ();
   $page = get_cvs_section ($url);
-  check_source_repos ($page);
-  check_web_absense ($page);
+  return 1 unless defined $page;
+  return 1 if check_source_repos ($page);
+  return 1 if check_web_absense ($page);
   print_test_log ("Adding web modules " . join (', ', @more_web_modules) . '.');
   push @web_modules, @more_web_modules;
-  try_mkdir ("$statedir/cvs/web/$unix_group_name/$_") for (@more_web_modules);
+  for (@more_web_modules)
+    {
+      return 1 if try_mkdir ("$statedir/cvs/web/$unix_group_name/$_", 1);
+    }
   $page = get_cvs_section ($url);
-  check_web_repos ($page);
+  return 1 unless defined $page;
+  return check_web_repos ($page);
 }
 
 sub find_repos_in_html
@@ -472,11 +491,11 @@ sub modify_git_configuration
 
 sub run_git_checks
 {
-  simulate_git_repos ();
-  exit (1) if list_git_repos (@git_paths);
+  return 1 if simulate_git_repos ();
+  return 1 if list_git_repos (@git_paths);
   $agent->get ($admin_url);
-  exit (1) if list_git_admin_items (@git_paths);
-  exit (1) if modify_git_configuration ();
+  return 1 if list_git_admin_items (@git_paths);
+  return modify_git_configuration ();
 }
 
 END { clear_repos (); }
@@ -484,11 +503,10 @@ END { clear_repos (); }
 sub main
 {
   return 1 if log_in ($agent);
-  run_cvs_checks ();
-  run_git_checks ();
-
-  print_test_result ("Test done.");
-  return 0;
+  my $ret = run_cvs_checks ();
+  $ret = 1 if run_git_checks ();
+  print_test_result ("Test done.") unless $ret;
+  return $ret;
 }
 
 exit (main ());
