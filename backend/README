@@ -96,7 +96,7 @@ Runs twice an hour on vcs2.
 extra/git/sv_git_gc_repos.pl
 ============================
 
-Execute git-gc for every Git repository, update Cgit last-modified info.
+Executes git-gc for every Git repository, updates Cgit last-modified info.
 Runs on vcs2.
 
 mail/sv_aliases
@@ -190,8 +190,7 @@ installation.
 sbin/sv_php_server.pl
 =====================
 
-Runs the PHP built-in server specifically for its Savane installation.
-This script has an option to specify the PHP binary to use, so
-it can be used to test various PHP versions without the need to
-re-install Savane; however, the PHP built-in server is only suitable
-for testing.
+Runs the PHP built-in server specifically for its Savane installation.  This
+script has an option to specify the PHP binary to use, so it can be used to test
+various PHP versions without the need to re-install Savane or change its
+configuration; however, the PHP built-in server is only suitable for testing.
