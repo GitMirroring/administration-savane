@@ -45,7 +45,7 @@ use strict;
 require Exporter;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(GetConf);
+our @EXPORT = qw(GetConf configured_binary);
 
 my $conf_prefix = '@sysconfdir@/savane';
 my $conf_file;
@@ -74,6 +74,31 @@ unless ($res)
        unless ($@ || not $!);
      die $err_msg, "\nDied ";
   }
+
+my %binaries = (
+  'chgrp' => '@CHGRP@',
+  'chmod' => '@CHMOD@',
+  'chown' => '@CHOWN@',
+  'bzr' => '@BZR@',
+  'cvs' => '@CVS@',
+  'git' => '@GIT@',
+  'hg' => '@HG@',
+  'svn' => '@SVN@',
+  'svnadmin' => '@SVNADMIN@',
+  'gpg' => '@GPG@',
+);
+
+foreach (keys %binaries)
+  {
+    $binaries{$_} = 'false' unless $binaries{$_} ne '';
+  }
+
+sub configured_binary
+{
+  my $bin = shift;
+  $bin = $binaries{$bin} if exists $binaries{$bin};
+  return $bin;
+}
 
 # Return a configured variable.
 # In fact, they are usually accessed via our $sys_var;

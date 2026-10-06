@@ -55,8 +55,8 @@ sub make_bzr_area
   my $mode = $is_public? '2775': '2770';
   my $old_umask = umask (0002);
 
-  system ('mkdir', '-m', $mode, '-p', $dir_bzr);
-  system ('chgrp', $name, $dir_bzr) unless $>;
+  util_system ('mkdir', '-m', $mode, '-p', $dir_bzr);
+  util_system ('chgrp', $name, $dir_bzr) unless $>;
 
   # Clean up environment.
   umask ($old_umask);

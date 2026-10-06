@@ -55,15 +55,15 @@ sub make_hg_dir
   my ($name, $dir_hg, $is_public) = @_;
   my $old_umask = umask (0002);
 
-  system ('hg', 'init', $dir_hg);
-  system ('chmod', 'g+s', $dir_hg);
-  system ('chgrp', '-R', $name, $dir_hg) unless $>;
+  util_system ('hg', 'init', $dir_hg);
+  util_system ('chmod', 'g+s', $dir_hg);
+  util_system ('chgrp', '-R', $name, $dir_hg) unless $>;
 
   open (FILE, "> $dir_hg/.hg/hgrc");
   print FILE "#<savane>\n[web]\ncontact =\ndescription = $name\n#</savane>\n";
   close (FILE);
-  system ('chgrp', $name, "$dir_hg/.hg/hgrc") unless $>;
-  system ('chmod', '-R', 'o=', $dir_hg) unless $is_public;
+  util_system ('chgrp', $name, "$dir_hg/.hg/hgrc") unless $>;
+  util_system ('chmod', '-R', 'o=', $dir_hg) unless $is_public;
   umask ($old_umask);
   return '';
 }

@@ -193,7 +193,15 @@ endif
 
 subst_in_files = \
   ${SED} \
+    -e 's,[@]CHGRP[@],$(CHGRP),g' \
+    -e 's,[@]CHMOD[@],$(CHMOD),g' \
+    -e 's,[@]CHOWN[@],$(CHOWN),g' \
+    -e 's,[@]BZR[@],$(BZR),g' \
+    -e 's,[@]CVS[@],$(CVS),g' \
     -e 's,[@]GIT[@],$(GIT),g' \
+    -e 's,[@]HG[@],$(HG),g' \
+    -e 's,[@]SVN[@],$(SVN),g' \
+    -e 's,[@]SVNADMIN[@],$(SVNADMIN),g' \
     -e 's,[@]GPG[@],$(GPG),g' \
     -e 's,[@]PERL[@],$(PERL),g' \
     -e 's,[@]PACKAGE[@],$(PACKAGE),g' \
@@ -276,7 +284,7 @@ dirs.stamp: Makefile ; $(MKDIR_P) $(directories) && touch $@
 $(substituted): %: %.in Makefile dirs.stamp; $(subst_in_files) < $< > $@
 $(all_test_scripts): %: %.in Makefile dirs.stamp
 	$(subst_in_files) < $< > $@
-	chmod +x $@
+	${CHMOD} +x $@
 all_substituted = $(substituted) $(all_test_scripts)
 
 # Force trivial cgitrepos for the time being.
@@ -424,6 +432,7 @@ else
 endif
 
 test:
+	${CHMOD} u+w test
 	${RM} -r test
 	${MKDIR_P} test
 	abs_src_dir=`cd ${srcdir}; pwd`; \
@@ -432,6 +441,6 @@ test:
 	  --disable-db-networking --enable-sample-db --enable-db-test-marker \
 	  --enable-detect-www-port --enable-twin-host
 	${MAKE} -C test all install
-	cd ./test && chmod a+x ${all_test_scripts}
+	cd ./test && ${CHMOD} a+x ${all_test_scripts}
 	cd ./test/tests && ./run-tests ${RUN_TESTS_ARGS}
 	test 'x${KEEP_TEST}' = xyes || ${RM} -r test

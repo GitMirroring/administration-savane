@@ -60,14 +60,14 @@ sub make_svn_area
   my ($name, $dir_svn, $is_public) = @_;
   # Fsfs repositories are the most stable and scalable.  Bdb just
   # doesn't cut it.  Fsfs also is the default in new SVN releases.
-  system ('svnadmin', 'create', '--fs-type', 'fsfs', $dir_svn);
+  util_system ('svnadmin', 'create', '--fs-type', 'fsfs', $dir_svn);
 
   # Group ownership - svnadmin takes care of setgid.
   # Giving privs to db/ is enough.
   # Giving privs to hooks/ would mean giving local access.
-  system ('chgrp', '-R', $name, "$dir_svn/db") unless $>;
-  system ('chmod', '-R', 'g+w', "$dir_svn/db");
-  system ('chmod', '-R', 'o=', "$dir_svn/db") unless $is_public;
+  util_system ('chgrp', '-R', $name, "$dir_svn/db") unless $>;
+  util_system ('chmod', '-R', 'g+w', "$dir_svn/db");
+  util_system ('chmod', '-R', 'o=', "$dir_svn/db") unless $is_public;
   return '';
 }
 

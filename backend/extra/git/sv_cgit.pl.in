@@ -48,8 +48,7 @@ use Getopt::Long;
 
 our $dbd;
 my $verbose;
-my $git_bin = '@GIT@';
-$git_bin = 'git' if $git_bin eq '';
+my $git_bin = configured_binary ('git');
 my $cgitrepos_file = "cgitrepos";
 my $repo_list = 'project-list';
 my $update_repos;
