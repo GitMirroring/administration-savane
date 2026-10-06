@@ -1,0 +1,513 @@
+# Facilities for testing trackers.
+
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy <yeupou--gnu.org>
+# Copyright (C) 2002-2006 Yves Perrin <yves.perrin--cern.ch>
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+use Savane::Test;
+use WWW::Mechanize;
+require Exporter;
+
+our @ISA = qw (Exporter);
+our @EXPORT = qw (
+  name_to_login
+  comment_page_url
+  displayed_user_name
+  fill_anon_check
+  generate_new_item_details
+  get_submitters_by_item_id
+  get_submitted_item
+  submitted_items_keys
+  recall_item_url
+  set_private_names
+  disable_originator_email
+  submit_item
+  get_latest_item_id
+  field_usage_url
+);
+
+my $tracker = 'bugs';
+my @submit_texts = (
+  'originator_email', 'plan_release', 'summary', 'file_description', 'hours',
+  'keywords'
+);
+my %submit_fields = (
+  'anonymous' => {'originator_email' => 'anon@savane.test'},
+  '<bis>' => {'platform_version_id' => '110'},
+  '<quater>' => {'percent_complete' => '30', 'reproducibility_id' => '120'},
+  '<bob>' => {'severity' => '1', 'plan_release' => '0.1'}
+);
+
+my %submit_selects = (
+  'category_id' => ['100'], 'bug_group_id' => ['100'], 'privacy' => ['1', '2'],
+  'severity' => ['1', '3', '5', '7', '8', '9'],
+  'platform_version_id' => ['100', '110', '120', '130', '140'],
+  'percent_complete' => [
+    '1', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'
+  ],
+  'reproducibility_id' => ['100', '110', '120', '130']
+);
+my @submit_textareas = ('details');
+my @submit_files;
+for (my $i = 1; $i <= 4; $i++)
+  {
+    push @submit_files, "input_file$i";
+  }
+my @submit_buttons = ('preview', 'submit');
+
+my (%private_items, %submitted_items, %latest_item_id);
+my %private_names;
+my %submit_value_names;
+
+my $latest_id;
+my $have_originator = 1;
+
+sub disable_originator_email
+{
+  $have_originator = 0;
+}
+
+sub assign_submit_value_names
+{
+  my $input = shift;
+  my $name = $input->name ();
+  my @vals = $input->possible_values ();
+  my @val_names = $input->value_names ();
+  my @vn;
+  foreach (@vals)
+    {
+      my $n = shift @val_names;
+      $submit_value_names{$name}->{$_} = $n;
+      push @vn, "'$_' => '" . $n . "'";
+    }
+}
+
+sub report_changed_names
+{
+  my $input = shift;
+  my $name = $input->name ();
+  my @vals = $input->possible_values ();
+  my @val_names = $input->value_names ();
+  my @vn;
+  foreach (@vals)
+    {
+      next unless exists $submit_value_names{$name}->{$_};
+      my $new_val = $submit_value_names{$name}->{$_};
+      my $v = shift @val_names;
+      push @vn, "'$_': '$v' -> '$new_val'" if $new_val ne $v;;
+    }
+  return unless @vn;
+  my $sep = "\n  ";
+  print_test_error ("Values changed for $name:$sep" . join ($sep, @vn));
+}
+
+sub report_select_values
+{
+  my $input = shift;
+  my $name = $input->name ();
+  my @vals = $input->possible_values ();
+  my @val_names = $input->value_names ();
+  if (exists $submit_value_names{$name})
+    {
+      report_changed_names ($input);
+      return;
+    }
+  assign_submit_value_names ($input);
+  my @vn;
+  push @vn, "'$_' => '" . (shift @val_names) . "'" foreach (@vals);
+  my $sep = "\n  ";
+  print_test_result ("Values found for $name:$sep" . join ($sep, @vn));
+}
+
+sub get_submit_texts
+{
+  my $artifact = shift;
+  my %trackers_with_originator = ('bugs' => 1);
+  my @ret = qw (plan_release summary file_description hours keywords);
+  push @ret, 'originator_email'
+    if ($have_originator && defined $trackers_with_originator{$artifact});
+  return @ret;
+}
+
+sub get_latest_item_id
+{
+  return $latest_id;
+}
+
+sub set_private_names
+{
+  %private_names = %_;
+}
+
+sub get_current_tracker
+{
+  return $tracker;
+}
+
+sub get_submitted_item
+{
+  return $submitted_items{$_[0]};
+}
+
+sub item_is_private
+{
+  return $private_items{$_[0]};
+}
+
+sub submitted_items_keys
+{
+  return keys %submitted_items;
+}
+
+sub comment_page_url
+{
+  my ($item) = shift;
+  return "$tracker/?$item";
+}
+
+sub recall_item_url
+{
+  my $group = shift;
+  return "$tracker/?$latest_item_id{$group}" if exists $latest_item_id{$group};
+  print_test_error ("Can't recall any items for >$group< group.");
+  return undef;
+}
+
+sub displayed_user_name
+{
+  return defined ($_[0])? "<$_[0]>": "anonymous";
+}
+
+sub fill_anon_check
+{
+  my ($form, $name) = @_;
+  my $input;
+  return if $name ne 'anonymous';
+  print_test_log ("Filling the anonymous check.");
+  $input = $form->find_input ('check', 'text');
+  $input->value ('1984');
+}
+
+sub generate_new_item_details
+{
+  my $name = shift;
+  return "This item was submitted in name of $name.";
+}
+
+sub fill_new_item_form
+{
+  my ($form, $name) = @_;
+  my ($input, $text, $fields);
+  $fields = $submit_fields{$name} if exists $submit_fields{$name};
+  $fields->{'privacy'} = '2' if defined $private_names{$name};
+  $fields->{'summary'} = "request by $name";
+  $fields->{'details'} = generate_new_item_details ($name);
+  foreach my $k (keys %$fields)
+    {
+      my $val = $fields->{$k};
+      print_test_log ("Setting the '$k' field to '$val'.");
+      $input = $form->find_input ($k);
+      $input->value ($val);
+    }
+}
+
+sub check_input_set
+{
+  my ($form, $input_type) = (shift, shift);
+  return 1 unless defined $form;
+  my $type = lc ($input_type);
+  my @texts = map { $_->name ()} $form->find_input (undef, $type);
+  my %text_set;
+  my $ret = 0;
+  print_test_log ("Checking $type inputs.");
+  print_test_result ("$input_type inputs found: ("
+    . join (', ', map { "'$_'" } @texts) . ")."
+  );
+  $text_set{$_} = 1 foreach (@texts);
+  foreach my $t (@_)
+    {
+      next if defined $text_set{$t};
+      print_test_error ("$input_type input '$t' is missing.");
+      $ret = 1;
+    }
+  print_test_result ("All expected $type inputs are present.") unless $ret;
+  return $ret;
+}
+
+sub check_select_values
+{
+  my $input = shift;
+  my $ret = 0;
+  my %vals = ('!unknown!' => 1);
+  my (@missing, @extra);
+  $vals{$_} = 1 foreach (@_);
+  $vals{$_}-- foreach ($input->possible_values ());
+  report_select_values ($input);
+  foreach (keys %vals)
+    {
+      push @missing, "'$_'" if $vals{$_} > 0;
+      push @extra, "'$_'" if $vals{$_} < 0;
+      next unless $vals{$_};
+      $ret = 1;
+    }
+  print_test_error ("Missing values: (" . join (', ', @missing) . ").")
+    if @missing;
+  print_test_error ("Unexpected values: (" . join (', ', @extra) . ").")
+    if @extra;
+  return $ret;
+}
+
+sub check_submit_options
+{
+  my $form = shift;
+  my $ret = check_input_set ($form, 'Option', keys (%submit_selects));
+  return $ret if $ret;
+  foreach my $name (keys %submit_selects)
+    {
+      print_test_log ("Checking for values of $name select box.");
+      my $input = $form->find_input ($name);
+      if (check_select_values ($input, @{$submit_selects{$name}}))
+        {
+          $ret = 1;
+          next;
+        }
+      print_test_result ("Value set doesn't differ from the expected one.");
+    }
+  return $ret;
+}
+
+sub check_submit_fields
+{
+  my ($agent, $form) = @_;
+  return 1 unless defined $form;
+  my $ret;
+  print_test_log ("Checking submit form fields.");
+  $ret = check_input_set ($form, 'Text', get_submit_texts ($tracker));
+  $ret = 1 if check_input_set ($form, 'Textarea', @submit_textareas);
+  $ret = 1 if check_input_set ($form, 'File', @submit_files);
+  $ret = 1 if check_input_set ($form, 'Submit', @submit_buttons);
+  $ret = 1 if check_submit_options ($form);
+  save_page ($agent, 'submit-fields.html') if $ret;
+  return $ret;
+}
+
+sub name_to_login
+{
+  my $name = shift;
+  return undef unless $name =~ s/^<(.*)>$/$1/;
+  return $1;
+}
+
+sub extract_new_item_no
+{
+  my ($agent, $txt, $name) = @_;
+  return $1 if $txt =~ m,#(\d+)<,;
+  my $file = "no-item-id-$name.html";
+  print_test_error ("Item ID not found.");
+  save_page ($agent, $file);
+  return undef;
+}
+
+sub check_for_success
+{
+  my ($agent, $txt, $name) = @_;
+  return extract_new_item_no ($agent, $1, $name)
+    if $txt =~ m,/bool/ok[.]png.* />.*Success:.*New item posted [(]([^)]*)[)],;
+  my $file = "no-sucess-$name.html";
+  print_test_error ("Success message not found.");
+  save_page ($agent, $file);
+  return undef;
+}
+
+sub check_for_fb
+{
+  my ($agent, $name) = @_;
+  my $txt = $agent->content (raw => 1);
+  $name =~ s,[<>],,g;
+  return check_for_success ($agent, $1, $name)
+    if $txt =~ m,<div id="feedback" class="feedback">([^\n]*),;
+  my $file = "no-fb-$name.html";
+  print_test_error ("Feedback not found.");
+  save_page ($agent, $file);
+  return undef;
+}
+
+sub check_submitted_item
+{
+  my ($agent, $name) = @_;
+  my $item_id;
+  print_test_log ("Checking the submitted request.");
+  return -1 if check_request_status ($agent);
+  $item_id = check_for_fb ($agent, $name);
+  return -1 unless defined $item_id;
+  print_test_result ("Item #$item_id has been created.");
+  if (defined $private_names{$name})
+    {
+      $private_items{$item_id} = 1;
+      print_test_result ("Note: the item is private.");
+    }
+  $submitted_items{$item_id} = name_to_login ($name);
+  return $item_id;
+}
+
+sub request_new_item
+{
+  my ($agent, $name, $group, $art) = @_;
+  my $ret;
+  $tracker = $art;
+  $agent->get (make_url ("$tracker/?group=$group&func=additem"));
+  my $form = find_form (
+    $agent, 'submission', 'request-new-item.html',
+    qw (form_id func group_id preview)
+  );
+  return -1 if check_submit_fields ($agent, $form);
+  fill_new_item_form ($form, $name);
+  fill_anon_check ($form, $name);
+  print_test_log ('Sending the request.');
+  $agent->click ('submit');
+  return check_submitted_item ($agent, $name);
+}
+
+sub check_discussion_lock
+{
+  my ($box, $item_id) = @_;
+  print_test_log ("Checking for discussion lock value.");
+  unless ($box =~ s,.*\n\s*Discussion Lock: ([^\n]*).*,$1,s)
+    {
+      print_test_error ('Failed to find discussion lock field in the message.');
+      return 1;
+    }
+  unless ($box eq 'Unlocked')
+    {
+      print_test_error ("Wrong discussion lock value '$box'.");
+      return 1;
+    }
+  print_test_result ("The value is correct.");
+  return 0;
+}
+
+sub check_new_item_notif_body
+{
+  my ($body, $name) = @_;
+  my $line = generate_new_item_details ($name);
+  unless (index ($body, "\n$line\n") < 0)
+    {
+      print_test_result ('The body looks correct.');
+      return 0;
+    }
+  print_test_error ("Expected line not found in message body:\n  $line");
+  return 1;
+}
+
+sub check_notif_subject
+{
+  my ($box, $item_id) = @_;
+  unless ($box =~ s,.*\nSubject: ([^\n]*).*,$1,s)
+    {
+      print_test_error ('Failed to find the subject line in the message.');
+      return 1;
+    }
+  unless ($box =~ /^\[[a-z]+ #$item_id\] request by /)
+    {
+      print_test_error ("Wrong subject '$box'.");
+      return 1;
+    }
+  print_test_result ("Subject line is correct.");
+  return 0;
+}
+
+sub check_submit_notification
+{
+  my ($item_id, $name) = @_;
+  print_test_log ("Checking the notification.");
+  my ($headers, $body, $box) = get_message ();
+  return 1 unless defined $headers;
+  my $ret = check_notif_subject ($headers, $item_id);
+  $ret = 1 if check_discussion_lock ($box, $item_id);
+  $ret = 1 if check_new_item_notif_body ($body, $name);
+  save_text ($box, "$item_id-submit.mbox") if $ret;
+  print_test_result ("The notification looks sane.") unless $ret;
+  return $ret;
+}
+
+sub check_new_item
+{
+  my ($agent, $art, $item_id, $name) = @_;
+  $tracker = $art;
+  print_test_log ("Checking $tracker #$item_id.");
+  my $notif_result = check_submit_notification ($item_id, $name);
+  return 1 if $item_id < 0;
+  $agent->get (make_url (comment_page_url ($item_id)));
+  return 1 if check_request_status ($agent);
+  return $notif_result;
+}
+
+my %submitters_by_item_id;
+
+sub get_submitters_by_item_id
+{
+  my $item_id = shift;
+  return $submitters_by_item_id{$item_id};
+}
+
+sub submit_item
+{
+  my ($login, $group, $art) = @_;
+  $tracker = $art;
+  my $name = displayed_user_name ($login);
+  my ($item_id, $ret);
+  my $agent = make_agent (0);
+  print_test_log ("Submitting item as $name to $tracker tracker of <$group>.");
+  log_in ($agent, $login) if defined $login;
+  $item_id = request_new_item ($agent, $name, $group, $tracker);
+  return 1 if ($item_id < 0);
+  $ret = check_new_item ($agent, $tracker, $item_id, $name);
+  # Remove originator_email from further non-anonymous submissions.
+  $have_originator = 0 unless defined $login;
+  log_out ($agent) if defined $login;
+  $submitters_by_item_id{$item_id} = $login unless $ret;
+  $latest_item_id{$group} = $item_id unless $ret;
+  $latest_id = $item_id unless $ret;
+  save_page ($agent, "$name-$group-$tracker-submit.html") if $ret;
+  return $ret;
+}
+
+return "true";
