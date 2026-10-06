@@ -140,6 +140,7 @@ Run Time
 ** Geo::IP (libgeo-ip-perl, geoip-database in Trisquel) - mirror-redirect
 ** Locale::Codes (liblocale-codes-perl in Trisquel) - sv_gnu-mirmon
 ** LWP::Simple (libwww-perl in Trisquel) - sv_gnu-mirmon
+** LWP::UserAgent (libwww-perl in Trisquel) - closing tracker items on Git push.
 * MariaDB (MySQL may also work)
 * Apache (apache2, apache2-utils in Trisquel) - frontend
 ** PHP module (libapache2-mod-php in Trisquel)

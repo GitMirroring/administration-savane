@@ -5,6 +5,8 @@
 * Add an option to pass requests from logged-in users to a separate
   ViewVC instance.
 
+* Add Git hook controls to /git/admin/index.php.
+
 * Bug fixes:
 
 ** Since 2026-05 (10cadf7), enabling Git (and more generally, listing
@@ -34,6 +36,9 @@
 
 * Perl scripts load configuration files from savane.conf.pl.d/, if any,
   after savane.conf.pl.
+
+* New scripts, sv_receive and sv_pre-receive, to be used as Git pre-receive
+  and post-receive hooks.
 
 2026-09-26 3.18
 

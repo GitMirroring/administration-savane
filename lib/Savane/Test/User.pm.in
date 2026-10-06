@@ -46,7 +46,7 @@ use WWW::Mechanize;
 require Exporter;
 
 our @ISA = qw (Exporter);
-our @EXPORT = qw (register_user remove_user set_email);
+our @EXPORT = qw (register_user remove_user set_email user_exists);
 
 sub get_password
 {
@@ -133,13 +133,19 @@ sub confirm_user_deletion
   print_test_result ("Deletion confirmed.");
 }
 
+sub user_exists
+{
+  my $login = shift;
+  return check_inaccessibility ("users/$login");
+}
+
 sub remove_user
 {
   my ($agent, $login, $passwd) = @_;
   log_in ($agent, $login, $passwd);
   request_user_removal ($agent);
   confirm_user_deletion ($agent);
-  return check_inaccessibility ("users/$login");
+  return user_exists ($login);
 }
 
 sub request_email_change

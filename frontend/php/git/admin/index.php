@@ -41,20 +41,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-require_once ('../../include/init.php');
-require_once ('../../include/sane.php');
-require_once ('../../include/vcs.php');
-require_once ('../../include/form.php');
+foreach (['init', 'sane', 'vcs', 'vcs/git-ui', 'form', 'gpg'] as $i)
+  require_once ("../../include/$i.php");
 
-$vcs = 'git';
+# Long help messages are only printed once, for the first repo.
+$skip_help = false;
 
-$res_grp = group_get_result ($group_id);
-
-if (!db_numrows ($res_grp))
+if (!db_numrows (group_get_result ($group_id)))
   exit_error (_("Invalid Group"));
 
 session_require (['group' => $group_id, 'admin_flags' => MEMBER_FLAGS_ADMIN]);
-$repos = vcs_get_repos ($vcs, $group_id);
+$repos = vcs_get_repos ('git', $group_id);
 $desc = $readme = [];
 $n = count ($repos);
 for ($i = 0; $i < $n; $i++)
@@ -63,17 +60,22 @@ for ($i = 0; $i < $n; $i++)
     $readme[] = "readme$i";
   }
 
+$triggers = sane_import ('post', ['true' => git_known_triggers ()]);
+$submit_buttons = ['submit', 'test_gpg_key'];
 extract (sane_import ('get', ['strings' => [['func', ['up', 'down']]]]));
 extract (sane_import ('post',
-  ['digits' => ['repo_no'], 'true' => ['submit']]
+  ['digits' => ['repo_no', 'hook_group'], 'true' => $submit_buttons]
 ));
 extract (sane_import ('request', ['path' => ['name']]));
-form_check ('submit');
+form_check ($submit_buttons);
+
+if ($hook_group === null)
+  $hook_group = -1;
 
 function page_start ()
 {
-  global $group_id, $vcs;
-  site_project_header (['group' => $group_id, 'context' => $vcs]);
+  global $group_id;
+  site_project_header (['group' => $group_id, 'context' => 'git']);
 }
 function permute_repos ($i, $j, $n, &$repos)
 {
@@ -96,7 +98,7 @@ function permute_repos ($i, $j, $n, &$repos)
 
 function func_move ($name, $inc)
 {
-  global $group_id, $repos, $vcs;
+  global $group_id, $repos;
   $n = count ($repos);
   if ($n < 2)
     return;
@@ -105,7 +107,7 @@ function func_move ($name, $inc)
   if ($i == $n)
     return; # This shouldn't happen, asserted in check_name ().
   permute_repos ($i, $i + $inc, $n, $repos);
-  vcs_save_sorting ($vcs, $group_id, $repos);
+  vcs_save_sorting ('git', $group_id, $repos);
 }
 
 function func_up ($name)
@@ -116,14 +118,6 @@ function func_up ($name)
 function func_down ($name)
 {
   func_move ($name, 1);
-}
-
-function repo_html_id ($name)
-{
-  global $group_id, $group_name;
-  $group = project_get_object ($group_id);
-  $group_name = $group->getUnixName ();
-  return "repo-" . preg_replace (":^$group_name/?:", "", $name);
 }
 
 function check_name ()
@@ -155,7 +149,7 @@ function show_repo_title ($r)
 {
   global $php_self, $group_id, $repos, $group_name, $anchor, $name;
   $url_base = "$php_self?group=$group_name&amp;name=$name&amp;func=";
-  print html_h (2, $name, $anchor);
+  print html_h (2, $r['name'], $anchor);
   if (count ($repos) < 2)
     return;
   print "<p>";
@@ -163,6 +157,21 @@ function show_repo_title ($r)
   print " &nbsp; ";
   print "<a href=\"{$url_base}down#$anchor\">" . _("Move down") . "</a>";
   print "</p>";
+}
+
+function display_hooks ($r)
+{
+  global $group_id;
+  if (!git_have_savane_hooks (git_get_repo_path ($r)))
+    return;
+  $prefs = git_get_hook_prefs ($r, $group_id);
+  print html_h (3, _('Git hooks'), 'hooks-' . $r['no']);
+  print form_tag ()
+    . form_hidden (
+        ['group_id' => $group_id, 'hook_group' => $r['no'], 'repo' => $r['name']]
+      )
+    . git_all_hook_controls ($r, $prefs)
+    . '<p>' . form_submit (_("Update"), 'submit') . "</p>\n</form>\n";
 }
 
 $show_edit_help = [
@@ -181,114 +190,196 @@ function show_edit ($name, $label, $val, $repo_no)
 {
   global $show_edit_help;
   $help = null;
-  if (!empty ($show_edit_help[$name]) && !$repo_no)
+  if (!empty ($show_edit_help[$name]) && !$GLOBALS['skip_help'])
     $help = $show_edit_help[$name];
   $id = "$name$repo_no";
-  print "<p>" . html_label ($id, $label) . " &nbsp; &nbsp;\n";
+  print '<p>' . html_label ($id, $label) . " &nbsp; &nbsp;\n";
   print form_input ("text", "$id", $val, 'size="34" maxlength="102"');
   print "</p>\n";
   if ($help !== null)
     print "<p class='smaller'>$help</p>\n";
 }
 
-function show_disable_tarballs ($repo_no, $name)
+function show_disable_tarballs ($r)
 {
-  global $group_id, $vcs;
-  $no_tarball = vcs_tarballs_disabled ($vcs, $group_id, $name);
-  $cb_name = "disable_tarballs$repo_no";
+  global $group_id;
+  $no_tarball = vcs_tarballs_disabled ('git', $group_id, $r['name']);
+  $cb_name = "disable_tarballs{$r['no']}";
   print "<p>";
   print form_checkbox ($cb_name, $no_tarball) . "\n";
   print html_label ($cb_name, _("don't provide links to snapshot tarballs"));
   print "</p>\n";
 }
 
-function show_repo_form ($r, $repo_no, $name)
+function show_repo_form ($r)
 {
-  global $group_id, $vcs;
-  $readme = vcs_get_repo_readme ($vcs, $group_id, $name);
+  global $group_id;
+  $readme = vcs_get_repo_readme ('git', $group_id, $r['name']);
   show_edit (
     "desc", _("Description:"),
-    utils_specialchars_decode ($r['desc'], ENT_QUOTES), $repo_no
+    utils_specialchars_decode ($r['desc'], ENT_QUOTES), $r['no']
   );
   print html_h (3, _("Web browsing settings"));
-  show_edit ("readme", _("README file:"), $readme, $repo_no);
-  show_disable_tarballs ($repo_no, $name);
-  print form_hidden (['repo_no' => $repo_no]);
+  show_edit ("readme", _("README file:"), $readme, $r['no']);
+  show_disable_tarballs ($r);
+  print form_hidden (['repo_no' => $r['no']]);
 }
 
-function show_repo ($r, $repo_no)
+function show_repo ($r)
 {
-  global $group_name, $anchor, $name;
+  global $group_name, $anchor, $skip_help;
   $name = $r['name'];
-  $anchor = repo_html_id ($name);
+  $anchor = git_repo_html_id ($name);
 
   show_repo_title ($r);
   print form_tag ([], "#$anchor")
-    . form_hidden (['group' => $group_name, 'name' => $name]);
+    . form_hidden (['group' => $group_name, 'name' => $r['name']]);
 
-  show_repo_form ($r, $repo_no, $name);
+  show_repo_form ($r);
   print form_submit (_("Update"), 'submit');
   print "</form>\n";
+  display_hooks ($r);
+  $skip_help = true;
 }
 
-function display_repos ($repos)
+function get_add_hook_from_post ($i)
 {
-  global $repo_no;
-  $repo_no = 0;
-  if (empty ($repos))
-    return;
-  foreach ($repos as $r)
+  if (!array_key_exists ("add-hook-$i", $_POST))
+    return [null, null, null];
+  $h = $_POST["add-hook-$i"];
+  if (!preg_match (',^(?<stage>(pre|post))-(?<hook>[^/:]+)$,', $h, $arr))
+    return [null, null, null];
+  $stage = $arr['stage'];
+  $hook = $arr['hook'];
+  return [$stage, $hook, !empty ($_POST["$stage-$hook"])];
+}
+
+function get_disabled_hooks_from_post ()
+{
+  $data = sane_import ('post', ['digits' => ['add-hook-no']]);
+  $ret = [];
+  for ($i = 0; $i < $data['add-hook-no']; $i++)
     {
-      print '<div class="' . utils_altrow ($repo_no) . "\">\n";
-      show_repo ($r, $repo_no);
-      print "</div>\n";
-      $repo_no++;
+      list ($stage, $hook, $enabled) = get_add_hook_from_post ($i);
+      if (empty ($stage))
+        continue;
+      $ret[$stage][$hook] = !$enabled;
+    }
+  return $ret;
+}
+
+function set_additional_hooks ($repo, &$prefs)
+{
+  $disabled = get_disabled_hooks_from_post ();
+  if (empty ($disabled))
+    return;
+  $name = $repo['name'];
+  $pfx = "vcs:git:" . git_pref_name_pfx ($name);
+  foreach ($disabled as $stage => $hooks)
+    {
+      $dis_list = [];
+      foreach ($hooks as $hook => $dis)
+        if ($dis)
+          $dis_list[] = $hook;
+      $prefs["{$pfx}disabled-hooks:$stage"] = join (HOOK_SEPARATOR, $dis_list);
     }
 }
 
-if (isset ($submit))
-  {
-    if (empty ($repo_no))
-      $repo_no = 0;
-    extract (sane_import ('post',
-      [
-        'specialchars' => ["desc$repo_no"],
-        'path' => ["readme$repo_no"],
-        'true' => ["disable_tarballs$repo_no"]
-      ]
-    ));
-    if (empty (${"disable_tarballs$repo_no"}))
-      $disable_tarballs = 0;
-    else
-      $disable_tarballs = 1;
-    $desc = ${"desc$repo_no"};
-    $readme = ${"readme$repo_no"};
-    if ($readme === null)
-      $readme = '';
-  }
+function set_gpg_prefs ($repo, &$pref)
+{
+  $k = "check-gpg--keys";
+  if (!array_key_exists ($k, $_POST))
+    return;
+  $pref["vcs:git:" . git_input_to_pref ($repo, $k)] = $_POST[$k];
+}
 
-$have_name = check_name ();
-if (isset ($func) && $have_name)
-  {
-    $id = repo_html_id ($name);
-    $f = "func_$func";
-    $f ($name);
-    header ("Location: $php_self?group=$group_name#$id");
-  }
+function set_hooks ($repos, $hook_group)
+{
+  global $group_id, $triggers;
+  if (empty ($repos[$hook_group]))
+    trigger_error ("No repos[$hook_group]: " . error_print_r ($repos));
+  $repo = $repos[$hook_group];
+  $name = $repo['name'];
+  $pref = [];
+  foreach (git_known_triggers () as $v)
+    {
+      $val = 0;
+      if (!empty ($triggers[$v]))
+        $val = $triggers[$v];
+      $pref["vcs:git:" . git_input_to_pref ($name, $v)] = $val;
+    }
+  set_additional_hooks ($repos[$hook_group], $pref);
+  set_gpg_prefs ($name, $pref);
+  if (empty ($pref))
+    return;
+  group_set_preference ($group_id, $pref);
+}
 
-if (isset ($submit) && $have_name)
-  {
-    foreach (
-      ['desc' => $desc, 'readme' => $readme, 'no-tarball' => $disable_tarballs]
-      as $k => $v
-    )
-      if (isset ($v))
-        vcs_set_repo_pref ($vcs, $group_id, $k, $name, $v);
-    $repos = vcs_get_repos ($vcs, $group_id, true);
-  }
+function set_repos ()
+{
+  global $repo_no, $disable_tarballs, $desc, $readme;
+  if (empty ($repo_no))
+    $repo_no = 0;
+  extract (sane_import ('post',
+    [
+      'specialchars' => ["desc$repo_no"],
+      'path' => ["readme$repo_no"],
+      'true' => ["disable_tarballs$repo_no"]
+    ]
+  ));
+  if (empty (${"disable_tarballs$repo_no"}))
+    $disable_tarballs = 0;
+  else
+    $disable_tarballs = 1;
+  $desc = ${"desc$repo_no"};
+  $readme = ${"readme$repo_no"};
+  if ($readme === null)
+    $readme = '';
+}
+
+function set_data ($submit, $repos, $hook_group)
+{
+  if (!isset ($submit))
+    return;
+  if ($hook_group >= 0)
+    set_hooks ($repos, $hook_group);
+  else
+    set_repos ();
+}
+
+function process_func ($func, $name)
+{
+  global $php_self, $group_name;
+  $have_name = check_name ();
+  if (!(isset ($func) && $have_name))
+    return $have_name;
+  $id = git_repo_html_id ($name);
+  $f = "func_$func";
+  $f ($name);
+  header ("Location: $php_self?group=$group_name#$id");
+  return $have_name;
+}
+
+function update_repos ($submit, $have_name)
+{
+  global $desc, $readme, $disable_tarballs, $group_id, $name, $repos;
+  if (!(isset ($submit) && $have_name))
+    return;
+  foreach (
+    ['desc' => $desc, 'readme' => $readme, 'no-tarball' => $disable_tarballs]
+    as $k => $v
+  )
+    if (isset ($v))
+      vcs_set_repo_pref ('git', $group_id, $k, $name, $v);
+  $repos = vcs_get_repos ('git', $group_id, true);
+}
+
+set_data ($submit, $repos, $hook_group);
+$have_name = process_func ($func, $name);
+update_repos ($submit, $have_name);
 
 page_start ();
 display_introduction ();
-display_repos ($repos);
+git_display_repos ($repos);
 $HTML->footer ([]);
 ?>

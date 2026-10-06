@@ -44,23 +44,47 @@ use strict;
 use warnings;
 
 require Exporter;
+require Savane::Conf;
 require Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(GitMakeArea);
 our $version = 1;
 
-sub make_post_update_hook
+sub make_receive_hook
 {
-  my $dir_git = shift;
+  my ($dir_git, $git, $stage) = @_;
+  my $path = "$dir_git/$stage-receive";
+  return " Cannot open hooks/$stage-receive for writing: $!"
+    unless open (HOOK, ">$path");
+  my $hook = '@bindir@/sv_receive --' . $stage;
+  my $msg = <<"  EOF";
+    #! /bin/sh
+
+    # Savane $stage-receive hook; if more hooks are needed,
+    # they can be installed in savane.d/$stage-receive.d/.
+    $hook
+  EOF
+  $msg =~ s/^ {4}//mg;
+  return " Cannot write to hooks/$stage-receive."
+    unless print HOOK $msg;
+  close (HOOK);
+  util_system ('chmod', 'a+x', $path);
+  return '';
+}
+
+sub make_hooks
+{
+  my $dir_git = shift . '/hooks';
   my $w = '';
+  my $git = configured_binary ('git');
   # Needed to make the repo accessible via bare HTTP.
-  open (HOOK, ">$dir_git/hooks/post-update")
+  open (HOOK, ">$dir_git/post-update")
     or $w = " Cannot open hooks/post-update for writing: $!";
   print HOOK "#! /bin/sh\n";
-  my $git = configured_binary ('git');
   print HOOK "exec $git update-server-info\n";
   close (HOOK);
-  util_system ('chmod', '+x', "$dir_git/hooks/post-update");
+  util_system ('chmod', 'a+x', "$dir_git/post-update");
+  $w .= make_receive_hook ($dir_git, $git, $_) foreach (qw /pre post/);
   return $w;
 }
 
@@ -91,7 +115,9 @@ sub make_git_area
 
   util_system ('chgrp', '-R', $name, $dir_git) unless $>;
   util_system ('chmod', '-R', 'o=', $dir_git) unless $is_public;
-  $w = make_post_update_hook ($dir_git);
+  $w = make_hooks ($dir_git);
+  util_system ('mkdir', '-p',  "$dir_git/hooks/savane.d/pre-receive.d");
+  util_system ('mkdir', '-p',  "$dir_git/hooks/savane.d/post-receive.d");
   seal_hooks ("$dir_git/hooks");
   config_git ();
   my $sqlite_dir = "$dir_git/gitcvs-db";

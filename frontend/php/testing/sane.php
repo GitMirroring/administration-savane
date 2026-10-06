@@ -352,6 +352,16 @@ $reference = 'cookbook/index.php';
   $out['func'] = 'default';
   test_sane_import ($in, $names, $out);
 }
+$reference = 'bugs/close-bug.php';
+{
+  $names =['path' =>  ['dir', 'file'], 'preg' => [['verbose', '/^-?\d+$/']]];
+  $in = [
+    'dir' => 'administration/savane.git', 'file' => 'sv-close-item-kR3X4yVH',
+    'verbose' => '-1'
+  ];
+  $out = $in;
+  test_sane_import ($in, $names, $out);
+}
 
 $reference = 'bugs/dependencies.php';
 {
