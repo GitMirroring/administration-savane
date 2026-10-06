@@ -351,6 +351,7 @@ ordinary_files = \
   php/bugs/dependencies.php \
   php/bugs/download.php \
   php/bugs/export.php \
+  php/bugs/git-triggers.php \
   php/bugs/index.php \
   php/bugs/item.php \
   php/bugs/reporting.php \
@@ -392,6 +393,7 @@ ordinary_files = \
   php/forum/forum.php \
   php/forum/message.php \
   php/git/admin/index.php \
+  php/git/hooks.php \
   php/git/index.php \
   php/i18n.php \
   php/images/common/COPYING.CC0 \
@@ -482,6 +484,7 @@ ordinary_files = \
   php/include/vars.php \
   php/include/vcs/cvs.php \
   php/include/vcs/git.php \
+  php/include/vcs/git-ui.php \
   php/include/vcs.php \
   php/index.php \
   php/js/captcha.php \

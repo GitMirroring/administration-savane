@@ -1,0 +1,235 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
+# Git receive pre-hook.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# As an exception from the general Savane distribution terms, this file
+# is distributed under the GPL.  The AGPL doesn't apply to it unless used
+# in a greater work with other parts covered by the AGPL, so this module
+# may be combined with works under the GPL without complying with the AGPL.
+#
+# This file is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use Savane::SQL;
+use Savane::Version;
+use Savane::Hooks;
+use Savane::Conf;
+use Cwd 'abs_path';
+use Getopt::Long;
+
+my $help_msg = <<"EOF";
+  Usage: $0 [OPTIONS]
+
+  Preliminary Git hook for Savane.  The script is used as Git pre-receive
+  and post-receive hooks.  First, it runs the scripts located
+  in savane.d/pre-receive.d/ (in the pre-receive mode)
+  or in savane.d/post-receive.d/ (in the post-receive mode).
+  Then it checks if any relevant actions are enabled in the settings
+  of the Savane group of the repository.  When no actions are enabled,
+  it exits; when some actions are to be taken, it passes the control
+  to sv_pre-receive that does Savane-specific jobs.
+
+    -h, --help               show this help and exit
+    -v, --version            show Savane version and exit
+
+    --pre                    run in the pre-receive mode
+    --post                   run in the post-receive mode
+EOF
+$help_msg =~ s/^  //mg;
+PrintVersionOrHelp ($help_msg);
+
+my ($pre, $post, $verbose);
+
+GetOptions (
+  'pre' => \$pre, 'post' => \$post, 'verbose' => \$verbose
+) or die ("Wrong command line\n");
+
+$pre = 1 unless $post;
+$post = 0 if $pre;
+
+my $hook_separator = '/./';
+
+sub get_hooks_path
+{
+  my $git = configured_binary ('git');
+  my $path = `$git --git-dir=. config --get core.hooksPath`;
+  chomp $path;
+  return './hooks' if $path eq '';
+  return $path;
+}
+my %disabled_hooks;
+
+sub run_hook
+{
+  my $hook = shift;
+  my $ret = 0;
+  my $fh;
+  unless (open ($fh, '|-', $hook))
+    {
+      print "Cannot run hook $hook\n";
+      return 1;
+    }
+   print { $fh } join ('', @_);
+   return !close ($fh);
+}
+
+sub try_chdir
+{
+  my $path = shift;
+  return 0 if chdir ($path);
+  print "Cannot chdir '$path': $!";
+  return 1;
+}
+
+sub hook_path
+{
+  my ($stage, $h) = @_;
+  my $path = get_hooks_path () . "/savane.d/$stage-receive.d";
+  return $path unless defined $h;
+  return "$path/$h";
+}
+
+sub ls_sorted_hooks
+{
+  my $stage = shift;
+  my $p = abs_path ('.');
+  my $path = hook_path ($stage);
+  return () if try_chdir ($path);
+  my @ret;
+  foreach (<"*">)
+    {
+      next if exists $disabled_hooks{$stage}{$_};
+      next if -d $_;
+      push @ret, $_;
+    }
+  return () if try_chdir ($p);
+  return sort (@ret);
+}
+
+sub prepend_hooks
+{
+  my $stage = shift;
+  my @hooks = ls_sorted_hooks ($stage);
+  return 0 unless @hooks;
+  my $ret = 0;
+  foreach (@hooks)
+    {
+      $ret = 1 if run_hook (hook_path ($stage, $_), @_);
+    }
+  return $ret;
+}
+
+sub list_known_hooks
+{
+  my $stage = shift;
+  return () if $stage eq 'post';
+  return (
+    'closes-item', 'opens-item', 'no-merges', 'updates-item', 'check-gpg'
+  );
+}
+
+sub get_known_hooks
+{
+  my $stage = shift;
+  my %ret = ();
+  $ret{$_} = 1 foreach (list_known_hooks ($stage));
+  return \%ret;
+}
+
+# Preference name doesn't actually depend on $stage.
+sub group_pref_pfx
+{
+  return 'vcs:git:';
+}
+
+sub group_pref_ifx
+{
+  return ':hooks:receive:';
+}
+
+sub query_group_prefs
+{
+  my ($group, $pfx) = @_;
+  return sql_query ("
+    SELECT `preference_name`, `preference_value`
+    FROM
+      `group_preferences` `p` JOIN `groups` `g`
+      ON `g`.`group_id` = `p`.`group_id`
+     WHERE `unix_group_name` = ? AND `preference_name` LIKE ?",
+     $group, "$pfx%"
+  );
+}
+
+sub fetch_group_prefs
+{
+  my ($group, $pfx) = @_;
+  my $res = query_group_prefs ($group, $pfx);
+  my %ret;
+  my $res = query_group_prefs ($group, $pfx);
+  return () unless defined $res;
+  my @row;
+  while (@row = sql_fetch_row ($res))
+    {
+      my ($name, $val) = @row;
+      next unless $name =~ s/^$pfx//;
+      $ret{$name} = $val;
+    }
+  return %ret;
+}
+
+sub disable_additional_hooks
+{
+  my ($prefs, $stage) = @_;
+  my $idx = "disabled-hooks:$stage";
+  return unless exists $prefs->{$idx};
+  $disabled_hooks{$stage}{$_} = 1
+    foreach (split (m%$hook_separator%, $prefs->{$idx}));
+}
+
+sub apply_hook_prefs
+{
+  my $stage = shift;
+  my ($group, $dir) = guess_group_and_dir ();
+  return 0 unless defined $group;
+  my %prefs = get_git_group_prefs ($group, $dir);
+  return 0 unless %prefs;
+  disable_additional_hooks (\%prefs, $stage);
+  foreach (list_known_hooks ($stage))
+    {
+      next unless exists $prefs{$_};
+      return 1 if $prefs{$_} eq '1';
+    }
+  return 0;
+}
+
+sub main
+{
+  my $stage = $pre? 'pre': 'post';
+  my @lines;
+  push @lines, $_ foreach (<>);
+  my $have_hooks = apply_hook_prefs ($stage);
+  return 1 if prepend_hooks ($stage, @lines);
+  return 0 unless $have_hooks;
+  my $ret = run_hook ('@bindir@/sv_' . "pre-receive --$stage", @lines);
+  return $ret;
+}
+
+exit (main ());

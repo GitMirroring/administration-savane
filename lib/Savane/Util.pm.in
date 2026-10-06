@@ -59,7 +59,8 @@ our @EXPORT = qw (
 
 sub offer_source_code
 {
-  return if GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
+  return '' if GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
+  my $skip_print = shift;
   my $script = get_prog_name ();
   my $root_url = get_server_url ();
   my $source_code_url = GetConf ('sys_source_code_url');
@@ -75,7 +76,8 @@ sub offer_source_code
 
   EOF
   $msg =~ s, {4},,gm;
-  print STDERR $msg;
+  print STDERR $msg unless $skip_print;
+  return $msg;
 }
 
 # Escape arg0 to be sent in a SQL string.
