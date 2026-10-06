@@ -77,7 +77,7 @@ function trackers_check_artifact ($group_id)
   $project = project_get_object ($group_id);
 
   foreach (['bugs', 'support', 'task', 'patch'] as $art)
-    if (ARTIFACT == $art && !$project->Uses ($art))
+    if (trackers_data_artifact () == $art && !$project->Uses ($art))
       exit_error (_("This group has turned off this tracker."));
 }
 
@@ -87,7 +87,7 @@ function trackers_header ($params, $prefix = '')
 
   # Required params for site_project_header().
   $params['group'] = $group_id;
-  $params['context'] = $prefix . ARTIFACT;
+  $params['context'] = $prefix . trackers_data_artifact ();
 
   trackers_check_artifact ($group_id);
   print site_project_header ($params);
@@ -150,7 +150,7 @@ function trackers_data_description_link ($field, $label)
 {
   global $group_id;
   $is_admin = user_is_group_admin ();
-  $url = '/' . ARTIFACT . "/admin";
+  $url = '/' . trackers_data_artifact () . "/admin";
   $q_str = "group_id=$group_id&field=$field";
   if (trackers_data_is_select_box ($field))
     return
@@ -253,7 +253,7 @@ function trackers_field_display_ta ($field_name, $value, $group_id, $args)
 function trackers_field_display_unknown ($field_name, $value, $group_id, $args)
 {
   $display_type = trackers_data_get_display_type ($field_name);
-  return 'Unknown ' . ARTIFACT . ' field display type '
+  return 'Unknown ' . trackers_data_artifact () . ' field display type '
     . '"' . utils_specialchars ($display_type) . '"';
 }
 
@@ -273,7 +273,7 @@ function trackers_field_display_func ($field_name)
 # making modification possible.
 # - field_name: name of the column.
 # - group_id: the group id.
-# - value: the current value stored in this field (for select boxes type of field
+# - value: the current value stored in this field (for select boxes,
 #     it is the value_id actually. It can also be an array with multiple values.
 # - break: true if a break line is to be inserted between the field label
 #     and the field value.
@@ -283,9 +283,11 @@ function trackers_field_display_func ($field_name)
 # - ascii: if true do not use any HTML decoration just plain text (if true
 #     then read-only (ro) flag is forced to true as well).
 # - show_none: show the None entry in the select box if true (value_id 100).
-# - text_none: text associated with the none value_id to display in the select box
+# - text_none: text associated with the none value_id to display in the select
+#     box.
 # - show_any: show the Any entry in the select box if true (value_id 0).
-# - text_any: text associated with the any value_id to display in the select box
+# - text_any: text associated with the any value_id to display in the select
+#     box.
 # - allowed_transition_only: print only transition allowed.
 function trackers_field_display (
   $field_name, $group_id, $value = 'xyxy', $break = false, $label = true,
@@ -590,7 +592,7 @@ function trackers_mandatory_field ($field_name, $new_item)
       # Save that information for further mandatory checks,
       # to avoid avoid a SQL request per field checked.
       $submitter_res = db_execute ("
-        SELECT submitted_by FROM " . ARTIFACT . "
+        SELECT submitted_by FROM " . trackers_data_artifact () . "
         WHERE bug_id = ? AND group_id = ?",
         [$item_id, $group_id]
       );
@@ -700,7 +702,7 @@ function trackers_canned_response_box ($group_id, $checked, $height, $result)
 function trackers_artifact_is_sane (&$artifact)
 {
   if (!$artifact)
-    $artifact = ARTIFACT;
+    $artifact = trackers_data_artifact ();
 
   if (ctype_alnum (strval ($artifact)))
     return true;
@@ -984,7 +986,7 @@ function trackers_append_followup_notif_addresses (
   &$addresses, $item_id, $updated = true, $tracker = null
 )
 {
-  $tracker = $tracker !== null? $tracker: ARTIFACT;
+  $tracker = $tracker !== null? $tracker: trackers_data_artifact ();
   $additional_address =
     trackers_data_get_item_notification_info ($item_id, $tracker, $updated);
   if ($additional_address !== '' && trim ($addresses) !== '')
@@ -997,7 +999,7 @@ function trackers_mail_followup (
   $exclude_list = false, $tracker = null
 )
 {
-  $tracker = $tracker !== null? $tracker: ARTIFACT;
+  $tracker = $tracker !== null? $tracker: trackers_data_artifact ();
   $res = trackers_mail_fetch_followup ($tracker, $item_id);
   if ($res === false)
     return;
@@ -1212,7 +1214,7 @@ function trackers_check_upload_params ($file, $file_name)
 
 function trackers_insert_attachment ($params)
 {
-  $params['artifact'] = ARTIFACT;
+  $params['artifact'] = trackers_data_artifact ();
   $params['date'] = time ();
   $params['filetype'] = $params['file']['type'];
   $params['filesize'] = $params['file']['size'];
@@ -1266,8 +1268,9 @@ function trackers_attach_file ($item_id, $file, $description, &$changes)
 
 function trackers_exist_cc ($item_id, $cc)
 {
+  $a = trackers_data_artifact ();
   $res = db_execute ("
-    SELECT bug_cc_id FROM " . ARTIFACT . "_cc WHERE bug_id = ? AND email = ?",
+    SELECT `bug_cc_id` FROM `{$a}_cc` WHERE `bug_id` = ? AND `email` = ?",
     [$item_id, $cc]
   );
   return db_numrows ($res) >= 1;
@@ -1289,7 +1292,7 @@ function trackers_insert_cc ($item_id, $cc, $added_by, $comment, $date)
 {
   list ($comment, $manual) = trackers_extract_cc_comment ($comment);
   $res = db_autoexecute (
-    ARTIFACT . "_cc",
+    trackers_data_artifact () . '_cc',
     [
       'bug_id' => $item_id, 'email' => $cc, 'added_by' => $added_by,
       'comment' => $comment, 'date' => $date
@@ -1366,10 +1369,11 @@ function trackers_add_cc_history_rm ($email, $item_id)
 function trackers_delete_cc ($group_id, $item_id, $item_cc_id)
 {
   # Extract data about the CC.
+  $a = trackers_dta_artifact ();
   $res1 = db_execute ("
     SELECT `cc`.*
     FROM
-      `" . ARTIFACT . "_cc` `cc` JOIN `" . ARTIFACT . "` `a`
+      `{$a}_cc` `cc` JOIN `$a` `a`
       ON `a`.`bug_id` = `cc`.`bug_id`
     WHERE `bug_cc_id` = ? AND `group_id` = ?", [$item_cc_id, $group_id]
   );
@@ -1412,8 +1416,7 @@ function trackers_delete_cc ($group_id, $item_id, $item_cc_id)
 
   # Now delete the CC address.
   $res2 = db_execute ("
-    DELETE FROM " . ARTIFACT . "_cc WHERE bug_cc_id = ?",
-    [$item_cc_id]
+    DELETE FROM `{$a}_cc` WHERE bug_cc_id = ?", [$item_cc_id]
   );
   if (!$res2)
     {
@@ -1432,10 +1435,9 @@ function trackers_delete_cc_by_user ($item_id, $user_id)
   # from CC.
   if (!user_exists ($user_id))
     return false;
-
+  $table = trackers_data_artifact () . '_cc';
   $result = db_execute ("
-    DELETE FROM " . ARTIFACT . "_cc
-    WHERE bug_id = ? AND (email = ? OR email = ? OR email = ?)",
+    DELETE FROM `$table` WHERE `bug_id` = ? AND (`email` IN (?, ?, ?)",
     [$item_id, $user_id, user_getname ($user_id), user_getemail ($user_id)]
   );
   return $result === true || db_numrows ($result);
@@ -1458,7 +1460,7 @@ function trackers_delete_dependency (
   );
   trackers_data_add_history (
     "Dependencies",
-    "Removed dependency from " . ARTIFACT . " #$item_id",
+    "Removed dependency from " . trackers_data_artifact () . " #$item_id",
     "-", $item_depends_on, 0, $item_depends_on_artifact, 1
   );
 
@@ -1666,7 +1668,8 @@ function trackers_build_match_int ($field, &$to_match)
 function trackers_build_match_expression ($field, &$to_match)
 {
   # First get the field type.
-  $res = db_execute ("SHOW COLUMNS FROM " . ARTIFACT . " LIKE ?", [$field]);
+  $res = db_execute ("SHOW COLUMNS FROM " . trackers_data_artifact ()
+    . " LIKE ?", [$field]);
   $type = db_result ($res, 0, 'Type');
   $field = "a.$field";
 
@@ -1707,7 +1710,8 @@ function trackers_get_msgid ($artifact, $item_id)
 function trackers_fetch_item_access_data ($item_id, $user_id)
 {
   $fields = utils_find_item (
-    ARTIFACT, $item_id, ['privacy', 'discussion_lock', 'submitted_by'],
+    trackers_data_artifact (), $item_id,
+    ['privacy', 'discussion_lock', 'submitted_by'],
     function ($x) { return null; }
   );
   if ($fields === null)
@@ -1737,7 +1741,7 @@ function trackers_may_user_comment ($user_id, $item_id)
   if ($fields['discussion_lock'] && !$fields['is_trackeradmin'])
     return [false, $fields];
   $ret = group_restrictions_check (
-    $fields['group_id'], ARTIFACT, TRACKER_EVENT_COMMENT
+    $fields['group_id'], trackers_data_artifact (), TRACKER_EVENT_COMMENT
   );
   return [$ret, $fields];
 }
@@ -1756,7 +1760,7 @@ function tracker_list_dependency ($row, $tracker, $only_group)
   # Avoid item depending on itself.  Hide private items unless accessible.
   if ($row['privacy'] == 2 && !member_check_private (0, $row['group_id']))
     return false;
-  if ($row['bug_id'] == $item_id && $tracker === ARTIFACT)
+  if ($row['bug_id'] == $item_id && $tracker === trackers_data_artifact ())
     return false;
   print "<br />\n";
   $label = "$tracker #{$row['bug_id']}: {$row['summary']}";
@@ -1766,7 +1770,8 @@ function tracker_list_dependency ($row, $tracker, $only_group)
   $val = $row['bug_id'];
   print '&nbsp;&nbsp;&nbsp;'
     . form_checkbox (
-        "{$name}[]", 0, ['value' => $val, 'label' => $label, 'id' => "$name-$val"]
+        "{$name}[]", 0,
+        ['value' => $val, 'label' => $label, 'id' => "$name-$val"]
       );
   return true;
 }

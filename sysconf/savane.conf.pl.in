@@ -11,6 +11,7 @@ our $sys_dbsocket = "@mysql_socket@"
 our $sys_banned_email_domains = '';
 our %sys_banned_email_names = ();
 $sys_default_domain = '@WWW_SERVER_HOST@';
+$sys_www_server_port = '@WWW_SERVER_PORT@';
 $sys_dir_prefix = '@pkgstatedir@';
 our $sys_source_code_url = 'PLACEHOLDER-URL';
 # The %sys_binaries variable may be used to override the configured

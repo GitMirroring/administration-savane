@@ -65,19 +65,47 @@ function vcs_get_repo_pref ($vcs, $group_id, $pref_name, $repo)
 {
   $repos = utils_make_arg_array ($repo);
   $names = $ret = [];
+  $pfx = "vcs:$vcs:$pref_name:";
+  $pfx_len = strlen ($pfx);
   foreach ($repos as $r)
-    $names[] = "vcs:$vcs:$pref_name:$r";
+    $names[] = "$pfx$r";
   $pref_array = group_get_preference ($group_id, $names);
   foreach ($pref_array as $name => $val)
     {
-      $n = str_replace ("vcs:$vcs:$pref_name:", "", $name);
+      if (strncmp ($pfx, $name, $pfx_len))
+        continue;
+      $n = substr ($name, $pfx_len);
       $ret[$n] = $val;
     }
   return utils_return_val ($repo, $ret);
 }
+
 function vcs_set_repo_pref ($vcs, $group_id, $pref, $repo, $val)
 {
   group_set_preference ($group_id, "vcs:$vcs:$pref:$repo", $val);
+}
+
+function vcs_get_pref ($vcs, $group_id, $pref)
+{
+  $prefs = utils_make_arg_array ($pref);
+  $names = $ret = [];
+  $pfx = "vcs:$vcs:";
+  $pfx_len = strlen ($pfx);
+  foreach ($prefs as $p)
+    $names[] = "$pfx$p";
+  foreach (group_get_preference ($group_id, $names) as $name => $val)
+    {
+      if (strncmp ($pfx, $name, $pfx_len))
+        continue;
+      $n = substr ($name, $pfx_len);
+      $ret[$n] = $val;
+    }
+  return utils_return_val ($pref, $ret);
+}
+
+function vcs_set_pref ($vcs, $group_id, $pref, $val)
+{
+  group_set_preference ($group_id, "vcs:$vcs:$pref", $val);
 }
 
 function vcs_set_repo_description ($vcs, $group_id, $name, $description)
@@ -142,6 +170,16 @@ function vcs_sort_repos ($vcs, $group_id, $repos)
   foreach ($named as $r)
     $ret[] = $r;
   return $ret;
+}
+
+function vcs_get_root ($vcs)
+{
+  global $sys_vcs_dir;
+  if (empty ($sys_vcs_dir) || !is_array ($sys_vcs_dir))
+    return null;
+  if (empty ($sys_vcs_dir[$vcs]['dir']) || !is_dir ($sys_vcs_dir[$vcs]['dir']))
+    return null;
+  return $sys_vcs_dir[$vcs]['dir'];
 }
 
 function vcs_fetch_repos ($vcs, $group_id)

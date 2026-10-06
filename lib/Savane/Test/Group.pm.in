@@ -173,6 +173,7 @@ sub mark_for_removal
   my $agent = make_agent ();
   log_in_su ($agent);
   print_test_log ('Visiting group administration page.');
+  print_test_log ("group #$group_id <$group>");
   $agent->get (make_url ("siteadmin/groupedit.php?group_id=$group_id"));
   print_test_log ('Looking for deletion form.');
   $agent->form_with_fields (qw (fastdel));
@@ -187,7 +188,10 @@ sub mark_for_removal
 sub fill_feature_checkboxes
 {
   my $form = shift;
-  my @boxes = ('bugs', 'task', 'support', 'patch', 'cookbook', 'news', 'hg');
+  my @boxes = (
+    'bugs', 'task', 'support', 'patch', 'cookbook', 'news', 'hg',
+    'cvs', 'git', 'svn'
+  );
   my $ret = 0;
   return 1 unless defined $form;
   foreach (@boxes)
@@ -275,11 +279,11 @@ sub set_permissions
 
 sub set_field_usage_checkboxes
 {
-  my $form = shift;
+  my ($form, $field) = @_;
   my $ret = 0;
-  foreach (
-    'status', 'show_on_add_mem', 'show_on_add_logged', 'show_on_add_anon'
-  )
+  my @fields =
+    ('status', 'show_on_add_mem', 'show_on_add_logged', 'show_on_add_anon');
+  foreach (@fields)
     {
       my $input = $form->find_input ($_, 'checkbox');
       if (defined $input)
@@ -287,6 +291,10 @@ sub set_field_usage_checkboxes
           $input->check ();
           next;
         }
+      next
+        if ($_ ne 'status' && $_ ne 'show_on_add_anon'
+          && $field eq 'originator_email'
+        );
       $ret = 1;
       print_test_error ("Checkbox '$_' not found.");
     }
@@ -305,14 +313,14 @@ sub get_selection_form
 
 sub select_field
 {
-  my ($agent, $url, $page_name) = @_;
+  my ($agent, $url, $page_name, $field) = @_;
   print_test_log ('Visiting field selection page.');
   $agent->get (make_url ($url));
   return 1 if (check_request_status ($agent));
   print_test_log ('Looking for selection form.');
   my $form = get_selection_form ($agent, $page_name);
   return 1 unless (defined $form);
-  if (set_field_usage_checkboxes ($form))
+  if (set_field_usage_checkboxes ($form, $field))
     {
       save_page ($agent, $page_name);
       return 1;
@@ -328,9 +336,10 @@ sub select_fields
 {
   my ($user, $id, $group) = @_;
   my ($agent, $ret) = (make_agent (0), 0);
-  my @trackers = ('bugs', 'task', 'support');
+  my @trackers = ('bugs', 'task', 'support', 'patch');
   my @fields = ('keywords', 'plan_release', 'hours', 'percent_complete',
-    'reproducibility_id', 'platform_version_id'
+    'reproducibility_id', 'platform_version_id', 'originator_email', 'severity',
+    'bug_group_id'
   );
   print_test_log ('Selecting tracker fields.');
   log_in ($agent, $user);
@@ -342,7 +351,7 @@ sub select_fields
             "$tr/admin/field_usage.php?group_id=$id&update_field=1&field=";
           print_test_log ("Selecting $tr field $_ for group $group.");
           $ret = 1
-            if select_field ($agent, "$url$_", "use-$group-$tr-$_.html");
+            if select_field ($agent, "$url$_", "use-$group-$tr-$_.html", $_);
         }
     }
   log_out ($agent);

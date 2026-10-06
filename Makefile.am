@@ -56,6 +56,8 @@ backend_bin_common = \
   backend/extra/git/sv_cgit.pl \
   backend/extra/git/sv_cgit_about_filter.pl \
   backend/extra/git/sv_git_gc_repos.pl \
+  backend/extra/git/sv_receive \
+  backend/extra/git/sv_pre-receive \
   backend/mail/sv_aliases \
   backend/mail/sv_mailman-wrapper.pl \
   backend/mail/sv_sendmail.pl \
@@ -117,6 +119,7 @@ modules = \
   lib/Savane/Git.pm \
   lib/Savane/Groups.pm \
   lib/Savane/Hg.pm \
+  lib/Savane/Hooks.pm \
   lib/Savane/Locks.pm \
   lib/Savane/Mail.pm \
   lib/Savane/Mirror.pm \

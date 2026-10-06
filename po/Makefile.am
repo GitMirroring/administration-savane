@@ -16,12 +16,14 @@
 POTFILES = \
 	frontend/php/bug/index.php \
 	frontend/php/git/admin/index.php \
+	frontend/php/git/hooks.php \
 	frontend/php/git/index.php \
 	frontend/php/bugs/comment.php \
 	frontend/php/bugs/item.php \
 	frontend/php/bugs/dependencies.php \
 	frontend/php/bugs/download.php \
 	frontend/php/bugs/export.php \
+	frontend/php/bugs/git-triggers.php \
 	frontend/php/bugs/index.php \
 	frontend/php/bugs/reporting.php \
 	frontend/php/bugs/admin/field_values.php \
@@ -129,6 +131,7 @@ POTFILES = \
 	frontend/php/include/vcs.php \
 	frontend/php/include/vcs/cvs.php \
 	frontend/php/include/vcs/git.php \
+	frontend/php/include/vcs/git-ui.php \
 	frontend/php/include/graphs.php \
 	frontend/php/include/tracker-alias-redirect.php \
 	frontend/php/include/trackers/format.php \

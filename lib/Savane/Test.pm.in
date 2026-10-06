@@ -49,6 +49,7 @@ use Savane::Test::Util;
 use WWW::Mechanize;
 use File::Temp "tempfile";
 use File::Basename qw (basename dirname);
+use Cwd 'abs_path';
 require Exporter;
 
 our @ISA = qw (Exporter);
@@ -64,6 +65,7 @@ our @EXPORT = qw (
 
 my $bindir = '@bindir@';
 my $phpdir = '@frontenddir@/php';
+my $pwd = abs_path ('.');
 
 # Rename the temporary file so that the generated part of its name
 # move to the start of the name; return the renamed file name or
@@ -88,6 +90,8 @@ sub save_text
   my $text = shift;
   my $file = @_? shift: 'test.txt';
   my $error = @_? shift: 1;
+  my $wd = abs_path ('.');
+  chdir $pwd;
   my $dir = dirname ($file);
   my $base = basename ($file);
   my $tail = '-' . ('X' x 8);
@@ -98,6 +102,7 @@ sub save_text
   $fn = try_rename_tmpfile ($fn, $base, $tail);
   link $fn, $file or $file = $fn;
   print_test_result ("See $file.", $error);
+  chdir $wd;
 }
 
 sub save_page

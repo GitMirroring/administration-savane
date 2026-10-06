@@ -1,0 +1,105 @@
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# As an exception from the general Savane distribution terms, this file
+# is distributed under the GPL.  The AGPL doesn't apply to it unless used
+# in a greater work with other parts covered by the AGPL, so this module
+# may be combined with works under the GPL without complying with the AGPL.
+#
+# This file is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# A few basic Git-related functions.
+
+use strict;
+use Savane::SQL;
+use Cwd 'abs_path';
+require Exporter;
+
+our @ISA = qw (Exporter);
+our @EXPORT = qw (guess_group_and_dir get_git_group_prefs);
+
+sub guess_group_and_dir
+{
+  my $path = abs_path ('.');
+  my $dir = $path;
+  unless ($dir =~ s,/([^/]*)/([^/]*)\.git$,,)
+    {
+       print "Wrong current directory $path.\n";
+       return ();
+    }
+  my ($upper, $name) = ($1, $2);
+  # The repository is located in a directory named $group.git
+  # (initial repository) or $group/$name.git (additional repositories);
+  # in the latter case, the initial repository $group.git must exist
+  # next to the $group/ directory.
+  return ($upper, "$upper/$name.git") if -d "../../$upper.git";
+  return ($name, "$name.git");
+}
+
+sub get_hook_separator
+{
+  return '/./';
+}
+
+sub group_pref_pfx
+{
+  return 'vcs:git:';
+}
+
+sub group_pref_ifx
+{
+  return ':hooks:receive:';
+}
+
+sub query_group_prefs
+{
+  my ($group, $pfx) = @_;
+  return sql_query ("
+    SELECT `preference_name`, `preference_value`
+    FROM
+      `group_preferences` `p` JOIN `groups` `g`
+      ON `g`.`group_id` = `p`.`group_id`
+     WHERE `unix_group_name` = ? AND `preference_name` LIKE ?",
+     $group, "$pfx%"
+  );
+}
+
+sub fetch_group_prefs
+{
+  my ($group, $pfx) = @_;
+  my %ret;
+  my $res = query_group_prefs ($group, $pfx);
+  return () unless defined $res;
+  my @row;
+  while (@row = sql_fetch_row ($res))
+    {
+      my ($name, $val) = @row;
+      next unless $name =~ s/^$pfx//;
+      $ret{$name} = $val;
+    }
+  return %ret;
+}
+
+sub get_git_group_prefs
+{
+  my ($group, $dir) = @_;
+  $dir =~ s/\.git$//;
+  my $pfx = group_pref_pfx () . $dir . group_pref_ifx ();
+  return fetch_group_prefs ($group, $pfx);
+}

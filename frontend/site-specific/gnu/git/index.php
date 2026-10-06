@@ -42,6 +42,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 include dirname (__FILE__) . '/../vcs.php';
+include dirname (__FILE__) . '/../../../php/include/vcs/git-ui.php';
 
 global $repo_list;
 
@@ -62,36 +63,10 @@ printf (
   "<code class='inline-block'>$depth1</code>"
 );
 print "</p>\n";
-if ($project->isPublic ())
-  {
-    vcs_print_anon_access ();
-    $addr = "https://git.$base_host/git/";
-    print '<pre>';
+print git_print_anon_access_commands ($cmd, $base_host, $repo_list, $project);
 
-    for ($i = 0; $i < $n; $i++)
-      {
-        if ($n > 1)
-          print $repo_list[$i]['desc'] . "\n";
-        print "$cmd $addr" . $repo_list[$i]['url'] . "\n";
-        if ($i < $n - 1)
-          print "\n";
-      }
-  }
-
-print "</pre>\n\n";
 vcs_print_auth_access ();
-print "<pre>";
-
-for ($i = 0; $i < $n; $i++)
-  {
-    if ($n > 1)
-      print $repo_list[$i]['desc'] . "\n";
-    $addr = "$username@git.$base_host:";
-    print "$cmd $addr" . $repo_list[$i]['path'] . "\n";
-    if ($i < $n - 1)
-      print "\n";
-  }
-print "</pre>\n\n";
+print git_list_auth_access_commands ($cmd, $base_host, $repo_list, $username);
 vcs_print_auth_description ();
 
 vcs_print_more_info ();

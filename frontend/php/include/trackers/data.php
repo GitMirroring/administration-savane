@@ -89,9 +89,18 @@ function trackers_data_query_scope_labels ()
   ];
 }
 
+function trackers_data_artifact ($a = null)
+{
+  static $artifact = ARTIFACT;
+  $ret = $artifact;
+  if ($a !== null)
+    $artifact = $a;
+  return $ret;
+}
+
 function trackers_data_fetch_all_fields ($group_ids, $group_cond)
 {
-  $art_field = ARTIFACT . '_field';
+  $art_field = trackers_data_artifact () . '_field';
   $result = db_execute ("
     SELECT
       af.bug_field_id, field_name, display_type, display_size, label,
@@ -137,8 +146,8 @@ function trackers_data_get_all_fields ($group_id, $reload = false)
 {
   global $BF_USAGE_BY_ID, $BF_USAGE_BY_NAME;
 
-  if (!ctype_alnum (strval (ARTIFACT)))
-    util_die ("Invalid ARTIFACT name: " . ARTIFACT);
+  if (!ctype_alnum (strval (trackers_data_artifact ())))
+    util_die ("Invalid ARTIFACT name: " . trackers_data_artifact ());
 
   # Do nothing if already set and reload not forced.
   if (isset ($BF_USAGE_BY_ID) && !$reload)
@@ -154,8 +163,9 @@ function trackers_data_get_all_fields ($group_id, $reload = false)
 
 function trackers_data_get_item_group ($item_id)
 {
+  $a = trackers_data_artifact ();
   $res = db_execute (
-    "SELECT `group_id` FROM `" . ARTIFACT . "` WHERE `bug_id` = ?", [$item_id]
+    "SELECT `group_id` FROM `$a` WHERE `bug_id` = ?", [$item_id]
   );
   if (db_numrows ($res))
     return db_result ($res, 0, 'group_id');
@@ -517,7 +527,8 @@ function trackers_data_get_all_report_fields ($report_id = 100)
 
   # Build the list of fields involved in this report.
   $res = db_execute ("
-    SELECT * FROM " . ARTIFACT . "_report_field WHERE report_id = ?",
+    SELECT * FROM " . trackers_data_artifact () . "_report_field
+    WHERE report_id = ?",
     [$report_id]
   );
   $flags = ['show_on_query' => 0, 'show_on_result' => 1,
@@ -571,6 +582,7 @@ function trackers_data_predefined_value_order (&$params)
 function trackers_data_predefined_value_sql ($status_cond)
 {
   static $i = 0;
+  $a = trackers_data_artifact ();
   # The fields value_id and value must be first in the select statement,
   # because the output is used in the html_build_select_box function.
   $i++;
@@ -578,7 +590,7 @@ function trackers_data_predefined_value_sql ($status_cond)
     SELECT
       `value_id`, `value`, `bug_fv_id`, `bug_field_id`, `group_id`,
       `description`, `order_id`, `status`, $i AS `section`
-    FROM `" . ARTIFACT . "_field_value`
+    FROM `{$a}_field_value`
     WHERE `group_id` = ? AND `bug_field_id` = ? AND $status_cond";
 }
 
@@ -614,7 +626,7 @@ function trackers_data_get_field_value_count ($field, $group_id, $active_only)
    if ($ret !== null)
      return $ret;
    $field_id = trackers_data_get_field_id ($field);
-   $table = ARTIFACT . '_field_value';
+   $table = trackers_data_artifact () . '_field_value';
    $sql = "
      SELECT COUNT(`value_id`) AS `cnt` FROM `$table`
      WHERE `group_id` = ? AND `bug_field_id` = ?";
@@ -689,7 +701,7 @@ function trackers_data_use_field_custom_values ($field, $group_id)
   $field_id = trackers_data_get_field_id ($field);
 
   $result = db_execute ("
-    SELECT bug_fv_id FROM " . ARTIFACT . "_field_value
+    SELECT bug_fv_id FROM " . trackers_data_artifact () . "_field_value
     WHERE group_id = ? AND bug_field_id = ?",
     [$group_id, $field_id]
   );
@@ -930,7 +942,9 @@ function trackers_data_get_default_value ($field, $by_field_id = false)
   if ($by_field_id)
     $field = trackers_data_get_field_name ($field);
 
-  $result = db_execute ('DESCRIBE ' . ARTIFACT . ' `' . $field . '`');
+  $result = db_execute (
+    'DESCRIBE ' . trackers_data_artifact () . ' `' . $field . '`'
+  );
   return (db_result ($result, 0, 'Default'));
 }
 
@@ -944,8 +958,9 @@ function trackers_data_get_max_value_id (
     $field_id = trackers_data_get_field_id ($field);
 
   $res = db_execute ("
-    SELECT max(value_id) as max FROM " . ARTIFACT . "_field_value
-    WHERE bug_field_id = ? AND group_id = ?",
+    SELECT MAX(`value_id`) as `max`
+    FROM `" . trackers_data_artifact () . "_field_value`
+    WHERE `bug_field_id` = ? AND `group_id` = ?",
     [$field_id, $group_id]
   );
 
@@ -964,7 +979,7 @@ function trackers_data_is_value_set_empty (
     $field_id = trackers_data_get_field_id ($field);
 
   $res = db_execute ("
-    SELECT value_id FROM " . ARTIFACT . "_field_value
+    SELECT value_id FROM " . trackers_data_artifact () . "_field_value
     WHERE bug_field_id = ? AND group_id = ?",
     [$field_id, $group_id]
   );
@@ -979,7 +994,9 @@ function trackers_data_copy_default_val ($field_id, $group_id, $row)
     $arr[$k] = $row[$k];
   $arr['bug_field_id'] = $field_id;
   $arr['group_id'] = $group_id;
-  $res = db_autoexecute (ARTIFACT . "_field_value", $arr, DB_AUTOQUERY_INSERT);
+  $res = db_autoexecute (
+    trackers_data_artifact () . "_field_value", $arr, DB_AUTOQUERY_INSERT
+  );
   if (db_affected_rows ($res))
     return;
   fb (_("Insert of default value failed."), 0);
@@ -988,7 +1005,7 @@ function trackers_data_copy_default_val ($field_id, $group_id, $row)
 
 function trackers_data_delete_field_value ($field_id, $group_id)
 {
-  $table = ARTIFACT . '_field_value';
+  $table = trackers_data_artifact () . '_field_value';
   db_execute (
     "DELETE FROM `$table` WHERE `bug_field_id` = ? AND `group_id` = ?",
     [$field_id, $group_id]
@@ -998,8 +1015,9 @@ function trackers_data_delete_field_value ($field_id, $group_id)
 function trackers_data_get_default_field_values ($field_id)
 {
   return db_execute ("
-    SELECT value_id, value, description, order_id, status, email_ad
-    FROM " . ARTIFACT . "_field_value WHERE bug_field_id = ? AND group_id = ?",
+    SELECT `value_id`, `value`, `description`, `order_id`, `status`, `email_ad`
+    FROM `" . trackers_data_artifact () . "_field_value`
+    WHERE `bug_field_id` = ? AND `group_id` = ?",
     [$field_id, GROUP_NONE]
   );
 }
@@ -1045,8 +1063,8 @@ function trackers_data_get_cached_field_value ($field, $group_id, $value_id)
 function trackers_data_get_field_value ($item_fv_id)
 {
   return db_execute ("
-    SELECT * FROM " . ARTIFACT . "_field_value WHERE bug_fv_id = ?",
-    [$item_fv_id]
+    SELECT * FROM `" . trackers_data_artifact () . "_field_value`
+    WHERE `bug_fv_id` = ?", [$item_fv_id]
   );
 }
 
@@ -1055,16 +1073,17 @@ function trackers_data_get_field_value ($item_fv_id)
 function trackers_data_is_default_value ($item_fv_id)
 {
   $res = db_execute ("
-    SELECT bug_field_id,value_id FROM " . ARTIFACT . "_field_value
-    WHERE bug_fv_id = ? AND group_id = ?", [$item_fv_id, GROUP_NONE]
+    SELECT `bug_field_id`, `value_id`
+    FROM `" . trackers_data_artifact () . "_field_value`
+    WHERE `bug_fv_id` = ? AND `group_id` = ?", [$item_fv_id, GROUP_NONE]
   );
   return ((db_numrows ($res) >= 1) ? $res : false);
 }
 
 # Insert a new value for a given field for a given group.
 function trackers_data_create_value (
-  $field, $group_id, $value, $description, $order_id, $status = FIELD_STATUS_ACTIVE,
-  $by_field_id = false
+  $field, $group_id, $value, $description, $order_id,
+  $status = FIELD_STATUS_ACTIVE, $by_field_id = false
 )
 {
   if (preg_match ("/^\s*$/", $value))
@@ -1096,7 +1115,7 @@ function trackers_data_create_value (
     $value_id = $max_value_id + 1;
 
   $result = db_autoexecute (
-    ARTIFACT . "_field_value",
+    trackers_data_artifact () . "_field_value",
     [
       'bug_field_id' => $field_id, 'group_id' => $group_id,
       'value_id' => $value_id, 'value' => $value,
@@ -1158,7 +1177,7 @@ function trackers_data_update_value (
     trackers_data_update_value_params ($item_fv_id, $field, $group_id);
 
   $result = db_autoexecute (
-    ARTIFACT . "_field_value",
+    trackers_data_artifact () . "_field_value",
     [
      'value' => $value, 'description' => $description,
      'order_id' => $order_id, 'status' => $status, 'email_ad' => ''
@@ -1171,7 +1190,7 @@ function trackers_data_update_value (
 function trackers_data_create_canned ($title, $body, $order_id, $group_id)
 {
   $result = db_autoexecute (
-    ARTIFACT . '_canned_responses',
+    trackers_data_artifact () . '_canned_responses',
     [
       'group_id' => $group_id, 'title' => $title, 'body' => $body,
       'order_id' => $order_id,
@@ -1184,11 +1203,13 @@ function trackers_data_create_canned ($title, $body, $order_id, $group_id)
     fb (_("Error inserting canned bug response"), 1);
 }
 
-function trackers_data_update_canned ($title, $body, $order_id, $item_canned_id)
+function trackers_data_update_canned (
+  $title, $body, $order_id, $item_canned_id
+)
 {
   global $group_id;
   $result = db_autoexecute (
-    ARTIFACT . '_canned_responses',
+    trackers_data_artifact () . '_canned_responses',
     ['title' => $title, 'body' => $body, 'order_id' => $order_id],
     DB_AUTOQUERY_UPDATE, 'group_id = ? AND bug_canned_id = ?',
     [$group_id,  $item_canned_id]
@@ -1208,7 +1229,7 @@ function trackers_data_transition_exists ($field_id, $from, $to)
     WHERE
       `group_id` = ? AND `artifact` = ? AND `field_id` = ?
       AND `from_value_id` = ? AND `to_value_id` = ?",
-   [$group_id, ARTIFACT, $field_id, $from, $to]
+   [$group_id, trackers_data_artifact (), $field_id, $from, $to]
   );
   return db_numrows ($res);
 }
@@ -1225,7 +1246,7 @@ function trackers_data_update_transition (
      DB_AUTOQUERY_UPDATE,
      'group_id = ? AND artifact = ? AND field_id = ?
       AND from_value_id = ? AND to_value_id = ?',
-     [$group_id, ARTIFACT, $field_id, $from, $to]
+     [$group_id, trackers_data_artifact (), $field_id, $from, $to]
   );
 
   if (db_affected_rows ($result) < 1)
@@ -1243,7 +1264,8 @@ function trackers_data_create_transition (
   $result = db_autoexecute (
     'trackers_field_transition',
     [
-      'group_id' => $group_id, 'artifact' => ARTIFACT, 'field_id' => $field_id,
+      'group_id' => $group_id, 'artifact' => trackers_data_artifact (),
+      'field_id' => $field_id,
       'from_value_id' => $from, 'to_value_id' => $to, 'is_allowed' => $allowed,
       'notification_list' => $mail_list,
     ],
@@ -1256,9 +1278,9 @@ function trackers_data_create_transition (
     fb (_("New transition inserted"));
 }
 
-# Reset a field settings to its defaults usage (values are untouched). The defaults
-# always belong to group_id GROUP_NONE so make sure we don't delete entries for
-# GROUP_NONE.
+# Reset a field settings to its defaults usage (values are untouched).
+# The defaults always belong to group_id GROUP_NONE so make sure we don't
+# delete entries for GROUP_NONE.
 function trackers_data_reset_usage ($field_name, $group_id)
 {
   if ($group_id == GROUP_NONE)
@@ -1266,7 +1288,7 @@ function trackers_data_reset_usage ($field_name, $group_id)
 
   $field_id = trackers_data_get_field_id ($field_name);
   db_execute ("
-    DELETE FROM " . ARTIFACT . "_field_usage
+    DELETE FROM " . trackers_data_artifact () . "_field_usage
     WHERE group_id = ? AND bug_field_id = ?",
     [$group_id, $field_id]
   );
@@ -1354,7 +1376,7 @@ function trackers_data_update_usage (
     $empty_ok, $keep_history, $show_on_add_members, $show_on_add,
     $transition_default_auth
   );
-  $table = ARTIFACT . '_field_usage';
+  $table = trackers_data_artifact () . '_field_usage';
   trackers_data_execute_usage ($table, $field_id, $group_id, $fields);
 }
 
@@ -1399,7 +1421,7 @@ function trackers_data_get_technicians ($group_id)
 
 function trackers_data_get_submitter_count ($group_id)
 {
-  $art = ARTIFACT;
+  $art = trackers_data_artifact ();
   $res = db_execute ("
     SELECT COUNT(DISTINCT `user_id`) AS `cnt`
     FROM `user` JOIN `$art` `a` ON `user`.`user_id` = `a`.`submitted_by`
@@ -1415,7 +1437,7 @@ function trackers_data_get_submitters ($group_id)
   $args = [$group_id, FIELD_STATUS_PERMANENT, $group_id];
   $limit = trackers_data_limit_predef_values ($args);
 
-  $art = ARTIFACT;
+  $art = trackers_data_artifact ();
   return db_execute ("
     SELECT DISTINCT `user_id` AS `value_id`, `user_name` AS `value`,
       0 AS `bug_fv_id`, ? AS `group_id`, `realname` AS `description`,
@@ -1428,7 +1450,7 @@ function trackers_data_get_submitters ($group_id)
 
 function trackers_data_get_followups ($item_id)
 {
-  $tracker = ARTIFACT;
+  $tracker = trackers_data_artifact ();
 
   return
     db_execute ("
@@ -1460,7 +1482,7 @@ function trackers_data_get_followups ($item_id)
 function trackers_data_get_commenters ($item_id)
 {
   return db_execute ("
-    SELECT DISTINCT mod_by FROM " . ARTIFACT . "_history h
+    SELECT DISTINCT mod_by FROM " . trackers_data_artifact () . "_history h
     WHERE h.bug_id = ? AND h.field_name = 'details'",
     [$item_id]
   );
@@ -1470,7 +1492,7 @@ function trackers_data_get_history ($item_id)
 {
   return db_execute ("
     SELECT field_name, old_value, date, type, mod_by, new_value
-    FROM " . ARTIFACT . "_history
+    FROM " . trackers_data_artifact () . "_history
     WHERE field_name <> 'details' AND bug_id = ?  ORDER BY date DESC",
     [$item_id]
   );
@@ -1482,16 +1504,16 @@ function trackers_data_get_attached_files ($item_id)
     SELECT trackers_file.*, user.user_name FROM trackers_file, user
     WHERE submitted_by = user.user_id AND artifact = ? AND item_id = ?
     ORDER BY date DESC",
-    [ARTIFACT, $item_id]
+    [trackers_data_artifact (), $item_id]
   );
 }
 
 function trackers_data_get_cc_list ($item_id)
 {
   return db_execute ("
-    SELECT bug_cc_id, email, added_by, comment, date
-    FROM " . ARTIFACT . "_cc WHERE bug_id = ?  ORDER BY date DESC",
-    [$item_id]
+    SELECT `bug_cc_id`, `email`, `added_by`, `comment`, `date`
+    FROM `" . trackers_data_artifact () . "_cc`
+    WHERE `bug_id` = ?  ORDER BY `date` DESC", [$item_id]
   );
 }
 
@@ -1522,7 +1544,7 @@ function trackers_data_add_history (
 {
   # If no artifact is defined, get the default one.
   if (!$artifact)
-    $artifact = ARTIFACT;
+    $artifact = trackers_data_artifact ();
 
   # If field is not to be kept in bug change history then do nothing.
   if (!$force && !trackers_data_get_keep_history ($field_name))
@@ -1622,8 +1644,8 @@ function collect_canned_responses ($canned_response)
   foreach ($canned_response as $response)
     {
       $res = db_execute ("
-        SELECT * FROM " . ARTIFACT . "_canned_responses
-        WHERE bug_canned_id = ?", [$response]
+        SELECT * FROM `" . trackers_data_artifact () . "_canned_responses`
+        WHERE `bug_canned_id` = ?", [$response]
       );
 
       if (!db_numrows ($res))
@@ -1691,8 +1713,9 @@ function fetch_data ($group_id, $item_id, $vfl)
   if (!trackers_check_empty_fields ($vfl, false))
     return [false, false];
 
-  $res = db_execute (
-    "SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?", [$item_id]
+  $res = db_execute ("
+    SELECT * FROM `" . trackers_data_artifact () . "`
+    WHERE `bug_id` = ?", [$item_id]
   );
   if (!db_numrows ($res))
     return [false, false];
@@ -1825,8 +1848,8 @@ function update_changes_in_db ($item_id, $group_id, $upd_list, $change_exists)
       # Must return false, otherwise a notif would be sent.
       return false;
     }
-  $res = db_autoexecute (ARTIFACT, $upd_list, DB_AUTOQUERY_UPDATE,
-    "bug_id = ? AND group_id = ?", [$item_id, $group_id]
+  $res = db_autoexecute (trackers_data_artifact (), $upd_list,
+    DB_AUTOQUERY_UPDATE, 'bug_id = ? AND group_id = ?', [$item_id, $group_id]
   );
   trackers_data_update_user_specific ($item_id, TRACKERS_CC_UPDATED);
 
@@ -1995,7 +2018,7 @@ function trackers_data_reassign_get_new_group_id ($change_group, $new_artifact)
 function trackers_data_fetch_item ($item_id)
 {
   $res_data = db_execute (
-    "SELECT * FROM " . ARTIFACT . " WHERE bug_id = ?",
+    "SELECT * FROM " . trackers_data_artifact () . " WHERE bug_id = ?",
     [$item_id]
   );
   return db_fetch_array ($res_data);
@@ -2031,8 +2054,9 @@ function trackers_data_reassign_copy_comments (
   $item_id, $new_item_id, $new_artifact
 )
 {
-  $res = db_execute (
-    "SELECT * FROM " . ARTIFACT . "_history WHERE bug_id = ? AND type = 100",
+  $res = db_execute ("
+    SELECT * FROM `" . trackers_data_artifact () . "_history`
+    WHERE `bug_id` = ? AND `type` = 100",
     [$item_id]
   );
   $table = $new_artifact . "_history";
@@ -2166,7 +2190,7 @@ function  trackers_data_reassign_close_add_history (
 )
 {
   db_autoexecute (
-    ARTIFACT . "_history",
+    trackers_data_artifact () . "_history",
     [
       'bug_id' => $item_id, 'field_name' => 'details',
       'old_value' => trackers_data_reassign_string (
@@ -2252,11 +2276,13 @@ function trackers_data_reassign_item ($item_id, $new_group, $new_artifact)
   return true;
 }
 
-function trackers_data_update_dependent_items ($depends_on, $item_id, $artifact)
+function trackers_data_update_dependent_items (
+  $depends_on, $item_id, $artifact
+)
 {
   # Check if the dependency does not already exists.
   $result = db_execute ("
-     SELECT item_id FROM " . ARTIFACT . "_dependencies
+     SELECT item_id FROM " . trackers_data_artifact () . "_dependencies
      WHERE
        item_id=?  AND is_dependent_on_item_id = ?
        AND is_dependent_on_item_id_artifact = ?",
@@ -2267,7 +2293,7 @@ function trackers_data_update_dependent_items ($depends_on, $item_id, $artifact)
     return;
   # If there is no dependency know, insert it.
   $result = db_autoexecute (
-    ARTIFACT . "_dependencies",
+    trackers_data_artifact () . "_dependencies",
     [
       'item_id' => $item_id, 'is_dependent_on_item_id' => $depends_on,
       'is_dependent_on_item_id_artifact' => $artifact
@@ -2285,7 +2311,7 @@ function trackers_data_update_dependent_items ($depends_on, $item_id, $artifact)
     $item_id, 0, 0, 1
   );
   trackers_data_add_history (
-    "Dependencies", "-", ARTIFACT . " #$item_id is dependent",
+    "Dependencies", "-", trackers_data_artifact () . " #$item_id is dependent",
     $depends_on, 0, $artifact, 1
   );
 }
@@ -2319,7 +2345,9 @@ function trackers_data_create_user_id ()
 
 # Add all special fields that were not handled in the general
 # foreach ($vfl as $field => $value) cycle.
-function trackers_data_finalize_insert_fields ($vfl, $group_id, &$insert_fields)
+function trackers_data_finalize_insert_fields (
+  $vfl, $group_id, &$insert_fields
+)
 {
   $user = trackers_data_create_user_id ();
   $spamscore = spam_get_user_score ($user);
@@ -2341,14 +2369,17 @@ function trackers_data_finalize_insert_fields ($vfl, $group_id, &$insert_fields)
 
 function trackers_data_create_try_insert ($insert_fields)
 {
-  $result = db_autoexecute (ARTIFACT, $insert_fields, DB_AUTOQUERY_INSERT);
+  $result = db_autoexecute (
+    trackers_data_artifact (), $insert_fields, DB_AUTOQUERY_INSERT
+  );
   $item_id = db_insertid ($result);
   if ($item_id)
     {
       # TANSLATORS: the argument identifies the item (like recipe #17, bug #289
       # or sr #4913).
       $msg = sprintf (
-        _('New item posted (%s)'), utils_tracker_item_label (ARTIFACT, $item_id)
+        _('New item posted (%s)'),
+        utils_tracker_item_label (trackers_data_artifact (), $item_id)
       );
       fb ($msg);
       return $item_id;
@@ -2440,7 +2471,7 @@ function trackers_data_create_item ($group_id, $vfl, &$extra_addresses)
 function trackers_data_fetch_value ($group_id, $field_id, $value_id)
 {
   $sql = "
-    SELECT * FROM " . ARTIFACT . "_field_value
+    SELECT * FROM " . trackers_data_artifact () . "_field_value
     WHERE group_id = ? AND value_id = ?";
   $args = [$group_id, $value_id];
   if ($field_id !== null)
@@ -2704,7 +2735,8 @@ function trackers_data_is_watched ($user_id, $watchee_id, $group_id)
 function tracker_data_item_out_of_group ($group_id, $item_id)
 {
   $res = db_execute ("
-    SELECT bug_id FROM " . ARTIFACT . " WHERE bug_id = ? AND group_id = ?",
+    SELECT bug_id
+    FROM " . trackers_data_artifact () . " WHERE bug_id = ? AND group_id = ?",
     [$item_id, $group_id]
   );
   if (db_numrows ($res))
@@ -2719,7 +2751,7 @@ function tracker_data_file_out_of_item ($item_id, $file_id)
   $res = db_execute ("
     SELECT file_id FROM trackers_file
     WHERE item_id = ? AND artifact = ? AND file_id = ?",
-    [$item_id, ARTIFACT, $file_id]
+    [$item_id, trackers_data_artifact (), $file_id]
   );
   if (db_numrows ($res))
     return false;
@@ -2743,7 +2775,9 @@ function trackers_delete_attachment ($file_id, $item_id)
 {
   if (trackers_unlink_attachment ($file_id))
     return;
-  $res = db_execute ("DELETE FROM trackers_file WHERE file_id = ?", [$file_id]);
+  $res = db_execute (
+    "DELETE FROM `trackers_file` WHERE `file_id` = ?", [$file_id]
+  );
 
   if ($res)
     {
@@ -2818,7 +2852,8 @@ function trackers_data_get_default_transition_auth ($group_id, $field_id)
 {
   # First check if group has defined transitions for this field.
   $res = db_execute ("
-    SELECT `transition_default_auth` FROM `" . ARTIFACT . "_field_usage`
+    SELECT `transition_default_auth`
+    FROM `" . trackers_data_artifact () . "_field_usage`
     WHERE `group_id` = ? AND `bug_field_id` = ?", [$group_id, $field_id]
   );
   $ret = TRANSITION_ALLOWED;
@@ -2838,7 +2873,7 @@ function trackers_data_get_tracker_field_transitions (
      FROM `trackers_field_transition`
      WHERE `group_id` = ? AND `artifact` = ? AND `field_id` = ?
      AND (`from_value_id` = ? OR `from_value_id` = '0')",
-    [$group_id, ARTIFACT, $field_id, $checked]
+    [$group_id, trackers_data_artifact (), $field_id, $checked]
   );
   $rows = db_numrows ($res);
   if (!$rows)
@@ -2863,7 +2898,7 @@ function trackers_data_rm_dependency (
     return true;
   if ($group_id != trackers_data_get_item_group ($item_id))
     return true;
-  $deps = ARTIFACT . '_dependencies';
+  $deps = trackers_data_artifact () . '_dependencies';
   $result = db_execute ("
     DELETE FROM `$deps`
     WHERE

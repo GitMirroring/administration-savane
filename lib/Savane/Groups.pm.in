@@ -52,7 +52,7 @@ our @EXPORT = qw (GetGroupSettings PrintGroupSettings SetGroupSettings
   GetGroupList DeleteGroup DeleteGroups GetGroupName GetGroupUsers
   PrintGroupUsers GetGroupAdmins PrintGroupAdmins GetGroupAdminsMail
   PrintGroupAdminsMail GetGroupType PrintGroupType GetGroupTypeSettings
-  PrintGroupTypeSettings GetGroupTypeName
+  PrintGroupTypeSettings GetGroupTypeName get_group_preferences
 );
 our $version = 1;
 
@@ -236,6 +236,24 @@ sub GetGroupTypeName
   return $dbd->selectrow_array (
     "SELECT name FROM group_type WHERE type_id='" . $_[0] . "'"
   );
+}
+
+sub get_group_preferences
+{
+  my $group_id = shift;
+  my %data = GetDBHash (
+    '`group_preferences`', "`group_id` = $group_id",
+    '`preference_name`, `preference_value`'
+  );
+  my %ret;
+  my $n = scalar (keys %data);
+  my $i;
+  for ($i = 0; $i < $n; $i++)
+    {
+      my ($name, $val) = @{$data{$i}};
+      $ret{$name} = $val;
+    }
+  return %ret;
 }
 
 return "true";

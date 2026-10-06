@@ -42,12 +42,181 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+define ('HOOK_SEPARATOR', '/./');
+
+function git_known_triggers ()
+{
+  return ['closes-item', 'opens-item', 'updates-item', 'no-merges', 'check-gpg'];
+}
+
+function git_extra_trigger_controls ()
+{
+  return ['check-gpg--keys'];
+}
+
+function git_have_savane_hooks ($path)
+{
+  return is_dir ("$path/hooks/savane.d");
+}
+
+function git_pref_name_pfx ($repo)
+{
+  return "$repo:hooks:receive:";
+}
+
+function git_input_to_pref ($repo, $x)
+{
+  $pfx = git_pref_name_pfx ($repo);
+  return $pfx .  str_replace ('--', ':', $x);
+}
+
+function git_pref_to_input ($x)
+{
+  if (strpos ($x, '--') !== false)
+    {
+      trigger_error ("Malformed hook pref '$x'.");
+      return null;
+    }
+  return str_replace (':', '--', $x);
+}
+
 function git_description_fallback (&$desc, $url)
 {
   $default_description =
     "Unnamed repository; edit this file 'description' to name the repository.";
   if (empty ($desc) || $desc == $default_description)
     $desc = $url;
+}
+
+function git_get_repo_path ($repo, $repos = null)
+{
+  $ret = $repo;
+  if ($repos !== null)
+    foreach ($repos as $r)
+      {
+        if ($repo !== $r['name'])
+          continue;
+        $ret = $r;
+        break;
+      }
+  if (is_string ($ret))
+    return null;
+  return vcs_get_root ('git') . '/' . $ret['url'];
+}
+
+function git_known_trigger_hook_prefs ($repo)
+{
+  $ret = [];
+  foreach (git_known_triggers () as $t)
+    $ret[] = git_input_to_pref ($repo, $t);
+  return $ret;
+}
+
+function git_get_external_pref_list ($r)
+{
+  $repo = $r['name'];
+  $ret = [];
+  foreach (['pre', 'post'] as $s)
+    $ret[] = git_input_to_pref ($repo, "disabled-hooks:$s");
+  return $ret;
+}
+
+function git_get_fetched_pref_list ($r)
+{
+  $repo = $r['name'];
+  $hooks = git_known_trigger_hook_prefs ($repo);
+  $ret = $hooks;
+  $ret = array_merge ($ret, git_get_external_pref_list ($r));
+  foreach (git_extra_trigger_controls () as $k)
+    $ret[] = git_input_to_pref ($repo, $k);
+  return git_drop_nulls ($ret);
+}
+
+function git_get_hook_prefs ($r, $group_id)
+{
+  $repo = $r['name'];
+  $pfx = git_pref_name_pfx ($repo);
+  $len = strlen ($pfx);
+  $prefs = vcs_get_pref ('git', $group_id, git_get_fetched_pref_list ($r));
+  $ret = [];
+  foreach ($prefs as $k => $v)
+    $ret[substr ($k, $len)] = $v;
+  return $ret;
+}
+
+function git_repo_name_from_path ($path)
+{
+  $dir = utils_dirname ($path, 5);
+  if (is_dir ($dir) . '.git')
+    {
+      # /srv/git/proba/semel.git/hooks/savane.d/pre-receive.d
+      $ret = utils_dirname ($path, 4); # /srv/git/proba/semel.git
+      return preg_replace (',.*([^/]+/[^/]+)[.]git$,', '$1', $ret);
+    }
+  # /srv/git/proba.git
+  $ret = basename ($path);
+  return substr ($ret, 0, -strlen ('.git'));
+}
+
+function git_list_hook_entry ($path, $entry)
+{
+  if (is_dir ($entry))
+    return null;
+  if (is_file ($entry) && !is_executable ($entry))
+    return null;
+  # The symbolic links are trusted because the hooks may be present
+  # on the Git server but missing on the frontend.
+  $repo = git_repo_name_from_path ($path);
+  return basename ($entry);
+}
+
+function git_drop_nulls ($x)
+{
+  return array_filter ($x, function ($x) { return $x !== null; });
+}
+
+function git_open_hook_dir ($path)
+{
+  if (!is_dir ($path))
+    {
+      trigger_error ("Directory '$path' doesn't exist.");
+      return false;
+    }
+  $dir = opendir ($path);
+  if ($dir === false)
+    trigger_error ("Cannot opendir '$path'.");
+  return $dir;
+}
+
+function git_read_hook_dir ($repo, $stage)
+{
+  static $cache = [];
+  $path = git_get_repo_path ($repo);
+  if (
+    array_key_exists ($stage, $cache)
+    && array_key_exists ($path, $cache[$stage])
+  )
+    return $cache[$stage][$path];
+  $hook_dir = "$path/hooks/savane.d/$stage-receive.d";
+  if (false === ($dir = git_open_hook_dir ($hook_dir)))
+    return [];
+  $hooks = [];
+  while (false !== ($entry = readdir ($dir)))
+    $hooks[] = git_list_hook_entry ($path, "$hook_dir/$entry");
+  closedir ($dir);
+  $cache[$stage][$path] = git_drop_nulls ($hooks);
+  return $cache[$stage][$path];
+}
+
+function git_get_disabled_additional_hooks ($prefs, $stage)
+{
+  $idx = "disabled-hooks:$stage";
+  if (empty ($prefs[$idx]))
+    return [];
+  $ret = [];
+  foreach (explode (HOOK_SEPARATOR, $prefs[$idx]) as $hook)
+    $ret[$hook] = 1;
+  return $ret;
 }
 
 function git_read_description ($dir_name)

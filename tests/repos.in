@@ -47,12 +47,26 @@ use Savane::Version;
 use Savane::Util;
 use Savane::Git;
 use Savane::Test;
+use Savane::Test::Conf;
+use Savane::Test::User;
+use Savane::Test::Util;
+use Savane::Test::Group;
+use Savane::Test::Tracker;
+use Cwd 'abs_path';
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test repositories and their modules.");
 
-my $unix_group_name = 'administration';
+my $pwd = abs_path ('.');
+my @users_to_remove = ();
+my @groups_to_remove = ();
+my $user_name;
+my $other_unix_group_name = 'co-test';
+my $unix_group_name = 'repotest';
+my @trackers = qw (task bugs support patch);
+my $group_id;
 my $statedir = '@pkgstatedir@';
+my $frontenddir = '@frontenddir@';
 my @git_repos = ('semel', 'bis', 'ter');
 my @git_paths;
 my @src_modules = ($unix_group_name, 'proba');
@@ -60,7 +74,82 @@ my @web_modules = ($unix_group_name);
 my @more_web_modules = ('www', 'web');
 my $git_url = make_url ("git/?group=$unix_group_name");
 my $admin_url = make_url ("git/admin/?group=$unix_group_name");
-my $agent = make_agent () or exit (1);
+my $agent = make_agent (0) or exit (1);
+
+sub make_user
+{
+  print_test_log ('Finding out current user name.');
+  $user_name = getpwuid ($>);
+  chomp $user_name;
+  print_test_log ("Checking if user <$user_name> exists in Savane.");
+  if (user_exists ($user_name))
+    {
+      print_test_result ('User exists; skipping registration.');
+      return 0;
+    }
+  my $ret = !defined register_user ($agent, $user_name);
+  push @users_to_remove, $user_name unless $ret;
+  return $ret;
+}
+
+sub make_group
+{
+  my $group = shift;
+  $group_id = register_group ($agent, $user_name, $group);
+  return 1 if $group_id < 0;
+  my @entry = ($group_id, $group);
+  my $e = \@entry;
+  my ($id, $name) = @{$e};
+  push @groups_to_remove, \@entry;
+  return 0;
+}
+my $get_max_item_id = <<'EOF';
+  <?php
+  require ('include/init.php');
+  $tracker = $_SERVER['QUERY_STRING'];
+  $res = db_execute (
+    "SELECT `bug_id` FROM `$tracker` ORDER BY `bug_id` DESC LIMIT 1"
+  );
+  $row = db_fetch_array ($res);
+  print $row['bug_id'] . "\n";
+  ?>
+EOF
+$get_max_item_id =~ s/^  //gm;
+
+sub install_php_files
+{
+  return 0 unless write_test_php ('max-item-id.php', $get_max_item_id);
+  print_test_error ('Cannot install max-item-id.php.');
+  return 1;
+}
+
+sub get_unused_item_id
+{
+  my $tracker = shift;
+  print_test_log ("Getting unused item id for $tracker.");
+  my $agent = make_agent (0);
+  $agent->get (make_url ("max-item-id.php?$tracker"));
+  return undef if check_request_status ($agent);
+  my $text = $agent->content (raw => 1);
+  chomp $text;
+  unless ($text =~ /^\d+$/)
+    {
+      print_test_error ("Wrong maximum item id '$text'.");
+      return 1;
+    }
+  my $ret = $text + 1;
+  print_test_result ("Unused item id is $ret.");
+  return $ret;
+}
+
+sub make_environment
+{
+  return 1 if install_php_files ();
+  return 1 if speed_up_crypt ();
+  return 1 if make_user ();
+  return 1 if make_group ($other_unix_group_name);
+  return make_group ($unix_group_name);
+}
 
 sub simulate_cvs_repos
 {
@@ -108,9 +197,24 @@ sub make_git_repo
   return 0;
 }
 
-sub simulate_git_repos
+sub clear_git_env
+{
+  $ENV{'HOME'} = $pwd;
+  print_test_log ('Creating a minimal .gitconfig.');
+  return run_git (
+    'config --global user.email proba@savane.test',
+    'config --global user.name Proba',
+    'config --global init.defaultBranch master',
+    'config --global init.devaultBranch master',
+    'config --global push.default current',
+    'config --global user.signingKey 6641714F25D1186797D7A83D7DFD20FD04DA76EE'
+  );
+}
+
+sub make_git_repos
 {
   my $root = git_root ();
+  return 1 if clear_git_env ();
   return 1 if try_mkdir ($root, 1);
   return 1 if try_mkdir ("$root/$unix_group_name", 1);
   return 1 if make_git_repo (
@@ -122,10 +226,6 @@ sub simulate_git_repos
         $unix_group_name, "/git/%PROJECT/$_.git", "$unix_group_name/$_.git"
       );
     }
-  for (@git_paths)
-    {
-      return 1 if try_mkdir ("$root/$_", 1);
-    }
 }
 
 sub try_rm_dir
@@ -135,11 +235,25 @@ sub try_rm_dir
     unless rmdir ($dir);
 }
 
+sub try_chmod
+{
+  my ($root, $mode) = @_;
+  print_test_log ("Trying chmod '$mode' '$root'.");
+  if (util_system ('chmod', '-R', $mode, $root))
+    {
+      print_test_error ("Cannot chmod.");
+      return 1;
+    }
+  print_test_result ('Successfully changed.');
+  return 0;
+}
+
 sub clear_repos
 {
+  print_test_log ('Removing repos.');
   my $root = git_root ();
   print_test_log ("Removing Git repositories in $root.");
-  system ('chmod', '-R', 'u+w', $root) and die;
+  die if try_chmod ($root, 'u+w');
   system ('rm', '-fr', $root) and die;
   my @modules = @src_modules;
   push @modules, 'CVSROOT';
@@ -202,13 +316,14 @@ sub find_module_list
     {
       print_test_error ("No module list found.");
       save_page ($agent, 'no-module-list.html');
-      exit (1);
+      return 1;
     }
   $page =~ s#^\s*<li>(.*)</li>\s*$#$1#s;
   %mod_cnt = ();
   my @mods = split (/<\/li>\s*<li>/s, $page);
   print_test_result ("Modules found: " . join (', ', @mods) . ".");
   $mod_cnt{$_}++ for (@mods);
+  return 0;
 }
 sub assert_no_module_list
 {
@@ -242,7 +357,7 @@ sub check_source_repos
   print_test_log ("Looking for source module list in the anonymous section.");
   $start = source_start ();
   $end = source_end ();
-  find_module_list ($page, $start, $end);
+  return 1 if find_module_list ($page, $start, $end);
   return 1 if check_module_set (@src_modules);
 
   $start = source_start (1);
@@ -250,7 +365,7 @@ sub check_source_repos
   print_test_log (
     "Looking for source module list in the authenticated section."
   );
-  find_module_list ($page, $start, $end);
+  return 1 if find_module_list ($page, $start, $end);
   return check_module_set (@src_modules);
 }
 
@@ -306,13 +421,13 @@ sub check_web_repos
   $start = web_start ();
   $end = web_end ();
   print_test_log ("Looking for web module list in the anonymous section.");
-  find_module_list ($page, $start, $end);
+  return 1 if find_module_list ($page, $start, $end);
   return 1 if check_module_set (@web_modules);
 
   $start = web_start (1);
   $end = web_end (1);
   print_test_log ("Looking for web module list in the authenticated section.");
-  find_module_list ($page, $start, $end);
+  return 1 if find_module_list ($page, $start, $end);
   return check_module_set (@web_modules);
 }
 sub get_cvs_section
@@ -352,27 +467,38 @@ sub run_cvs_checks
   return check_web_repos ($page);
 }
 
+# split() adds captured substrings to its output; this sub doesn't.
+sub almost_split
+{
+  my ($re, $text) = @_;
+  my @ret;
+  push @ret, $1 while ($text =~ s/(.*?)$re//s);
+  return @ret, $text;
+}
+
 sub find_repos_in_html
 {
   my ($start, $end, $item_start, $item_end) = @_;
   my $page = $agent->content (raw => 1);
-  unless ($page =~ s#.*$start(.*)$end.*#$1#s)
+  unless ($page =~ s#.*$start(?<item>.*)$end.*#$+{item}#s)
     {
-      print_test_error ("No repo list found.");
+      print_test_error ('No repo list found.');
       save_page ($agent, 'repos.html');
-      exit (1);
+      save_text (get_mbox (1, 1), 'no-repos.mbox');
+      return 1;
     }
-  $page =~ s#^\s*$item_start(.*)$item_end\s*$#$1#s;
+  $page =~ s#^\s*$item_start(?<item>.*)$item_end\s*$#$+{item}#s;
   %mod_cnt = ();
-  my @mods = split (/$item_end\s*$item_start/s, $page);
+  my @mods = almost_split ("$item_end\\s*$item_start", $page);
   $mod_cnt{$_}++ for (@mods);
   print_test_result ("Repos found: " . join (', ', keys (%mod_cnt)) . ".");
+  return 0;
 }
 
 sub list_git_browsing
 {
   print_test_log ("Looking for repos in the browsing section.");
-  find_repos_in_html (
+  return 1 if find_repos_in_html (
     "<h2>Browsing the Git Repository</h2>.*<ul>",
     "</ul>.*<h2>Getting a Copy of the Git Repository</h2>",
     "<li><a [^>]*>", "</a></li>"
@@ -383,7 +509,7 @@ sub list_git_browsing
 sub list_git_anon_access
 {
   print_test_log ("Looking for repos in anonymous access section.");
-  find_repos_in_html (
+  return 1 if find_repos_in_html (
     "<h3>Anonymous access</h3>\\s*<pre>",
     "</pre>\\s*<h3>Authenticated SSH access</h3>",
     "", "\\ngit clone[^\\n]*[.]git\\n"
@@ -394,23 +520,37 @@ sub list_git_anon_access
 sub list_git_ssh_access
 {
   print_test_log ("Looking for repos in authenticated access section.");
-  find_repos_in_html (
+  return 1 if find_repos_in_html (
     "<h3>Authenticated SSH access</h3>\\s*<pre>", "</pre>\\s*<p>",
     "", "\\ngit clone[^\\n]*[.]git\\n"
   );
   return check_module_set (@_);
 }
 
+sub visit_git_url
+{
+  print_test_log ('Visiting Git page.');
+  $agent->get ($git_url);
+  return check_request_status ($agent);
+}
+
+sub visit_git_admin_url
+{
+  print_test_log ('Visiting Git configuration page.');
+  $agent->get ($admin_url);
+  return check_request_status ($agent);
+}
+
 sub list_git_repos
 {
   my @paths = @_;
-  my $exit_code = 0;
   print_test_log ("Enumerating git repos.");
-  $agent->get ($git_url);
-  $exit_code = 1 if list_git_browsing (@paths);
-  $exit_code = 1 if list_git_anon_access (@paths);
-  $exit_code = 1 if list_git_ssh_access (@paths);
-  return  $exit_code;
+  return 1 if visit_git_url ();
+  my $ret = 0;
+  $ret = 1 if list_git_browsing (@paths);
+  $ret = 1 if list_git_anon_access (@paths);
+  $ret = 1 if list_git_ssh_access (@paths);
+  return $ret;
 }
 
 sub list_git_admin_items
@@ -418,10 +558,14 @@ sub list_git_admin_items
   my @repos = @_;
   s/[.]git$// for @repos;
   print_test_log ("Looking for repos on Git administration page.");
-  find_repos_in_html (
-    "web server[.]</p>\\s*<div class=.boxitem[^>]*>\\s<h2 [^>]*>",
-    "</h2>\\s*.*?</div>\\s*<p class=.backtotop.>",
-    "\\s*<div class=.boxitem[^>]*>\\s<h2 [^>]*>", "</h2>\\s*.*?</div>\\s*"
+  my $repo_box =
+    "<div id\\s*=\\s*(['\"])repo-box\\d+\\g{-1}"
+    . "\\s+class=['\"]boxitem(alt)?\\g{-2}\\s*>\\s<h2 [^>]*>";
+  return 1 if find_repos_in_html (
+    "web server[.]</p>\\s*(<h2\\s+id\\s*=\\s*(.)hooks\\g{-1}[^>]*>.*?)?"
+    . $repo_box,
+    "</h2>\\s*.*?</div>\\s*<p\\s+class\\s*=\\s*(['\"'])backtotop\\g{-1}[^>]*>",
+    "\\s*$repo_box", "</h2>\\s*.*?</div>\\s*"
   );
   return check_module_set (@repos);
 }
@@ -438,34 +582,58 @@ sub set_git_input
   print_test_log ("Setting $field_name$i to '" . defstr ($val) . "'.");
   $agent->form_with_fields ("desc$i", "disable_tarballs$i", "readme$i");
   my $form = $agent->current_form ();
-  my $input = $form->find_input ("#${field_name}$i");
   $agent->set_fields ("$field_name$i" => $val);
   $agent->click ();
   $agent->form_with_fields ("desc$i", "disable_tarballs$i", "readme$i");
   $form = $agent->current_form ();
-  $input = $form->find_input ("#${field_name}$i");
-  return if (defstr ($input->value ()) eq defstr ($val));
+  my $input = $form->find_input ("#${field_name}$i");
+  return 0 if (defstr ($input->value ()) eq defstr ($val));
   print_test_error (
-    "Can't set: the value is '" . defstr ($input->value ()) . "'."
+    "Can't set: the value is '" . defstr ($input->value ()) . "', "
+    . "'" . defstr ($val) . "' is expected."
   );
-  exit (1);
+  save_page ($agent, 'cant-set-field.html');
+  return 1;
 }
 
-sub set_git_field
+sub get_git_field
 {
   my $field_name = shift;
   my @ret;
   my $i;
   for ($i = 0; $i <= $#git_paths; $i++)
     {
-      $agent->form_with_fields ("desc$i", "disable_tarballs$i", "readme$i");
-      my $form = $agent->current_form ();
+      my $form = $agent->form_with_fields (
+        "desc$i", "disable_tarballs$i", "readme$i"
+      );
+      unless (defined $form)
+        {
+          print_test_error ("Cannot find form with inputs #$i.");
+          save_page ($agent, 'no-input-form.html');
+          return ();
+        }
       my $input = $form->find_input ("#${field_name}$i");
+      unless (defined $input)
+        {
+          print_test_error ("input not found: #${field_name}$i.");
+          save_page ($agent, 'no-input.html');
+          return ();
+        }
       push @ret, $input->value ();
     }
+  return @ret;
+}
+
+sub set_git_field
+{
+  my $field_name = shift;
+  my @ret = get_git_field ($field_name);
+  return () unless @ret;
+  my $i;
   for ($i = 0; ($i <= $#git_paths) && @_; $i++)
     {
-      set_git_input ($i, $field_name, shift);
+       my $val = shift;
+       return () if set_git_input ($i, $field_name, $val);
     }
   return @ret;
 }
@@ -476,35 +644,962 @@ sub modify_git_configuration
   my @new_readme = ('admin.readme', 'third.read.me', 'readme.first', 'rm.sec');
   my @new_tarballs = (undef, 1, undef, 1);
   my @desc = set_git_field ('desc', @new_desc);
+  return 1 unless @desc;
   my @readme = set_git_field ('readme', @new_readme);
+  return 1 unless @readme;
   my @tarballs = set_git_field ('disable_tarballs', @new_tarballs);
+  return 1 unless @tarballs;
 
-  $agent->get ($git_url);
+  return 1 if visit_git_admin_url ();
   my $ret = list_git_repos (@new_desc);
   print_test_log ("Resetting Git configuration.");
-  $agent->get ($admin_url);
-  set_git_field ('desc', @desc);
-  set_git_field ('readme', @readme);
-  set_git_field ('disable_tarballs', @tarballs);
+  return 1 if visit_git_admin_url ();
+  return 1 unless set_git_field ('desc', @desc);
+  return 1 unless set_git_field ('readme', @readme);
+  return 1 unless set_git_field ('disable_tarballs', @tarballs);
   return $ret;
+}
+
+sub create_items
+{
+  my ($user, $group) = @_;
+  my %ret;
+  foreach (@trackers)
+    {
+      return undef if submit_item ($user, $group, $_);
+      $ret{$_} = get_latest_item_id ();
+    }
+  return \%ret;
+}
+
+sub populate_trackers
+{
+  my $user_name = shift;
+  my $group_name = $unix_group_name;
+  my $items = create_items ($user_name, $unix_group_name);
+  return () unless defined $items;
+  my @ret = ($items);
+  $items = create_items ($user_name, $other_unix_group_name);
+  return () unless defined $items;
+  push @ret, $items;
+  return @ret;
+}
+
+sub val_undef
+{
+  my $v = shift;
+  return $v if defined $v;
+  return '<undef>';
+}
+
+sub show_hooks_to_enable
+{
+  my @hooks;
+  my @a = @_;
+  while (@_)
+    {
+      my ($k, $v) = (shift, val_undef (shift));
+      push @hooks, "'$k' => '$v'";
+    }
+  print_test_log ('Setting hooks: ' . join (', ', @hooks) . '.');
+  return 0 if @a;
+  print_test_result ('(No hook is selected.)');
+  return 1;
+}
+
+sub select_form_with_input
+{
+  my ($agent, $name, $val) = (shift, shift, shift);
+  foreach (@_)
+    {
+      my $input = $_->find_input ('repo');
+      next unless $input->value eq $val;
+      $agent->{current_form} = $_;
+      return $_;
+    }
+  return undef;
+}
+
+sub find_hook_form
+{
+  my $repo = shift;
+  my @forms = $agent->all_forms_with_fields (
+    qw /form_id group_id hook_group repo no-merges opens-item closes-item/
+  );
+  my $ret = select_form_with_input ($agent, 'repo', $repo, @forms);
+  return $ret if defined $ret;
+  my @msg;
+  foreach (@forms)
+    {
+      my $input = $_->find_input ('repo');
+      push @msg, "'" . $input->value . "'";
+    }
+  print_test_error ("Cannot find hook form for '$repo'.");
+  print_test_error ("Found forms for repos: " . join (', ', @msg));
+  save_page ($agent, 'enable-hooks.html');
+  return $ret;
+}
+
+sub find_form_input
+{
+  my ($form, $k) = @_;
+  my $input = $form->find_input ($k);
+  unless (defined $input)
+    {
+      print_test_error ('Cannot find input.');
+      save_page ($agent, 'no-input.html');
+    }
+  return $input;
+}
+
+sub set_form_inputs
+{
+  my $form = shift;
+  while (@_)
+    {
+      my ($k, $v) = (shift, shift);
+      my $v_ = val_undef ($v);
+      print_test_log ("Setting input '$k' => '$v_'.");
+      my $input = find_form_input ($form, $k);
+      return 1 unless (defined $input);
+      $input->value ($v);
+    }
+  return 0;
+}
+
+sub compare_vals
+{
+  my ($v, $input) = @_;
+  my $v_ = val_undef ($input->value);
+  $v = val_undef ($v);
+  $v_ =~ s/\r$//gm;
+  $v =~ s/\r$//gm;
+  if ($v_ eq $v)
+    {
+      print_test_result ('The value is correct.');
+      return 0;
+    }
+   print_test_error ("The value '$v_' is wrong.");
+   save_text ($v, 'set.txt');
+   save_text ($input->value, 'get.txt');
+   return 1;
+}
+
+sub check_form_inputs
+{
+  my $form = shift;
+  my $ret = 0;
+  print_test_log ('Checking inputs.');
+  while (@_)
+    {
+      my ($k, $v) = (shift, shift);
+      print_test_log ("Checking input '$k' => '" . val_undef ($v) . "'.");
+      my $input = find_form_input ($form, $k);
+      return 1 unless defined $input;
+      $ret = 1 if compare_vals ($v, $input);
+    }
+  save_page ($agent, 'wrong-input.html') if $ret;
+  return $ret;
+}
+
+sub set_git_hooks
+{
+  my $repo = "$unix_group_name/" . $git_repos[0];
+  print_test_log ("Setting hooks for '$repo'.");
+  return 0 if show_hooks_to_enable (@_);
+  return 1 if visit_git_admin_url ();
+  my $form = find_hook_form ($repo);
+  return 1 unless defined $form;
+  return 1 if set_form_inputs ($form, @_);
+  print_test_log ('Submitting new settings.');
+  $agent->click ('submit');
+  return 1 if check_request_status ($agent);
+  $form = find_hook_form ($repo);
+  return 1 unless defined $form;
+  return check_form_inputs ($form, @_);
+}
+
+sub try_run_git
+{
+  my $git = configured_binary ('git');
+  my @ret;
+  while (@_)
+    {
+      my $cmd = shift;
+      my $msg = "$git $cmd";
+      $msg =~ s/^/| /gm;
+      print_test_log (
+        "Running command line at " . abs_path ('.') . ",\n===\n$msg\n==="
+      );
+      my $out = `$git $cmd 2>&1`;
+      $out = '' unless defined $out;
+      push @ret, $out;
+      last if $?;
+      print_test_log ('Command has run successfully.');
+    }
+  return @ret;
+}
+
+sub run_git
+{
+  my @out = try_run_git (@_);
+  return 0 unless $?;
+  print_test_error ('Command failed.');
+  report_output (1, pop @out);
+  return $?;
+}
+
+sub run_clone
+{
+  my $repo = shift;
+  my $path = git_root () . "/$repo.git";
+  my $dir = $repo;
+  $dir =~ s,.*/,,;
+  return run_git ("clone $path");
+}
+
+sub make_git_checkouts
+{
+  print_test_log ('Cloning repositories.');
+  return 1 if try_mkdir ('checkouts');
+  return 1 if try_chdir ('checkouts');
+  my $ret = run_clone ($unix_group_name);
+  foreach (@git_repos)
+    {
+      $ret = 1 if run_clone ("$unix_group_name/$_");
+    }
+  $ret = 1 if try_chdir ($pwd);
+  return $ret;
+}
+
+sub append_test_file
+{
+  my ($file, $text) = @_;
+  $file = 'test' unless defined $file;
+  $text = 'test' unless defined $text;
+  print_test_log ('Appending a line to a test file.');
+  `echo $text >> $file`;
+  return 0 unless $?;
+  print_test_error ('Failed to append a line.');
+  return 1;
+}
+
+my $merge_no = 0;
+
+sub get_current_branch
+{
+  # --show-current is supported since Git 2.22.
+  my @branches = try_run_git ('branch');
+  if ($?)
+    {
+      report_output (1, pop @branches);
+      return undef if $?;
+    }
+  foreach (split ("\n", $branches[0]))
+    {
+      next unless s/^[*] //;
+      return $_;
+    }
+  print_test_error ('Current branch not found.');
+  report_output (1, pop @branches);
+  return undef;
+}
+
+sub make_a_merge
+{
+  my $b0 = 'proba-' . $merge_no++;
+  return 1 if append_test_file ('test');
+  return 1 if run_git ('add test', 'commit -am"initially add"');
+  my $b = get_current_branch ();
+  return 1 unless defined $b;
+  return 1 if run_git ("checkout -b $b0 $b");
+  return 1 if append_test_file ('test');
+  return 1 if run_git ('commit -am"initially append"', "checkout $b");
+  return 1 if append_test_file ('proba');
+  return run_git ('add proba', 'commit -am"initially add"', "merge $b0");
+}
+
+sub check_rejected_merge_output
+{
+  my $out = shift;
+  my $ret = $out !~ /^remote: Rejecting merge commits /m;
+  $ret = 1
+    unless $out =~ /\n(remote: = = = = = = = = = = = = = = = = = =).*\g{-1}/s;
+  print_test_result ('Push output looks like expected.') unless $ret;
+  print_test_error ('Push output does not look like expected.') if $ret;
+  return $ret;
+}
+
+sub check_rejected_unsigned_output
+{
+  my $out = shift;
+  return 0;
+}
+
+sub report_output
+{
+  my $res = shift;
+  my $out = join ('', @_);
+  if ($out eq '')
+    {
+      print_test_result ('Command output was empty.', $res);
+      return;
+    }
+  $out =~ s/^/| /gm;
+  print_test_result ("Command output was,\n---\n$out---\n", $res);
+}
+
+my $check_rejected_push_output = \&check_rejected_merge_output;
+
+sub try_push
+{
+  my ($should_fail, $branch) = @_;
+  $branch = get_current_branch () unless defined $branch;
+  return 1 unless defined $branch;
+  my ($out) = try_run_git ("push origin $branch:$branch");
+  if ($?)
+    {
+      my $ret = !$should_fail;
+      print_test_result (
+        'Push ' . ($ret? 'unexpectedly': 'expectedly') . ' fails.', $ret
+      );
+      report_output ($ret, $out);
+      return $check_rejected_push_output->($out) unless $ret;
+      return $ret;
+    }
+  print_test_result (
+    ($should_fail? 'Unexpected': 'Expected') . ' success', $should_fail
+  );
+  report_output ($should_fail, $out);
+  return $should_fail;
+}
+
+sub check_no_merges
+{
+  print_test_log ('Trying to push merges.');
+  return 1 if try_chdir ('checkouts/'. $git_repos[0]);
+  return 1 if make_a_merge ();
+  return 1 if try_push (1);
+  return 1 if set_git_hooks ('no-merges' => undef);
+  return try_push (0);
+}
+
+sub item_is_open
+{
+  my ($tracker, $item_id) = @_;
+  my $agent = make_agent ();
+  print_test_log ("Checking if $tracker #$item_id is open or closed.");
+  print_test_log ('Visiting item page.');
+  $agent->get (make_url ("$tracker/?$item_id"));
+  return undef if check_request_status ($agent);
+  my $txt = $agent->content (raw => 1);
+  my $regex =
+  "<td\\s+[^>]*><a\\s+href=(['\\\"])/$tracker/admin/field_values.php?[^>]*"
+  . "[&]field=status_id[&][^>]*>.*?</td>[^<]*<td\\s+[^>]*>"
+  . "(?<status>Open|Closed)</td>";
+  if ($txt !~ m,$regex,m)
+    {
+      print_test_error ('Item status not found.');
+      save_page ($agent, 'no-item-status.html');
+      return undef;
+    }
+  print_test_result ('Item status: ' . $+{'status'} . '.');
+  return $+{'status'} eq 'Open'? 1: 0;
+}
+
+my $log_message_no = 0;
+
+sub get_latest_message_mark
+{
+  return "%log message #$log_message_no%";
+}
+
+sub get_log_message_item_actions
+{
+  return (
+    ['Closes-Item:', 'closing'], ['Opens-Item:', 'opening'],
+    ['Updates-Item:', 'updating']
+  );
+}
+
+sub get_log_message_body
+{
+  my @items;
+  foreach ('support', 'task', 'patch')
+    {
+      push @items, "$_ #" . get_unused_item_id ($_);
+    }
+  my $ret = <<"  EOF";
+    Body to be ignored by sv_pre-receive.
+    Closes-Item: $items[0] comment
+    Opens-Item: $items[1]
+    Updates-Item: $items[2] bug
+  EOF
+  $ret =~ s/^ {4}//;
+  chomp $ret;
+  return $ret;
+}
+
+sub get_log_message_with_footer
+{
+  my ($tracker, $item, $new_status) = @_;
+  my @actions = get_log_message_item_actions ();
+  my ($tag, $action) = @{$actions[$new_status]};
+  $log_message_no++;
+  my $comment = get_latest_message_mark ();
+  my $body = get_log_message_body ();
+  my $ret = <<"  EOF";
+    $action $tracker #$item
+
+    $body
+
+    $tag $tracker #$item (comment on $action $comment)
+  EOF
+  $ret =~ s/^ {4}//gm;
+  return $ret;
+}
+
+sub status_str
+{
+  return shift? 'Open': 'Closed';
+}
+
+sub check_item_status
+{
+  my ($tracker, $item, $expected_status) = @_;
+  print_test_log ("Checking status of $tracker #$item.");
+  my $status = item_is_open ($tracker, $item);
+  return 1 unless defined $status;
+  my $str = status_str ($status);
+  if ($status == $expected_status)
+    {
+      print_test_result ("Status is '$str' as expected.");
+      return 0;
+    }
+  my $expected = status_str ($expected_status);
+  print_test_error ("Status is '$str' ('$expected' expected).");
+  return 1;
+}
+
+sub make_change_commit
+{
+  my ($tracker, $item, $new_status) = @_;
+  return 1 if try_chdir ($pwd);
+  return 1 if try_chdir ('checkouts/' . $git_repos[0]);
+  return 1 if append_test_file ('test');
+  my $msg = get_log_message_with_footer ($tracker, $item, $new_status);
+  return run_git ('add test', "commit -m'$msg'");
+}
+
+sub l_xor
+{
+  my ($x, $y) = @_;
+  return 0 if ($x && $y);
+  return 0 if (!$x && !$y);
+  return 1;
+}
+
+sub check_item_comment
+{
+  my ($tracker, $item, $change_disabled) = @_;
+  my $mark = get_latest_message_mark ();
+  print_test_log ("Looking for '$mark' in $tracker #$item comments.");
+  my $agent = make_agent ();
+  print_test_log ('Visiting item page.');
+  $agent->get (make_url ("$tracker/?$item"));
+  return 1 if check_request_status ($agent);
+  my $have_string = -1 < index ($agent->content (raw => 1), $mark);
+  my $ret = !l_xor ($have_string, $change_disabled);
+  print_test_result (
+    $have_string? 'String found.': 'String not found.', $ret
+  );
+  save_page ($agent, 'item-comment.html') if $ret;
+  return $ret;
+}
+
+sub try_change_item_status
+{
+  my ($tracker, $item, $new_status, $change_disabled) = @_;
+  $change_disabled = 0 unless $change_disabled;
+  my $str = status_str ($new_status);
+  print_test_log ("Changing status of $tracker #$item to '$str'.");
+  return 1 if make_change_commit (@_);
+  my ($out) = try_run_git ('push origin');
+  my $ret = $?;
+  my $res = l_xor ($ret, $change_disabled);
+  report_output ($res, $out);
+  return $res if $res;
+  return 1 if ($change_disabled and run_git ('reset --hard HEAD~1'));
+  return 0 if $change_disabled > 1;
+  my $expected_status = $change_disabled? !$new_status: $new_status;
+  return 1 if check_item_status ($tracker, $item, $expected_status);
+  return check_item_comment ($tracker, $item, $change_disabled);
+}
+
+sub try_close_and_open
+{
+  my ($tracker, $item) = @_;
+  print_test_log ("Testing opening and closing $tracker #$item.");
+  my $open = item_is_open ($tracker, $item);
+  return 1 unless defined $open;
+  return 1 if try_change_item_status ($tracker, $item, !$open);
+  return 1 if try_change_item_status ($tracker, $item, $open);
+  print_test_result ("Opening and closing $tracker #$item works.");
+  return 0;
+}
+
+sub check_open_close
+{
+  my ($my_items, $thy_items) = @_;
+  foreach (@trackers)
+    {
+      return 1 unless exists $my_items->{$_};
+      my $item = $my_items->{$_};
+      return 1 if try_close_and_open ($_, $item);
+      return 1 unless exists $thy_items->{$_};
+      $item = $thy_items->{$_};
+      my $open = item_is_open ($_, $item);
+      return 1 unless defined $open;
+      return 1 if try_change_item_status ($_, $item, !$open, 1);
+      $item = get_unused_item_id ($_);
+      return 1 unless defined $item;
+      return 1 if try_change_item_status ($_, $item, 0, 2);
+    }
+  return 0;
+}
+
+sub try_update
+{
+  my ($tracker, $item, $update_disabled) = @_;
+  $update_disabled = 0 unless $update_disabled;
+  print_test_log ("Testing commenting on $tracker #$item.");
+  return 1 if make_change_commit ($tracker, $item, 2);
+  my ($out) = try_run_git ('push origin');
+  my $ret = $?;
+  my $should_fail = $update_disabled && $update_disabled < 3;
+  $ret = !$ret if $should_fail;
+  report_output ($ret, $out);
+  return 1 if ($should_fail and run_git ('reset --hard HEAD~1'));
+  return $ret if $ret;
+  return 0 if $update_disabled > 1;
+  return check_item_comment (@_);
+}
+
+
+
+sub check_update
+{
+  my ($my_items, $thy_items, $update_disabled) = @_;
+  foreach (@trackers)
+    {
+      my $item = $my_items->{$_};
+      return 1 if try_update ($_, $item, $update_disabled? 3: 0);
+      $item = $thy_items->{$_};
+      return 1 if try_update ($_, $item, $update_disabled? 3: 1);
+      $item = get_unused_item_id ($_);
+      return 1 if try_update ($_, $item, $update_disabled? 3: 2);
+    }
+  return 0;
+}
+
+sub run_update_checks
+{
+  my ($my_items, $thy_items) = @_;
+  return 1 if set_git_hooks ('updates-item' => 1);
+  return 1 if check_update ($my_items, $thy_items, 0);
+  return 1 if set_git_hooks ('updates-item' => undef);
+  return check_update ($my_items, $thy_items, 1);
+}
+
+sub look_for_offer
+{
+  my $should_be_present = shift;
+  my $msg = join ('', @_);
+  $msg =~ s/^/| /gm;
+  print_test_log ("Looking for source code offer in,\n$msg");
+  my $txt = join ('', @_);
+  if ($txt =~ /AGPL notice: .* is part of Savane\..*In order to download/s)
+    {
+      print_test_error ('The offer is unexpectedly present.')
+        unless $should_be_present;
+      print_test_result ('The offer is expectedly present.')
+        if $should_be_present;
+      return !$should_be_present;
+    }
+  print_test_error ('The offer is unexpectedly absent.')
+    if $should_be_present;
+  print_test_result ('The offer is expectedly absent.')
+    unless $should_be_present;
+  return $should_be_present;
+}
+
+sub set_quiet_ssh
+{
+  my $on = shift;
+  print_test_log ("Setting quiet_ssh for <$user_name> to $on.");
+  $agent->get (make_url ('my/admin/'));
+  return 1 if check_request_status ($agent);
+  my $form = find_form (
+    $agent, 'quiet_ssh', 'quiet-ssh.html', qw /form_id form_quiet_ssh/
+  );
+  return 1 unless defined $form;
+  my $input = find_form_input ($form, 'form_quiet_ssh');
+  return 1 unless defined $input;
+  $input->value ($on? 1: undef);
+  $agent->click ();
+  return 1 if check_request_status ($agent);
+  print_test_log ('Checking the new value.');
+  $input = find_form_input ($form, 'form_quiet_ssh');
+  return 1 unless defined $input;
+  my $val = $input->value? 1: 0;
+  print_test_result ("New value is $val.", $val != $on);
+  return $val != $on;
+}
+
+sub run_offer_check
+{
+  return (1) if append_test_file ();
+  return (1) if run_git ('add test', 'commit -am"check for CSO"');
+  my @out = try_run_git ('push origin');
+  if ($?)
+   {
+     report_output (1, @out);
+     return (1);
+   }
+  return (0, @out);
+}
+
+sub reset_git_hooks
+{
+  return set_git_hooks (
+    'no-merges' => undef, 'opens-item' => undef, 'closes-item' => undef,
+    'updates-item' => undef
+  );
+}
+
+sub check_source_code_offer
+{
+  print_test_log ('Checking source code offer.');
+  return 1 if set_git_hooks ('no-merges' => 1);
+  my @out;
+  foreach my $p (1, 0)
+    {
+      @out = run_offer_check ();
+      return 1 if shift @out;
+      return 1 if look_for_offer ($p, @out);
+      return 1 if set_quiet_ssh ($p);
+    }
+  return 1 if reset_git_hooks ();
+  foreach my $p (1, 0)
+    {
+      @out = run_offer_check ();
+      return 1 if shift @out;
+      return 1 if look_for_offer (0, @out);
+      return 1 if set_quiet_ssh ($p);
+    }
+  return 0;
+}
+
+sub additional_script
+{
+  my ($hook, $no) = @_;
+  my $sed = configured_binary ('sed');
+  my $script = <<"  EOF";
+    #! /bin/sh
+    $sed "s:.*:Additional script #$no in $hook, &:"
+    cat
+  EOF
+  $script =~ s/^ {4}//mg;
+  return $script;
+}
+
+sub try_symlink
+{
+  my ($old, $new) = @_;
+  my $wd = abs_path ('.');
+  print_test_log ("Making a symlink from '$wd': '$old' => '$new'.");
+  return 0 if symlink ($old, $new);
+  print_test_error ("Cannot symlink: $!.");
+  return 1;
+}
+
+my $add_hook_no = 0;
+
+sub add_hooks
+{
+  my $repo = shift;
+  my $hooks = git_root () . "/$repo.git/hooks";
+  print_test_log ("Adding hooks to $hooks.");
+  return 1 if try_chmod ($hooks, 'u+w');
+  my $script = additional_script ();
+  my $fh;
+  foreach ('pre', 'post')
+    {
+      my $path = "$hooks/add";
+      my $script = additional_script ("$_-receive.d/add", $add_hook_no++);
+      open ($fh, '>', $path);
+      print {$fh} $script;
+      close ($fh);
+      return 1 if try_chmod ($path, "+x");
+      return 1 if try_symlink ($path, "$hooks/$_-receive-sv");
+      return 1 if try_symlink ("$hooks/$_-receive-sv", "$hooks/savane.d/$_-receive.d/add");
+    }
+  return try_chmod ($hooks, 'a-w');
+}
+
+sub make_chained_hooks
+{
+  return 1 if add_hooks ($unix_group_name);
+  foreach (@git_repos)
+    {
+     return 1 if add_hooks ("$unix_group_name/$_");
+    }
+  return 0;
+}
+
+sub look_for_additional_output
+{
+  my ($out, $should_be_missing) = @_;
+  if ($out !~ /Additional script/)
+    {
+      print_test_result ('Additional text is not found.', !$should_be_missing);
+      save_text ($out, 'additional.txt') unless $should_be_missing;
+      return !$should_be_missing;
+    }
+  print_test_result ('Additional text is found.', $should_be_missing);
+  save_text ($out, 'additional.txt') if $should_be_missing;
+  return $should_be_missing;
+}
+
+sub commit_and_push
+{
+  my $msg = shift;
+  return () if append_test_file ();
+  return () if run_git ('add test', "commit -m'$msg'");
+  my ($out) = try_run_git ('push origin');
+  return ($out) unless $?;
+  report_output (1, $out);
+  return ();
+}
+
+sub check_chained_hooks
+{
+  print_test_log ('Checking additional hooks.');
+  return 1 if try_chdir ($pwd);
+  return 1 if make_chained_hooks ();
+  return 1 if try_chdir ('checkouts/' . $git_repos[0]);
+  my ($out) = commit_and_push ('checking additional hooks');
+  return 1 unless defined $out;
+  print_test_log ('Checking if hooks have run.');
+  return 1 if look_for_additional_output ($out, 0);
+  print_test_log ('Disabling additional hooks.');
+  return 1 if set_git_hooks ('pre-add' => undef, 'post-add' => undef);
+  ($out) = commit_and_push ('additional hooks disabled');
+  return 1 unless defined $out;
+  print_test_log ('Checking if hooks have been skipped.');
+  return look_for_additional_output ($out, 1);
+}
+
+sub mkdir_gnupg
+{
+  unless (mkdir ('gnupg'))
+    {
+      print_test_error ("Cannot create directory: $!");
+      return 1;
+    }
+  unless  (chmod (0700, 'gnupg'))
+    {
+      print_test_error ("Cannot chmod 0700 gnupg: $!");
+      return 1;
+    }
+  $ENV{'GNUPGHOME'} = abs_path ('gnupg');
+  return 0;
+}
+
+sub get_key_fingerprints
+{
+  my $gpg = shift;
+  my $prev = '';
+  my @ret;
+  foreach (`$gpg --list-keys --with-colons`)
+    {
+      chomp;
+      if ($prev =~ /^pub:/ && $_ =~ /^fpr:/)
+        {
+          my $fpr = $_;
+          $fpr =~ s/^fpr:+(.*):/$1/;
+          push @ret, $fpr;
+        }
+      $prev = $_;
+    }
+  return @ret;
+}
+
+sub make_gnupg_home
+{
+  print_test_log ('Making GnuPG environment.');
+  return 1 if try_chdir ($pwd);
+  return 1 if try_chdir ('checkouts');
+  return 1 if mkdir_gnupg ();
+  my $key = "$frontenddir/php/testing/gpg/rsa-pub.asc";
+  print_test_log ('Importing public key.');
+  return 1 if util_system ('gpg', '-q', '--import', $key);
+  print_test_log ('Importing private key.');
+  $key = "$frontenddir/php/testing/gpg/rsa-priv.asc";
+  my $gpg = configured_binary ('gpg');
+  my $out = `$gpg -q --batch --import $key`;
+  return 1 if $?;
+  $out =~ s/^/| /gm;
+  print_test_log ("gpg import reported,\n---\n$out---\n");
+  $out = `$gpg --list-keys`;
+  $out =~ s/^/| /gm;
+  print_test_log ("listing keys:\n---\n$out---\n");
+  return 0;
+}
+
+sub read_gpg_key
+{
+  my $key = "$frontenddir/php/testing/gpg/rsa-pub.asc";
+  my $fh;
+  open ($fh, '<', $key);
+  my @ret;
+  my $line;
+  for (my $i = 0; $i < 4913 && ($line = <$fh>); $i++)
+    {
+      push @ret, $line;
+    }
+  close ($fh);
+  return join ('', @ret);
+}
+
+sub get_hook_group
+{
+  my $repo = "$unix_group_name/" . $git_repos[0];
+  my $form = find_hook_form ($repo);
+  my $input = $form->find_input ('hook_group');
+  return $input->value;
+}
+
+sub switch_gpg_check
+{
+  my $on = shift;
+  my $val = $on? 1: undef;
+  my $no = get_hook_group ();
+  my $key = read_gpg_key ();
+  return 1 if set_git_hooks ("check-gpg" => $val);
+  return 0 unless $val;
+  return set_git_hooks ("check-gpg--keys" => $key);
+}
+
+sub check_gpg
+{
+  print_test_log ('Checking GPG verifications.');
+  return 1 if make_gnupg_home ();
+  return 1 if switch_gpg_check (1);
+  return 1 if try_chdir ($git_repos[0]);
+  $check_rejected_push_output = \&check_rejected_unsigned_output;
+  return 1 if append_test_file ();
+  return 1 if run_git ('add test', "commit -S -m'making a signed commit'");
+  return 1 if try_push (0);
+  return 1 if append_test_file ();
+  return 1 if run_git ('add test', "commit -m'making an unsigned commit'");
+  return 1 if try_push (1);
+  return 1 if switch_gpg_check (0);
+  return try_push (0);
+}
+
+sub check_git_hooks
+{
+  my $user_name = shift;
+  disable_originator_email ();
+  return 1 if set_git_hooks (
+    'opens-item' => 1, 'closes-item' => 1, 'updates-item' => 1, 'no-merges' => 1
+  );
+  my ($my_items, $thy_items) = populate_trackers ($user_name);
+  return 1 unless defined $my_items;
+  return 1 if make_git_checkouts ();
+  return 1 if check_no_merges ();
+  return 1 if check_open_close ($my_items, $thy_items);
+  return 1 if run_update_checks ($my_items, $thy_items);
+  return 1 if check_source_code_offer ();
+  return 1 if check_chained_hooks ();
+  return 1 if check_gpg ();
+  return 0;
 }
 
 sub run_git_checks
 {
-  return 1 if simulate_git_repos ();
+  my $user_name = shift;
+  my ($git_version) = try_run_git ('--version');
+  return 1 if $?;
+  report_output (0, $git_version);
+  return 1 if make_git_repos ();
   return 1 if list_git_repos (@git_paths);
-  $agent->get ($admin_url);
+  return 1 if visit_git_admin_url ();
   return 1 if list_git_admin_items (@git_paths);
-  return modify_git_configuration ();
+  return 1 if modify_git_configuration ();
+  return check_git_hooks ($user_name);
 }
 
-END { clear_repos (); }
+sub clear_checkouts
+{
+  print_test_log ('Removing checkouts.');
+  system ('rm', '-fr', 'checkouts');
+  return 0;
+}
+
+sub clear_groups
+{
+  my $ret = 0;
+  print_test_log ('Removing registered groups.');
+  foreach (@groups_to_remove)
+    {
+      my ($id, $name) = @{$_};
+      $ret = 1 if remove_group ($id, $name);
+    }
+  return $ret;
+}
+
+sub clear_users
+{
+  my $ret = 0;
+  print_test_log ('Removing registered users.');
+  foreach (@users_to_remove)
+    {
+      $ret = 1 if remove_user ($agent, $_);
+    }
+  return $ret;
+}
+
+sub clear_all
+{
+  my $ret = 0;
+  unless (chdir ($pwd))
+   {
+     print_test_error ("Cannot chdir '$pwd'.");
+     return 1;
+   }
+  $ret = 1 if clear_checkouts ();
+  $ret = 1 if clear_groups ();
+  $ret = 1 if log_out ($agent);
+  $ret = 1 if clear_users ();
+  clear_repos ();
+  return $ret;
+}
+
+END
+{
+  my $ret = $?;
+  $ret = 1 if clear_all ();
+  $? = $ret;
+}
 
 sub main
 {
-  return 1 if log_in ($agent);
+  return 1 if make_environment ();
+  return 1 if log_in ($agent, $user_name);
   my $ret = run_cvs_checks ();
-  $ret = 1 if run_git_checks ();
+  $ret = 1 if run_git_checks ($user_name);
   print_test_result ("Test done.") unless $ret;
   return $ret;
 }

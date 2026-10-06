@@ -1388,5 +1388,13 @@ function utils_assign_idNumber ($id, $type = 'user')
   trigger_error ("Can't assign idNumber for $type #$id");
   return 0;
 }
+
+function utils_dirname ($path, $level)
+{
+  # In PHP, the second argument of dirname is accepted since 7.0.0.
+  while (--$level > 1)
+    $path = dirname ($path);
+  return dirname ($path);
+}
 } # namespace {
 ?>
