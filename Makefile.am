@@ -125,6 +125,7 @@ modules = \
   lib/Savane/Test/Log.pm \
   lib/Savane/Test/Membership.pm \
   lib/Savane/Test/PHP.pm \
+  lib/Savane/Test/Tracker.pm \
   lib/Savane/Test/User.pm \
   lib/Savane/Test.pm \
   lib/Savane/User.pm \
@@ -432,7 +433,7 @@ else
 endif
 
 test:
-	${CHMOD} u+w test
+	if test -d test; then ${CHMOD} -R u+w test; fi
 	${RM} -r test
 	${MKDIR_P} test
 	abs_src_dir=`cd ${srcdir}; pwd`; \
