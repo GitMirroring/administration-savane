@@ -43,6 +43,7 @@
 
 use strict;
 use Savane::Version qw (PrintVersionOrHelp);
+use Savane::Conf;
 use Savane::Util;
 use Getopt::Long;
 
@@ -52,7 +53,7 @@ my $verbose;
 my $topdir = "/srv/git";
 my ($dry_run, $skip_du, $skip_gc, $skip_ts);
 my $logfile = "@logdir@/$name_base.log";
-my $git_bin = 'git';
+my $git_bin = configured_binary ('git');
 
 my $help_msg =
 "Usage: $0 [OPTIONS]

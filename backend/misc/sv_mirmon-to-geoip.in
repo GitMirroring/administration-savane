@@ -58,6 +58,7 @@ use Getopt::Long;
 use File::Copy;
 use File::Temp qw(tempfile);
 use Savane::Version;
+use Savane::Util;
 
 my $geonames = '@pkgdatadir@/backend/external/cities15000';
 
@@ -358,7 +359,7 @@ sub output_mirrors
       print $tmp_h "$cc => $cc_aliases{$cc}\n";
     }
   close ($tmp_h);
-  system ("chmod", "a+r", $tmp_name);
+  util_system ('chmod', 'a+r', $tmp_name);
   move ($tmp_name, $path) or die qq{Cannot open $path for writing: $!};
 }
 

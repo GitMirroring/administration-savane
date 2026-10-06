@@ -58,6 +58,17 @@ AC_SUBST([DIRNAME],
   [['${SED} -e "s,\([^/]\)/*$$,\1,;tb;:b;s,^[^/]*$$,.,;tq;" \
     -e "s,\([^/]/\)/*,\1,g;s,/[^/]*$$,/,;s,\([^/]\)/$$,\1,;s,^//*$$,/,;:q"']]
 )
+AX_PATH_PROG([CHMOD], [chmod], [chmod executable], [], [chmod not found])
+AX_PATH_PROG([CHOWN], [chown], [chown executable], [], [chown not found])
+AX_PATH_PROG([CHGRP], [chgrp], [chgrp executable], [], [chgrp not found])
+
+AX_PATH_PROG([BZR], [bzr], [bzr executable])
+AX_PATH_PROG([CVS], [cvs], [cvs executable])
+AX_PATH_PROG([GIT], [git], [Git executable])
+AX_PATH_PROG([HG], [hg], [hg executable])
+AX_PATH_PROG([SVN], [svn], [svn executable])
+AX_PATH_PROG([SVNADMIN], [svnadmin], [svnadmin executable])
+
 AX_PATH_PROG([CONVERT], [convert], [ImageMagick executable])
 AX_PATH_PROG([PERL], [perl], [Perl executable], [], [Perl not found])
 AX_PATH_PROG([PHP], [php], [PHP executable])
@@ -78,7 +89,6 @@ AX_PATH_PROG([MYSQL_BIN], [mysql], [Database client],
   [], [Database client not found]
 )
 AX_PATH_PROG([GRAPHVIZ_BIN], [dot], [Graphviz executable])
-AX_PATH_PROG([GIT], [git], [Git executable])
 
 AX_PHP_EXTENSION([mysqli])
 AX_PHP_EXTENSION([mailparse],

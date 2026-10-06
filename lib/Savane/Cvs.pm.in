@@ -303,15 +303,15 @@ sub make_cvs_directory
 {
   my ($dir_cvs, $is_public) = @_;
   my $mode = $is_public? '2775': '2770';
-  system ('mkdir', '-p', '-m', $mode, $dir_cvs);
-  system ('cvs', '-d', "$dir_cvs", 'init');
+  util_system ('mkdir', '-p', '-m', $mode, $dir_cvs);
+  util_system ('cvs', '-d', "$dir_cvs", 'init');
 
   # Make the CVSROOT ro for anybody; doing otherwise is a major security hole:
   # ancient versions of pserver, if ran as root, can be set to give root
   # access using the CVSROOT/passwd file; you also basically give local
   # access if you allow people to modify the hooks.
-  system ('chown', '-R', 'root:root', "$dir_cvs/CVSROOT") unless $>;
-  system ('chmod', '755', "$dir_cvs/CVSROOT") unless $>;
+  util_system ('chown', '-R', 'root:root', "$dir_cvs/CVSROOT") unless $>;
+  util_system ('chmod', '755', "$dir_cvs/CVSROOT") unless $>;
 
   # Cleanup CVSROOT.
   while (glob ("$dir_cvs/CVSROOT/*,v"))
@@ -329,11 +329,11 @@ sub init_cvs_file
   my ($file, $text) = @_;
   my $fh;
   my $ret = '';
-  system ('chmod', 'u+w', $file) if ($> && -f $file);
+  util_system ('chmod', 'u+w', $file) if ($> && -f $file);
   open ($fh, "> $file");
   print { $fh } $text or $ret = $!;
   close ($fh);
-  system ('chmod', 'u-w', $file) if $>;
+  util_system ('chmod', 'u-w', $file) if $>;
   return $ret;
 }
 
@@ -430,19 +430,19 @@ sub setup_cvs_permissions
   chmod_if_exist (0666, "$root/val-tags");
 
   # History is group-writable.
-  system ('chgrp', $name, "$root/history") unless $>;
+  util_system ('chgrp', $name, "$root/history") unless $>;
   chmod_if_exist (0664, "$root/history");
 
   # Create the default module.
-  system ('mkdir', '-m', '2775', "$dir_cvs/$name");
+  util_system ('mkdir', '-m', '2775', "$dir_cvs/$name");
   # Allow group access.
-  system ('chgrp', $name, $dir_cvs, "$dir_cvs/$name") unless $>;
+  util_system ('chgrp', $name, $dir_cvs, "$dir_cvs/$name") unless $>;
 
   # Build the locks.
-  system ('mkdir', '-p', '-m', '777', "/var/lock/cvs/$repo_type/$name");
+  util_system ('mkdir', '-p', '-m', '777', "/var/lock/cvs/$repo_type/$name");
 
   # Seal CVSROOT dir.
-  system ('chmod', 'a-w', "$root");
+  util_system ('chmod', 'a-w', "$root");
 }
 
 sub make_cvs_area
@@ -464,10 +464,10 @@ sub finalize_cvs_area
   if ($update_acl)
     {
       # Allow modifications from group 'www'.
-      system ('setfacl', '-m', 'group:www:rwx', '-m', 'default:group:www:rwx',
-        "$dir/$name"
+      util_system ('setfacl', '-m', 'group:www:rwx', '-m',
+        'default:group:www:rwx', "$dir/$name"
       );
-      system ('setfacl', '-m', 'group:www:rw', "$dir/CVSROOT/history");
+      util_system ('setfacl', '-m', 'group:www:rw', "$dir/CVSROOT/history");
     }
   # Perform an initial checkout so that updates happen:
   # (will also be done at commit time now).

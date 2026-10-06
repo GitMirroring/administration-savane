@@ -53,6 +53,7 @@ our @EXPORT = qw (
   MakeDir ExpandDirTemplate
   open_log print_log finalize_log
   open_tmp close_and_move
+  util_system
 );
 # Escape arg0 to be sent in a SQL string.
 sub SQLStringEscape
@@ -133,6 +134,12 @@ sub close_and_move
   return if $final_name eq '/dev/null' || $final_name eq '';
   move ($tmp_name, $final_name)
     or die "Can't move $tmp_name to $final_name: $!";
+}
+
+sub util_system
+{
+  my $bin = configured_binary (shift);
+  return system ($bin, @_);
 }
 
 return "true";

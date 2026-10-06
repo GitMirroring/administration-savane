@@ -48,6 +48,7 @@ use Savane::Version;
 use Savane::DB;
 use Savane::User;
 use Savane::Locks;
+use Savane::Util;
 use File::Copy;
 use File::Temp qw(tempfile);
 
@@ -103,7 +104,7 @@ sub move_file
   my ($tmpf, $emails) = @_;
   unless ($dry_run)
     {
-      system ("chmod", "a+r", $tmpf);
+      util_system ('chmod', 'a+r', $tmpf);
       my $res = move ($tmpf, "$emails$suffix");
       unless ($res)
         {
