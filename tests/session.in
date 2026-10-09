@@ -109,9 +109,9 @@ sub kill_single_session
   );
   select_root_url ($s->{'root'});
   $a->get (session_page ());
-  my ($ret, $hashes) = find_session_links ($a);
+  my ($ret, $h) = find_session_links ($a);
   return 1 if $ret;
-  my $url = get_session_link ($a, $s0, $hashes);
+  my $url = get_session_link ($a, $s0, $h);
   return 1 unless defined $url;
   $a->get ($url);
   return check_request_status ($a, 'cant-kill-session.html');
