@@ -2845,7 +2845,7 @@ function trackers_data_rm_dependency (
     return true;
   $deps = ARTIFACT . '_dependencies';
   $result = db_execute ("
-    DELETE FROM `deps`
+    DELETE FROM `$deps`
     WHERE
       `item_id` = ? AND `is_dependent_on_item_id` = ?
       AND `is_dependent_on_item_id_artifact` = ?",
