@@ -130,8 +130,7 @@ my $help_string = <<"EOF";
     -v, --version      show Savane version and exit
 
   Any long command line option is valid in the config file, one option
-  per line.  Lines /^\\s*#/, empty lines, and lines containing only white space
-  are ignored.  For example:
+  per line.  Lines matching /^\\s*(#.*)\$/ are ignored.  For example:
 
     # This is a sample config file.
 
