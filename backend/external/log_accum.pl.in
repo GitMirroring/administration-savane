@@ -92,6 +92,10 @@ my $help_string = <<"EOF";
     -T, --file-text
         --file-prefix  specify a prefix to use in temporary file names
     -u                 set CVS username (deprecated)
+    -p, --prompt-to
+        user=message   print the message to the user; this may be used
+                         as a means to contact specific users when means
+                         like email don't work
     -V, --verbose
         --debug        output debugging information
 
@@ -219,6 +223,19 @@ sub condense_configs
     }
 }
 
+sub check_prompt_to
+{
+  my $config = shift;
+  return unless exists $config->{'prompt-to'};
+  my %prompts;
+  foreach (@{$config->{'prompt-to'}})
+    {
+      die "Wrong --prompt-to: no '=' in $_." unless /^\s*(\S+)\s*=(.*)/s;
+      $prompts{$1} = $2;
+    }
+  $config->{'user-prompts'} = \%prompts;
+}
+
 sub config_sanity_checks
 {
   my $config = shift;
@@ -231,6 +248,7 @@ sub config_sanity_checks
        && (exists $config->{'diff-arg'}
            || exists $config->{'empty-diffs'}
            || exists $config->{'separate-diffs'});
+  check_prompt_to ($config);
 }
 
 my %get_default_options = (
@@ -247,7 +265,8 @@ my %get_default_options = (
   'cvs-bin' => sub { return $CVSBIN; },
   'tmp-dir' => sub { return $TMPDIR; },
   'debug-log' => sub { return []; },
-  'aliases' => sub { return []; }
+  'aliases' => sub { return []; },
+  'prompt-to' => sub { return []; }
 );
 
 sub fixup_separate_diffs
@@ -321,6 +340,7 @@ my @option_spec = (
   "aliases|a=s@",
   "config|c=s@",
   "mail-to|m=s@",
+  "prompt-to|p=s@",
   "only-tag|tag|r=s@",
   "file-prefix|file-text|T=s", "user|u=s",
   "debug|verbose|V!",
@@ -342,7 +362,7 @@ sub parse_config_line
 {
   my $line = shift;
   my @ret;
-  $line =~ /^(\S*)(\s+(.*))?$/;
+  $line =~ /^(\S*)(\s+(.*))?$/s;
   push @ret, "--$1";
   # There is a difference between no argument and an empty string argument.
   push @ret, $3 if $2;
@@ -361,8 +381,10 @@ sub read_config_file
       # Skip comments and lines with nothing but blanks.
       next if (/^\s*(#.*)?$/ && $accum ne '');
       chomp;
+      $_ =~ s/^\s*// if $accum ne '';
+      $accum .= "\n\n" if $_ eq '\\';
       $accum .= $_;
-      next if $accum =~ s/\\$//;
+      next if $accum =~ s/\\$//s;
       push @ret, parse_config_line ($accum);
       $accum = '';
     }
@@ -693,8 +715,7 @@ sub mail_separate_diffs
 {
   my ($mail_to, $module, $branch, $username, $fullname, $mailname,
     $header, @diffs) = @_;
-  my $count = 0;
-  my $errors;
+  my ($count, $errors) = (0, 0);
   print "Mailing diffs to " . join (", ", @$mail_to) . "... ";
   for ($count = 0; @diffs; $count++)
     {
@@ -717,7 +738,7 @@ sub print_count_with_errors
 {
   my ($count, $errors) = @_;
   my $err = '';
-  $err = ' 1 error' if $errors = 1;
+  $err = ' 1 error' if $errors == 1;
   $err = " $errors errors" if ($errors > 1);
   print "$count sent$err.\n";
 }
@@ -1196,6 +1217,16 @@ sub read_line
   return $line;
 }
 
+sub prompt_to_user
+{
+  my ($config, $username) = @_;
+  return unless exists $config->{'user-prompts'}->{$username};
+  my $sep = "\n\n" . ("  =!=" x 15) . "\n\n";
+  my $msg = $config->{'user-prompts'}->{$username};
+  $msg =~ s/^./  $&/mg;
+  print "$sep$msg$sep";
+}
+
 sub main
 {
   # Setup and clean up environment.
@@ -1423,7 +1454,7 @@ sub main
           "$ADDED_REV_BASE.$i", "$REMOVED_REV_BASE.$i"
         );
 
-      my @body_diff = compile_body_diff ($config, $diff);
+      my @body_diff = compile_body_diffs ($config, $diff);
       mail_notification (
         $config->{'mail-to'}, $module, $username, $fullname,
         $mailname, $subject, @header, @$body, @body_diff
@@ -1439,6 +1470,7 @@ sub main
         $config->{'commit-log'}, @header, @$body, @body_diff
       )
         if $config->{'commit-log'};
+      prompt_to_user ($config, $username);
     } # for (my $i = 0; -e "$LOG_BASE.$i"; $i++)
 
   cleanup_tmpfiles ($config->{'tmp-dir'}, $config->{'file-text'}, $id);
