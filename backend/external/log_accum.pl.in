@@ -370,30 +370,36 @@ sub read_config_file
   return @ret;
 }
 
+sub process_config_file
+{
+  my ($parsed_configs, $file) = @_;
+  my (@ret, $config);
+
+  warn "config loop detected" && return ()
+    if $parsed_configs->{$file};
+  $parsed_configs->{$file} = 1;
+
+  debug ("parse_config: parsing $file\n") if @debug;
+  local @ARGV = read_config_file ($file);
+
+  # Get the options from the config file.
+  $config = new_config;
+  die "argument parsing failed"
+    unless GetOptions ($config, @option_spec);
+
+  push @ret, parse_config ($parsed_configs, $config->{'config'})
+    if exists $config->{'config'};
+  push @ret, $config;
+  return @ret;
+}
+
 # Parse a config file.
 sub parse_config
 {
   my ($parsed_configs, $files) = @_;
   my ($config, @configs);
-
-  foreach my $file (@$files)
-    {
-      warn "config loop detected" && next if $parsed_configs->{$file};
-      $parsed_configs->{$file} = 1;
-
-      debug ("parse_config: parsing $file\n") if @debug;
-      local @ARGV = read_config_file ($file);
-
-      # Get the options from the config file.
-      $config = new_config;
-      die "argument parsing failed"
-        unless GetOptions ($config, @option_spec);
-
-      push @configs, parse_config ($parsed_configs, $config->{'config'})
-        if exists $config->{'config'};
-
-      push @configs, $config;
-    }
+  push @configs, process_config_file ($parsed_configs, $_)
+    foreach @$files;
   return @configs;
 }
 
@@ -657,52 +663,49 @@ sub mail_notification
   # Else "warn" should have printed a message.
 }
 
+# Set the subject when the path to the RCS archive is found.
+sub mail_set_subject
+{
+  my ($subject, $diffs0, $branch) = @_;
+  if ($diffs0 =~ /^RCS file: (.*)$/)
+    {
+      $subject = $1;
+      $subject =~ s/^\Q$ENV{'CVSROOT'}\E\///;
+      $subject = "Changes to $subject";
+      $subject .= " [$branch]" if $branch;
+   }
+  return $subject;
+}
+
+# Sample diff:
+# Index: subdir/subfile3
+# ===================================================================
+# RCS file: /sources/testyeight/testyeight/subdir/subfile3,v
+# retrieving revision 1.18
+# retrieving revision 1.19
+# diff -u -b -r1.18 -r1.19
+# --- subdir/subfile3     20 May 2006 11:35:55 -0000      1.18
+# +++ subdir/subfile3     20 May 2006 11:37:01 -0000      1.19
+# @@ -1 +1 @@
+# -original line
+# +new line
 sub mail_separate_diffs
 {
   my ($mail_to, $module, $branch, $username, $fullname, $mailname,
     $header, @diffs) = @_;
   my $count = 0;
   my $errors;
-
-  # Sample diff:
-  # Index: subdir/subfile3
-  # ===================================================================
-  # RCS file: /sources/testyeight/testyeight/subdir/subfile3,v
-  # retrieving revision 1.18
-  # retrieving revision 1.19
-  # diff -u -b -r1.18 -r1.19
-  # --- subdir/subfile3     20 May 2006 11:35:55 -0000      1.18
-  # +++ subdir/subfile3     20 May 2006 11:37:01 -0000      1.19
-  # @@ -1 +1 @@
-  # -original line
-  # +new line
-
   print "Mailing diffs to " . join (", ", @$mail_to) . "... ";
-
-  while (@diffs)
+  for ($count = 0; @diffs; $count++)
     {
       my ($subject, @onediff);
-
       do
         {
-          # Set the subject when the path to the RCS archive is found.
-          if ($diffs[0] =~ /^RCS file: (.*)$/)
-            {
-              $subject = $1;
-              $subject =~ s/^\Q$ENV{'CVSROOT'}\E\///;
-              $subject = "Changes to $subject";
-              $subject .= " [$branch]" if $branch;
-            }
-
+          $subject = mail_set_subject ($subject, $diffs[0], $branch);
           # The current line is always part of the unsent diff.
           push @onediff, shift @diffs;
-
-          # /^Index: / starts another diff...
         }
-      while @diffs and $diffs[0] !~ /^Index: /;
-
-      # Send the current diff.
-      $count++;
+      while @diffs and $diffs[0] !~ /^Index: /; # /^Index: / starts next diff.
       $errors++
         unless send_mail $mail_to, $module, $username, $fullname,
           $mailname, $subject, @$header, @onediff;
@@ -1166,6 +1169,19 @@ sub cleanup_tmpfiles
   map { unlink "$tmpdir/$_" } @files;
 }
 
+sub compile_body_diffs
+{
+  my ($config, $diff) = @_;
+  my @body_diff;
+  if (!$config->{'separate-diffs'} && @$diff)
+    {
+      push @body_diff, "";
+      push @body_diff, "Patches:";
+      push @body_diff, @$diff;
+    }
+  return @body_diff;
+}
+
 # Blindly read the first line from a file, returning it without any trailing
 # EOL.
 sub read_line
@@ -1396,10 +1412,8 @@ sub main
     $toplevel, $branch_lines->[0], $username, $fullname, $mailname
   );
 
-  for (my $i = 0; ; $i++)
+  for (my $i = 0; -e "$LOG_BASE.$i"; $i++)
     {
-      last if !-e "$LOG_BASE.$i";
-
       my ($subject, $body, $log_text, $diff) =
         build_message_body (
           $config, $toplevel, $module, $branch_lines->[0],
@@ -1409,14 +1423,7 @@ sub main
           "$ADDED_REV_BASE.$i", "$REMOVED_REV_BASE.$i"
         );
 
-      my @body_diff;
-      if (!$config->{'separate-diffs'} && @$diff)
-        {
-          push @body_diff, "";
-          push @body_diff, "Patches:";
-          push @body_diff, @$diff;
-        }
-
+      my @body_diff = compile_body_diff ($config, $diff);
       mail_notification (
         $config->{'mail-to'}, $module, $username, $fullname,
         $mailname, $subject, @header, @$body, @body_diff
@@ -1432,7 +1439,7 @@ sub main
         $config->{'commit-log'}, @header, @$body, @body_diff
       )
         if $config->{'commit-log'};
-    }
+    } # for (my $i = 0; -e "$LOG_BASE.$i"; $i++)
 
   cleanup_tmpfiles ($config->{'tmp-dir'}, $config->{'file-text'}, $id);
   return 0;
