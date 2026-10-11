@@ -28,6 +28,8 @@
 
 * New sv_cleaner options, --job-update-start-time, --run-tasks.
 
+* New log_accum.pl option --prompt-to.
+
 2026-09-26 3.18
 
 [FRONTEND]
