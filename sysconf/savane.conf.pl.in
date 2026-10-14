@@ -12,4 +12,5 @@ our $sys_banned_email_domains = '';
 our %sys_banned_email_names = ();
 $sys_default_domain = '@WWW_SERVER_HOST@';
 $sys_dir_prefix = '@pkgstatedir@';
+our $sys_source_code_url = 'PLACEHOLDER-URL';
 return 1;
