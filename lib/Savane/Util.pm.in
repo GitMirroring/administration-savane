@@ -43,6 +43,7 @@
 use strict;
 require Exporter;
 require Savane::Conf;
+require Savane::User;
 use POSIX qw (strftime);
 use File::Temp qw (tempfile);
 use File::Copy qw (move);
@@ -53,8 +54,30 @@ our @EXPORT = qw (
   MakeDir ExpandDirTemplate
   open_log print_log finalize_log
   open_tmp close_and_move
-  util_system
+  util_system offer_source_code
 );
+
+sub offer_source_code
+{
+  return if GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
+  my $script = get_prog_name ();
+  my $root_url = get_server_url ();
+  my $source_code_url = GetConf ('sys_source_code_url');
+  my $msg = <<"  EOF";
+    AGPL notice: $script is part of Savane.
+    In order to download the corresponding source code of Savane, run
+
+      rsync -avz --no-D --no-l --no-o --no-g --cvs-exclude \\
+        $ENV{'USER'}\@$source_code_url .
+
+    You can disable this notice in your account preferences
+    at $root_url/my/admin/#form_quiet_ssh.
+
+  EOF
+  $msg =~ s, {4},,gm;
+  print STDERR $msg;
+}
+
 # Escape arg0 to be sent in a SQL string.
 sub SQLStringEscape
 {
