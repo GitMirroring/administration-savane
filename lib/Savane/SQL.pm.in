@@ -1,0 +1,95 @@
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# As an exception from the general Savane distribution terms, this file
+# is distributed under the GPL.  The AGPL doesn't apply to it unless used
+# in a greater work with other parts covered by the AGPL, so this module
+# may be combined with works under the GPL without complying with the AGPL.
+#
+# This file is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Basic database routines.
+
+use strict;
+use DBI;
+require Savane::Conf;
+require Exporter;
+
+our @ISA = qw (Exporter);
+our @EXPORT = qw (
+  db_die_if_unconnected
+  db_last_insert_id
+  sql_fetch_row
+  sql_query
+);
+
+our $sys_dbname;
+our $sys_dbhost;
+our $sys_dbport;
+our $sys_dbuser;
+our $sys_dbpasswd;
+our $sys_dbnetworking;
+our $sys_dbparams;
+our $dbd;
+our $socket = "@mysql_socket@";
+
+sub db_source
+{
+  my $ret = "DBI:mysql:database=$sys_dbname";
+
+  $ret .= ":host=$sys_dbhost";
+  $ret .= ":port=$sys_dbport" if $sys_dbport ne '';
+  $ret .= ":mysql_socket=$socket" if $sys_dbnetworking eq 'no';
+  $ret .= ":$sys_dbparams";
+  return $ret;
+}
+
+$dbd =
+  DBI->connect (
+    db_source (), $sys_dbuser, $sys_dbpasswd,
+    {PrintError => 0, AutoCommit => 1}
+  );
+
+$dbd->{PrintError} = $dbd->{RaiseError} = 1 if $dbd;
+
+sub db_die_if_unconnected
+{
+  return if $dbd;
+  die $DBI::errstr;
+}
+
+sub db_last_insert_id
+{
+  return $dbd->last_insert_id ();
+}
+
+sub sql_query
+{
+  my $ret = $dbd->prepare (shift);
+  $ret->execute (@_);
+  return $ret;
+}
+
+sub sql_fetch_row
+{
+  my $res = shift;
+  return $res->fetchrow_array ();
+}
+
+return "true";
