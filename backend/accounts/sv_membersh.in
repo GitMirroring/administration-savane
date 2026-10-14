@@ -56,6 +56,7 @@ use Cwd 'abs_path';
 use Savane::Version;
 use Savane::DB;
 use Savane::User;
+use Savane::Conf;
 
 $ENV{'PATH'}="/usr/local/bin:/usr/bin:/bin";
 $ENV{'CVSEDITOR'}="/bin/false";
@@ -103,13 +104,14 @@ unless (do $conf_file)
     die "Can't run $conf_file: $!. Exiting";
   }
 
+check_conf ();
 process_help_and_version () unless ($ARGV[0] eq "-c");
 # When this script is invoked through the network, $ARGV[0]
 # is set to '-c', so we may offer the source code after
 # checking if --help is requested; if we did that before,
-# make installcheck would require setting $source_code_url
-# in the stub membersh-conf.pl.
-offer_source_code () unless quiet_is_requested ();
+# make installcheck would require setting $sys_source_code_url
+# in the stub savane.conf.pl.
+offer_source_code ();
 
 output_error_msg () unless ($#ARGV == 1 && $ARGV[0] eq "-c");
 
@@ -124,26 +126,11 @@ for my $cmd (@commands_enabled)
 
 output_error_msg ();
 
-sub quiet_is_requested
+sub check_conf
 {
-  return GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
-}
-
-sub offer_source_code
-{
-  die "Source code URL isn't defined in configuration file\n\n"
-    . "\t$conf_file\n\nExiting" if $source_code_url eq '';
-  my $script = get_prog_name ();
-  my $msg = <<"    EOF";
-    AGPL notice: $script is part of Savane.
-    In order to download the corresponding source code of Savane, run
-
-      rsync -avz --no-D --no-l --no-o --no-g --cvs-exclude \\
-        $ENV{'USER'}\@$source_code_url .
-
-    EOF
-  $msg =~ s, {4},,gm;
-  print STDERR $msg;
+  my $conf = GetConf ('sys_source_code_url');
+  return if defined $conf;
+  die ('sys_source_code_url is not defined in savane.conf.pl');
 }
 
 sub run_command

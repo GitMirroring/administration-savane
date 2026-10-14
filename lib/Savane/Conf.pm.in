@@ -104,8 +104,9 @@ sub configured_binary
 # In fact, they are usually accessed via our $sys_var;
 sub GetConf
 {
+  my $val;
   no strict 'refs';
-  my $val = ${$_[0]};
+  $val = ${$_[0]} if defined ${$_[0]};
   use strict;
   return $val;
 }
