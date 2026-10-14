@@ -119,6 +119,7 @@ modules = \
   lib/Savane/Locks.pm \
   lib/Savane/Mail.pm \
   lib/Savane/Mirror.pm \
+  lib/Savane/SQL.pm \
   lib/Savane/Svn.pm \
   lib/Savane/Test/Conf.pm \
   lib/Savane/Test/Group.pm \

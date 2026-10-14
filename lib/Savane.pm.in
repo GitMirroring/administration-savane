@@ -48,6 +48,7 @@ use Text::Wrap qw(&wrap $columns);
 
 use Savane::Version;
 use Savane::Conf;
+use Savane::SQL;
 use Savane::DB;
 use Savane::Locks;
 use Savane::Mail;
