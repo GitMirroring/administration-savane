@@ -82,7 +82,8 @@ sub check_source_availability
   return check_status_code (unmake_url ($link->url ()), '200');
 }
 
-END {
+END
+{
   my $exit_code = $?;
   return $exit_code unless -d $gnupgdir;
   print_test_log ('Removing GnuPG directory.');
