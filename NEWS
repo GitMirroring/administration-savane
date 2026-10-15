@@ -17,6 +17,9 @@
 
 ** Comments on files in notifications included encoded HTML entities.
 
+** The 'Send on all changes' checkbox in tracker notification settings
+   was broken.
+
 [I18N]
 
 * Update French, German, Hebrew, Romanian.
