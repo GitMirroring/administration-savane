@@ -198,4 +198,9 @@ foreach (@modified_fields)
 $agent->click ();
 print_test_result ('Test done.') unless $exit_code;
 exit ($exit_code);
-END { my_log_out (); }
+END
+{
+  my $ret = $?;
+  my_log_out ();
+  $? = $ret;
+}
