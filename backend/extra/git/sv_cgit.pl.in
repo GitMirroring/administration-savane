@@ -43,7 +43,6 @@
 
 use strict;
 use Savane;
-use Savane::Util;
 use Getopt::Long;
 
 our $dbd;
