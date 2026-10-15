@@ -325,6 +325,8 @@ function trackers_data_import_post_notif_input ($tracker)
   if (empty ($new_item_address))
     $new_item_address = '';
   $send_all_changes = $in[$send_all_changes_name];
+  if (empty ($send_all_changes))
+    $send_all_changes = 0;
   $nb_categories = $in[$nb_categories_name];
   $private_exclude_address = $in[$private_exclude_address_name];
   return [$notif_scope, $new_item_address, $send_all_changes,
@@ -378,6 +380,8 @@ function trackers_data_post_notif_update_cat (
   $tracker, $current_fv_id, $current_email, $current_send_all_flag
 )
 {
+  if (empty ($current_send_all_flag))
+    $current_send_all_flag = 0;
   $res = db_autoexecute (
     "{$tracker}_field_value",
     [
@@ -407,7 +411,7 @@ function trackers_data_post_notification_settings ($group_id, $tracker)
     $private_exclude_address_name => $private_exclude_address
   ];
   # Set global notification info for this group.
-  $res_gl = db_autoexecute (
+  $res = db_autoexecute (
     'groups', $arg, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
   );
   $local_feedback .= trackers_data_post_notif_report_result ($res, 'groups');
@@ -423,7 +427,7 @@ function trackers_data_post_notification_settings ($group_id, $tracker)
         $ok++;
       $local_feedback .= $loc_fb;
     }
-  if (($res_gl) && ($ok == $nb_categories) && ($local_feedback === ''))
+  if (($res) && ($ok == $nb_categories) && ($local_feedback === ''))
     return 1;
   if ($local_feedback !== '')
     fb ($local_feedback);
