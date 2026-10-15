@@ -307,30 +307,19 @@ function trackers_data_show_notification_settings ($group_id, $tracker)
     . "<br />\n";
 }
 
-function trackers_data_post_notification_settings ($group_id, $tracker)
+function trackers_data_import_post_notif_input ($tracker)
 {
-  if (!user_is_group_admin ())
-    exit_permission_denied ();
-  $local_feedback = "";
-  # Build the variable names related to elements always present in the form
-  # and get their values.
-
   $notif_scope_name = "{$tracker}_notif_scope";
   $new_item_address_name = "{$tracker}_new_item_address";
   $send_all_changes_name = "{$tracker}_send_all_changes";
   $nb_categories_name = "{$tracker}_nb_categories";
   $private_exclude_address_name = "{$tracker}_private_exclude_address";
-
-  $in = sane_import ('post',
-    [
-      "strings" =>
-        [[$notif_scope_name, ['default' => 'global', 'category', 'both']]],
-      'pass' => [$new_item_address_name, $private_exclude_address_name],
-      'true' => $send_all_changes_name,
-      'digits' => $nb_categories_name
-    ]
-  );
-
+  $in = sane_import ('post', [
+    "strings" =>
+      [[$notif_scope_name, ['default' => 'global', 'category', 'both']]],
+    'pass' => [$new_item_address_name, $private_exclude_address_name],
+    'true' => $send_all_changes_name, 'digits' => $nb_categories_name
+  ]);
   $notif_scope = $in[$notif_scope_name];
   $new_item_address = $in[$new_item_address_name];
   if (empty ($new_item_address))
@@ -338,78 +327,105 @@ function trackers_data_post_notification_settings ($group_id, $tracker)
   $send_all_changes = $in[$send_all_changes_name];
   $nb_categories = $in[$nb_categories_name];
   $private_exclude_address = $in[$private_exclude_address_name];
-  if (empty ($private_exclude_address))
-    $private_exclude_address = '';
+  return [$notif_scope, $new_item_address, $send_all_changes,
+    $nb_categories, $private_exclude_address_name, $private_exclude_address
+  ];
+}
 
+function trackers_data_post_notif_value ($notif_scope)
+{
   $notif_value = 1; # global by default.
-  if (isset ($notif_scope))
-    {
-      if ($notif_scope == "category")
-        $notif_value = 0;
-      if ($notif_scope == "both")
-        $notif_value = 2;
-    }
+  if (!isset ($notif_scope))
+    return $notif_value;
+  if ($notif_scope === "category")
+    return 0;
+  if ($notif_scope === "both")
+    return 2;
+  return $notif_value;
+}
 
+function trackers_data_post_notif_import_cat ($tracker, $i)
+{
+  $tr_cat = "{$tracker}_cat_$i";
+  $current_fv_name = "{$tr_cat}_bug_fv_id";
+  $current_email_name = "{$tr_cat}_email";
+  $current_send_all_name = "{$tr_cat}_send_all_flag";
+  $in = sane_import ('post',
+    [
+      'digits' => $current_fv_name,
+      'pass' => $current_email_name,
+      'true' => $current_send_all_name
+    ]
+  );
+
+  $current_fv_id = $in[$current_fv_name];
+  $current_email = $in[$current_email_name];
+  $current_send_all_flag = $in[$current_send_all_name];
+  return [$current_fv_id, $current_email, $current_send_all_flag];
+}
+
+function trackers_data_post_notif_report_result ($res, $table)
+{
+  if ($res)
+    return '';
+  # TRANSLATORS: the argument is table name (like groups);
+  # the string shall be followed by database error message.
+  return sprintf (_("%s table Update failed:"), $table)
+    . ' ' . db_error ();
+}
+
+function trackers_data_post_notif_update_cat (
+  $tracker, $current_fv_id, $current_email, $current_send_all_flag
+)
+{
+  $res = db_autoexecute (
+    "{$tracker}_field_value",
+    [
+      'email_ad' => $current_email,
+      'send_all_flag' => $current_send_all_flag
+    ],
+    DB_AUTOQUERY_UPDATE, "bug_fv_id = ?", [$current_fv_id]
+  );
+  return trackers_data_post_notif_report_result ($res, $tracker);
+}
+
+function trackers_data_post_notification_settings ($group_id, $tracker)
+{
+  if (!user_is_group_admin ())
+    exit_permission_denied ();
+  $local_feedback = '';
+  # Build the variable names related to elements always present in the form
+  # and get their values.
+  list ($notif_scope, $new_item_address, $send_all_changes,
+    $nb_categories, $private_exclude_address_name, $private_exclude_address
+  ) = trackers_data_import_post_notif_input ($tracker);
+  $notif_value = trackers_data_post_notif_value ($notif_scope);
+  $arg = [
+    "{$tracker}_glnotif" => $notif_value,
+    "send_all_$tracker" => $send_all_changes,
+    "new_{$tracker}_address" => $new_item_address,
+    $private_exclude_address_name => $private_exclude_address
+  ];
   # Set global notification info for this group.
   $res_gl = db_autoexecute (
-    'groups',
-    [
-      "{$tracker}_glnotif" => $notif_value,
-      "send_all_$tracker" => $send_all_changes,
-      "new_{$tracker}_address" => $new_item_address,
-      $private_exclude_address_name => $private_exclude_address
-    ],
-    DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
+    'groups', $arg, DB_AUTOQUERY_UPDATE, "group_id = ?", [$group_id]
   );
-  if (!$res_gl)
-    # TRANSLATORS: the argument is table name (like groups);
-    # the string shall be followed by database error message.
-    $local_feedback .=
-      sprintf (_("%s table Update failed:"), 'groups')
-      . ' ' . db_error ();
-
+  $local_feedback .= trackers_data_post_notif_report_result ($res, 'groups');
   $ok = 0;
-  if ($nb_categories > 0)
+  for ($i = 0; $i < $nb_categories; $i++)
     {
-      for ($i = 0; $i < $nb_categories; $i++)
-        {
-          $tr_cat = "{$tracker}_cat_$i";
-          $current_fv_name = "{$tr_cat}_bug_fv_id";
-          $current_email_name = "{$tr_cat}_email";
-          $current_send_all_name = "{$tr_cat}_send_all_flag";
-          $in = sane_import ('post',
-            [
-              'digits' => $current_fv_name,
-              'pass' => $current_email_name,
-              'true' => $current_send_all_name
-            ]
-          );
-
-          $current_fv_id = $in[$current_fv_name];
-          $current_email = $in[$current_email_name];
-          $current_send_all_flag = $in[$current_send_all_name];
-
-          $res_cat = db_autoexecute (
-            "{$tracker}_field_value",
-            [
-              'email_ad' => $current_email,
-              'send_all_flag' => $current_send_all_flag
-            ],
-            DB_AUTOQUERY_UPDATE, "bug_fv_id = ?", [$current_fv_id]
-          );
-          if ($res_cat)
-            $ok++;
-          else
-            # TRANSLATORS: the argument is table name (like groups);
-            # the string shall be followed by database error message.
-            $local_feedback .=
-              sprintf (_("%s table Update failed:"), $tracker)
-              . ' ' . db_error ();
-        }
+      list ($current_fv_id, $current_email, $current_send_all_flag) =
+        trackers_data_post_notif_import_cat ($tracker, $i);
+      $loc_fb = trackers_data_post_notif_update_cat (
+         $tracker, $current_fv_id, $current_email, $current_send_all_flag
+      );
+      if ($loc_fb === '')
+        $ok++;
+      $local_feedback .= $loc_fb;
     }
-  if (($res_gl) && ($ok == $nb_categories) && ($local_feedback == ""))
+  if (($res_gl) && ($ok == $nb_categories) && ($local_feedback === ''))
     return 1;
-  if ($local_feedback != "")
+  if ($local_feedback !== '')
     fb ($local_feedback);
   return 0;
 }
