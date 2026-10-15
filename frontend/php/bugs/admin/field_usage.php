@@ -400,7 +400,7 @@ function print_update_field_page ($field, $group_id, $group)
   $defs = [];
   add_mandatory_control ($field, $defs);
   $defs[preinp (_("On new item submission:"))] =
-    join ("<br />", get_show_on_checkboxes ($field));
+    join ("<br />\n", get_show_on_checkboxes ($field));
   print html_dl ($defs);
   print_place_and_rank ($field);
   print_text_field_controls ($field);
