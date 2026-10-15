@@ -28,7 +28,7 @@ use strict;
 require Exporter;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(GetConf configured_binary);
+our @EXPORT = qw(GetConf get_server_url configured_binary);
 
 my $conf_prefix = '@sysconfdir@/savane';
 my $conf_file;
@@ -40,6 +40,7 @@ our $sys_www_server_port = '@WWW_SERVER_PORT@';
 our $sys_mail_replyto = 'INVALID.NOREPLY';
 our $sys_name = 'Savannah-dev';
 our $sys_curl_bin = '/usr/bin/curl';
+our $sys_server_default_protocol = 'http';
 
 $conf_prefix = $ENV{'SAVANE_CONF'} if $ENV{'SAVANE_CONF'};
 
@@ -92,6 +93,14 @@ sub GetConf
   $val = ${$_[0]} if defined ${$_[0]};
   use strict;
   return $val;
+}
+
+sub get_server_url
+{
+  my $ret = "$sys_server_default_protocol://$sys_default_domain";
+  return $ret if $sys_www_server_port eq '';
+  return $ret if $sys_www_server_port eq '80';
+  return "$ret:$sys_www_server_port";
 }
 
 return 1;
