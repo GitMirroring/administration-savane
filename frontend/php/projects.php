@@ -502,7 +502,7 @@ function print_scm_entry ($group, &$i, $scm, $scm_name)
   print "</a>\n<ul>\n";
   $admin_url = pagemenu_vcs_admin_url ($group, $scm);
   if ($admin_url != '')
-    print "<li><a href=\"$admin_url\">" . _("Administer") . "</a></li>\n";
+    print "<li><a href=\"$admin_url\">" . _("Configure") . "</a></li>\n";
 
   $scm_url = vcs_get_vc_url ($group, $scm);
   if (
