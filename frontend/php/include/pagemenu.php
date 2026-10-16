@@ -283,7 +283,7 @@ function pagemenu_group_admin ($root, $gr_n)
   global $group_id;
   $ret = pagemenu_submenu_entry_separator ();
   $titles = [
-    '/admin/' => '<strong>' . _("Administer:") . '</strong>',
+    '/admin/' => '<b>' . _("Configure:") . '</b>',
     '/admin/editgroupinfo.php' => _("Edit public info"),
     '/admin/editgroupfeatures.php' => _("Select features"),
     '/admin/useradmin.php' => _("Manage&nbsp;members"),
@@ -371,7 +371,7 @@ function pagemenu_vcs_admin_entry ($group, $vcs, $name)
   $url = pagemenu_vcs_admin_url ($group, $vcs);
   if ($url == '')
     return $url;
-  return pagemenu_submenu_entry (_("Administer"), $url);
+  return pagemenu_submenu_entry (_("Configure"), $url);
 }
 
 function pagemenu_vcs_append_entry ($func, $group, $vcs, $name, &$count)
@@ -797,7 +797,7 @@ function pagemenu_siteadmin ()
       $gr_n = "?group=$group_name";
       $titles = [
         ["#" => "<strong>Currently shown group:</strong>"],
-        ["$root/$gr_n" => "Administer"],
+        ["$root/$gr_n" => "Configure"],
         ["$root/editgroupinfo.php$gr_n" => "Edit Public Info"],
         ["$root/editgroupfeatures.php$gr_n" => "Select Features"],
         ["$root/useradmin.php$gr_n" => "Manage Members"],
