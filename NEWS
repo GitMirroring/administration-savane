@@ -30,6 +30,9 @@
 
 * New log_accum.pl option --prompt-to.
 
+* Perl scripts load configuration files from savane.conf.pl.d/, if any,
+  after savane.conf.pl.
+
 2026-09-26 3.18
 
 [FRONTEND]
