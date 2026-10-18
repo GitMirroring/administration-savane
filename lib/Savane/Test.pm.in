@@ -45,6 +45,7 @@ use Savane::DB;
 use Savane::Util;
 use Savane::Test::PHP;
 use Savane::Test::Log;
+use Savane::Test::Util;
 use WWW::Mechanize;
 use File::Temp "tempfile";
 use File::Basename qw (basename dirname);
@@ -57,32 +58,12 @@ our @EXPORT = qw (
   save_page save_text
   find_form
   log_in log_in_su log_out check_status_code check_inaccessibility get_user_id
-  get_group_id run_cleanup check_request_status try_mkdir
+  get_group_id run_cleanup check_request_status
   write_test_php rm_test_php select_root_url get_twin_idx
 );
 
 my $bindir = '@bindir@';
 my $phpdir = '@frontenddir@/php';
-
-sub try_mkdir
-{
-  my $dir = shift;
-  my $exit_on_error = @_? shift: 1;
-  print_test_log ("Creating $dir directory.");
-  if (-d $dir)
-    {
-      print_test_result ("Directory $dir already exists.");
-      return 0;
-    }
-  if (mkdir $dir)
-    {
-      print_test_result ("Successfully created $dir/.");
-      return 0;
-    }
-  print_test_error ("Cannot create $dir directory: $!");
-  exit (1) if $exit_on_error;
-  return 1;
-}
 
 # Rename the temporary file so that the generated part of its name
 # move to the start of the name; return the renamed file name or

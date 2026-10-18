@@ -128,6 +128,7 @@ modules = \
   lib/Savane/Test/PHP.pm \
   lib/Savane/Test/Tracker.pm \
   lib/Savane/Test/User.pm \
+  lib/Savane/Test/Util.pm \
   lib/Savane/Test.pm \
   lib/Savane/User.pm \
   lib/Savane/Util.pm \
