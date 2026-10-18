@@ -43,11 +43,15 @@
 use strict;
 use Savane::Test::PHP;
 use Savane::Test::Log;
+use Savane::Test::Util;
 use Savane::Util;
 
 require Exporter;
 our @ISA = qw (Exporter);
-our @EXPORT = qw (append_savane_conf reset_savane_conf speed_up_crypt);
+our @EXPORT = qw (
+  append_savane_conf reset_savane_conf speed_up_crypt
+  add_savane_conf_pl clear_savane_conf_pl
+);
 
 # Set a low-cost crypt algorithm.
 sub speed_up_crypt
@@ -135,9 +139,59 @@ sub reset_savane_conf
   return 1;
 }
 
+my @added_conf_pl_files;
+
+sub clear_savane_conf_pl
+{
+  print_test_log ('Removing files installed in savane.conf.pl.d.');
+  print_test_result ('No files have been installed.')
+    unless @added_conf_pl_files;
+  my $ret = 0;
+  foreach (@added_conf_pl_files)
+    {
+      print_test_log ("Removing '$_'.");
+      if (unlink ($_))
+        {
+          print_test_result ('Successfully removed.');
+          next;
+        }
+       print_test_error ("Cannot remove: $!");
+       $ret = 1;
+    }
+  return $ret;
+}
+
+sub add_savane_conf_pl
+{
+  my $conf_dir = '@sysconfdir@/savane/savane.conf.pl.d';
+  return 1 if try_mkdir ($conf_dir);
+  my ($text, $suff) = @_;
+  $text .= "\nreturn 1;\n";
+  $suff = (defined $suff)? "-$suff": '';
+  my @entries = sort <$conf_dir>;
+  my $path = sprintf ('%s/test-%3.3i%s', $conf_dir, $#entries + 1, $suff);
+  my $formatted = $text;
+  $formatted =~ s,^,    ,gm;
+  print_test_log ("Writing to $path:\n$formatted");
+  my $fh;
+  unless (open ($fh, '>', $path))
+    {
+      print_test_error ("Cannot open '$path' for writing: $!");
+      return 1;
+    }
+  my $res = print {$fh} $text;
+  close ($fh);
+  push @added_conf_pl_files, $path if -f $path;
+  print_test_error ("Cannot write in '$path': $!") unless $res;
+  return !$res;
+}
+
 END
 {
-  reset_savane_conf (0);
+  my $exit_code = $?;
+  $exit_code = 1 if reset_savane_conf (0);
+  $exit_code = 1 if clear_savane_conf_pl ();
+  $? = $exit_code;
 }
 
 return "true";
