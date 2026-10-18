@@ -133,6 +133,7 @@ sub init_all
     $sys_error_cc_limit = -1;
   EOF
   $port = look_for_port ();
+  add_savane_conf_pl ("\$sys_www_server_port = '$port';\n", 'run-tests');
   wait_for_db ();
 }
 
