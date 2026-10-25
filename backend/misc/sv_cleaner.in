@@ -240,9 +240,10 @@ sub suspend_account
     UPDATE `user`
     SET
       `user_name` = '$new_name', `user_pw` = '!', `realname` = '-#-',
-      `status` = 'S', `email = 'idontexist\@savane.test', `confirm_hash` = null,
-      `authorized_keys` = '', `people_view_skills` = 0, `email_new` = null,
-      `people_resume` = '', `timezone` = 'GMT', `theme` = '', `gpg_key` = ''
+      `status` = 'S', `email` = 'idontexist\@savane.test',
+      `confirm_hash` = null, `authorized_keys` = '',
+      `people_view_skills` = 0, `email_new` = null, `people_resume` = '',
+      `timezone` = 'GMT', `theme` = '', `gpg_key` = ''
     WHERE `user_id` = $id
   EOF
 }
