@@ -1,0 +1,25 @@
+As of 2026, Savannah couldn't provide anonymous browsing for CVS and SVN
+repositories due to high loads.  As one partial work-around, an authenticated
+browsing for logged-in Savannah users was arranged.  With this setup, Savane
+automatically replaces browsing URLs for logged-in users with links
+to the proxied ViewVC instance that serves the repositories.  Savane can either
+use a URL like http://localhost:49152 or a path to the viewvc.cgi script
+written to the $sys_viewvc variable in savane.conf.php:
+
+  $sys_viewvc = 'http://localhost:49512';
+
+  $sys_viewvc = '/opt/viewvc/bin/cgi/viewvc.cgi';
+
+If a URL is used, ViewVC should be have server's 'script alias' set to 'vc'
+in its configuration to align with Savane URLs.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2026 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
