@@ -147,6 +147,7 @@ Run Time
 * Pwqcheck (passwdqc in Trisquel) - handling new passwords in frontend
 * Graphviz (graphviz in Trisquel) - frontend, optionally displaying inter-item
     dependency graphs.
+* ViewVC - authenticated browsing CVS and SVN repositories.
 
 Regression tests
 ----------------
