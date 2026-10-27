@@ -49,7 +49,10 @@ use Savane::Util;
 use Savane::DB;
 use Savane::Groups;
 use Savane::Hooks;
+use Savane::Mail;
+use Savane::SQL;
 use LWP::UserAgent;
+use Time::HiRes 'time';
 use File::Temp 'tempdir';
 use Cwd 'abs_path';
 
@@ -76,6 +79,8 @@ $post = 0 if $pre;
 
 my $stage = $pre? 'pre': 'post';
 
+my $pusher_uname = getpwuid ($>);
+
 sub report_wrong_line
 {
   my $msg = shift;
@@ -100,8 +105,7 @@ sub parse_line
 
 sub make_user_line
 {
-  my $user = getpwuid ($>);
-  return "sv-user: $user";
+  return "sv-user: $pusher_uname";
 }
 
 sub run_requests
@@ -172,8 +176,6 @@ sub forbid_merges
   print "Rejecting merge commits in '$ref':\n";
   my $sep = ('= ' x 33) . "=\n";
   print "$sep$merges\n$sep";
-  print "\nEither allow them on 'Git Configure' page, "
-    . "or rearrange the branch\nyou are pushing.\n\n";
   return 1;
 }
 
@@ -295,9 +297,378 @@ sub check_gpg
   return 0;
 }
 
-my %known_validations = (
+sub get_null_rev
+{
+  return '0' x 40;
+}
+
+sub get_mailing_list
+{
+  my $type = shift;
+  my %suffices = (
+   'address' => 'commit notifications', 'tag-address' => 'tag notifications'
+  );
+  my $suff = $type eq 'branch'? 'address': 'tag-address';
+  my $idx = "mail:$suff";
+  my $purpose = $suffices{$suff};
+  unless (exists ($group_preferences{$idx}))
+    {
+      print "Note: mailing list for $purpose not set in hook preferences.\n";
+      return undef;
+    }
+  if ($group_preferences{$idx} eq '')
+    {
+      print "Note: mailing list for $purpose in hook preferences is empty.\n";
+      return undef;
+    }
+  return $group_preferences{$idx};
+}
+
+sub get_subj_prefix
+{
+  my $dir = $repo_dir;
+  $dir =~ s/\.git$//;
+  return "[$dir]";
+}
+
+sub get_common_subject
+{
+  my ($ref, $ref_type) = @_;
+  my $pfx = get_subj_prefix ();
+  return "$pfx $ref_type '$ref'";
+}
+
+sub get_rm_subject
+{
+  my $s = get_common_subject (@_);
+  return "$s deleted";
+}
+
+sub git_rev_list
+{
+  my $arg = shift;
+  my $fmt = @_? shift: '%H';
+  my $rev_list_flags = '--reverse';
+  my @ret;
+  my @output = run_git ("rev-list $rev_list_flags --format='$fmt' $arg");
+  while (@output)
+    {
+      shift @output; # Skip commit header.  Note that --no-commit-header
+                     # is only introduced in Git 2.33.
+      my $line = shift @output;
+      push @ret, $line;
+    }
+  return wantarray? @ret: join ('', @ret);
+}
+
+sub list_lost_commits
+{
+  my $removed = shift;
+  my $all = get_other_refs ('../..');
+  my $ret = git_rev_list ("$removed --not $all", '%h %s');
+  chomp $ret;
+  return 'All omitted commits are still available through other references.'
+    if $ret eq '';
+  $ret =~ s/^/  /gm;
+  return
+    "These commits are not accessible through references any more:\n\n$ret";
+}
+
+sub get_rm_body
+{
+  my ($old, $ref, $ref_type) = @_;
+  my $log = run_git ("log -1 --format='%h %s' $old");
+  chomp $log;
+  my $lost = list_lost_commits ($old);
+  my $msg = <<"  EOF";
+    <$pusher_uname> pushed a change to delete $ref_type '$ref'
+
+    was at $log
+
+  EOF
+  $msg =~ s/^ {4}//gm;
+  return "$msg\n$lost";
+}
+
+sub gen_msg_id
+{
+  my $t = time ();
+  my ($sec, $min, $hr, $day, $mon, $yr) = gmtime ();
+  $mon++;
+  $yr += 1900;
+  my $ret = "$yr$mon$day$hr$min$sec.sv.$pusher_uname.";
+  my $frac = $t - int ($t);
+  srand ($frac * 1000000);
+  $frac = int (rand (1000000));
+  my $domain = GetConf ('sys_default_domain');
+  return "<$ret$frac\@$domain>";
+}
+
+sub get_pusher_email
+{
+  my $res = sql_query (
+    "SELECT `realname`, `email` FROM `user` WHERE `user_name` = ?",
+    $pusher_uname
+  );
+  return undef unless $res;
+  my $ret = sql_fetch_row ($res);
+  return undef unless defined $ret;
+  return $ret->{'realname'} . ' <' . $ret->{'email'} . '>';
+}
+
+sub get_ref_type
+{
+  my $type = shift;
+  return ($type eq 'heads')? 'branch': ($type eq 'tags'? 'tag': $type);
+}
+
+sub build_headers
+{
+  my ($old, $new, $ref, $type) = @_;
+  my %headers;
+  my $repo = $repo_dir;
+  $repo =~ s/\.git$//;
+  $headers{'X-Git-Repo'} = $repo;
+  $headers{'X-Git-Refname'} = "refs/$type/$ref";
+  $headers{'X-Git-Reftype'} = get_ref_type ($type);
+  $headers{'X-Git-Oldrev'} = $old;
+  $headers{'X-Git-Newrev'} = $new;
+  $headers{'Message-Id'} = gen_msg_id ();
+  my $reply_to = get_pusher_email ();
+  $headers{'Reply-To'} = $reply_to if defined $reply_to;
+  return %headers;
+}
+
+sub notify_removed
+{
+  my ($old, $ref, $type, $headers) = @_;
+  my $ref_type = get_ref_type ($type);
+  my $to = get_mailing_list ($ref_type);
+  return 0 unless defined $to;
+
+  my $subj = get_rm_subject ($ref, $ref_type);
+  my $msg = get_rm_body ($old, $ref, $ref_type);
+  print "notifying $to about removed refs/$type/$ref\n";
+  MailSend ($to, $subj, $msg, $headers);
+  return 0;
+}
+
+sub get_add_subject
+{
+  my $s = get_common_subject (@_);
+  return "$s created";
+}
+
+sub get_commit_log
+{
+  my $idx = 'mail:show-diffs';
+  my $p = ' ';
+  $p = '-p ' if (exists $group_preferences{$idx} && $group_preferences{$idx});
+  my $ret = run_git ("log -1 --stat $p" . shift);
+  return $ret;
+}
+
+sub get_other_refs
+{
+  my $ref = shift;
+  my @ret;
+  foreach (run_git ("for-each-ref --format='%(refname)' refs/heads/"))
+    {
+      chomp;
+      push @ret, $_ unless $ref eq $_;
+    }
+  foreach (run_git ("for-each-ref --format='%(refname)' refs/tags/"))
+    {
+      chomp;
+      push @ret, $_ unless $ref eq $_;
+    }
+  return join (' ', @ret);
+}
+
+sub list_commits
+{
+  my ($mark, $arg, $status) = @_;
+  return () unless defined $arg;
+  my @ret;
+  foreach (git_rev_list ($arg, '%H %h %s'))
+    {
+      my $h = $_;
+      $h =~ s/\s(.*)//;
+      push @ret, $_ unless exists $status->{$h};
+      $status->{$h} = $mark;
+    }
+  return @ret;
+}
+
+sub commit_classes
+{
+  my ($old, $new, $ref, $type) = @_;
+  my %ret;
+  $ret{'new'} = "$new --not " . get_other_refs ("refs/$type/$ref");
+  return %ret if rev_is_null ($old);
+  $ret{'new'} .= " $old";
+  $ret{'add'} = "^$old $new";
+  $ret{'omit'} = "^$new $old";
+  $ret{'lost'} = "$old --not " . get_other_refs ('../..');
+  return %ret;
+}
+
+sub sort_commits
+{
+  my ($old, $new, $ref, $type) = @_;
+  my %classes = commit_classes (@_);
+  my (%status, @commits, @new_sum, @new_commits, @lost, @summaries);
+  push @commits, list_commits ($_, $classes{$_}, \%status)
+    foreach ('add', 'omit', 'new', 'lost');
+  foreach my $st ('lost', 'omit', 'add', 'new')
+    {
+      foreach (@commits)
+        {
+          my $h = $_;
+          $h =~ s/\s(.*)//;
+          next if $st ne $status{$h};
+          push @summaries, sprintf ("%-4s %s", $st, $1);
+          push @new_sum, $1 if $st eq 'new';
+          push @new_commits, get_commit_log ($h) if $st eq 'new';
+          push @lost, "$st $1" if $st eq 'lost';
+        }
+    }
+  return (\@summaries, \@new_sum, \@new_commits, \@lost);
+}
+
+sub get_shorter_commit_id
+{
+  return substr (shift, 0, 8);
+}
+
+sub get_update_subject
+{
+  my ($old, $new) = (shift, shift);
+  my $s = get_common_subject (@_);
+  return "$s created" if rev_is_null ($old);
+  $old = get_shorter_commit_id ($old);
+  $new = get_shorter_commit_id ($new);
+  return "$s pushed ($old -> $new)";
+}
+
+sub format_update_commits
+{
+  my ($commits, $sep, $class) = @_;
+  my @ret = @${commits};
+  if ($class eq 'lost')
+    {
+      return '' unless @ret;
+      my $msg = 'These commits are not accessible through references any more:';
+      return "\n\n$msg\n$sep" . join ($sep, @ret);
+    }
+  return
+    "\n\nThis update adds no commits the repository hasn't contained yet.\n"
+    unless @ret;
+  return if $group_preferences{'mail:multimail'};
+  my $msg = 'Logs for new commits follow.';
+  return "\n\n$msg\n$sep" . join ($sep, @ret);
+}
+
+sub get_change_summary
+{
+  my ($old, $new) = @_;
+  return '' if (rev_is_null ($old) || rev_is_null ($new));
+  my $ret = join ('', run_git ("diff --stat $old $new"));
+  chomp $ret;
+  my $indent = ' ' x 2;
+  $ret =~ s/^/$indent/gm;
+  return "\n\nSummary of changes:\n$ret";
+}
+
+sub get_update_body
+{
+  my ($old, $new, $ref, $type) = @_;
+  my $ref_type = get_ref_type ($type);
+  my ($summaries, $new_sum, $new_commits, $lost) =
+    sort_commits ($old, $new, $ref, $type);
+  my $action = rev_is_null ($old)? 'created': 'updated';
+  my $msg = <<"  EOF";
+    <$pusher_uname> $action $ref_type '$ref'
+  EOF
+  $msg =~ s/^ {4}//gm;
+  my $sep = "\n  ";
+  $msg .= $sep . join ($sep, @{$summaries});
+  $msg .= get_change_summary ($old, $new);
+  $msg .= format_update_commits ($lost, $sep, 'lost');
+  $msg .= format_update_commits ($new_commits, "\n", 'new');
+  return ($msg, $new_sum, $new_commits);
+}
+
+sub get_commit_from_log
+{
+  my $log = shift;
+  return undef unless $log =~ /^commit (.*)/m;
+  return $1;
+}
+
+sub send_commit_notification
+{
+  my ($to, $subj, $log, $headers) = @_;
+  my $ref = $headers->{'X-Git-Refname'};
+  $ref =~ s,^refs/(heads|tags)/,,;
+  my $reftype = $headers->{'X-Git-Reftype'};
+  my $body = <<"  EOF";
+    <$pusher_uname> pushed a commit to $reftype '$ref'
+
+    $log
+  EOF
+  $body =~ s/^ {4}//gm;
+  my $rev = get_commit_from_log ($log);
+  $headers->{'X-Git-Rev'} = $rev if defined $rev;
+  $headers->{'Message-Id'} = gen_msg_id ();
+  MailSend ($to, $subj, $body, $headers);
+}
+
+sub send_follow_ups
+{
+  return unless $group_preferences{'mail:multimail'};
+  my ($to, $summaries, $c, $headers) = @_;
+  my @commits = @{$c};
+  return unless @commits;
+  my $n = $#commits + 1;
+  $headers->{'In-Reply-To'} = $headers->{'Message-Id'};
+  delete $headers->{'X-Git-Oldrev'};
+  delete $headers->{'X-Git-Newrev'};
+  for (my $i = 0; $i < $n; $i++)
+    {
+      my $sum = shift @{$summaries};
+      $sum =~ s/^\S+ //;
+      my $subj = sprintf (
+        '%s %02i/%02i: %s', get_subj_prefix (), $i + 1, $n, $sum
+      );
+      send_commit_notification ($to, $subj, $commits[$i], $headers);
+    }
+}
+
+sub notify_by_email
+{
+  my $line = shift;
+  my ($old, $new, $ref, $type) = parse_line ($line);
+  my %headers = build_headers ($old, $new, $ref, $type);
+  return notify_removed ($old, $ref, $type, \%headers) if rev_is_null ($new);
+  my $ref_type = get_ref_type ($type);
+  my $subj = get_update_subject ($old, $new, $ref, $ref_type);
+  my ($body, $summaries, $new_commits) =
+    get_update_body ($old, $new, $ref, $type);
+  my $to = get_mailing_list ($ref_type);
+  return 0 unless defined $to;
+  my $action = rev_is_null ($old)? 'created': 'updated';
+  print "notifying $to about $action refs/$type/$ref\n";
+  MailSend ($to, $subj, $body, \%headers);
+  send_follow_ups ($to, $summaries, $new_commits, \%headers);
+  return 0;
+}
+
+my %known_actions = (
   'no-merges' => \&forbid_merges, 'check-gpg' => \&check_gpg
 );
+
+%known_actions = ('mail' => \&notify_by_email) if $post;
 
 sub make_savane_d
 {
@@ -307,22 +678,20 @@ sub make_savane_d
   return 1;
 }
 
-sub hash_validations
+sub hash_actions
 {
   my %vals;
-  foreach (keys %known_validations)
+  foreach (keys %known_actions)
     {
-      $vals{$_} = $known_validations{$_} if defined $known_validations{$_};
+      $vals{$_} = $known_actions{$_} if defined $known_actions{$_};
     }
   return %vals;
 }
 
 sub validate_push
 {
-  # All validations are run at the 'pre-receive' stage.
-  return 0 unless $stage eq 'pre';
   return 1 if make_savane_d ();
-  my %vals = hash_validations ();
+  my %vals = hash_actions ();
   return 0 unless %vals;
   foreach my $line (@_)
     {
@@ -336,8 +705,9 @@ sub validate_push
   return 0;
 }
 
-# These triggers like validations may abort the push, so they are
-# applied at the pre-receive stage.
+# Triggers may abort the push, so they are applied at the pre-receive stage.
+# Triggers are special because they are passed to the frontend page
+# /bugs/git-triggers.php.
 my %known_triggers = (
   'closes-item' => '\S+\s+#\d+(\s.+)?', 'opens-item' => '\S+\s+#\d+(\s.+)?',
   'updates-item' => '\S+\s+#\d+(\s.+)'
@@ -365,11 +735,11 @@ sub disable_unused_actions
       next if (exists $group_preferences{$idx} && $group_preferences{$idx});
       $known_triggers{$_} = undef;
     }
-  foreach (keys %known_validations)
+  foreach (keys %known_actions)
     {
       my $idx = "$_";
       next if (exists $group_preferences{$idx} && $group_preferences{$idx});
-      $known_validations{$_} = undef;
+      $known_actions{$_} = undef;
     }
   return 0;
 }
@@ -466,8 +836,7 @@ sub receive_hook
 
 sub get_user_stamp_path
 {
-  my $user = getpwuid ($>);
-  return "savane.d/$user.stamp";
+  return "savane.d/$pusher_uname.stamp";
 }
 
 sub touch_user_stamp
@@ -494,6 +863,7 @@ sub main
   touch_user_stamp () if $pre;
   my $offer = offer_source_code (1);
   $offer = '' if ($post && check_user_stamp ());
+  check_user_stamp () if $ret;
   return $ret if $offer eq '';
   $offer =~ s/\n$//s;
   $offer =~ s/^/| /gm;

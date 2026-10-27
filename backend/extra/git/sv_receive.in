@@ -143,10 +143,8 @@ sub prepend_hooks
 sub list_known_hooks
 {
   my $stage = shift;
-  return () if $stage eq 'post';
-  return (
-    'closes-item', 'opens-item', 'no-merges', 'updates-item', 'check-gpg'
-  );
+  return qw (mail) if $stage eq 'post';
+  return qw (closes-item opens-item no-merges updates-item check-gpg);
 }
 
 sub get_known_hooks
@@ -167,12 +165,15 @@ sub disable_additional_hooks
     foreach (split (m%$sep%, $prefs->{$idx}));
 }
 
+my $unix_group_name;
+
 sub apply_hook_prefs
 {
   my $stage = shift;
-  my ($group, $dir) = guess_group_and_dir ();
-  return 0 unless defined $group;
-  my %prefs = get_git_group_prefs ($group, $dir);
+  my $dir;
+  ($unix_group_name, $dir) = guess_group_and_dir ();
+  return 0 unless defined $unix_group_name;
+  my %prefs = get_git_group_prefs ($unix_group_name, $dir);
   return 0 unless %prefs;
   disable_additional_hooks (\%prefs, $stage);
   get_disabled_branches (\%prefs);
@@ -184,7 +185,7 @@ sub apply_hook_prefs
   return 0;
 }
 
-sub main
+sub get_hook_result
 {
   my $stage = $pre? 'pre': 'post';
   my @lines;
@@ -192,7 +193,25 @@ sub main
   my $have_hooks = apply_hook_prefs ($stage);
   return 1 if prepend_hooks ($stage, @lines);
   return 0 unless $have_hooks;
-  my $ret = run_hook ('@bindir@/sv_' . "pre-receive --$stage", undef, @lines);
+  return run_hook ('@bindir@/sv_' . "pre-receive --$stage", undef, @lines);
+}
+
+sub main
+{
+  my $ret = get_hook_result ();
+  return $ret unless ($pre && $ret);
+  my $url = get_server_url () . "/git/hooks.php?group=$unix_group_name";
+  my $admin_url = get_server_url () . "/git/admin/?group=$unix_group_name";
+  my $msg = <<"  EOF";
+    Your push is being rejected due to some hooks installed in this repository.
+    You can see the details of Git hook configuration at
+    <$url>.
+
+    The admins of <$unix_group_name> can edit the configuration at
+    <$admin_url>.
+  EOF
+  $msg =~ s/^ {4}//gm;
+  print $msg;
   return $ret;
 }
 
