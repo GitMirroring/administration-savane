@@ -280,6 +280,18 @@ function git_get_branches ($r, $hook, $prefs, $checked = null)
     . html_join_enclosed ($items, ['li']) . "</ul>\n";
 }
 
+function git_mail_address_input ($r, $prefs, $idx, $msg)
+{
+  $idx = "mail:$idx";
+  $text_func = git_control_func ('text');
+  $addr = '';
+  if (array_key_exists ($idx, $prefs))
+    $addr = $prefs[$idx];
+  $name = git_pref_to_input ($idx);
+  return '<p>' . html_label ($name, $msg)
+    . '&nbsp; &nbsp;' . $text_func ($name, $addr) . "</p>\n";
+}
+
 function git_pref_val ($idx, $prefs, $def = false)
 {
   if (!array_key_exists ($idx, $prefs))
@@ -294,6 +306,36 @@ function git_pref_checkbox ($idx, $prefs, $label)
   $name = git_pref_to_input ($idx);
   return '<p>' . $checkbox_func ($name, $val) . html_label ($name, $label)
     . "</p>\n";
+}
+
+function git_mail_addresses ($r, $prefs)
+{
+  $addr = [
+    'address' => _('Addresses to notify about commits:'),
+    'tag-address' => _('Addresses to notify about tags:')
+  ];
+  $ret = [];
+  foreach ($addr as $k => $v)
+    $ret[] = git_mail_address_input ($r, $prefs, $k, $v);
+  return join ('', $ret);
+}
+
+function git_mail_controls ($r, $prefs)
+{
+  $idx = "mail";
+  $enabled = git_pref_val ($idx, $prefs);
+  $ret = html_h (4, _('Notifications'))
+    . git_pref_checkbox ('mail', $prefs, _('Notify about pushes by email'));
+  if (!$enabled)
+    return $ret;
+  $ret .=
+    git_pref_checkbox ('mail:show-diffs', $prefs, _('Include diffs in reports'))
+    . git_pref_checkbox (
+        'mail:multimail', $prefs, _('Report commits in separate messages')
+      )
+    . git_mail_addresses ($r, $prefs)
+    . git_get_branches ($r, 'mail', $prefs);
+  return $ret;
 }
 
 function git_gpg_import_test_key ($no, &$key)
@@ -382,7 +424,8 @@ function git_repo_html_id ($name)
 function git_all_hook_controls ($r, $prefs)
 {
   return git_simple_hook_controls ($r, $prefs)
-    . git_gpg_controls ($r, $prefs) . git_list_additional_hooks ($r, $prefs);
+    . git_gpg_controls ($r, $prefs) . git_mail_controls ($r, $prefs)
+    . git_list_additional_hooks ($r, $prefs);
 }
 
 function git_print_anon_access_commands ($cmd, $base_host, $repo_list, $group)

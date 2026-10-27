@@ -329,12 +329,37 @@ function set_additional_hooks ($repo, &$prefs)
     }
 }
 
+function set_checkbox_pref ($repo_name, $in, $idx, &$pref)
+{
+  $val = 0;
+  if (!empty ($in[$idx]))
+    $val = $in[$idx];
+  $pref["vcs:git:" . git_input_to_pref ($repo_name, $idx)] = $val;
+}
+
 function set_gpg_prefs ($repo, &$pref)
 {
   $k = "check-gpg--keys";
   if (!array_key_exists ($k, $_POST))
     return;
   $pref["vcs:git:" . git_input_to_pref ($repo, $k)] = $_POST[$k];
+}
+
+function set_mail_prefs ($repo, &$pref)
+{
+  $cb = ['mail--show-diffs', 'mail--multimail'];
+  $addr = ['mail--address', 'mail--tag-address', '/^[-+_@.,;\s\da-zA-Z]*$/'];
+  $in = sane_import ('post', ['preg' => [$addr], 'true' => $cb]);
+  array_pop ($addr);
+  foreach ($addr as $idx)
+    {
+      $val = '';
+      if (!empty ($in[$idx]))
+        $val = $in[$idx];
+      $pref["vcs:git:" . git_input_to_pref ($repo, $idx)] = $val;
+    }
+  foreach ($cb as $k)
+    set_checkbox_pref ($repo, $in, $k, $pref);
 }
 
 function set_hooks ($repos, $hook_group)
@@ -347,14 +372,12 @@ function set_hooks ($repos, $hook_group)
   $pref = [];
   foreach (git_known_triggers () as $v)
     {
-      $val = 0;
-      if (!empty ($triggers[$v]))
-        $val = $triggers[$v];
-      $pref["vcs:git:" . git_input_to_pref ($name, $v)] = $val;
+      set_checkbox_pref ($name, $triggers, $v, $pref);
       set_excluded_branches ($name, $v, $pref);
     }
   set_additional_hooks ($repo, $pref);
   set_gpg_prefs ($name, $pref);
+  set_mail_prefs ($name, $pref);
   if (empty ($pref))
     return;
   group_set_preference ($group_id, $pref);
