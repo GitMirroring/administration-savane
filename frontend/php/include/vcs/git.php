@@ -47,12 +47,15 @@ define ('HOOK_NON_GREEDY', 'l');
 
 function git_known_triggers ()
 {
-  return ['closes-item', 'opens-item', 'updates-item', 'no-merges', 'check-gpg'];
+  return [
+    'closes-item', 'opens-item', 'updates-item', 'no-merges', 'check-gpg',
+    'mail'
+  ];
 }
 
 function git_extra_trigger_controls ()
 {
-  return ['check-gpg--keys'];
+  return ['check-gpg--keys', 'mail--address', 'mail--show-diffs'];
 }
 
 function git_have_savane_hooks ($path)

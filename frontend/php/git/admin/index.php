@@ -337,6 +337,25 @@ function set_gpg_prefs ($repo, &$pref)
   $pref["vcs:git:" . git_input_to_pref ($repo, $k)] = $_POST[$k];
 }
 
+function set_mail_prefs ($repo, &$pref)
+{
+  $in = sane_import ('post', [
+      'preg' => [['mail--address', '/^[-+_@.,;\s\da-zA-Z]*$/']],
+      'true' => ['mail--show-diffs']
+    ],
+  );
+  $idx = 'mail--address';
+  $val = '';
+  if (!empty ($in[$idx]))
+    $val = $in[$idx];
+  $pref["vcs:git:" . git_input_to_pref ($repo, $idx)] = $val;
+  $idx = 'mail--show-diffs';
+  $val = 0;
+  if (!empty ($in[$idx]))
+    $val = 1;
+  $pref["vcs:git:" . git_input_to_pref ($repo, $idx)] = $val;
+}
+
 function set_hooks ($repos, $hook_group)
 {
   global $group_id, $triggers;
@@ -355,6 +374,7 @@ function set_hooks ($repos, $hook_group)
     }
   set_additional_hooks ($repo, $pref);
   set_gpg_prefs ($name, $pref);
+  set_mail_prefs ($name, $pref);
   if (empty ($pref))
     return;
   group_set_preference ($group_id, $pref);
