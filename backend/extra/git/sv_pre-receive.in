@@ -464,10 +464,36 @@ sub receive_hook
   return run_requests ($unix_group_name, $repo_dir, keys %requests);
 }
 
+sub get_user_stamp_path
+{
+  my $user = getpwuid ($>);
+  return "savane.d/$user.stamp";
+}
+
+sub touch_user_stamp
+{
+  my $path = get_user_stamp_path ();
+  my $fd;
+  unless (open ($fd, '>', $path))
+    {
+      print "Cannot open '$path' for writing: $!";
+      return;
+    }
+  print {$fd} "\n";
+  close ($fd);
+}
+
+sub check_user_stamp
+{
+  return unlink (get_user_stamp_path ());
+}
+
 sub main
 {
   my $ret = receive_hook ();
+  touch_user_stamp () if $pre;
   my $offer = offer_source_code (1);
+  $offer = '' if ($post && check_user_stamp ());
   return $ret if $offer eq '';
   $offer =~ s/\n$//s;
   $offer =~ s/^/| /gm;
