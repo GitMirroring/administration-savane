@@ -755,10 +755,11 @@ sub reset_job_date
 
 sub get_subject
 {
-  my $headers = shift;
+  my ($headers, $mbox) = @_;
   unless ($headers =~ /^Subject: (.*)$/m)
     {
       print_test_error ("Subject line not found in headers,\n$headers");
+      save_text ($mbox, 'no-subject.mbox');
       return undef;
     }
   return $1;
@@ -766,7 +767,7 @@ sub get_subject
 
 sub check_pre_notification
 {
-  my ($headers, $body, $job_id) = @_;
+  my ($headers, $body, $mbox, $job_id) = @_;
   print_test_log ('Checking notification email.');
   my $subject = get_subject ($headers);
   return 1 unless defined $subject;
@@ -783,6 +784,7 @@ sub check_pre_notification
       $ret = 1;
     }
   print_test_result ('Notification email does not look wrong.') unless $ret;
+  save_text ($mbox, 'wrong-pre-notification.mbox') if $ret;
   return $ret;
 }
 
@@ -835,7 +837,7 @@ sub test_sv_cleaner_operation
   my $out = `$cmd`;
   print_test_log ('Checking email.');
   my ($headers, $body, $mbox)  = get_message ();
-  return 1 if check_pre_notification ($headers, $body, $job_id);
+  return 1 if check_pre_notification ($headers, $body, $mbox, $job_id);
   my $st = $op eq 'pre-notification'? 'Open': 'Filled';
   return 0 unless check_notified_status ($agent, $group, $job_id, $st);
   $out =~ s/^/  /mg;
