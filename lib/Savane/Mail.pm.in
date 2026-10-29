@@ -56,8 +56,20 @@ sub format_message
     .  "Message sent by " . GetConf ("sys_name") . "\nhttps://$url\n";
 }
 
+sub override_headers
+{
+  my ($headers, $override) = @_;
+  return unless defined $override;
+  foreach (keys %{$override})
+    {
+      $headers->{$_} = $override->{$_} if defined $override->{$_};
+      delete $headers->{$_} unless defined $override->{$_};
+    }
+}
+
 sub get_headers
 {
+  my $override = shift;
   my %ret;
   %ret = (
     "From" => GetConf ("sys_mail_replyto"),
@@ -65,15 +77,16 @@ sub get_headers
     "X-Savane-Version" => GetVersion (1),
     "User-Agent" => "Savane::Mail.pm"
   );
+  override_headers (\%ret, $override);
   return %ret;
 }
 
 sub send_mail
 {
-  my ($to, $subject, $message) = @_;
+  my ($to, $subject, $message, $overriden_headers) = @_;
   my $msg = new Mail::Send;
   my $fh;
-  my %headers = get_headers ();
+  my %headers = get_headers ($overriden_headers);
 
   $msg->to ($to);
   $msg->subject ($subject);
@@ -88,10 +101,10 @@ sub send_mail
 
 sub log_mail
 {
-  my ($to, $subject, $message) = @_;
+  my ($to, $subject, $message, $headers) = @_;
   my $logdir = "@logdir@";
   my $log = "$logdir/sendmail.mbox";
-  my %headers = get_headers ();
+  my %headers = get_headers ($headers);
   die "Can't open $log for writing: $!\n" unless open FH, '>>', $log;
   print FH "From @PACKAGE@ " . `date`;
   print FH "To: $to\n";
@@ -106,10 +119,10 @@ sub log_mail
 
 sub MailSend
 {
-  my ($to, $subj, $msg) = @_;
+  my ($to, $subj, $msg, $headers) = @_;
   $msg = format_message ($msg);
-  return send_mail ($to, $subj, $msg) if @HAVE_SENDMAIL@;
-  return log_mail ($to, $subj, $msg);
+  return send_mail ($to, $subj, $msg, $headers) if @HAVE_SENDMAIL@;
+  return log_mail ($to, $subj, $msg, $headers);
 }
 
 return 1;
