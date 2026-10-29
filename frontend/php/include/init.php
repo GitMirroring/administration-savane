@@ -193,7 +193,6 @@ $tracker_list = utils_get_tracker_list ();
 
 function init_guess_artifact ($script_name)
 {
-  global $tracker_list;
   $guess = basename (dirname ($script_name));
 
   if ($guess == "admin") # Need to go deeper.
