@@ -202,8 +202,7 @@ my @branches = ('a', 'b', 'c', 'd');
 sub make_branches
 {
   my $repo = shift;
-  return 1 if try_chdir ($pwd);
-  return 1 if try_chdir ("checkouts/$repo");
+  return 1 if chdir_checkouts ($repo);
   return 1 if append_test_file ();
   return 1 if run_git ('add test', "commit -m'initially add branches in $repo'");
   foreach (@_)
@@ -883,8 +882,7 @@ sub run_clone
   $dir =~ s,.*/,,;
   return 1 if run_git ("clone $path");
   my $ret = 1 if make_branches ($dir, @branches);
-  $ret = 1 if try_chdir ($pwd);
-  $ret = 1 if try_chdir ('checkouts');
+  $ret = 1 if chdir_checkouts ();
   return $ret;
 }
 
@@ -892,7 +890,7 @@ sub make_git_checkouts
 {
   print_test_log ('Cloning repositories.');
   return 1 if try_mkdir ('checkouts');
-  return 1 if try_chdir ('checkouts');
+  return 1 if chdir_checkouts ();
   return 1 if run_clone ($unix_group_name);
   foreach (@git_repos)
     {
@@ -1123,8 +1121,7 @@ sub check_item_status
 sub make_change_commit
 {
   my ($tracker, $item, $new_status) = @_;
-  return 1 if try_chdir ($pwd);
-  return 1 if try_chdir ('checkouts/' . $git_repos[0]);
+  return 1 if chdir_checkouts ($git_repos[0]);
   return 1 if append_test_file ('test');
   my $msg = get_log_message_with_footer ($tracker, $item, $new_status);
   return run_git ('add test', "commit -m'$msg'");
@@ -1322,9 +1319,11 @@ sub run_offer_check
 
 sub reset_git_hooks
 {
+  print_test_log ('Resetting hooks.');
   return set_git_hooks (
     'no-merges' => undef, 'opens-item' => undef, 'closes-item' => undef,
-    'updates-item' => undef
+    'updates-item' => undef, 'no-merges' => undef, 'mail' => undef,
+    'check-gpg' => undef
   );
 }
 
@@ -1453,6 +1452,14 @@ sub check_chained_hooks
   return check_branch_switches ();
 }
 
+sub chdir_checkouts
+{
+  my $repo = @_? shift: '';
+  $repo = "/$repo" unless $repo eq '';
+  return 1 if try_chdir ($pwd);
+  return try_chdir ("checkouts$repo");
+}
+
 sub get_hook_branch_checkboxes
 {
   my ($form, $hook) = @_;
@@ -1561,12 +1568,10 @@ sub check_branch_switches
   return 1 if enable_branches_in_hook (
     $current_repo, $hook, undef, keys %disabled_branches
   );
-  return 1 if try_chdir ($pwd);
-  return 1 if try_chdir ("checkouts/$repo");
+  return 1 if chdir_checkouts ($repo);
   return 1
     if check_chained_hook_in_branches (\%disabled_branches, @branches);
-  return 1 if try_chdir ($pwd);
-  return 1 if try_chdir ("checkouts/$repo");
+  return 1 if chdir_checkouts ($repo);
   return 0;
 }
 
@@ -1608,8 +1613,7 @@ sub get_key_fingerprints
 sub make_gnupg_home
 {
   print_test_log ('Making GnuPG environment.');
-  return 1 if try_chdir ($pwd);
-  return 1 if try_chdir ('checkouts');
+  return 1 if chdir_checkouts ();
   return 1 if mkdir_gnupg ();
   my $key = "$frontenddir/php/testing/gpg/rsa-pub.asc";
   print_test_log ('Importing public key.');
@@ -1667,8 +1671,7 @@ sub check_gpg
   set_current_repo ("$unix_group_name/" . $git_repos[0]);
   return 1 if make_gnupg_home ();
   return 1 if switch_gpg_check (1);
-  return 1 if try_chdir ($pwd);
-  return 1 if try_chdir ("checkouts/" . $git_repos[0]);
+  return 1 if chdir_checkouts ($git_repos[0]);
   $check_rejected_push_output = \&check_rejected_unsigned_output;
   return 1 if run_git ('checkout test');
   return 1 if append_test_file ();
@@ -1679,6 +1682,70 @@ sub check_gpg
   return 1 if try_push (1);
   return 1 if switch_gpg_check (0);
   return try_push (0);
+}
+
+sub check_push_notif_subject
+{
+  my ($headers, $mbox) = @_;
+  my $subj = get_subject ($headers, $mbox);
+  return 1 unless defined $subj;
+  if ($subj =~ /\[$current_repo\] .* pushed/)
+    {
+      print_test_result ("Email subject is like expected, '$subj'.");
+      return 0;
+    }
+  print_test_error ("Email subject is unlike expected, '$subj'.");
+  save_text ($mbox, 'push-notif.mbox');
+  return 1;
+}
+
+sub check_reply_to
+{
+  my ($headers, $mbox) = @_;
+  my $reply_to = get_header ('Reply-To', $headers, $mbox);
+  my $expected = "$user_name <$user_name\@savane.test>";
+  return 1 unless defined $reply_to;
+  if ($reply_to eq $expected)
+    {
+      print_test_result ("Reply-To is '$reply_to' as expected.");
+      return 0;
+    }
+  print_test_error ("Reply-To is '$reply_to' ('$expected' expected).");
+  return 1;
+}
+
+sub check_body
+{
+  return 0;
+}
+
+sub check_git_notification
+{
+  my $address = shift;
+  print_test_log ('Checking message contents.');
+  my ($headers, $body, $mbox) = get_message ();
+  return 1 unless defined $headers;
+  return 1 if check_push_notif_subject ($headers, $mbox);
+  return 1 if check_reply_to ($headers, $mbox);
+  print_test_log ("headers: $headers");
+  print_test_log ("body: $body");
+  return 0;
+}
+
+sub check_git_emails
+{
+  my $addr = 'git-notif@savane.test';
+  print_test_log ('Checking push notifications.');
+  clear_mbox (1);
+  return 1 if set_git_hooks ('mail' => 1);
+  return 1 if set_git_hooks ('mail--address' => $addr);
+  return 1 if chdir_checkouts ($git_repos[0]);
+  return 1 if append_test_file ();
+  return 1 if run_git ('add test', "commit -m'making commit to notify'");
+  return 1 if try_push (0);
+  return 1 if check_git_notification ($addr);
+  return 1 if reset_git_hooks ();
+  return 0;
 }
 
 sub check_git_hooks
@@ -1698,6 +1765,7 @@ sub check_git_hooks
   return 1 if check_source_code_offer ();
   return 1 if check_chained_hooks ();
   return 1 if check_gpg ();
+  return 1 if check_git_emails ();
   return 0;
 }
 
