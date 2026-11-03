@@ -753,18 +753,6 @@ sub reset_job_date
   $agent->get (make_url ("reset-job-dates.php?$t-$job"));
 }
 
-sub get_subject
-{
-  my ($headers, $mbox) = @_;
-  unless ($headers =~ /^Subject: (.*)$/m)
-    {
-      print_test_error ("Subject line not found in headers,\n$headers");
-      save_text ($mbox, 'no-subject.mbox');
-      return undef;
-    }
-  return $1;
-}
-
 sub check_pre_notification
 {
   my ($headers, $body, $mbox, $job_id) = @_;

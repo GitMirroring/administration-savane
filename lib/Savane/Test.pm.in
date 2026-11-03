@@ -54,7 +54,8 @@ require Exporter;
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
-  clear_mbox get_mbox get_message check_apparently_from check_mbox
+  clear_mbox get_mbox get_message get_subject check_apparently_from check_mbox
+  get_header
   make_url unmake_url make_agent
   save_page save_text
   find_form
@@ -333,6 +334,30 @@ sub get_mbox
   close ($fd);
   clear_mbox ($silent) if $clear;
   return join '', @ret;
+}
+
+sub get_header
+{
+  my ($header, $headers, $mbox) = @_;
+  unless ($headers =~ /^$header: (.*)$/m)
+    {
+      print_test_error ("$header line not found in headers,\n$headers");
+      save_text ($mbox, 'no-header.mbox');
+      return undef;
+    }
+  return $1;
+}
+
+sub get_subject
+{
+  my ($headers, $mbox) = @_;
+  unless ($headers =~ /^Subject: (.*)$/m)
+    {
+      print_test_error ("Subject line not found in headers,\n$headers");
+      save_text ($mbox, 'no-subject.mbox');
+      return undef;
+    }
+  return $1;
 }
 
 sub get_message
