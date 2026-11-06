@@ -1538,6 +1538,43 @@ sub enable_branches_in_hook
   return check_branch_checkboxes ($form, \%cb_names, $val, @_);
 }
 
+sub select_new_branches_in_hook
+{
+  my ($repo, $hook, $val) = @_;
+  my $s = val_undef ($val);
+  return 1 if visit_git_admin_url ();
+  print_test_log ("Selecting new branches for '$hook' in '$repo', value $s.");
+  my $form = find_hook_form ($repo);
+  return 1 unless defined $form;
+  return 1 unless defined set_form_inputs ($form,  "branch-greedy-$hook", $val);
+  $agent->click ('submit');
+  return 1 if check_request_status ($agent);
+  print_test_log ("Checking new branches for '$hook' in '$repo', value $s.");
+  $form = find_hook_form ($repo);
+  return 1 unless defined $form;
+  return check_form_inputs ($form, "branch-greedy-$hook", $val);
+}
+
+sub check_chained_hook_in_new_branches
+{
+  my ($repo, $hook) = @_;
+  my $prev_branch = get_current_branch ();
+  return 1 unless defined $prev_branch;
+  my $branch = join ('', @branches);
+  return 1 if select_new_branches_in_hook ($repo, $hook, 1);
+  return 1 if run_git ("branch $branch", "checkout $branch");
+  my ($out) = commit_and_push ("committing in $branch", $branch);
+  return 1 if $?;
+  return 1 if look_for_additional_output ($out, 0);
+  return 1 if run_git ("push origin :$branch");
+  return 1 if select_new_branches_in_hook ($repo, $hook, undef);
+  ($out) = commit_and_push ("committing in $branch", $branch);
+  return 1 if $?;
+  return 1 if look_for_additional_output ($out, 1);
+  return 1 if run_git ("push origin :$branch", "checkout $prev_branch");
+  return 0;
+}
+
 sub check_chained_hook_in_branches
 {
   my $disabled = shift;
@@ -1571,6 +1608,7 @@ sub check_branch_switches
   return 1 if chdir_checkouts ($repo);
   return 1
     if check_chained_hook_in_branches (\%disabled_branches, @branches);
+  return 1 if check_chained_hook_in_new_branches ($current_repo, $hook);
   return 1 if chdir_checkouts ($repo);
   return 0;
 }
