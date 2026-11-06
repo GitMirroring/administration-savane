@@ -67,7 +67,7 @@ sub offer_source_code
     AGPL notice: $script is part of Savane.
     In order to download the corresponding source code of Savane, run
 
-      rsync -avz --no-D --no-l --no-o --no-g --cvs-exclude \\
+      rsync -avz --no-D -l --no-o --no-g --cvs-exclude \\
         $ENV{'USER'}\@$source_code_url .
 
     You can disable this notice in your account preferences
