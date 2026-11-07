@@ -302,7 +302,8 @@ EXTRA_DIST += backend/external/cities15000.txt AUTHORS.Savannah \
   $(all_substituted:%=%.in) $(mirmon_pkgdata) backend/README \
   autotools/README caboose/cleanup-dump.sed \
   caboose/copyright.awk caboose/fixup-notices.awk caboose/notices \
-  caboose/parse-files.awk doc/cc-error doc/comments-via-email doc/git-repos \
+  caboose/parse-files.awk doc/cc-error doc/comments-via-email doc/git-hooks \
+  doc/git-repos \
   doc/i18n doc/savane.conf.php doc/signed-notifications \
   doc/sv-to-unix-accounts doc/tests-and-checks doc/twin doc/viewvc
 

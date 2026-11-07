@@ -1,0 +1,51 @@
+Savane offers a few Git hooks configurable at
+/git/admin/?group=<unix_group_name>; they use the pre-receive
+and the post-receive hook.  The earliest Git release supported is 1.7.9
+where GnuPG signatures were introduced.
+
+The built-in pre-receive hooks are,
+
+* Checking GnuPG signatures.  When enabled, Git rejects any pushes
+  containing commits lacking valid signatures made by a key from
+  the configured set.
+
+* Forbidding merges.  When enabled, Git rejects any pushes
+  containing merge commits.
+
+* Closing, opening and commenting on tracker items.  When enabled, the hook
+  looks for trailers in the commit messages formatted like,
+
+    <Tag>: <tracker> #<item_id> <comment>
+
+  Where <Tag> is 'Closes-Item', 'Opens-Item' or 'Updates-Item', respectively
+  (the tags are case-insensitive); <tracker> is 'bugs', 'task', 'support'
+  or 'patch'; <item_id> is the number of the item in question; <comment>
+  is a comment string, it's mandatory for the 'Updates-Item' tag and optional
+  when closing and opening items.  On attempts to modify items in other groups
+  or non-existing items, the push is rejected.
+
+The only built-in post-receive hook sends notifications to the configured
+comma-separated list of email addresses.
+
+Additional hooks external to Savane can be installed
+in the hooks/savane.d/pre-receive.d and hooks/savane.d/post-receive.d
+directories.  Each hook should be an executable complying with the respective
+Git hook interface.  The pre-receive hooks are run before Savane internal hooks,
+and the push is rejected when the first script exits with a non-zero code;
+likewise, the post-receive hooks are run before Savane internal hooks,
+but their exit codes are ignored.
+
+The Web UI at /git/admin/?group=<unix_group_name> allows enabling and disabling
+all hooks, both built-in and external, and selecting the Git branches to apply
+each hook to.
+
+Copyright (C) 1999, 2000 The SourceForge Crew
+Copyright (C) 2000-2006 Mathieu Roy
+Copyright (C) 2014, 2016, 2017 Assaf Gordon
+Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+Copyright (C) 2013, 2014, 2017-2026 Ineiev
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
