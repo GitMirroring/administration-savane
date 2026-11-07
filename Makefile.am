@@ -442,7 +442,7 @@ test:
 	cd test; $$abs_src_dir/configure --prefix=`pwd`/install \
 	  --disable-sendmail --enable-mirror --disable-captcha \
 	  --disable-db-networking --enable-sample-db --enable-db-test-marker \
-	  --enable-detect-www-port --enable-twin-host
+	  --enable-detect-www-port --enable-twin-host GIT="${GIT}"
 	${MAKE} -C test all install
 	cd ./test && ${CHMOD} a+x ${all_test_scripts}
 	cd ./test/tests && ./run-tests ${RUN_TESTS_ARGS}
