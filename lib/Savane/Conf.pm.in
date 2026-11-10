@@ -41,6 +41,7 @@ our $sys_mail_replyto = 'INVALID.NOREPLY';
 our $sys_name = 'Savannah-dev';
 our $sys_curl_bin = '/usr/bin/curl';
 our $sys_server_default_protocol = 'http';
+our %sys_binaries = ();
 
 $conf_prefix = $ENV{'SAVANE_CONF'} if $ENV{'SAVANE_CONF'};
 
@@ -88,6 +89,8 @@ foreach (keys %binaries)
   {
     $binaries{$_} = 'false' unless $binaries{$_} ne '';
   }
+
+$binaries{$_} = $sys_binaries{$_} foreach keys %sys_binaries;
 
 sub configured_binary
 {

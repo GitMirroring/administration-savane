@@ -1,4 +1,5 @@
 # Configuration file for Savane Perl scripts.
+# Public domain; initially written by ineiev.
 
 our $sys_dbname="@SV_DB_NAME@";
 our $sys_dbhost="@SV_DB_HOST@";
@@ -13,4 +14,8 @@ our %sys_banned_email_names = ();
 $sys_default_domain = '@WWW_SERVER_HOST@';
 $sys_dir_prefix = '@pkgstatedir@';
 our $sys_source_code_url = 'PLACEHOLDER-URL';
+# The %sys_binaries variable may be used to override the configured
+# binaries like,
+#
+#   $sys_binaries{'hg'} = '/usr/local/bin/hg';
 return 1;
