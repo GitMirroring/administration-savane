@@ -30,6 +30,8 @@
 
 * New log_accum.pl option --prompt-to.
 
+* New configuration variable recognized in savane.conf.pl, %sys_binaries;
+
 * Perl scripts load configuration files from savane.conf.pl.d/, if any,
   after savane.conf.pl.
 
