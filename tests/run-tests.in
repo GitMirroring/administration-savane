@@ -48,10 +48,12 @@ use Savane::Test::PHP;
 use Savane::Test::Conf;
 use Savane::Test::Log;
 
-my $sbindir = "@sbindir@";
-my $pidfile = "@mysql_pid@";
-my $have_database ="@HAVE_DATABASE@";
-my $php_bin = "@PHP@";
+my $sbindir = '@sbindir@';
+my $pidfile = '@mysql_pid@';
+my $have_database ='@HAVE_DATABASE@';
+my $git_bin_default = '@GIT@';
+my $git_bin = undef;
+my $php_bin = '@PHP@';
 my $port;
 my $exit_code = 0;
 my $php_log_name = 'test-php.log';
@@ -64,12 +66,14 @@ my $help = <<"EOF";
 
   -h, --help           show this help and exit
   -v, --version        show Savane version and exit
+      --git-bin        Configure Git executable to a value
+                         different from '$git_bin_default'
       --php-bin        PHP executable [$php_bin]
 EOF
 $help =~ s,^  ,,gm;
 
 PrintVersionOrHelp ($help);
-GetOptions ("php-bin=s" => \$php_bin)
+GetOptions ('php-bin=s' => \$php_bin, 'git-bin=s' => \$git_bin)
   or die ("Wrong command line.\n");
 
 sub launch_db
@@ -118,6 +122,19 @@ sub look_for_port
     }
   die "Cannot start PHP server.\n";
 }
+
+sub init_savane_conf_pl
+{
+  my $text = <<"  EOF";
+    \$sys_www_server_port = '$port';
+  EOF
+  $text .= <<"  EOF" if defined $git_bin;
+    \$sys_binaries{'git'} = '$git_bin';
+  EOF
+  $text =~ s/^ {4}//gm;
+  add_savane_conf_pl ($text, 'run-tests');
+}
+
 sub init_all
 {
   init_test_log ('====');
@@ -133,7 +150,7 @@ sub init_all
     $sys_error_cc_limit = -1;
   EOF
   $port = look_for_port ();
-  add_savane_conf_pl ("\$sys_www_server_port = '$port';\n", 'run-tests');
+  init_savane_conf_pl ();
   wait_for_db ();
 }
 
