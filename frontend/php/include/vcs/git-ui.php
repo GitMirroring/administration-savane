@@ -94,7 +94,8 @@ function git_stage_hook_line ($stage, $r, $hook, $checked, $prefs, $i)
   $checkbox_func = git_control_func ('checkbox');
   $h = "$stage-$hook";
   return $checkbox_func ($h, $checked)
-    . html_label ($h, $hook) . form_hidden (["add-hook-$i" => $h]);
+    . html_label ($h, $hook) . form_hidden (["add-hook-$i" => $h])
+    . git_get_branches ($r, $h, $prefs, $checked);
 }
 
 function git_list_stage_hooks (
@@ -203,7 +204,8 @@ function git_simple_hook_controls ($r, $prefs)
   $ret = '';
   foreach ($controls as $hook => $msg)
     $ret .= git_hook_help ($hook)
-      . git_pref_checkbox ($hook, $prefs, $msg);
+      . git_pref_checkbox ($hook, $prefs, $msg)
+      . git_get_branches ($r, $hook, $prefs) . "</p>\n";
   return $ret;
 }
 
@@ -221,6 +223,61 @@ function git_list_additional_hooks ($r, $prefs)
     return '';
   $msg = html_h (4, _('Extra hooks')) . git_hook_help ('extra-hooks');
   return $msg . html_dl ($dl) . git_list_stage_hooks (null);
+}
+
+function git_branch_item ($branches, $b, $unselected, $i)
+{
+  $checkbox_func = git_control_func ('checkbox');
+  $checked = git_branch_is_selected ($b, $unselected);
+  $name = "branch-cb-$i";
+  $item = $checkbox_func ($name, $checked) . html_label ($name, $b);
+  if (array_key_exists ($b, $branches['default']))
+    $item = "<b>$item</b>";
+  return $item . form_hidden (["branch-name-$i" => $b]);
+}
+
+function git_itemize_branches (
+  $r, $hook = null, $branches = null, $unselected = null
+)
+{
+  static $i = 0, $i_prev = 0;
+  $i0 = $i;
+  if ($branches === null)
+    {
+      $ret = form_hidden (
+        ["branch-start-{$r['no']}" => $i_prev, "branch-end-{$r['no']}" => $i]
+      );
+      $i_prev = $i;
+      return $ret;
+    }
+  if (empty ($branches['branches']))
+    return [];
+  $items = [];
+  foreach ($branches['branches'] as $b)
+    $items[] = git_branch_item ($branches, $b, $unselected, $i++);
+  $items[0] .= form_hidden (["branch-num-0-$hook" => $i0]);
+  $items[0] .= form_hidden (["branch-num-1-$hook" => $i]);
+  return $items;
+}
+
+function git_get_branches ($r, $hook, $prefs, $checked = null)
+{
+  $checkbox_func = git_control_func ('checkbox');
+  if ($checked === null)
+    $checked = $prefs[$hook];
+  if (empty ($checked))
+    return '';
+  $branches = vcs_list_branches ('git', $r['name']);
+  if (empty ($branches))
+    return '';
+  $unselected = git_get_unselected_branches ($r, $hook, $prefs);
+  $items = git_itemize_branches ($r, $hook, $branches, $unselected);
+  $branch_greedy = $unselected[HOOK_SEPARATOR . 'greedy'];
+  $new_branches = $checkbox_func ("branch-greedy-$hook", $branch_greedy)
+    . html_label ("branch-greedy-$hook", _('new branches'));
+  array_unshift ($items, $new_branches);
+  return '<p>' . _('Apply to branches:') . "<br /></p>\n<ul>\n"
+    . html_join_enclosed ($items, ['li']) . "</ul>\n";
 }
 
 function git_pref_val ($idx, $prefs, $def = false)
@@ -281,7 +338,8 @@ function git_gpg_controls ($r, $prefs)
     . git_pref_checkbox ('check-gpg', $prefs, _('Only allow signed commits.'));
   if (!$check_gpg)
     return $ret;
-  $ret .= git_gpg_key_input ($key, $r['no']);
+  $ret .= git_get_branches ($r, 'check-gpg', $prefs)
+    . git_gpg_key_input ($key, $r['no']);
   if (git_controls_are_disabled ())
     return $ret;
   if ($GLOBALS['repo_no'] === $r['no'] && !empty ($GLOBALS['test_gpg_key']))

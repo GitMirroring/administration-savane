@@ -43,6 +43,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 define ('HOOK_SEPARATOR', '/./');
+define ('HOOK_NON_GREEDY', 'l');
 
 function git_known_triggers ()
 {
@@ -117,7 +118,18 @@ function git_get_external_pref_list ($r)
   $repo = $r['name'];
   $ret = [];
   foreach (['pre', 'post'] as $s)
-    $ret[] = git_input_to_pref ($repo, "disabled-hooks:$s");
+    {
+      $ret[] = git_input_to_pref ($repo, "disabled-hooks:$s");
+      foreach (git_read_hook_dir ($r, $s) as $h)
+        {
+          if (strpos ("-$h", '--') === false)
+            {
+              $ret[] = git_input_to_pref ($repo, "$s-$h:exclude-branches");
+              continue;
+            }
+          trigger_error ("Malformed hook script name ($s) '$h'.");
+        }
+    }
   return $ret;
 }
 
@@ -126,6 +138,8 @@ function git_get_fetched_pref_list ($r)
   $repo = $r['name'];
   $hooks = git_known_trigger_hook_prefs ($repo);
   $ret = $hooks;
+  foreach ($hooks as $h)
+    $ret[] = "$h:exclude-branches";
   $ret = array_merge ($ret, git_get_external_pref_list ($r));
   foreach (git_extra_trigger_controls () as $k)
     $ret[] = git_input_to_pref ($repo, $k);
@@ -219,6 +233,41 @@ function git_get_disabled_additional_hooks ($prefs, $stage)
   return $ret;
 }
 
+function git_extract_unselected_vals ($hook, $prefs)
+{
+  $idx = "$hook:exclude-branches";
+  $ret = [HOOK_SEPARATOR => ''];
+  if (!array_key_exists ($idx, $prefs))
+    return $ret;
+  if (empty ($prefs[$idx]))
+    return $ret;
+  $br = explode (HOOK_SEPARATOR, $prefs[$idx]);
+  if ($br[0] === '')
+    {
+      array_shift ($br);
+      $ret[HOOK_SEPARATOR] = array_shift ($br);
+    }
+  foreach ($br as $b)
+    $ret[$b] = 1;
+  return $ret;
+}
+
+function git_get_unselected_branches ($r, $hook, $prefs)
+{
+  $ret = git_extract_unselected_vals ($hook, $prefs);
+  $ret[HOOK_SEPARATOR . 'greedy'] =
+    false === strpos ($ret[HOOK_SEPARATOR], HOOK_NON_GREEDY);
+  return $ret;
+}
+
+function git_branch_is_selected ($b, $unselected)
+{
+  $ret = empty ($unselected[$b]);
+  if ($unselected[HOOK_SEPARATOR . 'greedy'])
+    return $ret;
+  return !$ret;
+}
+
 function git_read_description ($dir_name)
 {
   # Suppress warnings: when the group is private, the www-data user will be
@@ -309,6 +358,42 @@ function git_list_repos ($group_name, $git_dir, $clone_path)
   $ret = git_list_dirs ($group_name, $git_dir, $clone_path);
   if (empty ($ret))
     return git_get_list_from_cgitrepos ($group_name);
+  return $ret;
+}
+
+function git_run_git_branch ($dir)
+{
+  global $sys_git_name;
+  if (!is_dir ($dir))
+    return [];
+  $res = utils_run_proc (
+    [$sys_git_name, '--git-dir', $dir, 'branch', '--no-color', '-l'], $out, $err
+  );
+  $ret = [
+    'branches' => [], 'default' => [],
+    'out' => $out, 'err' => $err, 'dir' => $dir
+  ];
+  if ($res)
+    return $ret;
+  foreach (explode ("\n", $out) as $line)
+    {
+      if (!preg_match ('/^\s*([*]?)\s+(.*)/', $line, $arr))
+        continue;
+      $ret['branches'][] = $arr[2];
+      if ($arr[1] === '*')
+        $ret['default'][$arr[2]] = 1;
+    }
+  return $ret;
+}
+
+function git_list_branches ($git_dir, $repo_name)
+{
+  static $branches = [];
+  if (array_key_exists ($repo_name, $branches))
+    return $branches[$repo_name];
+  $dir = "$git_dir/$repo_name.git";
+  $ret = git_run_git_branch ($dir);
+  $branches[$repo_name] = $ret;
   return $ret;
 }
 ?>
