@@ -170,7 +170,7 @@ function display_hooks ($r)
     . form_hidden (
         ['group_id' => $group_id, 'hook_group' => $r['no'], 'repo' => $r['name']]
       )
-    . git_all_hook_controls ($r, $prefs)
+    . git_all_hook_controls ($r, $prefs) . git_itemize_branches ($r)
     . '<p>' . form_submit (_("Update"), 'submit') . "</p>\n</form>\n";
 }
 
@@ -268,6 +268,48 @@ function get_disabled_hooks_from_post ()
   return $ret;
 }
 
+function import_excluded_branches ($hook)
+{
+  $n = sane_import ('post',
+     [
+       'digits' => ["branch-num-0-$hook", "branch-num-1-$hook"],
+       'true' => ["branch-greedy-$hook"]
+     ]
+  );
+  foreach (['branch-num-0', 'branch-num-1', 'branch-greedy'] as $v)
+    $ret[$v] = $n["$v-$hook"];
+  if ($ret['branch-num-0'] === null || $ret['branch-num-1'] === null)
+    return null;
+  return $ret;
+}
+
+function import_branch_data ($i, $n, &$branches)
+{
+  $in = sane_import ('post',
+    ['true' => ["branch-cb-$i"], 'path' => ["branch-name-$i"]]
+  );
+  $vex = empty ($in["branch-cb-$i"]);
+  if (empty ($n['branch-greedy']))
+    $vex = !$vex;
+  if ($vex)
+    $branches[] = $in["branch-name-$i"];
+}
+
+function set_excluded_branches ($repo, $hook, &$prefs)
+{
+  $pfx = "vcs:git:" . git_pref_name_pfx ($repo);
+  $n = import_excluded_branches ($hook);
+  if ($n === null)
+    return;
+  $branches = [];
+  for ($i = $n['branch-num-0']; $i < $n['branch-num-1']; $i++)
+    import_branch_data ($i, $n, $branches);
+  $val = join (HOOK_SEPARATOR, $branches);
+  if (empty ($n['branch-greedy']))
+    $val = HOOK_SEPARATOR . HOOK_NON_GREEDY . HOOK_SEPARATOR . $val;
+  $prefs["$pfx$hook:exclude-branches"] = $val;
+}
+
 function set_additional_hooks ($repo, &$prefs)
 {
   $disabled = get_disabled_hooks_from_post ();
@@ -282,6 +324,8 @@ function set_additional_hooks ($repo, &$prefs)
         if ($dis)
           $dis_list[] = $hook;
       $prefs["{$pfx}disabled-hooks:$stage"] = join (HOOK_SEPARATOR, $dis_list);
+      foreach (git_read_hook_dir ($repo, $stage) as $v)
+        set_excluded_branches ($name, "$stage-$v", $prefs);
     }
 }
 
@@ -307,8 +351,9 @@ function set_hooks ($repos, $hook_group)
       if (!empty ($triggers[$v]))
         $val = $triggers[$v];
       $pref["vcs:git:" . git_input_to_pref ($name, $v)] = $val;
+      set_excluded_branches ($name, $v, $pref);
     }
-  set_additional_hooks ($repos[$hook_group], $pref);
+  set_additional_hooks ($repo, $pref);
   set_gpg_prefs ($name, $pref);
   if (empty ($pref))
     return;

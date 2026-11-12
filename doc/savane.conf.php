@@ -214,4 +214,8 @@ $sys_log_exits = true;
 # The default language used when no preferences from the browser are set,
 # 'en' by default.
 $sys_default_language = 'en';
+# Configured binaries.  The configure script looks for them in the system,
+# init.php additionally provides initial fallbacks for these values.
+$sys_gpg_name = '/usr/bin/gpg';
+$sys_git_name = '/usr/bin/git';
 ?>

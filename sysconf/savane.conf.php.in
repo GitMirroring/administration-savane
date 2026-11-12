@@ -102,4 +102,7 @@ $sys_vcs_dir['cvs']['dir'] = [
 $sys_gpg_name = "@GPG@";
 if ($sys_gpg_name === 'not found')
   unset ($sys_gpg_name);
+$sys_git_name = "@GIT@";
+if ($sys_git_name === 'not found')
+  unset ($sys_git_name);
 ?>

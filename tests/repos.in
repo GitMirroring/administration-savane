@@ -197,6 +197,25 @@ sub make_git_repo
   return 0;
 }
 
+my @branches = ('a', 'b', 'c', 'd');
+
+sub make_branches
+{
+  my $repo = shift;
+  return 1 if try_chdir ($pwd);
+  return 1 if try_chdir ("checkouts/$repo");
+  return 1 if append_test_file ();
+  return 1 if run_git ('add test', "commit -m'initially add branches in $repo'");
+  foreach (@_)
+    {
+      return 1 if run_git ("branch -f $_", "checkout $_");
+      return 1 if append_test_file ($_);
+      return 1
+        if run_git ("add  $_", "commit -m'adding $_'", "push origin $_:$_");
+    }
+  return 0;
+}
+
 sub clear_git_env
 {
   $ENV{'HOME'} = $pwd;
@@ -736,7 +755,7 @@ sub find_hook_form
     }
   print_test_error ("Cannot find hook form for '$repo'.");
   print_test_error ("Found forms for repos: " . join (', ', @msg));
-  save_page ($agent, 'enable-hooks.html');
+  save_page ($agent, 'hook-form.html');
   return $ret;
 }
 
@@ -746,7 +765,7 @@ sub find_form_input
   my $input = $form->find_input ($k);
   unless (defined $input)
     {
-      print_test_error ('Cannot find input.');
+      print_test_error ("Cannot find input '$k'.");
       save_page ($agent, 'no-input.html');
     }
   return $input;
@@ -802,9 +821,16 @@ sub check_form_inputs
   return $ret;
 }
 
+my $current_repo;
+
+sub set_current_repo
+{
+  $current_repo = shift;
+}
+
 sub set_git_hooks
 {
-  my $repo = "$unix_group_name/" . $git_repos[0];
+  my $repo = $current_repo;
   print_test_log ("Setting hooks for '$repo'.");
   return 0 if show_hooks_to_enable (@_);
   return 1 if visit_git_admin_url ();
@@ -855,7 +881,11 @@ sub run_clone
   my $path = git_root () . "/$repo.git";
   my $dir = $repo;
   $dir =~ s,.*/,,;
-  return run_git ("clone $path");
+  return 1 if run_git ("clone $path");
+  my $ret = 1 if make_branches ($dir, @branches);
+  $ret = 1 if try_chdir ($pwd);
+  $ret = 1 if try_chdir ('checkouts');
+  return $ret;
 }
 
 sub make_git_checkouts
@@ -863,13 +893,12 @@ sub make_git_checkouts
   print_test_log ('Cloning repositories.');
   return 1 if try_mkdir ('checkouts');
   return 1 if try_chdir ('checkouts');
-  my $ret = run_clone ($unix_group_name);
+  return 1 if run_clone ($unix_group_name);
   foreach (@git_repos)
     {
-      $ret = 1 if run_clone ("$unix_group_name/$_");
+      return 1 if run_clone ("$unix_group_name/$_");
     }
-  $ret = 1 if try_chdir ($pwd);
-  return $ret;
+  return 0;
 }
 
 sub append_test_file
@@ -976,12 +1005,22 @@ sub try_push
 
 sub check_no_merges
 {
+  my $r = $git_repos[0];
+  my $repo = "$unix_group_name/$r";
   print_test_log ('Trying to push merges.');
-  return 1 if try_chdir ('checkouts/'. $git_repos[0]);
+  return 1 if try_chdir ($r);
+  return 1 if run_git ('checkout b');
   return 1 if make_a_merge ();
-  return 1 if try_push (1);
+  return 1 if try_push (1, 'b');
   return 1 if set_git_hooks ('no-merges' => undef);
-  return try_push (0);
+  return 1 if try_push (0, 'b');
+  return 1 if set_git_hooks ('no-merges' => 1);
+  return 1 if enable_branches_in_hook ($repo, 'no-merges', 1, 'a', 'c');
+  return 1 if run_git ('checkout a');
+  return 1 if make_a_merge ();
+  return 1 if try_push (1, 'a');
+  return 1 if enable_branches_in_hook ($repo, 'no-merges', undef, 'a');
+  return try_push (0, 'a');
 }
 
 sub item_is_open
@@ -1124,12 +1163,14 @@ sub try_change_item_status
   my $str = status_str ($new_status);
   print_test_log ("Changing status of $tracker #$item to '$str'.");
   return 1 if make_change_commit (@_);
-  my ($out) = try_run_git ('push origin');
+  my $b = get_current_branch ();
+  return 1 unless defined $b;
+  my ($out) = try_run_git ("push origin $b:$b");
   my $ret = $?;
   my $res = l_xor ($ret, $change_disabled);
   report_output ($res, $out);
+  return 1 if ($ret and run_git ('reset --hard HEAD~1'));
   return $res if $res;
-  return 1 if ($change_disabled and run_git ('reset --hard HEAD~1'));
   return 0 if $change_disabled > 1;
   my $expected_status = $change_disabled? !$new_status: $new_status;
   return 1 if check_item_status ($tracker, $item, $expected_status);
@@ -1174,18 +1215,18 @@ sub try_update
   $update_disabled = 0 unless $update_disabled;
   print_test_log ("Testing commenting on $tracker #$item.");
   return 1 if make_change_commit ($tracker, $item, 2);
-  my ($out) = try_run_git ('push origin');
-  my $ret = $?;
+  my $b = get_current_branch ();
+  return 1 unless defined $b;
+  my ($out) = try_run_git ("push origin $b:$b");
+  my ($ret, $code) = ($?, $?);
   my $should_fail = $update_disabled && $update_disabled < 3;
   $ret = !$ret if $should_fail;
   report_output ($ret, $out);
-  return 1 if ($should_fail and run_git ('reset --hard HEAD~1'));
+  return 1 if ($code and run_git ('reset --hard HEAD~1'));
   return $ret if $ret;
   return 0 if $update_disabled > 1;
   return check_item_comment (@_);
 }
-
-
 
 sub check_update
 {
@@ -1208,7 +1249,15 @@ sub run_update_checks
   return 1 if set_git_hooks ('updates-item' => 1);
   return 1 if check_update ($my_items, $thy_items, 0);
   return 1 if set_git_hooks ('updates-item' => undef);
-  return check_update ($my_items, $thy_items, 1);
+  return 1 if check_update ($my_items, $thy_items, 1);
+  return 1 if set_git_hooks ('updates-item' => 1);
+  return 1 if run_git ('checkout a');
+  return 1 if enable_branches_in_hook (
+    $current_repo, 'updates-item', undef, 'a', 'c'
+  );
+  return 1 if check_update ($my_items, $thy_items, 1);
+  return 1 if enable_branches_in_hook ($current_repo, 'updates-item', 1, 'a');
+  return check_update ($my_items, $thy_items, 0);
 }
 
 sub look_for_offer
@@ -1260,7 +1309,9 @@ sub run_offer_check
 {
   return (1) if append_test_file ();
   return (1) if run_git ('add test', 'commit -am"check for CSO"');
-  my @out = try_run_git ('push origin');
+  my $b = get_current_branch ();
+  return 1 unless defined $b;
+  my @out = try_run_git ("push origin $b:$b");
   if ($?)
    {
      report_output (1, @out);
@@ -1307,7 +1358,6 @@ sub additional_script
   my $script = <<"  EOF";
     #! /bin/sh
     $sed "s:.*:Additional script #$no in $hook, &:"
-    cat
   EOF
   $script =~ s/^ {4}//mg;
   return $script;
@@ -1331,7 +1381,6 @@ sub add_hooks
   my $hooks = git_root () . "/$repo.git/hooks";
   print_test_log ("Adding hooks to $hooks.");
   return 1 if try_chmod ($hooks, 'u+w');
-  my $script = additional_script ();
   my $fh;
   foreach ('pre', 'post')
     {
@@ -1373,10 +1422,12 @@ sub look_for_additional_output
 
 sub commit_and_push
 {
-  my $msg = shift;
+  my ($msg, $branch) = @_;
+  $branch = get_current_branch () unless defined $branch;
+  return 1 unless defined $branch;
   return () if append_test_file ();
   return () if run_git ('add test', "commit -m'$msg'");
-  my ($out) = try_run_git ('push origin');
+  my ($out) = try_run_git ("push origin $branch:$branch");
   return ($out) unless $?;
   report_output (1, $out);
   return ();
@@ -1384,20 +1435,139 @@ sub commit_and_push
 
 sub check_chained_hooks
 {
+  my ($branch, $hooks_disabled) = @_;
   print_test_log ('Checking additional hooks.');
   return 1 if try_chdir ($pwd);
   return 1 if make_chained_hooks ();
   return 1 if try_chdir ('checkouts/' . $git_repos[0]);
-  my ($out) = commit_and_push ('checking additional hooks');
+  my ($out) = commit_and_push ('checking additional hooks', $branch);
   return 1 unless defined $out;
   print_test_log ('Checking if hooks have run.');
-  return 1 if look_for_additional_output ($out, 0);
+  return 1 if look_for_additional_output ($out, 0 || $hooks_disabled);
   print_test_log ('Disabling additional hooks.');
   return 1 if set_git_hooks ('pre-add' => undef, 'post-add' => undef);
-  ($out) = commit_and_push ('additional hooks disabled');
+  ($out) = commit_and_push ('additional hooks disabled', $branch);
   return 1 unless defined $out;
   print_test_log ('Checking if hooks have been skipped.');
-  return look_for_additional_output ($out, 1);
+  return 1 if look_for_additional_output ($out, 1);
+  return check_branch_switches ();
+}
+
+sub get_hook_branch_checkboxes
+{
+  my ($form, $hook) = @_;
+  my $input = find_form_input ($form, "branch-num-0-$hook");
+  return () unless defined $input;
+  my $n0 = $input->value;
+  $input = find_form_input ($form, "branch-num-1-$hook");
+  return () unless defined $input;
+  my $n1 = $input->value;
+  my %cb_names;
+  foreach (my $i = $n0; $i < $n1; $i++)
+    {
+      $input = find_form_input ($form, "branch-name-$i");
+      return () unless defined $input;
+      $cb_names{$input->value} = "branch-cb-$i";
+    }
+  return %cb_names;
+}
+
+sub select_branch_checkboxes
+{
+  my ($form, $cb_names, $val) = (shift, shift, shift);
+  print_test_log ("Selecting branches '" . join ("', '", @_) . "'.");
+  foreach (@_)
+    {
+      unless (exists $cb_names->{$_})
+        {
+          print_test_error ("Checkbox not found for branch '$_'");
+          save_page ($agent, 'no-branch.html');
+          return 1;
+        }
+      my $input = find_form_input ($form, $cb_names->{$_});
+      return 1 unless defined $input;
+      $input->value ($val);
+    }
+  return 0;
+}
+
+sub check_branch_checkboxes
+{
+  my ($form, $cb_names, $val) = (shift, shift, shift);
+  my $ret = 0;
+  foreach (@_)
+    {
+      unless (exists $cb_names->{$_})
+        {
+          print_test_error ("Checkbox not found for branch '$_'");
+          save_page ($agent, 'no-branch.html');
+          return 1;
+        }
+      my $input = find_form_input ($form, $cb_names->{$_});
+      return 1 unless defined $input;
+      print_test_log ("Checking '$_'.");
+      $ret = 1 if compare_vals ($val, $input);
+    }
+  save_page ($agent, 'wrong-branch-selection.html') if $ret;
+  return $ret;
+}
+
+sub enable_branches_in_hook
+{
+  my ($repo, $hook, $val) = (shift, shift, shift);
+  my $s = val_undef ($val);
+  print_test_log ("Selecting branches for '$hook' in '$repo', value $s.");
+  return 1 if visit_git_admin_url ();
+  my $form = find_hook_form ($repo);
+  return 1 unless defined $form;
+  my %cb_names = get_hook_branch_checkboxes ($form, $hook);
+  return 1 unless %cb_names;
+  return 1 if select_branch_checkboxes ($form, \%cb_names, $val, @_);
+  $agent->click ('submit');
+  return 1 if check_request_status ($agent);
+  print_test_log ('Checking branches selected.');
+  $form = find_hook_form ($repo);
+  return 1 unless defined $form;
+  return check_branch_checkboxes ($form, \%cb_names, $val, @_);
+}
+
+sub check_chained_hook_in_branches
+{
+  my $disabled = shift;
+  print_test_log ('Checking branch selectivity.');
+  foreach (@_)
+    {
+      my $dis = exists ($disabled->{$_});
+      print_test_log (
+        "Checking $_ (the hook should be " . ($dis? 'disabled': 'enabled')
+        . ")."
+      );
+      return 1 if run_git ("checkout $_");
+      my ($out) = commit_and_push ("committing $_", $_);
+      return 1 if $?;
+      return 1 if look_for_additional_output ($out, $dis);
+    }
+  return 0;
+}
+
+sub check_branch_switches
+{
+  my $repo = $git_repos[1];
+  my $hook = 'pre-add';
+  set_current_repo ("$unix_group_name/$repo");
+  return 1 if set_git_hooks ('pre-add' => 1, 'post-add' => undef);
+  return 1 if enable_branches_in_hook ($current_repo, $hook, 1, @branches);
+  my %disabled_branches = ($branches[1] => 1, $branches[3] => 1);
+  return 1 if enable_branches_in_hook (
+    $current_repo, $hook, undef, keys %disabled_branches
+  );
+  return 1 if try_chdir ($pwd);
+  return 1 if try_chdir ("checkouts/$repo");
+  return 1
+    if check_chained_hook_in_branches (\%disabled_branches, @branches);
+  return 1 if try_chdir ($pwd);
+  return 1 if try_chdir ("checkouts/$repo");
+  return 0;
 }
 
 sub mkdir_gnupg
@@ -1494,10 +1664,13 @@ sub switch_gpg_check
 sub check_gpg
 {
   print_test_log ('Checking GPG verifications.');
+  set_current_repo ("$unix_group_name/" . $git_repos[0]);
   return 1 if make_gnupg_home ();
   return 1 if switch_gpg_check (1);
-  return 1 if try_chdir ($git_repos[0]);
+  return 1 if try_chdir ($pwd);
+  return 1 if try_chdir ("checkouts/" . $git_repos[0]);
   $check_rejected_push_output = \&check_rejected_unsigned_output;
+  return 1 if run_git ('checkout test');
   return 1 if append_test_file ();
   return 1 if run_git ('add test', "commit -S -m'making a signed commit'");
   return 1 if try_push (0);
@@ -1511,6 +1684,7 @@ sub check_gpg
 sub check_git_hooks
 {
   my $user_name = shift;
+  set_current_repo ("$unix_group_name/" . $git_repos[0]);
   disable_originator_email ();
   return 1 if set_git_hooks (
     'opens-item' => 1, 'closes-item' => 1, 'updates-item' => 1, 'no-merges' => 1
@@ -1574,6 +1748,7 @@ sub clear_users
 sub clear_all
 {
   my $ret = 0;
+  print_test_log ('Clearing all.');
   unless (chdir ($pwd))
    {
      print_test_error ("Cannot chdir '$pwd'.");
