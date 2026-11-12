@@ -307,21 +307,28 @@ sub make_savane_d
   return 1;
 }
 
-sub validate_push
+sub hash_validations
 {
-  # All validations are run at the 'pre-receive' stage.
-  return 0 unless $stage eq 'pre';
-  return 1 if make_savane_d ();
   my %vals;
   foreach (keys %known_validations)
     {
       $vals{$_} = $known_validations{$_} if defined $known_validations{$_};
     }
+  return %vals;
+}
+
+sub validate_push
+{
+  # All validations are run at the 'pre-receive' stage.
+  return 0 unless $stage eq 'pre';
+  return 1 if make_savane_d ();
+  my %vals = hash_validations ();
   return 0 unless %vals;
   foreach my $line (@_)
     {
       foreach (keys %vals)
         {
+          next if filter_branches ($_, $line);
           my $f = $vals{$_};
           return 1 if $f->($line);
         }
@@ -398,7 +405,7 @@ sub list_footers
 
 sub process_update
 {
-  my ($old, $new, $ref) = parse_line ($_);
+  my ($old, $new, $ref) = @_;
   return () unless defined $old;
   my @ret = ('skip me');
   foreach (list_footers ($old, $new))
@@ -408,6 +415,7 @@ sub process_update
       next unless defined $known_triggers{$trigger};
       my $regexp = $known_triggers{$trigger};
       next unless $_ =~ /^$regexp$/;
+      next if filter_branches ($trigger, "$old $new refs/heads/$ref");
       push @ret, "$trigger: $_";
     }
   return @ret;
@@ -445,6 +453,7 @@ sub receive_hook
   ($unix_group_name, $repo_dir) = guess_group_and_dir ();
   return 1 unless defined $unix_group_name;
   %group_preferences = get_git_group_prefs ($unix_group_name, $repo_dir);
+  get_disabled_branches (\%group_preferences);
   my @lines;
   push @lines, $_ foreach (<>);
   return 1 if disable_unused_actions ($unix_group_name, $repo_dir);

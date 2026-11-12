@@ -32,7 +32,10 @@ use Cwd 'abs_path';
 require Exporter;
 
 our @ISA = qw (Exporter);
-our @EXPORT = qw (guess_group_and_dir get_git_group_prefs);
+our @EXPORT = qw (
+  guess_group_and_dir get_disabled_branches get_hook_separator
+  get_git_group_prefs filter_branches
+);
 
 sub guess_group_and_dir
 {
@@ -52,9 +55,56 @@ sub guess_group_and_dir
   return ($name, "$name.git");
 }
 
+my %disabled_branches;
+
 sub get_hook_separator
 {
   return '/./';
+}
+
+sub fill_exclude_flags
+{
+  my $branches = shift;
+  my $sep = get_hook_separator ();
+  my $flags = $branches->{$sep};
+  $branches->{$sep . 'greedy'} = ($flags !~ /l/);
+}
+
+sub parse_exclude_branches
+{
+  my ($branches, $pref) = @_;
+  my $sep = get_hook_separator ();
+  $branches->{$sep} = '';
+  fill_exclude_flags ($branches);
+  my @entries = split (m:$sep:, $pref);
+  return @entries unless $entries[0] eq '';
+  shift @entries;
+  $branches->{$sep} = shift @entries;
+  fill_exclude_flags ($branches);
+  return @entries;
+}
+
+sub branches_are_greedy
+{
+  my $b = shift;
+  my $sep = get_hook_separator ();
+  return $b->{$sep . 'greedy'};
+}
+
+sub get_disabled_branches
+{
+  return \%disabled_branches if %disabled_branches;
+  my $prefs = shift;
+  foreach my $key (keys %$prefs)
+    {
+      my $hook = $key;
+      next unless $hook =~ s/:exclude-branches$//;
+      my %branches;
+      $branches{$_} = 1
+        foreach parse_exclude_branches (\%branches, $prefs->{$key});
+      $disabled_branches{$hook} = \%branches if %branches;
+    }
+  return \%disabled_branches;
 }
 
 sub group_pref_pfx
@@ -103,3 +153,20 @@ sub get_git_group_prefs
   my $pfx = group_pref_pfx () . $dir . group_pref_ifx ();
   return fetch_group_prefs ($group, $pfx);
 }
+
+sub filter_branches
+{
+  my ($hook_name, $b) = @_;
+  return 0 unless defined $hook_name;
+  my $d = get_disabled_branches ();
+  return 0 unless exists $d->{$hook_name};
+  my $disabled_branches = $d->{$hook_name};
+  my $greedy = branches_are_greedy ($disabled_branches);
+  chomp $b;
+  $b =~ s/.*\s//;
+  $b =~ s,^refs/heads/,,;
+  return $greedy if exists $disabled_branches->{$b};
+  return !$greedy;
+}
+
+return 1;

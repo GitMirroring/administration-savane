@@ -182,6 +182,17 @@ function vcs_get_root ($vcs)
   return $sys_vcs_dir[$vcs]['dir'];
 }
 
+function vcs_list_branches ($vcs, $repo_name)
+{
+  $func = "{$vcs}_list_branches";
+  if (!function_exists ($func))
+    return [];
+  $root = vcs_get_root ($vcs);
+  if ($root === null)
+    return [];
+  return $func ($root, $repo_name);
+}
+
 function vcs_fetch_repos ($vcs, $group_id)
 {
   global $sys_vcs_dir;
@@ -190,11 +201,9 @@ function vcs_fetch_repos ($vcs, $group_id)
     return [];
   $group = group_get_object ($group_id);
   $group_name = $group->getUnixName ();
-  if (empty ($sys_vcs_dir) || !is_array ($sys_vcs_dir))
+  $vcs_dir = vcs_get_root ($vcs);
+  if ($vcs_dir === null)
     return [];
-  if (empty ($sys_vcs_dir[$vcs]['dir']) || !is_dir ($sys_vcs_dir[$vcs]['dir']))
-    return [];
-  $vcs_dir = $sys_vcs_dir[$vcs]['dir'];
   if (empty ($sys_vcs_dir[$vcs]['clone-path']))
     $clone_path = $vcs_dir;
   else

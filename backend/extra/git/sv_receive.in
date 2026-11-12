@@ -65,8 +65,6 @@ GetOptions (
 $pre = 1 unless $post;
 $post = 0 if $pre;
 
-my $hook_separator = '/./';
-
 sub get_hooks_path
 {
   my $git = configured_binary ('git');
@@ -79,15 +77,19 @@ my %disabled_hooks;
 
 sub run_hook
 {
-  my $hook = shift;
+  my ($hook_path, $hook_name) = (shift, shift);
   my $ret = 0;
   my $fh;
-  unless (open ($fh, '|-', $hook))
+  unless (open ($fh, '|-', $hook_path))
     {
-      print "Cannot run hook $hook\n";
+      print "Cannot run hook $hook_path\n";
       return 1;
     }
-   print { $fh } join ('', @_);
+   foreach (@_)
+     {
+       next if filter_branches ($hook_name, $_);
+       print { $fh } $_;
+     }
    return !close ($fh);
 }
 
@@ -132,7 +134,8 @@ sub prepend_hooks
   my $ret = 0;
   foreach (@hooks)
     {
-      $ret = 1 if run_hook (hook_path ($stage, $_), @_);
+      my $idx = "$stage-$_";
+      $ret = 1 if run_hook (hook_path ($stage, $_), $idx, @_);
     }
   return $ret;
 }
@@ -154,54 +157,14 @@ sub get_known_hooks
   return \%ret;
 }
 
-# Preference name doesn't actually depend on $stage.
-sub group_pref_pfx
-{
-  return 'vcs:git:';
-}
-
-sub group_pref_ifx
-{
-  return ':hooks:receive:';
-}
-
-sub query_group_prefs
-{
-  my ($group, $pfx) = @_;
-  return sql_query ("
-    SELECT `preference_name`, `preference_value`
-    FROM
-      `group_preferences` `p` JOIN `groups` `g`
-      ON `g`.`group_id` = `p`.`group_id`
-     WHERE `unix_group_name` = ? AND `preference_name` LIKE ?",
-     $group, "$pfx%"
-  );
-}
-
-sub fetch_group_prefs
-{
-  my ($group, $pfx) = @_;
-  my $res = query_group_prefs ($group, $pfx);
-  my %ret;
-  my $res = query_group_prefs ($group, $pfx);
-  return () unless defined $res;
-  my @row;
-  while (@row = sql_fetch_row ($res))
-    {
-      my ($name, $val) = @row;
-      next unless $name =~ s/^$pfx//;
-      $ret{$name} = $val;
-    }
-  return %ret;
-}
-
 sub disable_additional_hooks
 {
   my ($prefs, $stage) = @_;
+  my $sep = get_hook_separator ();
   my $idx = "disabled-hooks:$stage";
   return unless exists $prefs->{$idx};
   $disabled_hooks{$stage}{$_} = 1
-    foreach (split (m%$hook_separator%, $prefs->{$idx}));
+    foreach (split (m%$sep%, $prefs->{$idx}));
 }
 
 sub apply_hook_prefs
@@ -212,6 +175,7 @@ sub apply_hook_prefs
   my %prefs = get_git_group_prefs ($group, $dir);
   return 0 unless %prefs;
   disable_additional_hooks (\%prefs, $stage);
+  get_disabled_branches (\%prefs);
   foreach (list_known_hooks ($stage))
     {
       next unless exists $prefs{$_};
@@ -228,7 +192,7 @@ sub main
   my $have_hooks = apply_hook_prefs ($stage);
   return 1 if prepend_hooks ($stage, @lines);
   return 0 unless $have_hooks;
-  my $ret = run_hook ('@bindir@/sv_' . "pre-receive --$stage", @lines);
+  my $ret = run_hook ('@bindir@/sv_' . "pre-receive --$stage", undef, @lines);
   return $ret;
 }
 
