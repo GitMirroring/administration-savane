@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <!-- Web design by Michael McMahon. -->
+    <!-- Copyright: Copyright © 2025-2026 Free Software Foundation, Inc. -->
+    <!-- License: Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0) -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FSF Fundraiser Banner</title>
+
+    <!-- Self-hosted fonts avoid unnecessary Google tracking. -->
+    <link rel="stylesheet" href="fonts/poppins/v20/font.css">
+
+    <!--[if lt IE 9]>
+      <script src="html5shiv/html5shiv/3.7.3/html5shiv.js"></script>
+      <script src="respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+      body {
+        margin: 0;
+        position: relative;
+        height: 300px;
+        overflow: hidden;
+      }
+      .flex {
+        background-color: #1d0c3b;
+        border-style: solid;
+        border-width: 5px 5px 7px 5px;
+        border-color: #0065ff;
+	color: white;
+        display: flex;
+	flex: 0 0 auto;
+        align-items: safe center;
+	justify-content: space-around;
+	flex-direction: column;
+        height: 274px;
+      }
+      .message {
+        font-family: Poppins, sans-serif;
+        z-index: 2;
+        overflow: hidden;
+      }
+      .lead {
+        font-weight: bold;
+	color: #fd9e38;
+      }
+      .message .button {
+        box-sizing: border-box;
+	-webkit-font-smoothing: antialiased;
+        /* background-color: #562b87 !important; */
+	/* color: #fd9e38; */
+        background-color: #fd9e38 !important;
+	color: #562b87;
+        border-radius: 1.1875rem;
+	font-weight: bolder;
+	padding: 0.45rem 1rem;
+        margin: .125rem .125rem 6px;
+      }
+      .message a, .message a:visited, .message a:hover, .message a:active,
+      .fundraiserlink, .fundraiserlink:visited, .fundraiserlink:hover, .fundraiserlink:active {
+	color: white;
+        text-decoration: none;
+      }
+      .message p br {
+        display: none;
+      }
+      .message h2 {
+        align-items: safe center;
+	font-size: calc(14.568px + 0.8vw);
+	margin: 0;
+        text-align: center;
+      }
+      .message p {
+        color: white;
+        align-items: safe center;
+	font-size: calc(11.216px + 0.6vw);
+        line-height: calc(16.919px + 1.0vw);
+	margin: 0;
+        text-align: center;
+      }
+      /* Progress Bar */
+      .progresswidget {
+        font-family: sans-serif;
+        position: absolute;
+        bottom: 0;
+        z-index: 997;
+        padding: 0;
+        height: 15px;
+        width: 100%;
+        font-size: 12px;
+        line-height: 8px;
+      }
+      .progress {
+        font-weight: bold;
+        height: 15px;
+      }
+      .progress-front {
+	background: #fd9e38;
+        min-width: 40px;
+        position: absolute;
+        z-index: 999;
+        top: 0;
+        left: 0;
+      }
+      .progress-back {
+        background: #0065ff;
+      }
+      .count {
+        /* Temporary adjustment while starting out. */
+        color: white;
+        /* color: black; */
+        position: absolute;
+        padding: 7px 5px 5px 6px;
+        top: -4px;
+        /* Temporary adjustment while starting out. */
+        /*
+        right: 15px;
+	*/
+        right: -57px;
+      }
+      .goal {
+        color: white;
+        position: absolute;
+        padding: 7px 6px;
+        top: -4px;
+        right: -1px;
+      }
+      @media (max-width:281px) {
+        .message p {
+          display: none;
+        }
+      }
+      /* Banner not meant to be viewed below 360px. If you have a real world
+	 scenario where this is an issue, write to sysadmin@fsf.org to report.
+       */
+    </style>
+  </head>
+  <body title="White text in a purple background with a teal border create an eye-popping message to donate to the FSF today.">
+    <script>0</script>
+      <div class="flex message">
+        <a class="fundraiserlink" href="https://my.fsf.org/donate?mtm_campaign=fall26&mtm_source=banner" target="_parent">
+	  <h2 style="padding:0 5%;"><span class="lead">We are here to promote your freedom</span></h2>
+	  <p style="padding:1% 5% 0 5%;">Our work begins by asking ourselves, "Is it free?" because our purpose is to respect your individual user needs, autonomy, and right to decide for yourself. We empower people to build a future built on <em>free software</em> that, above all, puts the user first. By supporting our work, you help support everyone's rights.</p><p style="padding:1% 5% 0 5%;">Please help us reach our goal of $400,000 USD!</p></a>
+          <p><a class="fundraiserlink" href="https://my.fsf.org/donate?mtm_campaign=fall26&mtm_source=banner" target="_parent"><span class="button">Donate</span></a>&#8195;<a href="https://www.fsf.org/appeal?mtm_campaign=fall26&mtm_source=banner" target="_parent"><span class="button">Read more</span></a></p>
+      </div>
+      <!-- div formerly known as progress bar -->
+  </body>
+</html>
