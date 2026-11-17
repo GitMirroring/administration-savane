@@ -47,6 +47,7 @@ use Savane::Version;
 use Savane::Test::PHP;
 use Savane::Test::Conf;
 use Savane::Test::Log;
+use Time::HiRes ('time');
 
 my $sbindir = '@sbindir@';
 my $pidfile = '@mysql_pid@';
@@ -171,10 +172,12 @@ for (@all_scripts)
 
 @scripts = @ARGV if ($#ARGV >= 0);
 my %results = ('PASS' => 0, 'FAIL' => 0);
+my $t0 = time ();
 for (@scripts)
   {
+    my $t = time ();
     my $str = 'PASS';
-    print "TEST $_\r";
+    printf ("TEST [%8s] %s\r", ' ', $_);
     print {$php_log} "Running $_...\n";
     if (system ("echo \"$port\n$php_bin\" | ./$_ 2>> test.log"))
       {
@@ -182,7 +185,8 @@ for (@scripts)
         $str = 'FAIL';
       }
      $results{$str}++;
-     print "$str $_\n";
+     $t = time () - $t;
+     printf ("%s [%7.3fs] %s\n", $str, $t, $_);
   }
 print "\nNumber of tests:\n";
 my $total = 0;
@@ -191,7 +195,7 @@ for (sort (keys %results))
     print "$_: $results{$_}\n";
     $total += $results{$_};
   }
-print "\nTotal: $total\n";
+printf ("\nTotal: %i [%.3fs]\n", $total, time () - $t0);
 reset_savane_conf (1);
 close_test_log ();
 exit ($exit_code);
