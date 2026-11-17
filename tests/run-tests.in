@@ -155,6 +155,21 @@ sub init_all
   wait_for_db ();
 }
 
+my $t0;
+sub print_summary
+{
+  my ($n, $results) = @_;
+  return unless $n > 0;
+  print "\nNumber of tests:\n";
+  my $total = 0;
+  for (sort (keys %{$results}))
+    {
+      print "$_: $results->{$_}\n";
+      $total += $results->{$_};
+    }
+  printf ("\nTotal: %i [%.3fs]\n", $total, time () - $t0);
+}
+
 END
 {
   $exit_code = 1 if kill_db ();
@@ -172,7 +187,7 @@ for (@all_scripts)
 
 @scripts = @ARGV if ($#ARGV >= 0);
 my %results = ('PASS' => 0, 'FAIL' => 0);
-my $t0 = time ();
+$t0 = time ();
 for (@scripts)
   {
     my $t = time ();
@@ -188,14 +203,7 @@ for (@scripts)
      $t = time () - $t;
      printf ("%s [%7.3fs] %s\n", $str, $t, $_);
   }
-print "\nNumber of tests:\n";
-my $total = 0;
-for (sort (keys %results))
-  {
-    print "$_: $results{$_}\n";
-    $total += $results{$_};
-  }
-printf ("\nTotal: %i [%.3fs]\n", $total, time () - $t0);
+print_summary ($#scripts, \%results);
 reset_savane_conf (1);
 close_test_log ();
 exit ($exit_code);
