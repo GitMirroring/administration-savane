@@ -41,11 +41,6 @@
 # Basic module that loads any convenient submodules.
 
 use strict;
-use Term::ANSIColor qw(:constants);
-use POSIX qw(strftime);
-use File::Basename;
-use Text::Wrap qw(&wrap $columns);
-
 use Savane::Version;
 use Savane::Conf;
 use Savane::SQL;
