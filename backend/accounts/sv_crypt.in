@@ -45,6 +45,7 @@
 use strict;
 use warnings;
 use Savane::Version;
+use Getopt::Long ('GetOptions');
 
 PrintVersionOrHelp (
   "Run crypt(3).  Used in web UI to make and validate hashed passphrases.\r"

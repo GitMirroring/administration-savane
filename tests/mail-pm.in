@@ -44,7 +44,9 @@
 use strict;
 use warnings;
 use Savane::Version;
+use Savane::Conf;
 use Savane::Test;
+use Savane::Test::Log;
 use Savane::Mail;
 
 PrintVersionOrHelp ("Test Savane::Mail.");

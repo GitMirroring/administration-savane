@@ -53,10 +53,8 @@
 
 use strict;
 use Cwd 'abs_path';
-use Savane::Version;
-use Savane::DB;
-use Savane::User;
-use Savane::Conf;
+use Getopt::Long ('GetOptions');
+use Savane;
 
 $ENV{'PATH'}="/usr/local/bin:/usr/bin:/bin";
 $ENV{'CVSEDITOR'}="/bin/false";

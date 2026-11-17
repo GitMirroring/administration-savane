@@ -42,9 +42,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+package Savane::User;
+
 use strict;
 require Exporter;
 
+use Savane::DB;
+use Savane::SQL;
 use Savane::Util;
 
 our @ISA = qw(Exporter);
@@ -52,9 +56,7 @@ our @EXPORT = qw (GetUserSettings GetUserPrefs PrintUserSettings
   PrintUserPrefs SetUserSettings SetUserPrefs GetUserGroups GetUserList
   GetUserName PrintAliasesList
 );
-our $version = 1;
 
-our $dbd;
 our $qqch;
 our $sys_homedir;
 our $sys_homedir_subdirs;

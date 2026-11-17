@@ -46,6 +46,7 @@ use warnings;
 use Savane::Version;
 use Savane::Test;
 use Savane::Test::Group;
+use Savane::Test::Log;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test group registration and removal.");

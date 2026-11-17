@@ -44,10 +44,12 @@
 use strict;
 use warnings;
 use Savane::Version;
-use Savane::Util;
+use Savane::Conf;
 use Savane::Git;
+use Savane::Util;
 use Savane::Test;
 use Savane::Test::Conf;
+use Savane::Test::Log;
 use Savane::Test::User;
 use Savane::Test::Util;
 use Savane::Test::Group;

@@ -1,4 +1,4 @@
-# Cvs-related subroutines.
+# CVS-related subroutines.
 #
 # Copyright (C) 1999, 2000 The SourceForge Crew
 # Copyright (C) 2000-2006 Free Software Foundation, Inc.
@@ -42,16 +42,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # (Called Cvs instead of CVS to avoid confusion with /CVS)
-#
-# Currently, the location of the locks is hardcoded, as the anoncvs
-# group.
+package Savane::Cvs;
+
+# Currently, the location of the locks is hardcoded, as the anoncvs group.
 
 use strict;
 use warnings;
 
+use Savane::Conf;
+use Savane::Groups;
+use Savane::Util;
 require Exporter;
-require Savane::Util;
-require Savane::Conf;
 our @ISA = qw (Exporter);
 our @EXPORT = qw (CvsMakeAreaSavannah
   WebCvsMakeAreaSavannahGNU WebCvsMakeAreaSavannahNonGNU

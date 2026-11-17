@@ -48,6 +48,7 @@ use Savane::DB;
 use Savane::Locks;
 use Savane::Mail;
 use Savane::User;
+use Savane::Util;
 use Savane::Groups;
 
 return "true";

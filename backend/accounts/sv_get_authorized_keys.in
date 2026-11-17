@@ -45,6 +45,7 @@
 use strict;
 use Savane::Version;
 use Savane::DB;
+use Getopt::Long ('GetOptions');
 
 my $help_msg =
 "Usage: $0 [OPTIONS] USER

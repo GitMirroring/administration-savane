@@ -24,15 +24,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+package Savane::Conf;
+
 use strict;
 require Exporter;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(GetConf get_server_url configured_binary);
+our @EXPORT = qw (GetConf configured_binary get_server_url);
 
 my $conf_prefix = '@sysconfdir@/savane';
 my $conf_file;
 my $res;
+
+# Database configuration.
+our $sys_dbname;
+our $sys_dbhost;
+our $sys_dbport = '';
+our $sys_dbuser;
+our $sys_dbpasswd;
+our $sys_dbnetworking;
+our $sys_dbparams;
+
+# Path to group area.
+our $sys_dir_prefix;
 
 # Default values for some variables.
 our $sys_default_domain = '@WWW_SERVER_HOST@';

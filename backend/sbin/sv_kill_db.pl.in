@@ -44,6 +44,7 @@
 
 use strict;
 use Savane::Version;
+use Getopt::Long ('GetOptions');
 
 our $rundir = "@mysql_rundir@";
 our $pidfile = "@mysql_pid@";

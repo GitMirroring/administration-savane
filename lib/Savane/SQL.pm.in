@@ -26,56 +26,53 @@
 
 # Basic database routines.
 
+package Savane::SQL;
+
 use strict;
 use DBI;
-require Savane::Conf;
+use Savane::Conf;
 require Exporter;
 
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
-  db_die_if_unconnected
-  db_last_insert_id
+  sql_die_if_unconnected
+  sql_last_insert_id
   sql_fetch_row
   sql_fetch_row_array
   sql_query
+  $dbd
 );
 
-our $sys_dbname;
-our $sys_dbhost;
-our $sys_dbport;
-our $sys_dbuser;
-our $sys_dbpasswd;
-our $sys_dbnetworking;
-our $sys_dbparams;
-our $dbd;
 our $socket = "@mysql_socket@";
+our $dbd;
 
 sub db_source
 {
-  my $ret = "DBI:mysql:database=$sys_dbname";
+  my $ret = 'DBI:mysql:database=' . GetConf ('sys_dbname');
 
-  $ret .= ":host=$sys_dbhost";
-  $ret .= ":port=$sys_dbport" if $sys_dbport ne '';
-  $ret .= ":mysql_socket=$socket" if $sys_dbnetworking eq 'no';
-  $ret .= ":$sys_dbparams";
+  $ret .= ':host='. GetConf ('sys_dbhost');
+  my $dbport = GetConf ('sys_dbport');
+  $ret .= ":port=$dbport" if $dbport ne '';
+  $ret .= ":mysql_socket=$socket" if GetConf ('sys_dbnetworking') eq 'no';
+  $ret .= ':' . GetConf ('sys_dbparams');
   return $ret;
 }
 
 $dbd =
   DBI->connect (
-    db_source (), $sys_dbuser, $sys_dbpasswd,
+    db_source (), GetConf ('sys_dbuser'), GetConf ('sys_dbpasswd'),
     {PrintError => 0, AutoCommit => 1}
   );
 
 $dbd->{PrintError} = $dbd->{RaiseError} = 1 if $dbd;
 
-sub db_die_if_unconnected
+sub sql_die_if_unconnected
 {
   return if $dbd;
   die $DBI::errstr;
 }
 
-sub db_last_insert_id
+sub sql_last_insert_id
 {
   return $dbd->last_insert_id ();
 }

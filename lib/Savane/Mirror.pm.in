@@ -39,12 +39,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Mirror;
 
 use strict;
 require Exporter;
 
 our @ISA = qw (Exporter);
-our @EXPORT = qw (mk_html_dir html_header);
+our @EXPORT = qw (
+  default_dl_site_name
+  html_header
+  mk_html_dir
+  stat_field_label
+);
 
 sub html_header
 {

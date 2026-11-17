@@ -47,6 +47,7 @@ use Savane::Version;
 use Savane::Test::PHP;
 use Savane::Test::Conf;
 use Savane::Test::Log;
+use Getopt::Long ('GetOptions');
 use Time::HiRes ('time');
 
 my $sbindir = '@sbindir@';

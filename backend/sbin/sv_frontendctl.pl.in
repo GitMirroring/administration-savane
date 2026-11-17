@@ -45,6 +45,7 @@
 
 use strict;
 use Savane::Version;
+use Getopt::Long ('GetOptions');
 
 my $port = "@WWW_SERVER_PORT@";
 my $host = "@WWW_SERVER_HOST@";

@@ -40,9 +40,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Test::Membership;
+
 use strict;
 use warnings;
 use Savane::Test;
+use Savane::Test::Log;
 use WWW::Mechanize;
 require Exporter;
 
