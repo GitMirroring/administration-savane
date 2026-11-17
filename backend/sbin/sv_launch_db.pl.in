@@ -45,6 +45,7 @@
 use strict;
 use Savane::Version;
 use Savane::Conf;
+use Getopt::Long ('GetOptions');
 
 our $lock = "@mysql_lock@";
 our $socket = "@mysql_socket@";

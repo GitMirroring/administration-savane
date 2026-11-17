@@ -47,8 +47,9 @@ use Savane::Version;
 use Savane::Test;
 use Savane::Test::Conf;
 use Savane::Test::Group;
-use Savane::Test::User;
+use Savane::Test::Log;
 use Savane::Test::Tracker;
+use Savane::Test::User;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test tracker operations.");

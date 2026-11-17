@@ -46,6 +46,7 @@ use warnings;
 use Savane::Version;
 use Savane::Test;
 use Savane::Test::Conf;
+use Savane::Test::Log;
 
 PrintVersionOrHelp ('Test language negotiation.');
 

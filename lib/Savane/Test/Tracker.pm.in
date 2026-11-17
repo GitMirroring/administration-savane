@@ -40,9 +40,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Test::Tracker;
+
 use strict;
 use warnings;
 use Savane::Test;
+use Savane::Test::Log;
 use WWW::Mechanize;
 require Exporter;
 
@@ -55,6 +58,8 @@ our @EXPORT = qw (
   generate_new_item_details
   get_submitters_by_item_id
   get_submitted_item
+  get_current_tracker
+  item_is_private
   submitted_items_keys
   recall_item_url
   set_private_names

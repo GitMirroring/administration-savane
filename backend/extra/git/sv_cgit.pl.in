@@ -45,7 +45,6 @@ use strict;
 use Savane;
 use Getopt::Long;
 
-our $dbd;
 my $verbose;
 my $git_bin = configured_binary ('git');
 my $cgitrepos_file = "cgitrepos";

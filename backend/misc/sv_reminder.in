@@ -44,14 +44,10 @@
 
 use strict;
 use Savane;
-use Savane::Util;
 use Getopt::Long;
 use Time::Local 'timegm_nocheck';
 
-our $sys_name;
-our $sys_https_host;
-our $sys_default_domain;
-our $dbd;
+my $server = GetConf ('sys_name');
 
 my $script = "sv_reminder";
 my $logfile = "/var/log/sv_reminder.log";
@@ -283,16 +279,7 @@ foreach my $tracker (@trackers)
   }
 
 my $count = 0;
-my $basepath;
-
-if ($sys_https_host)
-  {
-    $basepath = "https://$sys_https_host/";
-  }
-else
-  {
-    $basepath = "http://$sys_default_domain/";
-  }
+my $basepath = get_server_url () . '/';
 
 foreach my $user_id (keys %items)
   {
@@ -305,13 +292,13 @@ foreach my $user_id (keys %items)
     next unless $user_id;
     next unless $user_email{$user_id};
 
-    my $title = "$sys_name reminder";
+    my $title = "$server reminder";
 
     my $mail = <<"    EOF";
       Hello, $realnames{$user_id}!
 
       This reminder is sent to you because you requested it
-      in your $sys_name account <$user_names{$user_id}> notification settings.
+      in your $server account <$user_names{$user_id}> notification settings.
 
     EOF
     $mail =~ s/^      //gm;

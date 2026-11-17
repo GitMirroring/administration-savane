@@ -37,15 +37,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Git;
 
 # Init GIT repository.
 
 use strict;
 use warnings;
 
+use Savane::Conf;
+use Savane::Util;
+
 require Exporter;
-require Savane::Conf;
-require Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(GitMakeArea);
 our $version = 1;

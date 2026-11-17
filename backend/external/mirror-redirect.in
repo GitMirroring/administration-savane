@@ -21,6 +21,7 @@
 
 use strict;
 use warnings;
+use Getopt::Long ('GetOptions');
 use Time::HiRes 'time';
 use File::Temp 'tempfile';
 use Geo::IP;

@@ -904,9 +904,9 @@ function html_select_typedir_box ($input_name, $current_value)
     print form_option ($dir, $current_value, $title);
   print "</select> [BACKEND SPECIFIC]\n";
   print "<p><span class='smaller'>Basic directory will make the backend\n"
-    . "using DownloadMakeArea(), defined in Savannah::Download;<br />\n"
-    . "CVS directory will make the backend using CvsMakeArea(), defined\n"
-    . "in Savannah::Cvs.\n</span><p>";
+    . "using DownloadMakeArea(), defined in Savane::Download;<br />\n"
+    . "CVS directory will make the backend using CvsMakeAreaSavannah(), defined\n"
+    . "in Savane::Cvs.\n</span><p>";
 }
 
 # Print an theme select box. This function will add the special rotate

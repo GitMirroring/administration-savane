@@ -45,6 +45,7 @@ use strict;
 use warnings;
 use Savane::Version;
 use Savane::Test;
+use Savane::Test::Log;
 use WWW::Mechanize;
 
 PrintVersionOrHelp ("Test internal functions.");

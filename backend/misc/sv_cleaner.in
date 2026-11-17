@@ -51,11 +51,9 @@
 
 use strict;
 use Savane;
-use Savane::Util;
 use Getopt::Long;
 use Time::Local;
 
-our $dbd;
 our $sys_banned_email_domains;
 our %sys_banned_email_names;
 
@@ -159,11 +157,6 @@ sub delete_and_log
   log_result ("deleted $result $msg", $result);
 }
 
-sub get_sys_name
-{
-  return GetConf ('sys_name');
-}
-
 sub get_default_domain
 {
   my $ret = GetConf ('sys_default_domain');
@@ -176,7 +169,7 @@ sub send_account_removal_notification
   print_log ("-- sending notification") if $verbose > 2;
   return if $dry_run;
   my ($name, $email) = @_;
-  my $sys = get_sys_name ();
+  my $sys = GetConf ('sys_name');
   my $body = "Your $sys account <$name> is automatically\n"
     . "removed due to inactivity.\n\n"
     . "For criteria of removing idle accounts, please check\n"
@@ -659,8 +652,8 @@ sub cleanup_user_tables
 sub make_old_job_subject
 {
   my ($group, $job_id) = @_;
-  my $sys_name = get_sys_name ();
-  return "Old job #$job_id in $group $sys_name group";
+  my $name = GetConf ('sys_name');
+  return "Old job #$job_id in $group $name group";
 }
 
 sub get_admin_emails
@@ -710,13 +703,13 @@ sub make_old_job_body
     $age, $job_id, $group_id, $date, $title, $user_name, $realname, $group)
     = @_;
   my $domain = get_default_domain ();
-  my $sys_name = get_sys_name ();
+  my $name = GetConf ('sys_name');
   my $ret = <<"  EOF";
     On $date, user $realname <$user_name> posted a job titled
-    '$title' in the <$group> group at $sys_name.
+    '$title' in the <$group> group at $name.
     This job will be marked as filled because it is very old, and then
     it will not show up in search results any more.  You can refresh
-    or completely remove it if you login $sys_name and visit
+    or completely remove it if you login $name and visit
     <$domain/people/editjob.php?group_id=$group_id&job_id=$job_id>.
   EOF
   $ret =~ s,^    ,,gm;

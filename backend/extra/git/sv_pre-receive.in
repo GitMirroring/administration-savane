@@ -43,14 +43,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use strict;
 use warnings;
-use Savane::Version;
-use Savane::Conf;
-use Savane::Util;
-use Savane::DB;
-use Savane::Groups;
+use Savane;
 use Savane::Hooks;
-use Savane::Mail;
-use Savane::SQL;
+use Getopt::Long ('GetOptions');
 use LWP::UserAgent;
 use Time::HiRes 'time';
 use File::Temp 'tempdir';

@@ -38,6 +38,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Svn;
 
 # Subs related to SVN.
 # read-write access: through authenticated ssh, spawning svnserve
@@ -49,8 +50,8 @@
 use strict;
 use warnings;
 
+use Savane::Util;
 require Exporter;
-require Savane::Util;
 our @ISA = qw(Exporter);
 our @EXPORT = qw (SvnMakeArea);
 our $version = 1;

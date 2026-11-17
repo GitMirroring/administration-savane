@@ -55,11 +55,11 @@
 use strict;
 use Savane;
 use Savane::Download;
+use Savane::Bzr;
 use Savane::Cvs;
-use Savane::Svn;
 use Savane::Git;
 use Savane::Hg;
-use Savane::Bzr;
+use Savane::Svn;
 use Getopt::Long;
 
 our $script = "sv_groups";

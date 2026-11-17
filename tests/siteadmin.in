@@ -47,6 +47,7 @@ use Savane::Version;
 use Savane::Test;
 use Savane::Test::Conf;
 use Savane::Test::Group;
+use Savane::Test::Log;
 use Savane::Test::Membership;
 use Savane::Test::User;
 use WWW::Mechanize;

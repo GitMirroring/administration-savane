@@ -37,12 +37,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Mail;
 
 # Send notifications.
 
 use strict;
-require Mail::Send;
-require Savane::Version;
+use Mail::Send;
+use Savane::Version;
+use Savane::Conf;
 require Exporter;
 
 our @ISA = qw (Exporter);

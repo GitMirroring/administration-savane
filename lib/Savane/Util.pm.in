@@ -37,17 +37,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+package Savane::Util;
 
 # Miscellaneous subs.
 
 use strict;
-require Exporter;
-require Savane::Conf;
-require Savane::User;
+use Savane::Conf;
+use Savane::Version;
 use POSIX qw (strftime);
 use File::Temp qw (tempfile);
 use File::Copy qw (move);
 
+require Exporter;
 our @ISA = qw (Exporter);
 our @EXPORT = qw (
   SQLStringEscape
@@ -59,7 +60,8 @@ our @EXPORT = qw (
 
 sub offer_source_code
 {
-  return '' if GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
+  require Savane::User;
+  return '' if Savane::User::GetUserPrefs ($ENV{'USER'}, 'quiet_ssh');
   my $skip_print = shift;
   my $script = get_prog_name ();
   my $root_url = get_server_url ();
@@ -93,12 +95,12 @@ sub SQLStringEscape
 # Expand group area template.
 sub ExpandDirTemplate
 {
-  our $sys_dir_prefix;
+  my $pfx = GetConf ('sys_dir_prefix');
   my ($dir, $name) = @_;
   my $warning = " (The string \%PROJECT was not found in $dir, there may be "
     . "a serious misconfiguration in group type)";
   $warning = '' if $dir =~ s/\%PROJECT/$name/;
-  $dir = "$sys_dir_prefix$dir" if defined ($sys_dir_prefix);
+  $dir = "$pfx$dir" if defined ($pfx);
   return ($warning, $dir);
 }
 

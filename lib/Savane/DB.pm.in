@@ -42,10 +42,12 @@
 # Any subs related to database access...
 # Usually used in other subs.
 
+package Savane::DB;
+
 use strict;
 use DBI;
-require Savane::SQL;
-require Savane::Conf;
+use Savane::SQL;
+use Savane::Conf;
 require Exporter;
 
 our @ISA = qw (Exporter);
@@ -53,8 +55,6 @@ our @EXPORT = qw (DBSet GetDBDescribe GetDBSettings GetDBList GetDBAsIs GetDB
   GetDBAlt GetDBHash GetDBLists GetDBListsRef SetDBSettings DeleteDB InsertDB
 );
 our $version = 1;
-
-our $dbd;
 
 # Return the name and type of every field of the table.
 # arg0: table
