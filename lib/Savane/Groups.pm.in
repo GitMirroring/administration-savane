@@ -44,7 +44,6 @@ use strict;
 require Exporter;
 
 use Savane::Util;
-use File::Temp qw (tempdir);
 use English;
 
 our @ISA = qw (Exporter);
