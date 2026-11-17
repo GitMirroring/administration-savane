@@ -54,6 +54,7 @@ PrintVersionOrHelp (
 );
 
 my $pfx_hash = <STDIN>;
+exit (0) unless defined $pfx_hash;
 my $passphrase = '';
 $passphrase .= $_ while (<>);
 chop $pfx_hash;

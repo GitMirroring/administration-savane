@@ -1,0 +1,391 @@
+#! @PERL@ -I@pkgdatadir@/lib
+# -*- perl -*- vi:filetype=perl
+#
+# Basic (barely harder than --help and --version) tests for scripts
+# from the backend/ directory.
+#
+# Copyright (C) 1999, 2000 The SourceForge Crew
+# Copyright (C) 2000-2006 Mathieu Roy
+# Copyright (C) 2014, 2016, 2017 Assaf Gordon
+# Copyright (C) 2001-2011, 2013, 2017 Sylvain Beucler
+# Copyright (C) 2013, 2014, 2017-2026 Ineiev
+#
+# This file is part of Savane.
+#
+# Code written before 2008-03-30 (commit 8b757b2565ff) is distributed
+# under the terms of the GNU General Public license version 3 or (at your
+# option) any later version; further contributions are covered by
+# the GNU Affero General Public license version 3 or (at your option)
+# any later version.  The license notices for the AGPL and the GPL follow.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Savane is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Savane is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+use strict;
+use warnings;
+
+use Savane::Version;
+use Savane::Test;
+use Savane::Test::Conf;
+use Savane::Test::Log;
+use File::Temp 'tempdir';
+use Cwd 'abs_path';
+use Time::HiRes 'time';
+
+PrintVersionOrHelp ("Run basic tests for 'backend' scripts.");
+
+my $bindir = '@bindir@';
+my $sbindir = '@sbindir@';
+my $statedir = abs_path ('@pkgstatedir@');
+my $confdir = '@confdir@';
+
+sub init_conf_pl
+{
+  return
+    add_savane_conf_pl ("\$sys_cvs_skip_trigger_updates = 1;\n", 'backend');
+}
+
+sub get_sv_binary
+{
+  my $dir = shift;
+  my $binary = shift;
+  my $cmd = "$dir/sv_$binary";
+  $cmd = "$dir/$binary" unless -x $cmd;
+  return $cmd;
+}
+
+sub run_sv
+{
+  my $cmd = get_sv_binary (shift, shift);
+  my @ret = run_cmd ($cmd, @_);
+  return wantarray? @ret: $ret[0];
+}
+
+sub run_sv_sbin
+{
+  return run_sv ($sbindir, @_);
+}
+
+sub run_sv_bin
+{
+  return run_sv ($bindir, @_);
+}
+
+sub mk_tempdir
+{
+  my $pfx = shift;
+  my $dir = @_? shift: '.';
+  return tempdir ("$pfx-XXXXXXXX", DIR => $dir, CLEANUP => 1);
+}
+
+sub test_log_accum
+{
+  my $dir = mk_tempdir ('commit-prep');
+  my $tmp = mk_tempdir ('commit-prep-tmp');
+  return 1 if run_sv_bin ('commit_prep.pl', '--tmp-dir', $tmp, $dir);
+  return run_sv_bin (
+    'log_accum.pl', '--quiet', '--mail-to', 'log-accum@savane.test',
+    '-r', 'ROOT'
+  );
+}
+
+sub write_file
+{
+  my $path = shift;
+  my $f;
+  unless (open ($f, '>', $path))
+    {
+       print_test_error ("Cannot open file '$path' for writing.");
+       return 1;
+    }
+  print { $f } shift;
+  close ($f);
+  return 0;
+}
+
+my @codes = qw /au br ca de ec gr it jp ma se uk us/;
+my @prot = qw /http https/;
+sub make_mirror_list
+{
+  my $mirrors = join ("\n", map { "http://test.$_/ $_" } @codes);
+  $mirrors .= "\nde\tde,uk,se,gr,ma,ca,us,br,ec\n";
+  return write_file ($ENV{'MIRROR_FILE'}, $mirrors);
+}
+
+sub test_mirror_redirect
+{
+  my %env = %ENV;
+  print_test_log ('Testing mirror-redirect.');
+  $ENV{'TEST'} = '1';
+  $ENV{'REMOTE_ADDR'} = '5.6.111.43';
+  $ENV{'REQUEST_SCHEME'} = 'http';
+  $ENV{'MIRROR_FILE'} = 'mirrors.txt';
+  $ENV{'PATH_INFO'} = '/test/test-latest.tar.gz';
+  return 1 if make_mirror_list ();
+  my $ret = run_sv_bin ('mirror-redirect');
+  unlink ($ENV{'MIRROR_FILE'});
+  %ENV = %env;
+  return $ret;
+}
+
+sub gen_active_mirrors
+{
+  my $path = shift;
+  my $mirrors = '';
+  foreach my $c (@codes)
+    {
+      $mirrors .= "$c $_://test.$c/\n" foreach (@prot);
+    }
+  return write_file ($path, $mirrors);
+}
+
+sub gen_state
+{
+  my $path = shift;
+  my $mirrors = '';
+  my $t = sprintf ('%.0f', time ());
+  foreach my $c (@codes)
+    {
+      $mirrors .= "$_://test.$c/ $t\n" foreach (@prot);
+    }
+  return write_file ($path, $mirrors);
+}
+
+sub gen_mirmon_to_geoip_input
+{
+  my ($mirrors, $state) = @_;
+  return 1 if gen_active_mirrors ($mirrors);
+  return 0 unless gen_state ($state);
+  unlink ($mirrors);
+  return 1;
+}
+
+sub test_mirmon_to_geoip
+{
+  my ($mirrors, $state) = ('mirrors', 'state');
+  return 1 if gen_mirmon_to_geoip_input ($mirrors, $state);
+  my $ret = run_sv_bin (
+    'mirmon-to-geoip', $state, $mirrors, '/dev/null', '/dev/null'
+  );
+  unlink ($state, $mirrors);
+  return $ret;
+}
+
+sub test_collect_mirror_stats
+{
+  my $in_dir = mk_tempdir ('collect-mirror-in');
+  my $out_dir = mk_tempdir ('collect-mirror-out');
+  return run_sv_bin ('collect-mirror-stats', '-i', $in_dir, '-o', $out_dir);
+}
+
+sub test_gnu_mirmon
+{
+  my $mirror_list = <<'  EOF';
+
+    * GNU mirror list
+
+    Canada - https://test.ca/gnu/, http://test.ca/gnu/
+    Canada - https://www.test.ca/gnu/, http://www.test.ca/gnu/
+
+    US-Texas - https://test.org/gnu/, http://test.com/gnu/
+
+  EOF
+  my $path = abs_path ('mirror-list.txt');
+  $mirror_list =~ s/ {4}//gm;
+  write_file ($path, $mirror_list);
+  return run_sv_bin (
+    'gnu-mirmon', '--all', '--prep-ftp', "file://$path", '/dev/null'
+  );
+}
+
+sub test_regen_stat_index
+{
+  my $out_dir = mk_tempdir ('regen-stat-index');
+  return run_sv_bin ('regen-stat-index', '-d', $out_dir);
+}
+
+sub try_touch
+{
+  my $path = shift;
+  `touch $path`;
+  return 0 unless $?;
+  print_test_error ("Cannot touch '$path': $!.");
+  return 1;
+}
+
+sub test_regen_stats
+{
+  my $out_dir = mk_tempdir ('regen-stats');
+  my $path = "$out_dir/1983-09.27";
+  return 1 if try_touch ($path);
+  return run_sv_bin ('regen-stats', $path);
+}
+
+sub test_summarize_latest_stats
+{
+  my $out_dir = mk_tempdir ('summarize-latest-stats');
+  return 1 if try_touch ("$out_dir/latest-requests");
+  return run_sv_bin ('summarize-latest-stats', '-d', $out_dir);
+}
+
+sub test_external
+{
+  my $ret = 0;
+  $ret = 1 if test_log_accum ();
+  $ret = 1 if test_mirror_redirect ();
+  # Test auxiliary scripts for mirror-redirect at once, even though
+  # they are not in backend/external/.
+  $ret = 1 if run_sv_bin ('city-filter');
+  $ret = 1 if test_mirmon_to_geoip ();
+  $ret = 1 if test_gnu_mirmon ();
+  $ret = 1 if test_regen_stat_index ();
+  $ret = 1 if test_regen_stats ();
+  $ret = 1 if test_summarize_latest_stats ();
+  $ret = 1 if test_collect_mirror_stats ();
+  return $ret;
+}
+
+sub re_launch_db
+{
+  my $pidfile = '@mysql_pid@';
+  print_test_log ('Re-launching database.');
+  my $t = time ();
+  return 1 if run_sv_sbin ('launch_db.pl');
+  for (my $i = 0; $i < 0x121 && ! -f $pidfile; $i++)
+    {
+      select (undef, undef, undef, 0.1);
+    }
+  $t = time () - $t;
+  if (-f ($pidfile))
+    {
+      my $msg = sprintf ('Launched database sucessfully in %.3fs.', $t);
+      print_test_result ($msg);
+      return 0;
+    }
+  my $msg = sprintf ('Database is not running after %.3fs.', $t);
+  print_test_error ($msg);
+  return 0;
+}
+
+sub test_gen_passwd_group
+{
+  my $dir = mk_tempdir ('gen-passwd-group');
+  return run_sv_bin ('gen_passwd_group', '--output-dir', $dir);
+}
+
+sub test_groups
+{
+  my $dir = mk_tempdir ('sv-groups', $statedir);
+  unless (mkdir "$dir/git")
+    {
+      print_test_error ("Cannot mkdir '$dir/git': $!.");
+      return 1;
+    }
+  return run_sv_bin (
+    'groups', '--no-group-check', '--logfile', 'sv_groups.log',
+    '--dir-prefix', substr ($dir, length ($statedir))
+  );
+}
+
+sub test_membersh
+{
+  my $dir = mk_tempdir ('membersh');
+  my $f;
+  unless (open ($f, '>', "$confdir/membersh-conf.pl"))
+    {
+      print_test_error (
+        "Cannot open $confdir/membersh-conf.pl for writing: $!."
+      );
+      return 1;
+    }
+  print { $f }
+    "push \@commands_enabled, 'rmdir';\n\$allowed_paths = '.*';\nreturn 1;\n";
+  close ($f);
+  return run_sv_bin ('membersh', '-c', "'rmdir $dir'");
+}
+
+sub test_cgit
+{
+  my $dir = mk_tempdir ('cgit');
+  return run_sv_bin (
+    'cgit.pl', '--topdir', $dir, '--repo-list', '/dev/null',
+    '--output', '/dev/null'
+  );
+}
+
+sub test_git_gc_repos
+{
+  my $dir = mk_tempdir ('gc-repos');
+  return run_sv_bin (
+    'git_gc_repos.pl', '--topdir', $dir, '--logfile', '/dev/null'
+  );
+}
+
+sub test_aliases
+{
+  return run_sv_bin (
+    'aliases', '--dry-run', '--logfile', '/dev/null', '--emails', '/dev/null',
+    '--aliases', '/dev/null'
+  );
+}
+
+sub test_mailman_wrapper
+{
+  my $binary = get_sv_binary ($bindir, 'mailman-wrapper.pl');
+  my @ret = run_cmd ("echo command=version | $binary");
+  return $ret[0];
+}
+
+sub test_reminder
+{
+  my $dir = mk_tempdir ('reminder');
+  return run_sv_bin ('reminder', '--dry-run', '--logfile', "$dir/log");
+}
+
+sub main
+{
+  return 1 if init_conf_pl ();
+  return 1 if run_sv_sbin ('kill_db.pl');
+  my $ret = 0;
+  $ret = 1 if run_sv_bin ('crypt');
+  $ret = 1 if test_external ();
+  $ret = 1 if run_sv_bin ('cgit_about_filter.pl');
+  $ret = 1 if test_git_gc_repos ();
+  $ret = 1 if test_mailman_wrapper ();
+  $ret = 1 if run_sv_bin ('drop-old-tarballs');
+  $ret = 1 if run_sv_sbin ('frontendctl.pl', '-t');
+  return 1 if re_launch_db ();
+  $ret = 1 if test_gen_passwd_group ();
+  $ret = 1 if test_groups ();
+  $ret = 1 if run_sv_bin ('get_authorized_keys', '-');
+  $ret = 1 if test_membersh ();
+  $ret = 1 if test_cgit ();
+  $ret = 1 if test_aliases ();
+  $ret = 1 if run_sv_bin ('cleaner', '--logfile', '/dev/null');
+  $ret = 1 if test_reminder ();
+  return $ret;
+}
+
+exit (main ());
