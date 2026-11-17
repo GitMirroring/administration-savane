@@ -52,6 +52,7 @@ use WWW::Mechanize;
 use File::Temp "tempfile";
 use File::Basename qw (basename dirname);
 use Cwd 'abs_path';
+use Time::HiRes 'time';
 require Exporter;
 
 our @ISA = qw (Exporter);
@@ -66,6 +67,7 @@ our @EXPORT = qw (
   check_status_code check_inaccessibility get_user_id
   get_group_id run_cleanup check_request_status
   write_test_php rm_test_php select_root_url get_twin_idx
+  run_cmd report_output
 );
 
 my $bindir = '@bindir@';
@@ -691,6 +693,37 @@ sub check_mbox
     }
   print_test_result ("Mbox was expectedly not empty.");
   return 0;
+}
+
+sub report_output
+{
+  my $res = shift;
+  my $out = join ('', @_);
+  if ($out eq '')
+    {
+      print_test_result ('Command output was empty.', $res);
+      return;
+    }
+  $out =~ s/^/| /gm;
+  print_test_result ("Command output was,\n---\n$out---\n", $res);
+}
+
+sub run_cmd
+{
+  my $cmd_line = join (' ', @_);
+  my $msg = $cmd_line;
+  $msg =~ s/^/| /gm;
+  print_test_log ("Running command line,\n===\n$msg\n===");
+  my $t = time ();
+  my $out = `$cmd_line 2>&1`;
+  my $ret = $?;
+  $t = time () - $t;
+  $out = '' unless defined $out;
+  my $fmt = 'Command has run successfully in %.3fs.';
+  $fmt = 'Command failed after %.3fs.' if $ret;;
+  print_test_log (sprintf ($fmt, $t));
+  report_output ($ret, $out);
+  return ($ret, $out);
 }
 
 END

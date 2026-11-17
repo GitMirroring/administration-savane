@@ -965,19 +965,6 @@ sub check_rejected_unsigned_output
   return 0;
 }
 
-sub report_output
-{
-  my $res = shift;
-  my $out = join ('', @_);
-  if ($out eq '')
-    {
-      print_test_result ('Command output was empty.', $res);
-      return;
-    }
-  $out =~ s/^/| /gm;
-  print_test_result ("Command output was,\n---\n$out---\n", $res);
-}
-
 my $check_rejected_push_output = \&check_rejected_merge_output;
 
 sub try_push

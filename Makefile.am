@@ -80,6 +80,7 @@ all_scripts = $(sbin_all:%=backend/sbin/%) $(bin_all)
 
 build_time_scripts = db/init-database.pl
 test_scripts = \
+  tests/backend \
   tests/field-usage \
   tests/i18n \
   tests/jobs \
