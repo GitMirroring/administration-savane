@@ -23,11 +23,12 @@
 
 use strict;
 require Mail::Send;
+use Savane::Conf;
 use Savane::Version;
 
 # Configurable options.
 
-my $CVSBIN        = "/usr/bin/cvs";
+my $CVSBIN        = configured_binary ('cvs');
 my $TMPDIR        = "/tmp";
 
 # Set this to a domain to have CVS pretend that all users who make
