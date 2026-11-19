@@ -167,9 +167,14 @@ sub BuildHooks
 
 sub command_line_to_update_pages
 {
-  my $type = shift;
-  return configured_binary ('curl') . ' ' . new_sp_url () . ' '
-    . "-s -F type=$type -F project=`basename %r`";
+  my ($type, $name) = @_;
+  my $curl = configured_binary ('curl');
+  return $curl . ' ' . new_sp_url () . ' ' . "-s -F type=$type -F project=$name"
+    unless $curl eq '';
+  my $wget = configured_binary ('wget');
+  return 'echo No configured binary to trigger page updates.';
+    if $get eq '';
+  return $wget " '" . new_sp_url () . "&type=$type&project=$name'";
 }
 
 sub BasicWebHook
@@ -177,7 +182,7 @@ sub BasicWebHook
   my ($name) = @_;
   my $type = CvsSavannahWebType ($name);
   return "ALL echo 'Triggering webpages update...'; cat > /dev/null; "
-    . command_line_to_update_pages ($type) . "\n"
+    . command_line_to_update_pages ($type, '`basename %r`') . "\n"
 }
 
 sub load_file
@@ -467,9 +472,7 @@ sub trigger_initial_checkout
   my $ws_type = CvsSavannahWebType ($name);
   # Perform an initial checkout so that updates happen:
   # (will also be done at commit time now).
-  util_system ('curl', new_sp_url (),
-    '-s', '-F', "type=$ws_type", '-F', "project=$name"
-  );
+  system (command_line_to_update_pages ($ws_type, $name));
 }
 
 sub finalize_cvs_area
