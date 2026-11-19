@@ -39,7 +39,6 @@ our $sys_default_domain = '@WWW_SERVER_HOST@';
 our $sys_www_server_port = '@WWW_SERVER_PORT@';
 our $sys_mail_replyto = 'INVALID.NOREPLY';
 our $sys_name = 'Savannah-dev';
-our $sys_curl_bin = '/usr/bin/curl';
 our $sys_server_default_protocol = 'http';
 our %sys_binaries = ();
 
@@ -83,6 +82,8 @@ my %binaries = (
   'svn' => '@SVN@',
   'svnadmin' => '@SVNADMIN@',
   'gpg' => '@GPG@',
+  'curl' => '@CURL@',
+  'wget' => '@WGET@'
 );
 
 foreach (keys %binaries)

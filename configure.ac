@@ -75,6 +75,9 @@ AX_PATH_PROG([PHP], [php], [PHP executable])
 AX_PATH_PROG([SENDMAIL], [sendmail], [sendmail executable])
 AX_PATH_PROG([GPG], [gpg], [GnuPG executable])
 
+AX_PATH_PROG([CURL], [curl], [curl executable])
+AX_PATH_PROG([WGET], [wget], [wget executable])
+
 # Look for Apache2 and database server, needed for local testing.
 apache_path="$PATH$PATH_SEPARATOR/usr/sbin"
 AX_PATH_PROG([WWW_SERVER_BIN], [apache2], [Apache2 executable], [$apache_path])
@@ -468,6 +471,14 @@ AS_CASE([$have_mechanize-$have_recent_libwww_perl], [yes-no],
     AS_ECHO(["      The test and distcheck targets will fail."])
   ]
 )
+
+AS_CASE(["$CURL.$WGET"], [.],
+  [
+    AS_ECHO(["Note: neither wget nor curl found."])
+    AS_ECHO(["      The sv_groups script will not work."])
+  ]
+)
+
 AS_ECHO([])
 AS_ECHO(["Now you can run"])
 AS_ECHO(["  make all install installcheck"])
