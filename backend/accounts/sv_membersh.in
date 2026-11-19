@@ -113,7 +113,7 @@ process_help_and_version () unless ($ARGV[0] eq "-c");
 # in the stub savane.conf.pl.
 offer_source_code ();
 
-output_error_msg () unless ($#ARGV == 1 && $ARGV[0] eq "-c");
+report_wrong_args () unless ($#ARGV == 1 && $ARGV[0] eq "-c");
 
 for my $cmd (@commands_enabled)
   {
@@ -248,9 +248,21 @@ sub run_svn
 
 sub output_error_msg
 {
-  print STDERR "You tried to execute: @ARGV[1..$#ARGV]\n";
+  print STDERR "You tried to execute: $ARGV[1]\n";
   print STDERR "Sorry, you are not allowed to execute that command.\n";
   print STDERR list_available (sort @commands_enabled);
+  exit (1);
+}
+
+sub report_wrong_args
+{
+  my $no = $#ARGV + 1;
+  print STDERR "Wrong number of arguments: $no, exactly 2 expected.\n"
+    unless $no == 2;
+  print STDERR "Wrong first argument: '$ARGV[0]', '-c' expected.\n"
+    unless $ARGV[0] eq '-c';
+  my $args = "'" . join ("' '", @ARGV) . "'";
+  print STDERR "The arguments supplied are, $args.\n";
   exit (1);
 }
 
