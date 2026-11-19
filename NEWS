@@ -40,6 +40,8 @@
 * New scripts, sv_receive and sv_pre-receive, to be used as Git pre-receive
   and post-receive hooks.
 
+* When curl is absent, sv_groups tries wget to update web pages on CVS commits.
+
 [BUILD]
 
 * New configure variables, CURL and WGET.

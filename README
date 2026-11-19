@@ -124,7 +124,7 @@ Run Time
 --------
 
 * GNU Coreutils
-* Curl (Savannah-specific: triggering web page updates on changes in CVS)
+* Curl or Wget (Savannah-specific: updating web pages on changes in CVS)
 * Grep
 * Git >= 1.7.9 (applying Git hooks, see doc/git-hooks)
 * GnuPG
