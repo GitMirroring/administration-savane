@@ -42,6 +42,9 @@ our $sys_name = 'Savannah-dev';
 our $sys_server_default_protocol = 'http';
 our %sys_binaries = ();
 
+# Whether to disable curl invocation (used in tests).
+our $sys_cvs_skip_trigger_updates = 0;
+
 $conf_prefix = $ENV{'SAVANE_CONF'} if $ENV{'SAVANE_CONF'};
 
 $conf_file = "$conf_prefix/savane.conf.pl";
