@@ -40,6 +40,10 @@
 * New scripts, sv_receive and sv_pre-receive, to be used as Git pre-receive
   and post-receive hooks.
 
+[BUILD]
+
+* New configure variables, CURL and WGET.
+
 2026-09-26 3.18
 
 [FRONTEND]

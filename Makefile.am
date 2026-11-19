@@ -208,6 +208,8 @@ subst_in_files = \
     -e 's,[@]HG[@],$(HG),g' \
     -e 's,[@]SVN[@],$(SVN),g' \
     -e 's,[@]SVNADMIN[@],$(SVNADMIN),g' \
+    -e 's,[@]CURL[@],$(CURL),g' \
+    -e 's,[@]WGET[@],$(WGET),g' \
     -e 's,[@]GPG[@],$(GPG),g' \
     -e 's,[@]PERL[@],$(PERL),g' \
     -e 's,[@]PACKAGE[@],$(PACKAGE),g' \

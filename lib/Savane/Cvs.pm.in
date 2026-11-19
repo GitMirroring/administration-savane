@@ -165,13 +165,19 @@ sub BuildHooks
   return ($log_accum, $commit_prep, '');
 }
 
+sub command_line_to_update_pages
+{
+  my $type = shift;
+  return configured_binary ('curl') . ' ' . new_sp_url () . ' '
+    . "-s -F type=$type -F project=`basename %r`";
+}
+
 sub BasicWebHook
 {
   my ($name) = @_;
   my $type = CvsSavannahWebType ($name);
   return "ALL echo 'Triggering webpages update...'; cat > /dev/null; "
-    . GetConf ('sys_curl_bin') . ' ' . new_sp_url () . ' '
-    . "-s -F type=$type -F project=`basename %r`\n"
+    . command_line_to_update_pages ($type) . "\n"
 }
 
 sub load_file
@@ -455,10 +461,20 @@ sub make_cvs_area
   return '';
 }
 
+sub trigger_initial_checkout
+{
+  my $name = shift;
+  my $ws_type = CvsSavannahWebType ($name);
+  # Perform an initial checkout so that updates happen:
+  # (will also be done at commit time now).
+  util_system ('curl', new_sp_url (),
+    '-s', '-F', "type=$ws_type", '-F', "project=$name"
+  );
+}
+
 sub finalize_cvs_area
 {
   my ($dir, $name, $update_acl) = @_;
-  my $ws_type = CvsSavannahWebType ($name);
   $update_acl = 0 if $<;
 
   if ($update_acl)
@@ -469,11 +485,7 @@ sub finalize_cvs_area
       );
       util_system ('setfacl', '-m', 'group:www:rw', "$dir/CVSROOT/history");
     }
-  # Perform an initial checkout so that updates happen:
-  # (will also be done at commit time now).
-  system (GetConf ('sys_curl_bin'), new_sp_url (),
-    '-s', '-F', "type=$ws_type", '-F', "project=$name"
-  );
+  trigger_initial_checkout ($name);
   return '';
 }
 
