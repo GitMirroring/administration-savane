@@ -168,13 +168,15 @@ sub BuildHooks
 sub command_line_to_update_pages
 {
   my ($type, $name) = @_;
+  my $dry_run = GetConf ('sys_cvs_skip_trigger_updates')? 'echo ': '';
   my $curl = configured_binary ('curl');
-  return $curl . ' ' . new_sp_url () . ' ' . "-s -F type=$type -F project=$name"
-    unless $curl eq '';
+  return
+    "$dry_run$curl " . new_sp_url () . ' ' . "-s -F type=$type -F project=$name"
+    if $curl ne 'false';
   my $wget = configured_binary ('wget');
-  return 'echo No configured binary to trigger page updates.';
-    if $get eq '';
-  return $wget " '" . new_sp_url () . "&type=$type&project=$name'";
+  return 'echo No configured binary to trigger page updates.'
+    if $wget eq 'false';
+  return "$dry_run$wget '" . new_sp_url () . "&type=$type&project=$name'";
 }
 
 sub BasicWebHook
