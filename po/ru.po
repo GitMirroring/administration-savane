@@ -46,10 +46,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: savane 3.17\n"
+"Project-Id-Version: savane 3.18\n"
 "Report-Msgid-Bugs-To: savannah-hackers-public@gnu.org\n"
-"POT-Creation-Date: 2026-09-18 09:08+0000\n"
-"PO-Revision-Date: 2026-09-08 15:44+0000\n"
+"POT-Creation-Date: 2026-11-20 09:00+0000\n"
+"PO-Revision-Date: 2026-11-20 15:44+0000\n"
 "Last-Translator: Ineiev <ineiev@gnu.org>\n"
 "Language-Team: Russian <savannah-hackers-public@gnu.org>\n"
 "Language: ru\n"
@@ -83,6 +83,12 @@ msgstr "Поднять"
 msgid "Move down"
 msgstr "Опустить"
 
+msgid "Git hooks"
+msgstr "Перехватчики событий Git"
+
+msgid "Update"
+msgstr "Обновить"
+
 msgid ""
 "Path to a file like <code><var>branch</var>:<var>directory</var>/<var>file</"
 "var></code>.\n"
@@ -114,8 +120,12 @@ msgstr "Настройки сервера просмотра"
 msgid "README file:"
 msgstr "Файл README:"
 
-msgid "Update"
-msgstr "Обновить"
+#, php-format
+msgid ""
+"This page displays the configuration of Git repositories\n"
+"of the group &lt;%s&gt;."
+msgstr ""
+"Эта страница отображает конфигурацию репозиториев Git группы &lt;%s&gt;."
 
 #, php-format
 msgid "Item #%s not found."
@@ -1253,7 +1263,6 @@ msgstr "Вот список вакансий этого проекта. Выбе
 msgid "Delete job"
 msgstr "Удалить вакансию"
 
-#| msgid "You are about to delete the mailing list %s, please confirm:"
 msgid "You are about to delete this job, please confirm:"
 msgstr "Вы собираетесь удалить вакансию, подтвердите:"
 
@@ -1378,32 +1387,6 @@ msgstr "Добавить категории работы"
 
 msgid "Add Job Skills"
 msgstr "Добавить навыки"
-
-#, php-format
-msgid "Job #%s not found"
-msgstr "Вакансия №%s не найдена"
-
-msgid "View a Job"
-msgstr "Просмотр вакансии"
-
-#, php-format
-msgid "%1$s for %2$s"
-msgstr "%1$s для %2$s"
-
-msgid "Submitter:"
-msgstr "Автор:"
-
-msgid "License"
-msgstr "Лицензия"
-
-msgid "Invalid status ID"
-msgstr "Неверный идентификатор состояния"
-
-msgid "Development Status"
-msgstr "Состояние разработки"
-
-msgid "Details (job description, contact ...):"
-msgstr "Детали (описание работы, координаты...):"
 
 msgid "This user hasn't registered a GPG key."
 msgstr "Этот пользователь не зарегистрировал ключ GPG."
@@ -1596,8 +1579,8 @@ msgstr[2] "(требуется %s помощников)"
 msgid "%s Repository"
 msgstr "Репозиторий %s"
 
-msgid "Administer"
-msgstr "Администрирование"
+msgid "Configure"
+msgstr "Настроить"
 
 msgid "Browse Sources Repository"
 msgstr "Просмотреть репозиторий исходных текстов"
@@ -3897,6 +3880,9 @@ msgstr ""
 "техникам, переназначать заявки на другие журналы и группы, изменять "
 "приоритеты, открывать и закрывать заявки"
 
+msgid "Submitter:"
+msgstr "Автор:"
+
 msgid "Submit changes and browse items"
 msgstr "Сохранить и вернуться к списку"
 
@@ -4381,11 +4367,15 @@ msgstr "Добавлено к набору навыков "
 msgid "Inserting into skill inventory"
 msgstr "Добавление навыка к набору"
 
-msgid "SQL Error:"
-msgstr "Ошибка SQL:"
+#, php-format
+msgid "Group %s has not job #%d."
+msgstr "Группе %s не принадлежит вакансия №%d."
 
-msgid "Required Skills"
-msgstr "Необходимы навыки"
+msgid "Add a New Skill"
+msgstr "Добавить новый навык:"
+
+msgid "Add Skill"
+msgstr "Добавить навык"
 
 msgid "Skill"
 msgstr "Навык"
@@ -4395,15 +4385,6 @@ msgstr "Уровень"
 
 msgid "Experience"
 msgstr "Опыт"
-
-msgid "Group %s has not job #%i."
-msgstr "Группе %s не принадлежит вакансия №%i."
-
-msgid "Add a New Skill"
-msgstr "Добавить новый навык:"
-
-msgid "Add Skill"
-msgstr "Добавить навык"
 
 msgid "Action"
 msgstr "Действие"
@@ -4477,6 +4458,27 @@ msgstr "Ошибка: навык уже в наборе"
 msgid "ERROR inserting into skill inventory"
 msgstr "Ошибка при добавлении к набору навыков"
 
+msgid "SQL Error:"
+msgstr "Ошибка SQL:"
+
+msgid "Required Skills"
+msgstr "Необходимы навыки"
+
+msgid "View a Job"
+msgstr "Просмотр вакансии"
+
+#. TRANSLATORS: the first argument is job title (like Tester or Developer),
+#. the second argument is group name (like GNU Coreutils).
+#, php-format
+msgid "%1$s for %2$s"
+msgstr "%1$s для %2$s"
+
+msgid "Invalid status ID"
+msgstr "Неверный идентификатор состояния"
+
+msgid "Details (job description, contact ...):"
+msgstr "Детали (описание работы, координаты...):"
+
 #. TRANSLATORS: The argument is a name of VCS (like Arch, CVS, Git).
 #, php-format
 msgid "Browsing the %s Repository"
@@ -4504,6 +4506,92 @@ msgstr "Эта группа не пользуется этим средство�
 #, php-format
 msgid "Getting a Copy of the %s Repository"
 msgstr "Получение копии репозитория %s"
+
+msgid ""
+"Check this box to enable auto-closing tracker items.  When commits with "
+"lines in the footer of the log message like &ldquo;<code>Closes-Item: "
+"<i>tracker</i> #<i>item_id</i></code>&rdquo; are pushed, the item "
+"#<i>item_id</i> in the tracker <i>tracker</i> will be closed.  The line may "
+"end with an optional comment string.  The <i>item_id</i> should be a decimal "
+"number, <i>tracker</i> should be selected from the list,"
+msgstr ""
+"Этот признак включает автоматическое закрытие заявок в журналах. Когда "
+"выгружаются фиксации со строками вида &ldquo;<code>Closes-Item: "
+"<i>журнал</i> #<i>заявка</i></code>&rdquo; в нижней части комментария к "
+"фиксации, соответствующая заявка закрывается. Строка может завершаться "
+"необязательным комментарием. Строка <i>заявка</i> должна быть десятичной записью "
+"номера заявки, <i>журнал</i> может принимать значения из списка:"
+
+msgid "Likewise, open items with &ldquo;<code>Opens-Item:</code>&rdquo;."
+msgstr "То же, открывать заявки по &ldquo;<code>Opens-Item:</code>&rdquo;."
+
+msgid ""
+"Similarly, &ldquo;<code>Updates-Item:</code>&rdquo; will add a comment on "
+"the tracker without changing its status."
+msgstr ""
+"Сходным образом добавлять примечания к заявкам, содержащим "
+"&ldquo;<code>Updates-Item:</code>&rdquo;, без изменения состояния заявки."
+
+msgid "Pushes with any merge commits will be rejected."
+msgstr "Не допускать выгрузки с фиксациями-слияниями."
+
+msgid ""
+"Additional hooks are installed in this repository. You can enable or disable "
+"them."
+msgstr ""
+"В репозитории установлены дополнительные перехватчки. Здесь можно "
+"включать и отключать их."
+
+msgid "Enable auto-closing"
+msgstr "Включить авто-закрытие"
+
+msgid "Enable auto-opening"
+msgstr "Включить авто-открытие"
+
+msgid "Enable commenting on Git push"
+msgstr "Включить добавление комментариев из журнала Git"
+
+msgid "Forbid merges"
+msgstr "Запретить слияния"
+
+msgid "Extra hooks"
+msgstr "Дополнительные перехватчики"
+
+msgid "new branches"
+msgstr "новые ветви"
+
+msgid "Apply to branches:"
+msgstr "Применять в ветвям:"
+
+msgid "Addresses to notify about commits:"
+msgstr "Адреса для оповещения о фиксациях:"
+
+msgid "Addresses to notify about tags:"
+msgstr "Адреса для оповещения о метках:"
+
+msgid "Notifications"
+msgstr "Оповещения"
+
+msgid "Notify about pushes by email"
+msgstr "Оповещать о выгрузках по электронной почте"
+
+msgid "Include diffs in reports"
+msgstr "Включить в отчеты разности"
+
+msgid "Report commits in separate messages"
+msgstr "Высылать отчеты о фиксациях в отдельных сообщениях"
+
+msgid "Allowed GPG keys"
+msgstr "Разрешенные ключи GPG"
+
+msgid "GPG signatures"
+msgstr "Подписи GPG"
+
+msgid "Only allow signed commits."
+msgstr "Допускать только подписанные фиксации."
+
+msgid "No repositories are found."
+msgstr "Репозиториев не найдено."
 
 msgid "n/a"
 msgstr "(нет)"
@@ -5048,6 +5136,8 @@ msgstr ""
 msgid "Exclude List:"
 msgstr "Список исключений:"
 
+#. TRANSLATORS: the argument is table name (like groups);
+#. the string shall be followed by database error message.
 #, php-format
 msgid "%s table Update failed:"
 msgstr "Не удается обновить таблицу %s:"
@@ -6273,8 +6363,8 @@ msgid "Account configuration: authentication, cosmetics preferences..."
 msgstr ""
 "Настройка учетной записи: вход в систему, косметические предпочтения..."
 
-msgid "Administer:"
-msgstr "Администрировать:"
+msgid "Configure:"
+msgstr "Настроить:"
 
 msgid "Edit public info"
 msgstr "Править общедоступные сведения"
@@ -6357,9 +6447,6 @@ msgstr "Просмотр"
 msgid "List existing mailing lists"
 msgstr "Существующие списки рассылки"
 
-msgid "Configure:"
-msgstr "Настроить:"
-
 msgid "Mailing lists"
 msgstr "Рассылки"
 
@@ -6368,9 +6455,6 @@ msgstr "Исходный текст"
 
 msgid "Source code management"
 msgstr "Работа с исходным текстом"
-
-msgid "Configure"
-msgstr "Настроить"
 
 msgid "News Manager: edit notifications"
 msgstr "Настройка оповещений о новостях"
@@ -9024,3 +9108,19 @@ msgstr "Это группа переводов www.gnu.org."
 
 msgid "This group contains extras for official GNU software."
 msgstr "Эта группа содержит дополнения к официальным пакетам GNU."
+
+#, php-format
+#~ msgid "Job #%s not found"
+#~ msgstr "Вакансия №%s не найдена"
+
+#~ msgid "License"
+#~ msgstr "Лицензия"
+
+#~ msgid "Development Status"
+#~ msgstr "Состояние разработки"
+
+#~ msgid "Administer"
+#~ msgstr "Администрирование"
+
+#~ msgid "Administer:"
+#~ msgstr "Администрировать:"
