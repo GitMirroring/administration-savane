@@ -321,6 +321,10 @@ derived_png = \
 png_src = $(derived_png:%.png=%.orig.png)
 
 ordinary_files = \
+  php/banner/202611fundraiser.html \
+  php/banner/fonts/poppins/v20/font.css \
+  php/banner/html5shiv/3.7.3/html5shiv.js \
+  php/banner/respond.js/1.4.2/respond.min.js \
   php/404-export.php \
   php/404.php \
   php/account/first.php \

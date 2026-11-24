@@ -226,7 +226,6 @@ class Layout extends savane_error
     print "<br />" . utils_link ($url, _("Corresponding source code"));
     print "</p></div>\n</div> <!-- class='main' -->\n";
     print "</div> <!-- class='realbody' -->\n";
-    print "<iframe title=\"FSF Fundraiser Banner\" src=\"/banner/202611fundraiser.html\" scrolling=\"no\"> </iframe>\n";
     print "\n</body>\n</html>\n";
     utils_output_debug_footer ();
   }
@@ -237,6 +236,7 @@ class Layout extends savane_error
     $this->generic_header_end ($params);
 
     print "\n<body>\n<div class='realbody'>\n";
+    print "<iframe title=\"FSF Fundraiser Banner\" src=\"/banner/202611fundraiser.html\" scrolling=\"no\"> </iframe>\n";
     sitemenu ($params);
     print "<div id='top' class='main'>\n";
     pagemenu ($params);
