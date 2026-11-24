@@ -473,16 +473,59 @@ sub check_submit_notification
   return $ret;
 }
 
+sub find_subscription_button
+{
+  my $agent = shift;
+  my $form = find_form (
+    $agent, 'subscription', 'subscribe.html',
+    qw (form_id group_id item_id func)
+  );
+  return 1 unless defined $form;
+  my $input = $form->find_input ('func');
+  unless (defined $input)
+    {
+      print_test_error ('Cannot find "func" input.');
+      return 1;
+    }
+  my $val = $input->value;
+  if ($val eq 'subscribe')
+    {
+      print_test_result ('Subscription button is present.');
+      return 0;
+    }
+  prtnt_test_error ("Wrong value of 'func': '$val', 'subscribe' expected." );
+  return 1;
+}
+
+sub check_unsubscribing
+{
+  my $agent = shift;
+  my $form = find_form (
+    $agent, 'unsubscription', 'unsubscribe.html',
+    qw (form_id group_id item_id func)
+  );
+  return 1 unless defined $form;
+  $agent->click ();
+  my $ret = check_request_status ($agent);
+  $ret = 1 if find_subscription_button ($agent);
+  print_test_result ('Unsubscribed successfully.') unless $ret;
+  print_test_error ('Cannot unsubscribe.') if $ret;
+  return $ret;
+}
+
 sub check_new_item
 {
   my ($agent, $art, $item_id, $name) = @_;
   $tracker = $art;
   print_test_log ("Checking $tracker #$item_id.");
-  my $notif_result = check_submit_notification ($item_id, $name);
+  my $ret = check_submit_notification ($item_id, $name);
   return 1 if $item_id < 0;
   $agent->get (make_url (comment_page_url ($item_id)));
   return 1 if check_request_status ($agent);
-  return $notif_result;
+  return $ret unless $name ne displayed_user_name (undef);
+  print_test_log ('Checking unsubscribing.');
+  $ret = 1 if check_unsubscribing ($agent);
+  return $ret;
 }
 
 my %submitters_by_item_id;
