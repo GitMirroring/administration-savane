@@ -964,3 +964,19 @@ span.show-hide
 {
   cursor: pointer;
 }
+
+iframe
+{
+  width: 100%;
+  height: 284px;
+  display: block;
+  margin: 0;
+  border: 0 none;
+  overflow: hidden;
+}
+
+/* Hiding the banner per frontend/php/banner/202611fundraiser.html:128. */
+@media (max-width: 360px)
+{
+  iframe { display: none; }
+}
